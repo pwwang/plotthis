@@ -7,7 +7,8 @@
 BarPlotGrouped(
   data,
   x,
-  y,
+  y = NULL,
+  flip = FALSE,
   group_by,
   group_by_sep = "_",
   theme = "theme_this",
@@ -41,7 +42,10 @@ BarPlotGrouped(
 
 \item{x}{A character string specifying the column name of the data frame to plot for the x-axis.}
 
-\item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
+\item{y}{A character vector specifying the column as the y axis of the plot.
+Default is NULL, meaning the y axis is the count of the data.}
+
+\item{flip}{A logical value indicating whether to flip the x and y axes.}
 
 \item{group_by}{Columns to group the data for plotting
 For those plotting functions that do not support multiple groups,

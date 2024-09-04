@@ -7,7 +7,8 @@
 BarPlotSingle(
   data,
   x,
-  y,
+  y = NULL,
+  flip = FALSE,
   theme = "theme_this",
   theme_args = list(),
   palette = "Paired",
@@ -33,7 +34,10 @@ BarPlotSingle(
 
 \item{x}{A character string specifying the column name of the data frame to plot for the x-axis.}
 
-\item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
+\item{y}{A character vector specifying the column as the y axis of the plot.
+Default is NULL, meaning the y axis is the count of the data.}
+
+\item{flip}{A logical value indicating whether to flip the x and y axes.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}

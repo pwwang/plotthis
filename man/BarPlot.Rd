@@ -7,7 +7,8 @@
 BarPlot(
   data,
   x,
-  y,
+  y = NULL,
+  flip = FALSE,
   fill_by_x_if_no_group = TRUE,
   group_by = NULL,
   group_by_sep = "_",
@@ -54,6 +55,8 @@ BarPlot(
 \item{x}{A character string specifying the column name of the data frame to plot for the x-axis.}
 
 \item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
+
+\item{flip}{A logical value indicating whether to flip the x and y axes.}
 
 \item{fill_by_x_if_no_group}{A logical value indicating whether to fill the bars by the x-axis values if there is no group_by.}
 
@@ -157,4 +160,8 @@ BarPlot(data, x = "x", y = "y", split_by = "group",
         facet_by = "facet", position = "dodge", facet_ncol = 1)
 BarPlot(data, x = "group", y = "y", group_by = "x",
         position = "dodge", add_bg = TRUE, bg_palette = "Spectral")
+# use the count
+BarPlot(data, x = "group", ylab = "count")
+# flip the plot
+BarPlot(data, x = "group", flip = TRUE, ylab = "count")
 }
