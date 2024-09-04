@@ -1,0 +1,4 @@
+url: https://pwwang.github.io/plotthis/
+template:
+  bootstrap: 5
+  bootswatch: lumen
