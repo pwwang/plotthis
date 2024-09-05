@@ -253,10 +253,10 @@ combine_plots <- function(plots, combine, nrow, ncol, byrow, recalc_size = TRUE)
 #' @param palcolor A character string specifying the color to use in the palette
 #' @param alpha A numeric value specifying the transparency of the plot
 #' @param keep_empty A logical value indicating whether to keep empty groups
-#' @param facet_by A character string specifying the column name of the data frame to facet the plot
+#' @param direction A character string specifying the direction for the background
 #' @return A ggplot layer for background
 #' @importFrom ggplot2 geom_rect
-bg_layer <- function(data, x, palette, palcolor, alpha, keep_empty, facet_by) {
+bg_layer <- function(data, x, palette, palcolor, alpha, keep_empty, direction = "vertical") {
     f <- data[[x]]
     if (isFALSE(keep_empty)) {
         f <- droplevels(f)
@@ -271,9 +271,17 @@ bg_layer <- function(data, x, palette, palcolor, alpha, keep_empty, facet_by) {
     bg_data$ymax <- Inf
     bg_data$fill <- bg_color[levels(f)]
 
-    geom_rect(
-        data = bg_data,
-        xmin = bg_data$xmin, xmax = bg_data$xmax, ymin = bg_data$ymin, ymax = bg_data$ymax,
-        fill = bg_data$fill, alpha = alpha, inherit.aes = FALSE
-    )
+    if (direction == "vertical") {
+        geom_rect(
+            data = bg_data,
+            xmin = bg_data$xmin, xmax = bg_data$xmax, ymin = bg_data$ymin, ymax = bg_data$ymax,
+            fill = bg_data$fill, alpha = alpha, inherit.aes = FALSE
+        )
+    } else {
+        geom_rect(
+            data = bg_data,
+            xmin = bg_data$ymin, xmax = bg_data$ymax, ymin = bg_data$xmin, ymax = bg_data$xmax,
+            fill = bg_data$fill, alpha = alpha, inherit.aes = FALSE
+        )
+    }
 }

@@ -139,7 +139,7 @@ BarPlotGrouped <- function(
         if (!is.null(facet_by)) {
             stop("'add_bg' is not supported when facet_by is specified. Consider using split_by instead.")
         }
-        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by)
+        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty)
     }
 
     colors <- palette_this(
