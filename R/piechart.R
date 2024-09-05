@@ -2,15 +2,18 @@
 #'
 #' @inheritParams common_args
 #' @param label Which column to use as the label. NULL means no label.
+#' @param y A character string of the column name to plot on the y-axis.
+#'   A numeric column is expected.
+#'   If NULL, the count of each x column will be used.
 #' @keywords internal
 #' @importFrom rlang sym
 #' @importFrom gglogger ggplot
-#' @importFrom dplyr lead if_else mutate %>%
+#' @importFrom dplyr lead if_else mutate %>% group_by summarise n
 #' @importFrom tidyr complete replace_na
 #' @importFrom ggplot2 coord_polar geom_col
 #' @importFrom ggrepel geom_label_repel
 PieChartAtomic <- function(
-    data, x, y, label = "y",
+    data, x, y = NULL, label = y,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
@@ -21,6 +24,13 @@ PieChartAtomic <- function(
 
     x <- check_columns(data, x, force_factor = TRUE)
     y <- check_columns(data, y)
+    if (is.null(y)) {
+        data <- data %>%
+            group_by(!!!syms(unique(c(x, facet_by)))) %>%
+            summarise(.y = n(), .groups = "drop")
+        y <- ".y"
+        if (is.null(label)) label <- y
+    }
     label <- check_columns(data, label)
     concated_facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE)
     # if keep_empty is TRUE, fill the empty levels with 0
@@ -61,10 +71,7 @@ PieChartAtomic <- function(
     if (!is.null(label)) {
         pos_df[[label]] <- data[[label]]
     }
-    colors <- palette_this(
-        levels(data[[x]]),
-        palette = palette, palcolor = palcolor, keep_names = TRUE
-    )
+    colors <- palette_this(levels(data[[x]]), palette = palette, palcolor = palcolor)
 
     p <- ggplot(data, aes(x = "", y = !!sym(y), fill = !!sym(x))) +
         geom_col(width = 1, alpha = alpha, color = "white") +
@@ -128,8 +135,11 @@ PieChartAtomic <- function(
 #' PieChart(data, x = "x", y = "y", label = "group")
 #' PieChart(data, x = "x", y = "y", facet_by = "facet")
 #' PieChart(data, x = "x", y = "y", split_by = "group")
+#'
+#' # y from count
+#' PieChart(data, x = "group")
 PieChart <- function(
-    data, x, y, label = "y", split_by = NULL, split_by_sep = "_",
+    data, x, y = NULL, label = y, split_by = NULL, split_by_sep = "_",
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     alpha = 1, aspect.ratio = 1,

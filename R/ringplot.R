@@ -59,7 +59,7 @@ RingPlotAtomic <- function(
         geom_col(width = 0.9, color = "white", alpha = alpha) +
         coord_polar("y", start = 0) +
         scale_fill_manual(values = palette_this(
-            levels(data[[group_by]]), palette = palette, palcolor = palcolor, keep_names = TRUE)) +
+            levels(data[[group_by]]), palette = palette, palcolor = palcolor)) +
         scale_x_discrete(limits = c(" ", rings)) +
         do.call(theme, theme_args) +
         ggplot2::theme(

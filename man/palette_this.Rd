@@ -10,7 +10,7 @@ palette_this(
   palette = "Paired",
   palcolor = NULL,
   type = "auto",
-  keep_names = FALSE,
+  keep_names = TRUE,
   matched = FALSE,
   reverse = FALSE,
   NA_keep = FALSE,

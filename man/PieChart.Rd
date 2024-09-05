@@ -7,8 +7,8 @@
 PieChart(
   data,
   x,
-  y,
-  label = "y",
+  y = NULL,
+  label = y,
   split_by = NULL,
   split_by_sep = "_",
   facet_by = NULL,
@@ -42,7 +42,9 @@ PieChart(
 
 \item{x}{A character string specifying the column name of the data frame to plot for the x-axis.}
 
-\item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
+\item{y}{A character string of the column name to plot on the y-axis.
+A numeric column is expected.
+If NULL, the count of each x column will be used.}
 
 \item{label}{Which column to use as the label. NULL means no label.}
 
@@ -123,4 +125,7 @@ PieChart(data, x = "x", y = "y")
 PieChart(data, x = "x", y = "y", label = "group")
 PieChart(data, x = "x", y = "y", facet_by = "facet")
 PieChart(data, x = "x", y = "y", split_by = "group")
+
+# y from count
+PieChart(data, x = "group")
 }

@@ -77,10 +77,7 @@ LinePlotSingle <- function(
         }
         p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty)
     }
-    colors <- palette_this(
-        levels(data[[x]]),
-        palette = palette, palcolor = palcolor, keep_names = TRUE
-    )
+    colors <- palette_this(levels(data[[x]]), palette = palette, palcolor = palcolor)
     if (isTRUE(color_line_by_x)) {
         p <- p + geom_line(
             aes(color = !!sym(x), group = 1),
@@ -188,10 +185,7 @@ LinePlotGrouped <- function(
         }
         p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty)
     }
-    colors <- palette_this(
-        levels(data[[group_by]]),
-        palette = palette, palcolor = palcolor, keep_names = TRUE
-    )
+    colors <- palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
     p <- p + geom_line(
         aes(color = !!sym(group_by), group = !!sym(group_by)),
         alpha = line_alpha, linetype = line_type, linewidth = line_width) +

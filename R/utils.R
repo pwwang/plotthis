@@ -27,12 +27,12 @@ check_columns <- function(
             stop(paste0("Only one column is allowed in '", param_name, "'"))
         }
         if (!columns %in% colnames(df)) {
-            stop(paste0("'", columns, "' is not in the data."))
+            stop(paste0("'", columns, "' is/are not in the data."))
         }
     } else {
         notfound <- setdiff(columns, colnames(df))
         if (length(notfound) > 0) {
-            stop(paste0("'", paste0(notfound, collapse = ", "), "' is not in the data."))
+            stop(paste0("'", paste0(notfound, collapse = ", "), "' is/are not in the data."))
         }
         if (isTRUE(concat_multi) && length(columns) > 1) {
             warning(
@@ -261,7 +261,7 @@ bg_layer <- function(data, x, palette, palcolor, alpha, keep_empty, direction = 
     if (isFALSE(keep_empty)) {
         f <- droplevels(f)
     }
-    bg_color <- palette_this(levels(f), palette = palette, palcolor = palcolor, keep_names = TRUE)
+    bg_color <- palette_this(levels(f), palette = palette, palcolor = palcolor)
 
     bg_data <- data.frame(x = factor(levels(f), levels = levels(f)))
     bg_data$x <- as.numeric(bg_data$x)

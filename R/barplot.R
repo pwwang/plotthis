@@ -36,14 +36,11 @@ BarPlotSingle <- function(
 
     if (isTRUE(fill_by_x)) {
         p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(x)))
-        colors <- palette_this(
-            levels(data[[x]]),
-            palette = palette, palcolor = palcolor, keep_names = TRUE
-        )
+        colors <- palette_this(levels(data[[x]]), palette = palette, palcolor = palcolor)
         guide = "legend"
     } else {
         p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = "fill"))
-        colors <- palette_this("fill", palette = palette, palcolor = palcolor, keep_names = TRUE)
+        colors <- palette_this("fill", palette = palette, palcolor = palcolor)
         guide = "none"
     }
     just <- calc_just(x_text_angle)
@@ -142,10 +139,7 @@ BarPlotGrouped <- function(
         p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty)
     }
 
-    colors <- palette_this(
-        levels(data[[group_by]]),
-        palette = palette, palcolor = palcolor, keep_names = TRUE
-    )
+    colors <- palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
     just <- calc_just(x_text_angle)
     if (position == "auto") {
         position <- if (length(colors) <= 5) position_dodge2(preserve = position_dodge_preserve) else "stack"
