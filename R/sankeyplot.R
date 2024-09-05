@@ -26,7 +26,7 @@
 #' @importFrom ggnewscale new_scale_fill
 #' @importFrom ggplot2 geom_col scale_fill_manual geom_label after_stat scale_x_discrete scale_y_continuous labs
 SankeyPlotAtomic <- function(
-    data, y = NULL, nodes_by, links_by = NULL, links_by_sep = "_", links_name = NULL,
+    data, y = NULL, nodes_by, nodes_color = "grey30", links_by = NULL, links_by_sep = "_", links_name = NULL,
     nodes_palette = "Paired", nodes_palcolor = NULL, nodes_alpha = 1, nodes_label = FALSE,
     links_palette = "Paired", links_palcolor = NULL, links_alpha = 0.6, legend.box = "vertical",
     x_text_angle = 0, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
@@ -99,7 +99,7 @@ SankeyPlotAtomic <- function(
         new_scale_fill() +
         ggalluvial::geom_stratum(
             aes(x = .Group, stratum = .GroupValue, alluvium = .ID, y = !!sym(y), fill = .GroupValue),
-            alpha = nodes_alpha, width = 0.25, color = "grey30") +
+            alpha = nodes_alpha, width = 0.25, color = nodes_color) +
         scale_fill_manual(values = nodes_colors, breaks = levels(data$.GroupValue),
                           guide = "none")
 
@@ -142,6 +142,7 @@ SankeyPlotAtomic <- function(
 #' @export
 #' @rdname sankeyplot
 #' @examples
+#' set.seed(8525)
 #' data <- data.frame(
 #'     nodes1 = sample(LETTERS[1:3], 10, replace = TRUE),
 #'     nodes2 = sample(letters[1:3], 10, replace = TRUE),
@@ -153,7 +154,7 @@ SankeyPlotAtomic <- function(
 #' SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), links_by = "y")
 #' SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), y = "y")
 SankeyPlot <- function(
-    data, y = NULL, nodes_by, links_by = NULL, links_by_sep = "_", links_name = NULL,
+    data, y = NULL, nodes_by, nodes_color = "grey30", links_by = NULL, links_by_sep = "_", links_name = NULL,
     split_by = NULL, split_by_sep = "_", palette = "Paired", palcolor = NULL, alpha = 0.6, label = FALSE,
     x_text_angle = 0, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical", legend.box = "vertical",
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
@@ -172,7 +173,8 @@ SankeyPlot <- function(
 
     plots <- lapply(
         datas, SankeyPlotAtomic,
-        y = y, nodes_by = nodes_by, links_by = links_by, links_by_sep = links_by_sep, links_name = links_name,
+        y = y, nodes_by = nodes_by, nodes_color = nodes_color,
+        links_by = links_by, links_by_sep = links_by_sep, links_name = links_name,
         palette = palette, palcolor = palcolor, alpha = alpha, label = label,
         x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
         legend.position = legend.position, legend.direction = legend.direction, legend.box = legend.box,

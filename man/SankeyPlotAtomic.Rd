@@ -8,6 +8,7 @@ SankeyPlotAtomic(
   data,
   y = NULL,
   nodes_by,
+  nodes_color = "grey30",
   links_by = NULL,
   links_by_sep = "_",
   links_name = NULL,
