@@ -9,16 +9,21 @@
 #' @param to_sep A character string to concatenate the columns in `to`, if multiple columns are provided.
 #' @param flip A logical value to flip the source and target.
 #' @param labels_rot A logical value to rotate the labels by 90 degrees.
+#' @param links_color A character string to specify the color of the links.
+#'   Either "from" or "to".
 #' @return A wrapped element of chord plot
 #' @importFrom dplyr %>% group_by summarise n select
 #' @importFrom patchwork wrap_elements plot_annotation
 #' @keywords internal
 ChordPlotAtomic <- function(
-    data, y = NULL, from = NULL, from_sep = "_", to = NULL, to_sep = "_", flip = FALSE,
+    data, y = NULL, from = NULL, from_sep = "_", to = NULL, to_sep = "_", flip = FALSE, links_color = c("from", "to"),
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 0.5,
     labels_rot = FALSE, title = NULL, subtitle = NULL, ...
 ) {
-    requireNamespace("circlize", quietly = TRUE)
+    if (!requireNamespace("circlize", quietly = TRUE)) {
+        stop("circlize is required for chord plot.")
+    }
+    links_color <- match.arg(links_color)
     from <- check_columns(data, from, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = from_sep)
     to <- check_columns(data, to, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = to_sep)
     y <- check_columns(data, y)
@@ -42,11 +47,8 @@ ChordPlotAtomic <- function(
 
     froms <- unique(data$from)
     tos <- unique(data$to)
-    grid_cols <- palette_this(froms, palette = palette, palcolor = palcolor)
-    gcols <- rep("grey50", length(tos))
-    names(gcols) <- tos
-    grid_cols <- c(grid_cols, gcols)
-    link_cols <- grid_cols[data$from]
+    grid_cols <- palette_this(c(froms, tos), palette = palette, palcolor = palcolor)
+    link_cols <- grid_cols[data[[links_color]]]
 
     circlize::circos.clear()
     circlize::circos.par(track.margin = c(0.01, 0.02))
@@ -163,13 +165,14 @@ ChordPlotAtomic <- function(
 #' )
 #'
 #' ChordPlot(data, from = "nodes1", to = "nodes2")
-#' ChordPlot(data, from = "nodes1", to = "nodes2", labels_rot = T)
+#' ChordPlot(data, from = "nodes1", to = "nodes2",
+#'           links_color = "to", labels_rot = T)
 #' ChordPlot(data, from = "nodes1", to = "nodes2", y = "y")
 #' ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y")
 #' ChordPlot(data, from = "nodes1", to = "nodes2", flip = TRUE)
 ChordPlot <- function(
     data, y = NULL, from = NULL, from_sep = "_", to = NULL, to_sep = "_",
-    split_by = NULL, split_by_sep = "_", flip = FALSE,
+    split_by = NULL, split_by_sep = "_", flip = FALSE, links_color = c("from", "to"),
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 0.5,
     labels_rot = FALSE, title = NULL, subtitle = NULL, seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...
@@ -187,7 +190,7 @@ ChordPlot <- function(
 
     plots <- lapply(
         datas, ChordPlotAtomic,
-        y = y, from = from, from_sep = from_sep, to = to, to_sep = to_sep, flip = flip,
+        y = y, from = from, from_sep = from_sep, to = to, to_sep = to_sep, flip = flip, links_color = links_color,
         theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
         labels_rot = labels_rot, title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, ...
     )

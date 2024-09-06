@@ -285,3 +285,95 @@ bg_layer <- function(data, x, palette, palcolor, alpha, keep_empty, direction = 
         )
     }
 }
+
+#' Convert RGBA to RGB
+#' @keywords internal
+rgba_to_rgb <- function(RGBA, BackGround = c(1, 1, 1)) {
+    A <- RGBA[[length(RGBA)]]
+    RGB <- RGBA[[-length(RGBA)]] * A + BackGround * (1 - A)
+    return(RGB)
+}
+
+#' Blend two colors
+#' @keywords internal
+blend_to_color <- function(C1, C2, mode = "blend") {
+    c1 <- C1[[1]]
+    c1a <- C1[[2]]
+    c2 <- C2[[1]]
+    c2a <- C2[[2]]
+    A <- 1 - (1 - c1a) * (1 - c2a)
+    if (A < 1.0e-6) {
+        return(list(c(0, 0, 0), 1))
+    }
+    if (mode == "blend") {
+        out <- (c1 * c1a + c2 * c2a * (1 - c1a)) / A
+        A <- 1
+    }
+    if (mode == "average") {
+        out <- (c1 + c2) / 2
+        out[out > 1] <- 1
+    }
+    if (mode == "screen") {
+        out <- 1 - (1 - c1) * (1 - c2)
+    }
+    if (mode == "multiply") {
+        out <- c1 * c2
+    }
+    return(list(out, A))
+}
+
+#' Blend a list of colors
+#' @keywords internal
+blend_rgblist <- function(Clist, mode = "blend", RGB_BackGround = c(1, 1, 1)) {
+    N <- length(Clist)
+    ClistUse <- Clist
+    while (N != 1) {
+        temp <- ClistUse
+        ClistUse <- list()
+        for (C in temp[1:(length(temp) - 1)]) {
+            c1 <- C[[1]]
+            a1 <- C[[2]]
+            c2 <- temp[[length(temp)]][[1]]
+            a2 <- temp[[length(temp)]][[2]]
+            ClistUse <- append(ClistUse, list(blend_to_color(C1 = list(c1, a1 * (1 - 1 / N)), C2 = list(c2, a2 * 1 / N), mode = mode)))
+        }
+        N <- length(ClistUse)
+    }
+    Result <- list(ClistUse[[1]][[1]], ClistUse[[1]][[2]])
+    Result <- rgba_to_rgb(Result, BackGround = RGB_BackGround)
+    return(Result)
+}
+
+#' Blend colors
+#'
+#' This function blends a list of colors using the specified blend mode.
+#'
+#' @param colors Color vectors.
+#' @param mode Blend mode. One of "blend", "average", "screen", or "multiply".
+#'
+#' @examples
+#' blend <- c("red", "green", blend_colors(c("red", "green"), mode = "blend"))
+#' average <- c("red", "green", blend_colors(c("red", "green"), mode = "average"))
+#' screen <- c("red", "green", blend_colors(c("red", "green"), mode = "screen"))
+#' multiply <- c("red", "green", blend_colors(c("red", "green"), mode = "multiply"))
+#' show_palettes(list("blend" = blend, "average" = average, "screen" = screen, "multiply" = multiply))
+#'
+#' @keywords internal
+#' @return The blended color.
+blend_colors <- function(colors, mode = c("blend", "average", "screen", "multiply")) {
+    mode <- match.arg(mode)
+    colors <- colors[!is.na(colors)]
+    if (length(colors) == 0) {
+        return(NA)
+    }
+    if (length(colors) == 1) {
+        return(colors)
+    }
+    rgb <- as.list(as.data.frame(col2rgb(colors) / 255))
+    Clist <- lapply(rgb, function(x) {
+        list(x, 1)
+    })
+    blend_color <- blend_rgblist(Clist, mode = mode)
+    blend_color <- rgb(blend_color[1], blend_color[2], blend_color[3])
+    return(blend_color)
+}

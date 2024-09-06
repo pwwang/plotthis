@@ -137,6 +137,7 @@ A ggplot object or wrap_plots object or a list of ggplot objects
 Alluvial plot is an alias of Sankey plot.
 }
 \examples{
+set.seed(8525)
 data <- data.frame(
     nodes1 = sample(LETTERS[1:3], 10, replace = TRUE),
     nodes2 = sample(letters[1:3], 10, replace = TRUE),

@@ -15,6 +15,7 @@ ChordPlot(
   split_by = NULL,
   split_by_sep = "_",
   flip = FALSE,
+  links_color = c("from", "to"),
   theme = "theme_this",
   theme_args = list(),
   palette = "Paired",
@@ -41,6 +42,7 @@ CircosPlot(
   split_by = NULL,
   split_by_sep = "_",
   flip = FALSE,
+  links_color = c("from", "to"),
   theme = "theme_this",
   theme_args = list(),
   palette = "Paired",
@@ -77,6 +79,9 @@ A character/factor column is expected.}
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{\link{split_by}}}
 
 \item{flip}{A logical value to flip the source and target.}
+
+\item{links_color}{A character string to specify the color of the links.
+Either "from" or "to".}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -122,7 +127,8 @@ data <- data.frame(
 )
 
 ChordPlot(data, from = "nodes1", to = "nodes2")
-ChordPlot(data, from = "nodes1", to = "nodes2", labels_rot = T)
+ChordPlot(data, from = "nodes1", to = "nodes2",
+          links_color = "to", labels_rot = T)
 ChordPlot(data, from = "nodes1", to = "nodes2", y = "y")
 ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y")
 ChordPlot(data, from = "nodes1", to = "nodes2", flip = TRUE)

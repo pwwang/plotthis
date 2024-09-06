@@ -12,6 +12,7 @@ ChordPlotAtomic(
   to = NULL,
   to_sep = "_",
   flip = FALSE,
+  links_color = c("from", "to"),
   theme = "theme_this",
   theme_args = list(),
   palette = "Paired",
@@ -39,6 +40,9 @@ A character/factor column is expected.}
 \item{to_sep}{A character string to concatenate the columns in \code{to}, if multiple columns are provided.}
 
 \item{flip}{A logical value to flip the source and target.}
+
+\item{links_color}{A character string to specify the color of the links.
+Either "from" or "to".}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}

@@ -33,7 +33,9 @@ SankeyPlotAtomic <- function(
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     ...
 ) {
-    requireNamespace("ggalluvial", quietly = TRUE)
+    if (!requireNamespace("ggalluvial", quietly = TRUE)) {
+        stop("ggalluvial is required to use SankeyPlot/AlluvialPlot.")
+    }
 
     nodes_by <- check_columns(data, nodes_by, force_factor = TRUE, allow_multi = TRUE)
     if (length(nodes_by) < 2) {
