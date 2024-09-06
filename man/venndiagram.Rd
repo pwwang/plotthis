@@ -46,13 +46,14 @@ VennDiagram(
 )
 }
 \arguments{
-\item{data}{A data frame or a list}
+\item{data}{A data frame or a list or a VennPlotData object.}
 
 \item{intype}{A character string indicating the datatype of the input data.
-Possible values are "long", "wide", "list", or NULL.
+Possible values are "long", "wide", "list", "venn" or NULL.
 "long" indicates the data is in long format.
 "wide" indicates the data is in wide format.
 "list" indicates the data is a list.
+"venn" indicates the data is a VennPlotData object.
 NULL indicates the function will detect the datatype of the input data.
 
 A long format data would look like:
@@ -164,5 +165,5 @@ data = list(
 VennDiagram(data)
 VennDiagram(data, fill_mode = "set")
 VennDiagram(data, label = "both")
-VennDiagram(data, palette = "Oranges", alpha = 0.6)
+VennDiagram(data, palette = "material-indigo", alpha = 0.6)
 }

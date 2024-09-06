@@ -24,5 +24,6 @@ Imports:
 Suggests:
     circlize,
     ggalluvial,
-    ggVennDiagram (>= 1.5.0)
+    ggVennDiagram (>= 1.5.0),
+    ggupset
 LazyData: true
