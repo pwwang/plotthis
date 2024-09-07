@@ -4,7 +4,16 @@
 \alias{bg_layer}
 \title{Get a ggplot layer for background}
 \usage{
-bg_layer(data, x, palette, palcolor, alpha, keep_empty, direction = "vertical")
+bg_layer(
+  data,
+  x,
+  palette,
+  palcolor,
+  alpha,
+  keep_empty,
+  facet_by,
+  direction = "vertical"
+)
 }
 \arguments{
 \item{data}{A data frame}
@@ -18,6 +27,8 @@ bg_layer(data, x, palette, palcolor, alpha, keep_empty, direction = "vertical")
 \item{alpha}{A numeric value specifying the transparency of the plot}
 
 \item{keep_empty}{A logical value indicating whether to keep empty groups}
+
+\item{facet_by}{A character string specifying the column name(s) of the data frame to facet the plot}
 
 \item{direction}{A character string specifying the direction for the background}
 }

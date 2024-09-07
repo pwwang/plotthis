@@ -57,6 +57,7 @@ LinePlotSingle <- function(
 ) {
     x <- check_columns(data, x, force_factor = TRUE)
     y <- check_columns(data, y)
+    facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
 
     if (isTRUE(add_errorbars)) {
         if (is.null(errorbar_sd) && (is.null(errorbar_min) || is.null(errorbar_max))) {
@@ -72,10 +73,7 @@ LinePlotSingle <- function(
 
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y)))
     if (isTRUE(add_bg)) {
-        if (!is.null(facet_by)) {
-            stop("'add_bg' is not supported when facet_by is specified. Consider using split_by instead.")
-        }
-        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty)
+        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by)
     }
     colors <- palette_this(levels(data[[x]]), palette = palette, palcolor = palcolor)
     if (isTRUE(color_line_by_x)) {

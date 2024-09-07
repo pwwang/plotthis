@@ -1,5 +1,4 @@
-#' Dot Plot Atomic
-#'
+#' Dot Plot without splitting the data
 #' @inheritParams common_args
 #' @param x A character vector specifying the column to use for the x-axis.
 #'  Could be either numeric or factor/character. When multiple columns are provided, they will be concatenated with 'x_sep'.
@@ -64,6 +63,7 @@ DotPlotAtomic <- function(
         stop("'fill_by' must be provided when 'fill_cutoff' is specified.")
     }
 
+    facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
     size_by <- check_columns(data, size_by)
     if (is.null(size_by)) {
         if (x_is_numeric || y_is_numeric) {
@@ -104,19 +104,16 @@ DotPlotAtomic <- function(
     just <- calc_just(x_text_angle)
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y)))
     if (add_bg) {
-        if (!is.null(facet_by)) {
-            stop("'add_bg' is not supported when facetting a plot.")
-        }
         if (bg_direction == "vertical") {
             if (x_is_numeric) {
                 stop("Vertical 'bg_direction' is not supported when 'x' is numeric.")
             }
-            p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty, bg_direction)
+            p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by, bg_direction)
         } else {
             if (y_is_numeric) {
                 stop("Horizontal 'bg_direction' is not supported when 'y' is numeric.")
             }
-            p <- p + bg_layer(data, y, bg_palette, bg_palcolor, bg_alpha, keep_empty, bg_direction)
+            p <- p + bg_layer(data, y, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by, bg_direction)
         }
     }
 
@@ -217,9 +214,10 @@ DotPlotAtomic <- function(
     facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow)
 }
 
-#' Dot Plot
+#' Dot Plot / Scatter Plot
 #'
-#' @description X-axis and Y-axis could be either numeric or factor/character.
+#' @rdname dotplot
+#' @description For DotPlot, X-axis and Y-axis could be either numeric or factor/character.
 #'   When x-axis and y-axis are both numeric, the plot works as a scatter plot.
 #' @inheritParams DotPlotAtomic
 #' @inheritParams common_args
@@ -285,6 +283,7 @@ DotPlot <- function(
 
 #' Scatter Plot
 #'
+#' @rdname dotplot
 #' @description A alias of DotPlot when both x and y are numeric.
 #' @inheritParams DotPlot
 #' @inheritParams common_args
@@ -295,7 +294,6 @@ DotPlot <- function(
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
 #' @examples
-#' mtcars <- datasets::mtcars
 #' ScatterPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
 #'             fill_by = "mpg")
 #' ScatterPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",

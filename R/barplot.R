@@ -122,6 +122,7 @@ BarPlotGrouped <- function(
     expand <- norm_expansion(expand, x_type = "discrete", y_type = "continuous")
 
     group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
+    facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
     x <- check_columns(data, x, force_factor = TRUE)
     y <- check_columns(data, y)
     if (is.null(y)) {
@@ -133,10 +134,7 @@ BarPlotGrouped <- function(
 
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(group_by)))
     if (isTRUE(add_bg)) {
-        if (!is.null(facet_by)) {
-            stop("'add_bg' is not supported when facet_by is specified. Consider using split_by instead.")
-        }
-        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty)
+        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by)
     }
 
     colors <- palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)

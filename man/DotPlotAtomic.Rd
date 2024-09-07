@@ -2,7 +2,7 @@
 % Please edit documentation in R/dotplot.R
 \name{DotPlotAtomic}
 \alias{DotPlotAtomic}
-\title{Dot Plot Atomic}
+\title{Dot Plot without splitting the data}
 \usage{
 DotPlotAtomic(
   data,
@@ -145,6 +145,6 @@ If FALSE, empty groups will be removed.}
 A ggplot object
 }
 \description{
-Dot Plot Atomic
+Dot Plot without splitting the data
 }
 \keyword{internal}

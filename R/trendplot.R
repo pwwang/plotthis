@@ -100,7 +100,7 @@ TrendPlotAtomic <- function(
     attr(p, "height") <- height
     attr(p, "width") <- width
 
-    facet_plot(p, facet_by, facet_scales, facet_ncol, facet_nrow, facet_byrow)
+    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow)
 }
 
 

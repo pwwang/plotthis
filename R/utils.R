@@ -183,16 +183,17 @@ calc_just <- function(angle) {
 #' @param ncol The number of columns in facet_wrap
 #' @param byrow Whether to fill the plots by row
 #' @param recalc_size Whether to re-calculate the size of the plot
+#' @param ... Additional arguments to pass to facet_wrap or facet_grid
 #' @return The faceted plot. If guess_size is TRUE, attr(p, "height") and attr(p, "width") will be set
 #' @importFrom ggplot2 facet_wrap facet_grid ggplot_build
 #' @keywords internal
-facet_plot <- function(plot, facet_by, facet_scales, nrow, ncol, byrow, recalc_size = TRUE) {
+facet_plot <- function(plot, facet_by, facet_scales, nrow, ncol, byrow, recalc_size = TRUE, ...) {
     if (is.null(facet_by)) {
         return(plot)
     }
 
     if (recalc_size) {
-        p <- facet_plot(plot, facet_by, facet_scales, nrow, ncol, byrow, recalc_size = FALSE)
+        p <- facet_plot(plot, facet_by, facet_scales, nrow, ncol, byrow, recalc_size = FALSE, ...)
         d <- wrap_dims(length(unique(ggplot_build(p)$data[[1]]$PANEL)))
         attr(p, "height") <- d[1] * attr(plot, "height")
         attr(p, "width") <- d[2] * attr(plot, "width")
@@ -200,9 +201,9 @@ facet_plot <- function(plot, facet_by, facet_scales, nrow, ncol, byrow, recalc_s
     }
 
     if (length(facet_by) == 1) {
-        plot <- plot + ggplot2::facet_wrap(facets = facet_by, scales = facet_scales, nrow = nrow, ncol = ncol, dir = if (byrow) "h" else "v")
+        plot <- plot + ggplot2::facet_wrap(facets = facet_by, scales = facet_scales, nrow = nrow, ncol = ncol, dir = if (byrow) "h" else "v", ...)
     } else {
-        plot <- plot + ggplot2::facet_grid(rows = facet_by[[1]], cols = facet_by[[2]], scales = facet_scales)
+        plot <- plot + ggplot2::facet_grid(rows = facet_by[[1]], cols = facet_by[[2]], scales = facet_scales, ...)
     }
 
     return(plot)
@@ -253,34 +254,43 @@ combine_plots <- function(plots, combine, nrow, ncol, byrow, recalc_size = TRUE)
 #' @param palcolor A character string specifying the color to use in the palette
 #' @param alpha A numeric value specifying the transparency of the plot
 #' @param keep_empty A logical value indicating whether to keep empty groups
+#' @param facet_by A character string specifying the column name(s) of the data frame to facet the plot
 #' @param direction A character string specifying the direction for the background
 #' @return A ggplot layer for background
 #' @importFrom ggplot2 geom_rect
-bg_layer <- function(data, x, palette, palcolor, alpha, keep_empty, direction = "vertical") {
-    f <- data[[x]]
+#' @importFrom tidyr expand_grid
+bg_layer <- function(data, x, palette, palcolor, alpha, keep_empty, facet_by, direction = "vertical") {
+    fct <- data[[x]]
     if (isFALSE(keep_empty)) {
-        f <- droplevels(f)
+        fct <- droplevels(fct)
     }
-    bg_color <- palette_this(levels(f), palette = palette, palcolor = palcolor)
+    bg_color <- palette_this(levels(fct), palette = palette, palcolor = palcolor)
 
-    bg_data <- data.frame(x = factor(levels(f), levels = levels(f)))
+    bg_data <- data.frame(x = factor(levels(fct), levels = levels(fct)))
     bg_data$x <- as.numeric(bg_data$x)
     bg_data$xmin <- ifelse(bg_data$x == min(bg_data$x), -Inf, bg_data$x - 0.5)
     bg_data$xmax <- ifelse(bg_data$x == max(bg_data$x), Inf, bg_data$x + 0.5)
     bg_data$ymin <- -Inf
     bg_data$ymax <- Inf
-    bg_data$fill <- bg_color[levels(f)]
+    bg_data$fill <- bg_color[levels(fct)]
+
+    if (!is.null(facet_by)) {
+        for (fb in facet_by) {
+            bg_data <- expand_grid(bg_data, !!sym(fb) := levels(data[[fb]]))
+            bg_data[[fb]] <- factor(bg_data[[fb]], levels = levels(data[[fb]]))
+        }
+    }
 
     if (direction == "vertical") {
         geom_rect(
             data = bg_data,
-            xmin = bg_data$xmin, xmax = bg_data$xmax, ymin = bg_data$ymin, ymax = bg_data$ymax,
+            aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
             fill = bg_data$fill, alpha = alpha, inherit.aes = FALSE
         )
     } else {
         geom_rect(
             data = bg_data,
-            xmin = bg_data$ymin, xmax = bg_data$ymax, ymin = bg_data$xmin, ymax = bg_data$xmax,
+            aes(xmin = ymin, xmax = ymax, ymin = xmin, ymax = xmax),
             fill = bg_data$fill, alpha = alpha, inherit.aes = FALSE
         )
     }

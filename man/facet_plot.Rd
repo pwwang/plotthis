@@ -4,7 +4,16 @@
 \alias{facet_plot}
 \title{Facetting a plot}
 \usage{
-facet_plot(plot, facet_by, facet_scales, nrow, ncol, byrow, recalc_size = TRUE)
+facet_plot(
+  plot,
+  facet_by,
+  facet_scales,
+  nrow,
+  ncol,
+  byrow,
+  recalc_size = TRUE,
+  ...
+)
 }
 \arguments{
 \item{plot}{The plot to facet or a list list(plot, height, width) if guess_size is TRUE}
@@ -21,6 +30,8 @@ If NULL, no faceting will be done}
 \item{byrow}{Whether to fill the plots by row}
 
 \item{recalc_size}{Whether to re-calculate the size of the plot}
+
+\item{...}{Additional arguments to pass to facet_wrap or facet_grid}
 }
 \value{
 The faceted plot. If guess_size is TRUE, attr(p, "height") and attr(p, "width") will be set
