@@ -18,6 +18,11 @@ BarPlotSingle(
   aspect.ratio = 1,
   legend.position = "right",
   legend.direction = "vertical",
+  add_line = NULL,
+  line_color = "red2",
+  line_size = 0.6,
+  line_type = 2,
+  line_name = NULL,
   title = NULL,
   subtitle = NULL,
   xlab = NULL,
@@ -57,6 +62,16 @@ Default is "theme_this".}
 \item{legend.position}{A character string specifying the position of the legend.}
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
+
+\item{add_line}{A numeric value indicating the y value to add a horizontal line.}
+
+\item{line_color}{A character string indicating the color of the line.}
+
+\item{line_size}{A numeric value indicating the size of the line.}
+
+\item{line_type}{A numeric value indicating the type of the line.}
+
+\item{line_name}{A character string indicating the name of the line.}
 
 \item{title}{A character string specifying the title of the plot.}
 

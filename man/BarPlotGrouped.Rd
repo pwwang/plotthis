@@ -22,6 +22,11 @@ BarPlotGrouped(
   alpha = 1,
   x_text_angle = 0,
   aspect.ratio = 1,
+  add_line = NULL,
+  line_color = "red2",
+  line_size = 0.6,
+  line_type = 2,
+  line_name = NULL,
   position = "auto",
   position_dodge_preserve = "total",
   legend.position = "right",
@@ -75,6 +80,16 @@ Default is "theme_this".}
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
+
+\item{add_line}{A numeric value indicating the y value to add a horizontal line.}
+
+\item{line_color}{A character string indicating the color of the line.}
+
+\item{line_size}{A numeric value indicating the size of the line.}
+
+\item{line_type}{A numeric value indicating the type of the line.}
+
+\item{line_name}{A character string indicating the name of the line.}
 
 \item{position}{A character string indicating the position of the bars.
 If "auto", the position will be "stack" if group_by has more than 5 levels, otherwise "dodge".

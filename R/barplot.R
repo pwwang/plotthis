@@ -9,17 +9,24 @@
 #'   If FALSE, the bars will be filled a single color (the first color in the palette).
 #' @param width A numeric value specifying the width of the bars.
 #' @param flip A logical value indicating whether to flip the x and y axes.
+#' @param add_line A numeric value indicating the y value to add a horizontal line.
+#' @param line_color A character string indicating the color of the line.
+#' @param line_size A numeric value indicating the size of the line.
+#' @param line_type A numeric value indicating the type of the line.
+#' @param line_name A character string indicating the name of the line.
 #' @return A ggplot object.
 #' @keywords internal
 #' @importFrom rlang sym %||%
 #' @importFrom dplyr %>% group_by summarise n
 #' @importFrom gglogger ggplot
-#' @importFrom ggplot2 aes geom_bar scale_fill_manual labs scale_x_discrete scale_y_continuous element_line waiver coord_flip
+#' @importFrom ggplot2 aes geom_bar scale_fill_manual labs scale_x_discrete scale_y_continuous
+#' @importFrom ggplot2 element_line waiver coord_flip scale_color_manual guide_legend
 BarPlotSingle <- function(
     data, x, y = NULL, flip = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1,
     legend.position = "right", legend.direction = "vertical",
+    add_line = NULL, line_color = "red2", line_size = .6, line_type = 2, line_name = NULL,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
     expand = 0, fill_by_x = TRUE, width = 0.9, ...
 ) {
@@ -37,7 +44,7 @@ BarPlotSingle <- function(
     if (isTRUE(fill_by_x)) {
         p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(x)))
         colors <- palette_this(levels(data[[x]]), palette = palette, palcolor = palcolor)
-        guide = "legend"
+        guide = guide_legend(order = 1)
     } else {
         p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = "fill"))
         colors <- palette_this("fill", palette = palette, palcolor = palcolor)
@@ -59,13 +66,20 @@ BarPlotSingle <- function(
             axis.text.x = element_text(angle = x_text_angle, hjust = just$h, vjust = just$v)
         )
 
+    if (!is.null(add_line)) {
+        p <- p + geom_hline(
+            aes(color = line_name %||% as.character(add_line), yintercept = add_line),
+            linetype = line_type, linewidth = line_size
+        ) + scale_color_manual(name = NULL, values = line_color, guide = guide_legend(order = 2))
+    }
+
     if (isTRUE(flip)) {
         p <- p + coord_flip()
     }
 
     height <- 4.5
     width <- .5 + length(levels(data[[x]])) * .8
-    if (guide == "legend") {
+    if (!identical(legend, "none")) {
         if (legend.position %in% c("right", "left")) {
             width <- width + 1
         } else if (legend.direction == "horizontal") {
@@ -101,26 +115,28 @@ BarPlotSingle <- function(
 #' @param bg_palcolor A character string indicating the color to use for the background.
 #' @param bg_alpha A numeric value indicating the alpha of the background.
 #' @param flip A logical value indicating whether to flip the x and y axes.
+#' @param add_line A numeric value indicating the y value to add a horizontal line.
+#' @param line_color A character string indicating the color of the line.
+#' @param line_size A numeric value indicating the size of the line.
+#' @param line_type A numeric value indicating the type of the line.
+#' @param line_name A character string indicating the name of the line.
 #' @return A ggplot object.
 #' @keywords internal
 #' @importFrom rlang sym %||%
 #' @importFrom dplyr %>% group_by summarise n
 #' @importFrom gglogger ggplot
-#' @importFrom ggplot2 aes geom_bar scale_fill_manual labs position_dodge2 coord_flip
+#' @importFrom ggplot2 aes geom_bar scale_fill_manual labs position_dodge2 coord_flip guide_legend scale_color_manual
 BarPlotGrouped <- function(
     data, x, y = NULL, flip = FALSE, group_by, group_by_sep = "_",
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1,
+    add_line = NULL, line_color = "red2", line_size = .6, line_type = 2, line_name = NULL,
     position = "auto", position_dodge_preserve = "total",
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
     expand = c(bottom = 0), width = 0.8, facet_by = NULL, ...
 ) {
-    if (inherits(width, "waiver")) width <- 0.8
-    if (inherits(expand, "waiver")) expand <- c(bottom = 0)
-    expand <- norm_expansion(expand, x_type = "discrete", y_type = "continuous")
-
     group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
     x <- check_columns(data, x, force_factor = TRUE)
@@ -131,6 +147,17 @@ BarPlotGrouped <- function(
             summarise(.y = n(), .groups = "drop")
         y <- ".y"
     }
+    if (inherits(width, "waiver")) width <- 0.8
+    if (inherits(expand, "waiver")) {
+        if (min(data[[y]], na.rm = TRUE) > 0) {
+            expand <- c(bottom = 0)
+        } else if (max(data[[y]], na.rm = TRUE) < 0) {
+            expand <- c(top = 0)
+        } else {
+            expand <- NULL
+        }
+    }
+    expand <- norm_expansion(expand, x_type = "discrete", y_type = "continuous")
 
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(group_by)))
     if (isTRUE(add_bg)) {
@@ -146,7 +173,7 @@ BarPlotGrouped <- function(
     }
 
     p <- p + geom_col(alpha = alpha, position = position, width = width) +
-        scale_fill_manual(name = group_by, values = colors, drop = !keep_empty) +
+        scale_fill_manual(name = group_by, values = colors, drop = !keep_empty, guide = guide_legend(order = 1)) +
         labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
         scale_x_discrete(drop = !keep_empty, expand = expand$x) +
         scale_y_continuous(expand = expand$y) +
@@ -158,6 +185,13 @@ BarPlotGrouped <- function(
             panel.grid.major = element_line(colour = "grey80", linetype = 2),
             axis.text.x = element_text(angle = x_text_angle, hjust = just$h, vjust = just$v)
         )
+
+    if (!is.null(add_line)) {
+        p <- p + geom_hline(
+            aes(color = line_name %||% as.character(add_line), yintercept = add_line),
+            linetype = line_type, linewidth = line_size
+        ) + scale_color_manual(name = NULL, values = line_color, guide = guide_legend(order = 2))
+    }
 
     if (isTRUE(flip)) {
         p <- p + coord_flip()
@@ -197,6 +231,7 @@ BarPlotAtomic <- function(
     data, x, y = NULL, flip = FALSE, group_by = NULL, fill_by_x_if_no_group = TRUE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1,
+    add_line = NULL, line_color = "red2", line_size = .6, line_type = 2, line_name = NULL,
     position = "auto", position_dodge_preserve = "total",
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
@@ -205,19 +240,21 @@ BarPlotAtomic <- function(
 ) {
     if (is.null(group_by)) {
         p <- BarPlotSingle(
-            data, x, y, facet_by = facet_by, flip = flip,
+            data, x, y, facet_by = facet_by, flip = flip, line_name = line_name,
             theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
             alpha = alpha, x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
+            add_line = add_line, line_color = line_color, line_size = line_size, line_type = line_type,
             legend.position = legend.position, legend.direction = legend.direction,
             title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty,
             expand = expand, fill_by_x = fill_by_x_if_no_group, width = width, ...
         )
     } else {
         p <- BarPlotGrouped(
-            data, x, y, group_by, facet_by = facet_by, flip = flip,
+            data, x, y, group_by, facet_by = facet_by, flip = flip, line_name = line_name,
             theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
             alpha = alpha, x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
             position = position, position_dodge_preserve = position_dodge_preserve,
+            add_line = add_line, line_color = line_color, line_size = line_size, line_type = line_type,
             legend.position = legend.position, legend.direction = legend.direction,
             title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty,
             expand = expand, width = width, ...
@@ -257,10 +294,11 @@ BarPlotAtomic <- function(
 #' # flip the plot
 #' BarPlot(data, x = "group", flip = TRUE, ylab = "count")
 BarPlot <- function(
-    data, x, y = NULL, flip = FALSE, fill_by_x_if_no_group = TRUE,
+    data, x, y = NULL, flip = FALSE, fill_by_x_if_no_group = TRUE, line_name = NULL,
     group_by = NULL, group_by_sep = "_", split_by = NULL, split_by_sep = "_",
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
+    add_line = NULL, line_color = "red2", line_size = .6, line_type = 2,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1,
     position = "auto", position_dodge_preserve = "total",
@@ -285,7 +323,8 @@ BarPlot <- function(
         x = x, y = y, flip = flip, group_by = group_by, fill_by_x_if_no_group = fill_by_x_if_no_group,
         theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
         add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
-        alpha = alpha, x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
+        alpha = alpha, x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, line_name = line_name,
+        add_line = add_line, line_color = line_color, line_size = line_size, line_type = line_type,
         position = position, position_dodge_preserve = position_dodge_preserve,
         legend.position = legend.position, legend.direction = legend.direction,
         title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty,
