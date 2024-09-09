@@ -14,19 +14,26 @@
 #' @param line_size A numeric value indicating the size of the line.
 #' @param line_type A numeric value indicating the type of the line.
 #' @param line_name A character string indicating the name of the line.
+#' @param add_trend A logical value to add trend line to the plot.
+#' @param trend_color A character string to specify the color of the trend line.
+#' @param trend_linewidth A numeric value to specify the width of the trend line.
+#' @param trend_ptsize A numeric value to specify the size of the trend line points.
+#' @param y_min A numeric value to specify the minimum value of the y axis.
+#' @param y_max A numeric value to specify the maximum value of the y axis.
 #' @return A ggplot object.
 #' @keywords internal
 #' @importFrom rlang sym %||%
 #' @importFrom dplyr %>% group_by summarise n
 #' @importFrom gglogger ggplot
 #' @importFrom ggplot2 aes geom_bar scale_fill_manual labs scale_x_discrete scale_y_continuous
-#' @importFrom ggplot2 element_line waiver coord_flip scale_color_manual guide_legend
+#' @importFrom ggplot2 element_line waiver coord_flip scale_color_manual guide_legend coord_cartesian
 BarPlotSingle <- function(
     data, x, y = NULL, flip = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
-    alpha = 1, x_text_angle = 0, aspect.ratio = 1,
+    alpha = 1, x_text_angle = 0, aspect.ratio = 1, y_min = NULL, y_max = NULL,
     legend.position = "right", legend.direction = "vertical",
     add_line = NULL, line_color = "red2", line_size = .6, line_type = 2, line_name = NULL,
+    add_trend = FALSE, trend_color = "black", trend_linewidth = 1, trend_ptsize = 2.5,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
     expand = 0, fill_by_x = TRUE, width = 0.9, ...
 ) {
@@ -66,6 +73,15 @@ BarPlotSingle <- function(
             axis.text.x = element_text(angle = x_text_angle, hjust = just$h, vjust = just$v)
         )
 
+    if (isTRUE(add_trend)) {
+        p <- p +
+            geom_line(aes(group = 1), position = position_dodge(width = 0.9), color = trend_color, linewidth = trend_linewidth) +
+            geom_point(
+                position = position_dodge(width = 0.9), color = "black", fill = "white",
+                size = trend_ptsize, shape = 21
+            )
+    }
+
     if (!is.null(add_line)) {
         p <- p + geom_hline(
             aes(color = line_name %||% as.character(add_line), yintercept = add_line),
@@ -74,7 +90,9 @@ BarPlotSingle <- function(
     }
 
     if (isTRUE(flip)) {
-        p <- p + coord_flip()
+        p <- p + coord_flip(ylim = c(y_min, y_max))
+    } else {
+        p <- p + coord_cartesian(ylim = c(y_min, y_max))
     }
 
     height <- 4.5
@@ -120,6 +138,12 @@ BarPlotSingle <- function(
 #' @param line_size A numeric value indicating the size of the line.
 #' @param line_type A numeric value indicating the type of the line.
 #' @param line_name A character string indicating the name of the line.
+#' @param add_trend A logical value to add trend line to the plot.
+#' @param trend_color A character string to specify the color of the trend line.
+#' @param trend_linewidth A numeric value to specify the width of the trend line.
+#' @param trend_ptsize A numeric value to specify the size of the trend line points.
+#' @param y_min A numeric value to specify the minimum value of the y axis.
+#' @param y_max A numeric value to specify the maximum value of the y axis.
 #' @return A ggplot object.
 #' @keywords internal
 #' @importFrom rlang sym %||%
@@ -132,7 +156,8 @@ BarPlotGrouped <- function(
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1,
     add_line = NULL, line_color = "red2", line_size = .6, line_type = 2, line_name = NULL,
-    position = "auto", position_dodge_preserve = "total",
+    add_trend = FALSE, trend_color = "black", trend_linewidth = 1, trend_ptsize = 2.5,
+    position = "auto", position_dodge_preserve = "total", y_min = NULL, y_max = NULL,
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
     expand = c(bottom = 0), width = 0.8, facet_by = NULL, ...
@@ -186,6 +211,22 @@ BarPlotGrouped <- function(
             axis.text.x = element_text(angle = x_text_angle, hjust = just$h, vjust = just$v)
         )
 
+    if (isTRUE(add_trend)) {
+        if (is.null(trend_color)) {
+            p <- p +
+                geom_line(aes(group = !!sym(group_by), color = !!sym(group_by)),
+                    position = position_dodge(width = 0.9), linewidth = trend_linewidth, show.legend = FALSE) +
+                scale_color_manual(values = colors)
+        } else {
+            p <- p +
+                geom_line(aes(group = !!sym(group_by)), position = position_dodge(width = 0.9), color = trend_color, linewidth = trend_linewidth)
+        }
+        p <- p + geom_point(
+                position = position_dodge(width = 0.9), color = "black", fill = "white",
+                size = trend_ptsize, shape = 21
+            )
+    }
+
     if (!is.null(add_line)) {
         p <- p + geom_hline(
             aes(color = line_name %||% as.character(add_line), yintercept = add_line),
@@ -194,7 +235,9 @@ BarPlotGrouped <- function(
     }
 
     if (isTRUE(flip)) {
-        p <- p + coord_flip()
+        p <- p + coord_flip(ylim = c(y_min, y_max))
+    } else {
+        p <- p + coord_cartesian(ylim = c(y_min, y_max))
     }
 
     height <- 4.5
@@ -232,7 +275,8 @@ BarPlotAtomic <- function(
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1,
     add_line = NULL, line_color = "red2", line_size = .6, line_type = 2, line_name = NULL,
-    position = "auto", position_dodge_preserve = "total",
+    add_trend = FALSE, trend_color = "black", trend_linewidth = 1, trend_ptsize = 2,
+    position = "auto", position_dodge_preserve = "total", y_min = NULL, y_max = NULL,
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
     expand = waiver(), width = waiver(), facet_by = NULL, facet_scales = "fixed",
@@ -244,7 +288,8 @@ BarPlotAtomic <- function(
             theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
             alpha = alpha, x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
             add_line = add_line, line_color = line_color, line_size = line_size, line_type = line_type,
-            legend.position = legend.position, legend.direction = legend.direction,
+            add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
+            legend.position = legend.position, legend.direction = legend.direction, y_min = y_min, y_max = y_max,
             title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty,
             expand = expand, fill_by_x = fill_by_x_if_no_group, width = width, ...
         )
@@ -253,8 +298,9 @@ BarPlotAtomic <- function(
             data, x, y, group_by, facet_by = facet_by, flip = flip, line_name = line_name,
             theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
             alpha = alpha, x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
-            position = position, position_dodge_preserve = position_dodge_preserve,
+            position = position, position_dodge_preserve = position_dodge_preserve, y_min = y_min, y_max = y_max,
             add_line = add_line, line_color = line_color, line_size = line_size, line_type = line_type,
+            add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
             legend.position = legend.position, legend.direction = legend.direction,
             title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty,
             expand = expand, width = width, ...
@@ -299,8 +345,9 @@ BarPlot <- function(
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     add_line = NULL, line_color = "red2", line_size = .6, line_type = 2,
+    add_trend = FALSE, trend_color = "black", trend_linewidth = 1, trend_ptsize = 2,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
-    alpha = 1, x_text_angle = 0, aspect.ratio = 1,
+    alpha = 1, x_text_angle = 0, aspect.ratio = 1, y_min = NULL, y_max = NULL,
     position = "auto", position_dodge_preserve = "total",
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
@@ -325,7 +372,8 @@ BarPlot <- function(
         add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
         alpha = alpha, x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, line_name = line_name,
         add_line = add_line, line_color = line_color, line_size = line_size, line_type = line_type,
-        position = position, position_dodge_preserve = position_dodge_preserve,
+        add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
+        position = position, position_dodge_preserve = position_dodge_preserve, y_min = y_min, y_max = y_max,
         legend.position = legend.position, legend.direction = legend.direction,
         title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty,
         expand = expand, width = width, facet_by = facet_by, facet_scales = facet_scales,

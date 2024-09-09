@@ -27,8 +27,14 @@ BarPlotGrouped(
   line_size = 0.6,
   line_type = 2,
   line_name = NULL,
+  add_trend = FALSE,
+  trend_color = "black",
+  trend_linewidth = 1,
+  trend_ptsize = 2.5,
   position = "auto",
   position_dodge_preserve = "total",
+  y_min = NULL,
+  y_max = NULL,
   legend.position = "right",
   legend.direction = "vertical",
   title = NULL,
@@ -91,11 +97,23 @@ Default is "theme_this".}
 
 \item{line_name}{A character string indicating the name of the line.}
 
+\item{add_trend}{A logical value to add trend line to the plot.}
+
+\item{trend_color}{A character string to specify the color of the trend line.}
+
+\item{trend_linewidth}{A numeric value to specify the width of the trend line.}
+
+\item{trend_ptsize}{A numeric value to specify the size of the trend line points.}
+
 \item{position}{A character string indicating the position of the bars.
 If "auto", the position will be "stack" if group_by has more than 5 levels, otherwise "dodge".
 "fill" is also a valid option. Only works when group_by is not NULL.}
 
 \item{position_dodge_preserve}{Should dodging preserve the "total" width of all elements at a position, or the width of a "single" element?}
+
+\item{y_min}{A numeric value to specify the minimum value of the y axis.}
+
+\item{y_max}{A numeric value to specify the maximum value of the y axis.}
 
 \item{legend.position}{A character string specifying the position of the legend.}
 

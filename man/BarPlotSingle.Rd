@@ -16,6 +16,8 @@ BarPlotSingle(
   alpha = 1,
   x_text_angle = 0,
   aspect.ratio = 1,
+  y_min = NULL,
+  y_max = NULL,
   legend.position = "right",
   legend.direction = "vertical",
   add_line = NULL,
@@ -23,6 +25,10 @@ BarPlotSingle(
   line_size = 0.6,
   line_type = 2,
   line_name = NULL,
+  add_trend = FALSE,
+  trend_color = "black",
+  trend_linewidth = 1,
+  trend_ptsize = 2.5,
   title = NULL,
   subtitle = NULL,
   xlab = NULL,
@@ -59,6 +65,10 @@ Default is "theme_this".}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
+\item{y_min}{A numeric value to specify the minimum value of the y axis.}
+
+\item{y_max}{A numeric value to specify the maximum value of the y axis.}
+
 \item{legend.position}{A character string specifying the position of the legend.}
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
@@ -72,6 +82,14 @@ Default is "theme_this".}
 \item{line_type}{A numeric value indicating the type of the line.}
 
 \item{line_name}{A character string indicating the name of the line.}
+
+\item{add_trend}{A logical value to add trend line to the plot.}
+
+\item{trend_color}{A character string to specify the color of the trend line.}
+
+\item{trend_linewidth}{A numeric value to specify the width of the trend line.}
+
+\item{trend_ptsize}{A numeric value to specify the size of the trend line points.}
 
 \item{title}{A character string specifying the title of the plot.}
 
