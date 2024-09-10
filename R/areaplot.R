@@ -47,7 +47,7 @@ AreaPlotAtomic <- function(
     if (is.null(fill_by)) {
         data$.fill <- factor("")
         fill_by <- ".fill"
-        fill_guide = "none"
+        fill_guide = ifelse(legend.position == "none", "none", "legend")
     } else {
         fill_guide = "legend"
     }
