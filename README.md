@@ -8,3 +8,10 @@
 remotes::install_github("pwwang/plotthis")
 ```
 
+## Credits
+
+`plotthis` is greatly inspired by the [`SCP`][1] package.
+
+## Gallery
+
+[1]: https://zhanghao-njmu.github.io/SCP/index.html

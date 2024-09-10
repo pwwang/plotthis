@@ -20,11 +20,14 @@ Imports:
     patchwork,
     ggrepel,
     gglogger,
-    ggnewscale
+    ggnewscale,
+    cowplot
 Suggests:
     circlize,
     ggalluvial,
     ggVennDiagram (>= 1.5.0),
     ggupset,
-    ggpubr
+    ggpubr,
+    ggforce,
+    scattermore
 LazyData: true

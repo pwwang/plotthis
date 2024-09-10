@@ -8,7 +8,7 @@ RingPlot(
   data,
   x = NULL,
   y = NULL,
-  group_by,
+  group_by = NULL,
   group_by_sep = "_",
   label = NULL,
   split_by = NULL,

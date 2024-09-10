@@ -8,7 +8,7 @@ RingPlotAtomic(
   data,
   x = NULL,
   y = NULL,
-  group_by,
+  group_by = NULL,
   group_by_sep = "_",
   label = NULL,
   facet_by = NULL,

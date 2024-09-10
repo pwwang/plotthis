@@ -29,7 +29,6 @@ PieChartAtomic <- function(
             group_by(!!!syms(unique(c(x, facet_by)))) %>%
             summarise(.y = n(), .groups = "drop")
         y <- ".y"
-        if (is.null(label)) label <- y
     }
     label <- check_columns(data, label)
     concated_facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE)

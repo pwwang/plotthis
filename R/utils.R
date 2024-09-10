@@ -1,4 +1,3 @@
-
 #' Check the columns if columns found in the data
 #' @keywords internal
 #' @param df A data frame
@@ -16,12 +15,11 @@ check_columns <- function(
     force_factor = FALSE,
     allow_multi = FALSE,
     concat_multi = FALSE,
-    concat_sep = "_"
-) {
+    concat_sep = "_") {
     if (is.null(columns)) {
         return(NULL)
     }
-    param_name = deparse(substitute(columns))
+    param_name <- deparse(substitute(columns))
     if (isFALSE(allow_multi)) {
         if (length(columns) > 1) {
             stop(paste0("Only one column is allowed in '", param_name, "'"))
@@ -112,17 +110,17 @@ norm_expansion <- function(expand, x_type, y_type, continuous_default = c(0.05, 
     }
 
     expand <- as.list(expand)
-    if ('x' %in% names(expand) && ('left' %in% names(expand) || 'right' %in% names(expand))) {
+    if ("x" %in% names(expand) && ("left" %in% names(expand) || "right" %in% names(expand))) {
         stop("Cannot have both 'x' and 'left'/'right' in 'expand'")
     }
-    if ('y' %in% names(expand) && ('top' %in% names(expand) || 'bottom' %in% names(expand))) {
+    if ("y" %in% names(expand) && ("top" %in% names(expand) || "bottom" %in% names(expand))) {
         stop("Cannot have both 'y' and 'top'/'bottom' in 'expand'")
     }
-    if ('x' %in% names(expand)) {
+    if ("x" %in% names(expand)) {
         expand$left <- expand$right <- expand$x
         expand$x <- NULL
     }
-    if ('y' %in% names(expand)) {
+    if ("y" %in% names(expand)) {
         expand$bottom <- expand$top <- expand$y
         expand$y <- NULL
     }
@@ -185,7 +183,8 @@ calc_just <- function(angle) {
 #' @param recalc_size Whether to re-calculate the size of the plot
 #' @param ... Additional arguments to pass to facet_wrap or facet_grid
 #' @return The faceted plot. If guess_size is TRUE, attr(p, "height") and attr(p, "width") will be set
-#' @importFrom ggplot2 facet_wrap facet_grid ggplot_build
+#' @importFrom rlang sym
+#' @importFrom ggplot2 facet_wrap facet_grid ggplot_build vars
 #' @keywords internal
 facet_plot <- function(plot, facet_by, facet_scales, nrow, ncol, byrow, recalc_size = TRUE, ...) {
     if (is.null(facet_by)) {
@@ -203,7 +202,7 @@ facet_plot <- function(plot, facet_by, facet_scales, nrow, ncol, byrow, recalc_s
     if (length(facet_by) == 1) {
         plot <- plot + ggplot2::facet_wrap(facets = facet_by, scales = facet_scales, nrow = nrow, ncol = ncol, dir = if (byrow) "h" else "v", ...)
     } else {
-        plot <- plot + ggplot2::facet_grid(rows = facet_by[[1]], cols = facet_by[[2]], scales = facet_scales, ...)
+        plot <- plot + ggplot2::facet_grid(vars(!!sym(facet_by[[1]])), vars(!!sym(facet_by[[2]])), scales = facet_scales, ...)
     }
 
     return(plot)
@@ -258,6 +257,7 @@ combine_plots <- function(plots, combine, nrow, ncol, byrow, recalc_size = TRUE)
 #' @param direction A character string specifying the direction for the background
 #' @return A ggplot layer for background
 #' @importFrom ggplot2 geom_rect
+#' @importFrom dplyr distinct
 #' @importFrom tidyr expand_grid
 bg_layer <- function(data, x, palette, palcolor, alpha, keep_empty, facet_by, direction = "vertical") {
     fct <- data[[x]]
@@ -275,8 +275,9 @@ bg_layer <- function(data, x, palette, palcolor, alpha, keep_empty, facet_by, di
     bg_data$fill <- bg_color[levels(fct)]
 
     if (!is.null(facet_by)) {
+        unique_facet_values <- distinct(data, !!!syms(facet_by))
+        bg_data <- expand_grid(bg_data, unique_facet_values)
         for (fb in facet_by) {
-            bg_data <- expand_grid(bg_data, !!sym(fb) := levels(data[[fb]]))
             bg_data[[fb]] <- factor(bg_data[[fb]], levels = levels(data[[fb]]))
         }
     }
@@ -386,4 +387,47 @@ blend_colors <- function(colors, mode = c("blend", "average", "screen", "multipl
     blend_color <- blend_rgblist(Clist, mode = mode)
     blend_color <- rgb(blend_color[1], blend_color[2], blend_color[3])
     return(blend_color)
+}
+
+#' @importFrom grid is.grob grobWidth grobHeight
+#' @importFrom gtable is.gtable gtable_add_rows gtable_add_cols gtable_add_grob
+add_grob <- function(gtable, grob, position = c("top", "bottom", "left", "right", "none"), space = NULL, clip = "on") {
+    position <- match.arg(position)
+    if (position == "none" || is.null(grob)) {
+        return(gtable)
+    }
+
+    if (is.null(space)) {
+        if (is.gtable(grob)) {
+            if (position %in% c("top", "bottom")) {
+                space <- sum(grob$heights)
+            } else {
+                space <- sum(grob$widths)
+            }
+        } else if (is.grob(grob)) {
+            if (position %in% c("top", "bottom")) {
+                space <- grobHeight(grob)
+            } else {
+                space <- grobWidth(grob)
+            }
+        }
+    }
+
+    if (position == "top") {
+        gtable <- gtable_add_rows(gtable, space, 0)
+        gtable <- gtable_add_grob(gtable, grob, t = 1, l = mean(gtable$layout[grepl(pattern = "panel", x = gtable$layout$name), "l"]), clip = clip)
+    }
+    if (position == "bottom") {
+        gtable <- gtable_add_rows(gtable, space, -1)
+        gtable <- gtable_add_grob(gtable, grob, t = dim(gtable)[1], l = mean(gtable$layout[grepl(pattern = "panel", x = gtable$layout$name), "l"]), clip = clip)
+    }
+    if (position == "left") {
+        gtable <- gtable_add_cols(gtable, space, 0)
+        gtable <- gtable_add_grob(gtable, grob, t = mean(gtable$layout[grep("panel", gtable$layout$name), "t"]), l = 1, clip = clip)
+    }
+    if (position == "right") {
+        gtable <- gtable_add_cols(gtable, space, -1)
+        gtable <- gtable_add_grob(gtable, grob, t = mean(gtable$layout[grep("panel", gtable$layout$name), "t"]), l = dim(gtable)[2], clip = clip)
+    }
+    return(gtable)
 }

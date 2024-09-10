@@ -10,13 +10,12 @@
 #'   showing the labels for multiple rings.
 #' @return A ggplot object
 #' @importFrom rlang sym syms
-#' @importFrom tidyr expand_grid
 #' @importFrom dplyr %>% group_by summarise n
 #' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_col scale_fill_manual scale_x_discrete geom_label
 #' @keywords internal
 RingPlotAtomic <- function(
-    data, x = NULL, y = NULL, group_by, group_by_sep = "_", label = NULL,
+    data, x = NULL, y = NULL, group_by = NULL, group_by_sep = "_", label = NULL,
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     alpha = 1, aspect.ratio = 1,
@@ -120,7 +119,7 @@ RingPlotAtomic <- function(
 #' RingPlot(datasets::mtcars, x = "cyl", group_by = "carb", facet_by = "vs")
 #' RingPlot(datasets::mtcars, x = "cyl", group_by = "carb", split_by = "vs")
 RingPlot <- function(
-    data, x = NULL, y = NULL, group_by, group_by_sep = "_", label = NULL,
+    data, x = NULL, y = NULL, group_by = NULL, group_by_sep = "_", label = NULL,
     split_by = NULL, split_by_sep = "_",
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,

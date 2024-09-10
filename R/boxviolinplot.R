@@ -354,7 +354,7 @@ BoxViolinPlotAtomic <- function(
                 show.legend = FALSE
             ) +
             scale_color_manual(values = c("TRUE" = highlight_color, "FALSE" = point_color)) +
-            scale_size_manual(values = c("TRUE" = highlight_size, "FALSE" = point_size %||% min(3000 / nrow(data), 0.5))) +
+            scale_size_manual(values = c("TRUE" = highlight_size, "FALSE" = point_size %||% min(3000 / nrow(data), 0.6))) +
             scale_alpha_manual(values = c("TRUE" = highlight_alpha, "FALSE" = point_alpha))
     }
 
