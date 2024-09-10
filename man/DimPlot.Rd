@@ -7,15 +7,18 @@
 DimPlot(
   data,
   dims = 1:2,
-  group_by,
+  group_by = NULL,
   group_by_sep = "_",
   split_by = NULL,
   split_by_sep = "_",
   pt_size = NULL,
   pt_alpha = 1,
   bg_color = "grey80",
+  features = NULL,
+  bg_cutoff = 0,
   label_insitu = FALSE,
   show_stat = !identical(theme, "theme_blank"),
+  color_name = "",
   label = FALSE,
   label_size = 4,
   label_fg = "white",
@@ -79,10 +82,10 @@ DimPlot(
   raster_dpi = c(512, 512),
   hex = FALSE,
   hex_linewidth = 0.5,
-  hex_count = TRUE,
+  hex_count = !is.null(group_by),
   hex_bins = 50,
   hex_binwidth = NULL,
-  palette = "Paired",
+  palette = ifelse(is.null(features), "Paired", "Spectral"),
   palcolor = NULL,
   seed = 8525,
   combine = TRUE,
@@ -334,4 +337,16 @@ DimPlot(data, group_by = "cluster", lineages = c("L1", "L2", "L3"),
         lineages_whiskers = TRUE)
 DimPlot(data, group_by = "cluster", lineages = c("L1", "L2", "L3"),
         lineages_span = 1)
+# Feature Dim Plot
+DimPlot(data, features = "L1", pt_size = 2)
+DimPlot(data, features = "L1", pt_size = 2, bg_cutoff = -Inf)
+DimPlot(data, features = "L1", raster = TRUE, raster_dpi = 30)
+DimPlot(data, features = c("L1", "L2"), pt_size = 2)
+DimPlot(data, features = c("L1"), pt_size = 2, facet_by = "group")
+# Can't facet multiple features
+DimPlot(data, features = c("L1", "L2", "L3"), pt_size = 2)
+# We can use split_by
+DimPlot(data, features = c("L1", "L2", "L3"), split_by = "group", nrow = 2)
+DimPlot(data, features = c("L1", "L2", "L3"), highlight = TRUE)
+DimPlot(data, features = c("L1", "L2", "L3"), hex = TRUE, hex_bins = 15)
 }

@@ -66,13 +66,14 @@
 #' @return A ggplot object
 #' @keywords internal
 #' @importFrom dplyr %>% group_by group_map pull
+#' @importFrom tidyr pivot_longer
 #' @importFrom gglogger ggplot
 #' @importFrom ggplot2 scale_linewidth_continuous geom_density_2d stat_density_2d geom_hex
-#' @importFrom ggplot2 ggplotGrob theme_void as_labeller
+#' @importFrom ggplot2 ggplotGrob theme_void as_labeller stat_summary_hex
 #' @importFrom cowplot get_plot_component
 DimPlotAtomic <- function(
-    data, dims = 1:2, group_by, group_by_sep = "_",
-    pt_size = NULL, pt_alpha = 1, bg_color = "grey80",
+    data, dims = 1:2, group_by = NULL, group_by_sep = "_", features = NULL,
+    pt_size = NULL, pt_alpha = 1, bg_color = "grey80", bg_cutoff = 0, color_name = "",
     label_insitu = FALSE, show_stat = !identical(theme, "theme_blank"),
     label = FALSE, label_size = 4, label_fg = "white", label_bg = "black", label_bg_r = 0.1,
     label_repel = FALSE, label_repulsion = 20, label_pt_size = 1, label_pt_color = "black",
@@ -92,8 +93,10 @@ DimPlotAtomic <- function(
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     theme = "theme_this", theme_args = list(), aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     raster = NULL, raster_dpi = c(512, 512),
-    hex = FALSE, hex_linewidth = 0.5, hex_count = TRUE, hex_bins = 50, hex_binwidth = NULL,
-    palette = "Paired", palcolor = NULL, seed = 8525, ...) {
+    hex = FALSE, hex_linewidth = 0.5, hex_count = !is.null(group_by), hex_bins = 50, hex_binwidth = NULL,
+    palette = ifelse(is.null(features), "Paired", "Spectral"), palcolor = NULL, seed = 8525, ...) {
+
+    ## Setting up the parameters
     if (is.numeric(dims)) {
         dims <- colnames(data)[dims]
     }
@@ -109,10 +112,14 @@ DimPlotAtomic <- function(
         force_factor = TRUE,
         allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep
     )
+    features <- check_columns(data, features, allow_multi = TRUE)
+    if (is.null(group_by) && is.null(features)) {
+        stop("Either 'group_by' or 'features' should be specified.")
+    }
     facet_by <- check_columns(data, facet_by, force_factor = TRUE)
-    colors <- palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor, NA_keep = TRUE)
-    labels_tb <- table(data[[group_by]])
-    labels_tb <- labels_tb[labels_tb != 0]
+    if (length(features) > 1 && !is.null(facet_by)) {
+        stop("Cannot specify 'facet_by' with multiple features. The plot will be faceted by features.")
+    }
     pt_size <- pt_size %||% min(3000 / nrow(data), 0.6)
     raster <- raster %||% (nrow(data) > 1e5)
     xlab <- xlab %||% dims[1]
@@ -125,46 +132,67 @@ DimPlotAtomic <- function(
         message("Forcing label to be TRUE when label_repel is TRUE.")
         label <- TRUE
     }
-    if (isTRUE(label_insitu)) {
-        if (isTRUE(show_stat)) {
-            label_use <- paste0(names(labels_tb), "(", labels_tb, ")")
-        } else {
-            label_use <- paste0(names(labels_tb))
-        }
-    } else {
-        if (isTRUE(label)) {
-            if (isTRUE(show_stat)) {
-                label_use <- paste0(seq_along(labels_tb), ": ", names(labels_tb), "(", labels_tb, ")")
-            } else {
-                label_use <- paste0(seq_along(labels_tb), ": ", names(labels_tb))
-            }
-        } else {
+
+    facet_labeller <- "label_value"
+    if (!is.null(group_by)) {
+        colors <- palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor, NA_keep = TRUE)
+        labels_tb <- table(data[[group_by]])
+        labels_tb <- labels_tb[labels_tb != 0]
+        if (isTRUE(label_insitu)) {
             if (isTRUE(show_stat)) {
                 label_use <- paste0(names(labels_tb), "(", labels_tb, ")")
             } else {
                 label_use <- paste0(names(labels_tb))
             }
+        } else {
+            if (isTRUE(label)) {
+                if (isTRUE(show_stat)) {
+                    label_use <- paste0(seq_along(labels_tb), ": ", names(labels_tb), "(", labels_tb, ")")
+                } else {
+                    label_use <- paste0(seq_along(labels_tb), ": ", names(labels_tb))
+                }
+            } else {
+                if (isTRUE(show_stat)) {
+                    label_use <- paste0(names(labels_tb), "(", labels_tb, ")")
+                } else {
+                    label_use <- paste0(names(labels_tb))
+                }
+            }
+        }
+        if (isTRUE(show_stat)) {
+            if (is.null(facet_by)) {
+                subtitle <- subtitle %||% paste0("N = ", sum(!is.na(data[[group_by]])))
+            } else if (length(facet_by) == 1) {
+                facet_labeller <- as_labeller(function(values) {
+                    sapply(values, function(v) {
+                        data_sub <- data[data[[facet_by]] == v, , drop = FALSE]
+                        paste0(v, " (N = ", sum(!is.na(data_sub[[group_by]])), ")")
+                    })
+                })
+            }
         }
     }
 
-    facet_labeller <- NULL
-    if (isTRUE(show_stat)) {
-        if (is.null(facet_by)) {
-            subtitle <- subtitle %||% paste0("N = ", sum(!is.na(data[[group_by]])))
-        } else if (length(facet_by) == 1) {
-            facet_labeller <- as_labeller(function(values) {
-                sapply(values, function(v) {
-                    data_sub <- data[data[[facet_by]] == v, , drop = FALSE]
-                    paste0(v, " (N = ", sum(!is.na(data_sub[[group_by]])), ")")
-                })
-            })
-        }
+    ## Making long data for features when length(features) > 1
+    multifeats <- length(features) > 1
+    if (multifeats) {
+        data <- data %>% pivot_longer(cols = features, names_to = ".feature", values_to = ".value")
+        data$.feature <- factor(data$.feature, levels = features)
+        facet_by <- ".feature"
+        features <- ".value"
     }
+    data[, features][data[, features] < bg_cutoff] <- NA
+    colorby <- ifelse(is.null(features), group_by, features)
 
     # Do we have fill scale?
     has_fill <- FALSE
     p <- ggplot(data)
+
+    ## Adding the mark
     if (isTRUE(add_mark)) {
+        if (is.null(group_by)) {
+            stop("Cannot add mark without 'group_by'.")
+        }
         if (!requireNamespace("ggforce", quietly = TRUE)) {
             stop("'ggforce' package is required for adding mark to the plot.")
         }
@@ -187,6 +215,7 @@ DimPlotAtomic <- function(
             new_scale_color()
     }
 
+    ## Adding the graph/network
     if (!is.null(graph)) {
         if (is.character(graph) && length(graph) == 1 && startsWith(graph, "@")) {
             graph <- substring(graph, 2)
@@ -235,6 +264,7 @@ DimPlotAtomic <- function(
         ) + scale_linewidth_continuous(range = edge_size)
     }
 
+    ## Adding the density plot
     if (isTRUE(add_density)) {
         if (isTRUE(density_filled)) {
             filled_color <- palette_this(palette = density_filled_palette, palcolor = density_filled_palcolor)
@@ -253,6 +283,7 @@ DimPlotAtomic <- function(
         }
     }
 
+    ## Setting up the theme
     x_min <- min(data[[dims[1]]], na.rm = TRUE)
     x_max <- max(data[[dims[1]]], na.rm = TRUE)
     y_min <- min(data[[dims[2]]], na.rm = TRUE)
@@ -268,42 +299,64 @@ DimPlotAtomic <- function(
             legend.direction = legend.direction
         )
 
+    ## Raserting the plot/Adding the points
     if (isTRUE(raster)) {
         if (!requireNamespace("scattermore", quietly = TRUE)) {
             stop("'scattermore' package is required to raster the plot.")
         }
-        p <- p + scattermore::geom_scattermore(
-            data = data[!is.na(data[[group_by]]), , drop = FALSE],
-            mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])), color = bg_color,
-            pointsize = ceiling(pt_size), alpha = pt_alpha, pixels = raster_dpi
-        ) + scattermore::geom_scattermore(
-            data = data[!is.na(data[[group_by]]), , drop = FALSE],
-            mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(group_by)),
-            pointsize = ceiling(pt_size), alpha = pt_alpha, pixels = raster_dpi
-        )
+        if (!is.null(group_by)) {
+            data_use <- data[!is.na(data[[group_by]]), , drop = FALSE]
+            p <- p + scattermore::geom_scattermore(
+                data = data_use,
+                mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])), color = bg_color,
+                pointsize = ceiling(pt_size), alpha = pt_alpha, pixels = raster_dpi
+            ) + scattermore::geom_scattermore(
+                data = data_use,
+                mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(group_by)),
+                pointsize = ceiling(pt_size), alpha = pt_alpha, pixels = raster_dpi
+            )
+            rm(data_use)
+        } else {  # features
+            p <- p + scattermore::geom_scattermore(
+                mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])), color = bg_color,
+                pointsize = ceiling(pt_size), alpha = pt_alpha, pixels = raster_dpi
+            ) + scattermore::geom_scattermore(
+                mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(colorby)),
+                pointsize = ceiling(pt_size), alpha = pt_alpha, pixels = raster_dpi
+            )
+        }
     } else if (isTRUE(hex)) {
-        # if (!requireNamespace("hexbin", quietly = TRUE)) {
-        #     stop("'hexbin' package is required to add hexgons the plot.")
-        # }
+        if (!requireNamespace("hexbin", quietly = TRUE)) {
+            stop("'hexbin' package is required to add hexgons the plot.")
+        }
         has_fill <- TRUE
         if (isTRUE(hex_count)) {
+            if (!is.null(features)) {
+                stop("Don't know how to count for the hex when 'group_by' is not provided.")
+            }
             p <- p + geom_hex(
                 mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(group_by), fill = !!sym(group_by), alpha = after_stat(count)),
                 linewidth = hex_linewidth, bins = hex_bins, binwidth = hex_binwidth
             )
-        } else {
+        } else if (!is.null(group_by)) {
             p <- p + geom_hex(
                 mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(group_by), fill = !!sym(group_by)),
+                linewidth = hex_linewidth, bins = hex_bins, binwidth = hex_binwidth
+            )
+        } else {
+            p <- p + stat_summary_hex(
+                mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), z = !!sym(colorby)),
                 linewidth = hex_linewidth, bins = hex_bins, binwidth = hex_binwidth
             )
         }
     } else {
         p <- p + geom_point(
-            mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(group_by)),
+            mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(colorby)),
             size = pt_size, alpha = pt_alpha
         )
     }
 
+    ## Adding the highlight
     if (!is.null(highlight)) {
         if (isTRUE(hex)) {
             stop("Highlight is not supported for hex plot.")
@@ -322,13 +375,14 @@ DimPlotAtomic <- function(
             rm(all_inst)
         }
         if (nrow(hi_df) > 0) {
+
             if (isTRUE(raster)) {
                 p <- p + scattermore::geom_scattermore(
                     data = hi_df, aes(x = !!sym(dims[1]), y = !!sym(dims[2])), color = highlight_color,
                     pointsize = floor(highlight_size) + highlight_stroke, alpha = highlight_alpha, pixels = raster_dpi
                 ) +
                     scattermore::geom_scattermore(
-                        data = hi_df, aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(group_by)),
+                        data = hi_df, aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(colorby)),
                         pointsize = floor(highlight_size), alpha = highlight_alpha, pixels = raster_dpi
                     )
             } else {
@@ -337,14 +391,15 @@ DimPlotAtomic <- function(
                     size = highlight_size + highlight_stroke, alpha = highlight_alpha
                 ) +
                     geom_point(
-                        data = hi_df, aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(group_by)),
+                        data = hi_df, aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(colorby)),
                         size = highlight_size, alpha = highlight_alpha
                     )
             }
         }
     }
 
-    if (!is.null(facet_by)) {
+    ## Adding the background points for each facet
+    if (!is.null(facet_by) && isFALSE(multifeats)) {
         # Add the points from other subplots as background
         all_fc_values <- distinct(data, !!!syms(facet_by))
         colnames(all_fc_values) <- paste0(".facet_", colnames(all_fc_values))
@@ -362,27 +417,45 @@ DimPlotAtomic <- function(
             size = pt_size, alpha = pt_alpha / 2, color = bg_color
         )
     }
-
-    p <- p + scale_color_manual(
-        values = colors[names(labels_tb)],
-        labels = label_use,
-        na.value = bg_color,
-        guide = guide_legend(
-            title.hjust = 0,
-            order = 1,
-            override.aes = list(size = 4, alpha = 1)
-        )
-    )
-    if (has_fill) {
-        p <- p + scale_fill_manual(
+    if (!is.null(group_by)) {
+        p <- p + scale_color_manual(
             values = colors[names(labels_tb)],
             labels = label_use,
             na.value = bg_color,
             guide = guide_legend(
                 title.hjust = 0,
-                order = 1
+                order = 1,
+                override.aes = list(size = 4, alpha = 1)
             )
         )
+        if (has_fill) {
+            p <- p + scale_fill_manual(
+                values = colors[names(labels_tb)],
+                labels = label_use,
+                na.value = bg_color,
+                guide = guide_legend(
+                    title.hjust = 0,
+                    order = 1
+                )
+            )
+        }
+    } else {
+        p <- p + scale_color_gradientn(
+            name = color_name,
+            colors = palette_this(palette = palette, palcolor = palcolor),
+            # values = rescale(value_list[[i]]),
+            na.value = bg_color,
+            guide = guide_colorbar(frame.colour = "black", ticks.colour = "black", title.hjust = 0)
+        )
+        if (has_fill) {
+            p <- p + scale_fill_gradientn(
+                name = color_name,
+                colors = palette_this(palette = palette, palcolor = palcolor),
+                # values = rescale(value_list[[i]]),
+                na.value = bg_color,
+                guide = guide_colorbar(frame.colour = "black", ticks.colour = "black", title.hjust = 0)
+            )
+        }
     }
     legend_base <- get_plot_component(
         p + theme_this(legend.position = "bottom", legend.direction = legend.direction),
@@ -390,6 +463,7 @@ DimPlotAtomic <- function(
     )
 
     legend_list <- list()
+    ## Adding the lineages
     if (!is.null(lineages)) {
         if (!is.null(facet_by)) {
             stop("'lineages' is not supported when 'facet_by' is not NULL.")
@@ -465,9 +539,14 @@ DimPlotAtomic <- function(
             legend_list["lineages"] <- list(NULL)
         }
     }
+
+    ## Adding the statistic plots
     if (!is.null(stat_by)) {
         if (!is.null(facet_by)) {
             stop("'stat_by' is not supported when 'facet_by' is not NULL.")
+        }
+        if (!is.null(features)) {
+            stop("'stat_by' is not supported without 'group_by'.")
         }
         stat_by <- check_columns(data, stat_by, force_factor = TRUE)
         stat_plot_type <- match.arg(stat_plot_type)
@@ -512,9 +591,14 @@ DimPlotAtomic <- function(
         )
     }
 
+    ## Adding the labels
     if (isTRUE(label)) {
+        if (!is.null(features)) {
+            stop("No need to add label for a single feature.")
+        }
         if (!is.null(facet_by)) {
             label_df <- aggregate(data[, dims], by = list(data[[group_by]], data[[facet_by]]), FUN = median)
+            colnames(label_df)[2:length(facet_by) + 1] <- facet_by
         } else {
             label_df <- aggregate(data[, dims], by = list(data[[group_by]]), FUN = median)
         }
@@ -542,6 +626,7 @@ DimPlotAtomic <- function(
         }
     }
 
+    ## Posing all legends
     if (length(legend_list) > 0) {
         legend_list <- legend_list[!sapply(legend_list, is.null)]
         if (legend.direction == "vertical") {
@@ -554,6 +639,7 @@ DimPlotAtomic <- function(
         p <- wrap_plots(gtable)
     }
 
+    ## Putting reasonable height and width
     height <- width <- 5.5
     if (legend.position != "none") {
         if (legend.position %in% c("right", "left")) {
@@ -636,10 +722,22 @@ DimPlotAtomic <- function(
 #'         lineages_whiskers = TRUE)
 #' DimPlot(data, group_by = "cluster", lineages = c("L1", "L2", "L3"),
 #'         lineages_span = 1)
+#' # Feature Dim Plot
+#' DimPlot(data, features = "L1", pt_size = 2)
+#' DimPlot(data, features = "L1", pt_size = 2, bg_cutoff = -Inf)
+#' DimPlot(data, features = "L1", raster = TRUE, raster_dpi = 30)
+#' DimPlot(data, features = c("L1", "L2"), pt_size = 2)
+#' DimPlot(data, features = c("L1"), pt_size = 2, facet_by = "group")
+#' # Can't facet multiple features
+#' DimPlot(data, features = c("L1", "L2", "L3"), pt_size = 2)
+#' # We can use split_by
+#' DimPlot(data, features = c("L1", "L2", "L3"), split_by = "group", nrow = 2)
+#' DimPlot(data, features = c("L1", "L2", "L3"), highlight = TRUE)
+#' DimPlot(data, features = c("L1", "L2", "L3"), hex = TRUE, hex_bins = 15)
 DimPlot <- function(
-    data, dims = 1:2, group_by, group_by_sep = "_", split_by = NULL, split_by_sep = "_",
-    pt_size = NULL, pt_alpha = 1, bg_color = "grey80",
-    label_insitu = FALSE, show_stat = !identical(theme, "theme_blank"),
+    data, dims = 1:2, group_by = NULL, group_by_sep = "_", split_by = NULL, split_by_sep = "_",
+    pt_size = NULL, pt_alpha = 1, bg_color = "grey80", features = NULL, bg_cutoff = 0,
+    label_insitu = FALSE, show_stat = !identical(theme, "theme_blank"), color_name = "",
     label = FALSE, label_size = 4, label_fg = "white", label_bg = "black", label_bg_r = 0.1,
     label_repel = FALSE, label_repulsion = 20, label_pt_size = 1, label_pt_color = "black",
     label_segment_color = "black",
@@ -658,8 +756,8 @@ DimPlot <- function(
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     theme = "theme_this", theme_args = list(), aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     raster = NULL, raster_dpi = c(512, 512),
-    hex = FALSE, hex_linewidth = 0.5, hex_count = TRUE, hex_bins = 50, hex_binwidth = NULL,
-    palette = "Paired", palcolor = NULL, seed = 8525,
+    hex = FALSE, hex_linewidth = 0.5, hex_count = !is.null(group_by), hex_bins = 50, hex_binwidth = NULL,
+    palette = ifelse(is.null(features), "Paired", "Spectral"), palcolor = NULL, seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...) {
 
     validate_common_args(seed, facet_by = facet_by)
@@ -687,8 +785,8 @@ DimPlot <- function(
     plots <- lapply(
         datas, DimPlotAtomic,
         dims = dims, group_by = group_by, group_by_sep = group_by_sep,
-        pt_size = pt_size, pt_alpha = pt_alpha, bg_color = bg_color,
-        label_insitu = label_insitu, show_stat = show_stat,
+        pt_size = pt_size, pt_alpha = pt_alpha, bg_color = bg_color, color_name = color_name,
+        label_insitu = label_insitu, show_stat = show_stat, features = features, bg_cutoff = bg_cutoff,
         label = label, label_size = label_size, label_fg = label_fg, label_bg = label_bg, label_bg_r = label_bg_r,
         label_repel = label_repel, label_repulsion = label_repulsion, label_pt_size = label_pt_size, label_pt_color = label_pt_color,
         label_segment_color = label_segment_color,
