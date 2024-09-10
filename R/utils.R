@@ -228,9 +228,9 @@ combine_plots <- function(plots, combine, nrow, ncol, byrow, recalc_size = TRUE)
     }
 
     if (recalc_size) {
-        d <- wrap_dims(length(plots))
-        nrow <- nrow %||% d[1]
-        ncol <- ncol %||% d[2]
+        d <- wrap_dims(length(plots), nrow, ncol)
+        nrow <- d[1]
+        ncol <- d[2]
         p <- combine_plots(plots, TRUE, nrow, ncol, byrow, recalc_size = FALSE)
         attr(p, "height") <- nrow * max(sapply(plots, function(x) attr(x, "height")))
         attr(p, "width") <- ncol * max(sapply(plots, function(x) attr(x, "width")))
