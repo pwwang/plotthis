@@ -28,7 +28,7 @@
 #' @importFrom ggplot2 aes geom_bar scale_fill_manual labs scale_x_discrete scale_y_continuous
 #' @importFrom ggplot2 element_line waiver coord_flip scale_color_manual guide_legend coord_cartesian
 BarPlotSingle <- function(
-    data, x, y = NULL, flip = FALSE,
+    data, x, y = NULL, flip = FALSE, facet_by = NULL,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1, y_min = NULL, y_max = NULL,
     legend.position = "right", legend.direction = "vertical",
@@ -43,8 +43,9 @@ BarPlotSingle <- function(
 
     x <- check_columns(data, x, force_factor = TRUE)
     y <- check_columns(data, y)
+    facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
     if (is.null(y)) {
-        data <- data %>% group_by(!!sym(x)) %>% summarise(.y = n(), .groups = "drop")
+        data <- data %>% group_by(!!!syms(unique(c(x, facet_by)))) %>% summarise(.y = n(), .groups = "drop")
         y <- ".y"
     }
 
