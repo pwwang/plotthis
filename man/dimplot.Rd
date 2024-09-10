@@ -2,19 +2,106 @@
 % Please edit documentation in R/dimplot.R
 \name{DimPlot}
 \alias{DimPlot}
+\alias{FeatureDimPlot}
 \title{DimPLot}
 \usage{
 DimPlot(
   data,
   dims = 1:2,
-  group_by = NULL,
+  group_by,
   group_by_sep = "_",
   split_by = NULL,
   split_by_sep = "_",
   pt_size = NULL,
   pt_alpha = 1,
   bg_color = "grey80",
-  features = NULL,
+  label_insitu = FALSE,
+  show_stat = !identical(theme, "theme_blank"),
+  label = FALSE,
+  label_size = 4,
+  label_fg = "white",
+  label_bg = "black",
+  label_bg_r = 0.1,
+  label_repel = FALSE,
+  label_repulsion = 20,
+  label_pt_size = 1,
+  label_pt_color = "black",
+  label_segment_color = "black",
+  highlight = NULL,
+  highlight_alpha = 1,
+  highlight_size = 1,
+  highlight_color = "black",
+  highlight_stroke = 0.8,
+  add_mark = FALSE,
+  mark_type = c("hull", "ellipse", "rect", "circle"),
+  mark_expand = unit(3, "mm"),
+  mark_alpha = 0.1,
+  mark_linetype = 1,
+  stat_by = NULL,
+  stat_plot_type = c("pie", "ring", "bar", "line"),
+  stat_plot_size = 0.1,
+  stat_args = list(palette = "Set1"),
+  graph = NULL,
+  edge_size = c(0.05, 0.5),
+  edge_alpha = 0.1,
+  edge_color = "grey40",
+  add_density = FALSE,
+  density_color = "grey80",
+  density_filled = FALSE,
+  density_filled_palette = "Greys",
+  density_filled_palcolor = NULL,
+  lineages = NULL,
+  lineages_trim = c(0.01, 0.99),
+  lineages_span = 0.75,
+  lineages_palette = "Dark2",
+  lineages_palcolor = NULL,
+  lineages_arrow = arrow(length = unit(0.1, "inches")),
+  lineages_linewidth = 1,
+  lineages_line_bg = "white",
+  lineages_line_bg_stroke = 0.5,
+  lineages_whiskers = FALSE,
+  lineages_whiskers_linewidth = 0.5,
+  lineages_whiskers_alpha = 0.5,
+  facet_by = NULL,
+  facet_scales = "fixed",
+  facet_nrow = NULL,
+  facet_ncol = NULL,
+  facet_byrow = TRUE,
+  title = NULL,
+  subtitle = NULL,
+  xlab = NULL,
+  ylab = NULL,
+  theme = "theme_this",
+  theme_args = list(),
+  aspect.ratio = 1,
+  legend.position = "right",
+  legend.direction = "vertical",
+  raster = NULL,
+  raster_dpi = c(512, 512),
+  hex = FALSE,
+  hex_linewidth = 0.5,
+  hex_count = TRUE,
+  hex_bins = 50,
+  hex_binwidth = NULL,
+  palette = "Paired",
+  palcolor = NULL,
+  seed = 8525,
+  combine = TRUE,
+  nrow = NULL,
+  ncol = NULL,
+  byrow = TRUE,
+  ...
+)
+
+FeatureDimPlot(
+  data,
+  dims = 1:2,
+  split_by = NULL,
+  split_by_sep = "_",
+  pt_size = NULL,
+  pt_alpha = 1,
+  bg_color = "grey80",
+  features,
   bg_cutoff = 0,
   label_insitu = FALSE,
   show_stat = !identical(theme, "theme_blank"),
@@ -82,10 +169,10 @@ DimPlot(
   raster_dpi = c(512, 512),
   hex = FALSE,
   hex_linewidth = 0.5,
-  hex_count = !is.null(group_by),
+  hex_count = FALSE,
   hex_bins = 50,
   hex_binwidth = NULL,
-  palette = ifelse(is.null(features), "Paired", "Spectral"),
+  palette = "Spectral",
   palcolor = NULL,
   seed = 8525,
   combine = TRUE,
@@ -253,7 +340,7 @@ Default is "theme_this".}
 
 \item{hex_linewidth}{A numeric value of the hex line width. Default is 0.5.}
 
-\item{hex_count}{Whether to count the hex. Default is TRUE.}
+\item{hex_count}{Whether to count the hex.}
 
 \item{hex_bins}{A numeric value of the hex bins. Default is 50.}
 
@@ -274,12 +361,20 @@ Default is "theme_this".}
 \item{byrow}{A logical value indicating whether to fill the plots by row.}
 
 \item{...}{Additional arguments.}
+
+\item{features}{A character vector of the column names to plot as features.}
+
+\item{bg_cutoff}{A numeric value to be used a cutoff to set the feature values to NA. Default is 0.}
+
+\item{color_name}{A character string of the color legend name. Default is "".}
 }
 \value{
 A ggplot object or wrap_plots object or a list of ggplot objects
+
+A ggplot object or wrap_plots object or a list of ggplot objects
 }
 \description{
-DimPLot
+Dimension reduction plot. FeatureDimPlot is used to plot the feature values on the dimension reduction plot.
 }
 \examples{
 # generate a PCA dimension data for DimPlot
@@ -338,15 +433,15 @@ DimPlot(data, group_by = "cluster", lineages = c("L1", "L2", "L3"),
 DimPlot(data, group_by = "cluster", lineages = c("L1", "L2", "L3"),
         lineages_span = 1)
 # Feature Dim Plot
-DimPlot(data, features = "L1", pt_size = 2)
-DimPlot(data, features = "L1", pt_size = 2, bg_cutoff = -Inf)
-DimPlot(data, features = "L1", raster = TRUE, raster_dpi = 30)
-DimPlot(data, features = c("L1", "L2"), pt_size = 2)
-DimPlot(data, features = c("L1"), pt_size = 2, facet_by = "group")
+FeatureDimPlot(data, features = "L1", pt_size = 2)
+FeatureDimPlot(data, features = "L1", pt_size = 2, bg_cutoff = -Inf)
+FeatureDimPlot(data, features = "L1", raster = TRUE, raster_dpi = 30)
+FeatureDimPlot(data, features = c("L1", "L2"), pt_size = 2)
+FeatureDimPlot(data, features = c("L1"), pt_size = 2, facet_by = "group")
 # Can't facet multiple features
-DimPlot(data, features = c("L1", "L2", "L3"), pt_size = 2)
+FeatureDimPlot(data, features = c("L1", "L2", "L3"), pt_size = 2)
 # We can use split_by
-DimPlot(data, features = c("L1", "L2", "L3"), split_by = "group", nrow = 2)
-DimPlot(data, features = c("L1", "L2", "L3"), highlight = TRUE)
-DimPlot(data, features = c("L1", "L2", "L3"), hex = TRUE, hex_bins = 15)
+FeatureDimPlot(data, features = c("L1", "L2", "L3"), split_by = "group", nrow = 2)
+FeatureDimPlot(data, features = c("L1", "L2", "L3"), highlight = TRUE)
+FeatureDimPlot(data, features = c("L1", "L2", "L3"), hex = TRUE, hex_bins = 15)
 }

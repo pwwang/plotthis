@@ -60,9 +60,12 @@
 #' @param raster_dpi A numeric vector of the raster dpi. Default is c(512, 512).
 #' @param hex Whether to use hex plot. Default is FALSE.
 #' @param hex_linewidth A numeric value of the hex line width. Default is 0.5.
-#' @param hex_count Whether to count the hex. Default is TRUE.
+#' @param hex_count Whether to count the hex.
 #' @param hex_bins A numeric value of the hex bins. Default is 50.
 #' @param hex_binwidth A numeric value of the hex bin width. Default is NULL.
+#' @param features A character vector of the column names to plot as features.
+#' @param bg_cutoff A numeric value to be used a cutoff to set the feature values to NA. Default is 0.
+#' @param color_name A character string of the color legend name. Default is "".
 #' @return A ggplot object
 #' @keywords internal
 #' @importFrom dplyr %>% group_by group_map pull
@@ -662,6 +665,9 @@ DimPlotAtomic <- function(
 
 #' DimPLot
 #'
+#' Dimension reduction plot. FeatureDimPlot is used to plot the feature values on the dimension reduction plot.
+#'
+#' @rdname dimplot
 #' @inheritParams common_args
 #' @inheritParams DimPlotAtomic
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
@@ -722,22 +728,10 @@ DimPlotAtomic <- function(
 #'         lineages_whiskers = TRUE)
 #' DimPlot(data, group_by = "cluster", lineages = c("L1", "L2", "L3"),
 #'         lineages_span = 1)
-#' # Feature Dim Plot
-#' DimPlot(data, features = "L1", pt_size = 2)
-#' DimPlot(data, features = "L1", pt_size = 2, bg_cutoff = -Inf)
-#' DimPlot(data, features = "L1", raster = TRUE, raster_dpi = 30)
-#' DimPlot(data, features = c("L1", "L2"), pt_size = 2)
-#' DimPlot(data, features = c("L1"), pt_size = 2, facet_by = "group")
-#' # Can't facet multiple features
-#' DimPlot(data, features = c("L1", "L2", "L3"), pt_size = 2)
-#' # We can use split_by
-#' DimPlot(data, features = c("L1", "L2", "L3"), split_by = "group", nrow = 2)
-#' DimPlot(data, features = c("L1", "L2", "L3"), highlight = TRUE)
-#' DimPlot(data, features = c("L1", "L2", "L3"), hex = TRUE, hex_bins = 15)
 DimPlot <- function(
-    data, dims = 1:2, group_by = NULL, group_by_sep = "_", split_by = NULL, split_by_sep = "_",
-    pt_size = NULL, pt_alpha = 1, bg_color = "grey80", features = NULL, bg_cutoff = 0,
-    label_insitu = FALSE, show_stat = !identical(theme, "theme_blank"), color_name = "",
+    data, dims = 1:2, group_by, group_by_sep = "_", split_by = NULL, split_by_sep = "_",
+    pt_size = NULL, pt_alpha = 1, bg_color = "grey80",
+    label_insitu = FALSE, show_stat = !identical(theme, "theme_blank"),
     label = FALSE, label_size = 4, label_fg = "white", label_bg = "black", label_bg_r = 0.1,
     label_repel = FALSE, label_repulsion = 20, label_pt_size = 1, label_pt_color = "black",
     label_segment_color = "black",
@@ -756,8 +750,8 @@ DimPlot <- function(
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     theme = "theme_this", theme_args = list(), aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     raster = NULL, raster_dpi = c(512, 512),
-    hex = FALSE, hex_linewidth = 0.5, hex_count = !is.null(group_by), hex_bins = 50, hex_binwidth = NULL,
-    palette = ifelse(is.null(features), "Paired", "Spectral"), palcolor = NULL, seed = 8525,
+    hex = FALSE, hex_linewidth = 0.5, hex_count = TRUE, hex_bins = 50, hex_binwidth = NULL,
+    palette = "Paired", palcolor = NULL, seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...) {
 
     validate_common_args(seed, facet_by = facet_by)
@@ -785,6 +779,101 @@ DimPlot <- function(
     plots <- lapply(
         datas, DimPlotAtomic,
         dims = dims, group_by = group_by, group_by_sep = group_by_sep,
+        pt_size = pt_size, pt_alpha = pt_alpha, bg_color = bg_color,
+        label_insitu = label_insitu, show_stat = show_stat,
+        label = label, label_size = label_size, label_fg = label_fg, label_bg = label_bg, label_bg_r = label_bg_r,
+        label_repel = label_repel, label_repulsion = label_repulsion, label_pt_size = label_pt_size, label_pt_color = label_pt_color,
+        label_segment_color = label_segment_color,
+        highlight = highlight, highlight_alpha = highlight_alpha, highlight_size = highlight_size, highlight_color = highlight_color, highlight_stroke = highlight_stroke,
+        add_mark = add_mark, mark_type = mark_type, mark_expand = mark_expand, mark_alpha = mark_alpha, mark_linetype = mark_linetype,
+        stat_by = stat_by, stat_plot_type = stat_plot_type, stat_plot_size = stat_plot_size, stat_args = stat_args,
+        graph = graph, edge_size = edge_size, edge_alpha = edge_alpha, edge_color = edge_color,
+        add_density = add_density, density_color = density_color, density_filled = density_filled,
+        density_filled_palette = density_filled_palette, density_filled_palcolor = density_filled_palcolor,
+        lineages = lineages, lineages_trim = lineages_trim, lineages_span = lineages_span,
+        lineages_palette = lineages_palette, lineages_palcolor = lineages_palcolor, lineages_arrow = lineages_arrow,
+        lineages_linewidth = lineages_linewidth, lineages_line_bg = lineages_line_bg, lineages_line_bg_stroke = lineages_line_bg_stroke,
+        lineages_whiskers = lineages_whiskers, lineages_whiskers_linewidth = lineages_whiskers_linewidth, lineages_whiskers_alpha = lineages_whiskers_alpha,
+        facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
+        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
+        theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
+        raster = raster, raster_dpi = raster_dpi,
+        hex = hex, hex_linewidth = hex_linewidth, hex_count = hex_count, hex_bins = hex_bins, hex_binwidth = hex_binwidth,
+        palette = palette, palcolor = palcolor, seed = seed, ...
+    )
+
+    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
+}
+
+#' @export
+#' @rdname dimplot
+#' @inheritParams common_args
+#' @inheritParams DimPlotAtomic
+#' @return A ggplot object or wrap_plots object or a list of ggplot objects
+#' @export
+#' @examples
+#' # Feature Dim Plot
+#' FeatureDimPlot(data, features = "L1", pt_size = 2)
+#' FeatureDimPlot(data, features = "L1", pt_size = 2, bg_cutoff = -Inf)
+#' FeatureDimPlot(data, features = "L1", raster = TRUE, raster_dpi = 30)
+#' FeatureDimPlot(data, features = c("L1", "L2"), pt_size = 2)
+#' FeatureDimPlot(data, features = c("L1"), pt_size = 2, facet_by = "group")
+#' # Can't facet multiple features
+#' FeatureDimPlot(data, features = c("L1", "L2", "L3"), pt_size = 2)
+#' # We can use split_by
+#' FeatureDimPlot(data, features = c("L1", "L2", "L3"), split_by = "group", nrow = 2)
+#' FeatureDimPlot(data, features = c("L1", "L2", "L3"), highlight = TRUE)
+#' FeatureDimPlot(data, features = c("L1", "L2", "L3"), hex = TRUE, hex_bins = 15)
+FeatureDimPlot <- function(
+    data, dims = 1:2, split_by = NULL, split_by_sep = "_",
+    pt_size = NULL, pt_alpha = 1, bg_color = "grey80", features, bg_cutoff = 0,
+    label_insitu = FALSE, show_stat = !identical(theme, "theme_blank"), color_name = "",
+    label = FALSE, label_size = 4, label_fg = "white", label_bg = "black", label_bg_r = 0.1,
+    label_repel = FALSE, label_repulsion = 20, label_pt_size = 1, label_pt_color = "black",
+    label_segment_color = "black",
+    highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
+    add_mark = FALSE, mark_type = c("hull", "ellipse", "rect", "circle"), mark_expand = unit(3, "mm"),
+    mark_alpha = 0.1, mark_linetype = 1,
+    stat_by = NULL, stat_plot_type = c("pie", "ring", "bar", "line"), stat_plot_size = 0.1, stat_args = list(palette = "Set1"),
+    graph = NULL, edge_size = c(0.05, 0.5), edge_alpha = 0.1, edge_color = "grey40",
+    add_density = FALSE, density_color = "grey80", density_filled = FALSE,
+    density_filled_palette = "Greys", density_filled_palcolor = NULL,
+    lineages = NULL, lineages_trim = c(0.01, 0.99), lineages_span = 0.75,
+    lineages_palette = "Dark2", lineages_palcolor = NULL, lineages_arrow = arrow(length = unit(0.1, "inches")),
+    lineages_linewidth = 1, lineages_line_bg = "white", lineages_line_bg_stroke = 0.5,
+    lineages_whiskers = FALSE, lineages_whiskers_linewidth = 0.5, lineages_whiskers_alpha = 0.5,
+    facet_by = NULL, facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
+    theme = "theme_this", theme_args = list(), aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
+    raster = NULL, raster_dpi = c(512, 512),
+    hex = FALSE, hex_linewidth = 0.5, hex_count = FALSE, hex_bins = 50, hex_binwidth = NULL,
+    palette = "Spectral", palcolor = NULL, seed = 8525,
+    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...) {
+
+    validate_common_args(seed, facet_by = facet_by)
+
+    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
+
+
+    if (!is.null(split_by)) {
+
+        datas <- split(data, data[[split_by]])
+        # keep the order of levels
+        datas <- datas[levels(data[[split_by]])]
+        if (is.character(graph) && length(graph) == 1 && startsWith(graph, "@")) {
+            # split the graph as well
+            datas <- lapply(datas, function(d) {
+                gh <- attr(data, substring(graph, 2))[rownames(d), rownames(d)]
+                attr(d, substring(graph, 2)) <- gh
+                d
+            })
+        }
+    } else {
+        datas <- list(data)
+    }
+
+    plots <- lapply(
+        datas, DimPlotAtomic, dims = dims,
         pt_size = pt_size, pt_alpha = pt_alpha, bg_color = bg_color, color_name = color_name,
         label_insitu = label_insitu, show_stat = show_stat, features = features, bg_cutoff = bg_cutoff,
         label = label, label_size = label_size, label_fg = label_fg, label_bg = label_bg, label_bg_r = label_bg_r,

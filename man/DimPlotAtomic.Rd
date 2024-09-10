@@ -99,11 +99,17 @@ A character/factor column is expected. If multiple columns are provided, the col
 
 \item{group_by_sep}{A character string to concatenate the columns in \code{group_by}, if multiple columns are provided.}
 
+\item{features}{A character vector of the column names to plot as features.}
+
 \item{pt_size}{A numeric value of the point size. If NULL, the point size will be calculated based on the number of data points.}
 
 \item{pt_alpha}{A numeric value of the point transparency. Default is 1.}
 
 \item{bg_color}{A character string of the background or NA points. Default is "grey80".}
+
+\item{bg_cutoff}{A numeric value to be used a cutoff to set the feature values to NA. Default is 0.}
+
+\item{color_name}{A character string of the color legend name. Default is "".}
 
 \item{label_insitu}{Whether to place the raw labels (group names) in the center of the points with the corresponding group. Default is FALSE, which using numbers instead of raw labels.}
 
@@ -242,7 +248,7 @@ Default is "theme_this".}
 
 \item{hex_linewidth}{A numeric value of the hex line width. Default is 0.5.}
 
-\item{hex_count}{Whether to count the hex. Default is TRUE.}
+\item{hex_count}{Whether to count the hex.}
 
 \item{hex_bins}{A numeric value of the hex bins. Default is 50.}
 
