@@ -7,7 +7,7 @@
 LinePlot(
   data,
   x,
-  y,
+  y = NULL,
   group_by = NULL,
   group_by_sep = "_",
   split_by = NULL,

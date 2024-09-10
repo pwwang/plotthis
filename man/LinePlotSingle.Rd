@@ -7,7 +7,7 @@
 LinePlotSingle(
   data,
   x,
-  y,
+  y = NULL,
   fill_point_by_x = TRUE,
   color_line_by_x = TRUE,
   facet_by = NULL,
@@ -131,17 +131,5 @@ If FALSE, empty groups will be removed.}
 }
 \description{
 Line plot without groups.
-}
-\examples{
-data <- data.frame(
-   x = c("A", "B", "C", "D"),
-   y = c(10, 8, 16, 4)
-)
-LinePlotSingle(data, x = "x", y = "y")
-LinePlotSingle(data, x = "x", y = "y", fill_point_by_x = FALSE)
-LinePlotSingle(data, x = "x", y = "y", add_bg = TRUE)
-
-data$sd <- c(1, 2, 3, 4)
-LinePlotSingle(data, x = "x", y = "y", add_errorbars = TRUE, errorbar_sd = "sd")
 }
 \keyword{internal}

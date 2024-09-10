@@ -7,7 +7,7 @@
 LinePlotAtomic(
   data,
   x,
-  y,
+  y = NULL,
   group_by = NULL,
   fill_point_by_x_if_no_group = TRUE,
   color_line_by_x_if_no_group = TRUE,

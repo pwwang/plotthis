@@ -32,19 +32,8 @@
 #' @importFrom rlang sym
 #' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_line scale_color_manual labs geom_rect geom_errorbar geom_point
-#' @examples
-#' data <- data.frame(
-#'    x = c("A", "B", "C", "D"),
-#'    y = c(10, 8, 16, 4)
-#' )
-#' LinePlotSingle(data, x = "x", y = "y")
-#' LinePlotSingle(data, x = "x", y = "y", fill_point_by_x = FALSE)
-#' LinePlotSingle(data, x = "x", y = "y", add_bg = TRUE)
-#'
-#' data$sd <- c(1, 2, 3, 4)
-#' LinePlotSingle(data, x = "x", y = "y", add_errorbars = TRUE, errorbar_sd = "sd")
 LinePlotSingle <- function(
-    data, x, y, fill_point_by_x = TRUE, color_line_by_x = TRUE, facet_by = NULL,
+    data, x, y = NULL, fill_point_by_x = TRUE, color_line_by_x = TRUE, facet_by = NULL,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     add_errorbars = FALSE, errorbar_width = 0.1, errorbar_alpha = 1,
     errorbar_color = "grey30", errorbar_linewidth = .75, errorbar_min = NULL, errorbar_max = NULL, errorbar_sd = NULL,
@@ -58,6 +47,10 @@ LinePlotSingle <- function(
     x <- check_columns(data, x, force_factor = TRUE)
     y <- check_columns(data, y)
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
+    if (is.null(y)) {
+        data <- data %>% group_by(!!!syms(unique(x, facet_by))) %>% summarise(.y = n(), .groups = "drop")
+        y <- ".y"
+    }
 
     if (isTRUE(add_errorbars)) {
         if (is.null(errorbar_sd) && (is.null(errorbar_min) || is.null(errorbar_max))) {
@@ -145,8 +138,12 @@ LinePlotSingle <- function(
 #' @inheritParams LinePlotSingle
 #' @return A ggplot object
 #' @keywords internal
+#' @importFrom rlang syms
+#' @importFrom dplyr group_by summarise %>% mutate n
+#' @importFrom gglogger ggplot
+#' @importFrom ggplot2 geom_line scale_color_manual labs geom_errorbar geom_point
 LinePlotGrouped <- function(
-    data, x, y, group_by, group_by_sep = "_", facet_by = NULL,
+    data, x, y = NULL, group_by, group_by_sep = "_", facet_by = NULL,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     add_errorbars = FALSE, errorbar_width = 0.1, errorbar_alpha = 1,
     errorbar_color = "grey30", errorbar_linewidth = .75, errorbar_min = NULL, errorbar_max = NULL, errorbar_sd = NULL,
@@ -163,6 +160,10 @@ LinePlotGrouped <- function(
         data, group_by, force_factor = TRUE,
         allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep
     )
+    if (is.null(y)) {
+        data <- data %>% group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>% summarise(.y = n(), .groups = "drop")
+        y <- ".y"
+    }
 
     if (isTRUE(add_errorbars)) {
         if (is.null(errorbar_sd) && (is.null(errorbar_min) || is.null(errorbar_max))) {
@@ -178,10 +179,7 @@ LinePlotGrouped <- function(
 
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y)))
     if (isTRUE(add_bg)) {
-        if (!is.null(facet_by)) {
-            stop("'add_bg' is not supported when facet_by is specified. Consider using split_by instead.")
-        }
-        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty)
+        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by)
     }
     colors <- palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
     p <- p + geom_line(
@@ -243,7 +241,7 @@ LinePlotGrouped <- function(
 #' @return A ggplot object
 #' @keywords internal
 LinePlotAtomic <- function(
-    data, x, y, group_by = NULL,
+    data, x, y = NULL, group_by = NULL,
     fill_point_by_x_if_no_group = TRUE, color_line_by_x_if_no_group = TRUE,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     add_errorbars = FALSE, errorbar_width = 0.1, errorbar_alpha = 1,
@@ -310,7 +308,7 @@ LinePlotAtomic <- function(
 #' LinePlot(data, x = "x", y = "y", group_by = "group", facet_by = "facet")
 #' LinePlot(data, x = "x", y = "y", group_by = "group", split_by = "facet")
 LinePlot <- function(
-    data, x, y, group_by = NULL, group_by_sep = "_", split_by = NULL, split_by_sep = "_",
+    data, x, y = NULL, group_by = NULL, group_by_sep = "_", split_by = NULL, split_by_sep = "_",
     fill_point_by_x_if_no_group = TRUE, color_line_by_x_if_no_group = TRUE,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     add_errorbars = FALSE, errorbar_width = 0.1, errorbar_alpha = 1,

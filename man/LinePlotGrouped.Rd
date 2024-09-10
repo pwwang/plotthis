@@ -7,7 +7,7 @@
 LinePlotGrouped(
   data,
   x,
-  y,
+  y = NULL,
   group_by,
   group_by_sep = "_",
   facet_by = NULL,
