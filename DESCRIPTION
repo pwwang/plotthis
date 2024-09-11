@@ -16,6 +16,7 @@ Imports:
     rlang,
     dplyr,
     tidyr,
+    stringr,
     scales,
     patchwork,
     ggrepel,

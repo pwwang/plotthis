@@ -2,6 +2,7 @@
 % Please edit documentation in R/barplot.R
 \name{BarPlot}
 \alias{BarPlot}
+\alias{SplitBarPlot}
 \title{Bar Plot}
 \usage{
 BarPlot(
@@ -52,6 +53,53 @@ BarPlot(
   keep_empty = FALSE,
   expand = waiver(),
   width = waiver(),
+  combine = TRUE,
+  nrow = NULL,
+  ncol = NULL,
+  byrow = TRUE,
+  seed = 8525,
+  ...
+)
+
+SplitBarPlot(
+  data,
+  x,
+  y,
+  y_sep = "_",
+  flip = FALSE,
+  split_by = NULL,
+  split_by_sep = "_",
+  alpha_by = NULL,
+  alpha_reverse = FALSE,
+  alpha_name = NULL,
+  order_y = list(`+` = c("x_desc", "alpha_desc"), `-` = c("x_desc", "alpha_asc")),
+  bar_height = 0.9,
+  lineheight = 0.5,
+  max_charwidth = 80,
+  fill_by = NULL,
+  fill_by_sep = "_",
+  fill_name = NULL,
+  direction_pos_name = "positive",
+  direction_neg_name = "negative",
+  theme = "theme_this",
+  theme_args = list(),
+  palette = "Spectral",
+  palcolor = NULL,
+  facet_by = NULL,
+  facet_scales = "free_y",
+  facet_nrow = NULL,
+  facet_ncol = NULL,
+  facet_byrow = TRUE,
+  aspect.ratio = 1,
+  x_min = NULL,
+  x_max = NULL,
+  legend.position = "right",
+  legend.direction = "vertical",
+  title = NULL,
+  subtitle = NULL,
+  xlab = NULL,
+  ylab = NULL,
+  keep_empty = FALSE,
   combine = TRUE,
   nrow = NULL,
   ncol = NULL,
@@ -156,23 +204,42 @@ Create a bar plot.
 }
 \examples{
 data <- data.frame(
-   x = c("A", "B", "C", "D", "E", "F", "G", "H"),
-   y = c(10, 8, 16, 4, 6, 12, 14, 2),
-   group = c("G1", "G1", "G2", "G2", "G3", "G3", "G4", "G4"),
-   facet = c("F1", "F2", "F3", "F4", "F1", "F2", "F3", "F4")
+    x = c("A", "B", "C", "D", "E", "F", "G", "H"),
+    y = c(10, 8, 16, 4, 6, 12, 14, 2),
+    group = c("G1", "G1", "G2", "G2", "G3", "G3", "G4", "G4"),
+    facet = c("F1", "F2", "F3", "F4", "F1", "F2", "F3", "F4")
 )
 
 BarPlot(data, x = "x", y = "y")
 BarPlot(data, x = "x", y = "y", fill_by_x_if_no_group = F)
 BarPlot(data, x = "group", y = "y", group_by = "x")
-BarPlot(data, x = "group", y = "y", group_by = "x",
-        position = "dodge", add_bg = TRUE)
-BarPlot(data, x = "x", y = "y", split_by = "group",
-        facet_by = "facet", position = "dodge", facet_ncol = 1)
-BarPlot(data, x = "group", y = "y", group_by = "x",
-        position = "dodge", add_bg = TRUE, bg_palette = "Spectral")
+BarPlot(data,
+    x = "group", y = "y", group_by = "x",
+    position = "dodge", add_bg = TRUE
+)
+BarPlot(data,
+    x = "x", y = "y", split_by = "group",
+    facet_by = "facet", position = "dodge", facet_ncol = 1
+)
+BarPlot(data,
+    x = "group", y = "y", group_by = "x",
+    position = "dodge", add_bg = TRUE, bg_palette = "Spectral"
+)
 # use the count
 BarPlot(data, x = "group", ylab = "count")
 # flip the plot
 BarPlot(data, x = "group", flip = TRUE, ylab = "count")
+data <- data.frame(
+    word = c("apple", "banana", "cherry", "date", "elderberry",
+             "It is a very long term with a lot of words"),
+    count = c(-10, 20, -30, 40, 50, 34),
+    score = c(1, 2, 3, 4, 5, 3.2),
+    group = c("A", "A", "B", "B", "C", "C")
+)
+SplitBarPlot(data, x = "count", y = "word", alpha_by = "score")
+SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
+             max_charwidth = 30, lineheight = 1.1)
+SplitBarPlot(data, x = "count", y = "word", fill_by = "group")
+SplitBarPlot(data, x = "count", y = "word", facet_by = "group",
+             fill_name = "Direction")
 }
