@@ -36,7 +36,6 @@ gggrob <- function(p, void = TRUE, nolegend = TRUE) {
 #' @param ... Other arguments passed to `ComplexHeatmap::AnnotationFunction`
 #' @keywords internal
 #' @importFrom grid grid.draw grid.lines viewport gpar
-#' @importFrom ComplexHeatmap Legend AnnotationFunction
 #' @importFrom tidyr unite
 .anno_ggcat <- function(x, split_by = NULL, group_by, column, title, which = "row", palette,
                         palcolor = NULL, border = TRUE, legend.direction, show_legend = TRUE, .plotting, ...) {
@@ -111,7 +110,6 @@ gggrob <- function(p, void = TRUE, nolegend = TRUE) {
 #' @param ... Other arguments passed to `ComplexHeatmap::AnnotationFunction`
 #' @keywords internal
 #' @importFrom grid grid.draw grid.lines viewport gpar
-#' @importFrom ComplexHeatmap Legend AnnotationFunction
 #' @importFrom tidyr unite
 .anno_ggseries <- function(x, split_by = NULL, group_by, column, title, which = "row", palette,
                            palcolor = NULL, border = TRUE, legend.direction, show_legend = TRUE, .plotting, ...) {

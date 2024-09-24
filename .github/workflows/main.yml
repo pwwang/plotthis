@@ -50,7 +50,7 @@ jobs:
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
           cache-version: 2
-          extra-packages: any::devtools, any::pkgdown, any::circlize, any::ggalluvial, any::ggVennDiagram, any::ggupset, any::ggpubr, any::ggforce, any::scattermore
+          extra-packages: any::devtools, any::pkgdown, any::circlize, any::ggalluvial, any::ggVennDiagram, any::ggupset, any::ggpubr, any::ggforce, any::scattermore, any::ComplexHeatmap
 
       - name: Install plotthis
         run: |
