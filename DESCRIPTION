@@ -32,5 +32,6 @@ Suggests:
     ggpubr,
     ggforce,
     scattermore
+Remotes: pwwang/gglogger
 LazyData: true
 Config/Needs/website: rmarkdown
