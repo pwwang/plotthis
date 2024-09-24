@@ -344,7 +344,7 @@ When facet_by is a single column and facet_wrap is used.}
 \item{box_ptsize}{A numeric value to specify the size of the box plot points in the middle.}
 }
 \description{
-Box / Violin Plot
+Box plot or violin plot with optional jitter points, trend line, statistical test, background, line, and highlight.
 }
 \examples{
 set.seed(8525)

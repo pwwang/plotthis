@@ -146,7 +146,7 @@ If FALSE, empty groups will be removed.}
 A ggplot object or wrap_plots object or a list of ggplot objects
 }
 \description{
-Line plot with or without groups.
+Visualizing the change of a numeric value over the progression of a categorical variable.
 }
 \examples{
 data <- data.frame(

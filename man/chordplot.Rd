@@ -3,7 +3,7 @@
 \name{ChordPlot}
 \alias{ChordPlot}
 \alias{CircosPlot}
-\title{Chord plot}
+\title{Chord / Circos plot}
 \usage{
 ChordPlot(
   data,
@@ -116,7 +116,8 @@ Default is "theme_this".}
 A combined plot or a list of plots
 }
 \description{
-CircosPlot is an alias of ChordPlot
+\code{ChordPlot} is used to create a chord plot to visualize the relationships between two categorical variables.
+\code{CircosPlot} is an alias of \code{ChordPlot}.
 }
 \examples{
 set.seed(8525)

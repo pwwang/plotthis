@@ -101,8 +101,8 @@ RingPlotAtomic <- function(
 
 #' Ring Plot
 #'
-#' Ring plot for series of data
-#'
+#' @description A ring plot is like pie chart but with multiple rings.
+#' @seealso \code{\link{PieChart}}
 #' @inheritParams RingPlotAtomic
 #' @inheritParams common_args
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects

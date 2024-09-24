@@ -289,10 +289,10 @@ LinePlotAtomic <- function(
 }
 
 #' Line Plot
-#' @description Line plot with or without groups.
+#'
+#' @description Visualizing the change of a numeric value over the progression of a categorical variable.
 #' @inheritParams LinePlotAtomic
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
-#'
 #' @export
 #' @examples
 #' data <- data.frame(

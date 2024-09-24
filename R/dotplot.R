@@ -1,4 +1,5 @@
 #' Dot Plot without splitting the data
+#'
 #' @inheritParams common_args
 #' @param x A character vector specifying the column to use for the x-axis.
 #'  Could be either numeric or factor/character. When multiple columns are provided, they will be concatenated with 'x_sep'.
@@ -202,6 +203,7 @@ DotPlotAtomic <- function(
     } else {
         width <- width + 2
     }
+    height <- max(height, 3)
 
     if (isTRUE(flip)) {
         attr(p, "height") <- width
@@ -214,11 +216,13 @@ DotPlotAtomic <- function(
     facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow)
 }
 
-#' Dot Plot / Scatter Plot
+#' Dot Plot / Scatter Plot / Lollipop Plot
 #'
 #' @rdname dotplot
-#' @description For DotPlot, X-axis and Y-axis could be either numeric or factor/character.
+#' @description For `DotPlot`, X-axis and Y-axis could be either numeric or factor/character.
 #'   When x-axis and y-axis are both numeric, the plot works as a scatter plot.
+#'   `LollipopPlot` is an alias of `DotPlot` when `lollipop` = TRUE.
+#'
 #' @inheritParams DotPlotAtomic
 #' @inheritParams common_args
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
@@ -281,10 +285,7 @@ DotPlot <- function(
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
 }
 
-#' Scatter Plot
-#'
 #' @rdname dotplot
-#' @description A alias of DotPlot when both x and y are numeric.
 #' @inheritParams DotPlot
 #' @inheritParams common_args
 #' @param x A character vector specifying the column to use for the x-axis.
@@ -338,9 +339,7 @@ ScatterPlot <- function(
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
 }
 
-#' Lollipop Plot
-#'
-#' @description A alias of DotPlot when lollipop = TRUE.
+#' @rdname dotplot
 #' @inheritParams DotPlot
 #' @inheritParams common_args
 #' @param x A character vector specifying the column to use for the x-axis.
@@ -350,7 +349,6 @@ ScatterPlot <- function(
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
 #' @examples
-#' mtcars <- datasets::mtcars
 #' LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
 #'              fill_by = "mpg")
 #' LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",

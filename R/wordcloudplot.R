@@ -170,6 +170,7 @@ WordCloudPlotAtomic <- function(
 
 #' Word Cloud Plot
 #'
+#' @description Word cloud plot to illustrate the count/frequency of words.
 #' @inheritParams common_args
 #' @inheritParams WordCloudPlotAtomic
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects

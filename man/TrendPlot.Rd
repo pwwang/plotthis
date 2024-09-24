@@ -123,7 +123,7 @@ When facet_by is a single column and facet_wrap is used.}
 A ggplot object or wrap_plots object or a list of ggplot objects
 }
 \description{
-Trend plot
+A trend plot is like an area plot but with gaps between the bars.
 }
 \examples{
 data <- data.frame(
@@ -135,4 +135,7 @@ TrendPlot(data, x = "x", y = "y", fill_by = "fill")
 TrendPlot(data, x = "x", y = "y", fill_by = "fill",
          scale_y = TRUE)
 TrendPlot(data, x = "x", y = "y", split_by = "fill")
+}
+\seealso{
+\code{\link{AreaPlot}}
 }

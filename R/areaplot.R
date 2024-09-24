@@ -91,6 +91,8 @@ AreaPlotAtomic <- function(
 
 #' Area plot
 #'
+#' @description A plot showing how one or more groups' numeric values change over the
+#'  progression of a another variable
 #' @inheritParams common_args
 #' @inheritParams AreaPlotAtomic
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects

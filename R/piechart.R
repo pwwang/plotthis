@@ -118,6 +118,7 @@ PieChartAtomic <- function(
 
 #' Pie Chart
 #'
+#' @description Pie chart to illustrate numerical proportion of each group.
 #' @export
 #' @inheritParams PieChartAtomic
 #' @inheritParams common_args

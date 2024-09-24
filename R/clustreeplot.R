@@ -136,8 +136,7 @@ ClustreePlotAtomic <- function(
 
 #' Clustree Plot
 #'
-#' This function generates a clustree plot.
-#'
+#' @description A plot visualizing Clusterings at Different Resolutions
 #' @inheritParams common_args
 #' @inheritParams ClustreePlotAtomic
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects

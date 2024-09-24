@@ -111,7 +111,7 @@ If FALSE, empty groups will be removed.}
 A ggplot object or wrap_plots object or a list of ggplot objects
 }
 \description{
-Pie Chart
+Pie chart to illustrate numerical proportion of each group.
 }
 \examples{
 data <- data.frame(

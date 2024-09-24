@@ -3,15 +3,161 @@ title: "Basic Design Of The Plots"
 ---
 
 ## Color palettes
+The package provides a set of color palettes that are widely used. They are from different packages or used in different tools, including:
+
+- `viridis` from the [`viridis`][1] package
+- `brewer.pal.info` from the [`RColorBrewer`][2] package
+- `ggsci_db` from the [`ggsci`][3] package
+- `redmonder.pal.info` from the [`Redmonder`][4] package
+- `metacartocolors` from the [`rcartocolor`][5] package
+- `nord_palettes` from the [`nord`][6] package
+- The `ocean` palettes of `syspals` from the [`pals`][7] package
+- `colorschemes` from the [`dichromat`][8] package
+- Some custom palettes including those from [`jcolors`][9] package
+
+All the above palettes are provided by the [`SCP`][10] package. In addition, the `SCP` package also provides a set of color palettes that are widely used in single-cell analysis, including:
+
+- The discrete colour palettes `DiscretePalette` from the [`Seurat`][11] package
+- `scales::hue_pal` used by `Seurat`
+
+[1]: https://cran.r-project.org/package=viridis
+[2]: https://cran.r-project.org/package=RColorBrewer
+[3]: https://cran.r-project.org/package=ggsci
+[4]: https://cran.r-project.org/package=Redmonder
+[5]: https://cran.r-project.org/package=rcartocolor
+[6]: https://cran.r-project.org/package=nord
+[7]: https://cran.r-project.org/package=pals
+[8]: https://cran.r-project.org/package=dichromat
+[9]: https://cran.r-project.org/package=jcolors
+[10]: https://zhanghao-njmu.github.io/SCP/index.html
+[11]: https://cran.r-project.org/package=Seurat
+
+See also the following documentation for more details:
+
+- [all available color palettes](../all-palettes.html)
+- [`show_palettes`](../reference/show_palettes.html)
+- [`palette_this`](../reference/palette_this.html)
 
 ## Basic implementation of the plotting functions
 
+The plotting functions in `plotthis` are implemented with the following structure:
+
+```r
+SomePlot <- function(
+    data,
+    # The column to split the data and plot
+    # When `facet` is TRUE, the columns specified here will be used to facet the plot
+    # When `facet` is FALSE, the columns specified here will be used to split the data
+    #   and generate multiple plots and combine them into one
+    # If multiple columns are specified
+    #   When `facet` is TRUE, up to 2 columns are allowed. If one column,
+    #     `ggplot2::facet_wrap` is used, the number of rows and columns is determined
+    #     by `nrow` and `ncol`
+    #   When `facet` is FALSE, a warning will be issued and the columns will be
+    #     concatenated into one column, using `split_by_sep` as the separator
+    split_by, split_by_sep,
+    # Columns to group the data for plotting
+    # For those plotting functions that do not support multiple groups,
+    # They will be concatenated into one column, using `group_by_sep` as the separator
+    group_by, group_by_sep,
+    # Whether to facet the plot, or split the data and combine the plots
+    facet, facet_scales,
+    # Controls for theming
+    theme, theme_args, palette, palcolor, keep_empty, x_text_angle, aspect.ratio,
+    legend.position, legend.direction, alpha, title, subtitle, xlab, ylab,
+    # The number of rows and columns when `facet_wrap` is used or
+    # when `facet` is FALSE, the number of rows and columns to combine the plots
+    # For facet_wrap, dir = 'v' will be used when byrow = FALSE
+    combine, nrow, ncol, byrow
+    # Whether to guess the width and height of the plot in pixels
+    # list(plot, width, height) will be returned instead of the plot if TRUE
+    seed,
+    ...
+) {
+
+    # Argument validation
+
+    # Data preparation
+    #   Data will be transformed based on the arguments
+    #   and split into a list of data frames by split_by
+
+    # Plot for each split data frame
+    plots <- lapply(split_data, function(df) {
+        # Calling atomic plotting functions to generate the plot
+        #   These functions do not need to handle split
+        #   All data passed to these functions should feed to the plot
+        SomePlotAtomic(df, ...)
+    })
+
+    # Combine the plots
+    #     patch_work::wrap_plots(plots, nrow, ncol, byrow)
+}
+```
+
 ## Splitting vs faceting
+
+Unlike other plotting packages, `plotthis` provides a unified interface for both splitting and faceting. For most plots that are created by `ggplot2` behind the scenes, `plotthis` is "facet-aware".
+
+Most of the plotting functions in `plotthis` support both splitting and faceting.
+
+The `split_by` argument is used to split the data and generate multiple plots. The `facet` argument is used to facet the plot. When `facet` is TRUE, the `split_by` columns will be used to facet the plot. When `facet` is FALSE, the `split_by` columns will be used to split the data and generate multiple plots, which will be combined into one plot.
+
+For faceting, the `facet_scales` argument is used to control the scales of the facets. The `facet_wrap` function is used when `split_by` has one column; otherwise, the `facet_grid` function is used when `split_by` has two columns.
+
+For splitting, the data will be split by the `split_by` columns and each split will be plotted separately. So each plot has its own scales and guides. Unlike faceting, the scales and guides are not shared between the plots.
 
 ## Argument naming conventions
 
+The arguments in the plotting functions are named in a consistent way. `_` is used to separate words in the argument names, in favor of `.`, unless the argument is passed to a `ggplot2` function (e.g. `theme`). The `_` is used to separate words in the argument names to make the argument names more readable and less confusing with the `.` in the function names, which could work as a method call. The argument names are all lowercase.
+
 ## The `height` and `width` attributes
+
+All plots created by `plotthis` come with a `height` and `width` attribute. It is an experimental feature that is used to guess the size of the plot in inches. Note that they are NOT the actual size of the plot. They are just a guess based on the elements in the plot.
+
+You can then use these values to set the `fig.width` and `fig.height` arguments in the chunk options in R Markdown or `options(repr.plot.width = ...)` and `options(repr.plot.height = ...)` in Jupyter notebooks.
+
+You can also use them to save the plot to a file with the guessed size. For example:
+
+```r
+p <- SomePlot(x, ...)
+png("plot.png", width = attr(p, "width") * 100, height = attr(p, "height") * 100, res = 100)
+print(p)
+dev.off()
+```
 
 ## Tracing the ggplot calls for debugging
 
+If a plot is created by `ggplot2` behind the scenes, `plotthis` relies on the `gglogger` package to trace the `ggplot2` calls. The `gglogger` package is used to log the `ggplot2` calls and the arguments passed to the `ggplot2` functions. This is useful for debugging and understanding how the plot is created.
+
+```r
+p <- BarPlot(data = iris, x = "Species")
+p$logs
+
+# ggplot2::ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(x))) +
+#   geom_col(alpha = alpha, width = width) +
+#   scale_fill_manual(name = x, values = colors, guide = guide) +
+#   labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||%
+#     y) +
+#   scale_x_discrete(drop = !keep_empty, expand = expand$x) +
+#   scale_y_continuous(expand = expand$y) +
+#   do.call(theme, theme_args) +
+#   ggplot2::theme(aspect.ratio = aspect.ratio, legend.position = legend.position,
+#     legend.direction = legend.direction, panel.grid.major = element_line(colour = "grey80",
+#         linetype = 2), axis.text.x = element_text(angle = x_text_angle,
+#         hjust = just$h, vjust = just$v)) +
+#   coord_cartesian(ylim = c(y_min, y_max))
+```
+
 ## Providing extra data for plotting
+
+When extra data is needed for plotting, `plotthis` usually provides an argument to receive it. But you can prepare the data and attached as an attribute to the main data frame, and pass `@extra` to the argument. So the function can access the extra data by `attr(data, "extra")`. For example:
+
+```r
+data <- gsea_result
+attr(data, "gene_ranks") <- gene_ranks
+attr(data, "gene_sets") <- gene_sets
+GSEAPlot(data)
+
+# Equivalent to
+GSEAPlot(data, gene_ranks = gene_ranks, gene_sets = gene_sets)
+```

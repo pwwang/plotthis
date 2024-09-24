@@ -3,7 +3,8 @@
 \name{DotPlot}
 \alias{DotPlot}
 \alias{ScatterPlot}
-\title{Dot Plot / Scatter Plot}
+\alias{LollipopPlot}
+\title{Dot Plot / Scatter Plot / Lollipop Plot}
 \usage{
 DotPlot(
   data,
@@ -93,15 +94,56 @@ ScatterPlot(
   byrow = TRUE,
   ...
 )
+
+LollipopPlot(
+  data,
+  x,
+  y,
+  flip = FALSE,
+  split_by = NULL,
+  split_by_sep = "_",
+  size_name = NULL,
+  fill_name = NULL,
+  fill_cutoff_name = NULL,
+  size_by = NULL,
+  fill_by = NULL,
+  fill_cutoff = NULL,
+  fill_reverse = FALSE,
+  theme = "theme_this",
+  theme_args = list(),
+  palette = "Spectral",
+  palcolor = NULL,
+  alpha = 1,
+  facet_by = NULL,
+  facet_scales = "fixed",
+  facet_ncol = NULL,
+  facet_nrow = NULL,
+  facet_byrow = TRUE,
+  x_text_angle = 0,
+  seed = 8525,
+  aspect.ratio = 1,
+  legend.position = "right",
+  legend.direction = "vertical",
+  title = NULL,
+  subtitle = NULL,
+  xlab = NULL,
+  ylab = NULL,
+  keep_empty = FALSE,
+  combine = TRUE,
+  nrow = NULL,
+  ncol = NULL,
+  byrow = TRUE,
+  ...
+)
 }
 \arguments{
 \item{data}{A data frame.}
 
 \item{x}{A character vector specifying the column to use for the x-axis.
-Must be a numeric column.}
+A numeric column is expected.}
 
 \item{y}{A character vector specifying the column to use for the y-axis.
-Must be a numeric column.}
+A factor/character column is expected.}
 
 \item{x_sep}{A character vector to concatenate multiple columns in x. Default is "_".}
 
@@ -204,12 +246,13 @@ If FALSE, empty groups will be removed.}
 A ggplot object or wrap_plots object or a list of ggplot objects
 
 A ggplot object or wrap_plots object or a list of ggplot objects
+
+A ggplot object or wrap_plots object or a list of ggplot objects
 }
 \description{
-For DotPlot, X-axis and Y-axis could be either numeric or factor/character.
+For \code{DotPlot}, X-axis and Y-axis could be either numeric or factor/character.
 When x-axis and y-axis are both numeric, the plot works as a scatter plot.
-
-A alias of DotPlot when both x and y are numeric.
+\code{LollipopPlot} is an alias of \code{DotPlot} when \code{lollipop} = TRUE.
 }
 \examples{
 mtcars <- datasets::mtcars
@@ -236,4 +279,9 @@ ScatterPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
             fill_by = "mpg")
 ScatterPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
             fill_by = "mpg", fill_cutoff = 18)
+LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
+             fill_by = "mpg")
+LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
+             fill_by = "mpg", fill_cutoff = 18, facet_by = "cyl",
+             facet_scales = "free_y")
 }

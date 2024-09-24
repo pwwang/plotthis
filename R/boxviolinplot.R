@@ -541,6 +541,8 @@ BoxViolinPlot <- function(
 
 #' Box / Violin Plot
 #'
+#' @description
+#'  Box plot or violin plot with optional jitter points, trend line, statistical test, background, line, and highlight.
 #' @rdname boxviolinplot
 #' @export
 #' @inheritParams BoxViolinPlot

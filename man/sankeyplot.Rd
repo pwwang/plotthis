@@ -3,7 +3,7 @@
 \name{SankeyPlot}
 \alias{SankeyPlot}
 \alias{AlluvialPlot}
-\title{Sankey plot}
+\title{Sankey / Alluvial Plot}
 \usage{
 SankeyPlot(
   data,
@@ -134,7 +134,8 @@ Default is "theme_this".}
 A ggplot object or wrap_plots object or a list of ggplot objects
 }
 \description{
-Alluvial plot is an alias of Sankey plot.
+A plot visualizing flow/movement/change from one state to another or one time to another.
+\code{AlluvialPlot} is an alias of \code{SankeyPlot}.
 }
 \examples{
 set.seed(8525)

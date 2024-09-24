@@ -457,7 +457,7 @@ EnrichNetworkAtomic <- function(
 
 #' Enrichment Map/Network
 #'
-#' `ProcessEnrichrResult` is a function to process the enrichment results from Enrichr.
+#' `PrepareEnrichrResult` is a function to process the enrichment results from Enrichr.
 #' `EnrichMap` is a function to plot the enrichment map.
 #' `EnrichNetwork` is a function to plot the enrichment network.
 #'
@@ -465,7 +465,7 @@ EnrichNetworkAtomic <- function(
 #' @param data A data frame containing the result by Enrichr.
 #' @return A data frame that can be used in `EnrichMap`.
 #' @export
-ProcessEnrichrResult <- function(data) {
+PrepareEnrichrResult <- function(data) {
     data$GeneRatio <- data$Overlap
     data$Overlap <- NULL
     data$Description <- data$Term

@@ -106,6 +106,8 @@ TrendPlotAtomic <- function(
 
 #' Trend plot
 #'
+#' @description A trend plot is like an area plot but with gaps between the bars.
+#' @seealso \code{\link{AreaPlot}}
 #' @inheritParams common_args
 #' @inheritParams TrendPlotAtomic
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects

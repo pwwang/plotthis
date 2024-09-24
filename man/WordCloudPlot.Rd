@@ -131,7 +131,7 @@ Default is "theme_this".}
 A ggplot object or wrap_plots object or a list of ggplot objects
 }
 \description{
-Word Cloud Plot
+Word cloud plot to illustrate the count/frequency of words.
 }
 \examples{
 data <- data.frame(

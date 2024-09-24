@@ -3,7 +3,7 @@
 \name{DimPlot}
 \alias{DimPlot}
 \alias{FeatureDimPlot}
-\title{DimPLot}
+\title{DimPLot / FeatureDimPlot}
 \usage{
 DimPlot(
   data,
@@ -374,7 +374,8 @@ A ggplot object or wrap_plots object or a list of ggplot objects
 A ggplot object or wrap_plots object or a list of ggplot objects
 }
 \description{
-Dimension reduction plot. FeatureDimPlot is used to plot the feature values on the dimension reduction plot.
+Visualizing the dimension reduction data.
+\code{FeatureDimPlot} is used to plot the feature numeric values on the dimension reduction plot.
 }
 \examples{
 # generate a PCA dimension data for DimPlot

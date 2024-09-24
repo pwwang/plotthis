@@ -200,7 +200,10 @@ See also \url{https://ggplot2.tidyverse.org/reference/expansion.html}}
 A ggplot object or wrap_plots object or a list of ggplot objects
 }
 \description{
-Create a bar plot.
+\itemize{
+\item \code{BarPlot} is used to create a bar plot.
+\item \code{SplitBarPlot} is used to create a bar plot with splitting the bars on the two sides.
+}
 }
 \examples{
 data <- data.frame(

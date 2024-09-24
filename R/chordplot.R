@@ -149,8 +149,10 @@ ChordPlotAtomic <- function(
     p
 }
 
-#' Chord plot
+#' Chord / Circos plot
 #'
+#' @description `ChordPlot` is used to create a chord plot to visualize the relationships between two categorical variables.
+#'  `CircosPlot` is an alias of `ChordPlot`.
 #' @inheritParams common_args
 #' @inheritParams ChordPlotAtomic
 #' @return A combined plot or a list of plots
@@ -198,8 +200,6 @@ ChordPlot <- function(
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
 }
 
-#' Circos plot
-#' @description CircosPlot is an alias of ChordPlot
 #' @export
 #' @rdname chordplot
 CircosPlot <- ChordPlot

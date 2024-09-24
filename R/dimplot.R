@@ -663,9 +663,11 @@ DimPlotAtomic <- function(
     p
 }
 
-#' DimPLot
+#' DimPLot / FeatureDimPlot
 #'
-#' Dimension reduction plot. FeatureDimPlot is used to plot the feature values on the dimension reduction plot.
+#' @description
+#'  Visualizing the dimension reduction data.
+#'  `FeatureDimPlot` is used to plot the feature numeric values on the dimension reduction plot.
 #'
 #' @rdname dimplot
 #' @inheritParams common_args

@@ -91,7 +91,9 @@ gggrob <- function(p, void = TRUE, nolegend = TRUE) {
     list(anno = anno, legend = lgd)
 }
 
-#' Heatmap annotation function for series data
+#' Heatmap annotation functions
+#'
+#' @rdname heatmap-anno
 #' @param x A data frame
 #' @param split_by A character string of the column name to split the data
 #' @param group_by A character string of the column name to group the data
@@ -165,11 +167,7 @@ gggrob <- function(p, void = TRUE, nolegend = TRUE) {
     list(anno = anno, legend = lgd)
 }
 
-#' Heatmap annotations supported by `plotthis`
-#'
-#' @description `anno_*` functions are used to create annotations for heatmaps.
-#'  `Heatmap` will be used to create the heatmap.#'
-#' @rdname heatmap
+#' @rdname heatmap-anno
 #' @param x A data frame
 #' @param split_by A character string of the column name to split the data (heatmap)
 #' @param group_by A character string of the column name to group the data (rows or columns of the heatmap)
@@ -185,7 +183,6 @@ gggrob <- function(p, void = TRUE, nolegend = TRUE) {
 #' @param show_legend A logical value indicating whether to show the legend
 #' @param ... Other arguments passed to `ComplexHeatmap::AnnotationFunction`
 #'  The parameters passed to `row_annotation_params` and `column_annotation_params` will be passed here.
-#' @export
 anno_pie <- function(x, split_by = NULL, group_by, column, title, which = "row", palette,
                      palcolor = NULL, border = TRUE, legend.direction, show_legend = TRUE, ...) {
     .anno_ggcat(
@@ -197,8 +194,7 @@ anno_pie <- function(x, split_by = NULL, group_by, column, title, which = "row",
     )
 }
 
-#' @rdname heatmap
-#' @export
+#' @rdname heatmap-anno
 anno_ring <- function(x, split_by = NULL, group_by, column, title, which = "row", palette,
                       palcolor = NULL, border = TRUE, legend.direction, show_legend = TRUE, ...) {
     .anno_ggcat(
@@ -210,8 +206,7 @@ anno_ring <- function(x, split_by = NULL, group_by, column, title, which = "row"
     )
 }
 
-#' @rdname heatmap
-#' @export
+#' @rdname heatmap-anno
 anno_bar <- function(x, split_by = NULL, group_by, column, title, which = "row", palette,
                      palcolor = NULL, border = TRUE, legend.direction, show_legend = TRUE, ...) {
     .anno_ggcat(
@@ -224,8 +219,7 @@ anno_bar <- function(x, split_by = NULL, group_by, column, title, which = "row",
     )
 }
 
-#' @rdname heatmap
-#' @export
+#' @rdname heatmap-anno
 anno_violin <- function(x, split_by = NULL, group_by, column, title, which = "row", palette,
                         palcolor = NULL, border = TRUE, legend.direction, show_legend = TRUE, ...) {
     .anno_ggseries(
@@ -238,8 +232,7 @@ anno_violin <- function(x, split_by = NULL, group_by, column, title, which = "ro
     )
 }
 
-#' @rdname heatmap
-#' @export
+#' @rdname heatmap-anno
 anno_boxplot <- function(x, split_by = NULL, group_by, column, title, which = "row", palette,
                          palcolor = NULL, border = TRUE, legend.direction, show_legend = TRUE, ...) {
     .anno_ggseries(
@@ -252,8 +245,7 @@ anno_boxplot <- function(x, split_by = NULL, group_by, column, title, which = "r
     )
 }
 
-#' @rdname heatmap
-#' @export
+#' @rdname heatmap-anno
 anno_density <- function(x, split_by = NULL, group_by, column, title, which = "row", palette,
                         palcolor = NULL, border = TRUE, legend.direction, show_legend = TRUE, ...) {
     .anno_ggseries(
@@ -266,9 +258,8 @@ anno_density <- function(x, split_by = NULL, group_by, column, title, which = "r
     )
 }
 
-#' @rdname heatmap
+#' @rdname heatmap-anno
 #' @param alpha A numeric value between 0 and 1 specifying the transparency of the annotation
-#' @export
 anno_simple <- function(x, split_by = NULL, group_by, column, title, which = "row", palette,
                         palcolor = NULL, border = TRUE, legend.direction, show_legend = TRUE, alpha = 1, ...) {
     if (!is.null(split_by)) {
@@ -307,8 +298,7 @@ anno_simple <- function(x, split_by = NULL, group_by, column, title, which = "ro
     list(anno = anno, legend = lgd)
 }
 
-#' @rdname heatmap
-#' @export
+#' @rdname heatmap-anno
 anno_points <- function(x, split_by = NULL, group_by, column, title, which = "row", palette,
                         palcolor = NULL, border = TRUE, legend.direction, show_legend = TRUE, alpha = 1, ...) {
     if (!is.null(split_by)) {
@@ -320,9 +310,8 @@ anno_points <- function(x, split_by = NULL, group_by, column, title, which = "ro
     list(anno = anno, legend = NULL)
 }
 
-#' @rdname heatmap
+#' @rdname heatmap-anno
 #' @param add_points A logical value indicating whether to add points to the annotation
-#' @export
 anno_lines <- function(x, split_by = NULL, group_by, column, title, which = "row", palette,
                         palcolor = NULL, border = TRUE, legend.direction, show_legend = TRUE, alpha = 1, add_points = TRUE, ...) {
     anno <- ComplexHeatmap::anno_lines(
@@ -1180,12 +1169,18 @@ HeatmapAtomic <- function(
     p
 }
 
-#' @rdname heatmap
+#' Heatmap
+#'
+#' @description Heatmap is a popular way to visualize data in matrix format. It is widely used in biology to visualize gene expression data in microarray and RNA-seq data. The heatmap is a matrix where rows represent the samples and columns represent the features. The color of each cell represents the value of the feature in the sample. The color can be continuous or discrete. The heatmap can be split by the columns or rows to show the subgroups in the data. The heatmap can also be annotated by the columns or rows to show the additional information of the samples or features.
 #' @inheritParams common_args
 #' @inheritParams HeatmapAtomic
+#' @param data A data frame used to create the heatmap.
+#'  The data should be in a long form where each row represents a instance in the heatmap.
+#'  The `rows` should be multiple columns if you want to plot as rows, which you can refer as "features".
 #' @param split_rows_data A logical value indicating whether to split the rows data as well using 'split_by' and 'split_by_sep'.
 #' @export
 #' @importFrom patchwork wrap_plots
+#' @seealso \code{\link{anno_simple}}, \code{\link{anno_points}}, \code{\link{anno_lines}}, \code{\link{anno_pie}}, \code{\link{anno_violin}}, \code{\link{anno_boxplot}}, \code{\link{anno_density}}
 #' @examples
 #'set.seed(8525)
 #' data <- data.frame(

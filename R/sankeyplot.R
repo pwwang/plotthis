@@ -136,8 +136,10 @@ SankeyPlotAtomic <- function(
 }
 
 
-#' Sankey plot
+#' Sankey / Alluvial Plot
 #'
+#' @description A plot visualizing flow/movement/change from one state to another or one time to another.
+#'  `AlluvialPlot` is an alias of `SankeyPlot`.
 #' @inheritParams common_args
 #' @inheritParams SankeyPlotAtomic
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
@@ -188,7 +190,6 @@ SankeyPlot <- function(
 }
 
 
-#' @description Alluvial plot is an alias of Sankey plot.
 #' @rdname sankeyplot
 #' @export
 AlluvialPlot <- SankeyPlot

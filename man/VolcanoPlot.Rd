@@ -185,7 +185,7 @@ Default is "theme_this".}
 A list of ggplot objects or a wrap_plots object
 }
 \description{
-Volcano plot
+A volcano plot is a type of scatter plot that shows statistical significance (usually on the y-axis) versus magnitude of change (usually on the x-axis).
 }
 \examples{
 set.seed(8525)

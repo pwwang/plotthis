@@ -127,7 +127,8 @@ If FALSE, empty groups will be removed.}
 A ggplot object or wrap_plots object or a list of ggplot objects
 }
 \description{
-Area plot
+A plot showing how one or more groups' numeric values change over the
+progression of a another variable
 }
 \examples{
 data <- data.frame(

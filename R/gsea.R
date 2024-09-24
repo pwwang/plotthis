@@ -521,26 +521,20 @@ GSEAPlot <- function(
     if (is.character(gene_ranks) && length(gene_ranks) == 1 && startsWith(gene_ranks, "@")) {
         gene_ranks <- attr(data, substring(gene_ranks, 2))
     }
-    if (is.null(gene_ranks)) {
-        stop("'gene_ranks' must be provided")
-    }
-    if (is.null(names(gene_ranks))) {
-        stop("'gene_ranks' must have names")
-    }
-    if (!is.numeric(gene_ranks)) {
-        stop("'gene_ranks' must be numeric")
-    }
+    if (is.null(gene_ranks)) { stop("'gene_ranks' must be provided") }
+    if (is.null(names(gene_ranks))) { stop("'gene_ranks' must have names") }
+    if (!is.numeric(gene_ranks)) { stop("'gene_ranks' must be numeric") }
     gene_ranks <- gene_ranks[order(-gene_ranks)]
 
     if (is.character(gene_sets) && length(gene_sets) == 1 && startsWith(gene_sets, "@")) {
         gene_sets <- attr(data, substring(gene_sets, 2))
     }
-    if (is.null(gene_sets)) {
-        stop("'gene_sets' must be provided")
-    }
-    if (!is.list(gene_sets)) {
-        stop("'gene_sets' must be a list")
-    }
+    if (is.null(gene_sets)) { stop("'gene_sets' must be provided") }
+    if (!is.list(gene_sets)) { stop("'gene_sets' must be a list") }
+
+    gsnames <- intersect(as.character(data$ID), names(gene_sets))
+    gene_sets <- gene_sets[gsnames]
+    data <- data[as.character(data$ID) %in% gsnames, , drop = FALSE]
 
     plots <- lapply(names(gene_sets), function(gs) {
         GSEAPlotAtomic(

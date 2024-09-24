@@ -280,6 +280,7 @@ VolcanoPlotAtomic <- function(
 
 #' Volcano plot
 #'
+#' @description A volcano plot is a type of scatter plot that shows statistical significance (usually on the y-axis) versus magnitude of change (usually on the x-axis).
 #' @inheritParams common_args
 #' @inheritParams VolcanoPlotAtomic
 #' @return A list of ggplot objects or a wrap_plots object

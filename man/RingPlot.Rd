@@ -120,7 +120,7 @@ If FALSE, empty groups will be removed.}
 A ggplot object or wrap_plots object or a list of ggplot objects
 }
 \description{
-Ring plot for series of data
+A ring plot is like pie chart but with multiple rings.
 }
 \examples{
 RingPlot(datasets::iris, group_by = "Species")
@@ -133,4 +133,7 @@ data <- data.frame(
 RingPlot(data, x = "x", y = "y", group_by = "group")
 RingPlot(datasets::mtcars, x = "cyl", group_by = "carb", facet_by = "vs")
 RingPlot(datasets::mtcars, x = "cyl", group_by = "carb", split_by = "vs")
+}
+\seealso{
+\code{\link{PieChart}}
 }

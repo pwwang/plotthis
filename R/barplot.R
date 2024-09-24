@@ -315,8 +315,10 @@ BarPlotAtomic <- function(
 
 #' Bar Plot
 #'
+#' @description
+#'  * `BarPlot` is used to create a bar plot.
+#'  * `SplitBarPlot` is used to create a bar plot with splitting the bars on the two sides.
 #' @rdname barplot
-#' @description Create a bar plot.
 #' @inheritParams common_args
 #' @inheritParams BarPlotAtomic
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects

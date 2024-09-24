@@ -86,7 +86,7 @@ Default is "theme_this".}
 A ggplot object or wrap_plots object or a list of ggplot objects
 }
 \description{
-This function generates a clustree plot.
+A plot visualizing Clusterings at Different Resolutions
 }
 \examples{
 set.seed(8525)

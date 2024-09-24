@@ -2,3 +2,53 @@ url: https://pwwang.github.io/plotthis/
 template:
   bootstrap: 5
   bootswatch: lumen
+reference:
+  - title: Plotting
+    description: Functions for plotting
+    contents:
+    - AreaPlot
+    - ClustreePlot
+    - Heatmap
+    - LinePlot
+    - PieChart
+    - RingPlot
+    - TrendPlot
+    - VolcanoPlot
+    - WordCloudPlot
+    - BarPlot
+    - SplitBarPlot
+    - BoxPlot
+    - ViolinPlot
+    - ChordPlot
+    - CircosPlot
+    - DensityPlot
+    - Histogram
+    - DimPlot
+    - FeatureDimPlot
+    - DotPlot
+    - ScatterPlot
+    - LollipopPlot
+    - EnrichMap
+    - EnrichNetwork
+    - GSEASummaryPlot
+    - GSEAPlot
+    - RadarPlot
+    - SpiderPlot
+    - SankeyPlot
+    - AlluvialPlot
+    - UpsetPlot
+    - VennDiagram
+  - title: Theming
+    description: Functions for plot theming
+    contents:
+    - palette_this
+    - theme_this
+    - theme_blank
+    - show_palettes
+  - title: Data
+    description: Built-in data for plotting or examples
+    contents:
+    - enrich_example
+    - gsea_example
+    - palette_list
+    - words_excluded

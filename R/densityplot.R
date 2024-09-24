@@ -106,6 +106,7 @@ DensityHistoPlotAtomic <- function(
 
 #' Density Plot / Histogram
 #'
+#' @description Density plot or histogram to illustrate the distribution of the data.
 #' @rdname densityhistoplot
 #' @inheritParams common_args
 #' @inheritParams DensityHistoPlotAtomic
@@ -125,6 +126,7 @@ DensityHistoPlotAtomic <- function(
 DensityPlot <- function(
     data, x, group_by = NULL, group_by_sep = "_", group_name = NULL, split_by = NULL, split_by_sep = "_", flip = FALSE,
     palette = "Paired", palcolor = NULL, alpha = .5, theme = "theme_this", theme_args = list(),
+    add_lines = TRUE, line_height = 0.025, line_alpha = 1, line_width = .1,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,  expand = c(bottom = 0, left = 0, right = 0),
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     legend.position = ifelse(is.null(group_by), "none", "right"), legend.direction = "vertical", seed = 8525,
@@ -144,6 +146,7 @@ DensityPlot <- function(
     plots <- lapply(
         datas, DensityHistoPlotAtomic,
         x = x, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name, type = "density", flip = flip,
+        add_lines = add_lines, line_height = line_height, line_alpha = line_alpha, line_width = line_width,
         palette = palette, palcolor = palcolor, alpha = alpha, theme = theme, theme_args = theme_args,
         title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, expand = expand,
         facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
@@ -164,6 +167,7 @@ DensityPlot <- function(
 Histogram <- function(
     data, x, group_by = NULL, group_by_sep = "_", group_name = NULL, split_by = NULL, split_by_sep = "_",
     flip = FALSE, bins = NULL, binwidth = NULL,
+    add_lines = TRUE, line_height = 0.025, line_alpha = 1, line_width = .1,
     palette = "Paired", palcolor = NULL, alpha = .5, theme = "theme_this", theme_args = list(),
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(bottom = 0, left = 0, right = 0),
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
@@ -184,6 +188,7 @@ Histogram <- function(
     plots <- lapply(
         datas, DensityHistoPlotAtomic,
         x = x, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name, type = "histogram",
+        add_lines = add_lines, line_height = line_height, line_alpha = line_alpha, line_width = line_width,
         flip = flip, bins = bins, binwidth = binwidth, expand = expand,
         palette = palette, palcolor = palcolor, alpha = alpha, theme = theme, theme_args = theme_args,
         title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,

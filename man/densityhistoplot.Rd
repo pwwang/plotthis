@@ -19,6 +19,10 @@ DensityPlot(
   alpha = 0.5,
   theme = "theme_this",
   theme_args = list(),
+  add_lines = TRUE,
+  line_height = 0.025,
+  line_alpha = 1,
+  line_width = 0.1,
   title = NULL,
   subtitle = NULL,
   xlab = NULL,
@@ -50,6 +54,10 @@ Histogram(
   flip = FALSE,
   bins = NULL,
   binwidth = NULL,
+  add_lines = TRUE,
+  line_height = 0.025,
+  line_alpha = 1,
+  line_width = 0.1,
   palette = "Paired",
   palcolor = NULL,
   alpha = 0.5,
@@ -104,6 +112,14 @@ They will be concatenated into one column, using \code{\link{group_by_sep}} as t
 Default is "theme_this".}
 
 \item{theme_args}{A list of arguments to pass to the theme function.}
+
+\item{add_lines}{A logical value. If TRUE, add lines to the plot to show the data distribution on the bottom.}
+
+\item{line_height}{A numeric value specifying the height of the lines. The actual height will be calculated based on the maximum density or count.}
+
+\item{line_alpha}{A numeric value specifying the alpha of the lines.}
+
+\item{line_width}{A numeric value specifying the width of the lines.}
 
 \item{title}{A character string specifying the title of the plot.}
 
@@ -162,7 +178,7 @@ When facet_by is a single column and facet_wrap is used.}
 A ggplot object or wrap_plots object or a list of ggplot objects
 }
 \description{
-Density Plot / Histogram
+Density plot or histogram to illustrate the distribution of the data.
 }
 \examples{
 set.seed(8525)
