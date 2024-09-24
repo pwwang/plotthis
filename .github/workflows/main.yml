@@ -54,7 +54,6 @@ jobs:
 
       - name: Install plotthis
         run: |
-          devtools::install_github("pwwang/plotthis")
           devtools::install_local(force = TRUE)
 
       - name: Build pkgdown site
