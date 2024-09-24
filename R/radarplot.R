@@ -146,7 +146,7 @@ RadarPlotAtomic <- function(
             values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor),
             guide = group_guide
         ) +
-        coord_radar(start = -pi / length(levels(data[[x]]))) +
+        coord_radar(start = -pi / nlevels(data[[x]])) +
         labs(title = title, subtitle = subtitle) +
         do.call(theme, theme_args) +
         ggplot2::theme(

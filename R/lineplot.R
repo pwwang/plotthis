@@ -117,7 +117,7 @@ LinePlotSingle <- function(
         )
 
     height <- 4.5
-    width <- .5 + length(levels(data[[x]])) * .8
+    width <- .5 + nlevels(data[[x]]) * .8
 
     if (legend.position %in% c("right", "left")) {
         width <- width + 1
@@ -215,7 +215,7 @@ LinePlotGrouped <- function(
         )
 
     height <- 4.5
-    width <- .5 + length(levels(data[[x]])) * .8
+    width <- .5 + nlevels(data[[x]]) * .8
 
     if (legend.position %in% c("right", "left")) {
         width <- width + 1

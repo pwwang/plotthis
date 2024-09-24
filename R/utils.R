@@ -236,8 +236,8 @@ combine_plots <- function(plots, combine, nrow, ncol, byrow, recalc_size = TRUE)
         attr(p, "width") <- ncol * max(sapply(plots, function(x) attr(x, "width")))
         return(p)
     }
-
-    if (length(plots) == 1) {
+    # When it's gTree, also run wrap_plots to convert it to a patchwork object
+    if (length(plots) == 1 && !inherits(plots[[1]], "gTree")) {
         return(plots[[1]])
     }
 
@@ -430,4 +430,38 @@ add_grob <- function(gtable, grob, position = c("top", "bottom", "left", "right"
         gtable <- gtable_add_grob(gtable, grob, t = mean(gtable$layout[grep("panel", gtable$layout$name), "t"]), l = dim(gtable)[2], clip = clip)
     }
     return(gtable)
+}
+
+#' Convert a color with arbitrary transparency to a fixed color
+#'
+#' This function takes a vector of colors and an alpha level and converts the colors
+#' to fixed colors with the specified alpha level.
+#'
+#' @param colors Color vectors.
+#' @param alpha Alpha level in [0,1]
+#' @examples
+#' colors <- c("red", "blue", "green")
+#' adjcolors(colors, 0.5)
+#' ggplot2::alpha(colors, 0.5)
+#'
+#' show_palettes(list(
+#'     "raw" = colors,
+#'     "adjcolors" = adjcolors(colors, 0.5),
+#'     "ggplot2::alpha" = ggplot2::alpha(colors, 0.5)
+#' ))
+#'
+#' @keywords internal
+adjcolors <- function(colors, alpha) {
+    has_names <- !is.null(names(colors))
+    color_df <- as.data.frame(col2rgb(colors) / 255)
+    colors_out <- sapply(color_df, function(color) {
+        color_rgb <- rgba_to_rgb(list(color, alpha))
+        return(rgb(color_rgb[1], color_rgb[2], color_rgb[3]))
+    })
+    if (has_names) {
+        names(colors_out) <- names(colors)
+    } else {
+        names(colors_out) <- NULL
+    }
+    return(colors_out)
 }

@@ -86,7 +86,7 @@ BarPlotSingle <- function(
 
     if (!is.null(add_line)) {
         p <- p + geom_hline(
-            aes(color = line_name %||% as.character(add_line), yintercept = add_line),
+            aes(color = line_name %||% paste0(y, " = ", add_line), yintercept = add_line),
             linetype = line_type, linewidth = line_size
         ) + scale_color_manual(name = NULL, values = line_color, guide = guide_legend(order = 2))
     }
@@ -98,7 +98,7 @@ BarPlotSingle <- function(
     }
 
     height <- 4.5
-    width <- .5 + length(levels(data[[x]])) * .8
+    width <- .5 + nlevels(data[[x]]) * .8
     if (!identical(legend, "none")) {
         if (legend.position %in% c("right", "left")) {
             width <- width + 1
@@ -243,7 +243,7 @@ BarPlotGrouped <- function(
     }
 
     height <- 4.5
-    width <- .5 + length(levels(data[[x]])) * length(unique(data[[group_by]])) * .5
+    width <- .5 + nlevels(data[[x]]) * length(unique(data[[group_by]])) * .5
     if (legend.position %in% c("right", "left")) {
         width <- width + 1
     } else if (legend.direction == "horizontal") {
@@ -536,11 +536,11 @@ SplitBarPlotAtomic <- function(
     if (isTRUE(flip)) {
         p <- p + coord_flip(xlim = c(x_min, x_max))
         height <- 5.5
-        width <- max(length(levels(data[[y]])) * bar_height / 4, 4.5)
+        width <- max(nlevels(data[[y]]) * bar_height / 4, 4.5)
     } else {
         p <- p + coord_cartesian(xlim = c(x_min, x_max))
         width <- 5.5
-        height <- max(length(levels(data[[y]])) * bar_height / 4, 4.5)
+        height <- max(nlevels(data[[y]]) * bar_height / 4, 4.5)
     }
     if (!identical(legend.position, "none")) {
         if (legend.position %in% c("right", "left")) {

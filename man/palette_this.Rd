@@ -11,6 +11,7 @@ palette_this(
   palcolor = NULL,
   type = "auto",
   keep_names = TRUE,
+  alpha = 1,
   matched = FALSE,
   reverse = FALSE,
   NA_keep = FALSE,

@@ -181,16 +181,16 @@ DotPlotAtomic <- function(
     if (x_is_numeric) {
         nx <- 5
     } else if (keep_empty) {
-        nx <- length(levels(data[[x]]))
+        nx <- nlevels(data[[x]])
     } else {
-        nx <- length(levels(droplevels(data[[x]])))
+        nx <- nlevels(droplevels(data[[x]]))
     }
     if (y_is_numeric) {
         ny <- 5
     } else if (keep_empty) {
-        ny <- length(levels(data[[y]]))
+        ny <- nlevels(data[[y]])
     } else {
-        ny <- length(levels(droplevels(data[[y]])))
+        ny <- nlevels(droplevels(data[[y]]))
     }
 
     height = ny * 0.5

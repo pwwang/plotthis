@@ -1,0 +1,17 @@
+---
+title: "Basic Design Of The Plots"
+---
+
+## Color palettes
+
+## Basic implementation of the plotting functions
+
+## Splitting vs faceting
+
+## Argument naming conventions
+
+## The `height` and `width` attributes
+
+## Tracing the ggplot calls for debugging
+
+## Providing extra data for plotting

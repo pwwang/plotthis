@@ -423,8 +423,8 @@ BoxViolinPlotAtomic <- function(
         height <- height + 2
     }
     x_maxchars <- max(nchar(levels(data[[x]])))
-    nx <- length(levels(data[[x]]))
-    nd <- ifelse(is.null(dodge_by), 1, length(levels(data[[dodge_by]])))
+    nx <- nlevels(data[[x]])
+    nd <- ifelse(is.null(dodge_by), 1, nlevels(data[[dodge_by]]))
     if (isTRUE(flip) && isTRUE(stack)) {
         facet_nrow <- facet_nrow %||% 1
         strip_position <- "top"

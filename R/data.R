@@ -225,3 +225,43 @@ NULL
 #' }
 #' @name words_excluded
 NULL
+
+#' A example of clusterProfiler enrichment result
+#' @concept data
+#' @examples
+#' \dontrun{
+#' if (interactive()) {
+#'   data(geneList, package="DOSE")
+#'   de <- names(geneList)[abs(geneList) > 1.5]
+#'   enrich_example <- clusterProfiler::enrichPathway(gene=de, pvalueCutoff = 0.05, readable=TRUE)
+#'   enrich_example <- as.data.frame(enrich_example)
+#'   # usethis::use_data(enrich_example)
+#' }
+#' }
+#' @name enrich_example
+NULL
+
+#' A example of GSEA result from fgsea package
+#' @concept data
+#' @examples
+#' \dontrun{
+#' if (interactive()) {
+#'  set.seed(1234)
+#'  data(geneList, package="DOSE")
+#'  gsea_example <- DOSE::gseDO(geneList)
+#'  gene_ranks <- gsea_example@geneList
+#'  gene_sets <- gsea_example@geneSets
+#'  gsea_example_pos <- gsea_example[gsea_example$p.adjust < 0.05 & gsea_example$NES > 0, ]
+#'  gsea_example_neg <- gsea_example[gsea_example$p.adjust < 0.05 & gsea_example$NES < 0, ]
+#'  gsea_example <- rbind(
+#'      gsea_example_pos[sample(1:nrow(gsea_example_pos), 5), ],
+#'      gsea_example_pos[sample(1:nrow(gsea_example_pos), 5), ]
+#'  )
+#'
+#'  attr(gsea_example, "gene_ranks") <- gene_ranks
+#'  attr(gsea_example, "gene_sets") <- gene_sets[gsea_example$ID]
+#'  # usethis::use_data(gsea_example)
+#' }
+#' }
+#' @name gsea_example
+NULL

@@ -130,7 +130,7 @@ SankeyPlotAtomic <- function(
         )
 
     attr(p, "height") <- 6
-    attr(p, "width") <- length(levels(data$.Group)) * 1.5
+    attr(p, "width") <- nlevels(data$.Group) * 1.5
 
     p
 }

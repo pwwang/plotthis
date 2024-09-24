@@ -146,7 +146,7 @@ theme_blank <- function(add_coord = TRUE, xlen_npc = 0.15, ylen_npc = 0.15, xlab
 #' @export
 #'
 palette_this <- function(
-    x, n = 100, palette = "Paired", palcolor = NULL, type = "auto", keep_names = TRUE,
+    x, n = 100, palette = "Paired", palcolor = NULL, type = "auto", keep_names = TRUE, alpha = 1,
     matched = FALSE, reverse = FALSE, NA_keep = FALSE, NA_color = "grey80") {
     palette_list <- plotthis::palette_list
     if (missing(x)) {
@@ -250,6 +250,9 @@ palette_this <- function(
     }
     if (!isTRUE(keep_names)) {
         names(color) <- NULL
+    }
+    if (alpha < 1) {
+        color <- adjcolors(color, alpha)
     }
     return(color)
 }

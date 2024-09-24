@@ -12,6 +12,7 @@ RoxygenNote: 7.3.2
 Depends:
     R (>= 4.0.0)
 Imports:
+    circlize,
     ggplot2,
     rlang,
     dplyr,
@@ -32,3 +33,4 @@ Suggests:
     ggforce,
     scattermore
 LazyData: true
+Config/Needs/website: rmarkdown
