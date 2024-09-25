@@ -51,6 +51,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/pwwang/plotthis/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -68,10 +69,11 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"pwwang/plotthis"</span><span class="op">)</span></span>
-<span><span class="co"># or</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"pwwang/plotthis"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>remotes<span class="op">::</span><span class="kw">install_github</span>(<span class="st">"pwwang/plotthis"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="co"># or</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">"pwwang/plotthis"</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a><span class="co"># or using conda</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a><span class="op">$</span><span class="st"> </span>conda install pwwang<span class="op">::</span>r<span class="op">-</span>plotthis</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="credits">Credits<a class="anchor" aria-label="anchor" href="#credits"></a>
@@ -81,69 +83,47 @@
 <div class="section level2">
 <h2 id="gallery">Gallery<a class="anchor" aria-label="anchor" href="#gallery"></a>
 </h2>
-<p><code>AreaPlot</code> / <code>TrendPlot</code></p>
-<div class="figure">
-<img src="reference/figures/area-trend.png" alt=""><p class="caption">area-trend</p>
-</div>
-<p><code>ClustreePlot</code> / <code>LinePlot</code></p>
-<div class="figure">
-<img src="reference/figures/clustree-line.png" alt=""><p class="caption">clustree-line</p>
-</div>
-<p><code>Heatmap</code></p>
-<div class="figure">
-<img src="reference/figures/heatmap.png" alt=""><p class="caption">heatmap</p>
-</div>
-<p><code>PieChart</code> / <code>RingPlots</code></p>
-<div class="figure">
-<img src="reference/figures/pie-ring.png" alt=""><p class="caption">pie-ring</p>
-</div>
-<p><code>VolcanoPlot</code> / <code>WordCloudPlot</code></p>
-<div class="figure">
-<img src="reference/figures/volcano-wordcloud.png" alt=""><p class="caption">volcano-word</p>
-</div>
-<p><code>BarPlot</code> / <code>SplitBarPlot</code></p>
-<div class="figure">
-<img src="reference/figures/bar-splitbar.png" alt=""><p class="caption">bar-splitbar</p>
-</div>
-<p><code>BoxPlot</code> / <code>ViolinPlot</code></p>
-<div class="figure">
-<img src="reference/figures/box-violin.png" alt=""><p class="caption">box-violin</p>
-</div>
-<p><code>ChordPlot</code> / <code>UpsetPlot</code> / <code>VennDiagram</code></p>
-<div class="figure">
-<img src="reference/figures/chord-upset-venn.png" alt=""><p class="caption">chord-upset-venn</p>
-</div>
-<p><code>DensityPlot</code> / <code>Histogram</code></p>
-<div class="figure">
-<img src="reference/figures/density-histogram.png" alt=""><p class="caption">density-histogram</p>
-</div>
-<p><code>DimPlot</code> / <code>FeatureDimPlot</code></p>
-<div class="figure">
-<img src="reference/figures/dimplot.png" alt=""><p class="caption">dim-feature</p>
-</div>
-<p><code>DotPlot</code> / <code>ScatterPlot</code> / <code>LollipopPlot</code></p>
-<div class="figure">
-<img src="reference/figures/dot-scatter-lollipop.png" alt=""><p class="caption">dot-scatter-lollipop</p>
-</div>
-<p><code>EnrichMap</code> / <code>EnrichNetwork</code></p>
-<div class="figure">
-<img src="reference/figures/enrich.png" alt=""><p class="caption">enrich</p>
-</div>
-<p><code>GSEASummaryPlot</code> / <code>GSEAPlot</code></p>
-<div class="figure">
-<img src="reference/figures/gsea.png" alt=""><p class="caption">gsea</p>
-</div>
-<p><code>RadarPlot</code> / <code>SpiderPlot</code></p>
-<div class="figure">
-<img src="reference/figures/radar-spider.png" alt=""><p class="caption">radar-spider</p>
-</div>
-<p><code>SankeyPlot</code> / <code>AlluvialPlot</code></p>
-<div class="figure">
-<img src="reference/figures/sankey-alluvial.png" alt=""><p class="caption">sankey-alluvial</p>
+<p><a href="https://pwwang.github.io/plotthis/reference/AreaPlot.html"><code>AreaPlot</code></a> / <a href="https://pwwang.github.io/plotthis/reference/TrendPlot.html"><code>TrendPlot</code></a></p>
+<p><img src="reference/figures/area-trend.png"></p>
+<p><a href="https://pwwang.github.io/plotthis/reference/ClustreePlot.html"><code>ClustreePlot</code></a> / <a href="https://pwwang.github.io/plotthis/reference/LinePlot.html"><code>LinePlot</code></a></p>
+<p><img src="reference/figures/clustree-line.png"></p>
+<p><a href="https://pwwang.github.io/plotthis/reference/Heatmap.html"><code>Heatmap</code></a></p>
+<p><img src="reference/figures/heatmap.png"></p>
+<p><a href="https://pwwang.github.io/plotthis/reference/PieChart.html"><code>PieChart</code></a> / <a href="https://pwwang.github.io/plotthis/reference/RingPlot.html"><code>RingPlot</code></a></p>
+<p><img src="reference/figures/pie-ring.png"></p>
+<p><a href="https://pwwang.github.io/plotthis/reference/VolcanoPlot.html"><code>VolcanoPlot</code></a> / <a href="https://pwwang.github.io/plotthis/reference/WordCloudPlot.html"><code>WordCloudPlot</code></a></p>
+<p><img src="reference/figures/volcano-wordcloud.png"></p>
+<p><a href="https://pwwang.github.io/plotthis/reference/barplot.html"><code>BarPlot</code></a> / <a href="https://pwwang.github.io/plotthis/reference/barplot.html"><code>SplitBarPlot</code></a></p>
+<p><img src="reference/figures/bar-splitbar.png"></p>
+<p><a href="https://pwwang.github.io/plotthis/reference/boxviolinplot.html"><code>BoxPlot</code></a> / <a href="https://pwwang.github.io/plotthis/reference/boxviolinplot.html"><code>ViolinPlot</code></a></p>
+<p><img src="reference/figures/box-violin.png"></p>
+<p><a href="https://pwwang.github.io/plotthis/reference/chordplot.html"><code>ChordPlot</code></a> / <a href="https://pwwang.github.io/plotthis/reference/upsetplot.html"><code>UpsetPlot</code></a> / <a href="https://pwwang.github.io/plotthis/reference/venndiagram.html"><code>VennDiagram</code></a></p>
+<p><img src="reference/figures/chord-upset-venn.png"></p>
+<p><a href="https://pwwang.github.io/plotthis/reference/densityhistoplot.html"><code>DensityPlot</code></a> / <a href="https://pwwang.github.io/plotthis/reference/densityhistoplot.html"><code>Histogram</code></a></p>
+<p><img src="reference/figures/density-histogram.png"></p>
+<p><a href="https://pwwang.github.io/plotthis/reference/dimplot.html"><code>DimPlot</code></a> / <a href="https://pwwang.github.io/plotthis/reference/dimplot.html"><code>FeatureDimPlot</code></a></p>
+<p><img src="reference/figures/dimplot.png"></p>
+<p><a href="https://pwwang.github.io/plotthis/reference/dotplot.html"><code>DotPlot</code></a> / <a href="https://pwwang.github.io/plotthis/reference/dotplot.html"><code>ScatterPlot</code></a> / <a href="https://pwwang.github.io/plotthis/reference/dotplot.html"><code>LollipopPlot</code></a></p>
+<p><img src="reference/figures/dot-scatter-lollipop.png"></p>
+<p><a href="https://pwwang.github.io/plotthis/reference/enrichmap.html"><code>EnrichMap</code></a> / <a href="https://pwwang.github.io/plotthis/reference/enrichmap.html"><code>EnrichNetwork</code></a></p>
+<p><img src="reference/figures/enrich.png"></p>
+<p><a href="https://pwwang.github.io/plotthis/reference/gsea.html"><code>GSEASummaryPlot</code></a> / <a href="https://pwwang.github.io/plotthis/reference/gsea.html"><code>GSEAPlot</code></a></p>
+<p><img src="reference/figures/gsea.png"></p>
+<p><a href="https://pwwang.github.io/plotthis/reference/radarplot.html"><code>RadarPlot</code></a> / <a href="https://pwwang.github.io/plotthis/reference/radarplot.html"><code>SpiderPlot</code></a></p>
+<p><img src="reference/figures/radar-spider.png"></p>
+<p><a href="https://pwwang.github.io/plotthis/reference/sankeyplot.html"><code>SankeyPlot</code></a> / <a href="https://pwwang.github.io/plotthis/reference/sankeyplot.html"><code>AlluvialPlot</code></a></p>
+<p><img src="reference/figures/sankey-alluvial.png"></p>
 </div>
 </div>
+  </main><aside class="col-md-3"><div class="links">
+<h2 data-toc-skip>Links</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/pwwang/plotthis/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/pwwang/plotthis/issues" class="external-link">Report a bug</a></li>
+</ul>
 </div>
-  </main><aside class="col-md-3"><div class="license">
+
+<div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
 <li><a href="LICENSE.html">Full license</a></li>
