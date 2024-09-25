@@ -7,6 +7,10 @@ Authors@R:
 Description: `plotthis` is an R package that is built upon `ggplot2` and other plotting packages. It provides high-level APIs and a wide range of options to create stunning, publication-quality plots effortlessly.
 License: GPL (>= 3)
 Encoding: UTF-8
+URL: https://github.com/pwwang/plotthis
+    https://pwwang.github.io/plotthis/
+BugReports:
+    https://github.com/pwwang/plotthis/issues
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Depends:
@@ -25,7 +29,6 @@ Imports:
     ggnewscale,
     cowplot
 Suggests:
-    circlize,
     ComplexHeatmap,
     ggalluvial,
     ggVennDiagram (>= 1.5.0),

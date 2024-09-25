@@ -136,6 +136,9 @@ UpsetPlotAtomic <- function(
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     aspect.ratio = 0.6, legend.position = "right", legend.direction = "vertical", ...
 ) {
+    if (!requireNamespace("ggupset", quietly = TRUE)) {
+        stop("ggupset is required to plot Upset plot. Please install it first.")
+    }
     data <- PrepareUpsetData(data, intype, group_by, group_by_sep, id_by)
     base_size <- theme_args$base_size %||% 12
     text_size_scale <- base_size / 12

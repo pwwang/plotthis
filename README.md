@@ -8,6 +8,8 @@
 remotes::install_github("pwwang/plotthis")
 # or
 devtools::install_github("pwwang/plotthis")
+# or using conda
+$ conda install pwwang::r-plotthis
 ```
 
 ## Credits
@@ -15,65 +17,85 @@ devtools::install_github("pwwang/plotthis")
 `plotthis` is greatly inspired by the [`SCP`][1] package, but with the plotting functions detached from the Seurat object or single-cell data analysis. It is designed to be more flexible and general-purpose, and can be used for a wide range of data types and analysis scenarios.
 
 ## Gallery
+[`AreaPlot`][2] / [`TrendPlot`][3]
 
-`AreaPlot` / `TrendPlot`
+![](man/figures/area-trend.png)
 
-![area-trend](man/figures/area-trend.png)
+[`ClustreePlot`][4] / [`LinePlot`][5]
 
-`ClustreePlot` / `LinePlot`
+![](man/figures/clustree-line.png)
 
-![clustree-line](man/figures/clustree-line.png)
+[`Heatmap`][6]
 
-`Heatmap`
+![](man/figures/heatmap.png)
 
-![heatmap](man/figures/heatmap.png)
+[`PieChart`][7] / [`RingPlot`][8]
 
-`PieChart` / `RingPlots`
+![](man/figures/pie-ring.png)
 
-![pie-ring](man/figures/pie-ring.png)
+[`VolcanoPlot`][9] / [`WordCloudPlot`][10]
 
-`VolcanoPlot` / `WordCloudPlot`
+![](man/figures/volcano-wordcloud.png)
 
-![volcano-word](man/figures/volcano-wordcloud.png)
+[`BarPlot`][11] / [`SplitBarPlot`][11]
 
-`BarPlot` / `SplitBarPlot`
+![](man/figures/bar-splitbar.png)
 
-![bar-splitbar](man/figures/bar-splitbar.png)
+[`BoxPlot`][12] / [`ViolinPlot`][12]
 
-`BoxPlot` / `ViolinPlot`
+![](man/figures/box-violin.png)
 
-![box-violin](man/figures/box-violin.png)
+[`ChordPlot`][13] / [`UpsetPlot`][14] / [`VennDiagram`][15]
 
-`ChordPlot` / `UpsetPlot` / `VennDiagram`
+![](man/figures/chord-upset-venn.png)
 
-![chord-upset-venn](man/figures/chord-upset-venn.png)
+[`DensityPlot`][16] / [`Histogram`][16]
 
-`DensityPlot` / `Histogram`
+![](man/figures/density-histogram.png)
 
-![density-histogram](man/figures/density-histogram.png)
+[`DimPlot`][17] / [`FeatureDimPlot`][17]
 
-`DimPlot` / `FeatureDimPlot`
+![](man/figures/dimplot.png)
 
-![dim-feature](man/figures/dimplot.png)
+[`DotPlot`][18] / [`ScatterPlot`][18] / [`LollipopPlot`][18]
 
-`DotPlot` / `ScatterPlot` / `LollipopPlot`
+![](man/figures/dot-scatter-lollipop.png)
 
-![dot-scatter-lollipop](man/figures/dot-scatter-lollipop.png)
+[`EnrichMap`][19] / [`EnrichNetwork`][19]
 
-`EnrichMap` / `EnrichNetwork`
+![](man/figures/enrich.png)
 
-![enrich](man/figures/enrich.png)
+[`GSEASummaryPlot`][20] / [`GSEAPlot`][20]
 
-`GSEASummaryPlot` / `GSEAPlot`
+![](man/figures/gsea.png)
 
-![gsea](man/figures/gsea.png)
+[`RadarPlot`][21] / [`SpiderPlot`][21]
 
-`RadarPlot` / `SpiderPlot`
+![](man/figures/radar-spider.png)
 
-![radar-spider](man/figures/radar-spider.png)
+[`SankeyPlot`][22] / [`AlluvialPlot`][22]
 
-`SankeyPlot` / `AlluvialPlot`
-
-![sankey-alluvial](man/figures/sankey-alluvial.png)
+![](man/figures/sankey-alluvial.png)
 
 [1]: https://zhanghao-njmu.github.io/SCP/index.html
+[2]: https://pwwang.github.io/plotthis/reference/AreaPlot.html
+[3]: https://pwwang.github.io/plotthis/reference/TrendPlot.html
+[4]: https://pwwang.github.io/plotthis/reference/ClustreePlot.html
+[5]: https://pwwang.github.io/plotthis/reference/LinePlot.html
+[6]: https://pwwang.github.io/plotthis/reference/Heatmap.html
+[7]: https://pwwang.github.io/plotthis/reference/PieChart.html
+[8]: https://pwwang.github.io/plotthis/reference/RingPlot.html
+[9]: https://pwwang.github.io/plotthis/reference/VolcanoPlot.html
+[10]: https://pwwang.github.io/plotthis/reference/WordCloudPlot.html
+[11]: https://pwwang.github.io/plotthis/reference/barplot.html
+[12]: https://pwwang.github.io/plotthis/reference/boxviolinplot.html
+[13]: https://pwwang.github.io/plotthis/reference/chordplot.html
+[14]: https://pwwang.github.io/plotthis/reference/upsetplot.html
+[15]: https://pwwang.github.io/plotthis/reference/venndiagram.html
+[16]: https://pwwang.github.io/plotthis/reference/densityhistoplot.html
+[17]: https://pwwang.github.io/plotthis/reference/dimplot.html
+[18]: https://pwwang.github.io/plotthis/reference/dotplot.html
+[19]: https://pwwang.github.io/plotthis/reference/enrichmap.html
+[20]: https://pwwang.github.io/plotthis/reference/gsea.html
+[21]: https://pwwang.github.io/plotthis/reference/radarplot.html
+[22]: https://pwwang.github.io/plotthis/reference/sankeyplot.html
