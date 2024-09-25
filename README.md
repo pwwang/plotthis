@@ -6,6 +6,8 @@
 
 ```r
 remotes::install_github("pwwang/plotthis")
+# or
+devtools::install_github("pwwang/plotthis")
 ```
 
 ## Credits
