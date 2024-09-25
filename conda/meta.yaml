@@ -1,0 +1,69 @@
+package:
+  name: r-plotthis
+  version: 0.0.1
+
+source:
+  git_url: https://github.com/pwwang/plotthis
+  git_rev: 52ce36e41eef3e388d0274dde68b365d154032fb # on 09/25/2024
+
+build:
+  number: 1
+  rpaths:
+    - lib/R/lib/
+    - lib/
+
+requirements:
+  host:
+    - r-base
+    - r-circlize
+    - r-ggplot2
+    - r-rlang
+    - r-dplyr
+    - r-tidyr
+    - r-stringr
+    - r-scales
+    - r-patchwork
+    - r-ggrepel
+    - pwwang::r-gglogger
+    - r-ggnewscale
+    - r-cowplot
+    - bioconda::bioconductor-complexheatmap
+    - r-ggalluvial
+    - r-ggvenndiagram
+    - r-ggupset
+    - r-ggpubr
+    - r-ggforce
+    - r-scattermore
+
+  run:
+    - r-base
+    - r-circlize
+    - r-ggplot2
+    - r-rlang
+    - r-dplyr
+    - r-tidyr
+    - r-stringr
+    - r-scales
+    - r-patchwork
+    - r-ggrepel
+    - pwwang::r-gglogger
+    - r-ggnewscale
+    - r-cowplot
+    - bioconda::bioconductor-complexheatmap
+    - r-ggalluvial
+    - r-ggvenndiagram
+    - r-ggupset
+    - r-ggpubr
+    - r-ggforce
+    - r-scattermore
+
+test:
+  commands:
+    - $R -e "library('plotthis')"
+
+about:
+  home: https://github.com/pwwang/plotthis
+  license: GPL-3
+  summary: plotthis is an R package that is built upon ggplot2 and other plotting packages.
+  license_family: GPL
+  license_file: LICENSE.md
