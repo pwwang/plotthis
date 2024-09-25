@@ -107,7 +107,7 @@ SankeyPlotAtomic <- function(
 
     if (isTRUE(nodes_label)) {
         p <- p + geom_label(
-            aes(x = .Group, stratum = .GroupValue, alluvium = .ID, label = after_stat(stratum)),
+            aes(x = .Group, stratum = .GroupValue, alluvium = .ID, label = .GroupValue, y = !!sym(y)),
             stat = ggalluvial::StatStratum,
             size = text_size_scale * 3)
     }
@@ -130,7 +130,7 @@ SankeyPlotAtomic <- function(
         )
 
     attr(p, "height") <- 6
-    attr(p, "width") <- nlevels(data$.Group) * 1.5
+    attr(p, "width") <- nlevels(data$.Group) * ifelse(nlevels(data$.Group) < 5, 2, 1.5)
 
     p
 }
