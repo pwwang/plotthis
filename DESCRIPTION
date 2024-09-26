@@ -42,6 +42,7 @@ Suggests:
     ggpubr,
     ggforce,
     ggraph,
+    hexbin,
     igraph,
     scattermore
 Remotes: pwwang/gglogger

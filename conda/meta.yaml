@@ -39,6 +39,7 @@ requirements:
     - r-ggpubr
     - r-ggforce
     - r-ggraph
+    - r-hexbin
     - r-igraph
     - r-scattermore
 
@@ -68,6 +69,7 @@ requirements:
     - r-ggpubr
     - r-ggforce
     - r-ggraph
+    - r-hexbin
     - r-igraph
     - r-scattermore
 
