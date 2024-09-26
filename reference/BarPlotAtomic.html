@@ -49,6 +49,10 @@
 <span>  flip <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  group_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fill_by_x_if_no_group <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  add_bg <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  bg_palette <span class="op">=</span> <span class="st">"stripe"</span>,</span>
+<span>  bg_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  bg_alpha <span class="op">=</span> <span class="fl">0.2</span>,</span>
 <span>  theme <span class="op">=</span> <span class="st">"theme_this"</span>,</span>
 <span>  theme_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
@@ -100,8 +104,7 @@
 
 
 <dt id="arg-y">y<a class="anchor" aria-label="anchor" href="#arg-y"></a></dt>
-<dd><p>A character vector specifying the column as the y axis of the plot.
-Default is NULL, meaning the y axis is the count of the data.</p></dd>
+<dd><p>A character string specifying the column name of the data frame to plot for the y-axis.</p></dd>
 
 
 <dt id="arg-flip">flip<a class="anchor" aria-label="anchor" href="#arg-flip"></a></dt>
@@ -116,6 +119,22 @@ They will be concatenated into one column, using <code>group_by_sep</code> as th
 
 <dt id="arg-fill-by-x-if-no-group">fill_by_x_if_no_group<a class="anchor" aria-label="anchor" href="#arg-fill-by-x-if-no-group"></a></dt>
 <dd><p>A logical value indicating whether to fill the bars by the x-axis values if there is no group_by.</p></dd>
+
+
+<dt id="arg-add-bg">add_bg<a class="anchor" aria-label="anchor" href="#arg-add-bg"></a></dt>
+<dd><p>A logical value indicating whether to add a background to the plot.</p></dd>
+
+
+<dt id="arg-bg-palette">bg_palette<a class="anchor" aria-label="anchor" href="#arg-bg-palette"></a></dt>
+<dd><p>A character string indicating the palette to use for the background.</p></dd>
+
+
+<dt id="arg-bg-palcolor">bg_palcolor<a class="anchor" aria-label="anchor" href="#arg-bg-palcolor"></a></dt>
+<dd><p>A character string indicating the color to use for the background.</p></dd>
+
+
+<dt id="arg-bg-alpha">bg_alpha<a class="anchor" aria-label="anchor" href="#arg-bg-alpha"></a></dt>
+<dd><p>A numeric value indicating the alpha of the background.</p></dd>
 
 
 <dt id="arg-theme">theme<a class="anchor" aria-label="anchor" href="#arg-theme"></a></dt>
@@ -145,6 +164,60 @@ Default is "theme_this".</p></dd>
 
 <dt id="arg-aspect-ratio">aspect.ratio<a class="anchor" aria-label="anchor" href="#arg-aspect-ratio"></a></dt>
 <dd><p>A numeric value specifying the aspect ratio of the plot.</p></dd>
+
+
+<dt id="arg-add-line">add_line<a class="anchor" aria-label="anchor" href="#arg-add-line"></a></dt>
+<dd><p>A numeric value indicating the y value to add a horizontal line.</p></dd>
+
+
+<dt id="arg-line-color">line_color<a class="anchor" aria-label="anchor" href="#arg-line-color"></a></dt>
+<dd><p>A character string indicating the color of the line.</p></dd>
+
+
+<dt id="arg-line-size">line_size<a class="anchor" aria-label="anchor" href="#arg-line-size"></a></dt>
+<dd><p>A numeric value indicating the size of the line.</p></dd>
+
+
+<dt id="arg-line-type">line_type<a class="anchor" aria-label="anchor" href="#arg-line-type"></a></dt>
+<dd><p>A numeric value indicating the type of the line.</p></dd>
+
+
+<dt id="arg-line-name">line_name<a class="anchor" aria-label="anchor" href="#arg-line-name"></a></dt>
+<dd><p>A character string indicating the name of the line.</p></dd>
+
+
+<dt id="arg-add-trend">add_trend<a class="anchor" aria-label="anchor" href="#arg-add-trend"></a></dt>
+<dd><p>A logical value to add trend line to the plot.</p></dd>
+
+
+<dt id="arg-trend-color">trend_color<a class="anchor" aria-label="anchor" href="#arg-trend-color"></a></dt>
+<dd><p>A character string to specify the color of the trend line.</p></dd>
+
+
+<dt id="arg-trend-linewidth">trend_linewidth<a class="anchor" aria-label="anchor" href="#arg-trend-linewidth"></a></dt>
+<dd><p>A numeric value to specify the width of the trend line.</p></dd>
+
+
+<dt id="arg-trend-ptsize">trend_ptsize<a class="anchor" aria-label="anchor" href="#arg-trend-ptsize"></a></dt>
+<dd><p>A numeric value to specify the size of the trend line points.</p></dd>
+
+
+<dt id="arg-position">position<a class="anchor" aria-label="anchor" href="#arg-position"></a></dt>
+<dd><p>A character string indicating the position of the bars.
+If "auto", the position will be "stack" if group_by has more than 5 levels, otherwise "dodge".
+"fill" is also a valid option. Only works when group_by is not NULL.</p></dd>
+
+
+<dt id="arg-position-dodge-preserve">position_dodge_preserve<a class="anchor" aria-label="anchor" href="#arg-position-dodge-preserve"></a></dt>
+<dd><p>Should dodging preserve the "total" width of all elements at a position, or the width of a "single" element?</p></dd>
+
+
+<dt id="arg-y-min">y_min<a class="anchor" aria-label="anchor" href="#arg-y-min"></a></dt>
+<dd><p>A numeric value to specify the minimum value of the y axis.</p></dd>
+
+
+<dt id="arg-y-max">y_max<a class="anchor" aria-label="anchor" href="#arg-y-max"></a></dt>
+<dd><p>A numeric value to specify the maximum value of the y axis.</p></dd>
 
 
 <dt id="arg-legend-position">legend.position<a class="anchor" aria-label="anchor" href="#arg-legend-position"></a></dt>
@@ -186,6 +259,10 @@ You can also use a named vector to specify the values for each side.
 When the axis is discrete, the values will be applied as 'add' to the 'expansion' function.
 When the axis is continuous, the values will be applied as 'mult' to the 'expansion' function.
 See also <a href="https://ggplot2.tidyverse.org/reference/expansion.html" class="external-link">https://ggplot2.tidyverse.org/reference/expansion.html</a></p></dd>
+
+
+<dt id="arg-width">width<a class="anchor" aria-label="anchor" href="#arg-width"></a></dt>
+<dd><p>A numeric value specifying the width of the bars.</p></dd>
 
 
 <dt id="arg-facet-by">facet_by<a class="anchor" aria-label="anchor" href="#arg-facet-by"></a></dt>

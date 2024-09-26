@@ -104,6 +104,12 @@
 <dd><p>A character string specifying the column name of the data frame to plot for the y-axis.</p></dd>
 
 
+<dt id="arg-group-by">group_by<a class="anchor" aria-label="anchor" href="#arg-group-by"></a></dt>
+<dd><p>Columns to group the data for plotting
+For those plotting functions that do not support multiple groups,
+They will be concatenated into one column, using <code>group_by_sep</code> as the separator</p></dd>
+
+
 <dt id="arg-fill-point-by-x-if-no-group">fill_point_by_x_if_no_group<a class="anchor" aria-label="anchor" href="#arg-fill-point-by-x-if-no-group"></a></dt>
 <dd><p>A logical value indicating whether to color the points by the x-axis values
 when there is no group_by column.</p></dd>
@@ -244,6 +250,25 @@ If FALSE, empty groups will be removed.</p></dd>
 <dd><p>A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by <code>split_by</code> and generate multiple plots
 and combine them into one using <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">patchwork::wrap_plots</a></code></p></dd>
+
+
+<dt id="arg-facet-scales">facet_scales<a class="anchor" aria-label="anchor" href="#arg-facet-scales"></a></dt>
+<dd><p>Whether to scale the axes of facets. Default is "fixed"
+Other options are "free", "free_x", "free_y". See <code><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">ggplot2::facet_wrap</a></code></p></dd>
+
+
+<dt id="arg-facet-nrow">facet_nrow<a class="anchor" aria-label="anchor" href="#arg-facet-nrow"></a></dt>
+<dd><p>A numeric value specifying the number of rows in the facet.
+When facet_by is a single column and facet_wrap is used.</p></dd>
+
+
+<dt id="arg-facet-ncol">facet_ncol<a class="anchor" aria-label="anchor" href="#arg-facet-ncol"></a></dt>
+<dd><p>A numeric value specifying the number of columns in the facet.
+When facet_by is a single column and facet_wrap is used.</p></dd>
+
+
+<dt id="arg-facet-byrow">facet_byrow<a class="anchor" aria-label="anchor" href="#arg-facet-byrow"></a></dt>
+<dd><p>A logical value indicating whether to fill the plots by row. Default is TRUE.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

@@ -57,24 +57,25 @@ to fixed colors with the specified alpha level.</p>
 
 
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
-<dd><p>Alpha level in 0,1</p></dd>
+<dd><p>Alpha level ranging from 0 to 1.</p></dd>
 
 </dl></div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"red"</span>, <span class="st">"blue"</span>, <span class="st">"green"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">adjcolors</span><span class="op">(</span><span class="va">colors</span>, <span class="fl">0.5</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in adjcolors(colors, 0.5):</span> could not find function "adjcolors"</span>
+<span class="r-in"><span><span class="fu">plotthis</span><span class="fu">:::</span><span class="fu">adjcolors</span><span class="op">(</span><span class="va">colors</span>, <span class="fl">0.5</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "#FF8080" "#8080FF" "#80FF80"</span>
 <span class="r-in"><span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/alpha.html" class="external-link">alpha</a></span><span class="op">(</span><span class="va">colors</span>, <span class="fl">0.5</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "#FF000080" "#0000FF80" "#00FF0080"</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="show_palettes.html">show_palettes</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>    <span class="st">"raw"</span> <span class="op">=</span> <span class="va">colors</span>,</span></span>
-<span class="r-in"><span>    <span class="st">"adjcolors"</span> <span class="op">=</span> <span class="fu">adjcolors</span><span class="op">(</span><span class="va">colors</span>, <span class="fl">0.5</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    <span class="st">"adjcolors"</span> <span class="op">=</span> <span class="fu">plotthis</span><span class="fu">:::</span><span class="fu">adjcolors</span><span class="op">(</span><span class="va">colors</span>, <span class="fl">0.5</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>    <span class="st">"ggplot2::alpha"</span> <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/alpha.html" class="external-link">alpha</a></span><span class="op">(</span><span class="va">colors</span>, <span class="fl">0.5</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in adjcolors(colors, 0.5):</span> could not find function "adjcolors"</span>
+<span class="r-plt img"><img src="adjcolors-1.png" alt="" width="700" height="433"></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "raw"            "adjcolors"      "ggplot2::alpha"</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

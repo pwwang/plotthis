@@ -58,7 +58,7 @@ AlluvialPlot is an alias of SankeyPlot."><meta property="og:image" content="http
 <span>  palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
 <span>  palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.6</span>,</span>
-<span>  label <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  nodes_label <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  x_text_angle <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  aspect.ratio <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  legend.position <span class="op">=</span> <span class="st">"right"</span>,</span>
@@ -91,7 +91,7 @@ AlluvialPlot is an alias of SankeyPlot."><meta property="og:image" content="http
 <span>  palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
 <span>  palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.6</span>,</span>
-<span>  label <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  nodes_label <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  x_text_angle <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  aspect.ratio <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  legend.position <span class="op">=</span> <span class="st">"right"</span>,</span>
@@ -128,6 +128,10 @@ AlluvialPlot is an alias of SankeyPlot."><meta property="og:image" content="http
 <dd><p>A character vector of column names to define the nodes.</p></dd>
 
 
+<dt id="arg-nodes-color">nodes_color<a class="anchor" aria-label="anchor" href="#arg-nodes-color"></a></dt>
+<dd><p>A character string to color the nodes.</p></dd>
+
+
 <dt id="arg-links-by">links_by<a class="anchor" aria-label="anchor" href="#arg-links-by"></a></dt>
 <dd><p>A character vector of column names to define the links.
 If NULL, the links_by will be the first column in nodes_by.</p></dd>
@@ -159,6 +163,10 @@ If NULL, the links_by will be the first column in nodes_by.</p></dd>
 
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
 <dd><p>A numeric value specifying the transparency of the plot.</p></dd>
+
+
+<dt id="arg-nodes-label">nodes_label<a class="anchor" aria-label="anchor" href="#arg-nodes-label"></a></dt>
+<dd><p>A logical value to show the labels on the nodes.</p></dd>
 
 
 <dt id="arg-x-text-angle">x_text_angle<a class="anchor" aria-label="anchor" href="#arg-x-text-angle"></a></dt>

@@ -107,6 +107,60 @@
 <dd><p>A logical value indicating whether to flip the x and y axes.</p></dd>
 
 
+<dt id="arg-alpha-by">alpha_by<a class="anchor" aria-label="anchor" href="#arg-alpha-by"></a></dt>
+<dd><p>A character string indicating the column name to use for the transparency of the bars.</p></dd>
+
+
+<dt id="arg-alpha-reverse">alpha_reverse<a class="anchor" aria-label="anchor" href="#arg-alpha-reverse"></a></dt>
+<dd><p>A logical value indicating whether to reverse the transparency.</p></dd>
+
+
+<dt id="arg-alpha-name">alpha_name<a class="anchor" aria-label="anchor" href="#arg-alpha-name"></a></dt>
+<dd><p>A character string indicating the legend name of the transparency.</p></dd>
+
+
+<dt id="arg-order-y">order_y<a class="anchor" aria-label="anchor" href="#arg-order-y"></a></dt>
+<dd><p>A list of character strings indicating the order of the y axis.
+The keys are "+", "-", or "<em>". However, "+/-" should not be mixed with "</em>".
+The values are "x_asc", "x_desc", "alpha_asc", or "alpha_desc", indicating how to order the y axis.
+The default is <code>list("+" = c("x_desc", "alpha_desc"), "-" = c("x_desc", "alpha_asc"))</code>, meaning
+the positive values are ordered by the x-axis values in descending order and the alpha values in descending order,
+and the negative values are ordered by the x-axis values in descending order and the alpha values in ascending order.
+The "*" key is used to order the y axis without considering the direction.</p></dd>
+
+
+<dt id="arg-bar-height">bar_height<a class="anchor" aria-label="anchor" href="#arg-bar-height"></a></dt>
+<dd><p>A numeric value indicating the height of the bars.</p></dd>
+
+
+<dt id="arg-lineheight">lineheight<a class="anchor" aria-label="anchor" href="#arg-lineheight"></a></dt>
+<dd><p>A numeric value indicating the height of the text.</p></dd>
+
+
+<dt id="arg-max-charwidth">max_charwidth<a class="anchor" aria-label="anchor" href="#arg-max-charwidth"></a></dt>
+<dd><p>A numeric value indicating the maximum width of the text.</p></dd>
+
+
+<dt id="arg-fill-by">fill_by<a class="anchor" aria-label="anchor" href="#arg-fill-by"></a></dt>
+<dd><p>A character string indicating the column name to use for the fill of the bars.</p></dd>
+
+
+<dt id="arg-fill-by-sep">fill_by_sep<a class="anchor" aria-label="anchor" href="#arg-fill-by-sep"></a></dt>
+<dd><p>A character string to concatenate the fill columns if there are multiple.</p></dd>
+
+
+<dt id="arg-fill-name">fill_name<a class="anchor" aria-label="anchor" href="#arg-fill-name"></a></dt>
+<dd><p>A character string indicating the legend name of the fill.</p></dd>
+
+
+<dt id="arg-direction-pos-name">direction_pos_name<a class="anchor" aria-label="anchor" href="#arg-direction-pos-name"></a></dt>
+<dd><p>A character string indicating the name of the positive direction.</p></dd>
+
+
+<dt id="arg-direction-neg-name">direction_neg_name<a class="anchor" aria-label="anchor" href="#arg-direction-neg-name"></a></dt>
+<dd><p>A character string indicating the name of the negative direction.</p></dd>
+
+
 <dt id="arg-theme">theme<a class="anchor" aria-label="anchor" href="#arg-theme"></a></dt>
 <dd><p>A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".</p></dd>
@@ -151,6 +205,14 @@ When facet_by is a single column and facet_wrap is used.</p></dd>
 
 <dt id="arg-aspect-ratio">aspect.ratio<a class="anchor" aria-label="anchor" href="#arg-aspect-ratio"></a></dt>
 <dd><p>A numeric value specifying the aspect ratio of the plot.</p></dd>
+
+
+<dt id="arg-x-min">x_min<a class="anchor" aria-label="anchor" href="#arg-x-min"></a></dt>
+<dd><p>A numeric value indicating the minimum value of the x axis.</p></dd>
+
+
+<dt id="arg-x-max">x_max<a class="anchor" aria-label="anchor" href="#arg-x-max"></a></dt>
+<dd><p>A numeric value indicating the maximum value of the x axis.</p></dd>
 
 
 <dt id="arg-legend-position">legend.position<a class="anchor" aria-label="anchor" href="#arg-legend-position"></a></dt>
