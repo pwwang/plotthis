@@ -7,7 +7,7 @@ source:
   git_rev: 52ce36e41eef3e388d0274dde68b365d154032fb # on 09/25/2024
 
 build:
-  number: 1
+  number: 2
   rpaths:
     - lib/R/lib/
     - lib/
@@ -22,6 +22,7 @@ requirements:
     - r-tidyr
     - r-forcats
     - r-gtable
+    - r-reshape2
     - r-stringr
     - r-scales
     - r-patchwork
@@ -30,11 +31,15 @@ requirements:
     - r-ggnewscale
     - r-cowplot
     - bioconda::bioconductor-complexheatmap
+    - r-clustree
+    - r-ggwordcloud
     - r-ggalluvial
     - r-ggvenndiagram
     - r-ggupset
     - r-ggpubr
     - r-ggforce
+    - r-ggraph
+    - r-igraph
     - r-scattermore
 
   run:
@@ -46,6 +51,7 @@ requirements:
     - r-tidyr
     - r-forcats
     - r-gtable
+    - r-reshape2
     - r-stringr
     - r-scales
     - r-patchwork
@@ -54,11 +60,15 @@ requirements:
     - r-ggnewscale
     - r-cowplot
     - bioconda::bioconductor-complexheatmap
+    - r-clustree
+    - r-ggwordcloud
     - r-ggalluvial
     - r-ggvenndiagram
     - r-ggupset
     - r-ggpubr
     - r-ggforce
+    - r-ggraph
+    - r-igraph
     - r-scattermore
 
 test:

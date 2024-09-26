@@ -9,3 +9,5 @@
 ^conda\/.+
 ^docs\/.+
 ^test\.ipynb$
+^.+\.Rcheck/.+$
+^.+\.tar\.gz$
