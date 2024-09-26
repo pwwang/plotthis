@@ -69,7 +69,7 @@
 #' @return A ggplot object
 #' @keywords internal
 #' @importFrom stats loess formula na.omit aggregate
-#' @importFrom dplyr %>% group_by group_map pull
+#' @importFrom dplyr %>% group_by group_map pull filter
 #' @importFrom tidyr pivot_longer
 #' @importFrom gglogger ggplot
 #' @importFrom ggplot2 scale_linewidth_continuous geom_density_2d stat_density_2d geom_hex
@@ -369,6 +369,8 @@ DimPlotAtomic <- function(
         }
         if (isTRUE(highlight)) {
             hi_df <- data
+        } else if (length(highlight) == 1 && is.character(highlight)) {
+            hi_df <- eval(parse(text = paste0('filter(data, ', highlight, ')')))
         } else {
             all_inst <- rownames(data) %||% 1:nrow(data)
             if (!any(highlight %in% all_inst)) {
@@ -381,7 +383,6 @@ DimPlotAtomic <- function(
             rm(all_inst)
         }
         if (nrow(hi_df) > 0) {
-
             if (isTRUE(raster)) {
                 p <- p + scattermore::geom_scattermore(
                     data = hi_df, aes(x = !!sym(dims[1]), y = !!sym(dims[2])), color = highlight_color,
