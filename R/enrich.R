@@ -1,6 +1,7 @@
 #' Adjust_network_layout
 #'
 #' @keywords internal
+#' @importFrom stats dist
 adjust_network_layout <- function(graph, layout, width, height = 2, scale = 100, iter = 100) {
     w <- width / 2
     layout[, 1] <- layout[, 1] / diff(range(layout[, 1])) * scale
@@ -96,9 +97,11 @@ adjust_network_layout <- function(graph, layout, width, height = 2, scale = 100,
 #'  Either "term" or "feature". The default is "term".
 #' @param labelsize A numeric value specifying the size of the label.
 #' @param expand A numeric vector of length 2 specifying the expansion of the x and y axis.
+#' @param words_excluded A character vector specifying the words to exclude in the keyword.
 #' @return A ggplot object
 #' @keywords internal
-#' @importFrom dplyr slice_min slice_head reframe distinct group_by arrange reframe
+#' @importFrom utils combn
+#' @importFrom dplyr slice_min slice_head reframe distinct group_by arrange reframe desc
 #' @importFrom scales breaks_extended
 #' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_segment geom_point labs scale_size guides scale_linewidth scale_fill_manual scale_x_continuous
@@ -106,17 +109,18 @@ adjust_network_layout <- function(graph, layout, width, height = 2, scale = 100,
 EnrichMapAtomic <- function(
     data, top_term = 10, metric = "p.adjust", cutoff = 0.05, layout = "fr", minchar = 2,
     cluster = "fast_greedy", show_keyword = FALSE, nlabel = 4, character_width = 50,
+    words_excluded = plotthis::words_excluded,
     mark = "ellipse", label = c("term", "feature"), labelsize = 5, expand = c(0.4, 0.4),
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525, ...
 ) {
-    if (!requireNamespace("igraph", quietly = TRUE)) {
-        stop("The 'igraph' package is required 'EnrichMap'. Please install it first.")
-    }
-    if (!requireNamespace("ggforce", quietly = TRUE)) {
-        stop("The 'ggforce' package is required 'EnrichMap'. Please install it first.")
-    }
+    # if (!requireNamespace("igraph", quietly = TRUE)) {
+    #     stop("The 'igraph' package is required 'EnrichMap'. Please install it first.")
+    # }
+    # if (!requireNamespace("ggforce", quietly = TRUE)) {
+    #     stop("The 'ggforce' package is required 'EnrichMap'. Please install it first.")
+    # }
     if (inherits(data, "enrichResult")) {
         data <- as.data.frame(data)
     }
@@ -151,10 +155,10 @@ EnrichMapAtomic <- function(
     nodes <- nodes[c("ID", setdiff(colnames(nodes), "ID"))]
     graph <- igraph::graph_from_data_frame(d = edges, vertices = nodes, directed = FALSE)
     if (layout %in% c("circle", "tree", "grid")) {
-        layout <- switch(enrichmap_layout,
-            "circle" = layout_in_circle(graph),
-            "tree" = layout_as_tree(graph),
-            "grid" = layout_on_grid(graph)
+        layout <- switch(layout,
+            "circle" = igraph::layout_in_circle(graph),
+            "tree" = igraph::layout_as_tree(graph),
+            "grid" = igraph::layout_on_grid(graph)
         )
     } else {
         lofun <- getFromNamespace(paste0("layout_with_", layout), "igraph")
@@ -174,39 +178,39 @@ EnrichMapAtomic <- function(
 
     if (isTRUE(show_keyword)) {
         df_keyword1 <- df_nodes %>%
-            mutate(keyword = strsplit(tolower(as.character(Description)), "\\s|\\n", perl = TRUE)) %>%
+            mutate(keyword = strsplit(tolower(as.character(!!sym("Description"))), "\\s|\\n", perl = TRUE)) %>%
             unnest(cols = "keyword") %>%
-            group_by(keyword, clusters) %>%
+            group_by(!!sym("keyword"), !!sym("clusters")) %>%
             reframe(
-                keyword = tools::toTitleCase(keyword),
-                score = sum(metric),
+                keyword = tools::toTitleCase(!!sym("keyword")),
+                score = sum(!!sym("metric")),
                 count = n(),
                 .groups = "keep"
             ) %>%
-            filter(!grepl(pattern = "\\[.*\\]", x = keyword)) %>%
-            filter(nchar(keyword) >= minchar) %>%
-            filter(!tolower(keyword) %in% tolower(words_excluded)) %>%
+            filter(!grepl(pattern = "\\[.*\\]", x = !!sym("keyword"))) %>%
+            filter(nchar(!!sym("keyword")) >= minchar) %>%
+            filter(!tolower(!!sym("keyword")) %in% tolower(words_excluded)) %>%
             distinct() %>%
-            group_by(clusters) %>%
-            arrange(desc(score)) %>%
+            group_by(!!sym("clusters")) %>%
+            arrange(desc(!!sym("score"))) %>%
             slice_head(n = nlabel) %>%
-            reframe(keyword = paste0(keyword, collapse = "/")) %>%
+            reframe(keyword = paste0(!!sym("keyword"), collapse = "/")) %>%
             as.data.frame()
         rownames(df_keyword1) <- as.character(df_keyword1$clusters)
         df_keyword1$keyword <- str_wrap(df_keyword1$keyword, width = character_width)
         df_keyword1$label <- paste0(df_keyword1$clusters, ":\n", df_keyword1$keyword)
     } else {
         # if (label == "term") {
-            df_nodes$Description <- paste0("· ", str_wrap(df_nodes$Description, width = character_width, exdent = 2))
+            df_nodes$Description <- paste0("- ", str_wrap(df_nodes$Description, width = character_width, exdent = 2))
         # }
         df_keyword1 <- df_nodes %>%
-            group_by(clusters) %>%
-            arrange(desc(metric)) %>%
-            reframe(keyword = Description) %>%
+            group_by(!!sym("clusters")) %>%
+            arrange(desc(!!sym("metric"))) %>%
+            reframe(keyword = !!sym("Description")) %>%
             distinct() %>%
-            group_by(clusters) %>%
+            group_by(!!sym("clusters")) %>%
             slice_head(n = nlabel) %>%
-            reframe(keyword = paste0(keyword, collapse = "\n")) %>%
+            reframe(keyword = paste0(!!sym("keyword"), collapse = "\n")) %>%
             as.data.frame()
 
         rownames(df_keyword1) <- as.character(df_keyword1$clusters)
@@ -214,20 +218,20 @@ EnrichMapAtomic <- function(
     }
 
     df_keyword2 <- df_nodes %>%
-        mutate(keyword = geneID) %>%
+        mutate(keyword = !!sym("geneID")) %>%
         unnest(cols = "keyword") %>%
-        group_by(keyword, clusters) %>%
+        group_by(!!sym("keyword"), !!sym("clusters")) %>%
         reframe(
-            keyword = keyword,
-            score = sum(metric),
+            keyword = !!sym("keyword"),
+            score = sum(!!sym("metric")),
             count = n(),
             .groups = "keep"
         ) %>%
         distinct() %>%
-        group_by(clusters) %>%
-        arrange(desc(score)) %>%
+        group_by(!!sym("clusters")) %>%
+        arrange(desc(!!sym("score"))) %>%
         slice_head(n = nlabel) %>%
-        reframe(keyword = paste0(keyword, collapse = "|")) %>%
+        reframe(keyword = paste0(!!sym("keyword"), collapse = "|")) %>%
         as.data.frame()
 
     rownames(df_keyword2) <- as.character(df_keyword2$clusters)
@@ -246,8 +250,8 @@ EnrichMapAtomic <- function(
     markfun <- getFromNamespace(paste0("geom_mark_", mark), "ggforce")
     mark_layer <- markfun(
         data = df_nodes, aes(
-            x = dim1, y = dim2, color = clusters, fill = clusters,
-            label = clusters, description = if (label == "term") keyword1 else keyword2
+            x = !!sym("dim1"), y = !!sym("dim2"), color = !!sym("clusters"), fill = !!sym("clusters"),
+            label = !!sym("clusters"), description = !!sym(ifelse(label == "term", "keyword1", "keyword2"))
         ),
         expand = unit(3, "mm"),
         alpha = 0.1,
@@ -262,8 +266,12 @@ EnrichMapAtomic <- function(
 
     p <- ggplot() +
         mark_layer +
-        geom_segment(data = df_edges, aes(x = from_dim1, y = from_dim2, xend = to_dim1, yend = to_dim2, linewidth = weight), alpha = 0.1, lineend = "round") +
-        geom_point(data = df_nodes, aes(x = dim1, y = dim2, size = Count, fill = clusters), color = "black", shape = 21) +
+        geom_segment(data = df_edges,
+            aes(x = !!sym("from_dim1"), y = !!sym("from_dim2"), xend = !!sym("to_dim1"), yend = !!sym("to_dim2"), linewidth = !!sym("weight")),
+            alpha = 0.1, lineend = "round") +
+        geom_point(data = df_nodes,
+            aes(x = !!sym("dim1"), y = !!sym("dim2"), size = !!sym("Count"), fill = !!sym("clusters")),
+            color = "black", shape = 21) +
         labs(title = title, subtitle = subtitle, x = xlab %||% "", y = ylab %||% "") +
         scale_size(name = "Count", range = c(2, 6), breaks_extended(n = 4)) +
         guides(size = guide_legend(override.aes = list(fill = "grey30", shape = 21), order = 1)) +
@@ -310,8 +318,15 @@ EnrichMapAtomic <- function(
 #'
 #' @inheritParams common_args
 #' @param data A data frame containing the data to be plotted.
+#' @param layoutadjust A logical value specifying whether to adjust the layout of the network.
+#' @param adjscale A numeric value specifying the scale of the adjustment.
+#' @param adjiter A numeric value specifying the number of iterations for the adjustment.
+#' @param blendmode A character string specifying the blend mode of the colors.
+#'  Either "blend", "average", "multiply" and "screen".
 #' @return A ggplot object
 #' @keywords internal
+#' @importFrom utils getFromNamespace
+#' @importFrom grDevices col2rgb
 #' @importFrom ggplot2 scale_color_identity scale_fill_identity guides guide_legend draw_key_point .pt element_text
 EnrichNetworkAtomic <- function(
     data, top_term = 10, metric = "p.adjust", cutoff = 0.05, character_width = 50,
@@ -321,12 +336,12 @@ EnrichNetworkAtomic <- function(
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     ...
 ) {
-    if (!requireNamespace("igraph", quietly = TRUE)) {
-        stop("The 'igraph' package is required 'EnrichMap'. Please install it first.")
-    }
-    if (!requireNamespace("ggforce", quietly = TRUE)) {
-        stop("The 'ggforce' package is required 'EnrichMap'. Please install it first.")
-    }
+    # if (!requireNamespace("igraph", quietly = TRUE)) {
+    #     stop("The 'igraph' package is required 'EnrichMap'. Please install it first.")
+    # }
+    # if (!requireNamespace("ggforce", quietly = TRUE)) {
+    #     stop("The 'ggforce' package is required 'EnrichMap'. Please install it first.")
+    # }
     if (inherits(data, "enrichResult")) {
         data <- as.data.frame(data)
     }
@@ -361,9 +376,9 @@ EnrichNetworkAtomic <- function(
     graph <- igraph::graph_from_data_frame(d = edges, vertices = nodes, directed = FALSE)
     if (layout %in% c("circle", "tree", "grid")) {
         layout <- switch(layout,
-            "circle" = layout_in_circle(graph),
-            "tree" = layout_as_tree(graph),
-            "grid" = layout_on_grid(graph)
+            "circle" = igraph::layout_in_circle(graph),
+            "tree" = igraph::layout_as_tree(graph),
+            "grid" = igraph::layout_on_grid(graph)
         )
     } else {
         lofun <- getFromNamespace(paste0("layout_with_", layout), "igraph")
@@ -411,17 +426,26 @@ EnrichNetworkAtomic <- function(
         data_text$size <- 11 / .pt
         grid::grobTree(
             draw_key_point(df, list(color = "white", shape = 21)),
-            ggrepel:::shadowtextGrob(label = data_text$label, bg.colour = "black", bg.r = 0.1, gp = grid::gpar(col = "white", fontface = "bold"))
+            getFromNamespace("shadowtextGrob", "ggrepel")(label = data_text$label, bg.colour = "black", bg.r = 0.1, gp = grid::gpar(col = "white", fontface = "bold"))
         )
     }
 
     p <- ggplot() +
-        geom_segment(data = df_edges, aes(x = from_dim1, y = from_dim2, xend = to_dim1, yend = to_dim2, color = color), alpha = 1, lineend = "round", show.legend = FALSE) +
-        geom_label(data = df_nodes[df_nodes$class == "gene", ], aes(x = dim1, y = dim2, label = name, fill = color, color = label_color), size = 3, show.legend = FALSE) +
-        geom_point(data = df_nodes[df_nodes$class == "term", ], aes(x = dim1, y = dim2), size = 8, color = "black", fill = "black", stroke = 1, shape = 21, show.legend = FALSE) +
-        geom_point(data = df_nodes[df_nodes$class == "term", ], aes(x = dim1, y = dim2, fill = color), size = 7, color = "white", stroke = 1, shape = 21, key_glyph = draw_key_cust) +
+        geom_segment(data = df_edges,
+            aes(x = !!sym("from_dim1"), y = !!sym("from_dim2"), xend = !!sym("to_dim1"), yend = !!sym("to_dim2"), color = !!sym("color")),
+            alpha = 1, lineend = "round", show.legend = FALSE) +
+        geom_label(data = df_nodes[df_nodes$class == "gene", ],
+            aes(x = !!sym("dim1"), y = !!sym("dim2"), label = !!sym("name"), fill = !!sym("color"), color = !!sym("label_color")),
+            size = 3, show.legend = FALSE) +
+        geom_point(data = df_nodes[df_nodes$class == "term", ],
+            aes(x = !!sym("dim1"), y = !!sym("dim2")),
+            size = 8, color = "black", fill = "black", stroke = 1, shape = 21, show.legend = FALSE) +
+        geom_point(data = df_nodes[df_nodes$class == "term", ],
+            aes(x = !!sym("dim1"), y = !!sym("dim2"), fill = !!sym("color")),
+            size = 7, color = "white", stroke = 1, shape = 21, key_glyph = draw_key_cust) +
         geom_text_repel(
-            data = df_nodes[df_nodes$class == "term", ], aes(x = dim1, y = dim2, label = label),
+            data = df_nodes[df_nodes$class == "term", ],
+            aes(x = !!sym("dim1"), y = !!sym("dim2"), label = !!sym("label")),
             fontface = "bold", min.segment.length = 0, segment.color = "black",
             point.size = NA, max.overlaps = 100, force = 0, color = "white", bg.color = "black", bg.r = 0.1, size = labelsize
         ) +
@@ -461,7 +485,7 @@ EnrichNetworkAtomic <- function(
 #' `EnrichMap` is a function to plot the enrichment map.
 #' `EnrichNetwork` is a function to plot the enrichment network.
 #'
-#' @rdname enrichmap
+#' @rdname enrichmap1
 #' @param data A data frame containing the result by Enrichr.
 #' @return A data frame that can be used in `EnrichMap`.
 #' @export
@@ -481,7 +505,7 @@ PrepareEnrichrResult <- function(data) {
     data
 }
 
-#' @rdname enrichmap
+#' @rdname enrichmap1
 #' @inheritParams common_args
 #' @inheritParams EnrichMapAtomic
 #' @param data A data frame containing the data to be plotted.
@@ -553,7 +577,7 @@ EnrichMap <- function(
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
 }
 
-#' @rdname enrichmap
+#' @rdname enrichmap1
 #' @inheritParams common_args
 #' @inheritParams EnrichNetworkAtomic
 #' @param data A data frame containing the data to be plotted.

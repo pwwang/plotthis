@@ -31,6 +31,8 @@ palette_this(
 
 \item{keep_names}{Whether to keep the names of the color vector.}
 
+\item{alpha}{The alpha value of the colors. Default is 1.}
+
 \item{matched}{If \code{TRUE}, will return a color vector of the same length as \code{x}.}
 
 \item{reverse}{Whether to invert the colors.}

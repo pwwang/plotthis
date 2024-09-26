@@ -135,11 +135,14 @@ LinePlotSingle <- function(
 #' LinePlotGrouped
 #'
 #' @description Line plot with groups.
+#' @inheritParams common_args
 #' @inheritParams LinePlotSingle
+#' @param group_by A character string specifying the column name of the data frame to group the plot.
+#' @param group_by_sep A character string specifying the separator to use when concatenating multiple columns.
 #' @return A ggplot object
 #' @keywords internal
 #' @importFrom rlang syms
-#' @importFrom dplyr group_by summarise %>% mutate n
+#' @importFrom dplyr summarise %>% mutate n
 #' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_line scale_color_manual labs geom_errorbar geom_point
 LinePlotGrouped <- function(
@@ -161,7 +164,7 @@ LinePlotGrouped <- function(
         allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep
     )
     if (is.null(y)) {
-        data <- data %>% group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>% summarise(.y = n(), .groups = "drop")
+        data <- data %>% dplyr::group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>% summarise(.y = n(), .groups = "drop")
         y <- ".y"
     }
 
@@ -232,7 +235,9 @@ LinePlotGrouped <- function(
 }
 
 #' LinePlotAtomic
+#'
 #' @description Line plot with atomic data.
+#' @inheritParams common_args
 #' @inheritParams LinePlotGrouped
 #' @param fill_point_by_x_if_no_group A logical value indicating whether to color the points by the x-axis values
 #'  when there is no group_by column.
@@ -291,7 +296,9 @@ LinePlotAtomic <- function(
 #' Line Plot
 #'
 #' @description Visualizing the change of a numeric value over the progression of a categorical variable.
+#' @inheritParams common_args
 #' @inheritParams LinePlotAtomic
+#' @param group_by_sep A character string specifying the separator to use when concatenating multiple columns.
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
 #' @examples

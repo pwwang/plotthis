@@ -42,6 +42,8 @@ If NULL, the count of each nodes_by column will be used.}
 
 \item{nodes_by}{A character vector of column names to define the nodes.}
 
+\item{nodes_color}{A character string to color the nodes.}
+
 \item{links_by}{A character vector of column names to define the links.
 If NULL, the links_by will be the first column in nodes_by.}
 

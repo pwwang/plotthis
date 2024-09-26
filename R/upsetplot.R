@@ -35,7 +35,7 @@ detect_upset_datatype <- function(data, group_by = NULL, id_by = NULL) {
 #' @description
 #'  `PrepareUpsetData` is used to process the input data for Upset plot.
 #'  `UpsetPlot` is used to plot the processed data.
-#' @rdname upsetplot
+#' @rdname upsetplot1
 #' @export
 #' @param data A data frame or a list or an UpsetPlotData object.
 #' @param intype A character string indicating the datatype of the input data.
@@ -110,7 +110,7 @@ PrepareUpsetData <- function(data, intype = NULL, group_by = NULL, group_by_sep 
             idnames[y]
         })
     })
-    out <- uncount(out, .count)
+    out <- uncount(out, !!sym(".count"))
     class(out) <- c("UpsetPlotData", class(out))
     return(out)
 }
@@ -136,15 +136,15 @@ UpsetPlotAtomic <- function(
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     aspect.ratio = 0.6, legend.position = "right", legend.direction = "vertical", ...
 ) {
-    if (!requireNamespace("ggupset", quietly = TRUE)) {
-        stop("ggupset is required to plot Upset plot. Please install it first.")
-    }
+    # if (!requireNamespace("ggupset", quietly = TRUE)) {
+    #     stop("ggupset is required to plot Upset plot. Please install it first.")
+    # }
     data <- PrepareUpsetData(data, intype, group_by, group_by_sep, id_by)
     base_size <- theme_args$base_size %||% 12
     text_size_scale <- base_size / 12
 
-    p <- ggplot(data, aes(x = Intersection)) +
-        geom_bar(aes(fill = after_stat(count)), alpha = alpha, color = "black", width = 0.5) +
+    p <- ggplot(data, aes(x = !!sym("Intersection"))) +
+        geom_bar(aes(fill = after_stat(!!sym("count"))), alpha = alpha, color = "black", width = 0.5) +
         scale_fill_gradientn(
             n.breaks = 3,
             colors = palette_this(palette = palette, palcolor = palcolor),
@@ -154,7 +154,7 @@ UpsetPlotAtomic <- function(
                 frame.colour = "black", ticks.colour = "black", title.hjust = 0)
         )
     if (isTRUE(label)) {
-        p <- p + geom_text_repel(aes(label = after_stat(count)),
+        p <- p + geom_text_repel(aes(label = after_stat(!!sym("count"))),
             stat = "count",
             colour = label_fg, size = label_size %||% text_size_scale * 3.5,
             bg.color = label_bg, bg.r = label_bg_r,
@@ -203,7 +203,7 @@ UpsetPlotAtomic <- function(
 #' @inheritParams UpsetPlotAtomic
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
-#' @rdname upsetplot
+#' @rdname upsetplot1
 #' @examples
 #' data = list(
 #'     A = sort(sample(letters, 8)),

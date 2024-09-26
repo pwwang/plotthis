@@ -11,6 +11,10 @@ BarPlotAtomic(
   flip = FALSE,
   group_by = NULL,
   fill_by_x_if_no_group = TRUE,
+  add_bg = FALSE,
+  bg_palette = "stripe",
+  bg_palcolor = NULL,
+  bg_alpha = 0.2,
   theme = "theme_this",
   theme_args = list(),
   palette = "Paired",
@@ -53,16 +57,23 @@ BarPlotAtomic(
 
 \item{x}{A character string specifying the column name of the data frame to plot for the x-axis.}
 
-\item{y}{A character vector specifying the column as the y axis of the plot.
-Default is NULL, meaning the y axis is the count of the data.}
+\item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
 
 \item{flip}{A logical value indicating whether to flip the x and y axes.}
 
 \item{group_by}{Columns to group the data for plotting
 For those plotting functions that do not support multiple groups,
-They will be concatenated into one column, using \code{\link{group_by_sep}} as the separator}
+They will be concatenated into one column, using \code{group_by_sep} as the separator}
 
 \item{fill_by_x_if_no_group}{A logical value indicating whether to fill the bars by the x-axis values if there is no group_by.}
+
+\item{add_bg}{A logical value indicating whether to add a background to the plot.}
+
+\item{bg_palette}{A character string indicating the palette to use for the background.}
+
+\item{bg_palcolor}{A character string indicating the color to use for the background.}
+
+\item{bg_alpha}{A numeric value indicating the alpha of the background.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -78,6 +89,34 @@ Default is "theme_this".}
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
+
+\item{add_line}{A numeric value indicating the y value to add a horizontal line.}
+
+\item{line_color}{A character string indicating the color of the line.}
+
+\item{line_size}{A numeric value indicating the size of the line.}
+
+\item{line_type}{A numeric value indicating the type of the line.}
+
+\item{line_name}{A character string indicating the name of the line.}
+
+\item{add_trend}{A logical value to add trend line to the plot.}
+
+\item{trend_color}{A character string to specify the color of the trend line.}
+
+\item{trend_linewidth}{A numeric value to specify the width of the trend line.}
+
+\item{trend_ptsize}{A numeric value to specify the size of the trend line points.}
+
+\item{position}{A character string indicating the position of the bars.
+If "auto", the position will be "stack" if group_by has more than 5 levels, otherwise "dodge".
+"fill" is also a valid option. Only works when group_by is not NULL.}
+
+\item{position_dodge_preserve}{Should dodging preserve the "total" width of all elements at a position, or the width of a "single" element?}
+
+\item{y_min}{A numeric value to specify the minimum value of the y axis.}
+
+\item{y_max}{A numeric value to specify the maximum value of the y axis.}
 
 \item{legend.position}{A character string specifying the position of the legend.}
 
@@ -104,12 +143,14 @@ When the axis is discrete, the values will be applied as 'add' to the 'expansion
 When the axis is continuous, the values will be applied as 'mult' to the 'expansion' function.
 See also \url{https://ggplot2.tidyverse.org/reference/expansion.html}}
 
+\item{width}{A numeric value specifying the width of the bars.}
+
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
-Otherwise, the data will be split by \code{\link{split_by}} and generate multiple plots
+Otherwise, the data will be split by \code{split_by} and generate multiple plots
 and combine them into one using \code{patchwork::wrap_plots}}
 
 \item{facet_scales}{Whether to scale the axes of facets. Default is "fixed"
-Other options are "free", "free_x", "free_y". See \code{\link{ggplot2::facet_wrap}}}
+Other options are "free", "free_x", "free_y". See \code{ggplot2::facet_wrap}}
 
 \item{facet_nrow}{A numeric value specifying the number of rows in the facet.
 When facet_by is a single column and facet_wrap is used.}

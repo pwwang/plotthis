@@ -1,5 +1,5 @@
 Package: plotthis
-Title: An R package built upon `ggplot2` and other plotting packages.
+Title: An R package built upon `ggplot2` and other plotting packages
 Version: 0.0.1
 Authors@R:
     person("Panwen", "Wang", , "pwwang@pwwang.com", role = c("aut", "cre"),
@@ -21,8 +21,12 @@ Imports:
     rlang,
     dplyr,
     tidyr,
+    forcats,
+    gtable,
+    reshape2,
     stringr,
     scales,
+    methods,
     patchwork,
     ggrepel,
     gglogger,
@@ -30,11 +34,15 @@ Imports:
     cowplot
 Suggests:
     ComplexHeatmap,
+    clustree,
+    ggwordcloud,
     ggalluvial,
     ggVennDiagram (>= 1.5.0),
     ggupset,
     ggpubr,
     ggforce,
+    ggraph,
+    igraph,
     scattermore
 Remotes: pwwang/gglogger
 LazyData: true

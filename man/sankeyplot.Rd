@@ -18,7 +18,7 @@ SankeyPlot(
   palette = "Paired",
   palcolor = NULL,
   alpha = 0.6,
-  label = FALSE,
+  nodes_label = FALSE,
   x_text_angle = 0,
   aspect.ratio = 1,
   legend.position = "right",
@@ -51,7 +51,7 @@ AlluvialPlot(
   palette = "Paired",
   palcolor = NULL,
   alpha = 0.6,
-  label = FALSE,
+  nodes_label = FALSE,
   x_text_angle = 0,
   aspect.ratio = 1,
   legend.position = "right",
@@ -78,6 +78,8 @@ AlluvialPlot(
 
 \item{nodes_by}{A character vector of column names to define the nodes.}
 
+\item{nodes_color}{A character string to color the nodes.}
+
 \item{links_by}{A character vector of column names to define the links.
 If NULL, the links_by will be the first column in nodes_by.}
 
@@ -87,13 +89,15 @@ If NULL, the links_by will be the first column in nodes_by.}
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{\link{split_by}}}
+\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
 \item{palette}{A character string specifying the palette to use.}
 
 \item{palcolor}{A character string specifying the color to use in the palette.}
 
 \item{alpha}{A numeric value specifying the transparency of the plot.}
+
+\item{nodes_label}{A logical value to show the labels on the nodes.}
 
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
 

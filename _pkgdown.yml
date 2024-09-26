@@ -17,6 +17,7 @@ reference:
     - WordCloudPlot
     - BarPlot
     - SplitBarPlot
+    - WaterfallPlot
     - BoxPlot
     - ViolinPlot
     - ChordPlot

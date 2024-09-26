@@ -16,7 +16,7 @@
 #' @param fill_name A character string to name the legend of fill.
 #' @keywords internal
 #' @return A ggplot object
-#' @importFrom rlang syms
+#' @importFrom rlang syms :=
 #' @importFrom dplyr group_by summarise n %>%
 #' @importFrom ggplot2 geom_area scale_x_discrete scale_y_continuous scale_fill_manual
 #' @importFrom ggplot2 labs theme element_line element_text position_stack

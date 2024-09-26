@@ -96,11 +96,13 @@ SpiderPlot(
 
 \item{group_by}{Columns to group the data for plotting
 For those plotting functions that do not support multiple groups,
-They will be concatenated into one column, using \code{\link{group_by_sep}} as the separator}
+They will be concatenated into one column, using \code{group_by_sep} as the separator}
 
-\item{group_by_sep}{The separator for multiple group_by columns. See \code{\link{group_by}}}
+\item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
 
 \item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
+
+\item{group_name}{A character string to name the legend of group.}
 
 \item{scale_y}{How should the y-axis be scaled? Default is "group".
 Other options are "global", "x" and "none".
@@ -127,7 +129,7 @@ Other options are "global", "x" and "none".
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{\link{split_by}}}
+\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -139,11 +141,11 @@ Default is "theme_this".}
 \item{palcolor}{A character string specifying the color to use in the palette.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
-Otherwise, the data will be split by \code{\link{split_by}} and generate multiple plots
+Otherwise, the data will be split by \code{split_by} and generate multiple plots
 and combine them into one using \code{patchwork::wrap_plots}}
 
 \item{facet_scales}{Whether to scale the axes of facets. Default is "fixed"
-Other options are "free", "free_x", "free_y". See \code{\link{ggplot2::facet_wrap}}}
+Other options are "free", "free_x", "free_y". See \code{ggplot2::facet_wrap}}
 
 \item{facet_ncol}{A numeric value specifying the number of columns in the facet.
 When facet_by is a single column and facet_wrap is used.}

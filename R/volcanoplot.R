@@ -4,6 +4,7 @@
 #' @param ytrans A function to transform the y-axis values.
 #' @param color_by A character vector of column names to color the points by.
 #'  If NULL, the points will be filled by the x and y cutoff value.
+#' @param color_name A character string to name the legend of color.
 #' @param flip_negatives A logical value to flip the y-axis for negative x values.
 #' @param x_cutoff A numeric value to set the x-axis cutoff.
 #'  Both negative and positive of this value will be used.
@@ -37,7 +38,7 @@
 #'
 #' @return A ggplot object
 #' @keywords internal
-#' @importFrom dplyr %>% case_when mutate arrange row_number group_by ungroup
+#' @importFrom dplyr %>% case_when mutate arrange row_number group_by ungroup desc filter
 VolcanoPlotAtomic <- function(
     data, x, y, ytrans = function(n) -log10(n), color_by = NULL, color_name = NULL,
     flip_negatives = FALSE, x_cutoff = NULL, y_cutoff = 0.05,
@@ -122,16 +123,17 @@ VolcanoPlotAtomic <- function(
 
     if (!is.null(facet_by)) {
         data <- data %>% group_by(!!!syms(facet_by), sign(data[[x]])) %>%
-            arrange(desc(.distance)) %>%
+            arrange(desc(!!sym(".distance"))) %>%
             mutate(.show_label = row_number() <= nlabel) %>%
             ungroup()
     } else {
         data <- data %>% group_by(sign(data[[x]])) %>%
-            arrange(desc(.distance)) %>%
+            arrange(desc(!!sym(".distance"))) %>%
             mutate(.show_label = row_number() <= nlabel) %>%
             ungroup()
     }
-    data <- data %>% mutate(.show_label = .show_label & .category != "insig") %>% as.data.frame()
+    data <- data %>% mutate(.show_label = !!sym(".show_label") & !!sym(".category") != "insig") %>%
+        as.data.frame()
     rownames(data) <- data$.label
 
     # x_nudge is not an aesthetic, we can't specify it separately for negative and positive values
@@ -169,13 +171,12 @@ VolcanoPlotAtomic <- function(
         )
     }
 
-
     if (!is.null(highlight)) {
         p <- p + geom_point(
-            data = data[highlight, , drop = FALSE] %>% filter(!.outlier),
+            data = data[highlight, , drop = FALSE] %>% filter(!!sym(".outlier") == FALSE),
             color = highlight_color, size = highlight_size, alpha = highlight_alpha, stroke = highlight_stroke
         ) + geom_point(
-            data = data[highlight, , drop = FALSE] %>% filter(.outlier),
+            data = data[highlight, , drop = FALSE] %>% filter(!!sym(".outlier")),
             color = highlight_color, size = highlight_size, alpha = highlight_alpha, stroke = highlight_stroke, position = jitter
         )
     }
@@ -196,8 +197,8 @@ VolcanoPlotAtomic <- function(
             geom_vline(
                 data = vline_df,
                 mapping = aes(
-                    xintercept = xintercept,
-                    color = x_cutoff_name %||% paste0(x, " = ±", scales::number(x_cutoff))),
+                    xintercept = !!sym("xintercept"),
+                    color = x_cutoff_name %||% paste0(x, " = +/-", scales::number(x_cutoff))),
                 alpha = 0.4, linetype = x_cutoff_linetype, size = x_cutoff_linewidth,
             ) +
             scale_color_manual(name = NULL, values = x_cutoff_color, guide = guide)
@@ -222,7 +223,7 @@ VolcanoPlotAtomic <- function(
             new_scale_color() +
             geom_hline(
                 data = hline_df,
-                mapping = aes(yintercept = yintercept,
+                mapping = aes(yintercept = !!sym("yintercept"),
                     color = y_cutoff_name %||% paste0(ylab %||% y, " = ", scales::number(y_cutoff, accuracy = 0.01))),
                 alpha = 0.4, linetype = y_cutoff_linetype, size = y_cutoff_linewidth
             ) +
@@ -242,12 +243,12 @@ VolcanoPlotAtomic <- function(
     p <- p +
         geom_vline(xintercept = 0, color = "grey80", linetype = 2) +
         geom_text_repel(
-            data = pos_data[pos_data$.show_label, , drop = FALSE], aes(label = .label), nudge_x = pos_x_nudge, color = label_fg,
+            data = pos_data[pos_data$.show_label, , drop = FALSE], aes(label = !!sym(".label")), nudge_x = pos_x_nudge, color = label_fg,
             bg.color = label_bg, bg.r = label_bg_r, size = label_size, min.segment.length = 0, segment.color = "grey40",
             max.overlaps = 100
         ) +
         geom_text_repel(
-            data = neg_data[neg_data$.show_label, , drop = FALSE], aes(label = .label), nudge_x = neg_x_nudge, color = label_fg,
+            data = neg_data[neg_data$.show_label, , drop = FALSE], aes(label = !!sym(".label")), nudge_x = neg_x_nudge, color = label_fg,
             bg.color = label_bg, bg.r = label_bg_r, size = label_size, min.segment.length = 0, segment.color = "grey40",
             max.overlaps = 100
         ) +
@@ -290,52 +291,68 @@ VolcanoPlotAtomic <- function(
 #' # Obtained by Seurat::FindMakers for the first cluster of pbmc_small
 #' data <- data.frame(
 #'    avg_log2FC = c(
-#'      -3.69, -4.10, -2.68, -3.51, -3.09, -2.52, -3.53, -3.35, -2.82, -2.71, -3.16, -2.24, -5.62, -3.10, -3.42, -2.72,
-#'      -3.23, -3.25, -4.68, 3.67, -2.66, 4.79, -2.99, 10.14, -1.78, -2.67, -2.26, -2.59, -3.39, 5.36, 4.56, 4.62, -2.94,
-#'      -9.47, -9.12, -1.63, -2.77, 3.31, -1.53, -3.89, -4.21, 4.72, -2.98, -2.29, -1.41, -9.48, -4.30, 3.01, -1.19, -4.83,
-#'      -1.35, -1.68, -1.63, -2.70, 3.86, 3.81, 7.23, -1.45, -0.92, -2.45, 3.91, -4.45, -9.33, 3.56, 2.27, -1.60, -1.15,
-#'      11.40, -9.77, -8.32, 2.61, -1.25, -1.72, 10.61, 11.34, 10.02, 2.78, -3.48, -1.98, 5.86, 5.57, 4.57, 9.75, 9.97,
-#'      10.90, 9.19, 2.93, 5.10, -1.52, -3.93, -1.95, -2.46, -0.64, 4.60, -1.82, -0.80, 9.34, 7.51, 6.45, 5.23, 4.41, 3.60,
-#'      -1.94, -1.15),
+#'      -3.69, -4.10, -2.68, -3.51, -3.09, -2.52, -3.53, -3.35, -2.82, -2.71, -3.16, -2.24,
+#'      -5.62, -3.10, -3.42, -2.72, -3.23, -3.25, -4.68, 3.67, -2.66, 4.79, -2.99, 10.14,
+#'      -1.78, -2.67, -2.26, -2.59, -3.39, 5.36, 4.56, 4.62, -2.94, -9.47, -9.12, -1.63,
+#'      -2.77, 3.31, -1.53, -3.89, -4.21, 4.72, -2.98, -2.29, -1.41, -9.48, -4.30, 3.01,
+#'      -1.19, -4.83, -1.35, -1.68, -1.63, -2.70, 3.86, 3.81, 7.23, -1.45, -0.92, -2.45,
+#'      3.91, -4.45, -9.33, 3.56, 2.27, -1.60, -1.15, 11.40, -9.77, -8.32, 2.61, -1.25,
+#'      -1.72, 10.61, 11.34, 10.02, 2.78, -3.48, -1.98, 5.86, 5.57, 4.57, 9.75, 9.97,
+#'      10.90, 9.19, 2.93, 5.10, -1.52, -3.93, -1.95, -2.46, -0.64, 4.60, -1.82, -0.80,
+#'      9.34, 7.51, 6.45, 5.23, 4.41, 3.60, -1.94, -1.15),
 #'    p_val_adj = c(
-#'      3.82e-09, 1.52e-07, 1.79e-07, 4.68e-07, 4.83e-07, 6.26e-07, 2.61e-06, 1.33e-05, 1.79e-05, 3.71e-05, 5.21e-05,
-#'      5.36e-05, 5.83e-05, 6.66e-05, 8.22e-05, 2.89e-04, 3.00e-04, 4.94e-04, 7.62e-04, 8.93e-04, 9.55e-04, 9.61e-04,
-#'      1.12e-03, 1.47e-03, 1.66e-03, 1.95e-03, 2.06e-03, 3.01e-03, 3.26e-03, 4.35e-03, 4.85e-03, 5.12e-03, 5.40e-03,
-#'      7.18e-03, 7.18e-03, 1.04e-02, 1.24e-02, 1.90e-02, 1.94e-02, 1.97e-02, 2.09e-02, 2.13e-02, 2.25e-02, 2.61e-02,
-#'      3.18e-02, 3.27e-02, 3.69e-02, 3.80e-02, 4.95e-02, 5.73e-02, 5.77e-02, 6.10e-02, 6.22e-02, 6.31e-02, 6.72e-02,
-#'      9.23e-02, 9.85e-02, 1.06e-01, 1.07e-01, 1.11e-01, 1.31e-01, 1.38e-01, 1.40e-01, 1.43e-01, 2.00e-01, 2.39e-01,
-#'      2.49e-01, 2.57e-01, 2.86e-01, 2.86e-01, 2.98e-01, 3.32e-01, 4.15e-01, 4.91e-01, 4.91e-01, 4.91e-01, 5.97e-01,
-#'      7.11e-01, 7.59e-01, 8.38e-01, 9.20e-01, 9.20e-01, 9.29e-01, 9.29e-01, 9.29e-01, 9.29e-01, 9.34e-01, 9.68e-01,
-#'      1.00e+00, 1.00e+00, 1.00e+00, 1.00e+00, 1.00e+00, 1.00e+00, 1.00e+00, 1.00e+00, 1.00e+00, 1.00e+00, 1.00e+00,
-#'      1.00e+00, 1.00e+00, 1.00e+00, 1.00e+00, 1.00e+00),
+#'      3.82e-09, 1.52e-07, 1.79e-07, 4.68e-07, 4.83e-07, 6.26e-07, 2.61e-06, 1.33e-05,
+#'      1.79e-05, 3.71e-05, 5.21e-05, 5.36e-05, 5.83e-05, 6.66e-05, 8.22e-05, 2.89e-04,
+#'      3.00e-04, 4.94e-04, 7.62e-04, 8.93e-04, 9.55e-04, 9.61e-04, 1.12e-03, 1.47e-03,
+#'      1.66e-03, 1.95e-03, 2.06e-03, 3.01e-03, 3.26e-03, 4.35e-03, 4.85e-03, 5.12e-03,
+#'      5.40e-03, 7.18e-03, 7.18e-03, 1.04e-02, 1.24e-02, 1.90e-02, 1.94e-02, 1.97e-02,
+#'      2.09e-02, 2.13e-02, 2.25e-02, 2.61e-02, 3.18e-02, 3.27e-02, 3.69e-02, 3.80e-02,
+#'      4.95e-02, 5.73e-02, 5.77e-02, 6.10e-02, 6.22e-02, 6.31e-02, 6.72e-02, 9.23e-02,
+#'      9.85e-02, 1.06e-01, 1.07e-01, 1.11e-01, 1.31e-01, 1.38e-01, 1.40e-01, 1.43e-01,
+#'      2.00e-01, 2.39e-01, 2.49e-01, 2.57e-01, 2.86e-01, 2.86e-01, 2.98e-01, 3.32e-01,
+#'      4.15e-01, 4.91e-01, 4.91e-01, 4.91e-01, 5.97e-01, 7.11e-01, 7.59e-01, 8.38e-01,
+#'      9.20e-01, 9.20e-01, 9.29e-01, 9.29e-01, 9.29e-01, 9.29e-01, 9.34e-01, 9.68e-01,
+#'      1.00e+00, 1.00e+00, 1.00e+00, 1.00e+00, 1.00e+00, 1.00e+00, 1.00e+00, 1.00e+00,
+#'      1.00e+00, 1.00e+00, 1.00e+00, 1.00e+00, 1.00e+00, 1.00e+00, 1.00e+00, 1.00e+00),
 #'    gene = c(
-#'      "HLA-DPB1", "LYZ", "HLA-DRA", "TYMP", "HLA-DPA1", "HLA-DRB1", "CST3", "HLA-DQB1", "HLA-DRB5", "LST1", "HLA-DQA1",
-#'      "AIF1", "S100A8", "IFITM3", "HLA-DMB", "FCGRT", "SERPINA1", "IFI30", "S100A9", "CCL5", "GRN", "LCK", "HLA-DMA",
-#'      "MS4A6A", "CTSS", "CFP", "FCN1", "BID", "CFD", "CD3D", "CD7", "CD3E", "LGALS2", "CD14", "SMCO4", "LINC00936", "HCK",
-#'      "CTSW", "LGALS1", "HLA-DQA2", "LRRC25", "GZMM", "RNF130", "LGALS3", "S100A11", "C5AR1", "IL1B", "GZMA", "FCER1G",
-#'      "MPEG1", "TYROBP", "TSPO", "GSTP1", "CTSB", "IL32", "CD247", "GNLY", "COTL1", "NFKBIA", "NUP214", "LAMP1", "FPR1",
-#'      "CLEC10A", "CST7", "PRF1", "BLVRA", "PSAP", "GZMH", "EAF2", "ASGR1", "RARRES3", "SAT1", "LY86", "GP9", "TUBB1", "NGFRAP1",
-#'      "XBP1", "SCO2", "RGS2", "GZMB", "HIST1H2AC", "KLRD1", "PGRMC1", "AKR1C3", "PTGDR", "IL2RB", "GYPC", "CCL4", "CD68",
-#'      "FCER1A", "CD79B", "MS4A7", "CARD16", "ACAP1", "CD79A", "ANXA2", "TMEM40", "PF4", "GNG11", "CLU", "CD9", "FGFBP2",
-#'      "TNFRSF1B", "IFI6"),
+#'      "HLA-DPB1", "LYZ", "HLA-DRA", "TYMP", "HLA-DPA1", "HLA-DRB1", "CST3", "HLA-DQB1",
+#'      "HLA-DRB5", "LST1", "HLA-DQA1", "AIF1", "S100A8", "IFITM3", "HLA-DMB", "FCGRT",
+#'      "SERPINA1", "IFI30", "S100A9", "CCL5", "GRN", "LCK", "HLA-DMA", "MS4A6A", "CTSS",
+#'      "CFP", "FCN1", "BID", "CFD", "CD3D", "CD7", "CD3E", "LGALS2", "CD14", "SMCO4",
+#'      "LINC00936", "HCK", "CTSW", "LGALS1", "HLA-DQA2", "LRRC25", "GZMM", "RNF130",
+#'      "LGALS3", "S100A11", "C5AR1", "IL1B", "GZMA", "FCER1G", "MPEG1", "TYROBP", "TSPO",
+#'      "GSTP1", "CTSB", "IL32", "CD247", "GNLY", "COTL1", "NFKBIA", "NUP214", "LAMP1",
+#'      "FPR1", "CLEC10A", "CST7", "PRF1", "BLVRA", "PSAP", "GZMH", "EAF2", "ASGR1",
+#'      "RARRES3", "SAT1", "LY86", "GP9", "TUBB1", "NGFRAP1", "XBP1", "SCO2", "RGS2", "GZMB",
+#'      "HIST1H2AC", "KLRD1", "PGRMC1", "AKR1C3", "PTGDR", "IL2RB", "GYPC", "CCL4", "CD68",
+#'      "FCER1A", "CD79B", "MS4A7", "CARD16", "ACAP1", "CD79A", "ANXA2", "TMEM40", "PF4",
+#'      "GNG11", "CLU", "CD9", "FGFBP2", "TNFRSF1B", "IFI6"),
 #'   pct_diff = c(
-#'      -0.752, -0.457, -0.460, -0.671, -0.626, -0.701, -0.502, -0.619, -0.623, -0.598, -0.566, -0.626, -0.543, -0.566, -0.541,
-#'      -0.542, -0.515, -0.489, -0.444, 0.428, -0.517, 0.461, -0.491, -0.410, -0.480, -0.491, -0.521, -0.491, -0.438, 0.411,
-#'      0.411, 0.409, -0.438, -0.359, -0.359, -0.440, -0.386, 0.385, -0.332, -0.361, -0.361, 0.364, -0.387, -0.415, -0.454,
-#'      -0.308, -0.335, 0.364, -0.454, -0.309, -0.379, -0.427, -0.377, -0.389, 0.335, 0.315, 0.313, -0.284, -0.502, -0.309,
-#'      0.313, -0.284, -0.256, 0.309, 0.313, -0.364, -0.406, 0.244, -0.231, -0.231, 0.281, -0.311, -0.312, 0.220, 0.220,
-#'      0.220, 0.261, -0.232, -0.367, 0.240, 0.218, 0.218, 0.195, 0.195, 0.195, 0.195, 0.262, 0.218, -0.288, -0.207, -0.290,
-#'      -0.233, -0.367, 0.217, -0.233, -0.403, 0.171, 0.194, 0.194, 0.194, 0.194, 0.213, -0.235, -0.292),
+#'      -0.752, -0.457, -0.460, -0.671, -0.626, -0.701, -0.502, -0.619, -0.623, -0.598,
+#'      -0.566, -0.626, -0.543, -0.566, -0.541, -0.542, -0.515, -0.489, -0.444, 0.428,
+#'      -0.517, 0.461, -0.491, -0.410, -0.480, -0.491, -0.521, -0.491, -0.438, 0.411,
+#'      0.411, 0.409, -0.438, -0.359, -0.359, -0.440, -0.386, 0.385, -0.332, -0.361, -0.361,
+#'      0.364, -0.387, -0.415, -0.454, -0.308, -0.335, 0.364, -0.454, -0.309, -0.379, -0.427,
+#'      -0.377, -0.389, 0.335, 0.315, 0.313, -0.284, -0.502, -0.309, 0.313, -0.284, -0.256,
+#'      0.309, 0.313, -0.364, -0.406, 0.244, -0.231, -0.231, 0.281, -0.311, -0.312, 0.220,
+#'      0.220, 0.220, 0.261, -0.232, -0.367, 0.240, 0.218, 0.218, 0.195, 0.195, 0.195, 0.195,
+#'      0.262, 0.218, -0.288, -0.207, -0.290, -0.233, -0.367, 0.217, -0.233, -0.403, 0.171,
+#'      0.194, 0.194, 0.194, 0.194, 0.213, -0.235, -0.292),
 #'   group = sample(LETTERS[1:2], 104, replace = TRUE)
 #' )
 #' rownames(data) <- data$gene
 #'
-#' VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", color_by = "pct_diff", y_cutoff_name = "-log10(0.05)")
-#' VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none", flip_negatives = TRUE)
-#' VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none", flip_negatives = TRUE, facet_by = "group")
-#' VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none", flip_negatives = TRUE, split_by = "group")
+#' VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", color_by = "pct_diff",
+#'    y_cutoff_name = "-log10(0.05)")
 #' VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
-#'    highlight = c("ANXA2", "TMEM40", "PF4", "GNG11", "CLU", "CD9", "FGFBP2", "TNFRSF1B", "IFI6"))
+#'    flip_negatives = TRUE)
+#' VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
+#'    flip_negatives = TRUE, facet_by = "group")
+#' VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
+#'    flip_negatives = TRUE, split_by = "group")
+#' VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
+#'    highlight = c("ANXA2", "TMEM40", "PF4", "GNG11", "CLU", "CD9", "FGFBP2",
+#'    "TNFRSF1B", "IFI6"))
 VolcanoPlot <- function(
     data, x, y, ytrans = function(n) -log10(n), color_by = NULL, color_name = NULL,
     flip_negatives = FALSE, x_cutoff = NULL, y_cutoff = 0.05, split_by = NULL, split_by_sep = "_",

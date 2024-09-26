@@ -52,7 +52,7 @@ Default is NULL, meaning the y axis is the count of the data.}
 \item{flip}{A logical value indicating whether to flip the x and y axes.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
-Otherwise, the data will be split by \code{\link{split_by}} and generate multiple plots
+Otherwise, the data will be split by \code{split_by} and generate multiple plots
 and combine them into one using \code{patchwork::wrap_plots}}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.

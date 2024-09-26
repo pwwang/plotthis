@@ -90,12 +90,12 @@ $ conda install pwwang::r-plotthis
 [11]: https://pwwang.github.io/plotthis/reference/barplot.html
 [12]: https://pwwang.github.io/plotthis/reference/boxviolinplot.html
 [13]: https://pwwang.github.io/plotthis/reference/chordplot.html
-[14]: https://pwwang.github.io/plotthis/reference/upsetplot.html
-[15]: https://pwwang.github.io/plotthis/reference/venndiagram.html
+[14]: https://pwwang.github.io/plotthis/reference/upsetplot1.html
+[15]: https://pwwang.github.io/plotthis/reference/venndiagram1.html
 [16]: https://pwwang.github.io/plotthis/reference/densityhistoplot.html
 [17]: https://pwwang.github.io/plotthis/reference/dimplot.html
 [18]: https://pwwang.github.io/plotthis/reference/dotplot.html
-[19]: https://pwwang.github.io/plotthis/reference/enrichmap.html
+[19]: https://pwwang.github.io/plotthis/reference/enrichmap1.html
 [20]: https://pwwang.github.io/plotthis/reference/gsea.html
 [21]: https://pwwang.github.io/plotthis/reference/radarplot.html
 [22]: https://pwwang.github.io/plotthis/reference/sankeyplot.html

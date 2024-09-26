@@ -67,6 +67,8 @@ VolcanoPlotAtomic(
 \item{color_by}{A character vector of column names to color the points by.
 If NULL, the points will be filled by the x and y cutoff value.}
 
+\item{color_name}{A character string to name the legend of color.}
+
 \item{flip_negatives}{A logical value to flip the y-axis for negative x values.}
 
 \item{x_cutoff}{A numeric value to set the x-axis cutoff.
@@ -122,11 +124,11 @@ The points will be ordered by the distance to the origin. Top \code{nlabel} poin
 \item{highlight_stroke}{A numeric value to set the highlight stroke size.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
-Otherwise, the data will be split by \code{\link{split_by}} and generate multiple plots
+Otherwise, the data will be split by \code{split_by} and generate multiple plots
 and combine them into one using \code{patchwork::wrap_plots}}
 
 \item{facet_scales}{Whether to scale the axes of facets. Default is "fixed"
-Other options are "free", "free_x", "free_y". See \code{\link{ggplot2::facet_wrap}}}
+Other options are "free", "free_x", "free_y". See \code{ggplot2::facet_wrap}}
 
 \item{facet_ncol}{A numeric value specifying the number of columns in the facet.
 When facet_by is a single column and facet_wrap is used.}

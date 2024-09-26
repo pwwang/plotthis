@@ -146,9 +146,9 @@ GSEASummaryPlot <- function(
     data$y <- as.integer(data$Description)
 
     if (all(data$.signif)) {
-        p <- ggplot(data, aes(x = NES, y = y))
+        p <- ggplot(data, aes(x = !!sym("NES"), y = !!sym("y")))
     } else {
-        p <- ggplot(data, aes(x = NES, y = y, fill = "")) +
+        p <- ggplot(data, aes(x = !!sym("NES"), y = !!sym("y"), fill = "")) +
             guides(fill = guide_legend(
                 title = nonsig_name %||% "Non-significant",
                 override.aes = list(color = "grey80", shape = 15, size = 4),
@@ -156,7 +156,7 @@ GSEASummaryPlot <- function(
             ))
     }
     # need a layer to get the scales of the plot
-    p <- p + geom_point(aes(color = metric), size = 0)
+    p <- p + geom_point(aes(color = !!sym("metric")), size = 0)
     x_range <- diff(layer_scales(p)$x$range$range)
     y_range <- diff(layer_scales(p)$y$range$range)
     colors <- palette_this(
@@ -191,12 +191,12 @@ GSEASummaryPlot <- function(
         x_min <- -0.05 * length(gene_ranks)
         x_max <- 1.05 * length(gene_ranks)
 
-        lp <- ggplot(df, aes(x = x, y = y)) +
+        lp <- ggplot(df, aes(x = !!sym("x"), y = !!sym("y"))) +
             geom_rect(
                 xmin = x_min, xmax = x_max, ymin = -yr, ymax = yr,
                 fill = color
             ) +
-            geom_linerange(aes(ymin = ymin, ymax = ymax), linewidth = linewidth) +
+            geom_linerange(aes(ymin = !!sym("ymin"), ymax = !!sym("ymax")), linewidth = linewidth) +
             ylim(-yr, yr) +
             theme_void() +
             theme(
@@ -328,7 +328,7 @@ GSEAPlotAtomic <- function(
     )
 
     index_max <- which.max(abs(df$runningScore))
-    p <- ggplot(df, aes(x = x)) +
+    p <- ggplot(df, aes(x = !!sym("x"))) +
         ggplot2::xlab(NULL) +
         theme_classic(base_size = 12) +
         theme(
@@ -345,12 +345,13 @@ GSEAPlotAtomic <- function(
                 xmin = -Inf, xmax = Inf, ymin = c(0, -Inf), ymax = c(Inf, 0),
                 fill = c(alpha("#C40003", 0.2), alpha("#1D008F", 0.2))
             ),
-            mapping = aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = I(fill)),
+            mapping = aes(xmin = !!sym("xmin"), xmax = !!sym("xmax"), ymin = !!sym("ymin"), ymax = !!sym("ymax"),
+                fill = I(!!sym("fill"))),
             inherit.aes = FALSE
         ) +
         geom_hline(yintercept = 0, linetype = 1, color = "grey40") +
         # running score
-        geom_line(aes(y = runningScore), color = line_color, linewidth = line_width, alpha = line_alpha) +
+        geom_line(aes(y = !!sym("runningScore")), color = line_color, linewidth = line_width, alpha = line_alpha) +
         annotate(
             geom = "segment", x = 0, xend = df$x[index_max],
             y = df$runningScore[index_max], yend = df$runningScore[index_max], linetype = 2
@@ -398,11 +399,11 @@ GSEAPlotAtomic <- function(
         y_nudge <- diff(range(df$runningScore)) * 0.05
         p1 <- p1 + geom_point(
             data = df_gene,
-            mapping = aes(y = runningScore), color = "black"
+            mapping = aes(y = !!sym("runningScore")), color = "black"
         ) +
             geom_text_repel(
                 data = df_gene,
-                mapping = aes(y = runningScore, label = genes),
+                mapping = aes(y = !!sym("runningScore"), label = !!sym("genes")),
                 min.segment.length = 0, max.overlaps = 100, segment.colour = "grey40",
                 color = label_fg, bg.color = label_bg, bg.r = label_bg_r, size = label_size,
                 nudge_x = ifelse(df_gene$runningScore >= 0, x_nudge, -x_nudge),
@@ -411,8 +412,8 @@ GSEAPlotAtomic <- function(
     }
 
     ############# The Line Plot Panel #############
-    p2 <- ggplot(df, aes(x = x)) +
-        geom_linerange(aes(ymax = position), ymin = 0, alpha = line_alpha) +
+    p2 <- ggplot(df, aes(x = !!sym("x"))) +
+        geom_linerange(aes(ymax = !!sym("position")), ymin = 0, alpha = line_alpha) +
         ggplot2::xlab(NULL) +
         ggplot2::ylab(NULL) +
         theme_classic(base_size = 12) +
@@ -453,14 +454,14 @@ GSEAPlotAtomic <- function(
     d <- data.frame(ymin = 0, ymax = 0.3, xmin = xmin, xmax = xmax, col = unique(col))
     p2 <- p2 +
         geom_rect(
-            aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = I(col)),
+            aes(xmin = !!sym("xmin"), xmax = !!sym("xmax"), ymin = !!sym("ymin"), ymax = !!sym("ymax"), fill = I(!!sym("col"))),
             data = d,
             alpha = 0.95, inherit.aes = FALSE
         )
 
     ############# The gene ranking panel #############
     p3 <- p +
-        geom_segment(aes(x = x, xend = x, y = ranks, yend = 0), color = "grey30")
+        geom_segment(aes(x = !!sym("x"), xend = !!sym("x"), y = !!sym("ranks"), yend = 0), color = "grey30")
 
     cross_x <- median(df$x[which.min(abs(df$ranks))])
     if (max(df$ranks) > 0) {

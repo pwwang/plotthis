@@ -53,16 +53,15 @@ BarPlotGrouped(
 
 \item{x}{A character string specifying the column name of the data frame to plot for the x-axis.}
 
-\item{y}{A character vector specifying the column as the y axis of the plot.
-Default is NULL, meaning the y axis is the count of the data.}
+\item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
 
 \item{flip}{A logical value indicating whether to flip the x and y axes.}
 
 \item{group_by}{Columns to group the data for plotting
 For those plotting functions that do not support multiple groups,
-They will be concatenated into one column, using \code{\link{group_by_sep}} as the separator}
+They will be concatenated into one column, using \code{group_by_sep} as the separator}
 
-\item{group_by_sep}{The separator for multiple group_by columns. See \code{\link{group_by}}}
+\item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -140,8 +139,10 @@ When the axis is discrete, the values will be applied as 'add' to the 'expansion
 When the axis is continuous, the values will be applied as 'mult' to the 'expansion' function.
 See also \url{https://ggplot2.tidyverse.org/reference/expansion.html}}
 
+\item{width}{A numeric value specifying the width of the bars.}
+
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
-Otherwise, the data will be split by \code{\link{split_by}} and generate multiple plots
+Otherwise, the data will be split by \code{split_by} and generate multiple plots
 and combine them into one using \code{patchwork::wrap_plots}}
 
 \item{...}{Additional arguments.}

@@ -9,7 +9,7 @@ adjcolors(colors, alpha)
 \arguments{
 \item{colors}{Color vectors.}
 
-\item{alpha}{Alpha level in \link{0,1}}
+\item{alpha}{Alpha level ranging from 0 to 1.}
 }
 \description{
 This function takes a vector of colors and an alpha level and converts the colors
@@ -17,12 +17,12 @@ to fixed colors with the specified alpha level.
 }
 \examples{
 colors <- c("red", "blue", "green")
-adjcolors(colors, 0.5)
+plotthis:::adjcolors(colors, 0.5)
 ggplot2::alpha(colors, 0.5)
 
 show_palettes(list(
     "raw" = colors,
-    "adjcolors" = adjcolors(colors, 0.5),
+    "adjcolors" = plotthis:::adjcolors(colors, 0.5),
     "ggplot2::alpha" = ggplot2::alpha(colors, 0.5)
 ))
 

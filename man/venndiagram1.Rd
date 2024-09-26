@@ -90,7 +90,7 @@ Required when \code{group_by} is a single column and data is a data frame.}
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{\link{split_by}}}
+\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
 \item{label}{A character string specifying the label to show on the Venn diagram.
 Possible values are "count", "percent", "both", "none".

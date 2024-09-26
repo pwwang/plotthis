@@ -21,8 +21,8 @@ make_long <- function(data, dodge_by = NULL, dodge_by_sep = "_", facet_by = NULL
         if (!any(sapply(dodge_by, function(x) !is.logical(data[[x]]) && !all(data[[x]] %in% c(0, 1))))) {
             data <- data %>%
                 pivot_longer(cols = dodge_by, names_to = ".dodge_by", values_to = ".dodge_value") %>%
-                filter(.dodge_value == 1) %>%
-                select(-.dodge_value)
+                filter(!!sym(".dodge_value") == 1) %>%
+                select(-".dodge_value")
         }
         dodge_by <- ".dodge_by"
     }
@@ -31,8 +31,8 @@ make_long <- function(data, dodge_by = NULL, dodge_by_sep = "_", facet_by = NULL
         if (!any(sapply(facet_by, function(x) !is.logical(data[[x]]) && !all(data[[x]] %in% c(0, 1))))) {
             data <- data %>%
                 pivot_longer(cols = facet_by, names_to = ".facet_by", values_to = ".facet_value") %>%
-                filter(.facet_value == 1) %>%
-                select(-.facet_value)
+                filter(!!sym(".facet_value") == 1) %>%
+                select(-".facet_value")
 
             facet_by <- ".facet_by"
         }
@@ -108,6 +108,7 @@ make_long <- function(data, dodge_by = NULL, dodge_by_sep = "_", facet_by = NULL
 #' @param sig_labelsize A numeric value to specify the size of the significance test label.
 #' @return A ggplot object
 #' @keywords internal
+#' @importFrom stats median quantile
 #' @importFrom rlang sym syms
 #' @importFrom dplyr group_by mutate ungroup first
 #' @importFrom gglogger ggplot
@@ -155,9 +156,9 @@ BoxViolinPlotAtomic <- function(
         stop("'dodge_by' must be provided to when 'comparisons' is TRUE.")
     }
     if (isTRUE(multiplegroup_comparisons) || length(comparisons) > 0) {
-        if (!requireNamespace("ggpubr", quietly = TRUE)) {
-            stop("ggpubr is required to perform comparisons.")
-        }
+        # if (!requireNamespace("ggpubr", quietly = TRUE)) {
+        #     stop("ggpubr is required to perform comparisons.")
+        # }
         if (!is.list(comparisons) && !isTRUE(comparisons)) {
             comparisons <- list(comparisons)
         }
@@ -287,7 +288,7 @@ BoxViolinPlotAtomic <- function(
                 width = box_width, show.legend = FALSE, outlier.shape = NA
             ) +
             stat_summary(
-                fun = first, geom = "point", mapping = aes(y = .y_median),
+                fun = first, geom = "point", mapping = aes(y = !!sym(".y_median")),
                 position = position_dodge(width = 0.9), color = "black", fill = "white",
                 size = box_ptsize, shape = 21
             )
@@ -304,7 +305,7 @@ BoxViolinPlotAtomic <- function(
             }
             p <- p + ggpubr::stat_compare_means(
                 data = data[data[[x]] %in% group_use, , drop = FALSE],
-                mapping = aes(x = !!sym(x), y = !!sym(y), group = .compares_group),
+                mapping = aes(x = !!sym(x), y = !!sym(y), group = !!sym(".compares_group")),
                 label = sig_label,
                 label.y = y_max_use,
                 size = sig_labelsize,
@@ -317,7 +318,7 @@ BoxViolinPlotAtomic <- function(
             y_max_use <- layer_scales(p)$y$range$range[2]
         } else {
             p <- p + ggpubr::stat_compare_means(
-                mapping = aes(x = !!sym(x), y = !!sym(y), group = .compares_group),
+                mapping = aes(x = !!sym(x), y = !!sym(y), group = !!sym(".compares_group")),
                 label = sig_label,
                 label.y = y_max_use,
                 size = sig_labelsize,
@@ -333,7 +334,7 @@ BoxViolinPlotAtomic <- function(
     }
     if (isTRUE(multiplegroup_comparisons)) {
         p <- p + ggpubr::stat_compare_means(
-            mapping = aes(x = !!sym(x), y = !!sym(y), group = .compares_group),
+            mapping = aes(x = !!sym(x), y = !!sym(y), group = !!sym(".compares_group")),
             method = multiple_method,
             label = sig_label,
             label.y = y_max_use,
@@ -347,7 +348,7 @@ BoxViolinPlotAtomic <- function(
     if (isTRUE(add_point)) {
         p <- p +
             geom_point(
-                aes(fill = !!sym(fill_by), color = .highlight, size = .highlight, alpha = .highlight),
+                aes(fill = !!sym(fill_by), color = !!sym(".highlight"), size = !!sym(".highlight"), alpha = !!sym(".highlight")),
                 position = position_jitterdodge(
                     jitter.width = jitter_width, jitter.height = jitter_height, dodge.width = 0.9, seed = seed
                 ),
@@ -362,17 +363,17 @@ BoxViolinPlotAtomic <- function(
         p <- p +
             stat_summary(
                 fun = first, geom = "line", mapping = if (!is.null(dodge_by)) {
-                    aes(y = .y_median, group = !!sym(dodge_by))
+                    aes(y = !!sym(".y_median"), group = !!sym(dodge_by))
                 } else {
-                    aes(y = .y_median, group = 1)
+                    aes(y = !!sym(".y_median"), group = 1)
                 },
                 position = position_dodge(width = 0.9), color = trend_color, linewidth = trend_linewidth
             ) +
             stat_summary(
                 fun = first, geom = "point", mapping = if (!is.null(dodge_by)) {
-                    aes(y = .y_median, group = !!sym(dodge_by))
+                    aes(y = !!sym(".y_median"), group = !!sym(dodge_by))
                 } else {
-                    aes(y = .y_median, group = 1)
+                    aes(y = !!sym(".y_median"), group = 1)
                 },
                 position = position_dodge(width = 0.9), color = "black", fill = "white",
                 size = trend_ptsize, shape = 21
@@ -389,9 +390,9 @@ BoxViolinPlotAtomic <- function(
     if (!is.null(add_stat)) {
         p <- p + stat_summary(
             fun = add_stat, geom = "point", mapping = if (!is.null(dodge_by)) {
-                aes(shape = stat_shape, group = !!sym(dodge_by))
+                aes(shape = !!sym("stat_shape"), group = !!sym(dodge_by))
             } else {
-                aes(shape = stat_shape, group = 1)
+                aes(shape = !!sym("stat_shape"), group = 1)
             },
             position = position_dodge(width = 0.9), color = stat_color, fill = stat_color, size = stat_size, stroke = stat_stroke,
         ) + scale_shape_identity(
@@ -472,6 +473,7 @@ BoxViolinPlotAtomic <- function(
 
 #' Box/Violin plot
 #'
+#' @rdname BoxViolinPlot-internal
 #' @inheritParams common_args
 #' @inheritParams BoxViolinPlotAtomic
 #' @return A combined ggplot object or wrap_plots object or a list of ggplot objects

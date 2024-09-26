@@ -41,7 +41,7 @@ The columns with the prefix will be used to plot the tree.}
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{\link{split_by}}}
+\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
 \item{palette}{A character string specifying the palette to use.}
 

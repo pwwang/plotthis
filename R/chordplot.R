@@ -20,9 +20,9 @@ ChordPlotAtomic <- function(
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 0.5,
     labels_rot = FALSE, title = NULL, subtitle = NULL, ...
 ) {
-    if (!requireNamespace("circlize", quietly = TRUE)) {
-        stop("circlize is required for chord plot.")
-    }
+    # if (!requireNamespace("circlize", quietly = TRUE)) {
+    #     stop("circlize is required for chord plot.")
+    # }
     links_color <- match.arg(links_color)
     from <- check_columns(data, from, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = from_sep)
     to <- check_columns(data, to, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = to_sep)
@@ -168,7 +168,7 @@ ChordPlotAtomic <- function(
 #'
 #' ChordPlot(data, from = "nodes1", to = "nodes2")
 #' ChordPlot(data, from = "nodes1", to = "nodes2",
-#'           links_color = "to", labels_rot = T)
+#'           links_color = "to", labels_rot = TRUE)
 #' ChordPlot(data, from = "nodes1", to = "nodes2", y = "y")
 #' ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y")
 #' ChordPlot(data, from = "nodes1", to = "nodes2", flip = TRUE)
@@ -194,7 +194,7 @@ ChordPlot <- function(
         datas, ChordPlotAtomic,
         y = y, from = from, from_sep = from_sep, to = to, to_sep = to_sep, flip = flip, links_color = links_color,
         theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
-        labels_rot = labels_rot, title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, ...
+        labels_rot = labels_rot, title = title, subtitle = subtitle, ...
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)

@@ -15,6 +15,7 @@ EnrichMapAtomic(
   show_keyword = FALSE,
   nlabel = 4,
   character_width = 50,
+  words_excluded = plotthis::words_excluded,
   mark = "ellipse",
   label = c("term", "feature"),
   labelsize = 5,
@@ -70,6 +71,8 @@ Either "fast_greedy", "walktrap", "edge_betweenness", "infomap" or other cluster
 \item{nlabel}{An integer specifying the number of labels to show in each cluster.}
 
 \item{character_width}{The width of the characters used to wrap the keyword.}
+
+\item{words_excluded}{A character vector specifying the words to exclude in the keyword.}
 
 \item{mark}{A character string specifying the mark to use for the nodes.
 Either "ellipse", "rect", "circle", "text" or other mark functions in \code{ggforce}.}

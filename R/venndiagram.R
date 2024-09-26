@@ -29,7 +29,7 @@ detect_venn_datatype <- function(data, group_by = NULL, id_by = NULL) {
 #' VennDiagram
 #'
 #' @description `PrepareVennData` is helper function to process the input data for Venn diagram.
-#' @rdname venndiagram
+#' @rdname venndiagram1
 #' @export
 #' @param data A data frame or a list or a VennPlotData object.
 #' @param intype A character string indicating the datatype of the input data.
@@ -71,9 +71,9 @@ detect_venn_datatype <- function(data, group_by = NULL, id_by = NULL) {
 #'  Required when `group_by` is a single column and data is a data frame.
 #' @return A VennPlotData object
 PrepareVennData <- function(data, intype = NULL, group_by = NULL, group_by_sep = "_", id_by = NULL) {
-    if (!requireNamespace("ggVennDiagram", quietly = TRUE)) {
-        stop("ggVennDiagram is required for Venn diagram and its data processing.")
-    }
+    # if (!requireNamespace("ggVennDiagram", quietly = TRUE)) {
+    #     stop("ggVennDiagram is required for Venn diagram and its data processing.")
+    # }
     if (is.null(intype)) {
         intype <- detect_venn_datatype(data, group_by, id_by)
     }
@@ -140,9 +140,9 @@ VennDiagramAtomic <- function(
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL,
     legend.position = "right", legend.direction = "vertical", ...
 ) {
-    if (!requireNamespace("ggVennDiagram", quietly = TRUE)) {
-        stop("ggVennDiagram (v1.5+) is required for Venn diagram.")
-    }
+    # if (!requireNamespace("ggVennDiagram", quietly = TRUE)) {
+    #     stop("ggVennDiagram (v1.5+) is required for Venn diagram.")
+    # }
     base_size <- theme_args$base_size %||% 12
     text_size_scale <- base_size / 12
 
@@ -188,13 +188,13 @@ VennDiagramAtomic <- function(
 
     if (fill_mode == "set") {
         p <- p +
-            geom_polygon(data = data_regionedge, aes(X, Y, group = id),
+            geom_polygon(data = data_regionedge, aes(!!sym("X"), !!sym("Y"), group = !!sym("id")),
                          fill = data_regionedge$fill, alpha = alpha) +
-            geom_path(data = data_setedge, aes(X, Y, group = id),
+            geom_path(data = data_setedge, aes(!!sym("X"), !!sym("Y"), group = !!sym("id")),
                       color = data_setedge$color, show.legend = FALSE)
     } else {
         p <- p +
-            geom_polygon(data = data_regionedge, aes(X, Y, fill = count, group = id), alpha = alpha) +
+            geom_polygon(data = data_regionedge, aes(!!sym("X"), !!sym("Y"), fill = !!sym("count"), group = !!sym("id")), alpha = alpha) +
             scale_fill_gradientn(
                 n.breaks = 3,
                 colors = palette_this(palette = palette, palcolor = palcolor, reverse = grepl("rev", fill_mode)),
@@ -203,12 +203,12 @@ VennDiagramAtomic <- function(
                     title = fill_name %||% "",
                     frame.colour = "black", ticks.colour = "black", title.hjust = 0)
             ) +
-            geom_path(data = data_setedge, aes(X, Y, color = id, group = id), color = "grey20", show.legend = FALSE)
+            geom_path(data = data_setedge, aes(!!sym("X"), !!sym("Y"), color = !!sym("id"), group = !!sym("id")), color = "grey20", show.legend = FALSE)
     }
 
     if (label != "none") {
         p <- p + geom_text_repel(
-            data = data_regionlabel, aes(X, Y, label = label),
+            data = data_regionlabel, aes(!!sym("X"), !!sym("Y"), label = !!sym("label")),
             color = label_fg, bg.color = label_bg, bg.r = label_bg_r,
             size = label_size %||% text_size_scale * 3.5,
             point.size = NA, max.overlaps = 100, force = 0,
@@ -216,7 +216,7 @@ VennDiagramAtomic <- function(
     }
 
     p <- p + geom_text_repel(
-        data = data_setlabel, aes(X, Y, label = label),
+        data = data_setlabel, aes(!!sym("X"), !!sym("Y"), label = !!sym("label")),
         color = label_fg, bg.color = label_bg, bg.r = label_bg_r,
             size = label_size %||% text_size_scale * 4, fontface = "bold",
             point.size = NA, max.overlaps = 100, force = 0,
@@ -260,7 +260,7 @@ VennDiagramAtomic <- function(
 #' @inheritParams VennDiagramAtomic
 #' @return A combined ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
-#' @rdname venndiagram
+#' @rdname venndiagram1
 #' @examples
 #' set.seed(8525)
 #' data = list(

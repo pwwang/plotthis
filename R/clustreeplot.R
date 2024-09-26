@@ -9,6 +9,7 @@
 #' @param edge_palette A character string of the palette name to color the edges.
 #' @param edge_palcolor A character vector of colors to color the edges.
 #' @param ... Other arguments passed to `clustree::clustree`.
+#' @importFrom stats complete.cases
 #' @importFrom dplyr %>% select starts_with
 #' @importFrom ggplot2 scale_color_manual coord_cartesian element_line element_blank labs coord_flip
 #' @importFrom ggplot2 scale_y_reverse coord_flip
@@ -21,14 +22,14 @@ ClustreePlotAtomic <- function(
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     theme = "theme_this", theme_args = list(),
     ...) {
-    if (!requireNamespace("ggraph", quietly = TRUE)) {
-        stop("ggraph is not available for ClustreePlot. Please install it first.")
-    }
+    # if (!requireNamespace("ggraph", quietly = TRUE)) {
+    #     stop("ggraph is not available for ClustreePlot. Please install it first.")
+    # }
     # ! Unknown guide: edge_colourbar
-    suppressMessages(suppressWarnings(suppressPackageStartupMessages(library(ggraph))))
-    if (!requireNamespace("clustree", quietly = TRUE)) {
-        stop("clustree is not available for ClustreePlot. Please install it first.")
-    }
+    # suppressMessages(suppressWarnings(suppressPackageStartupMessages(library(ggraph))))
+    # if (!requireNamespace("clustree", quietly = TRUE)) {
+    #     stop("clustree is not available for ClustreePlot. Please install it first.")
+    # }
 
     data <- data %>% select(starts_with(prefix))
     data <- data[complete.cases(data), , drop = FALSE]
@@ -83,7 +84,8 @@ ClustreePlotAtomic <- function(
 
     p <- suppressMessages({
         p +
-        geom_text(aes(label = cluster, x = x, y = y), size = clustree_args$node_text_size, color = clustree_args$node_text_colour) +
+        geom_text(aes(label = !!sym("cluster"), x = !!sym("x"), y = !!sym("y")),
+            size = clustree_args$node_text_size, color = clustree_args$node_text_colour) +
         scale_color_manual(
             values = palette_this(n = nres, palette = palette, palcolor = palcolor, keep_names = FALSE),
             guide = "none") +
@@ -91,7 +93,8 @@ ClustreePlotAtomic <- function(
             name = "count",
             n.breaks = 5,
             colors = palette_this(palette = edge_palette, palcolor = edge_palcolor),
-            na.value = "grey80") +
+            na.value = "grey80",
+            guide = ggraph::guide_edge_colorbar()) +
         do.call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,

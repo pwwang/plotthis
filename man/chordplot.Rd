@@ -76,7 +76,7 @@ A character/factor column is expected.}
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{\link{split_by}}}
+\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
 \item{flip}{A logical value to flip the source and target.}
 
@@ -129,7 +129,7 @@ data <- data.frame(
 
 ChordPlot(data, from = "nodes1", to = "nodes2")
 ChordPlot(data, from = "nodes1", to = "nodes2",
-          links_color = "to", labels_rot = T)
+          links_color = "to", labels_rot = TRUE)
 ChordPlot(data, from = "nodes1", to = "nodes2", y = "y")
 ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y")
 ChordPlot(data, from = "nodes1", to = "nodes2", flip = TRUE)

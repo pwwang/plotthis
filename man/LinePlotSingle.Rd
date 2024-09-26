@@ -58,7 +58,7 @@ If FALSE, the lines will be colored a single color (the first color in the palet
 If FALSE, the lines will be colored a single color (the first color in the palette).}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
-Otherwise, the data will be split by \code{\link{split_by}} and generate multiple plots
+Otherwise, the data will be split by \code{split_by} and generate multiple plots
 and combine them into one using \code{patchwork::wrap_plots}}
 
 \item{add_bg}{A logical value indicating whether to add a background to the plot.}

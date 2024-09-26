@@ -53,11 +53,11 @@ Default is "theme_this".}
 \item{alpha}{A numeric value specifying the transparency of the plot.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
-Otherwise, the data will be split by \code{\link{split_by}} and generate multiple plots
+Otherwise, the data will be split by \code{split_by} and generate multiple plots
 and combine them into one using \code{patchwork::wrap_plots}}
 
 \item{facet_scales}{Whether to scale the axes of facets. Default is "fixed"
-Other options are "free", "free_x", "free_y". See \code{\link{ggplot2::facet_wrap}}}
+Other options are "free", "free_x", "free_y". See \code{ggplot2::facet_wrap}}
 
 \item{facet_ncol}{A numeric value specifying the number of columns in the facet.
 When facet_by is a single column and facet_wrap is used.}

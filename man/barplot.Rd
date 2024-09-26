@@ -119,22 +119,24 @@ SplitBarPlot(
 
 \item{fill_by_x_if_no_group}{A logical value indicating whether to fill the bars by the x-axis values if there is no group_by.}
 
+\item{line_name}{A character string indicating the name of the line.}
+
 \item{group_by}{Columns to group the data for plotting
 For those plotting functions that do not support multiple groups,
-They will be concatenated into one column, using \code{\link{group_by_sep}} as the separator}
+They will be concatenated into one column, using \code{group_by_sep} as the separator}
 
-\item{group_by_sep}{The separator for multiple group_by columns. See \code{\link{group_by}}}
+\item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{\link{split_by}}}
+\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
-Otherwise, the data will be split by \code{\link{split_by}} and generate multiple plots
+Otherwise, the data will be split by \code{split_by} and generate multiple plots
 and combine them into one using \code{patchwork::wrap_plots}}
 
 \item{facet_scales}{Whether to scale the axes of facets. Default is "fixed"
-Other options are "free", "free_x", "free_y". See \code{\link{ggplot2::facet_wrap}}}
+Other options are "free", "free_x", "free_y". See \code{ggplot2::facet_wrap}}
 
 \item{facet_ncol}{A numeric value specifying the number of columns in the facet.
 When facet_by is a single column and facet_wrap is used.}
@@ -143,6 +145,30 @@ When facet_by is a single column and facet_wrap is used.}
 When facet_by is a single column and facet_wrap is used.}
 
 \item{facet_byrow}{A logical value indicating whether to fill the plots by row. Default is TRUE.}
+
+\item{add_bg}{A logical value indicating whether to add a background to the plot.}
+
+\item{bg_palette}{A character string indicating the palette to use for the background.}
+
+\item{bg_palcolor}{A character string indicating the color to use for the background.}
+
+\item{bg_alpha}{A numeric value indicating the alpha of the background.}
+
+\item{add_line}{A numeric value indicating the y value to add a horizontal line.}
+
+\item{line_color}{A character string indicating the color of the line.}
+
+\item{line_size}{A numeric value indicating the size of the line.}
+
+\item{line_type}{A numeric value indicating the type of the line.}
+
+\item{add_trend}{A logical value to add trend line to the plot.}
+
+\item{trend_color}{A character string to specify the color of the trend line.}
+
+\item{trend_linewidth}{A numeric value to specify the width of the trend line.}
+
+\item{trend_ptsize}{A numeric value to specify the size of the trend line points.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -158,6 +184,16 @@ Default is "theme_this".}
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
+
+\item{y_min}{A numeric value to specify the minimum value of the y axis.}
+
+\item{y_max}{A numeric value to specify the maximum value of the y axis.}
+
+\item{position}{A character string indicating the position of the bars.
+If "auto", the position will be "stack" if group_by has more than 5 levels, otherwise "dodge".
+"fill" is also a valid option. Only works when group_by is not NULL.}
+
+\item{position_dodge_preserve}{Should dodging preserve the "total" width of all elements at a position, or the width of a "single" element?}
 
 \item{legend.position}{A character string specifying the position of the legend.}
 
@@ -184,6 +220,8 @@ When the axis is discrete, the values will be applied as 'add' to the 'expansion
 When the axis is continuous, the values will be applied as 'mult' to the 'expansion' function.
 See also \url{https://ggplot2.tidyverse.org/reference/expansion.html}}
 
+\item{width}{A numeric value specifying the width of the bars.}
+
 \item{combine}{Whether to combine the plots into one when facet is FALSE. Default is TRUE.}
 
 \item{nrow}{A numeric value specifying the number of rows in the facet.}
@@ -195,6 +233,42 @@ See also \url{https://ggplot2.tidyverse.org/reference/expansion.html}}
 \item{seed}{The random seed to use. Default is 8525.}
 
 \item{...}{Additional arguments.}
+
+\item{y_sep}{A character string to concatenate the x columns if there are multiple.}
+
+\item{alpha_by}{A character string indicating the column name to use for the transparency of the bars.}
+
+\item{alpha_reverse}{A logical value indicating whether to reverse the transparency.}
+
+\item{alpha_name}{A character string indicating the legend name of the transparency.}
+
+\item{order_y}{A list of character strings indicating the order of the y axis.
+The keys are "+", "-", or "\emph{". However, "+/-" should not be mixed with "}".
+The values are "x_asc", "x_desc", "alpha_asc", or "alpha_desc", indicating how to order the y axis.
+The default is \code{list("+" = c("x_desc", "alpha_desc"), "-" = c("x_desc", "alpha_asc"))}, meaning
+the positive values are ordered by the x-axis values in descending order and the alpha values in descending order,
+and the negative values are ordered by the x-axis values in descending order and the alpha values in ascending order.
+The "*" key is used to order the y axis without considering the direction.}
+
+\item{bar_height}{A numeric value indicating the height of the bars.}
+
+\item{lineheight}{A numeric value indicating the height of the text.}
+
+\item{max_charwidth}{A numeric value indicating the maximum width of the text.}
+
+\item{fill_by}{A character string indicating the column name to use for the fill of the bars.}
+
+\item{fill_by_sep}{A character string to concatenate the fill columns if there are multiple.}
+
+\item{fill_name}{A character string indicating the legend name of the fill.}
+
+\item{direction_pos_name}{A character string indicating the name of the positive direction.}
+
+\item{direction_neg_name}{A character string indicating the name of the negative direction.}
+
+\item{x_min}{A numeric value indicating the minimum value of the x axis.}
+
+\item{x_max}{A numeric value indicating the maximum value of the x axis.}
 }
 \value{
 A ggplot object or wrap_plots object or a list of ggplot objects
@@ -214,7 +288,7 @@ data <- data.frame(
 )
 
 BarPlot(data, x = "x", y = "y")
-BarPlot(data, x = "x", y = "y", fill_by_x_if_no_group = F)
+BarPlot(data, x = "x", y = "y", fill_by_x_if_no_group = FALSE)
 BarPlot(data, x = "group", y = "y", group_by = "x")
 BarPlot(data,
     x = "group", y = "y", group_by = "x",

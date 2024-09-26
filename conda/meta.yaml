@@ -20,6 +20,8 @@ requirements:
     - r-rlang
     - r-dplyr
     - r-tidyr
+    - r-forcats
+    - r-gtable
     - r-stringr
     - r-scales
     - r-patchwork
@@ -42,6 +44,8 @@ requirements:
     - r-rlang
     - r-dplyr
     - r-tidyr
+    - r-forcats
+    - r-gtable
     - r-stringr
     - r-scales
     - r-patchwork

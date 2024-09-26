@@ -285,13 +285,13 @@ bg_layer <- function(data, x, palette, palcolor, alpha, keep_empty, facet_by, di
     if (direction == "vertical") {
         geom_rect(
             data = bg_data,
-            aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+            aes(xmin = !!sym("xmin"), xmax = !!sym("xmax"), ymin = !!sym("ymin"), ymax = !!sym("ymax")),
             fill = bg_data$fill, alpha = alpha, inherit.aes = FALSE
         )
     } else {
         geom_rect(
             data = bg_data,
-            aes(xmin = ymin, xmax = ymax, ymin = xmin, ymax = xmax),
+            aes(xmin = !!sym("ymin"), xmax = !!sym("ymax"), ymin = !!sym("xmin"), ymax = !!sym("xmax")),
             fill = bg_data$fill, alpha = alpha, inherit.aes = FALSE
         )
     }
@@ -363,14 +363,15 @@ blend_rgblist <- function(Clist, mode = "blend", RGB_BackGround = c(1, 1, 1)) {
 #' @param mode Blend mode. One of "blend", "average", "screen", or "multiply".
 #'
 #' @examples
-#' blend <- c("red", "green", blend_colors(c("red", "green"), mode = "blend"))
-#' average <- c("red", "green", blend_colors(c("red", "green"), mode = "average"))
-#' screen <- c("red", "green", blend_colors(c("red", "green"), mode = "screen"))
-#' multiply <- c("red", "green", blend_colors(c("red", "green"), mode = "multiply"))
+#' blend <- c("red", "green", plotthis:::blend_colors(c("red", "green"), mode = "blend"))
+#' average <- c("red", "green", plotthis:::blend_colors(c("red", "green"), mode = "average"))
+#' screen <- c("red", "green", plotthis:::blend_colors(c("red", "green"), mode = "screen"))
+#' multiply <- c("red", "green", plotthis:::blend_colors(c("red", "green"), mode = "multiply"))
 #' show_palettes(list("blend" = blend, "average" = average, "screen" = screen, "multiply" = multiply))
 #'
 #' @keywords internal
 #' @return The blended color.
+#' @importFrom grDevices col2rgb
 blend_colors <- function(colors, mode = c("blend", "average", "screen", "multiply")) {
     mode <- match.arg(mode)
     colors <- colors[!is.na(colors)]
@@ -385,7 +386,7 @@ blend_colors <- function(colors, mode = c("blend", "average", "screen", "multipl
         list(x, 1)
     })
     blend_color <- blend_rgblist(Clist, mode = mode)
-    blend_color <- rgb(blend_color[1], blend_color[2], blend_color[3])
+    blend_color <- grDevices::rgb(blend_color[1], blend_color[2], blend_color[3])
     return(blend_color)
 }
 
@@ -438,19 +439,20 @@ add_grob <- function(gtable, grob, position = c("top", "bottom", "left", "right"
 #' to fixed colors with the specified alpha level.
 #'
 #' @param colors Color vectors.
-#' @param alpha Alpha level in [0,1]
+#' @param alpha Alpha level ranging from 0 to 1.
 #' @examples
 #' colors <- c("red", "blue", "green")
-#' adjcolors(colors, 0.5)
+#' plotthis:::adjcolors(colors, 0.5)
 #' ggplot2::alpha(colors, 0.5)
 #'
 #' show_palettes(list(
 #'     "raw" = colors,
-#'     "adjcolors" = adjcolors(colors, 0.5),
+#'     "adjcolors" = plotthis:::adjcolors(colors, 0.5),
 #'     "ggplot2::alpha" = ggplot2::alpha(colors, 0.5)
 #' ))
 #'
 #' @keywords internal
+#' @importFrom grDevices col2rgb rgb
 adjcolors <- function(colors, alpha) {
     has_names <- !is.null(names(colors))
     color_df <- as.data.frame(col2rgb(colors) / 255)

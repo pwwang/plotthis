@@ -9,6 +9,7 @@
 #' @param ... Other arguments for `theme()`
 #'
 #' @return A ggplot2 theme
+#' @importFrom methods formalArgs
 #' @importFrom ggplot2 element_text element_rect margin theme element_blank unit
 #' @export
 theme_this <- function(aspect.ratio = NULL, base_size = 12, font_family = NULL, ...) {
@@ -73,6 +74,7 @@ theme_this <- function(aspect.ratio = NULL, base_size = 12, font_family = NULL, 
 #'     geom_point()
 #' p + theme_blank()
 #' p + theme_blank(xlab = "x-axis", ylab = "y-axis", lab_size = 16)
+#' @importFrom methods formalArgs
 #' @importFrom ggplot2 theme element_blank margin annotation_custom coord_cartesian
 #' @importFrom grid grobTree gList linesGrob textGrob arrow gpar
 #' @export
@@ -136,6 +138,7 @@ theme_blank <- function(add_coord = TRUE, xlen_npc = 0.15, ylen_npc = 0.15, xlab
 #' @param palcolor Custom colors used to create a color palette.
 #' @param type Type of \code{x}. Can be one of "auto", "discrete" or "continuous". The default is "auto", which automatically detects if \code{x} is a numeric value.
 #' @param keep_names Whether to keep the names of the color vector.
+#' @param alpha The alpha value of the colors. Default is 1.
 #' @param matched If \code{TRUE}, will return a color vector of the same length as \code{x}.
 #' @param reverse Whether to invert the colors.
 #' @param NA_keep Whether to keep the color assignment to NA in \code{x}.
@@ -279,7 +282,8 @@ palette_this <- function(
 #' show_palettes(index = 1:10)
 #' show_palettes(type = "discrete", index = 1:10)
 #' show_palettes(type = "continuous", index = 1:10)
-#' show_palettes(palette_names = c("Paired", "nejm", "simspec", "Spectral", "jet"), return_palettes = TRUE)
+#' show_palettes(palette_names = c("Paired", "nejm", "simspec", "Spectral", "jet"),
+#'    return_palettes = TRUE)
 #'
 #' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_col scale_fill_manual scale_x_continuous element_blank aes element_text margin element_rect unit theme
@@ -309,7 +313,7 @@ show_palettes <- function(palettes = NULL, type = c("discrete", "continuous"), i
     df$palette <- factor(df$palette, levels = rev(unique(df$palette)))
     df$color_order <- factor(seq_len(nrow(df)), levels = seq_len(nrow(df)))
     df$proportion <- as.numeric(1 / table(df$palette)[df$palette])
-    p <- ggplot(data = df, aes(y = palette, x = proportion, fill = color_order)) +
+    p <- ggplot(data = df, aes(y = !!sym("palette"), x = !!sym("proportion"), fill = !!sym("color_order"))) +
         geom_col(show.legend = FALSE) +
         scale_fill_manual(values = df[["color"]]) +
         scale_x_continuous(expand = c(0, 0), trans = "reverse") +

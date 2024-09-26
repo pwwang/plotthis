@@ -327,7 +327,7 @@ ScatterPlot <- function(
 
     plots <- lapply(
         datas, DotPlotAtomic,
-        x = x, y = y, x_sep = x_sep, y_sep = y_sep, flip = flip,
+        x = x, y = y, x_sep = NULL, y_sep = NULL, flip = flip,
         size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, fill_reverse = fill_reverse,
         theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
         facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
@@ -355,7 +355,7 @@ ScatterPlot <- function(
 #'              fill_by = "mpg", fill_cutoff = 18, facet_by = "cyl",
 #'              facet_scales = "free_y")
 LollipopPlot <- function(
-    data, x, y, flip = FALSE,
+    data, x, y, y_sep = NULL, flip = FALSE,
     split_by = NULL, split_by_sep = "_", size_name = NULL, fill_name = NULL, fill_cutoff_name = NULL,
     size_by = NULL, fill_by = NULL, fill_cutoff = NULL, fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 1,
@@ -377,7 +377,7 @@ LollipopPlot <- function(
 
     plots <- lapply(
         datas, DotPlotAtomic, lollipop = TRUE,
-        x = x, y = y, x_sep = x_sep, y_sep = y_sep, flip = flip,
+        x = x, y = y, x_sep = NULL, y_sep = y_sep, flip = flip,
         size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, fill_reverse = fill_reverse,
         theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
         facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,

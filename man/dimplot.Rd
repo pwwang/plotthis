@@ -189,13 +189,13 @@ FeatureDimPlot(
 
 \item{group_by}{Columns to group the data for plotting
 For those plotting functions that do not support multiple groups,
-They will be concatenated into one column, using \code{\link{group_by_sep}} as the separator}
+They will be concatenated into one column, using \code{group_by_sep} as the separator}
 
-\item{group_by_sep}{The separator for multiple group_by columns. See \code{\link{group_by}}}
+\item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{\link{split_by}}}
+\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
 \item{pt_size}{A numeric value of the point size. If NULL, the point size will be calculated based on the number of data points.}
 
@@ -299,11 +299,11 @@ If "@graph" is provided, the graph data will be extracted from the data attribut
 \item{lineages_whiskers_alpha}{A numeric value of the lineages whiskers transparency. Default is 0.5.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
-Otherwise, the data will be split by \code{\link{split_by}} and generate multiple plots
+Otherwise, the data will be split by \code{split_by} and generate multiple plots
 and combine them into one using \code{patchwork::wrap_plots}}
 
 \item{facet_scales}{Whether to scale the axes of facets. Default is "fixed"
-Other options are "free", "free_x", "free_y". See \code{\link{ggplot2::facet_wrap}}}
+Other options are "free", "free_x", "free_y". See \code{ggplot2::facet_wrap}}
 
 \item{facet_nrow}{A numeric value specifying the number of rows in the facet.
 When facet_by is a single column and facet_wrap is used.}
@@ -389,7 +389,7 @@ data <- pca$x[, 1:2]
 km <- kmeans(data, 3)
 data <- as.data.frame(data)
 data$cluster <- factor(paste0("C", km$cluster))
-data$group <- sample(c("A", "B"), nrow(data), replace = T)
+data$group <- sample(c("A", "B"), nrow(data), replace = TRUE)
 
 graph <- rnorm(nrow(data) * nrow(data))
 graph[sample(1:(nrow(data) * nrow(data)), 5000)] <- NA

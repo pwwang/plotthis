@@ -58,8 +58,8 @@ PieChartAtomic <- function(
     .pos_df_one_facet <- function(df) {
         df %>% mutate(
             csum = rev(cumsum(rev(!!sym(y)))),
-            pos = !!sym(y) / 2 + lead(csum, 1),
-            pos = if_else(is.na(pos), !!sym(y) / 2, pos)
+            pos = !!sym(y) / 2 + lead(!!sym("csum"), 1),
+            pos = if_else(is.na(!!sym("pos")), !!sym(y) / 2, !!sym("pos"))
         )
     }
     if (is.null(facet_by)) {
@@ -93,7 +93,7 @@ PieChartAtomic <- function(
     if (!is.null(label)) {
         p <- p + geom_label_repel(
             data = pos_df,
-            aes(y = pos, label = !!sym(label)),
+            aes(y = !!sym("pos"), label = !!sym(label)),
             nudge_x = 0.1,
             color = "grey20",
             fill = "#fcfcfc",

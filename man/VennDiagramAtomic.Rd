@@ -66,9 +66,9 @@ list(A = c("a1", "a2"), B = c("a1", "a3"))
 
 \item{group_by}{Columns to group the data for plotting
 For those plotting functions that do not support multiple groups,
-They will be concatenated into one column, using \code{\link{group_by_sep}} as the separator}
+They will be concatenated into one column, using \code{group_by_sep} as the separator}
 
-\item{group_by_sep}{The separator for multiple group_by columns. See \code{\link{group_by}}}
+\item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
 
 \item{id_by}{A character string specifying the column name of the data frame to identify the instances.
 Required when \code{group_by} is a single column and data is a data frame.}

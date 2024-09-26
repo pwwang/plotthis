@@ -234,7 +234,7 @@ anno_violin <- function(x, split_by = NULL, group_by, column, title, which = "ro
 anno_boxplot <- function(x, split_by = NULL, group_by, column, title, which = "row", palette,
                          palcolor = NULL, border = TRUE, legend.direction, show_legend = TRUE, ...) {
     .anno_ggseries(
-        x = x, split_by = split_by, group_by = group_by, column = column, which = which, title = title, which = which,
+        x = x, split_by = split_by, group_by = group_by, column = column, which = which, title = title,
         palette = palette, palcolor = palcolor, border = border, legend.direction = legend.direction, show_legend = show_legend,
         .plotting = function(data, column, group_by, palette, palcolor) {
             BoxPlot(data, x = ".x", y = column, split_by = group_by, combine = FALSE,
@@ -533,7 +533,7 @@ layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
 #' @param return_grob A logical value indicating whether to return the grob object of the heatmap.
 #'  This is useful when merging multiple heatmaps using patchwork.
 #' @importFrom circlize colorRamp2
-#' @importFrom dplyr group_by across ungroup %>% all_of summarise first slice_sample
+#' @importFrom dplyr group_by across ungroup %>% all_of summarise first slice_sample everything
 #' @importFrom ggplot2 ggplotGrob theme_void
 #' @importFrom grid grid.rect grid.text grid.lines grid.points viewport gpar unit grid.draw grid.grabExpr
 #' @return A drawn HeatmapList object if `return_grob = FALSE`. Otherwise, a grob/gTree object.
@@ -556,9 +556,9 @@ HeatmapAtomic <- function(
     add_reticle = FALSE, reticle_color = "grey", return_grob = FALSE,
     palette = "RdBu", palcolor = NULL, alpha = 1, legend.position = "right", legend.direction = "vertical",
     ...) {
-    if (!requireNamespace("ComplexHeatmap", quietly = TRUE)) {
-        stop("'Heatmap' requires the 'ComplexHeatmap' package.")
-    }
+    # if (!requireNamespace("ComplexHeatmap", quietly = TRUE)) {
+    #     stop("'Heatmap' requires the 'ComplexHeatmap' package.")
+    # }
     # row_annotation_side <- match.arg(row_annotation_side, c("left", "right"))
     # column_annotation_side <- match.arg(column_annotation_side, c("top", "bottom"))
     # column_annotation_type <- match.arg(column_annotation_type, c("auto", "simple", "pie", "ring", "bar", "violin", "boxplot", "density"))
@@ -1059,7 +1059,7 @@ HeatmapAtomic <- function(
             param$x <- data %>%
                 select(!!!syms(unique(c(rows_split_by, rows_by, rows)))) %>%
                 pivot_longer(cols = -c(rows_split_by, rows_by), names_to = ".rows", values_to = annocol) %>%
-                select(.rows, everything())
+                select(!!sym(".rows"), everything())
             rows_by <- ".rows"
         } else if (identical(param$x, "rows_data")) {
             param$x <- rows_data

@@ -19,6 +19,7 @@
 #' @param minchar A numeric value specifying the minimum number of characters for the word.
 #' @param word_size A numeric vector specifying the range of the word size.
 #' @param top_words A numeric value specifying the number of top words to show.
+#' @param palreverse A logical value to reverse the palette colors.
 #' @return A ggplot object
 #' @keywords internal
 #' @importFrom tidyr unnest
@@ -59,9 +60,9 @@ WordCloudPlotAtomic <- function(
 
         if (length(facet_by) == 1) {
             data <- data %>%
-                group_by(word, !!!syms(facet_by)) %>%
+                group_by(!!!syms(c("word", facet_by))) %>%
                 reframe(
-                    word = word,
+                    word = !!sym("word"),
                     !!sym(facet_by) := !!sym(facet_by),
                     count = sum(!!sym(count_by)),
                     score = score_agg(!!sym(score_by)),
@@ -69,9 +70,9 @@ WordCloudPlotAtomic <- function(
                 )
         } else if (length(facet_by) == 2) {
             data <- data %>%
-                group_by(word, !!!syms(facet_by)) %>%
+                group_by(!!!syms(c("word", facet_by))) %>%
                 reframe(
-                    word = word,
+                    word = !!sym("word"),
                     !!sym(facet_by[1]) := !!sym(facet_by[1]),
                     !!sym(facet_by[2]) := !!sym(facet_by[2]),
                     count = sum(!!sym(count_by)),
@@ -80,9 +81,9 @@ WordCloudPlotAtomic <- function(
                 )
         } else {
             data <- data %>%
-                group_by(word) %>%
+                group_by(!!sym("word")) %>%
                 reframe(
-                    word = word,
+                    word = !!sym("word"),
                     count = sum(!!sym(count_by)),
                     score = score_agg(!!sym(score_by)),
                     .groups = "keep"
@@ -126,17 +127,17 @@ WordCloudPlotAtomic <- function(
     }
 
     data <- data %>%
-        filter(!grepl(pattern = "\\[.*\\]", x = word)) %>%
-        filter(nchar(word) >= minchar) %>%
-        filter(!tolower(word) %in% tolower(words_excluded)) %>%
+        filter(!grepl(pattern = "\\[.*\\]", x = !!sym("word"))) %>%
+        filter(nchar(!!sym("word")) >= minchar) %>%
+        filter(!tolower(!!sym("word")) %in% tolower(words_excluded)) %>%
         distinct() %>%
-        slice_max(order_by = score, n = top_words) %>%
+        slice_max(order_by = !!sym("score"), n = top_words) %>%
         mutate(angle = 90 * sample(c(0, 1), n(), replace = TRUE, prob = c(60, 40))) %>%
         as.data.frame()
 
     colors <- palette_this(data$score, type = "continuous", palette = palette, palcolor = palcolor, matched = FALSE, reverse = palreverse)
     colors_value <- seq(min(data$score, na.rm = TRUE), quantile(data$score, 0.99, na.rm = TRUE) + 0.001, length.out = 100)
-    p <- ggplot(data, aes(label = word, size = count, color = score, angle = angle)) +
+    p <- ggplot(data, aes(label = !!sym("word"), size = !!sym("count"), color = !!sym("score"), angle = !!sym("angle"))) +
         ggwordcloud::geom_text_wordcloud(rm_outside = TRUE, eccentricity = 1, shape = "square", show.legend = TRUE, grid_margin = 3) +
         scale_color_gradientn(
             name = score_name %||% "Score", colours = colors, values = scales::rescale(colors_value),

@@ -1,3 +1,11 @@
 ^LICENSE\.md$
 ^pkgdown\/.+
 ^vignettes/articles$
+^CRAN-SUBMISSION$
+^cran-comments\.md$
+^docs/\.nojekyll$
+^\.github\/.+
+^_pkgdown\.yml$
+^conda\/.+
+^docs\/.+
+^test\.ipynb$

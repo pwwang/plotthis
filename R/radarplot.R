@@ -10,6 +10,7 @@
 #' @param y A character string of the column name to plot on the y-axis.
 #'  A numeric column is expected.
 #'  If NULL, the count of the x-axis column in each group will be used.
+#' @param group_name A character string to name the legend of group.
 #' @param scale_y How should the y-axis be scaled? Default is "group".
 #'  Other options are "global", "x" and "none".
 #'  * If "group", the y-axis will be scaled to the fraction within each group.
@@ -133,7 +134,9 @@ RadarPlotAtomic <- function(
     p <- p +
         geom_point(aes(colour = !!sym(group_by), fill = !!sym(group_by)), size = pt_size, shape = 21) +
         geom_text(
-            data = labels_df, mapping = aes(y = breaks, label = if (scale_y == "none") scales::number(breaks) else scales::percent(breaks)),
+            data = labels_df,
+            mapping = aes(y = !!sym("breaks"),
+                label = if (scale_y == "none") scales::number(!!sym("breaks")) else scales::percent(!!sym("breaks"))),
             x = pi / (length(breaks) - 0.88), color = "grey20", inherit.aes = FALSE) +
         scale_y_continuous(limits = c(y_min, y_max), breaks = breaks, expand = c(.1, 0, 0, 0)) +
         scale_x_discrete(labels = scales::label_wrap(max_charwidth)) +

@@ -93,7 +93,7 @@ A character/factor column is expected.}
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{\link{split_by}}}
+\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
 \item{split_rows_data}{A logical value indicating whether to split the rows data as well using 'split_by' and 'split_by_sep'.}
 

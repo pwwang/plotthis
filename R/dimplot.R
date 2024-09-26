@@ -68,6 +68,7 @@
 #' @param color_name A character string of the color legend name. Default is "".
 #' @return A ggplot object
 #' @keywords internal
+#' @importFrom stats loess formula na.omit aggregate
 #' @importFrom dplyr %>% group_by group_map pull
 #' @importFrom tidyr pivot_longer
 #' @importFrom gglogger ggplot
@@ -196,9 +197,9 @@ DimPlotAtomic <- function(
         if (is.null(group_by)) {
             stop("Cannot add mark without 'group_by'.")
         }
-        if (!requireNamespace("ggforce", quietly = TRUE)) {
-            stop("'ggforce' package is required for adding mark to the plot.")
-        }
+        # if (!requireNamespace("ggforce", quietly = TRUE)) {
+        #     stop("'ggforce' package is required for adding mark to the plot.")
+        # }
         mark_type <- match.arg(mark_type)
         mark_fun <- switch(mark_type,
             hull = ggforce::geom_mark_hull,
@@ -262,7 +263,8 @@ DimPlotAtomic <- function(
         }
 
         p <- p + geom_segment(
-            data = net_df, mapping = aes(x = x, y = y, xend = xend, yend = yend, linewidth = value),
+            data = net_df, mapping = aes(x = !!sym("x"), y = !!sym("y"), xend = !!sym("xend"),
+                yend = !!sym("yend"), linewidth = !!sym("value")),
             color = edge_color, alpha = edge_alpha, show.legend = FALSE
         ) + scale_linewidth_continuous(range = edge_size)
     }
@@ -273,7 +275,7 @@ DimPlotAtomic <- function(
             filled_color <- palette_this(palette = density_filled_palette, palcolor = density_filled_palcolor)
             p <- p +
                 stat_density_2d(
-                    geom = "raster", aes(x = !!sym(dims[1]), y = !!sym(dims[2]), fill = after_stat(density)),
+                    geom = "raster", aes(x = !!sym(dims[1]), y = !!sym(dims[2]), fill = after_stat(!!sym("density"))),
                     contour = FALSE, inherit.aes = FALSE, show.legend = FALSE
                 ) +
                 scale_fill_gradientn(name = "Density", colours = filled_color) +
@@ -304,9 +306,9 @@ DimPlotAtomic <- function(
 
     ## Raserting the plot/Adding the points
     if (isTRUE(raster)) {
-        if (!requireNamespace("scattermore", quietly = TRUE)) {
-            stop("'scattermore' package is required to raster the plot.")
-        }
+        # if (!requireNamespace("scattermore", quietly = TRUE)) {
+        #     stop("'scattermore' package is required to raster the plot.")
+        # }
         if (!is.null(group_by)) {
             data_use <- data[!is.na(data[[group_by]]), , drop = FALSE]
             p <- p + scattermore::geom_scattermore(
@@ -329,16 +331,17 @@ DimPlotAtomic <- function(
             )
         }
     } else if (isTRUE(hex)) {
-        if (!requireNamespace("hexbin", quietly = TRUE)) {
-            stop("'hexbin' package is required to add hexgons the plot.")
-        }
+        # if (!requireNamespace("hexbin", quietly = TRUE)) {
+        #     stop("'hexbin' package is required to add hexgons the plot.")
+        # }
         has_fill <- TRUE
         if (isTRUE(hex_count)) {
             if (!is.null(features)) {
                 stop("Don't know how to count for the hex when 'group_by' is not provided.")
             }
             p <- p + geom_hex(
-                mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(group_by), fill = !!sym(group_by), alpha = after_stat(count)),
+                mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(group_by), fill = !!sym(group_by),
+                    alpha = after_stat(!!sym("count"))),
                 linewidth = hex_linewidth, bins = hex_bins, binwidth = hex_binwidth
             )
         } else if (!is.null(group_by)) {
@@ -501,7 +504,9 @@ DimPlotAtomic <- function(
                 dat_smooth[, "raw_Axis_1"] <- data[dat_smooth[, "index"], dims[1]]
                 dat_smooth[, "raw_Axis_2"] <- data[dat_smooth[, "index"], dims[2]]
                 curve <- c(curve, geom_segment(
-                    data = dat_smooth, mapping = aes(x = Axis_1, y = Axis_2, xend = raw_Axis_1, yend = raw_Axis_2, color = Lineages),
+                    data = dat_smooth,
+                    mapping = aes(x = !!sym("Axis_1"), y = !!sym("Axis_2"),
+                        xend = !!sym("raw_Axis_1"), yend = !!sym("raw_Axis_2"), color = !!sym("Lineages")),
                     linewidth = lineages_whiskers_linewidth, alpha = lineages_whiskers_alpha,
                     show.legend = TRUE, inherit.aes = FALSE
                 ))
@@ -509,12 +514,12 @@ DimPlotAtomic <- function(
             curve <- c(
                 curve,
                 geom_path(
-                    data = dat_smooth, mapping = aes(x = Axis_1, y = Axis_2), color = lineages_line_bg,
+                    data = dat_smooth, mapping = aes(x = !!sym("Axis_1"), y = !!sym("Axis_2")), color = lineages_line_bg,
                     linewidth = lineages_linewidth + lineages_line_bg_stroke, arrow = lineages_arrow,
                     show.legend = TRUE, inherit.aes = FALSE
                 ),
                 geom_path(
-                    data = dat_smooth, mapping = aes(x = Axis_1, y = Axis_2, color = Lineages),
+                    data = dat_smooth, mapping = aes(x = !!sym("Axis_1"), y = !!sym("Axis_2"), color = !!sym("Lineages")),
                     linewidth = lineages_linewidth, arrow = lineages_arrow,
                     show.legend = TRUE, inherit.aes = FALSE
                 )
@@ -615,13 +620,13 @@ DimPlotAtomic <- function(
                 data = label_df, mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
                 color = label_pt_color, size = label_pt_size
             ) + geom_text_repel(
-                data = label_df, aes(x = !!sym(dims[1]), y = !!sym(dims[2]), label = .label),
+                data = label_df, aes(x = !!sym(dims[1]), y = !!sym(dims[2]), label = !!sym(".label")),
                 point.size = label_pt_size, max.overlaps = 100, force = label_repulsion,
                 color = label_fg, bg.color = label_bg, bg.r = label_bg_r, size = label_size, inherit.aes = FALSE
             )
         } else {
             p <- p + geom_text_repel(
-                data = label_df, aes(x = !!sym(dims[1]), y = !!sym(dims[2]), label = .label),
+                data = label_df, aes(x = !!sym(dims[1]), y = !!sym(dims[2]), label = !!sym(".label")),
                 fontface = "bold", min.segment.length = 0, segment.color = label_segment_color,
                 point.size = NA, max.overlaps = 100, force = 0,
                 color = label_fg, bg.color = label_bg, bg.r = label_bg_r, size = label_size, inherit.aes = FALSE
@@ -686,7 +691,7 @@ DimPlotAtomic <- function(
 #' km <- kmeans(data, 3)
 #' data <- as.data.frame(data)
 #' data$cluster <- factor(paste0("C", km$cluster))
-#' data$group <- sample(c("A", "B"), nrow(data), replace = T)
+#' data$group <- sample(c("A", "B"), nrow(data), replace = TRUE)
 #'
 #' graph <- rnorm(nrow(data) * nrow(data))
 #' graph[sample(1:(nrow(data) * nrow(data)), 5000)] <- NA

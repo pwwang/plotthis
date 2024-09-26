@@ -6,6 +6,7 @@
 #'   A numeric column is expected.
 #'   If NULL, the count of each nodes_by column will be used.
 #' @param nodes_by A character vector of column names to define the nodes.
+#' @param nodes_color A character string to color the nodes.
 #' @param links_by A character vector of column names to define the links.
 #'  If NULL, the links_by will be the first column in nodes_by.
 #' @param links_by_sep A character string to concatenate the columns in `links_by`, if multiple columns are provided.
@@ -33,9 +34,9 @@ SankeyPlotAtomic <- function(
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     ...
 ) {
-    if (!requireNamespace("ggalluvial", quietly = TRUE)) {
-        stop("ggalluvial is required to use SankeyPlot/AlluvialPlot.")
-    }
+    # if (!requireNamespace("ggalluvial", quietly = TRUE)) {
+    #     stop("ggalluvial is required to use SankeyPlot/AlluvialPlot.")
+    # }
 
     nodes_by <- check_columns(data, nodes_by, force_factor = TRUE, allow_multi = TRUE)
     if (length(nodes_by) < 2) {
@@ -84,7 +85,7 @@ SankeyPlotAtomic <- function(
         gvalues <- levels(data$.GroupValue)
         gvalues <- gvalues[gvalues %in% data[data$.Group == nodes_by[i], ".GroupValue", drop = TRUE]]
         p <- p +
-            geom_col(aes(x = .Group, fill = .GroupValue, y = 0), width = 0) +
+            geom_col(aes(x = !!sym(".Group"), fill = !!sym(".GroupValue"), y = 0), width = 0) +
             scale_fill_manual(name = nodes_by[i], values = nodes_colors, breaks = gvalues,
                               guide = guide_legend(order = i + 1)) +
             new_scale_fill()
@@ -92,7 +93,7 @@ SankeyPlotAtomic <- function(
 
     p <- p +
         ggalluvial::geom_alluvium(
-            aes(x = .Group, stratum = .GroupValue, alluvium = .ID, y = !!sym(y), fill = !!sym(links_by)),
+            aes(x = !!sym(".Group"), stratum = !!sym(".GroupValue"), alluvium = !!sym(".ID"), y = !!sym(y), fill = !!sym(links_by)),
             alpha = links_alpha) +
         scale_fill_manual(
             name = links_name %||% ifelse(orig_links_by %in% nodes_by, paste0("Links: ", orig_links_by), orig_links_by),
@@ -100,14 +101,14 @@ SankeyPlotAtomic <- function(
             guide = links_guide) +
         new_scale_fill() +
         ggalluvial::geom_stratum(
-            aes(x = .Group, stratum = .GroupValue, alluvium = .ID, y = !!sym(y), fill = .GroupValue),
+            aes(x = !!sym(".Group"), stratum = !!sym(".GroupValue"), alluvium = !!sym(".ID"), y = !!sym(y), fill = !!sym(".GroupValue")),
             alpha = nodes_alpha, width = 0.25, color = nodes_color) +
         scale_fill_manual(values = nodes_colors, breaks = levels(data$.GroupValue),
                           guide = "none")
 
     if (isTRUE(nodes_label)) {
         p <- p + geom_label(
-            aes(x = .Group, stratum = .GroupValue, alluvium = .ID, label = .GroupValue, y = !!sym(y)),
+            aes(x = !!sym(".Group"), stratum = !!sym(".GroupValue"), alluvium = !!sym(".ID"), label = !!sym(".GroupValue"), y = !!sym(y)),
             stat = ggalluvial::StatStratum,
             size = text_size_scale * 3)
     }
@@ -159,7 +160,7 @@ SankeyPlotAtomic <- function(
 #' SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), y = "y")
 SankeyPlot <- function(
     data, y = NULL, nodes_by, nodes_color = "grey30", links_by = NULL, links_by_sep = "_", links_name = NULL,
-    split_by = NULL, split_by_sep = "_", palette = "Paired", palcolor = NULL, alpha = 0.6, label = FALSE,
+    split_by = NULL, split_by_sep = "_", palette = "Paired", palcolor = NULL, alpha = 0.6, nodes_label = FALSE,
     x_text_angle = 0, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical", legend.box = "vertical",
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525, ...
@@ -179,7 +180,7 @@ SankeyPlot <- function(
         datas, SankeyPlotAtomic,
         y = y, nodes_by = nodes_by, nodes_color = nodes_color,
         links_by = links_by, links_by_sep = links_by_sep, links_name = links_name,
-        palette = palette, palcolor = palcolor, alpha = alpha, label = label,
+        palette = palette, palcolor = palcolor, alpha = alpha, nodes_label = nodes_label,
         x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
         legend.position = legend.position, legend.direction = legend.direction, legend.box = legend.box,
         theme = theme, theme_args = theme_args, title = title, subtitle = subtitle,

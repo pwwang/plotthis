@@ -207,11 +207,11 @@ If "@graph" is provided, the graph data will be extracted from the data attribut
 \item{lineages_whiskers_alpha}{A numeric value of the lineages whiskers transparency. Default is 0.5.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
-Otherwise, the data will be split by \code{\link{split_by}} and generate multiple plots
+Otherwise, the data will be split by \code{split_by} and generate multiple plots
 and combine them into one using \code{patchwork::wrap_plots}}
 
 \item{facet_scales}{Whether to scale the axes of facets. Default is "fixed"
-Other options are "free", "free_x", "free_y". See \code{\link{ggplot2::facet_wrap}}}
+Other options are "free", "free_x", "free_y". See \code{ggplot2::facet_wrap}}
 
 \item{facet_nrow}{A numeric value specifying the number of rows in the facet.
 When facet_by is a single column and facet_wrap is used.}

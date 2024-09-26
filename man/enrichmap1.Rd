@@ -98,7 +98,7 @@ You can plot them in a single plot using the \code{split_by} argument (e.g. \cod
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{\link{split_by}}}
+\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
 \item{top_term}{An integer specifying the number of top terms to show.}
 
@@ -177,6 +177,15 @@ Default is "theme_this".}
 \item{byrow}{A logical value indicating whether to fill the plots by row.}
 
 \item{...}{Additional arguments.}
+
+\item{layoutadjust}{A logical value specifying whether to adjust the layout of the network.}
+
+\item{adjscale}{A numeric value specifying the scale of the adjustment.}
+
+\item{adjiter}{A numeric value specifying the number of iterations for the adjustment.}
+
+\item{blendmode}{A character string specifying the blend mode of the colors.
+Either "blend", "average", "multiply" and "screen".}
 }
 \value{
 A data frame that can be used in \code{EnrichMap}.

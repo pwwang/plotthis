@@ -37,7 +37,8 @@ all_palettes[["simspec"]]
 show_palettes(index = 1:10)
 show_palettes(type = "discrete", index = 1:10)
 show_palettes(type = "continuous", index = 1:10)
-show_palettes(palette_names = c("Paired", "nejm", "simspec", "Spectral", "jet"), return_palettes = TRUE)
+show_palettes(palette_names = c("Paired", "nejm", "simspec", "Spectral", "jet"),
+   return_palettes = TRUE)
 
 }
 \seealso{

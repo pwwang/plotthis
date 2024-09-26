@@ -55,6 +55,36 @@ SplitBarPlotAtomic(
 
 \item{flip}{A logical value indicating whether to flip the x and y axes.}
 
+\item{alpha_by}{A character string indicating the column name to use for the transparency of the bars.}
+
+\item{alpha_reverse}{A logical value indicating whether to reverse the transparency.}
+
+\item{alpha_name}{A character string indicating the legend name of the transparency.}
+
+\item{order_y}{A list of character strings indicating the order of the y axis.
+The keys are "+", "-", or "\emph{". However, "+/-" should not be mixed with "}".
+The values are "x_asc", "x_desc", "alpha_asc", or "alpha_desc", indicating how to order the y axis.
+The default is \code{list("+" = c("x_desc", "alpha_desc"), "-" = c("x_desc", "alpha_asc"))}, meaning
+the positive values are ordered by the x-axis values in descending order and the alpha values in descending order,
+and the negative values are ordered by the x-axis values in descending order and the alpha values in ascending order.
+The "*" key is used to order the y axis without considering the direction.}
+
+\item{bar_height}{A numeric value indicating the height of the bars.}
+
+\item{lineheight}{A numeric value indicating the height of the text.}
+
+\item{max_charwidth}{A numeric value indicating the maximum width of the text.}
+
+\item{fill_by}{A character string indicating the column name to use for the fill of the bars.}
+
+\item{fill_by_sep}{A character string to concatenate the fill columns if there are multiple.}
+
+\item{fill_name}{A character string indicating the legend name of the fill.}
+
+\item{direction_pos_name}{A character string indicating the name of the positive direction.}
+
+\item{direction_neg_name}{A character string indicating the name of the negative direction.}
+
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
 
@@ -65,11 +95,11 @@ Default is "theme_this".}
 \item{palcolor}{A character string specifying the color to use in the palette.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
-Otherwise, the data will be split by \code{\link{split_by}} and generate multiple plots
+Otherwise, the data will be split by \code{split_by} and generate multiple plots
 and combine them into one using \code{patchwork::wrap_plots}}
 
 \item{facet_scales}{Whether to scale the axes of facets. Default is "fixed"
-Other options are "free", "free_x", "free_y". See \code{\link{ggplot2::facet_wrap}}}
+Other options are "free", "free_x", "free_y". See \code{ggplot2::facet_wrap}}
 
 \item{facet_nrow}{A numeric value specifying the number of rows in the facet.
 When facet_by is a single column and facet_wrap is used.}
@@ -80,6 +110,10 @@ When facet_by is a single column and facet_wrap is used.}
 \item{facet_byrow}{A logical value indicating whether to fill the plots by row. Default is TRUE.}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
+
+\item{x_min}{A numeric value indicating the minimum value of the x axis.}
+
+\item{x_max}{A numeric value indicating the maximum value of the x axis.}
 
 \item{legend.position}{A character string specifying the position of the legend.}
 

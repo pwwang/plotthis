@@ -35,6 +35,15 @@ EnrichNetworkAtomic(
 \arguments{
 \item{data}{A data frame containing the data to be plotted.}
 
+\item{layoutadjust}{A logical value specifying whether to adjust the layout of the network.}
+
+\item{adjscale}{A numeric value specifying the scale of the adjustment.}
+
+\item{adjiter}{A numeric value specifying the number of iterations for the adjustment.}
+
+\item{blendmode}{A character string specifying the blend mode of the colors.
+Either "blend", "average", "multiply" and "screen".}
+
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
 

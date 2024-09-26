@@ -64,6 +64,16 @@ LinePlot(
 
 \item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
 
+\item{group_by}{Columns to group the data for plotting
+For those plotting functions that do not support multiple groups,
+They will be concatenated into one column, using \code{group_by_sep} as the separator}
+
+\item{group_by_sep}{A character string specifying the separator to use when concatenating multiple columns.}
+
+\item{split_by}{The column(s) to split data by and plot separately.}
+
+\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
+
 \item{fill_point_by_x_if_no_group}{A logical value indicating whether to color the points by the x-axis values
 when there is no group_by column.}
 
@@ -126,8 +136,27 @@ Default is "theme_this".}
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
-Otherwise, the data will be split by \code{\link{split_by}} and generate multiple plots
+Otherwise, the data will be split by \code{split_by} and generate multiple plots
 and combine them into one using \code{patchwork::wrap_plots}}
+
+\item{facet_scales}{Whether to scale the axes of facets. Default is "fixed"
+Other options are "free", "free_x", "free_y". See \code{ggplot2::facet_wrap}}
+
+\item{combine}{Whether to combine the plots into one when facet is FALSE. Default is TRUE.}
+
+\item{nrow}{A numeric value specifying the number of rows in the facet.}
+
+\item{ncol}{A numeric value specifying the number of columns in the facet.}
+
+\item{byrow}{A logical value indicating whether to fill the plots by row.}
+
+\item{facet_nrow}{A numeric value specifying the number of rows in the facet.
+When facet_by is a single column and facet_wrap is used.}
+
+\item{facet_ncol}{A numeric value specifying the number of columns in the facet.
+When facet_by is a single column and facet_wrap is used.}
+
+\item{facet_byrow}{A logical value indicating whether to fill the plots by row. Default is TRUE.}
 
 \item{title}{A character string specifying the title of the plot.}
 
@@ -139,6 +168,8 @@ and combine them into one using \code{patchwork::wrap_plots}}
 
 \item{keep_empty}{A logical value indicating whether to keep empty groups.
 If FALSE, empty groups will be removed.}
+
+\item{seed}{The random seed to use. Default is 8525.}
 
 \item{...}{Additional arguments.}
 }

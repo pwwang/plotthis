@@ -65,7 +65,7 @@ DensityHistoPlotAtomic <- function(
     }
     if (isTRUE(add_lines)) {
         p <- p +
-            geom_linerange(aes(ymin = .ymin, ymax = .ymax), size = 1, alpha = line_alpha, linewidth = line_width)
+            geom_linerange(aes(ymin = !!sym(".ymin"), ymax = !!sym(".ymax")), size = 1, alpha = line_alpha, linewidth = line_width)
     }
     p <- p +
         scale_fill_manual(name = group_name %||% group_by,

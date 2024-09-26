@@ -99,7 +99,7 @@ BarPlotSingle <- function(
 
     height <- 4.5
     width <- .5 + nlevels(data[[x]]) * .8
-    if (!identical(legend, "none")) {
+    if (!identical(legend.position, "none")) {
         if (legend.position %in% c("right", "left")) {
             width <- width + 1
         } else if (legend.direction == "horizontal") {
@@ -124,8 +124,7 @@ BarPlotSingle <- function(
 #' @description Create a bar plot with groups.
 #'
 #' @inheritParams common_args
-#' @param y A character vector specifying the column as the y axis of the plot.
-#'  Default is NULL, meaning the y axis is the count of the data.
+#' @inheritParams BarPlotSingle
 #' @param position A character string indicating the position of the bars.
 #'  If "auto", the position will be "stack" if group_by has more than 5 levels, otherwise "dodge".
 #'  "fill" is also a valid option. Only works when group_by is not NULL.
@@ -134,18 +133,6 @@ BarPlotSingle <- function(
 #' @param bg_palette A character string indicating the palette to use for the background.
 #' @param bg_palcolor A character string indicating the color to use for the background.
 #' @param bg_alpha A numeric value indicating the alpha of the background.
-#' @param flip A logical value indicating whether to flip the x and y axes.
-#' @param add_line A numeric value indicating the y value to add a horizontal line.
-#' @param line_color A character string indicating the color of the line.
-#' @param line_size A numeric value indicating the size of the line.
-#' @param line_type A numeric value indicating the type of the line.
-#' @param line_name A character string indicating the name of the line.
-#' @param add_trend A logical value to add trend line to the plot.
-#' @param trend_color A character string to specify the color of the trend line.
-#' @param trend_linewidth A numeric value to specify the width of the trend line.
-#' @param trend_ptsize A numeric value to specify the size of the trend line points.
-#' @param y_min A numeric value to specify the minimum value of the y axis.
-#' @param y_max A numeric value to specify the maximum value of the y axis.
 #' @return A ggplot object.
 #' @keywords internal
 #' @importFrom rlang sym %||%
@@ -263,17 +250,17 @@ BarPlotGrouped <- function(
 }
 
 #' Atomic bar plot
+#'
 #' @description Create a bar plot with or without groups. This function does not handle splitting but only facetting.
 #' @inheritParams common_args
-#' @param y A character vector specifying the column as the y axis of the plot.
-#'  Default is NULL, meaning the y axis is the count of the data.
+#' @inheritParams BarPlotGrouped
 #' @param fill_by_x_if_no_group A logical value indicating whether to fill the bars by the x-axis values if there is no group_by.
-#' @param flip A logical value indicating whether to flip the x and y axes.
 #' @return A ggplot object.
 #' @importFrom ggplot2 waiver
 #' @keywords internal
 BarPlotAtomic <- function(
     data, x, y = NULL, flip = FALSE, group_by = NULL, fill_by_x_if_no_group = TRUE,
+    add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1,
     add_line = NULL, line_color = "red2", line_size = .6, line_type = 2, line_name = NULL,
@@ -299,6 +286,7 @@ BarPlotAtomic <- function(
         p <- BarPlotGrouped(
             data, x, y, group_by,
             facet_by = facet_by, flip = flip, line_name = line_name,
+            add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
             theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
             alpha = alpha, x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
             position = position, position_dodge_preserve = position_dodge_preserve, y_min = y_min, y_max = y_max,
@@ -317,7 +305,7 @@ BarPlotAtomic <- function(
 #'
 #' @description
 #'  * `BarPlot` is used to create a bar plot.
-#'  * `SplitBarPlot` is used to create a bar plot with splitting the bars on the two sides.
+#'  * `SplitBarPlot` (a.k.a `WaterfallPlot`) is used to create a bar plot with splitting the bars on the two sides.
 #' @rdname barplot
 #' @inheritParams common_args
 #' @inheritParams BarPlotAtomic
@@ -333,7 +321,7 @@ BarPlotAtomic <- function(
 #' )
 #'
 #' BarPlot(data, x = "x", y = "y")
-#' BarPlot(data, x = "x", y = "y", fill_by_x_if_no_group = F)
+#' BarPlot(data, x = "x", y = "y", fill_by_x_if_no_group = FALSE)
 #' BarPlot(data, x = "group", y = "y", group_by = "x")
 #' BarPlot(data,
 #'     x = "group", y = "y", group_by = "x",
@@ -403,10 +391,31 @@ BarPlot <- function(
 #' @param y The column name(s) of the values. If there are multiple columns, they will be concatenated.
 #' @param y_sep A character string to concatenate the x columns if there are multiple.
 #' @param flip A logical value indicating whether to flip the x and y axes.
+#' @param alpha_by A character string indicating the column name to use for the transparency of the bars.
+#' @param alpha_reverse A logical value indicating whether to reverse the transparency.
+#' @param alpha_name A character string indicating the legend name of the transparency.
+#' @param order_y A list of character strings indicating the order of the y axis.
+#'  The keys are "+", "-", or "*". However, "+/-" should not be mixed with "*".
+#'  The values are "x_asc", "x_desc", "alpha_asc", or "alpha_desc", indicating how to order the y axis.
+#'  The default is `list("+" = c("x_desc", "alpha_desc"), "-" = c("x_desc", "alpha_asc"))`, meaning
+#'  the positive values are ordered by the x-axis values in descending order and the alpha values in descending order,
+#'  and the negative values are ordered by the x-axis values in descending order and the alpha values in ascending order.
+#'  The "*" key is used to order the y axis without considering the direction.
+#' @param bar_height A numeric value indicating the height of the bars.
+#' @param lineheight A numeric value indicating the height of the text.
+#' @param max_charwidth A numeric value indicating the maximum width of the text.
+#' @param fill_by A character string indicating the column name to use for the fill of the bars.
+#' @param fill_by_sep A character string to concatenate the fill columns if there are multiple.
+#' @param fill_name A character string indicating the legend name of the fill.
+#' @param direction_pos_name A character string indicating the name of the positive direction.
+#' @param direction_neg_name A character string indicating the name of the negative direction.
+#' @param x_min A numeric value indicating the minimum value of the x axis.
+#' @param x_max A numeric value indicating the maximum value of the x axis.
 #' @keywords internal
 #' @importFrom gglogger ggplot
 #' @importFrom stringr str_wrap
 #' @importFrom forcats fct_relabel
+#' @importFrom dplyr .data
 #' @importFrom ggplot2 aes geom_vline geom_col geom_text scale_fill_manual labs scale_y_discrete position_nudge scale_alpha_continuous
 #' @importFrom ggplot2 scale_alpha_continuous guide_none guide_legend
 SplitBarPlotAtomic <- function(
@@ -562,7 +571,7 @@ SplitBarPlotAtomic <- function(
 
 #' @rdname barplot
 #' @inheritParams common_args
-#' @inheritParams BarPlotAtomic
+#' @inheritParams SplitBarPlotAtomic
 #' @export
 #' @examples
 #' data <- data.frame(
@@ -619,3 +628,8 @@ SplitBarPlot <- function(
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
 }
+
+#' @rdname barplot
+#' @inheritParams SplitBarPlot
+#' @export
+WaterfallPlot <- SplitBarPlot
