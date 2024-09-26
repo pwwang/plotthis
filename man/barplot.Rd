@@ -3,6 +3,7 @@
 \name{BarPlot}
 \alias{BarPlot}
 \alias{SplitBarPlot}
+\alias{WaterfallPlot}
 \title{Bar Plot}
 \usage{
 BarPlot(
@@ -62,6 +63,53 @@ BarPlot(
 )
 
 SplitBarPlot(
+  data,
+  x,
+  y,
+  y_sep = "_",
+  flip = FALSE,
+  split_by = NULL,
+  split_by_sep = "_",
+  alpha_by = NULL,
+  alpha_reverse = FALSE,
+  alpha_name = NULL,
+  order_y = list(`+` = c("x_desc", "alpha_desc"), `-` = c("x_desc", "alpha_asc")),
+  bar_height = 0.9,
+  lineheight = 0.5,
+  max_charwidth = 80,
+  fill_by = NULL,
+  fill_by_sep = "_",
+  fill_name = NULL,
+  direction_pos_name = "positive",
+  direction_neg_name = "negative",
+  theme = "theme_this",
+  theme_args = list(),
+  palette = "Spectral",
+  palcolor = NULL,
+  facet_by = NULL,
+  facet_scales = "free_y",
+  facet_nrow = NULL,
+  facet_ncol = NULL,
+  facet_byrow = TRUE,
+  aspect.ratio = 1,
+  x_min = NULL,
+  x_max = NULL,
+  legend.position = "right",
+  legend.direction = "vertical",
+  title = NULL,
+  subtitle = NULL,
+  xlab = NULL,
+  ylab = NULL,
+  keep_empty = FALSE,
+  combine = TRUE,
+  nrow = NULL,
+  ncol = NULL,
+  byrow = TRUE,
+  seed = 8525,
+  ...
+)
+
+WaterfallPlot(
   data,
   x,
   y,
@@ -276,7 +324,7 @@ A ggplot object or wrap_plots object or a list of ggplot objects
 \description{
 \itemize{
 \item \code{BarPlot} is used to create a bar plot.
-\item \code{SplitBarPlot} is used to create a bar plot with splitting the bars on the two sides.
+\item \code{SplitBarPlot} (a.k.a \code{WaterfallPlot}) is used to create a bar plot with splitting the bars on the two sides.
 }
 }
 \examples{
