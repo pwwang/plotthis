@@ -90,7 +90,7 @@ ViolinPlot(
   data,
   x,
   x_sep = "_",
-  y,
+  y = NULL,
   in_form = c("long", "wide"),
   split_by = NULL,
   split_by_sep = "_",
@@ -360,15 +360,17 @@ data <- data.frame(
 )
 
 BoxPlot(data, x = "x", y = "y")
-BoxPlot(data, x = "x", y = "y",
-        stack = TRUE, flip = TRUE, facet_by = "group1",
-        add_bg = TRUE, bg_palette = "Paired")
+BoxPlot(data,
+    x = "x", y = "y",
+    stack = TRUE, flip = TRUE, facet_by = "group1",
+    add_bg = TRUE, bg_palette = "Paired"
+)
 
 # wide form data
 data_wide <- data.frame(
-   A = rnorm(100),
-   B = rnorm(100),
-   C = rnorm(100),
+    A = rnorm(100),
+    B = rnorm(100),
+    C = rnorm(100),
 )
 BoxPlot(data_wide, x = c("A", "B", "C"), in_form = "wide")
 ViolinPlot(data, x = "x", y = "y")
@@ -379,15 +381,25 @@ ViolinPlot(data, x = "x", y = "y", add_stat = mean)
 ViolinPlot(data, x = "x", y = "y", add_bg = TRUE)
 ViolinPlot(data, x = "x", y = "y", add_line = 0)
 ViolinPlot(data, x = "x", y = "y", dodge_by = "group1")
-ViolinPlot(data, x = "x", y = "y", dodge_by = "group1",
-facet_by = "group2", add_box = TRUE)
-ViolinPlot(data, x = "x", y = "y", dodge_by = "group1",
-comparisons = TRUE)
-ViolinPlot(data, x = "x", y = "y", sig_label = "p.format",
-facet_by = "group2", comparisons = list(c("A", "B")))
-ViolinPlot(data, x = "x", y = "y", fill_mode = "mean",
-facet_by = "group2", palette = "Blues")
-ViolinPlot(data, x = "x", y = "y", stack = TRUE,
-facet_by = "group2", add_box = TRUE, add_bg = TRUE,
-bg_palette = "Paired")
+ViolinPlot(data,
+    x = "x", y = "y", dodge_by = "group1",
+    facet_by = "group2", add_box = TRUE
+)
+ViolinPlot(data,
+    x = "x", y = "y", dodge_by = "group1",
+    comparisons = TRUE
+)
+ViolinPlot(data,
+    x = "x", y = "y", sig_label = "p.format",
+    facet_by = "group2", comparisons = list(c("A", "B"))
+)
+ViolinPlot(data,
+    x = "x", y = "y", fill_mode = "mean",
+    facet_by = "group2", palette = "Blues"
+)
+ViolinPlot(data,
+    x = "x", y = "y", stack = TRUE,
+    facet_by = "group2", add_box = TRUE, add_bg = TRUE,
+    bg_palette = "Paired"
+)
 }

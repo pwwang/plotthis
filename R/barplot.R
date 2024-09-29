@@ -37,7 +37,7 @@
 #' @importFrom ggplot2 element_line waiver coord_flip scale_color_manual guide_legend coord_cartesian
 #' @importFrom ggrepel geom_text_repel
 BarPlotSingle <- function(
-    data, x, y = NULL, flip = FALSE, facet_by = NULL, label = NULL, label_nudge = 0,
+    data, x, y = NULL, flip = FALSE, facet_by = NULL, facet_scales = "fixed", label = NULL, label_nudge = 0,
     label_fg = "black", label_size = 4, label_bg = "white", label_bg_r = 0.1,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1, y_min = NULL, y_max = NULL,
@@ -131,9 +131,16 @@ BarPlotSingle <- function(
         ) + scale_color_manual(name = NULL, values = line_color, guide = guide_legend(order = 2))
     }
 
-    if (isTRUE(flip)) {
+    facet_free <- !is.null(facet_by) && (
+        identical(facet_scales, "free") ||
+            (!flip && identical(facet_scales, "free_y")) ||
+            (flip && identical(facet_scales, "free_x"))
+    )
+    if (isTRUE(flip) && !facet_free) {
         p <- p + coord_flip(ylim = c(y_min, y_max))
-    } else {
+    } else if (isTRUE(flip)) {
+        p <- p + coord_flip()
+    } else if (!facet_free) {
         p <- p + coord_cartesian(ylim = c(y_min, y_max))
     }
 
@@ -275,9 +282,16 @@ BarPlotGrouped <- function(
         ) + scale_color_manual(name = NULL, values = line_color, guide = guide_legend(order = 2))
     }
 
-    if (isTRUE(flip)) {
+    facet_free <- !is.null(facet_by) && (
+        identical(facet_scales, "free") ||
+            (!flip && identical(facet_scales, "free_y")) ||
+            (flip && identical(facet_scales, "free_x"))
+    )
+    if (isTRUE(flip) && facet_free) {
+        p <- p + coord_flip()
+    } else if (isTRUE(flip)) {
         p <- p + coord_flip(ylim = c(y_min, y_max))
-    } else {
+    } else if (!facet_free) {
         p <- p + coord_cartesian(ylim = c(y_min, y_max))
     }
 
@@ -334,7 +348,7 @@ BarPlotAtomic <- function(
             data, x, y,
             label = label, label_nudge = label_nudge,
             label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
-            facet_by = facet_by, flip = flip, line_name = line_name,
+            facet_by = facet_by, facet_scales = facet_scales, flip = flip, line_name = line_name,
             theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
             alpha = alpha, x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
             add_line = add_line, line_color = line_color, line_size = line_size, line_type = line_type,
@@ -349,7 +363,7 @@ BarPlotAtomic <- function(
         }
         p <- BarPlotGrouped(
             data, x, y, group_by,
-            facet_by = facet_by, flip = flip, line_name = line_name,
+            facet_by = facet_by, facet_scales = facet_scales, flip = flip, line_name = line_name,
             add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
             theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
             alpha = alpha, x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,

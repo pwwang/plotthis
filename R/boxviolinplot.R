@@ -385,6 +385,11 @@ BoxViolinPlotAtomic <- function(
     x_maxchars <- max(nchar(levels(data[[x]])))
     nx <- nlevels(data[[x]])
     nd <- ifelse(is.null(dodge_by), 1, nlevels(data[[dodge_by]]))
+    facet_free <- !is.null(facet_by) && (
+        identical(facet_scales, "free") ||
+            (!flip && identical(facet_scales, "free_y")) ||
+            (flip && identical(facet_scales, "free_x"))
+    )
     if (isTRUE(flip) && isTRUE(stack)) {
         facet_nrow <- facet_nrow %||% 1
         strip_position <- "top"
@@ -392,7 +397,12 @@ BoxViolinPlotAtomic <- function(
             strip.text.x = element_text(angle = 90),
             panel.grid.major.x = element_line(color = "grey", linetype = 2),
             panel.spacing.x = unit(-1, "pt")
-        ) + coord_flip(ylim = c(y_min_use, y_max_use))
+        )
+        if (facet_free) {
+            p <- p + coord_flip()
+        } else {
+            p <- p + coord_flip(ylim = c(y_min_use, y_max_use))
+        }
         width <- width + 2 + x_maxchars * 0.05
         height <- height + nx * nd * 0.3
     } else if (isTRUE(flip) && isFALSE(stack)) {
@@ -400,7 +410,12 @@ BoxViolinPlotAtomic <- function(
         p <- p + theme(
             strip.text.y = element_text(angle = 0),
             panel.grid.major.x = element_line(color = "grey", linetype = 2),
-        ) + coord_flip(ylim = c(y_min_use, y_max_use))
+        )
+        if (facet_free) {
+            p <- p + coord_flip()
+        } else {
+            p <- p + coord_flip(ylim = c(y_min_use, y_max_use))
+        }
         width <- width + 2.2 + x_maxchars * 0.05
         height <- height + nx * nd * 0.3
     } else if (isTRUE(stack)) {
@@ -410,7 +425,10 @@ BoxViolinPlotAtomic <- function(
             panel.spacing.y = unit(-1, "pt"),
             strip.text.y = element_text(angle = 0),
             panel.grid.major.y = element_line(color = "grey", linetype = 2),
-        ) + coord_cartesian(ylim = c(y_min_use, y_max_use))
+        )
+        if (!facet_free) {
+            p <- p + coord_cartesian(ylim = c(y_min_use, y_max_use))
+        }
         height <- height + 4 + x_maxchars * 0.05
         width <- width + nx * nd * 0.3
     } else {
@@ -418,7 +436,10 @@ BoxViolinPlotAtomic <- function(
         p <- p + theme(
             strip.text.x = element_text(angle = 0),
             panel.grid.major.x = element_line(color = "grey", linetype = 2),
-        ) + coord_cartesian(ylim = c(y_min_use, y_max_use))
+        )
+        if (!facet_free) {
+            p <- p + coord_cartesian(ylim = c(y_min_use, y_max_use))
+        }
         height <- height + 2 + x_maxchars * 0.05
         width <- width + nx * nd * 0.3
     }
@@ -427,7 +448,8 @@ BoxViolinPlotAtomic <- function(
 
     facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
         strip.position = strip_position, legend.position = legend.position,
-        legend.direction = legend.direction)
+        legend.direction = legend.direction
+    )
 }
 
 #' Box/Violin plot
@@ -461,7 +483,6 @@ BoxViolinPlot <- function(
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...) {
-
     validate_common_args(seed)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
 
@@ -527,15 +548,17 @@ BoxViolinPlot <- function(
 #' )
 #'
 #' BoxPlot(data, x = "x", y = "y")
-#' BoxPlot(data, x = "x", y = "y",
-#'         stack = TRUE, flip = TRUE, facet_by = "group1",
-#'         add_bg = TRUE, bg_palette = "Paired")
+#' BoxPlot(data,
+#'     x = "x", y = "y",
+#'     stack = TRUE, flip = TRUE, facet_by = "group1",
+#'     add_bg = TRUE, bg_palette = "Paired"
+#' )
 #'
 #' # wide form data
 #' data_wide <- data.frame(
-#'    A = rnorm(100),
-#'    B = rnorm(100),
-#'    C = rnorm(100),
+#'     A = rnorm(100),
+#'     B = rnorm(100),
+#'     C = rnorm(100),
 #' )
 #' BoxPlot(data_wide, x = c("A", "B", "C"), in_form = "wide")
 BoxPlot <- function(
@@ -560,7 +583,6 @@ BoxPlot <- function(
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...) {
-
     stat_name <- stat_name %||% paste0(y, " (", deparse(substitute(add_stat)), ")")
     BoxViolinPlot(
         data = data, x = x, x_sep = x_sep, y = y, base = "box", in_form = in_form,
@@ -596,19 +618,29 @@ BoxPlot <- function(
 #' ViolinPlot(data, x = "x", y = "y", add_bg = TRUE)
 #' ViolinPlot(data, x = "x", y = "y", add_line = 0)
 #' ViolinPlot(data, x = "x", y = "y", dodge_by = "group1")
-#' ViolinPlot(data, x = "x", y = "y", dodge_by = "group1",
-           #' facet_by = "group2", add_box = TRUE)
-#' ViolinPlot(data, x = "x", y = "y", dodge_by = "group1",
-           #' comparisons = TRUE)
-#' ViolinPlot(data, x = "x", y = "y", sig_label = "p.format",
-           #' facet_by = "group2", comparisons = list(c("A", "B")))
-#' ViolinPlot(data, x = "x", y = "y", fill_mode = "mean",
-           #' facet_by = "group2", palette = "Blues")
-#' ViolinPlot(data, x = "x", y = "y", stack = TRUE,
-           #' facet_by = "group2", add_box = TRUE, add_bg = TRUE,
-           #' bg_palette = "Paired")
+#' ViolinPlot(data,
+#'     x = "x", y = "y", dodge_by = "group1",
+#'     facet_by = "group2", add_box = TRUE
+#' )
+#' ViolinPlot(data,
+#'     x = "x", y = "y", dodge_by = "group1",
+#'     comparisons = TRUE
+#' )
+#' ViolinPlot(data,
+#'     x = "x", y = "y", sig_label = "p.format",
+#'     facet_by = "group2", comparisons = list(c("A", "B"))
+#' )
+#' ViolinPlot(data,
+#'     x = "x", y = "y", fill_mode = "mean",
+#'     facet_by = "group2", palette = "Blues"
+#' )
+#' ViolinPlot(data,
+#'     x = "x", y = "y", stack = TRUE,
+#'     facet_by = "group2", add_box = TRUE, add_bg = TRUE,
+#'     bg_palette = "Paired"
+#' )
 ViolinPlot <- function(
-    data, x, x_sep = "_", y, in_form = c("long", "wide"),
+    data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
     split_by = NULL, split_by_sep = "_",
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
     flip = FALSE, keep_empty = FALSE, dodge_by = NULL, dodge_by_sep = "_", dodge_name = NULL,
@@ -630,7 +662,6 @@ ViolinPlot <- function(
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...) {
-
     stat_name <- stat_name %||% paste0(y, " (", deparse(substitute(add_stat)), ")")
     BoxViolinPlot(
         data = data, x = x, x_sep = x_sep, y = y, base = "violin", in_form = in_form,
