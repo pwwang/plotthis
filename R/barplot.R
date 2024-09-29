@@ -191,7 +191,6 @@ BarPlotGrouped <- function(
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
     expand = waiver(), width = 0.8, facet_by = NULL, ...) {
 
-    if (inherits(expand, "waiver")) expand = c(bottom = 0)
     group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
     x <- check_columns(data, x, force_factor = TRUE)
@@ -203,16 +202,6 @@ BarPlotGrouped <- function(
         y <- ".y"
     }
     if (inherits(width, "waiver")) width <- 0.8
-    if (inherits(expand, "waiver")) {
-        if (min(data[[y]], na.rm = TRUE) > 0) {
-            expand <- c(bottom = 0)
-        } else if (max(data[[y]], na.rm = TRUE) < 0) {
-            expand <- c(top = 0)
-        } else {
-            expand <- NULL
-        }
-    }
-    expand <- norm_expansion(expand, x_type = "discrete", y_type = "continuous")
 
     if (keep_empty) {
         # fill y with 0 for empty group_by. 'drop' with scale_fill_* doesn't have color for empty group_by
@@ -235,6 +224,18 @@ BarPlotGrouped <- function(
     } else if (position == "dodge") {
         position <- position_dodge2(preserve = position_dodge_preserve)
     }
+    if (inherits(expand, "waiver")) {
+        if (position == "stack") {
+            expand <- c(top = 0, bottom = 0)
+        } else if (min(data[[y]], na.rm = TRUE) > 0) {
+            expand <- c(bottom = 0)
+        } else if (max(data[[y]], na.rm = TRUE) < 0) {
+            expand <- c(top = 0)
+        } else {
+            expand <- NULL
+        }
+    }
+    expand <- norm_expansion(expand, x_type = "discrete", y_type = "continuous")
 
     p <- p + geom_col(alpha = alpha, position = position, width = width) +
         scale_fill_manual(name = group_by, values = colors, guide = guide_legend(order = 1)) +
@@ -281,7 +282,11 @@ BarPlotGrouped <- function(
     }
 
     height <- 4.5
-    width <- .5 + nlevels(data[[x]]) * length(unique(data[[group_by]])) * .5
+    if (position == "stack") {
+        width <- max(.5 + nlevels(data[[x]]) * .8, 4.5)
+    } else {
+        width <- .5 + nlevels(data[[x]]) * length(unique(data[[group_by]])) * .5
+    }
     if (!identical(legend.position, "none")) {
         if (legend.position %in% c("right", "left")) {
             width <- width + 1
