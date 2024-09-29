@@ -212,10 +212,18 @@ RadarPlot <- function(
         datas <- datas[levels(data[[split_by]])]
     } else {
         datas <- list(data)
+        names(datas) <- "..."
     }
 
     plots <- lapply(
-        datas, RadarPlotAtomic,
+        names(datas), function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+            if (is.function(title)) {
+                title <- title(default_title)
+            } else {
+                title <- title %||% default_title
+            }
+            RadarPlotAtomic(datas[[nm]],
         x = x, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, y = y, group_name = group_name,
         scale_y = scale_y, y_min = y_min, y_max = y_max, y_nbreaks = y_nbreaks, polygon = FALSE,
         fill = fill, linewidth = linewidth, pt_size = pt_size, max_charwidth = max_charwidth,
@@ -223,6 +231,8 @@ RadarPlot <- function(
         facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
         alpha = alpha, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
         title = title, subtitle = subtitle, ...
+            )
+        }
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
@@ -231,6 +241,7 @@ RadarPlot <- function(
 #' @rdname radarplot
 #' @inheritParams RadarPlot
 #' @export
+#' @importFrom ggplot2 waiver
 #' @examples
 #' # use the count
 #' data <- data.frame(
@@ -258,7 +269,7 @@ SpiderPlot <- function(
     fill = TRUE, linewidth = 1, pt_size = 4, max_charwidth = 16, split_by = NULL, split_by_sep = "_",
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    alpha = 0.2, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
+    alpha = 0.2, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
     title = NULL, subtitle = NULL, seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...) {
 
     validate_common_args(seed, facet_by = facet_by)
@@ -271,10 +282,18 @@ SpiderPlot <- function(
         datas <- datas[levels(data[[split_by]])]
     } else {
         datas <- list(data)
+        names(datas) <- "..."
     }
 
     plots <- lapply(
-        datas, RadarPlotAtomic,
+        names(datas), function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+            if (is.function(title)) {
+                title <- title(default_title)
+            } else {
+                title <- title %||% default_title
+            }
+            RadarPlotAtomic(datas[[nm]],
         x = x, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, y = y, group_name = group_name,
         scale_y = scale_y, y_min = y_min, y_max = y_max, y_nbreaks = y_nbreaks, polygon = TRUE,
         fill = fill, linewidth = linewidth, pt_size = pt_size, max_charwidth = max_charwidth,
@@ -282,6 +301,8 @@ SpiderPlot <- function(
         facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
         alpha = alpha, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
         title = title, subtitle = subtitle, ...
+            )
+        }
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)

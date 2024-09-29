@@ -343,10 +343,18 @@ LinePlot <- function(
         datas <- datas[levels(data[[split_by]])]
     } else {
         datas <- list(data)
+        names(datas) <- "..."
     }
 
     plots <- lapply(
-        datas, LinePlotAtomic,
+        names(datas), function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+            if (is.function(title)) {
+                title <- title(default_title)
+            } else {
+                title <- title %||% default_title
+            }
+            LinePlotAtomic(datas[[nm]],
         x = x, y = y, group_by = group_by,
         fill_point_by_x_if_no_group = fill_point_by_x_if_no_group,
         color_line_by_x_if_no_group = color_line_by_x_if_no_group,
@@ -361,6 +369,8 @@ LinePlot <- function(
         legend.position = legend.position, legend.direction = legend.direction,
         facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
         title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...
+            )
+        }
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)

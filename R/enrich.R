@@ -559,12 +559,15 @@ EnrichMap <- function(
     plots <- lapply(
         names(datas),
         function(nm) {
-            if (!identical(nm, "...")) {
-                title <- title %||% nm
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+            if (is.function(title)) {
+                title <- title(default_title)
+            } else {
+                title <- title %||% default_title
             }
             EnrichMapAtomic(
                 datas[[nm]],
-                top_term = top_term, metric = metric, cutoff = cutoff, layout = layout, minchar = minchar,
+                top_term = top_term, metric = metric, layout = layout, minchar = minchar,
                 cluster = cluster, show_keyword = show_keyword, nlabel = nlabel, character_width = character_width,
                 mark = mark, label = label, labelsize = labelsize, expand = expand,
                 theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
@@ -599,7 +602,7 @@ EnrichMap <- function(
 #' EnrichNetwork(enrich_example, top_term = 5)
 EnrichNetwork <- function(
     data, split_by = NULL, split_by_sep = "_",
-    top_term = 10, metric = "p.adjust", cutoff = 0.05, character_width = 50,
+    top_term = 10, metric = "p.adjust", character_width = 50,
     layout = "fr", layoutadjust = TRUE, adjscale = 60, adjiter = 100, blendmode = "blend", labelsize = 5,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
@@ -622,12 +625,15 @@ EnrichNetwork <- function(
     plots <- lapply(
         names(datas),
         function(nm) {
-            if (!identical(nm, "...")) {
-                title <- title %||% nm
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+            if (is.function(title)) {
+                title <- title(default_title)
+            } else {
+                title <- title %||% default_title
             }
             EnrichNetworkAtomic(
                 datas[[nm]],
-                top_term = top_term, metric = metric, cutoff = cutoff, character_width = character_width,
+                top_term = top_term, metric = metric, character_width = character_width,
                 layout = layout, layoutadjust = layoutadjust, adjscale = adjscale, adjiter = adjiter, blendmode = blendmode,
                 labelsize = labelsize, theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,

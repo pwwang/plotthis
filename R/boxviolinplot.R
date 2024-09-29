@@ -512,12 +512,20 @@ BoxViolinPlot <- function(
         datas <- datas[levels(data[[split_by]])]
     } else {
         datas <- list(data)
+        names(datas) <- "..."
     }
 
     stat_name <- stat_name %||% paste0(y, " (", deparse(substitute(add_stat)), ")")
 
     plots <- lapply(
-        datas, BoxViolinPlotAtomic,
+        names(datas), function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+            if (is.function(title)) {
+                title <- title(default_title)
+            } else {
+                title <- title %||% default_title
+            }
+            BoxViolinPlotAtomic(datas[[nm]],
         x = x, x_sep = x_sep, y = y, base = base, intype = intype,
         sort_x = sort_x, flip = flip, keep_empty = keep_empty, dodge_by = dodge_by, dodge_by_sep = dodge_by_sep, dodge_name = dodge_name,
         x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse,
@@ -536,6 +544,8 @@ BoxViolinPlot <- function(
         sig_label = sig_label, sig_labelsize = sig_labelsize,
         facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
         title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, ...
+            )
+        }
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)

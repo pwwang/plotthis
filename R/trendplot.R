@@ -112,6 +112,7 @@ TrendPlotAtomic <- function(
 #' @inheritParams TrendPlotAtomic
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
+#' @importFrom ggplot2 waiver
 #' @examples
 #' data <- data.frame(
 #'     x = rep(c("A", "B", "C", "D"), 2),
@@ -127,7 +128,7 @@ TrendPlot <- function(
     fill_by = NULL, fill_by_sep = "_", fill_name = NULL, scale_y = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    x_text_angle = 0, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
+    x_text_angle = 0, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...
 ){
@@ -140,15 +141,25 @@ TrendPlot <- function(
         datas <- datas[levels(data[[split_by]])]
     } else {
         datas <- list(data)
+        names(datas) <- "..."
     }
 
     plots <- lapply(
-        datas, TrendPlotAtomic,
+        names(datas), function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+            if (is.function(title)) {
+                title <- title(default_title)
+            } else {
+                title <- title %||% default_title
+            }
+            TrendPlotAtomic(datas[[nm]],
         x = x, y = y, x_sep = x_sep, fill_by = fill_by, fill_by_sep = fill_by_sep, fill_name = fill_name, scale_y = scale_y,
         theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
         facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
         x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
         title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, ...
+            )
+        }
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)

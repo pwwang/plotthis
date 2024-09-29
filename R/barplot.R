@@ -610,10 +610,18 @@ SplitBarPlot <- function(
         datas <- datas[levels(data[[split_by]])]
     } else {
         datas <- list(data)
+        names(datas) <- "..."
     }
 
     plots <- lapply(
-        datas, SplitBarPlotAtomic,
+        names(datas), function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+            if (is.function(title)) {
+                title <- title(default_title)
+            } else {
+                title <- title %||% default_title
+            }
+            SplitBarPlotAtomic(datas[[nm]],
         x = x, y = y, y_sep = y_sep, flip = flip, alpha_by = alpha_by, alpha_reverse = alpha_reverse, alpha_name = alpha_name,
         order_y = order_y, bar_height = bar_height, lineheight = lineheight, max_charwidth = max_charwidth,
         fill_by = fill_by, fill_by_sep = fill_by_sep, fill_name = fill_name,
@@ -624,6 +632,8 @@ SplitBarPlot <- function(
         legend.position = legend.position, legend.direction = legend.direction,
         title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty,
         ...
+            )
+        }
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)

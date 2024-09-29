@@ -782,10 +782,18 @@ DimPlot <- function(
         }
     } else {
         datas <- list(data)
+        names(datas) <- "..."
     }
 
     plots <- lapply(
-        datas, DimPlotAtomic,
+        names(datas), function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+            if (is.function(title)) {
+                title <- title(default_title)
+            } else {
+                title <- title %||% default_title
+            }
+            DimPlotAtomic(datas[[nm]],
         dims = dims, group_by = group_by, group_by_sep = group_by_sep,
         pt_size = pt_size, pt_alpha = pt_alpha, bg_color = bg_color,
         label_insitu = label_insitu, show_stat = show_stat,
@@ -808,6 +816,8 @@ DimPlot <- function(
         raster = raster, raster_dpi = raster_dpi,
         hex = hex, hex_linewidth = hex_linewidth, hex_count = hex_count, hex_bins = hex_bins, hex_binwidth = hex_binwidth,
         palette = palette, palcolor = palcolor, seed = seed, ...
+            )
+        }
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
@@ -860,11 +870,39 @@ FeatureDimPlot <- function(
 
     validate_common_args(seed, facet_by = facet_by)
 
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
-
+    if (isTRUE(split_by)) {
+        plots <- lapply(
+            features, function(feature) DimPlotAtomic(
+                data, dims = dims,
+                lower_quantile = lower_quantile, upper_quantile = upper_quantile, lower_cutoff = lower_cutoff, upper_cutoff = upper_cutoff,
+                pt_size = pt_size, pt_alpha = pt_alpha, bg_color = bg_color, color_name = color_name,
+                label_insitu = label_insitu, show_stat = show_stat, features = feature, bg_cutoff = bg_cutoff,
+                label = label, label_size = label_size, label_fg = label_fg, label_bg = label_bg, label_bg_r = label_bg_r,
+                label_repel = label_repel, label_repulsion = label_repulsion, label_pt_size = label_pt_size, label_pt_color = label_pt_color,
+                label_segment_color = label_segment_color,
+                highlight = highlight, highlight_alpha = highlight_alpha, highlight_size = highlight_size, highlight_color = highlight_color, highlight_stroke = highlight_stroke,
+                add_mark = add_mark, mark_type = mark_type, mark_expand = mark_expand, mark_alpha = mark_alpha, mark_linetype = mark_linetype,
+                stat_by = stat_by, stat_plot_type = stat_plot_type, stat_plot_size = stat_plot_size, stat_args = stat_args,
+                graph = graph, edge_size = edge_size, edge_alpha = edge_alpha, edge_color = edge_color,
+                add_density = add_density, density_color = density_color, density_filled = density_filled,
+                density_filled_palette = density_filled_palette, density_filled_palcolor = density_filled_palcolor,
+                lineages = lineages, lineages_trim = lineages_trim, lineages_span = lineages_span,
+                lineages_palette = lineages_palette, lineages_palcolor = lineages_palcolor, lineages_arrow = lineages_arrow,
+                lineages_linewidth = lineages_linewidth, lineages_line_bg = lineages_line_bg, lineages_line_bg_stroke = lineages_line_bg_stroke,
+                lineages_whiskers = lineages_whiskers, lineages_whiskers_linewidth = lineages_whiskers_linewidth, lineages_whiskers_alpha = lineages_whiskers_alpha,
+                facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
+                title = title %||% feature, subtitle = subtitle, xlab = xlab, ylab = ylab,
+                theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
+                raster = raster, raster_dpi = raster_dpi,
+                hex = hex, hex_linewidth = hex_linewidth, hex_count = hex_count, hex_bins = hex_bins, hex_binwidth = hex_binwidth,
+                palette = palette, palcolor = palcolor, seed = seed, ...
+            )
+        )
+    } else {
+        split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE,
+            concat_multi = TRUE, concat_sep = split_by_sep)
 
     if (!is.null(split_by)) {
-
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
@@ -878,12 +916,22 @@ FeatureDimPlot <- function(
         }
     } else {
         datas <- list(data)
+            names(datas) <- "..."
     }
 
     plots <- lapply(
-        datas, DimPlotAtomic, dims = dims,
+            names(datas), function(nm) {
+                default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+                if (is.function(title)) {
+                    title <- title(default_title)
+                } else {
+                    title <- title %||% default_title
+                }
+                DimPlotAtomic(
+                    datas[[nm]], dims = dims, features = features,
+                    lower_quantile = lower_quantile, upper_quantile = upper_quantile, lower_cutoff = lower_cutoff, upper_cutoff = upper_cutoff,
         pt_size = pt_size, pt_alpha = pt_alpha, bg_color = bg_color, color_name = color_name,
-        label_insitu = label_insitu, show_stat = show_stat, features = features, bg_cutoff = bg_cutoff,
+                    label_insitu = label_insitu, show_stat = show_stat, bg_cutoff = bg_cutoff,
         label = label, label_size = label_size, label_fg = label_fg, label_bg = label_bg, label_bg_r = label_bg_r,
         label_repel = label_repel, label_repulsion = label_repulsion, label_pt_size = label_pt_size, label_pt_color = label_pt_color,
         label_segment_color = label_segment_color,
@@ -904,6 +952,9 @@ FeatureDimPlot <- function(
         hex = hex, hex_linewidth = hex_linewidth, hex_count = hex_count, hex_bins = hex_bins, hex_binwidth = hex_binwidth,
         palette = palette, palcolor = palcolor, seed = seed, ...
     )
+            }
+        )
+    }
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
 }

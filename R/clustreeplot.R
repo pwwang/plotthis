@@ -178,15 +178,25 @@ ClustreePlot <- function(
         datas <- datas[levels(data[[split_by]])]
     } else {
         datas <- list(data)
+        names(datas) <- "..."
     }
 
     plots <- lapply(
-        datas, ClustreePlotAtomic,
+        names(datas), function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+            if (is.function(title)) {
+                title <- title(default_title)
+            } else {
+                title <- title %||% default_title
+            }
+            ClustreePlotAtomic(datas[[nm]],
         prefix = prefix, flip = flip, palette = palette, palcolor = palcolor,
-        edge_palette = edge_palette, edge_palcolor = edge_palcolor,
+                edge_palette = edge_palette, edge_palcolor = edge_palcolor, expand = expand,
         aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
         title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
         theme = theme, theme_args = theme_args, ...
+            )
+        }
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)

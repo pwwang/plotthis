@@ -174,17 +174,26 @@ SankeyPlot <- function(
         datas <- datas[levels(data[[split_by]])]
     } else {
         datas <- list(data)
+        names(datas) <- "..."
     }
 
     plots <- lapply(
-        datas, SankeyPlotAtomic,
-        y = y, nodes_by = nodes_by, nodes_color = nodes_color,
-        links_by = links_by, links_by_sep = links_by_sep, links_name = links_name,
-        palette = palette, palcolor = palcolor, alpha = alpha, nodes_label = nodes_label,
-        x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
-        legend.position = legend.position, legend.direction = legend.direction, legend.box = legend.box,
-        theme = theme, theme_args = theme_args, title = title, subtitle = subtitle,
-        xlab = xlab, ylab = ylab, ...
+        names(datas), function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+            if (is.function(title)) {
+                title <- title(default_title)
+            } else {
+                title <- title %||% default_title
+            }
+            SankeyPlotAtomic(datas[[nm]], y = y, nodes_by = nodes_by, nodes_color = nodes_color,
+                links_by = links_by, links_by_sep = links_by_sep, links_name = links_name,
+                palette = palette, palcolor = palcolor, alpha = alpha, nodes_label = nodes_label,
+                x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
+                legend.position = legend.position, legend.direction = legend.direction, legend.box = legend.box,
+                theme = theme, theme_args = theme_args, title = title, subtitle = subtitle,
+                xlab = xlab, ylab = ylab, ...
+            )
+        }
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
