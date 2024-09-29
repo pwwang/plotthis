@@ -38,7 +38,7 @@ detect_upset_datatype <- function(data, group_by = NULL, id_by = NULL) {
 #' @rdname upsetplot1
 #' @export
 #' @param data A data frame or a list or an UpsetPlotData object.
-#' @param intype A character string indicating the datatype of the input data.
+#' @param in_form A character string indicating the datatype of the input data.
 #'   Possible values are "long", "wide", "list", "upset" or NULL.
 #'   "long" indicates the data is in long format.
 #'   "wide" indicates the data is in wide format.
@@ -82,24 +82,24 @@ detect_upset_datatype <- function(data, group_by = NULL, id_by = NULL) {
 #'
 #' @param group_by A character string specifying the column name of the data frame to group the data.
 #' @param group_by_sep A character string to concatenate the columns in `group_by`,
-#'   if multiple columns are provided and the intype is "long".
+#'   if multiple columns are provided and the in_form is "long".
 #' @param id_by A character string specifying the column name of the data frame to identify the instances.
 #'  Required when `group_by` is a single column and data is a data frame.
 #' @return A UpsetPlotData object
 #' @importFrom tidyr uncount
-PrepareUpsetData <- function(data, intype = NULL, group_by = NULL, group_by_sep = "_", id_by = NULL) {
-    if (is.null(intype)) {
-        intype <- detect_upset_datatype(data, group_by, id_by)
+PrepareUpsetData <- function(data, in_form = NULL, group_by = NULL, group_by_sep = "_", id_by = NULL) {
+    if (is.null(in_form)) {
+        in_form <- detect_upset_datatype(data, group_by, id_by)
     }
 
-    if (intype == "upset") {
+    if (in_form == "upset") {
         if (!is.null(group_by)) {
             warning("The group_by argument is ignored when the input data is an UpsetPlotData object.", immediate. = TRUE)
         }
         return(data)
     }
 
-    data <- PrepareVennData(data, intype, group_by, group_by_sep, id_by)
+    data <- PrepareVennData(data, in_form, group_by, group_by_sep, id_by)
     data <- ggVennDiagram::venn_regionlabel(data)
     single_ids <- data$id[!grepl("/", data$id, fixed = TRUE)]
     idnames <- data$name[match(single_ids, data$id)]
@@ -130,7 +130,7 @@ PrepareUpsetData <- function(data, intype = NULL, group_by = NULL, group_by_sep 
 #' @importFrom ggplot2 geom_bar labs guide_colorbar scale_fill_gradientn
 #' @importFrom ggrepel geom_text_repel
 UpsetPlotAtomic <- function(
-    data, intype = NULL, group_by = NULL, group_by_sep = "_", id_by = NULL,
+    data, in_form = NULL, group_by = NULL, group_by_sep = "_", id_by = NULL,
     label = TRUE, label_fg = "black", label_size = NULL, label_bg = "white", label_bg_r = 0.1,
     palette = "material-indigo", palcolor = NULL, alpha = 1,
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
@@ -139,7 +139,7 @@ UpsetPlotAtomic <- function(
     # if (!requireNamespace("ggupset", quietly = TRUE)) {
     #     stop("ggupset is required to plot Upset plot. Please install it first.")
     # }
-    data <- PrepareUpsetData(data, intype, group_by, group_by_sep, id_by)
+    data <- PrepareUpsetData(data, in_form, group_by, group_by_sep, id_by)
     base_size <- theme_args$base_size %||% 12
     text_size_scale <- base_size / 12
 
@@ -219,7 +219,7 @@ UpsetPlotAtomic <- function(
 #' UpsetPlot(data, palette = "Reds")
 #'
 UpsetPlot <- function(
-    data, intype = NULL, split_by = NULL, split_by_sep = "_", group_by = NULL, group_by_sep = "_", id_by = NULL,
+    data, in_form = NULL, split_by = NULL, split_by_sep = "_", group_by = NULL, group_by_sep = "_", id_by = NULL,
     label = TRUE, label_fg = "black", label_size = NULL, label_bg = "white", label_bg_r = 0.1,
     palette = "material-indigo", palcolor = NULL, alpha = 1,
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
@@ -250,7 +250,7 @@ UpsetPlot <- function(
                 title <- title %||% default_title
             }
             UpsetPlotAtomic(datas[[nm]],
-                intype = intype, group_by = group_by, group_by_sep = group_by_sep, id_by = id_by,
+                in_form = in_form, group_by = group_by, group_by_sep = group_by_sep, id_by = id_by,
                 label = label, label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
                 palette = palette, palcolor = palcolor, alpha = alpha,
                 theme = theme, theme_args = theme_args, title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,

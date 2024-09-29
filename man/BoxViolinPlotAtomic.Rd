@@ -8,9 +8,9 @@ BoxViolinPlotAtomic(
   data,
   x,
   x_sep = "_",
-  y,
+  y = NULL,
   base = c("box", "violin"),
-  intype = c("long", "wide"),
+  in_form = c("long", "wide"),
   sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc",
     "median"),
   flip = FALSE,
@@ -92,13 +92,15 @@ BoxViolinPlotAtomic(
 \item{x}{A character string of the column name to plot on the x-axis.
 A character/factor column is expected. If multiple columns are provided, the columns will be concatenated with \code{x_sep}.}
 
-\item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.}
+\item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.
+When \code{in_form} is "wide", \code{x} columns will not be concatenated.}
 
-\item{y}{A character string of the column name to plot on the y-axis. A numeric column is expected.}
+\item{y}{A character string of the column name to plot on the y-axis. A numeric column is expected.
+When \code{in_form} is "wide", \code{y} is not required. The values under \code{x} columns will be used as y-values.}
 
 \item{base}{A character string to specify the base plot type. Either "box" or "violin".}
 
-\item{intype}{A character string to specify the input data type. Either "long" or "wide".}
+\item{in_form}{A character string to specify the input data type. Either "long" or "wide".}
 
 \item{sort_x}{A character string to specify the sorting of x-axis. Either "none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median".}
 

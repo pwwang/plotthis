@@ -6,7 +6,7 @@
 \usage{
 UpsetPlotAtomic(
   data,
-  intype = NULL,
+  in_form = NULL,
   group_by = NULL,
   group_by_sep = "_",
   id_by = NULL,
@@ -33,7 +33,7 @@ UpsetPlotAtomic(
 \arguments{
 \item{data}{A data frame.}
 
-\item{intype}{A character string indicating the datatype of the input data.
+\item{in_form}{A character string indicating the datatype of the input data.
 Possible values are "long", "wide", "list", "upset" or NULL.
 "long" indicates the data is in long format.
 "wide" indicates the data is in wide format.

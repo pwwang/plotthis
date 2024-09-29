@@ -1,57 +1,14 @@
-#' Make the wide format data into long format
-#'
-#' @param data A data frame
-#' @param dodge_by A character string specifying the column name of the data frame to dodge the plot.
-#' @param dodge_by_sep A character string to concatenate the columns in `dodge_by`,
-#'   if multiple columns are provided and the types of the columns are not logical/(0, 1).
-#' @param facet_by A character string specifying the column name of the data frame to facet the plot.
-#' @keywords internal
-#' @return Transformed data with dodge_by and facet_by attributes
-#' @importFrom dplyr %>% filter select
-make_long <- function(data, dodge_by = NULL, dodge_by_sep = "_", facet_by = NULL) {
-    if (length(dodge_by) < 2 && length(facet_by) < 2) {
-        attr(data, "dodge_by") <- dodge_by
-        attr(data, "facet_by") <- facet_by
-        return(data)
-    }
-
-    if (length(dodge_by) > 1) {
-        # if all dodge_by columns are logical/(0, 1), then pivot it to long format
-        # otherwise, concatenate the columns
-        if (!any(sapply(dodge_by, function(x) !is.logical(data[[x]]) && !all(data[[x]] %in% c(0, 1))))) {
-            data <- data %>%
-                pivot_longer(cols = dodge_by, names_to = ".dodge_by", values_to = ".dodge_value") %>%
-                filter(!!sym(".dodge_value") == 1) %>%
-                select(-".dodge_value")
-        }
-        dodge_by <- ".dodge_by"
-    }
-
-    if (length(facet_by) > 1) {
-        if (!any(sapply(facet_by, function(x) !is.logical(data[[x]]) && !all(data[[x]] %in% c(0, 1))))) {
-            data <- data %>%
-                pivot_longer(cols = facet_by, names_to = ".facet_by", values_to = ".facet_value") %>%
-                filter(!!sym(".facet_value") == 1) %>%
-                select(-".facet_value")
-
-            facet_by <- ".facet_by"
-        }
-    }
-
-    attr(data, "dodge_by") <- dodge_by
-    attr(data, "facet_by") <- facet_by
-    return(data)
-}
-
 #' Atomic Box/Violin plot
 #'
 #' @inheritParams common_args
 #' @param x A character string of the column name to plot on the x-axis.
-#'   A character/factor column is expected. If multiple columns are provided, the columns will be concatenated with `x_sep`.
+#'  A character/factor column is expected. If multiple columns are provided, the columns will be concatenated with `x_sep`.
 #' @param x_sep A character string to concatenate the columns in `x`, if multiple columns are provided.
+#'  When `in_form` is "wide", `x` columns will not be concatenated.
 #' @param y A character string of the column name to plot on the y-axis. A numeric column is expected.
+#'  When `in_form` is "wide", `y` is not required. The values under `x` columns will be used as y-values.
 #' @param base A character string to specify the base plot type. Either "box" or "violin".
-#' @param intype A character string to specify the input data type. Either "long" or "wide".
+#' @param in_form A character string to specify the input data type. Either "long" or "wide".
 #' @param sort_x A character string to specify the sorting of x-axis. Either "none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median".
 #' @param flip A logical value to flip the plot.
 #' @param keep_empty A logical value to keep the empty levels in the x-axis.
@@ -117,7 +74,7 @@ make_long <- function(data, dodge_by = NULL, dodge_by_sep = "_", facet_by = NULL
 #' @importFrom ggplot2 labs theme element_line element_text position_dodge position_jitter coord_flip layer_scales
 #' @importFrom ggplot2 position_jitterdodge scale_shape_identity scale_size_manual scale_alpha_manual scale_y_continuous
 BoxViolinPlotAtomic <- function(
-    data, x, x_sep = "_", y, base = c("box", "violin"), intype = c("long", "wide"),
+    data, x, x_sep = "_", y = NULL, base = c("box", "violin"), in_form = c("long", "wide"),
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
     flip = FALSE, keep_empty = FALSE, dodge_by = NULL, dodge_by_sep = "_", dodge_name = NULL,
     x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
@@ -138,15 +95,15 @@ BoxViolinPlotAtomic <- function(
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525, ...) {
     set.seed(seed)
-    intype <- match.arg(intype)
-    if (intype == "wide") {
-        data <- make_long(data, dodge_by = dodge_by, dodge_by_sep = dodge_by_sep, facet_by = facet_by)
-        dodge_by <- attr(data, "dodge_by")
-        facet_by <- attr(data, "facet_by")
+    in_form <- match.arg(in_form)
+    if (in_form == "wide") {
+        data <- data %>% pivot_longer(cols = x, names_to = ".x", values_to = ".y")
+        x <- ".x"
+        y <- ".y"
     }
-
     x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
     y <- check_columns(data, y)
+
     dodge_by <- check_columns(data, dodge_by,
         force_factor = TRUE,
         allow_multi = TRUE, concat_multi = TRUE, concat_sep = dodge_by_sep
@@ -482,7 +439,7 @@ BoxViolinPlotAtomic <- function(
 #' @keywords internal
 #' @importFrom rlang %||%
 BoxViolinPlot <- function(
-    data, x, x_sep = "_", y, base = c("box", "violin"), intype = c("long", "wide"),
+    data, x, x_sep = "_", y = NULL, base = c("box", "violin"), in_form = c("long", "wide"),
     split_by = NULL, split_by_sep = "_",
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
     flip = FALSE, keep_empty = FALSE, dodge_by = NULL, dodge_by_sep = "_", dodge_name = NULL,
@@ -528,7 +485,7 @@ BoxViolinPlot <- function(
                 title <- title %||% default_title
             }
             BoxViolinPlotAtomic(datas[[nm]],
-                x = x, x_sep = x_sep, y = y, base = base, intype = intype,
+                x = x, x_sep = x_sep, y = y, base = base, in_form = in_form,
                 sort_x = sort_x, flip = flip, keep_empty = keep_empty, dodge_by = dodge_by, dodge_by_sep = dodge_by_sep, dodge_name = dodge_name,
                 x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse,
                 theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
@@ -573,8 +530,16 @@ BoxViolinPlot <- function(
 #' BoxPlot(data, x = "x", y = "y",
 #'         stack = TRUE, flip = TRUE, facet_by = "group1",
 #'         add_bg = TRUE, bg_palette = "Paired")
+#'
+#' # wide form data
+#' data_wide <- data.frame(
+#'    A = rnorm(100),
+#'    B = rnorm(100),
+#'    C = rnorm(100),
+#' )
+#' BoxPlot(data_wide, x = c("A", "B", "C"), in_form = "wide")
 BoxPlot <- function(
-    data, x, x_sep = "_", y, intype = c("long", "wide"),
+    data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
     split_by = NULL, split_by_sep = "_",
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
     flip = FALSE, keep_empty = FALSE, dodge_by = NULL, dodge_by_sep = "_", dodge_name = NULL,
@@ -598,7 +563,7 @@ BoxPlot <- function(
 
     stat_name <- stat_name %||% paste0(y, " (", deparse(substitute(add_stat)), ")")
     BoxViolinPlot(
-        data = data, x = x, x_sep = x_sep, y = y, base = "box", intype = intype,
+        data = data, x = x, x_sep = x_sep, y = y, base = "box", in_form = in_form,
         split_by = split_by, split_by_sep = split_by_sep,
         sort_x = sort_x, flip = flip, keep_empty = keep_empty, dodge_by = dodge_by, dodge_by_sep = dodge_by_sep, dodge_name = dodge_name,
         x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse,
@@ -643,7 +608,7 @@ BoxPlot <- function(
            #' facet_by = "group2", add_box = TRUE, add_bg = TRUE,
            #' bg_palette = "Paired")
 ViolinPlot <- function(
-    data, x, x_sep = "_", y, intype = c("long", "wide"),
+    data, x, x_sep = "_", y, in_form = c("long", "wide"),
     split_by = NULL, split_by_sep = "_",
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
     flip = FALSE, keep_empty = FALSE, dodge_by = NULL, dodge_by_sep = "_", dodge_name = NULL,
@@ -668,7 +633,7 @@ ViolinPlot <- function(
 
     stat_name <- stat_name %||% paste0(y, " (", deparse(substitute(add_stat)), ")")
     BoxViolinPlot(
-        data = data, x = x, x_sep = x_sep, y = y, base = "violin", intype = intype,
+        data = data, x = x, x_sep = x_sep, y = y, base = "violin", in_form = in_form,
         split_by = split_by, split_by_sep = split_by_sep,
         sort_x = sort_x, flip = flip, keep_empty = keep_empty, dodge_by = dodge_by, dodge_by_sep = dodge_by_sep, dodge_name = dodge_name,
         x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse,

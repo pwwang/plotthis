@@ -7,7 +7,7 @@
 \usage{
 PrepareUpsetData(
   data,
-  intype = NULL,
+  in_form = NULL,
   group_by = NULL,
   group_by_sep = "_",
   id_by = NULL
@@ -15,7 +15,7 @@ PrepareUpsetData(
 
 UpsetPlot(
   data,
-  intype = NULL,
+  in_form = NULL,
   split_by = NULL,
   split_by_sep = "_",
   group_by = NULL,
@@ -49,7 +49,7 @@ UpsetPlot(
 \arguments{
 \item{data}{A data frame or a list or an UpsetPlotData object.}
 
-\item{intype}{A character string indicating the datatype of the input data.
+\item{in_form}{A character string indicating the datatype of the input data.
 Possible values are "long", "wide", "list", "upset" or NULL.
 "long" indicates the data is in long format.
 "wide" indicates the data is in wide format.
@@ -94,7 +94,7 @@ list(c("A", "B"))  # a1
 \item{group_by}{A character string specifying the column name of the data frame to group the data.}
 
 \item{group_by_sep}{A character string to concatenate the columns in \code{group_by},
-if multiple columns are provided and the intype is "long".}
+if multiple columns are provided and the in_form is "long".}
 
 \item{id_by}{A character string specifying the column name of the data frame to identify the instances.
 Required when \code{group_by} is a single column and data is a data frame.}

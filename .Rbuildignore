@@ -11,3 +11,5 @@
 ^test\.ipynb$
 ^.+\.Rcheck/.+$
 ^.+\.tar\.gz$
+^\.github\/.+$
+^conda\/.+

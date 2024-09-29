@@ -32,7 +32,7 @@ detect_venn_datatype <- function(data, group_by = NULL, id_by = NULL) {
 #' @rdname venndiagram1
 #' @export
 #' @param data A data frame or a list or a VennPlotData object.
-#' @param intype A character string indicating the datatype of the input data.
+#' @param in_form A character string indicating the datatype of the input data.
 #'   Possible values are "long", "wide", "list", "venn" or NULL.
 #'   "long" indicates the data is in long format.
 #'   "wide" indicates the data is in wide format.
@@ -66,38 +66,38 @@ detect_venn_datatype <- function(data, group_by = NULL, id_by = NULL) {
 #'
 #' @param group_by A character string specifying the column name of the data frame to group the data.
 #' @param group_by_sep A character string to concatenate the columns in `group_by`,
-#'   if multiple columns are provided and the intype is "long".
+#'   if multiple columns are provided and the in_form is "long".
 #' @param id_by A character string specifying the column name of the data frame to identify the instances.
 #'  Required when `group_by` is a single column and data is a data frame.
 #' @return A VennPlotData object
-PrepareVennData <- function(data, intype = NULL, group_by = NULL, group_by_sep = "_", id_by = NULL) {
+PrepareVennData <- function(data, in_form = NULL, group_by = NULL, group_by_sep = "_", id_by = NULL) {
     # if (!requireNamespace("ggVennDiagram", quietly = TRUE)) {
     #     stop("ggVennDiagram is required for Venn diagram and its data processing.")
     # }
-    if (is.null(intype)) {
-        intype <- detect_venn_datatype(data, group_by, id_by)
+    if (is.null(in_form)) {
+        in_form <- detect_venn_datatype(data, group_by, id_by)
     }
-    if (intype == "venn") {
+    if (in_form == "venn") {
         if (!is.null(group_by)) {
             warning("The 'group_by' argument is ignored when the input data is already a 'VennPlotData' object.", immediate. = TRUE)
         }
         return(data)
     }
 
-    if (intype == "list") {
+    if (in_form == "list") {
         if (!is.list(data)) {
-            stop("The input data must be a list when the intype is 'list'.")
+            stop("The input data must be a list when the in_form is 'list'.")
         }
         listdata <- data
-    } else if (intype == "long") {
+    } else if (in_form == "long") {
         group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
         listdata <- split(data[[id_by]], data[[group_by]])
-    } else {  # intype == "wide"
+    } else {  # in_form == "wide"
         group_by <- check_columns(data, group_by)
         for (g in group_by) {
             # columns must be logical or 0/1
             if (!is.logical(data[[g]]) && !all(data[[g]] %in% c(0, 1))) {
-                stop("The columns in group_by must be logical or 0/1 when the intype is 'wide'.")
+                stop("The columns in group_by must be logical or 0/1 when the in_form is 'wide'.")
             }
         }
         data$.id <- paste0("id", seq_len(nrow(data)))
@@ -132,7 +132,7 @@ PrepareVennData <- function(data, intype = NULL, group_by = NULL, group_by_sep =
 #' @importFrom ggplot2 geom_polygon geom_path coord_equal aes scale_x_continuous labs
 #' @importFrom ggrepel geom_text_repel
 VennDiagramAtomic <- function(
-    data, intype = NULL, group_by = NULL, group_by_sep = "_", id_by = NULL,
+    data, in_form = NULL, group_by = NULL, group_by_sep = "_", id_by = NULL,
     label = c("count", "percent", "both", "none"), label_fg = "black",
     label_size = NULL, label_bg = "white", label_bg_r = 0.1,
     fill_mode = "count", fill_name = NULL,
@@ -148,7 +148,7 @@ VennDiagramAtomic <- function(
 
     label <- match.arg(label)
     fill_mode <- match.arg(fill_mode, c("count", "set", "count_rev"))
-    data <- PrepareVennData(data, intype, group_by, group_by_sep, id_by)
+    data <- PrepareVennData(data, in_form, group_by, group_by_sep, id_by)
     data_regionedge <- ggVennDiagram::venn_regionedge(data)
     data_setedge <- ggVennDiagram::venn_setedge(data)
     data_regionlabel <- ggVennDiagram::venn_regionlabel(data)
@@ -275,7 +275,7 @@ VennDiagramAtomic <- function(
 #' VennDiagram(data, label = "both")
 #' VennDiagram(data, palette = "material-indigo", alpha = 0.6)
 VennDiagram <- function(
-    data, intype = NULL, split_by = NULL, split_by_sep = "_",
+    data, in_form = NULL, split_by = NULL, split_by_sep = "_",
     group_by = NULL, group_by_sep = "_", id_by = NULL,
     label = c("count", "percent", "both", "none"), label_fg = "black",
     label_size = NULL, label_bg = "white", label_bg_r = 0.1,
@@ -309,7 +309,7 @@ VennDiagram <- function(
                 title <- title %||% default_title
             }
             VennDiagramAtomic(datas[[nm]],
-                intype = intype, group_by = group_by, group_by_sep = group_by_sep, id_by = id_by,
+                in_form = in_form, group_by = group_by, group_by_sep = group_by_sep, id_by = id_by,
                 label = label, label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
                 fill_mode = fill_mode, fill_name = fill_name, palette = palette, palcolor = palcolor, alpha = alpha,
                 theme = theme, theme_args = theme_args, title = title, subtitle = subtitle,

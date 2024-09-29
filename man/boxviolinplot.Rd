@@ -9,8 +9,8 @@ BoxPlot(
   data,
   x,
   x_sep = "_",
-  y,
-  intype = c("long", "wide"),
+  y = NULL,
+  in_form = c("long", "wide"),
   split_by = NULL,
   split_by_sep = "_",
   sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc",
@@ -91,7 +91,7 @@ ViolinPlot(
   x,
   x_sep = "_",
   y,
-  intype = c("long", "wide"),
+  in_form = c("long", "wide"),
   split_by = NULL,
   split_by_sep = "_",
   sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc",
@@ -176,11 +176,12 @@ ViolinPlot(
 
 \item{x}{A character string specifying the column name of the data frame to plot for the x-axis.}
 
-\item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.}
+\item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.
+When \code{in_form} is "wide", \code{x} columns will not be concatenated.}
 
 \item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
 
-\item{intype}{A character string to specify the input data type. Either "long" or "wide".}
+\item{in_form}{A character string to specify the input data type. Either "long" or "wide".}
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
@@ -362,6 +363,14 @@ BoxPlot(data, x = "x", y = "y")
 BoxPlot(data, x = "x", y = "y",
         stack = TRUE, flip = TRUE, facet_by = "group1",
         add_bg = TRUE, bg_palette = "Paired")
+
+# wide form data
+data_wide <- data.frame(
+   A = rnorm(100),
+   B = rnorm(100),
+   C = rnorm(100),
+)
+BoxPlot(data_wide, x = c("A", "B", "C"))
 ViolinPlot(data, x = "x", y = "y")
 ViolinPlot(data, x = "x", y = "y", add_box = TRUE)
 ViolinPlot(data, x = "x", y = "y", add_point = TRUE)

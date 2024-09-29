@@ -8,9 +8,9 @@ BoxViolinPlot(
   data,
   x,
   x_sep = "_",
-  y,
+  y = NULL,
   base = c("box", "violin"),
-  intype = c("long", "wide"),
+  in_form = c("long", "wide"),
   split_by = NULL,
   split_by_sep = "_",
   sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc",
@@ -95,13 +95,14 @@ BoxViolinPlot(
 
 \item{x}{A character string specifying the column name of the data frame to plot for the x-axis.}
 
-\item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.}
+\item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.
+When \code{in_form} is "wide", \code{x} columns will not be concatenated.}
 
 \item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
 
 \item{base}{A character string to specify the base plot type. Either "box" or "violin".}
 
-\item{intype}{A character string to specify the input data type. Either "long" or "wide".}
+\item{in_form}{A character string to specify the input data type. Either "long" or "wide".}
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
