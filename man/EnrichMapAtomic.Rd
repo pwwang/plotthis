@@ -6,9 +6,8 @@
 \usage{
 EnrichMapAtomic(
   data,
-  top_term = 10,
+  top_term = 100,
   metric = "p.adjust",
-  cutoff = 0.05,
   layout = "fr",
   minchar = 2,
   cluster = "fast_greedy",
@@ -52,11 +51,8 @@ qvalue, geneID and Count.
 \item{top_term}{An integer specifying the number of top terms to show.}
 
 \item{metric}{A character string specifying the metric to use for the size of the nodes.
+It is also used to order the terms when selected the top terms.
 Either "pvalue" or "p.adjust". The default is "p.adjust".}
-
-\item{cutoff}{A numeric value specifying the cutoff of the metric to filter the terms.
-The records will be filtered by both the \code{top_term} and \code{cutoff} if provided.
-To skip either/both of them, set it/them to \code{NULL}.}
 
 \item{layout}{A character string specifying the layout of the graph.
 Either "circle", "tree", "grid" or other layout functions in \code{igraph}.}
@@ -97,11 +93,14 @@ Default is "theme_this".}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
-\item{legend.position}{A character string specifying the position of the legend.}
+\item{legend.position}{A character string specifying the position of the legend.
+if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
-\item{title}{A character string specifying the title of the plot.}
+\item{title}{A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{subtitle}{A character string specifying the subtitle of the plot.}
 

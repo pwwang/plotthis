@@ -60,7 +60,9 @@ If \code{gene_ranks} is a character vector starting with \code{@}, the gene rank
 
 \item{label_size}{The size of the label text}
 
-\item{title}{A character string specifying the title of the plot.}
+\item{title}{A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{subtitle}{A character string specifying the subtitle of the plot.}
 

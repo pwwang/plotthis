@@ -13,6 +13,12 @@ BarPlot(
   flip = FALSE,
   fill_by_x_if_no_group = TRUE,
   line_name = NULL,
+  label_nudge = 0,
+  label = NULL,
+  label_fg = "black",
+  label_size = 4,
+  label_bg = "white",
+  label_bg_r = 0.1,
   group_by = NULL,
   group_by_sep = "_",
   split_by = NULL,
@@ -243,11 +249,14 @@ If "auto", the position will be "stack" if group_by has more than 5 levels, othe
 
 \item{position_dodge_preserve}{Should dodging preserve the "total" width of all elements at a position, or the width of a "single" element?}
 
-\item{legend.position}{A character string specifying the position of the legend.}
+\item{legend.position}{A character string specifying the position of the legend.
+if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
-\item{title}{A character string specifying the title of the plot.}
+\item{title}{A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{subtitle}{A character string specifying the subtitle of the plot.}
 
@@ -337,6 +346,8 @@ data <- data.frame(
 
 BarPlot(data, x = "x", y = "y")
 BarPlot(data, x = "x", y = "y", fill_by_x_if_no_group = FALSE)
+BarPlot(data, x = "x", y = "y", label = TRUE)
+BarPlot(data, x = "x", y = "y", label = "facet", label_nudge = 1)
 BarPlot(data, x = "group", y = "y", group_by = "x")
 BarPlot(data,
     x = "group", y = "y", group_by = "x",

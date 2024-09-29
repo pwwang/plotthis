@@ -247,7 +247,8 @@ This is useful when merging multiple heatmaps using patchwork.}
 
 \item{alpha}{A numeric value between 0 and 1 specifying the transparency of the heatmap cells.}
 
-\item{legend.position}{A character string specifying the position of the legend.}
+\item{legend.position}{A character string specifying the position of the legend.
+if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 

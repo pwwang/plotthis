@@ -19,63 +19,64 @@ $ conda install pwwang::r-plotthis
 ## Gallery
 [`AreaPlot`][2] / [`TrendPlot`][3]
 
-![](man/figures/area-trend.png)
+![area-trend](man/figures/area-trend.png)
 
 [`ClustreePlot`][4] / [`LinePlot`][5]
 
-![](man/figures/clustree-line.png)
+![clustree-line](man/figures/clustree-line.png)
 
 [`Heatmap`][6]
 
-![](man/figures/heatmap.png)
+![heatmap](man/figures/heatmap.png)
 
 [`PieChart`][7] / [`RingPlot`][8]
 
-![](man/figures/pie-ring.png)
+![pie-ring](man/figures/pie-ring.png)
 
 [`VolcanoPlot`][9] / [`WordCloudPlot`][10]
 
-![](man/figures/volcano-wordcloud.png)
+![volcano-wordcloud](man/figures/volcano-wordcloud.png)
 
 [`BarPlot`][11] / [`SplitBarPlot`][11]
 
-![](man/figures/bar-splitbar.png)
+![bar-splitbar](man/figures/bar-splitbar.png)
 
 [`BoxPlot`][12] / [`ViolinPlot`][12]
 
-![](man/figures/box-violin.png)
+![box-violin](man/figures/box-violin.png)
 
 [`ChordPlot`][13] / [`UpsetPlot`][14] / [`VennDiagram`][15]
 
-![](man/figures/chord-upset-venn.png)
+![chord-upset-venn](man/figures/chord-upset-venn.png)
 
 [`DensityPlot`][16] / [`Histogram`][16]
 
-![](man/figures/density-histogram.png)
+![density-histogram](man/figures/density-histogram.png)
 
 [`DimPlot`][17] / [`FeatureDimPlot`][17]
 
-![](man/figures/dimplot.png)
+![dimplot](man/figures/dimplot.png)
 
 [`DotPlot`][18] / [`ScatterPlot`][18] / [`LollipopPlot`][18]
 
-![](man/figures/dot-scatter-lollipop.png)
+![dot-scatter-lollipop](man/figures/dot-scatter-lollipop.png)
 
 [`EnrichMap`][19] / [`EnrichNetwork`][19]
 
-![](man/figures/enrich.png)
+![enrich](man/figures/enrich.png)
 
 [`GSEASummaryPlot`][20] / [`GSEAPlot`][20]
 
-![](man/figures/gsea.png)
+![gsea](man/figures/gsea.png)
 
 [`RadarPlot`][21] / [`SpiderPlot`][21]
 
-![](man/figures/radar-spider.png)
+![radar-spider](man/figures/radar-spider.png)
 
 [`SankeyPlot`][22] / [`AlluvialPlot`][22]
 
-![](man/figures/sankey-alluvial.png)
+![sankey-alluvial](man/figures/sankey-alluvial.png)
+
 
 [1]: https://zhanghao-njmu.github.io/SCP/index.html
 [2]: https://pwwang.github.io/plotthis/reference/AreaPlot.html

@@ -96,13 +96,17 @@ DimPlot(
 FeatureDimPlot(
   data,
   dims = 1:2,
+  features,
   split_by = NULL,
   split_by_sep = "_",
+  lower_quantile = 0,
+  upper_quantile = 0.99,
+  lower_cutoff = NULL,
+  upper_cutoff = NULL,
   pt_size = NULL,
   pt_alpha = 1,
   bg_color = "grey80",
-  features,
-  bg_cutoff = 0,
+  bg_cutoff = NULL,
   label_insitu = FALSE,
   show_stat = !identical(theme, "theme_blank"),
   color_name = "",
@@ -193,7 +197,8 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 
 \item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
 
-\item{split_by}{The column(s) to split data by and plot separately.}
+\item{split_by}{A character vector of column names to split the data and plot separately
+If TRUE, we will split the data by the \code{features}. Each feature will be plotted separately.}
 
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
@@ -313,7 +318,9 @@ When facet_by is a single column and facet_wrap is used.}
 
 \item{facet_byrow}{A logical value indicating whether to fill the plots by row. Default is TRUE.}
 
-\item{title}{A character string specifying the title of the plot.}
+\item{title}{A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{subtitle}{A character string specifying the subtitle of the plot.}
 
@@ -328,7 +335,8 @@ Default is "theme_this".}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
-\item{legend.position}{A character string specifying the position of the legend.}
+\item{legend.position}{A character string specifying the position of the legend.
+if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
@@ -364,7 +372,9 @@ Default is "theme_this".}
 
 \item{features}{A character vector of the column names to plot as features.}
 
-\item{bg_cutoff}{A numeric value to be used a cutoff to set the feature values to NA. Default is 0.}
+\item{lower_quantile, upper_quantile, lower_cutoff, upper_cutoff}{Vector of minimum and maximum cutoff values or quantile values for each feature.}
+
+\item{bg_cutoff}{A numeric value to be used a cutoff to set the feature values to NA. Default is NULL.}
 
 \item{color_name}{A character string of the color legend name. Default is "".}
 }

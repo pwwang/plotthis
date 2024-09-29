@@ -6,9 +6,8 @@
 \usage{
 EnrichNetworkAtomic(
   data,
-  top_term = 10,
+  top_term = 6,
   metric = "p.adjust",
-  cutoff = 0.05,
   character_width = 50,
   layout = "fr",
   layoutadjust = TRUE,
@@ -57,11 +56,14 @@ Default is "theme_this".}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
-\item{legend.position}{A character string specifying the position of the legend.}
+\item{legend.position}{A character string specifying the position of the legend.
+if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
-\item{title}{A character string specifying the title of the plot.}
+\item{title}{A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{subtitle}{A character string specifying the subtitle of the plot.}
 

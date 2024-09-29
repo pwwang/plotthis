@@ -257,7 +257,8 @@ Could be a list with the keys as the names of the annotation and the values as t
 
 \item{alpha}{A numeric value specifying the transparency of the plot.}
 
-\item{legend.position}{A character string specifying the position of the legend.}
+\item{legend.position}{A character string specifying the position of the legend.
+if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 

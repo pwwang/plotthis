@@ -10,10 +10,14 @@ DimPlotAtomic(
   group_by = NULL,
   group_by_sep = "_",
   features = NULL,
+  lower_quantile = 0,
+  upper_quantile = 0.99,
+  lower_cutoff = NULL,
+  upper_cutoff = NULL,
   pt_size = NULL,
   pt_alpha = 1,
   bg_color = "grey80",
-  bg_cutoff = 0,
+  bg_cutoff = NULL,
   color_name = "",
   label_insitu = FALSE,
   show_stat = !identical(theme, "theme_blank"),
@@ -40,7 +44,8 @@ DimPlotAtomic(
   stat_by = NULL,
   stat_plot_type = c("pie", "ring", "bar", "line"),
   stat_plot_size = 0.1,
-  stat_args = list(palette = "Set1"),
+  stat_palette = "Set1",
+  stat_args = list(),
   graph = NULL,
   edge_size = c(0.05, 0.5),
   edge_alpha = 0.1,
@@ -101,13 +106,15 @@ A character/factor column is expected. If multiple columns are provided, the col
 
 \item{features}{A character vector of the column names to plot as features.}
 
+\item{lower_quantile, upper_quantile, lower_cutoff, upper_cutoff}{Vector of minimum and maximum cutoff values or quantile values for each feature.}
+
 \item{pt_size}{A numeric value of the point size. If NULL, the point size will be calculated based on the number of data points.}
 
 \item{pt_alpha}{A numeric value of the point transparency. Default is 1.}
 
 \item{bg_color}{A character string of the background or NA points. Default is "grey80".}
 
-\item{bg_cutoff}{A numeric value to be used a cutoff to set the feature values to NA. Default is 0.}
+\item{bg_cutoff}{A numeric value to be used a cutoff to set the feature values to NA. Default is NULL.}
 
 \item{color_name}{A character string of the color legend name. Default is "".}
 
@@ -221,7 +228,9 @@ When facet_by is a single column and facet_wrap is used.}
 
 \item{facet_byrow}{A logical value indicating whether to fill the plots by row. Default is TRUE.}
 
-\item{title}{A character string specifying the title of the plot.}
+\item{title}{A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{subtitle}{A character string specifying the subtitle of the plot.}
 
@@ -236,7 +245,8 @@ Default is "theme_this".}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
-\item{legend.position}{A character string specifying the position of the legend.}
+\item{legend.position}{A character string specifying the position of the legend.
+if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 

@@ -11,6 +11,12 @@ BarPlotAtomic(
   flip = FALSE,
   group_by = NULL,
   fill_by_x_if_no_group = TRUE,
+  label_nudge = 0,
+  label = NULL,
+  label_fg = "black",
+  label_size = 4,
+  label_bg = "white",
+  label_bg_r = 0.1,
   add_bg = FALSE,
   bg_palette = "stripe",
   bg_palcolor = NULL,
@@ -118,11 +124,14 @@ If "auto", the position will be "stack" if group_by has more than 5 levels, othe
 
 \item{y_max}{A numeric value to specify the maximum value of the y axis.}
 
-\item{legend.position}{A character string specifying the position of the legend.}
+\item{legend.position}{A character string specifying the position of the legend.
+if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
-\item{title}{A character string specifying the title of the plot.}
+\item{title}{A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{subtitle}{A character string specifying the subtitle of the plot.}
 

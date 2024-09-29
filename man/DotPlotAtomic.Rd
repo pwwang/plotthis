@@ -113,7 +113,8 @@ When facet_by is a single column and facet_wrap is used.}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
-\item{legend.position}{A character string specifying the position of the legend.}
+\item{legend.position}{A character string specifying the position of the legend.
+if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
@@ -128,7 +129,9 @@ When facet_by is a single column and facet_wrap is used.}
 \item{bg_direction}{A character vector specifying the direction for the background color. Default is "vertical".
 Other options are "horizontal". "h" and "v" are also accepted.}
 
-\item{title}{A character string specifying the title of the plot.}
+\item{title}{A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{subtitle}{A character string specifying the subtitle of the plot.}
 

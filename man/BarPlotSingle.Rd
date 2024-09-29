@@ -10,6 +10,12 @@ BarPlotSingle(
   y = NULL,
   flip = FALSE,
   facet_by = NULL,
+  label = NULL,
+  label_nudge = 0,
+  label_fg = "black",
+  label_size = 4,
+  label_bg = "white",
+  label_bg_r = 0.1,
   theme = "theme_this",
   theme_args = list(),
   palette = "Paired",
@@ -35,7 +41,7 @@ BarPlotSingle(
   xlab = NULL,
   ylab = NULL,
   keep_empty = FALSE,
-  expand = 0,
+  expand = waiver(),
   fill_by_x = TRUE,
   width = 0.9,
   ...
@@ -54,6 +60,19 @@ Default is NULL, meaning the y axis is the count of the data.}
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
 and combine them into one using \code{patchwork::wrap_plots}}
+
+\item{label}{A column name for the values to be displayed on the top of the bars.
+If TRUE, the y values will be displayed.}
+
+\item{label_nudge}{A numeric value to nudge the labels (the distance between the label and the top of the bar).}
+
+\item{label_fg}{A character string indicating the color of the label.}
+
+\item{label_size}{A numeric value indicating the size of the label.}
+
+\item{label_bg}{A character string indicating the background color of the label.}
+
+\item{label_bg_r}{A numeric value indicating the radius of the background.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -74,7 +93,8 @@ Default is "theme_this".}
 
 \item{y_max}{A numeric value to specify the maximum value of the y axis.}
 
-\item{legend.position}{A character string specifying the position of the legend.}
+\item{legend.position}{A character string specifying the position of the legend.
+if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
@@ -96,7 +116,9 @@ Default is "theme_this".}
 
 \item{trend_ptsize}{A numeric value to specify the size of the trend line points.}
 
-\item{title}{A character string specifying the title of the plot.}
+\item{title}{A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{subtitle}{A character string specifying the subtitle of the plot.}
 

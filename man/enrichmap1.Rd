@@ -14,7 +14,6 @@ EnrichMap(
   split_by_sep = "_",
   top_term = 10,
   metric = "p.adjust",
-  cutoff = 0.05,
   layout = "fr",
   minchar = 2,
   cluster = "fast_greedy",
@@ -51,7 +50,6 @@ EnrichNetwork(
   split_by_sep = "_",
   top_term = 10,
   metric = "p.adjust",
-  cutoff = 0.05,
   character_width = 50,
   layout = "fr",
   layoutadjust = TRUE,
@@ -103,11 +101,8 @@ You can plot them in a single plot using the \code{split_by} argument (e.g. \cod
 \item{top_term}{An integer specifying the number of top terms to show.}
 
 \item{metric}{A character string specifying the metric to use for the size of the nodes.
+It is also used to order the terms when selected the top terms.
 Either "pvalue" or "p.adjust". The default is "p.adjust".}
-
-\item{cutoff}{A numeric value specifying the cutoff of the metric to filter the terms.
-The records will be filtered by both the \code{top_term} and \code{cutoff} if provided.
-To skip either/both of them, set it/them to \code{NULL}.}
 
 \item{layout}{A character string specifying the layout of the graph.
 Either "circle", "tree", "grid" or other layout functions in \code{igraph}.}
@@ -154,11 +149,14 @@ Default is "theme_this".}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
-\item{legend.position}{A character string specifying the position of the legend.}
+\item{legend.position}{A character string specifying the position of the legend.
+if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
-\item{title}{A character string specifying the title of the plot.}
+\item{title}{A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{subtitle}{A character string specifying the subtitle of the plot.}
 
@@ -204,9 +202,7 @@ EnrichMap(enrich_example, label = "feature")
 EnrichMap(enrich_example, show_keyword = TRUE, label = "term")
 EnrichMap(enrich_example, show_keyword = TRUE, label = "feature")
 
-enrich_example$Database <- "DB1"
-enrich_example2 <- enrich_example
-enrich_example2$Database <- "DB2"
-EnrichMap(rbind(enrich_example, enrich_example2), split_by = "Database")
+data(enrich_multidb_example)
+EnrichMap(enrich_multidb_example, split_by = "Database")
 EnrichNetwork(enrich_example, top_term = 5)
 }

@@ -11,6 +11,8 @@ facet_plot(
   nrow,
   ncol,
   byrow,
+  legend.position = "right",
+  legend.direction = "vertical",
   recalc_size = TRUE,
   ...
 )
@@ -28,6 +30,10 @@ If NULL, no faceting will be done}
 \item{ncol}{The number of columns in facet_wrap}
 
 \item{byrow}{Whether to fill the plots by row}
+
+\item{legend.position}{The position of the legend}
+
+\item{legend.direction}{The direction of the legend}
 
 \item{recalc_size}{Whether to re-calculate the size of the plot}
 
