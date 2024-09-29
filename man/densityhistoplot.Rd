@@ -3,7 +3,7 @@
 \name{DensityPlot}
 \alias{DensityPlot}
 \alias{Histogram}
-\title{Atomic ridge plot}
+\title{Density Plot / Histogram}
 \usage{
 DensityPlot(
   data,
@@ -84,12 +84,7 @@ Histogram(
 )
 }
 \arguments{
-\item{data}{A data frame
-It has two forms: wide and long.
-For the wide form, the values should under different 'group_by' columns.
-For the long form, the values should be under the 'x' column and the 'group_by' column should be provided,
-which should be a single column with the group names.
-Density Plot / Histogram / Ridge Plot}
+\item{data}{A data frame.}
 
 \item{x}{A character string specifying the column name of the data frame to plot for the x-axis.}
 
@@ -186,14 +181,14 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 A ggplot object or wrap_plots object or a list of ggplot objects
 }
 \description{
-Density plot, histogram, ridge plot to illustrate the distribution of the data.
+Density plot and histogram to illustrate the distribution of the data.
 }
 \examples{
 set.seed(8525)
 data <- data.frame(
-   x = c(rnorm(500, -1), rnorm(500, 1)),
-   group = rep(c("A", "B"), each = 500),
-   facet = sample(c("F1", "F2"), 1000, replace = TRUE)
+    x = c(rnorm(500, -1), rnorm(500, 1)),
+    group = rep(c("A", "B"), each = 500),
+    facet = sample(c("F1", "F2"), 1000, replace = TRUE)
 )
 
 DensityPlot(data, x = "x")

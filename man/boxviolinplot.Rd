@@ -370,7 +370,7 @@ data_wide <- data.frame(
    B = rnorm(100),
    C = rnorm(100),
 )
-BoxPlot(data_wide, x = c("A", "B", "C"))
+BoxPlot(data_wide, x = c("A", "B", "C"), in_form = "wide")
 ViolinPlot(data, x = "x", y = "y")
 ViolinPlot(data, x = "x", y = "y", add_box = TRUE)
 ViolinPlot(data, x = "x", y = "y", add_point = TRUE)
