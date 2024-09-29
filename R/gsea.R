@@ -141,7 +141,7 @@ GSEASummaryPlot <- function(
     check_columns(data, "Description", force_factor = TRUE)
     data$Description <- droplevels(data$Description)
     data <- data[order(data$Description), , drop = FALSE]
-    data$Description <- str_wrap(data$Description, width = character_width, whitespace_only = FALSE)
+    data$Description <- str_wrap(data$Description, width = character_width)
     data$Description <- factor(data$Description, levels = unique(data$Description))
     data$y <- as.integer(data$Description)
 
@@ -242,7 +242,7 @@ GSEASummaryPlot <- function(
     max_nchar_y <- min(max(nchar(levels(data$Description))), character_width)
     height <- nrow(data) * 0.65
     width <- max_nchar_y * 0.1 + 5
-    if (legend.position != "none") {
+    if (!identical(legend.position, "none")) {
         if (legend.position %in% c("right", "left")) {
             width <- width + 1.5
         } else if (legend.direction == "horizontal") {

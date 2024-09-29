@@ -19,12 +19,12 @@
 #' @importFrom rlang syms :=
 #' @importFrom dplyr group_by summarise n %>%
 #' @importFrom ggplot2 geom_area scale_x_discrete scale_y_continuous scale_fill_manual
-#' @importFrom ggplot2 labs theme element_line element_text position_stack
+#' @importFrom ggplot2 labs theme element_line element_text position_stack waiver
 AreaPlotAtomic <- function(
     data, x, y = NULL, x_sep = "_", fill_by = NULL, fill_by_sep = "_", fill_name = NULL, scale_y = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    x_text_angle = 0, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
+    x_text_angle = 0, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, ...
 ) {
     x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
@@ -47,9 +47,18 @@ AreaPlotAtomic <- function(
     if (is.null(fill_by)) {
         data$.fill <- factor("")
         fill_by <- ".fill"
-        fill_guide = ifelse(legend.position == "none", "none", "legend")
+        legend.position <- ifelse(inherits(legend.position, "waiver"), "none", "right")
     } else {
-        fill_guide = "legend"
+        data[[fill_by]] <- droplevels(data[[fill_by]])
+        # fill up some missing fill_by values for each x, and fill it with 0 for y
+        fill_levels <- levels(data[[fill_by]])
+        complete_fill <- list(0)
+        names(complete_fill) <- y
+        data <- data %>%
+            group_by(!!!syms(unique(c(fill_by, facet_by)))) %>%
+            complete(!!sym(x), fill = complete_fill) %>%
+            ungroup()
+        legend.position <- ifelse(inherits(legend.position, "waiver"), "right", legend.position)
     }
     xs <- if (isTRUE(keep_empty)) levels(data[[x]]) else levels(droplevels(data[[x]]))
 
@@ -60,8 +69,7 @@ AreaPlotAtomic <- function(
         scale_y_continuous(expand = c(0, 0), labels = if (isFALSE(scale_y)) scales::number else scales::percent) +
         scale_fill_manual(
             name = fill_name %||% fill_by,
-            values = palette_this(levels(data[[fill_by]]), palette = palette, palcolor = palcolor),
-            guide = fill_guide
+            values = palette_this(levels(data[[fill_by]]), palette = palette, palcolor = palcolor)
         ) +
         labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
         do.call(theme, theme_args) +
@@ -75,18 +83,21 @@ AreaPlotAtomic <- function(
 
     height = 4.5
     width = 0.5 + length(xs) * 0.5
-    if (legend.position %in% c("right", "left")) {
-        width <- width + 1
-    } else if (legend.direction == "horizontal") {
-        height <- height + 1
-    } else {
-        width <- width + 2
+    if (!identical(legend.position, "none")) {
+        if (legend.position %in% c("right", "left")) {
+            width <- width + 1
+        } else if (legend.direction == "horizontal") {
+            height <- height + 1
+        } else {
+            width <- width + 2
+        }
     }
 
     attr(p, "height") <- height
     attr(p, "width") <- width
 
-    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow)
+    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
+        legend.position = legend.position, legend.direction = legend.direction)
 }
 
 #' Area plot
@@ -96,6 +107,7 @@ AreaPlotAtomic <- function(
 #' @inheritParams common_args
 #' @inheritParams AreaPlotAtomic
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
+#' @importFrom ggplot2 waiver
 #' @export
 #' @examples
 #' data <- data.frame(
@@ -112,7 +124,7 @@ AreaPlot <- function(
     fill_by = NULL, fill_by_sep = "_", fill_name = NULL, scale_y = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    x_text_angle = 0, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
+    x_text_angle = 0, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...
 ){
@@ -138,11 +150,11 @@ AreaPlot <- function(
             }
             AreaPlotAtomic(
                 datas[[nm]],
-        x = x, y = y, x_sep = x_sep, fill_by = fill_by, fill_by_sep = fill_by_sep, fill_name = fill_name, scale_y = scale_y,
-        theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
-        facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-        x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...
+                x = x, y = y, x_sep = x_sep, fill_by = fill_by, fill_by_sep = fill_by_sep, fill_name = fill_name, scale_y = scale_y,
+                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
+                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
+                x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...
             )
         }
     )

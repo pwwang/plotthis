@@ -265,18 +265,21 @@ VolcanoPlotAtomic <- function(
 
     height <- 5
     width <- 5
-    if (legend.position %in% c("right", "left")) {
-        width <- width + 1.5
-    } else if (legend.direction == "horizontal") {
-        height <- height + 1.5
-    } else {
-        height <- height + 2.5
+    if (!identical(legend.position, "none")) {
+        if (legend.position %in% c("right", "left")) {
+            width <- width + 1
+        } else if (legend.direction == "horizontal") {
+            height <- height + 1
+        } else {
+            width <- width + 2
+        }
     }
 
     attr(p, "height") <- height
     attr(p, "width") <- width
 
-    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow)
+    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
+        legend.position = legend.position, legend.direction = legend.direction)
 }
 
 #' Volcano plot
@@ -377,21 +380,31 @@ VolcanoPlot <- function(
         datas <- datas[levels(data[[split_by]])]
     } else {
         datas <- list(data)
+        names(datas) <- "..."
     }
 
     plots <- lapply(
-        datas, VolcanoPlotAtomic,
-        x = x, y = y, ytrans = ytrans, color_by = color_by, color_name = color_name,
-        flip_negatives = flip_negatives, x_cutoff = x_cutoff, y_cutoff = y_cutoff,
-        x_cutoff_name = x_cutoff_name, y_cutoff_name = y_cutoff_name, x_cutoff_color = x_cutoff_color, y_cutoff_color = y_cutoff_color,
-        x_cutoff_linetype = x_cutoff_linetype, y_cutoff_linetype = y_cutoff_linetype, x_cutoff_linewidth = x_cutoff_linewidth, y_cutoff_linewidth = y_cutoff_linewidth,
-        pt_size = pt_size, pt_alpha = pt_alpha, nlabel = nlabel, labels = labels, label_size = label_size, label_fg = label_fg, label_bg = label_bg,
-        label_bg_r = label_bg_r, highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha,
-        highlight_stroke = highlight_stroke,
-        facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-        theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
-        aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction, seed = seed, ...
+        names(datas), function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+            if (is.function(title)) {
+                title <- title(default_title)
+            } else {
+                title <- title %||% default_title
+            }
+            VolcanoPlotAtomic(datas[[nm]],
+                x = x, y = y, ytrans = ytrans, color_by = color_by, color_name = color_name,
+                flip_negatives = flip_negatives, x_cutoff = x_cutoff, y_cutoff = y_cutoff,
+                x_cutoff_name = x_cutoff_name, y_cutoff_name = y_cutoff_name, x_cutoff_color = x_cutoff_color, y_cutoff_color = y_cutoff_color,
+                x_cutoff_linetype = x_cutoff_linetype, y_cutoff_linetype = y_cutoff_linetype, x_cutoff_linewidth = x_cutoff_linewidth, y_cutoff_linewidth = y_cutoff_linewidth,
+                pt_size = pt_size, pt_alpha = pt_alpha, nlabel = nlabel, labels = labels, label_size = label_size, label_fg = label_fg, label_bg = label_bg,
+                label_bg_r = label_bg_r, highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha,
+                highlight_stroke = highlight_stroke,
+                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
+                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
+                aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction, seed = seed, ...
+            )
+        }
     )
 
     combine_plots(plots, combine, nrow, ncol, byrow)

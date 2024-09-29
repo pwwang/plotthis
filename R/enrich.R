@@ -79,10 +79,8 @@ adjust_network_layout <- function(graph, layout, width, height = 2, scale = 100,
 #'  * The `Count` column, if given, should be the same as the first number in GeneRatio.
 #' @param top_term An integer specifying the number of top terms to show.
 #' @param metric A character string specifying the metric to use for the size of the nodes.
+#'  It is also used to order the terms when selected the top terms.
 #'  Either "pvalue" or "p.adjust". The default is "p.adjust".
-#' @param cutoff A numeric value specifying the cutoff of the metric to filter the terms.
-#'  The records will be filtered by both the `top_term` and `cutoff` if provided.
-#'  To skip either/both of them, set it/them to `NULL`.
 #' @param layout A character string specifying the layout of the graph.
 #'  Either "circle", "tree", "grid" or other layout functions in `igraph`.
 #' @param minchar An integer specifying the minimum number of characters to show in the keyword.
@@ -107,7 +105,7 @@ adjust_network_layout <- function(graph, layout, width, height = 2, scale = 100,
 #' @importFrom ggplot2 geom_segment geom_point labs scale_size guides scale_linewidth scale_fill_manual scale_x_continuous
 #' @importFrom ggplot2 scale_y_continuous
 EnrichMapAtomic <- function(
-    data, top_term = 10, metric = "p.adjust", cutoff = 0.05, layout = "fr", minchar = 2,
+    data, top_term = 100, metric = "p.adjust", layout = "fr", minchar = 2,
     cluster = "fast_greedy", show_keyword = FALSE, nlabel = 4, character_width = 50,
     words_excluded = plotthis::words_excluded,
     mark = "ellipse", label = c("term", "feature"), labelsize = 5, expand = c(0.4, 0.4),
@@ -132,9 +130,7 @@ EnrichMapAtomic <- function(
     check_columns(data, "geneID")
     label <- match.arg(label)
     expand <- norm_expansion(expand, x_type = "continuous", y_type = "continuous")
-    if (!is.null(cutoff)) {
-        data <- data[data[[metric]] <= cutoff, , drop = FALSE]
-    }
+
     if (!is.null(top_term)) {
         data <- slice_min(data, !!sym(metric), n = top_term, with_ties = FALSE)
     }
@@ -300,7 +296,7 @@ EnrichMapAtomic <- function(
         )
 
     height <- width <- 8
-    if (legend.position != "none") {
+    if (!identical(legend.position, "none")) {
         if (legend.position %in% c("right", "left")) {
             width <- width + 2
         } else if (legend.direction == "horizontal") {
@@ -329,7 +325,7 @@ EnrichMapAtomic <- function(
 #' @importFrom grDevices col2rgb
 #' @importFrom ggplot2 scale_color_identity scale_fill_identity guides guide_legend draw_key_point .pt element_text
 EnrichNetworkAtomic <- function(
-    data, top_term = 10, metric = "p.adjust", cutoff = 0.05, character_width = 50,
+    data, top_term = 6, metric = "p.adjust", character_width = 50,
     layout = "fr", layoutadjust = TRUE, adjscale = 60, adjiter = 100, blendmode = "blend", labelsize = 5,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
@@ -352,9 +348,6 @@ EnrichNetworkAtomic <- function(
     check_columns(data, "p.adjust")
     check_columns(data, "geneID")
 
-    if (!is.null(cutoff)) {
-        data <- data[data[[metric]] < cutoff, , drop = FALSE]
-    }
     if (!is.null(top_term)) {
         data <- slice_min(data, !!sym(metric), n = top_term, with_ties = FALSE)
     }
@@ -465,7 +458,7 @@ EnrichNetworkAtomic <- function(
         )
 
     height <- width <- 8
-    if (legend.position != "none") {
+    if (!identical(legend.position, "none")) {
         if (legend.position %in% c("right", "left")) {
             width <- width + 2
         } else if (legend.direction == "horizontal") {
@@ -529,13 +522,11 @@ PrepareEnrichrResult <- function(data) {
 #' EnrichMap(enrich_example, show_keyword = TRUE, label = "term")
 #' EnrichMap(enrich_example, show_keyword = TRUE, label = "feature")
 #'
-#' enrich_example$Database <- "DB1"
-#' enrich_example2 <- enrich_example
-#' enrich_example2$Database <- "DB2"
-#' EnrichMap(rbind(enrich_example, enrich_example2), split_by = "Database")
+#' data(enrich_multidb_example)
+#' EnrichMap(enrich_multidb_example, split_by = "Database")
 EnrichMap <- function(
     data, split_by = NULL, split_by_sep = "_",
-    top_term = 10, metric = "p.adjust", cutoff = 0.05, layout = "fr", minchar = 2,
+    top_term = 10, metric = "p.adjust", layout = "fr", minchar = 2,
     cluster = "fast_greedy", show_keyword = FALSE, nlabel = 4, character_width = 50,
     mark = "ellipse", label = c("term", "feature"), labelsize = 5, expand = c(0.4, 0.4),
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,

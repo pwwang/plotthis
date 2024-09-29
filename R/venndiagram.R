@@ -297,15 +297,25 @@ VennDiagram <- function(
         datas <- datas[levels(data[[split_by]])]
     } else {
         datas <- list(data)
+        names(datas) <- "..."
     }
 
     plots <- lapply(
-        datas, VennDiagramAtomic,
-        intype = intype, group_by = group_by, group_by_sep = group_by_sep, id_by = id_by,
-        label = label, label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
-        fill_mode = fill_mode, fill_name = fill_name, palette = palette, palcolor = palcolor, alpha = alpha,
-        theme = theme, theme_args = theme_args, title = title, subtitle = subtitle,
-        legend.position = legend.position, legend.direction = legend.direction, ...
+        names(datas), function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+            if (is.function(title)) {
+                title <- title(default_title)
+            } else {
+                title <- title %||% default_title
+            }
+            VennDiagramAtomic(datas[[nm]],
+                intype = intype, group_by = group_by, group_by_sep = group_by_sep, id_by = id_by,
+                label = label, label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
+                fill_mode = fill_mode, fill_name = fill_name, palette = palette, palcolor = palcolor, alpha = alpha,
+                theme = theme, theme_args = theme_args, title = title, subtitle = subtitle,
+                legend.position = legend.position, legend.direction = legend.direction, ...
+            )
+        }
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)

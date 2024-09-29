@@ -131,7 +131,7 @@ DotPlotAtomic <- function(
             geom_segment(aes(x = 0, xend = !!sym(x), yend = !!sym(y), color = !!sym(fill_by)), linewidth = 1) +
             scale_x_continuous(expand = c(0, 0, 0.05, 0)) +
             scale_color_gradientn(
-                n.breaks = 3,
+                n.breaks = 5,
                 colors = palette_this(palette = palette, palcolor = palcolor, reverse = fill_reverse),
                 na.value = "grey80",
                 guide = "none"
@@ -145,7 +145,7 @@ DotPlotAtomic <- function(
             title = size_name %||% size_by,
             override.aes = list(fill = "grey30", shape = 21), order = 1)) +
         scale_fill_gradientn(
-            n.breaks = 3,
+            n.breaks = 5,
             colors = palette_this(palette = palette, palcolor = palcolor, reverse = fill_reverse),
             na.value = "grey80",
             guide = if (isTRUE(fill_legend)) {
@@ -167,7 +167,7 @@ DotPlotAtomic <- function(
         )
 
     p <- p + scale_color_manual(values = NA, na.value = "black", guide = "none")
-    if (!is.null(fill_by) && !is.null(fill_cutoff)) {
+    if (!is.null(fill_by) && !is.null(fill_cutoff) && anyNA(data[[fill_by]])) {
         p <- p + guides(color = guide_legend(
             title = fill_cutoff_name %||% fill_cutoff_label,
             override.aes = list(colour = "black", fill = "grey80", size = 3),
@@ -194,14 +194,36 @@ DotPlotAtomic <- function(
         ny <- nlevels(droplevels(data[[y]]))
     }
 
-    height = ny * 0.5
-    width = nx * 0.8
-    if (legend.position %in% c("right", "left")) {
-        width <- width + 1
-    } else if (legend.direction == "horizontal") {
-        height <- height + 1
+    if (ny / nx > 10) {
+        if (aspect.ratio <= 1) {
+            message("Two many terms than groups, you may want to set a larger 'aspect.ratio'.")
+        }
+        height = ny * 0.2
+        width = nx * 2
+    } else if (ny / nx < 0.1) {
+        if (aspect.ratio >= 1) {
+            message("Two many groups than terms, you may want to set a smaller 'aspect.ratio'.")
+        }
+        height = ny * 2
+        width = nx * 0.4
     } else {
-        width <- width + 2
+        height = ny * 0.5
+        width = nx * 0.8
+    }
+
+    if (!y_is_numeric) {
+        y_label_len <- max(sapply(strsplit(levels(data[[y]]), "\n"), function(x) max(nchar(x))))
+        width <- width + y_label_len * 0.1
+    }
+    width <- max(width, 3)
+    if (!identical(legend.position, "none")) {
+        if (legend.position %in% c("right", "left")) {
+            width <- width + 1
+        } else if (legend.direction == "horizontal") {
+            height <- height + 1
+        } else {
+            width <- width + 2
+        }
     }
     height <- max(height, 3)
 
@@ -213,7 +235,8 @@ DotPlotAtomic <- function(
         attr(p, "width") <- width
     }
 
-    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow)
+    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
+        legend.position = legend.position, legend.direction = legend.direction)
 }
 
 #' Dot Plot / Scatter Plot / Lollipop Plot
@@ -280,14 +303,14 @@ DotPlot <- function(
                 title <- title %||% default_title
             }
             DotPlotAtomic(datas[[nm]],
-        x = x, y = y, x_sep = x_sep, y_sep = y_sep, flip = flip, bg_direction = bg_direction,
-        size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, fill_reverse = fill_reverse,
-        theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
-        facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-        x_text_angle = x_text_angle, size_name = size_name, fill_name = fill_name, fill_cutoff_name = fill_cutoff_name,
-        add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
-        aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...
+                x = x, y = y, x_sep = x_sep, y_sep = y_sep, flip = flip, bg_direction = bg_direction,
+                size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, fill_reverse = fill_reverse,
+                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
+                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
+                x_text_angle = x_text_angle, size_name = size_name, fill_name = fill_name, fill_cutoff_name = fill_cutoff_name,
+                add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
+                aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...
             )
         }
     )
@@ -345,13 +368,13 @@ ScatterPlot <- function(
                 title <- title %||% default_title
             }
             DotPlotAtomic(datas[[nm]],
-        x = x, y = y, x_sep = NULL, y_sep = NULL, flip = flip,
-        size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, fill_reverse = fill_reverse,
-        theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
-        facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-        x_text_angle = x_text_angle, size_name = size_name, fill_name = fill_name, fill_cutoff_name = fill_cutoff_name,
-        aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...
+                x = x, y = y, x_sep = NULL, y_sep = NULL, flip = flip,
+                size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, fill_reverse = fill_reverse,
+                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
+                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
+                x_text_angle = x_text_angle, size_name = size_name, fill_name = fill_name, fill_cutoff_name = fill_cutoff_name,
+                aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...
             )
         }
     )
@@ -405,13 +428,13 @@ LollipopPlot <- function(
                 title <- title %||% default_title
             }
             DotPlotAtomic(datas[[nm]], lollipop = TRUE,
-        x = x, y = y, x_sep = NULL, y_sep = y_sep, flip = flip,
-        size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, fill_reverse = fill_reverse,
-        theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
-        facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-        x_text_angle = x_text_angle, size_name = size_name, fill_name = fill_name, fill_cutoff_name = fill_cutoff_name,
-        aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...
+                x = x, y = y, x_sep = NULL, y_sep = y_sep, flip = flip,
+                size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, fill_reverse = fill_reverse,
+                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
+                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
+                x_text_angle = x_text_angle, size_name = size_name, fill_name = fill_name, fill_cutoff_name = fill_cutoff_name,
+                aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...
             )
         }
     )

@@ -200,9 +200,9 @@ ChordPlot <- function(
                 title <- title %||% default_title
             }
             ChordPlotAtomic(datas[[nm]],
-        y = y, from = from, from_sep = from_sep, to = to, to_sep = to_sep, flip = flip, links_color = links_color,
-        theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
-        labels_rot = labels_rot, title = title, subtitle = subtitle, ...
+                y = y, from = from, from_sep = from_sep, to = to, to_sep = to_sep, flip = flip, links_color = links_color,
+                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
+                labels_rot = labels_rot, title = title, subtitle = subtitle, ...
             )
         }
     )

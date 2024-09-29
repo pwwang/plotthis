@@ -416,12 +416,14 @@ BoxViolinPlotAtomic <- function(
     p <- p + scale_y_continuous(trans = y_trans, n.breaks = y_nbreaks)
 
     height <- width <- 0
-    if (legend.position %in% c("right", "left")) {
-        width <- width + 1
-    } else if (legend.direction == "horizontal") {
-        height <- height + 1
-    } else {
-        height <- height + 2
+    if (!identical(legend.position, "none")) {
+        if (legend.position %in% c("right", "left")) {
+            width <- width + 1
+        } else if (legend.direction == "horizontal") {
+            height <- height + 1
+        } else {
+            height <- height + 2
+        }
     }
     x_maxchars <- max(nchar(levels(data[[x]])))
     nx <- nlevels(data[[x]])
@@ -467,8 +469,8 @@ BoxViolinPlotAtomic <- function(
     attr(p, "width") <- width
 
     facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-        strip.position = strip_position
-    )
+        strip.position = strip_position, legend.position = legend.position,
+        legend.direction = legend.direction)
 }
 
 #' Box/Violin plot
@@ -526,24 +528,24 @@ BoxViolinPlot <- function(
                 title <- title %||% default_title
             }
             BoxViolinPlotAtomic(datas[[nm]],
-        x = x, x_sep = x_sep, y = y, base = base, intype = intype,
-        sort_x = sort_x, flip = flip, keep_empty = keep_empty, dodge_by = dodge_by, dodge_by_sep = dodge_by_sep, dodge_name = dodge_name,
-        x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse,
-        theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
-        aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
-        add_point = add_point, point_color = point_color, point_size = point_size, point_alpha = point_alpha,
-        jitter_width = jitter_width, jitter_height = jitter_height, stack = stack, y_max = y_max, y_min = y_min,
-        add_box = add_box, box_color = box_color, box_width = box_width, box_ptsize = box_ptsize,
-        add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
-        add_stat = add_stat, stat_name = stat_name, stat_color = stat_color, stat_size = stat_size, stat_stroke = stat_stroke, stat_shape = stat_shape,
-        add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
-        add_line = add_line, line_color = line_color, line_size = line_size, line_type = line_type,
-        highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha,
-        comparisons = comparisons, ref_group = ref_group, pairwise_method = pairwise_method,
-        multiplegroup_comparisons = multiplegroup_comparisons, multiple_method = multiple_method,
-        sig_label = sig_label, sig_labelsize = sig_labelsize,
-        facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, ...
+                x = x, x_sep = x_sep, y = y, base = base, intype = intype,
+                sort_x = sort_x, flip = flip, keep_empty = keep_empty, dodge_by = dodge_by, dodge_by_sep = dodge_by_sep, dodge_name = dodge_name,
+                x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse,
+                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
+                aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
+                add_point = add_point, point_color = point_color, point_size = point_size, point_alpha = point_alpha,
+                jitter_width = jitter_width, jitter_height = jitter_height, stack = stack, y_max = y_max, y_min = y_min,
+                add_box = add_box, box_color = box_color, box_width = box_width, box_ptsize = box_ptsize,
+                add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
+                add_stat = add_stat, stat_name = stat_name, stat_color = stat_color, stat_size = stat_size, stat_stroke = stat_stroke, stat_shape = stat_shape,
+                add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
+                add_line = add_line, line_color = line_color, line_size = line_size, line_type = line_type,
+                highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha,
+                comparisons = comparisons, ref_group = ref_group, pairwise_method = pairwise_method,
+                multiplegroup_comparisons = multiplegroup_comparisons, multiple_method = multiple_method,
+                sig_label = sig_label, sig_labelsize = sig_labelsize,
+                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, ...
             )
         }
     )

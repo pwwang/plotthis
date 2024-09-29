@@ -16,11 +16,15 @@
 #' @param fill_name A character string to name the legend of fill.
 #' @return A ggplot object
 #' @keywords internal
+#' @importFrom rlang syms
+#' @importFrom dplyr %>% group_by summarise n mutate ungroup
+#' @importFrom tidyr complete
+#' @importFrom ggplot2 waiver
 TrendPlotAtomic <- function(
     data, x, y = NULL, x_sep = "_", fill_by = NULL, fill_by_sep = "_", fill_name = NULL, scale_y = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    x_text_angle = 0, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
+    x_text_angle = 0, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, ...
 ) {
     x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
@@ -45,9 +49,18 @@ TrendPlotAtomic <- function(
     if (is.null(fill_by)) {
         data$.fill <- factor("")
         fill_by <- ".fill"
-        fill_guide = ifelse(legend.position == "none", "none", "legend")
+        legend.position <- ifelse(inherits(legend.position, "waiver"), "none", "right")
     } else {
-        fill_guide = "legend"
+        data[[fill_by]] <- droplevels(data[[fill_by]])
+        # fill up some missing fill_by values for each x, and fill it with 0 for y
+        fill_levels <- levels(data[[fill_by]])
+        complete_fill <- list(0)
+        names(complete_fill) <- y
+        data <- data %>%
+            group_by(!!!syms(unique(c(fill_by, facet_by)))) %>%
+            complete(!!sym(x), fill = complete_fill) %>%
+            ungroup()
+        legend.position <- ifelse(inherits(legend.position, "waiver"), "right", legend.position)
     }
     xs <- levels(data[[x]])
     nr <- nrow(data)
@@ -74,8 +87,7 @@ TrendPlotAtomic <- function(
         scale_y_continuous(expand = c(0, 0), labels = if (isFALSE(scale_y)) scales::number else scales::percent) +
         scale_fill_manual(
             name = fill_name %||% fill_by,
-            values = palette_this(levels(data[[fill_by]]), palette = palette, palcolor = palcolor),
-            guide = fill_guide) +
+            values = palette_this(levels(data[[fill_by]]), palette = palette, palcolor = palcolor)) +
         labs(title = title, subtitle = subtitle, x = xlab %||% "", y = ylab %||% y) +
         do.call(theme, theme_args) +
         ggplot2::theme(
@@ -87,8 +99,8 @@ TrendPlotAtomic <- function(
         )
 
 
-    height = 4.5
-    width = 0.5 + length(xs) * 0.8
+    height = ifelse(length(xs) < 10, 4.5, 6.5)
+    width = 0.5 + length(xs) * ifelse(length(xs) < 10, 0.8, 0.25)
     if (legend.position %in% c("right", "left")) {
         width <- width + 1
     } else if (legend.direction == "horizontal") {
@@ -153,11 +165,11 @@ TrendPlot <- function(
                 title <- title %||% default_title
             }
             TrendPlotAtomic(datas[[nm]],
-        x = x, y = y, x_sep = x_sep, fill_by = fill_by, fill_by_sep = fill_by_sep, fill_name = fill_name, scale_y = scale_y,
-        theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
-        facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-        x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, ...
+                x = x, y = y, x_sep = x_sep, fill_by = fill_by, fill_by_sep = fill_by_sep, fill_name = fill_name, scale_y = scale_y,
+                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
+                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
+                x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, ...
             )
         }
     )

@@ -2,6 +2,8 @@
 #'
 #' @inheritParams common_args
 #' @param dims A character vector of the column names to plot on the x and y axes or a numeric vector of the column indices.
+#' @param features A character vector of the column names to plot as features.
+#' @param lower_quantile,upper_quantile,lower_cutoff,upper_cutoff Vector of minimum and maximum cutoff values or quantile values for each feature.
 #' @param group_by A character string of the column name to group the data.
 #'  A character/factor column is expected. If multiple columns are provided, the columns will be concatenated with `group_by_sep`.
 #' @param group_by_sep A character string to concatenate the columns in `group_by`, if multiple columns are provided.
@@ -63,11 +65,11 @@
 #' @param hex_count Whether to count the hex.
 #' @param hex_bins A numeric value of the hex bins. Default is 50.
 #' @param hex_binwidth A numeric value of the hex bin width. Default is NULL.
-#' @param features A character vector of the column names to plot as features.
-#' @param bg_cutoff A numeric value to be used a cutoff to set the feature values to NA. Default is 0.
+#' @param bg_cutoff A numeric value to be used a cutoff to set the feature values to NA. Default is NULL.
 #' @param color_name A character string of the color legend name. Default is "".
 #' @return A ggplot object
 #' @keywords internal
+#' @importFrom scales rescale
 #' @importFrom stats loess formula na.omit aggregate
 #' @importFrom dplyr %>% group_by group_map pull filter
 #' @importFrom tidyr pivot_longer
@@ -77,7 +79,8 @@
 #' @importFrom cowplot get_plot_component
 DimPlotAtomic <- function(
     data, dims = 1:2, group_by = NULL, group_by_sep = "_", features = NULL,
-    pt_size = NULL, pt_alpha = 1, bg_color = "grey80", bg_cutoff = 0, color_name = "",
+    lower_quantile = 0, upper_quantile = 0.99, lower_cutoff = NULL, upper_cutoff = NULL,
+    pt_size = NULL, pt_alpha = 1, bg_color = "grey80", bg_cutoff = NULL, color_name = "",
     label_insitu = FALSE, show_stat = !identical(theme, "theme_blank"),
     label = FALSE, label_size = 4, label_fg = "white", label_bg = "black", label_bg_r = 0.1,
     label_repel = FALSE, label_repulsion = 20, label_pt_size = 1, label_pt_color = "black",
@@ -85,7 +88,8 @@ DimPlotAtomic <- function(
     highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
     add_mark = FALSE, mark_type = c("hull", "ellipse", "rect", "circle"), mark_expand = unit(3, "mm"),
     mark_alpha = 0.1, mark_linetype = 1,
-    stat_by = NULL, stat_plot_type = c("pie", "ring", "bar", "line"), stat_plot_size = 0.1, stat_args = list(palette = "Set1"),
+    stat_by = NULL, stat_plot_type = c("pie", "ring", "bar", "line"), stat_plot_size = 0.1,
+    stat_palette = "Set1", stat_args = list(),
     graph = NULL, edge_size = c(0.05, 0.5), edge_alpha = 0.1, edge_color = "grey40",
     add_density = FALSE, density_color = "grey80", density_filled = FALSE,
     density_filled_palette = "Greys", density_filled_palcolor = NULL,
@@ -99,7 +103,6 @@ DimPlotAtomic <- function(
     raster = NULL, raster_dpi = c(512, 512),
     hex = FALSE, hex_linewidth = 0.5, hex_count = !is.null(group_by), hex_bins = 50, hex_binwidth = NULL,
     palette = ifelse(is.null(features), "Paired", "Spectral"), palcolor = NULL, seed = 8525, ...) {
-
     ## Setting up the parameters
     if (is.numeric(dims)) {
         dims <- colnames(data)[dims]
@@ -185,7 +188,20 @@ DimPlotAtomic <- function(
         facet_by <- ".feature"
         features <- ".value"
     }
-    data[, features][data[, features] < bg_cutoff] <- NA
+    if (!is.null(features)) {
+        if (!is.null(bg_cutoff)) {
+            data[[features]][data[[features]] <= bg_cutoff] <- NA
+        }
+        if (all(is.na(data[[features]]))) {
+            feat_colors_value <- rep(0, 100)
+        } else {
+            lower_cutoff <- lower_cutoff %||% quantile(data[[features]][is.finite(data[[features]])], lower_quantile, na.rm = TRUE)
+            upper_cutoff <- upper_cutoff %||% quantile(data[[features]][is.finite(data[[features]])], upper_quantile, na.rm = TRUE) + 0.001
+            feat_colors_value <- seq(lower_cutoff, upper_cutoff + 0.001 * (upper_cutoff - lower_cutoff), length.out = 100)
+        }
+        data[[features]][data[[features]] > max(feat_colors_value, na.rm = TRUE)] <- max(feat_colors_value, na.rm = TRUE)
+        data[[features]][data[[features]] < min(feat_colors_value, na.rm = TRUE)] <- min(feat_colors_value, na.rm = TRUE)
+    }
     colorby <- ifelse(is.null(features), group_by, features)
 
     # Do we have fill scale?
@@ -224,12 +240,23 @@ DimPlotAtomic <- function(
         if (is.character(graph) && length(graph) == 1 && startsWith(graph, "@")) {
             graph <- substring(graph, 2)
             net_mat <- attr(data, graph)
-        } else {
+        } else if (inherits(graph, "Graph")) {  # SeuratObject Graph
+            net_mat <- as.matrix(graph)
+        } else if (is.matrix(graph) || is.data.frame(graph)) {
+            net_mat <- graph
+        } else if (is.numeric(graph)) {
             graph <- colnames(data)[graph]
             net_mat <- data[graph]
+        } else if (is.character(graph)) {
+            net_mat <- data[graph]
+        } else {
+            stop("The 'graph' should be a matrix, data.frame, Graph object, indexes, or column names.")
         }
 
-        net_mat <- as.matrix(net_mat)
+        if (!is.matrix(net_mat)) {
+            net_mat <- as.matrix(net_mat)
+        }
+
         if (!is.null(rownames(net_mat)) && !is.null(colnames(net_mat))) {
             net_mat <- net_mat[rownames(data), rownames(data)]
         } else if (is.null(rownames(net_mat))) {
@@ -304,6 +331,40 @@ DimPlotAtomic <- function(
             legend.direction = legend.direction
         )
 
+    ## Adding the background points for each facet
+    if (!is.null(facet_by) && isFALSE(multifeats)) {
+        # Add the points from other subplots as background
+        all_fc_values <- distinct(data, !!!syms(facet_by))
+        colnames(all_fc_values) <- paste0(".facet_", colnames(all_fc_values))
+        fc_data <- expand_grid(data, all_fc_values)
+        # Remove the points inside the facet
+        fc_indicator <- TRUE
+        for (fc in facet_by) {
+            fc_indicator <- fc_indicator & (fc_data[[fc]] == fc_data[[paste0(".facet_", fc)]])
+        }
+        fc_data <- fc_data[!fc_indicator, , drop = FALSE]
+        fc_data[, facet_by, drop = FALSE] <- fc_data[, paste0(".facet_", facet_by), drop = FALSE]
+
+        if (isTRUE(raster)) {
+            p <- p + scattermore::geom_scattermore(
+                data = fc_data, mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
+                size = pt_size, alpha = pt_alpha / 2, color = bg_color, pixels = raster_dpi
+            )
+        } else if (isTRUE(hex)) {
+            p <- p + geom_hex(
+                data = fc_data, mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
+                linewidth = hex_linewidth, bins = hex_bins, binwidth = hex_binwidth,
+                fill = bg_color, alpha = pt_alpha / 2
+            )
+        } else {
+            p <- p + geom_point(
+                data = fc_data, mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
+                size = pt_size, alpha = pt_alpha / 2, color = bg_color
+            )
+        }
+        rm(fc_data)
+    }
+
     ## Raserting the plot/Adding the points
     if (isTRUE(raster)) {
         # if (!requireNamespace("scattermore", quietly = TRUE)) {
@@ -349,10 +410,19 @@ DimPlotAtomic <- function(
                 mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(group_by), fill = !!sym(group_by)),
                 linewidth = hex_linewidth, bins = hex_bins, binwidth = hex_binwidth
             )
-        } else {
+        } else {  # features
+            data_na <- data[is.na(data[[features]]), , drop = FALSE]
+            if (nrow(data_na) > 0) {
+                p <- p + geom_hex(
+                    data = data_na, mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
+                    fill = bg_color, linewidth = hex_linewidth, bins = hex_bins,
+                    binwidth = hex_binwidth, alpha = pt_alpha / 2
+                )
+            }
             p <- p + stat_summary_hex(
+                data = data[!is.na(data[[features]]), , drop = FALSE],
                 mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), z = !!sym(colorby)),
-                linewidth = hex_linewidth, bins = hex_bins, binwidth = hex_binwidth
+                linewidth = hex_linewidth, bins = hex_bins, binwidth = hex_binwidth, alpha = pt_alpha
             )
         }
     } else {
@@ -405,25 +475,6 @@ DimPlotAtomic <- function(
         }
     }
 
-    ## Adding the background points for each facet
-    if (!is.null(facet_by) && isFALSE(multifeats)) {
-        # Add the points from other subplots as background
-        all_fc_values <- distinct(data, !!!syms(facet_by))
-        colnames(all_fc_values) <- paste0(".facet_", colnames(all_fc_values))
-        fc_data <- expand_grid(data, all_fc_values)
-        # Remove the points inside the facet
-        fc_indicator <- TRUE
-        for (fc in facet_by) {
-            fc_indicator <- fc_indicator & (fc_data[[fc]] == fc_data[[paste0(".facet_", fc)]])
-        }
-        fc_data <- fc_data[!fc_indicator, , drop = FALSE]
-        fc_data[, facet_by, drop = FALSE] <- fc_data[, paste0(".facet_", facet_by), drop = FALSE]
-
-        p <- p + geom_point(
-            data = fc_data, mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
-            size = pt_size, alpha = pt_alpha / 2, color = bg_color
-        )
-    }
     if (!is.null(group_by)) {
         p <- p + scale_color_manual(
             values = colors[names(labels_tb)],
@@ -446,24 +497,27 @@ DimPlotAtomic <- function(
                 )
             )
         }
-    } else {
+    } else {  # features
         p <- p + scale_color_gradientn(
             name = color_name,
-            colors = palette_this(palette = palette, palcolor = palcolor),
-            # values = rescale(value_list[[i]]),
+            colors = palette_this(palette = palette, palcolor = palcolor, type = "continuous"),
+            values = rescale(feat_colors_value),
+            limits = range(feat_colors_value),
             na.value = bg_color,
             guide = guide_colorbar(frame.colour = "black", ticks.colour = "black", title.hjust = 0)
         )
         if (has_fill) {
             p <- p + scale_fill_gradientn(
                 name = color_name,
-                colors = palette_this(palette = palette, palcolor = palcolor),
-                # values = rescale(value_list[[i]]),
+                colors = palette_this(palette = palette, palcolor = palcolor, type = "continuous"),
+                values = rescale(feat_colors_value),
+                limits = range(feat_colors_value),
                 na.value = bg_color,
                 guide = guide_colorbar(frame.colour = "black", ticks.colour = "black", title.hjust = 0)
             )
         }
     }
+
     legend_base <- get_plot_component(
         p + theme_this(legend.position = "bottom", legend.direction = legend.direction),
         "guide-box-bottom"
@@ -566,6 +620,9 @@ DimPlotAtomic <- function(
         stat_args$combine <- FALSE
         stat_args$theme <- theme
         stat_args$theme_args <- theme_args
+        stat_args$title <- character(0)
+        stat_args$keep_empty <- TRUE
+        stat_args$palette <- stat_palette
         if (stat_plot_type == "pie") {
             stat_args$x <- stat_by
             stat_plots <- do.call(PieChart, stat_args)
@@ -603,7 +660,7 @@ DimPlotAtomic <- function(
     ## Adding the labels
     if (isTRUE(label)) {
         if (!is.null(features)) {
-            stop("No need to add label for a single feature.")
+            stop("Adding labels is not supported when 'features' is specified.")
         }
         if (!is.null(facet_by)) {
             label_df <- aggregate(data[, dims], by = list(data[[group_by]], data[[facet_by]]), FUN = median)
@@ -650,7 +707,7 @@ DimPlotAtomic <- function(
 
     ## Putting reasonable height and width
     height <- width <- 5.5
-    if (legend.position != "none") {
+    if (!identical(legend.position, "none")) {
         if (legend.position %in% c("right", "left")) {
             width <- width + 1
         } else if (legend.direction == "horizontal") {
@@ -664,7 +721,8 @@ DimPlotAtomic <- function(
 
     if (length(legend_list) == 0) {
         p <- facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-                        labeller = facet_labeller)
+                        labeller = facet_labeller, legend.position = legend.position,
+                        legend.direction = legend.direction)
     }
     p
 }
@@ -764,11 +822,10 @@ DimPlot <- function(
 
     validate_common_args(seed, facet_by = facet_by)
 
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
-
+    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE,
+        concat_multi = TRUE, concat_sep = split_by_sep)
 
     if (!is.null(split_by)) {
-
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
@@ -794,28 +851,28 @@ DimPlot <- function(
                 title <- title %||% default_title
             }
             DimPlotAtomic(datas[[nm]],
-        dims = dims, group_by = group_by, group_by_sep = group_by_sep,
-        pt_size = pt_size, pt_alpha = pt_alpha, bg_color = bg_color,
-        label_insitu = label_insitu, show_stat = show_stat,
-        label = label, label_size = label_size, label_fg = label_fg, label_bg = label_bg, label_bg_r = label_bg_r,
-        label_repel = label_repel, label_repulsion = label_repulsion, label_pt_size = label_pt_size, label_pt_color = label_pt_color,
-        label_segment_color = label_segment_color,
-        highlight = highlight, highlight_alpha = highlight_alpha, highlight_size = highlight_size, highlight_color = highlight_color, highlight_stroke = highlight_stroke,
-        add_mark = add_mark, mark_type = mark_type, mark_expand = mark_expand, mark_alpha = mark_alpha, mark_linetype = mark_linetype,
-        stat_by = stat_by, stat_plot_type = stat_plot_type, stat_plot_size = stat_plot_size, stat_args = stat_args,
-        graph = graph, edge_size = edge_size, edge_alpha = edge_alpha, edge_color = edge_color,
-        add_density = add_density, density_color = density_color, density_filled = density_filled,
-        density_filled_palette = density_filled_palette, density_filled_palcolor = density_filled_palcolor,
-        lineages = lineages, lineages_trim = lineages_trim, lineages_span = lineages_span,
-        lineages_palette = lineages_palette, lineages_palcolor = lineages_palcolor, lineages_arrow = lineages_arrow,
-        lineages_linewidth = lineages_linewidth, lineages_line_bg = lineages_line_bg, lineages_line_bg_stroke = lineages_line_bg_stroke,
-        lineages_whiskers = lineages_whiskers, lineages_whiskers_linewidth = lineages_whiskers_linewidth, lineages_whiskers_alpha = lineages_whiskers_alpha,
-        facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
-        theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
-        raster = raster, raster_dpi = raster_dpi,
-        hex = hex, hex_linewidth = hex_linewidth, hex_count = hex_count, hex_bins = hex_bins, hex_binwidth = hex_binwidth,
-        palette = palette, palcolor = palcolor, seed = seed, ...
+                dims = dims, group_by = group_by, group_by_sep = group_by_sep,
+                pt_size = pt_size, pt_alpha = pt_alpha, bg_color = bg_color,
+                label_insitu = label_insitu, show_stat = show_stat,
+                label = label, label_size = label_size, label_fg = label_fg, label_bg = label_bg, label_bg_r = label_bg_r,
+                label_repel = label_repel, label_repulsion = label_repulsion, label_pt_size = label_pt_size, label_pt_color = label_pt_color,
+                label_segment_color = label_segment_color,
+                highlight = highlight, highlight_alpha = highlight_alpha, highlight_size = highlight_size, highlight_color = highlight_color, highlight_stroke = highlight_stroke,
+                add_mark = add_mark, mark_type = mark_type, mark_expand = mark_expand, mark_alpha = mark_alpha, mark_linetype = mark_linetype,
+                stat_by = stat_by, stat_plot_type = stat_plot_type, stat_plot_size = stat_plot_size, stat_args = stat_args,
+                graph = graph, edge_size = edge_size, edge_alpha = edge_alpha, edge_color = edge_color,
+                add_density = add_density, density_color = density_color, density_filled = density_filled,
+                density_filled_palette = density_filled_palette, density_filled_palcolor = density_filled_palcolor,
+                lineages = lineages, lineages_trim = lineages_trim, lineages_span = lineages_span,
+                lineages_palette = lineages_palette, lineages_palcolor = lineages_palcolor, lineages_arrow = lineages_arrow,
+                lineages_linewidth = lineages_linewidth, lineages_line_bg = lineages_line_bg, lineages_line_bg_stroke = lineages_line_bg_stroke,
+                lineages_whiskers = lineages_whiskers, lineages_whiskers_linewidth = lineages_whiskers_linewidth, lineages_whiskers_alpha = lineages_whiskers_alpha,
+                facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
+                theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
+                raster = raster, raster_dpi = raster_dpi,
+                hex = hex, hex_linewidth = hex_linewidth, hex_count = hex_count, hex_bins = hex_bins, hex_binwidth = hex_binwidth,
+                palette = palette, palcolor = palcolor, seed = seed, ...
             )
         }
     )
@@ -827,6 +884,8 @@ DimPlot <- function(
 #' @rdname dimplot
 #' @inheritParams common_args
 #' @inheritParams DimPlotAtomic
+#' @param split_by A character vector of column names to split the data and plot separately
+#'   If TRUE, we will split the data by the `features`. Each feature will be plotted separately.
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
 #' @examples
@@ -843,8 +902,9 @@ DimPlot <- function(
 #' FeatureDimPlot(data, features = c("L1", "L2", "L3"), highlight = TRUE)
 #' FeatureDimPlot(data, features = c("L1", "L2", "L3"), hex = TRUE, hex_bins = 15)
 FeatureDimPlot <- function(
-    data, dims = 1:2, split_by = NULL, split_by_sep = "_",
-    pt_size = NULL, pt_alpha = 1, bg_color = "grey80", features, bg_cutoff = 0,
+    data, dims = 1:2, features, split_by = NULL, split_by_sep = "_",
+    lower_quantile = 0, upper_quantile = 0.99, lower_cutoff = NULL, upper_cutoff = NULL,
+    pt_size = NULL, pt_alpha = 1, bg_color = "grey80", bg_cutoff = NULL,
     label_insitu = FALSE, show_stat = !identical(theme, "theme_blank"), color_name = "",
     label = FALSE, label_size = 4, label_fg = "white", label_bg = "black", label_bg_r = 0.1,
     label_repel = FALSE, label_repulsion = 20, label_pt_size = 1, label_pt_color = "black",
@@ -902,24 +962,24 @@ FeatureDimPlot <- function(
         split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE,
             concat_multi = TRUE, concat_sep = split_by_sep)
 
-    if (!is.null(split_by)) {
-        datas <- split(data, data[[split_by]])
-        # keep the order of levels
-        datas <- datas[levels(data[[split_by]])]
-        if (is.character(graph) && length(graph) == 1 && startsWith(graph, "@")) {
-            # split the graph as well
-            datas <- lapply(datas, function(d) {
-                gh <- attr(data, substring(graph, 2))[rownames(d), rownames(d)]
-                attr(d, substring(graph, 2)) <- gh
-                d
-            })
-        }
-    } else {
-        datas <- list(data)
+        if (!is.null(split_by)) {
+            datas <- split(data, data[[split_by]])
+            # keep the order of levels
+            datas <- datas[levels(data[[split_by]])]
+            if (is.character(graph) && length(graph) == 1 && startsWith(graph, "@")) {
+                # split the graph as well
+                datas <- lapply(datas, function(d) {
+                    gh <- attr(data, substring(graph, 2))[rownames(d), rownames(d)]
+                    attr(d, substring(graph, 2)) <- gh
+                    d
+                })
+            }
+        } else {
+            datas <- list(data)
             names(datas) <- "..."
-    }
+        }
 
-    plots <- lapply(
+        plots <- lapply(
             names(datas), function(nm) {
                 default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
                 if (is.function(title)) {
@@ -930,28 +990,28 @@ FeatureDimPlot <- function(
                 DimPlotAtomic(
                     datas[[nm]], dims = dims, features = features,
                     lower_quantile = lower_quantile, upper_quantile = upper_quantile, lower_cutoff = lower_cutoff, upper_cutoff = upper_cutoff,
-        pt_size = pt_size, pt_alpha = pt_alpha, bg_color = bg_color, color_name = color_name,
+                    pt_size = pt_size, pt_alpha = pt_alpha, bg_color = bg_color, color_name = color_name,
                     label_insitu = label_insitu, show_stat = show_stat, bg_cutoff = bg_cutoff,
-        label = label, label_size = label_size, label_fg = label_fg, label_bg = label_bg, label_bg_r = label_bg_r,
-        label_repel = label_repel, label_repulsion = label_repulsion, label_pt_size = label_pt_size, label_pt_color = label_pt_color,
-        label_segment_color = label_segment_color,
-        highlight = highlight, highlight_alpha = highlight_alpha, highlight_size = highlight_size, highlight_color = highlight_color, highlight_stroke = highlight_stroke,
-        add_mark = add_mark, mark_type = mark_type, mark_expand = mark_expand, mark_alpha = mark_alpha, mark_linetype = mark_linetype,
-        stat_by = stat_by, stat_plot_type = stat_plot_type, stat_plot_size = stat_plot_size, stat_args = stat_args,
-        graph = graph, edge_size = edge_size, edge_alpha = edge_alpha, edge_color = edge_color,
-        add_density = add_density, density_color = density_color, density_filled = density_filled,
-        density_filled_palette = density_filled_palette, density_filled_palcolor = density_filled_palcolor,
-        lineages = lineages, lineages_trim = lineages_trim, lineages_span = lineages_span,
-        lineages_palette = lineages_palette, lineages_palcolor = lineages_palcolor, lineages_arrow = lineages_arrow,
-        lineages_linewidth = lineages_linewidth, lineages_line_bg = lineages_line_bg, lineages_line_bg_stroke = lineages_line_bg_stroke,
-        lineages_whiskers = lineages_whiskers, lineages_whiskers_linewidth = lineages_whiskers_linewidth, lineages_whiskers_alpha = lineages_whiskers_alpha,
-        facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
-        theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
-        raster = raster, raster_dpi = raster_dpi,
-        hex = hex, hex_linewidth = hex_linewidth, hex_count = hex_count, hex_bins = hex_bins, hex_binwidth = hex_binwidth,
-        palette = palette, palcolor = palcolor, seed = seed, ...
-    )
+                    label = label, label_size = label_size, label_fg = label_fg, label_bg = label_bg, label_bg_r = label_bg_r,
+                    label_repel = label_repel, label_repulsion = label_repulsion, label_pt_size = label_pt_size, label_pt_color = label_pt_color,
+                    label_segment_color = label_segment_color,
+                    highlight = highlight, highlight_alpha = highlight_alpha, highlight_size = highlight_size, highlight_color = highlight_color, highlight_stroke = highlight_stroke,
+                    add_mark = add_mark, mark_type = mark_type, mark_expand = mark_expand, mark_alpha = mark_alpha, mark_linetype = mark_linetype,
+                    stat_by = stat_by, stat_plot_type = stat_plot_type, stat_plot_size = stat_plot_size, stat_args = stat_args,
+                    graph = graph, edge_size = edge_size, edge_alpha = edge_alpha, edge_color = edge_color,
+                    add_density = add_density, density_color = density_color, density_filled = density_filled,
+                    density_filled_palette = density_filled_palette, density_filled_palcolor = density_filled_palcolor,
+                    lineages = lineages, lineages_trim = lineages_trim, lineages_span = lineages_span,
+                    lineages_palette = lineages_palette, lineages_palcolor = lineages_palcolor, lineages_arrow = lineages_arrow,
+                    lineages_linewidth = lineages_linewidth, lineages_line_bg = lineages_line_bg, lineages_line_bg_stroke = lineages_line_bg_stroke,
+                    lineages_whiskers = lineages_whiskers, lineages_whiskers_linewidth = lineages_whiskers_linewidth, lineages_whiskers_alpha = lineages_whiskers_alpha,
+                    facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
+                    title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
+                    theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
+                    raster = raster, raster_dpi = raster_dpi,
+                    hex = hex, hex_linewidth = hex_linewidth, hex_count = hex_count, hex_bins = hex_bins, hex_binwidth = hex_binwidth,
+                    palette = palette, palcolor = palcolor, seed = seed, ...
+                )
             }
         )
     }

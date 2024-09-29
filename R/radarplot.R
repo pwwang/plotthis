@@ -33,14 +33,14 @@
 #' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_polygon geom_point geom_text scale_y_continuous scale_x_discrete scale_fill_manual
 #' @importFrom ggplot2 scale_color_manual coord_polar labs theme element_blank element_line element_text element_rect
-#' @importFrom ggplot2 ggproto CoordPolar
+#' @importFrom ggplot2 ggproto CoordPolar waiver
 RadarPlotAtomic <- function(
     data, x, x_sep = "_", group_by = NULL, group_by_sep = "_", y = NULL, group_name = NULL,
     scale_y = c("group", "global", "x", "none"), y_min = 0, y_max = NULL, y_nbreaks = 4,
     polygon = FALSE, fill = TRUE, linewidth = 1, pt_size = 4, max_charwidth = 16,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    alpha = 0.2, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
+    alpha = 0.2, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
     title = NULL, subtitle = NULL, ...) {
 
     x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
@@ -59,9 +59,9 @@ RadarPlotAtomic <- function(
     if (is.null(group_by)) {
         data$.group <- factor("")
         group_by <- ".group"
-        group_guide <- ifelse(legend.position == "none", "none", "legend")
+        legend.position <- ifelse(inherits(legend.position, "waiver"), "none", "right")
     } else {
-        group_guide <- "legend"
+        legend.position <- ifelse(inherits(legend.position, "waiver"), "right", legend.position)
     }
 
     scale_y <- match.arg(scale_y)
@@ -142,12 +142,10 @@ RadarPlotAtomic <- function(
         scale_x_discrete(labels = scales::label_wrap(max_charwidth)) +
         scale_fill_manual(
             name = group_name %||% group_by,
-            values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor),
-            guide = group_guide
+            values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
         ) +
         scale_color_manual(
-            values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor),
-            guide = group_guide
+            values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
         ) +
         coord_radar(start = -pi / nlevels(data[[x]])) +
         labs(title = title, subtitle = subtitle) +
@@ -168,7 +166,7 @@ RadarPlotAtomic <- function(
 
     height <- 4.5
     width <- 4.5
-    if (legend.position != "none") {
+    if (!identical(legend.position, "none")) {
         if (legend.position %in% c("right", "left")) {
             width <- width + 1
         } else if (legend.direction == "horizontal") {
@@ -191,6 +189,7 @@ RadarPlotAtomic <- function(
 #' @rdname radarplot
 #' @inheritParams common_args
 #' @inheritParams RadarPlotAtomic
+#' @importFrom ggplot2 waiver
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
 RadarPlot <- function(
@@ -199,7 +198,7 @@ RadarPlot <- function(
     fill = TRUE, linewidth = 1, pt_size = 4, max_charwidth = 16, split_by = NULL, split_by_sep = "_",
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    alpha = 0.2, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
+    alpha = 0.2, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
     title = NULL, subtitle = NULL, seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...) {
 
     validate_common_args(seed, facet_by = facet_by)
@@ -224,13 +223,13 @@ RadarPlot <- function(
                 title <- title %||% default_title
             }
             RadarPlotAtomic(datas[[nm]],
-        x = x, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, y = y, group_name = group_name,
-        scale_y = scale_y, y_min = y_min, y_max = y_max, y_nbreaks = y_nbreaks, polygon = FALSE,
-        fill = fill, linewidth = linewidth, pt_size = pt_size, max_charwidth = max_charwidth,
-        theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
-        facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-        alpha = alpha, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
-        title = title, subtitle = subtitle, ...
+                x = x, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, y = y, group_name = group_name,
+                scale_y = scale_y, y_min = y_min, y_max = y_max, y_nbreaks = y_nbreaks, polygon = FALSE,
+                fill = fill, linewidth = linewidth, pt_size = pt_size, max_charwidth = max_charwidth,
+                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
+                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
+                alpha = alpha, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
+                title = title, subtitle = subtitle, ...
             )
         }
     )
@@ -294,13 +293,13 @@ SpiderPlot <- function(
                 title <- title %||% default_title
             }
             RadarPlotAtomic(datas[[nm]],
-        x = x, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, y = y, group_name = group_name,
-        scale_y = scale_y, y_min = y_min, y_max = y_max, y_nbreaks = y_nbreaks, polygon = TRUE,
-        fill = fill, linewidth = linewidth, pt_size = pt_size, max_charwidth = max_charwidth,
-        theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
-        facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-        alpha = alpha, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
-        title = title, subtitle = subtitle, ...
+                x = x, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, y = y, group_name = group_name,
+                scale_y = scale_y, y_min = y_min, y_max = y_max, y_nbreaks = y_nbreaks, polygon = TRUE,
+                fill = fill, linewidth = linewidth, pt_size = pt_size, max_charwidth = max_charwidth,
+                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
+                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
+                alpha = alpha, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
+                title = title, subtitle = subtitle, ...
             )
         }
     )

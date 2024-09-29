@@ -9,6 +9,13 @@
 #'   If FALSE, the bars will be filled a single color (the first color in the palette).
 #' @param width A numeric value specifying the width of the bars.
 #' @param flip A logical value indicating whether to flip the x and y axes.
+#' @param label A column name for the values to be displayed on the top of the bars.
+#'  If TRUE, the y values will be displayed.
+#' @param label_nudge A numeric value to nudge the labels (the distance between the label and the top of the bar).
+#' @param label_fg A character string indicating the color of the label.
+#' @param label_size A numeric value indicating the size of the label.
+#' @param label_bg A character string indicating the background color of the label.
+#' @param label_bg_r A numeric value indicating the radius of the background.
 #' @param add_line A numeric value indicating the y value to add a horizontal line.
 #' @param line_color A character string indicating the color of the line.
 #' @param line_size A numeric value indicating the size of the line.
@@ -24,30 +31,54 @@
 #' @keywords internal
 #' @importFrom rlang sym %||%
 #' @importFrom dplyr %>% group_by summarise n
+#' @importFrom tidyr complete
 #' @importFrom gglogger ggplot
 #' @importFrom ggplot2 aes geom_bar scale_fill_manual labs scale_x_discrete scale_y_continuous
 #' @importFrom ggplot2 element_line waiver coord_flip scale_color_manual guide_legend coord_cartesian
+#' @importFrom ggrepel geom_text_repel
 BarPlotSingle <- function(
-    data, x, y = NULL, flip = FALSE, facet_by = NULL,
+    data, x, y = NULL, flip = FALSE, facet_by = NULL, label = NULL, label_nudge = 0,
+    label_fg = "black", label_size = 4, label_bg = "white", label_bg_r = 0.1,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1, y_min = NULL, y_max = NULL,
     legend.position = "right", legend.direction = "vertical",
     add_line = NULL, line_color = "red2", line_size = .6, line_type = 2, line_name = NULL,
     add_trend = FALSE, trend_color = "black", trend_linewidth = 1, trend_ptsize = 2.5,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
-    expand = 0, fill_by_x = TRUE, width = 0.9, ...) {
+    expand = waiver(), fill_by_x = TRUE, width = 0.9, ...) {
     if (inherits(width, "waiver")) width <- 0.9
-    if (inherits(expand, "waiver")) expand <- 0
+    if (inherits(expand, "waiver")) {
+        if (!is.null(label)) {
+            expand <- c(0.05 + label_nudge * 0.05, 0, 0, 0)
+        } else {
+            expand <- c(0, 0, 0, 0)
+        }
+    }
     expand <- norm_expansion(expand, x_type = "discrete", y_type = "continuous")
 
     x <- check_columns(data, x, force_factor = TRUE)
     y <- check_columns(data, y)
+    if (isTRUE(label)) {
+        label <- y
+    }
+    label <- check_columns(data, label)
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
     if (is.null(y)) {
         data <- data %>%
             group_by(!!!syms(unique(c(x, facet_by)))) %>%
             summarise(.y = n(), .groups = "drop")
         y <- ".y"
+    }
+
+    if (keep_empty) {
+        # fill y with 0 for empty x. 'drop' with scale_fill_* doesn't have color for empty x
+        fill_list <- list(0)
+        names(fill_list) <- y
+        if (is.null(facet_by)) {
+            data <- data %>% complete(!!sym(x), fill = fill_list)
+        } else {
+            data <- data %>% group_by(!!!syms(facet_by)) %>% complete(!!sym(x), fill = fill_list)
+        }
     }
 
     if (isTRUE(fill_by_x)) {
@@ -61,10 +92,19 @@ BarPlotSingle <- function(
     }
     just <- calc_just(x_text_angle)
 
-    p <- p + geom_col(alpha = alpha, width = width) +
+    p <- p + geom_col(alpha = alpha, width = width)
+
+    if (!is.null(label)) {
+        p <- p + geom_text_repel(
+            aes(label = !!sym(label)), color = label_fg, size = label_size,
+            bg.color = label_bg, bg.r = label_bg_r, force = 0, nudge_y = label_nudge,
+            min.segment.length = 0, max.overlaps = 100, segment.color = 'transparent'
+        )
+    }
+    p <- p +
         scale_fill_manual(name = x, values = colors, guide = guide) +
         labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
-        scale_x_discrete(drop = !keep_empty, expand = expand$x) +
+        scale_x_discrete(expand = expand$x) +
         scale_y_continuous(expand = expand$y) +
         do.call(theme, theme_args) +
         ggplot2::theme(
@@ -149,7 +189,9 @@ BarPlotGrouped <- function(
     position = "auto", position_dodge_preserve = "total", y_min = NULL, y_max = NULL,
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
-    expand = c(bottom = 0), width = 0.8, facet_by = NULL, ...) {
+    expand = waiver(), width = 0.8, facet_by = NULL, ...) {
+
+    if (inherits(expand, "waiver")) expand = c(bottom = 0)
     group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
     x <- check_columns(data, x, force_factor = TRUE)
@@ -172,6 +214,15 @@ BarPlotGrouped <- function(
     }
     expand <- norm_expansion(expand, x_type = "discrete", y_type = "continuous")
 
+    if (keep_empty) {
+        # fill y with 0 for empty group_by. 'drop' with scale_fill_* doesn't have color for empty group_by
+        fill_list <- list(0)
+        names(fill_list) <- y
+        data <- data %>%
+            group_by(!!!syms(unique(c(x, facet_by)))) %>%
+            complete(!!sym(group_by), fill = fill_list)
+    }
+
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(group_by)))
     if (isTRUE(add_bg)) {
         p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by)
@@ -186,9 +237,9 @@ BarPlotGrouped <- function(
     }
 
     p <- p + geom_col(alpha = alpha, position = position, width = width) +
-        scale_fill_manual(name = group_by, values = colors, drop = !keep_empty, guide = guide_legend(order = 1)) +
+        scale_fill_manual(name = group_by, values = colors, guide = guide_legend(order = 1)) +
         labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
-        scale_x_discrete(drop = !keep_empty, expand = expand$x) +
+        scale_x_discrete(expand = expand$x) +
         scale_y_continuous(expand = expand$y) +
         do.call(theme, theme_args) +
         ggplot2::theme(
@@ -231,12 +282,14 @@ BarPlotGrouped <- function(
 
     height <- 4.5
     width <- .5 + nlevels(data[[x]]) * length(unique(data[[group_by]])) * .5
-    if (legend.position %in% c("right", "left")) {
-        width <- width + 1
-    } else if (legend.direction == "horizontal") {
-        height <- height + 1
-    } else {
-        width <- width + 2
+    if (!identical(legend.position, "none")) {
+        if (legend.position %in% c("right", "left")) {
+            width <- width + 1
+        } else if (legend.direction == "horizontal") {
+            height <- height + 1
+        } else {
+            width <- width + 2
+        }
     }
 
     if (isTRUE(flip)) {
@@ -259,7 +312,8 @@ BarPlotGrouped <- function(
 #' @importFrom ggplot2 waiver
 #' @keywords internal
 BarPlotAtomic <- function(
-    data, x, y = NULL, flip = FALSE, group_by = NULL, fill_by_x_if_no_group = TRUE,
+    data, x, y = NULL, flip = FALSE, group_by = NULL, fill_by_x_if_no_group = TRUE, label_nudge = 0,
+    label = NULL, label_fg = "black", label_size = 4, label_bg = "white", label_bg_r = 0.1,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1,
@@ -273,6 +327,8 @@ BarPlotAtomic <- function(
     if (is.null(group_by)) {
         p <- BarPlotSingle(
             data, x, y,
+            label = label, label_nudge = label_nudge,
+            label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
             facet_by = facet_by, flip = flip, line_name = line_name,
             theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
             alpha = alpha, x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
@@ -283,6 +339,9 @@ BarPlotAtomic <- function(
             expand = expand, fill_by_x = fill_by_x_if_no_group, width = width, ...
         )
     } else {
+        if (!is.null(label)) {
+            stop("'label' is not supported for BarPlot when 'group_by' is provided.")
+        }
         p <- BarPlotGrouped(
             data, x, y, group_by,
             facet_by = facet_by, flip = flip, line_name = line_name,
@@ -298,7 +357,8 @@ BarPlotAtomic <- function(
         )
     }
 
-    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow)
+    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
+        legend.position = legend.position, legend.direction = legend.direction)
 }
 
 #' Bar Plot
@@ -322,6 +382,8 @@ BarPlotAtomic <- function(
 #'
 #' BarPlot(data, x = "x", y = "y")
 #' BarPlot(data, x = "x", y = "y", fill_by_x_if_no_group = FALSE)
+#' BarPlot(data, x = "x", y = "y", label = TRUE)
+#' BarPlot(data, x = "x", y = "y", label = "facet", label_nudge = 1)
 #' BarPlot(data, x = "group", y = "y", group_by = "x")
 #' BarPlot(data,
 #'     x = "group", y = "y", group_by = "x",
@@ -340,7 +402,8 @@ BarPlotAtomic <- function(
 #' # flip the plot
 #' BarPlot(data, x = "group", flip = TRUE, ylab = "count")
 BarPlot <- function(
-    data, x, y = NULL, flip = FALSE, fill_by_x_if_no_group = TRUE, line_name = NULL,
+    data, x, y = NULL, flip = FALSE, fill_by_x_if_no_group = TRUE, line_name = NULL, label_nudge = 0,
+    label = NULL, label_fg = "black", label_size = 4, label_bg = "white", label_bg_r = 0.1,
     group_by = NULL, group_by_sep = "_", split_by = NULL, split_by_sep = "_",
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
@@ -362,22 +425,30 @@ BarPlot <- function(
         datas <- datas[levels(data[[split_by]])]
     } else {
         datas <- list(data)
+        names(datas) <- "..."
     }
 
     plots <- lapply(
-        datas, BarPlotAtomic,
-        x = x, y = y, flip = flip, group_by = group_by, fill_by_x_if_no_group = fill_by_x_if_no_group,
-        theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
-        add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
-        alpha = alpha, x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, line_name = line_name,
-        add_line = add_line, line_color = line_color, line_size = line_size, line_type = line_type,
-        add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
-        position = position, position_dodge_preserve = position_dodge_preserve, y_min = y_min, y_max = y_max,
-        legend.position = legend.position, legend.direction = legend.direction,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty,
-        expand = expand, width = width, facet_by = facet_by, facet_scales = facet_scales,
-        facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-        split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow, ...
+        names(datas), function(nm) {
+            title <- title %||% (if (length(datas) == 1 && identical(nm, "...")) NULL else nm)
+            BarPlotAtomic(
+                datas[[nm]],
+                label = label, label_nudge = label_nudge,
+                label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
+                x = x, y = y, flip = flip, group_by = group_by, fill_by_x_if_no_group = fill_by_x_if_no_group,
+                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
+                add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
+                x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, line_name = line_name,
+                add_line = add_line, line_color = line_color, line_size = line_size, line_type = line_type,
+                add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
+                position = position, position_dodge_preserve = position_dodge_preserve, y_min = y_min, y_max = y_max,
+                legend.position = legend.position, legend.direction = legend.direction,
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty,
+                expand = expand, width = width, facet_by = facet_by, facet_scales = facet_scales,
+                facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
+                ...
+            )
+        }
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
@@ -566,7 +637,8 @@ SplitBarPlotAtomic <- function(
     attr(p, "height") <- height
     attr(p, "width") <- width
 
-    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow)
+    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
+        legend.position = legend.position, legend.direction = legend.direction)
 }
 
 #' @rdname barplot
@@ -622,16 +694,16 @@ SplitBarPlot <- function(
                 title <- title %||% default_title
             }
             SplitBarPlotAtomic(datas[[nm]],
-        x = x, y = y, y_sep = y_sep, flip = flip, alpha_by = alpha_by, alpha_reverse = alpha_reverse, alpha_name = alpha_name,
-        order_y = order_y, bar_height = bar_height, lineheight = lineheight, max_charwidth = max_charwidth,
-        fill_by = fill_by, fill_by_sep = fill_by_sep, fill_name = fill_name,
-        direction_pos_name = direction_pos_name, direction_neg_name = direction_neg_name,
-        theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
-        facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
-        aspect.ratio = aspect.ratio, x_min = x_min, x_max = x_max,
-        legend.position = legend.position, legend.direction = legend.direction,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty,
-        ...
+                x = x, y = y, y_sep = y_sep, flip = flip, alpha_by = alpha_by, alpha_reverse = alpha_reverse, alpha_name = alpha_name,
+                order_y = order_y, bar_height = bar_height, lineheight = lineheight, max_charwidth = max_charwidth,
+                fill_by = fill_by, fill_by_sep = fill_by_sep, fill_name = fill_name,
+                direction_pos_name = direction_pos_name, direction_neg_name = direction_neg_name,
+                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
+                facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
+                aspect.ratio = aspect.ratio, x_min = x_min, x_max = x_max,
+                legend.position = legend.position, legend.direction = legend.direction,
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty,
+                ...
             )
         }
     )

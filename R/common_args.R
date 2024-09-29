@@ -24,10 +24,13 @@
 #' @param x_text_angle A numeric value specifying the angle of the x-axis text.
 #' @param aspect.ratio A numeric value specifying the aspect ratio of the plot.
 #' @param title A character string specifying the title of the plot.
+#'  A function can be used to generate the title based on the default title.
+#'  This is useful when split_by is used and the title needs to be dynamic.
 #' @param subtitle A character string specifying the subtitle of the plot.
 #' @param xlab A character string specifying the x-axis label.
 #' @param ylab A character string specifying the y-axis label.
 #' @param legend.position A character string specifying the position of the legend.
+#'   if `waiver()`, for single groups, the legend will be "none", otherwise "right".
 #' @param legend.direction A character string specifying the direction of the legend.
 #' @param expand The values to expand the x and y axes. It is like CSS padding.
 #'   When a single value is provided, it is used for both axes on both sides.

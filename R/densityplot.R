@@ -84,7 +84,7 @@ DensityHistoPlotAtomic <- function(
 
     height <- 3.5
     width <- 4
-    if (legend.position != "none") {
+    if (!identical(legend.position, "none")) {
         if (legend.position %in% c("right", "left")) {
             width <- width + 1
         } else if (legend.direction == "horizontal") {
@@ -101,7 +101,9 @@ DensityHistoPlotAtomic <- function(
         attr(p, "width") <- width
     }
 
-    facet_plot(p, facet_by = facet_by, facet_scales = facet_scales, ncol = facet_ncol, nrow = facet_nrow, byrow = facet_byrow)
+    facet_plot(p, facet_by = facet_by, facet_scales = facet_scales, ncol = facet_ncol,
+        nrow = facet_nrow, byrow = facet_byrow, legend.position = legend.position,
+        legend.direction = legend.direction)
 }
 
 #' Density Plot / Histogram
@@ -153,12 +155,12 @@ DensityPlot <- function(
                 title <- title %||% default_title
             }
             DensityHistoPlotAtomic(datas[[nm]],
-        x = x, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name, type = "density", flip = flip,
-        add_lines = add_lines, line_height = line_height, line_alpha = line_alpha, line_width = line_width,
-        palette = palette, palcolor = palcolor, alpha = alpha, theme = theme, theme_args = theme_args,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, expand = expand,
-        facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-        legend.position = legend.position, legend.direction = legend.direction, ...
+                x = x, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name, type = "density", flip = flip,
+                add_lines = add_lines, line_height = line_height, line_alpha = line_alpha, line_width = line_width,
+                palette = palette, palcolor = palcolor, alpha = alpha, theme = theme, theme_args = theme_args,
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, expand = expand,
+                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
+                legend.position = legend.position, legend.direction = legend.direction, ...
             )
         }
     )
@@ -205,13 +207,13 @@ Histogram <- function(
                 title <- title %||% default_title
             }
             DensityHistoPlotAtomic(datas[[nm]],
-        x = x, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name, type = "histogram",
-        add_lines = add_lines, line_height = line_height, line_alpha = line_alpha, line_width = line_width,
-        flip = flip, bins = bins, binwidth = binwidth, expand = expand,
-        palette = palette, palcolor = palcolor, alpha = alpha, theme = theme, theme_args = theme_args,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
-        facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-        legend.position = legend.position, legend.direction = legend.direction, ...
+                x = x, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name, type = "histogram",
+                add_lines = add_lines, line_height = line_height, line_alpha = line_alpha, line_width = line_width,
+                flip = flip, bins = bins, binwidth = binwidth, expand = expand,
+                palette = palette, palcolor = palcolor, alpha = alpha, theme = theme, theme_args = theme_args,
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
+                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
+                legend.position = legend.position, legend.direction = legend.direction, ...
             )
         }
     )

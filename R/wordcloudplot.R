@@ -204,17 +204,27 @@ WordCloudPlot <- function(
         datas <- datas[levels(data[[split_by]])]
     } else {
         datas <- list(data)
+        names(datas) <- "..."
     }
 
     plots <- lapply(
-        datas, WordCloudPlotAtomic,
-        word_by = word_by, sentence_by = sentence_by, count_by = count_by, score_by = score_by,
-        count_name = count_name, score_name = score_name, words_excluded = words_excluded, score_agg = score_agg, minchar = minchar,
-        word_size = word_size, top_words = top_words,
-        facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-        theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha, palreverse = palreverse,
-        aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
-        title = title, subtitle = subtitle, seed = seed, ...
+        names(datas), function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+            if (is.function(title)) {
+                title <- title(default_title)
+            } else {
+                title <- title %||% default_title
+            }
+            WordCloudPlotAtomic(datas[[nm]],
+                word_by = word_by, sentence_by = sentence_by, count_by = count_by, score_by = score_by,
+                count_name = count_name, score_name = score_name, words_excluded = words_excluded, score_agg = score_agg, minchar = minchar,
+                word_size = word_size, top_words = top_words,
+                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
+                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha, palreverse = palreverse,
+                aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
+                title = title, subtitle = subtitle, seed = seed, ...
+            )
+        }
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)

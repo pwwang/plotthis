@@ -19,7 +19,7 @@ ClustreePlotAtomic <- function(
     data, prefix, flip = FALSE, alpha = 0.85,
     palette = "Paired", palcolor = NULL, edge_palette = "Spectral", edge_palcolor = NULL,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(0.1, 0.1),
     theme = "theme_this", theme_args = list(),
     ...) {
     # if (!requireNamespace("ggraph", quietly = TRUE)) {
@@ -33,6 +33,7 @@ ClustreePlotAtomic <- function(
 
     data <- data %>% select(starts_with(prefix))
     data <- data[complete.cases(data), , drop = FALSE]
+    expand <- norm_expansion(expand, x_type = "continuous", y_type = "continuous")
 
     if (ncol(data) == 0 || nrow(data) == 0) {
         stop("No data found with prefix '", prefix, "'")
@@ -49,6 +50,7 @@ ClustreePlotAtomic <- function(
     resolutions <- as.numeric(resolutions)
     # make sure res.0.50 to be access by res.0.5
     colnames(data) <- paste0(prefix, resolutions)
+    resolutions <- sort(resolutions)
     nres <- length(resolutions)
     max_clusters <- length(unique(data[[paste0(prefix, max(resolutions))]]))
     clustree_args <- list(...)
@@ -61,8 +63,9 @@ ClustreePlotAtomic <- function(
     clustree_args$node_size_range <- clustree_args$node_size_range %||% c(6, 12)
     clustree_args$node_text_size <- clustree_args$node_text_size %||% 3
     clustree_args$node_text_colour <- clustree_args$node_text_colour %||% clustree_args$node_text_color %||% "black"
+    clustree <- gglogger::register(clustree::clustree)
 
-    p <- suppressMessages(do.call(clustree::clustree, clustree_args))
+    p <- suppressMessages(do.call(clustree, clustree_args))
 
     # make glow effect
     # ggrepel::geom_text_repel with bg.colour is not working well with coord_flip
@@ -104,7 +107,8 @@ ClustreePlotAtomic <- function(
             legend.direction = legend.direction,
             # panel.border = element_blank()
         ) +
-        labs(title = title, subtitle = subtitle, x = xlab %||% "", y = ylab %||% sub("\\.|_$", "", prefix))
+        labs(title = title, subtitle = subtitle, x = xlab %||% "", y = ylab %||% sub("\\.|_$", "", prefix)) +
+        scale_x_continuous(expand = expand$x)
     })
 
     height <- nres * max_clusters / 20
@@ -114,7 +118,8 @@ ClustreePlotAtomic <- function(
         attr(p, "height") <- width
         attr(p, "width") <- height
         p <- suppressMessages({
-            p + scale_y_reverse(breaks = nres:1, labels = resolutions) + coord_flip(clip = "off") +
+            p + scale_y_reverse(breaks = nres:1, labels = resolutions, expand = expand$y) +
+            coord_flip(clip = "off") +
             ggplot2::theme(
                 panel.grid.major.x = element_line(colour = "grey80", linetype = 2),
                 panel.grid.major.y = element_blank(),
@@ -125,7 +130,9 @@ ClustreePlotAtomic <- function(
     } else {
         attr(p, "height") <- height
         attr(p, "width") <- width
-        p <- p + coord_cartesian(clip = "off") +
+        p <- suppressMessages({
+            p + coord_cartesian(clip = "off") +
+            scale_y_continuous(breaks = nres:1, labels = resolutions, expand = expand$y) +
             ggplot2::theme(
                 panel.grid.major.x = element_blank(),
                 panel.grid.major.y = element_line(colour = "grey80", linetype = 2),
@@ -133,6 +140,7 @@ ClustreePlotAtomic <- function(
                 axis.text.x = element_blank(),
                 axis.ticks.x = element_blank()
             )
+        })
     }
     p
 }
@@ -165,7 +173,7 @@ ClustreePlot <- function(
     data, prefix, flip = FALSE, split_by = NULL, split_by_sep = "_",
     palette = "Paired", palcolor = NULL, edge_palette = "Spectral", edge_palcolor = NULL,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(0.1, 0.1),
     theme = "theme_this", theme_args = list(),
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525, ...
 ) {
@@ -190,11 +198,11 @@ ClustreePlot <- function(
                 title <- title %||% default_title
             }
             ClustreePlotAtomic(datas[[nm]],
-        prefix = prefix, flip = flip, palette = palette, palcolor = palcolor,
+                prefix = prefix, flip = flip, palette = palette, palcolor = palcolor,
                 edge_palette = edge_palette, edge_palcolor = edge_palcolor, expand = expand,
-        aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
-        theme = theme, theme_args = theme_args, ...
+                aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
+                theme = theme, theme_args = theme_args, ...
             )
         }
     )

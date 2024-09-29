@@ -64,6 +64,17 @@ LinePlotSingle <- function(
         }
     }
 
+    if (keep_empty) {
+        # fill y with 0 for empty x. 'drop' with scale_fill_* doesn't have color for empty x
+        fill_list <- list(0)
+        names(fill_list) <- y
+        if (is.null(facet_by)) {
+            data <- data %>% complete(!!sym(x), fill = fill_list)
+        } else {
+            data <- data %>% group_by(!!!syms(facet_by)) %>% complete(!!sym(x), fill = fill_list)
+        }
+    }
+
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y)))
     if (isTRUE(add_bg)) {
         p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by)
@@ -119,12 +130,14 @@ LinePlotSingle <- function(
     height <- 4.5
     width <- .5 + nlevels(data[[x]]) * .8
 
-    if (legend.position %in% c("right", "left")) {
-        width <- width + 1
-    } else if (legend.direction == "horizontal") {
-        height <- height + 1
-    } else {
-        width <- width + 2
+    if (!identical(legend.position, "none")) {
+        if (legend.position %in% c("right", "left")) {
+            width <- width + 1
+        } else if (legend.direction == "horizontal") {
+            height <- height + 1
+        } else {
+            width <- width + 2
+        }
     }
 
     attr(p, "height") <- height
@@ -180,6 +193,15 @@ LinePlotGrouped <- function(
         }
     }
 
+    if (keep_empty) {
+        # fill y with 0 for empty group_by. 'drop' with scale_fill_* doesn't have color for empty group_by
+        fill_list <- list(0)
+        names(fill_list) <- y
+        data <- data %>%
+            group_by(!!!syms(unique(c(x, facet_by)))) %>%
+            complete(!!sym(group_by), fill = fill_list)
+    }
+
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y)))
     if (isTRUE(add_bg)) {
         p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by)
@@ -220,12 +242,14 @@ LinePlotGrouped <- function(
     height <- 4.5
     width <- .5 + nlevels(data[[x]]) * .8
 
-    if (legend.position %in% c("right", "left")) {
-        width <- width + 1
-    } else if (legend.direction == "horizontal") {
-        height <- height + 1
-    } else {
-        width <- width + 2
+    if (!identical(legend.position, "none")) {
+        if (legend.position %in% c("right", "left")) {
+            width <- width + 1
+        } else if (legend.direction == "horizontal") {
+            height <- height + 1
+        } else {
+            width <- width + 2
+        }
     }
 
     attr(p, "height") <- height
@@ -290,7 +314,8 @@ LinePlotAtomic <- function(
             title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...
         )
     }
-    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow)
+    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
+        legend.position = legend.position, legend.direction = legend.direction)
 }
 
 #' Line Plot
@@ -355,20 +380,20 @@ LinePlot <- function(
                 title <- title %||% default_title
             }
             LinePlotAtomic(datas[[nm]],
-        x = x, y = y, group_by = group_by,
-        fill_point_by_x_if_no_group = fill_point_by_x_if_no_group,
-        color_line_by_x_if_no_group = color_line_by_x_if_no_group,
-        add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
-        add_errorbars = add_errorbars, errorbar_width = errorbar_width, errorbar_alpha = errorbar_alpha,
-        errorbar_color = errorbar_color, errorbar_linewidth = errorbar_linewidth,
-        errorbar_min = errorbar_min, errorbar_max = errorbar_max, errorbar_sd = errorbar_sd,
-        point_alpha = point_alpha, point_size = point_size,
-        line_type = line_type, line_width = line_width, line_alpha = line_alpha,
-        theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
-        x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
-        legend.position = legend.position, legend.direction = legend.direction,
-        facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...
+                x = x, y = y, group_by = group_by,
+                fill_point_by_x_if_no_group = fill_point_by_x_if_no_group,
+                color_line_by_x_if_no_group = color_line_by_x_if_no_group,
+                add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
+                add_errorbars = add_errorbars, errorbar_width = errorbar_width, errorbar_alpha = errorbar_alpha,
+                errorbar_color = errorbar_color, errorbar_linewidth = errorbar_linewidth,
+                errorbar_min = errorbar_min, errorbar_max = errorbar_max, errorbar_sd = errorbar_sd,
+                point_alpha = point_alpha, point_size = point_size,
+                line_type = line_type, line_width = line_width, line_alpha = line_alpha,
+                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
+                x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
+                legend.position = legend.position, legend.direction = legend.direction,
+                facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...
             )
         }
     )

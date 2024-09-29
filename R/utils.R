@@ -16,9 +16,13 @@ check_columns <- function(
     allow_multi = FALSE,
     concat_multi = FALSE,
     concat_sep = "_") {
+    if (is.null(df)) {
+        stop("The data is NULL.")
+    }
     if (is.null(columns)) {
         return(NULL)
     }
+    df_name <- deparse(substitute(df))
     param_name <- deparse(substitute(columns))
     if (isFALSE(allow_multi)) {
         if (length(columns) > 1) {
@@ -33,21 +37,35 @@ check_columns <- function(
             stop(paste0("'", paste0(notfound, collapse = ", "), "' is/are not in the data."))
         }
         if (isTRUE(concat_multi) && length(columns) > 1) {
-            warning(
-                paste0("Multiple columns are provided in '", param_name, "'. They will be concatenated into one column."),
-                immediate. = TRUE
+            message(
+                "Multiple columns are provided in '", param_name,
+                "'. They will be concatenated into one column."
             )
             new_col <- paste(columns, collapse = concat_sep)
-            df <- unite(df, new_col, !!!syms(columns), sep = concat_sep)
+            df <- unite(df, !!sym(new_col), !!!syms(columns), sep = concat_sep, remove = FALSE)
+            # Try keep the order of levels
+            if (isTRUE(force_factor)) {
+                all_levels <- lapply(columns, function(col) {
+                    if (is.factor(df[[col]])) {
+                        levels(df[[col]])
+                    } else {
+                        unique(df[[col]])
+                    }
+                })
+                all_levels <- do.call(expand_grid, all_levels)
+                all_levels <- apply(all_levels, 1, paste, collapse = concat_sep)
+                df[[new_col]] <- droplevels(factor(df[[new_col]], levels = unique(all_levels)))
+            }
             columns <- new_col
         }
     }
     if (isTRUE(force_factor)) {
         p <- parent.frame()
-        df_name <- deparse(substitute(df))
         for (col in columns) {
             if (!is.factor(df[[col]])) {
                 p[[df_name]][[col]] <- factor(df[[col]], levels = unique(df[[col]]))
+            } else if (!col %in% colnames(p[[df_name]])) {
+                p[[df_name]][[col]] <- df[[col]]
             }
         }
     }
@@ -180,13 +198,16 @@ calc_just <- function(angle) {
 #' @param nrow The number of rows in facet_wrap
 #' @param ncol The number of columns in facet_wrap
 #' @param byrow Whether to fill the plots by row
+#' @param legend.position The position of the legend
+#' @param legend.direction The direction of the legend
 #' @param recalc_size Whether to re-calculate the size of the plot
 #' @param ... Additional arguments to pass to facet_wrap or facet_grid
 #' @return The faceted plot. If guess_size is TRUE, attr(p, "height") and attr(p, "width") will be set
 #' @importFrom rlang sym
 #' @importFrom ggplot2 facet_wrap facet_grid ggplot_build vars
 #' @keywords internal
-facet_plot <- function(plot, facet_by, facet_scales, nrow, ncol, byrow, recalc_size = TRUE, ...) {
+facet_plot <- function(plot, facet_by, facet_scales, nrow, ncol, byrow,
+    legend.position = "right", legend.direction = "vertical", recalc_size = TRUE, ...) {
     if (is.null(facet_by)) {
         return(plot)
     }
@@ -194,8 +215,20 @@ facet_plot <- function(plot, facet_by, facet_scales, nrow, ncol, byrow, recalc_s
     if (recalc_size) {
         p <- facet_plot(plot, facet_by, facet_scales, nrow, ncol, byrow, recalc_size = FALSE, ...)
         d <- wrap_dims(length(unique(ggplot_build(p)$data[[1]]$PANEL)))
-        attr(p, "height") <- d[1] * attr(plot, "height")
-        attr(p, "width") <- d[2] * attr(plot, "width")
+        height <- d[1] * attr(plot, "height")
+        width <- d[2] * attr(plot, "width")
+        if (!identical(legend.position, "none")) {
+            # The legends are merged
+            if (legend.position %in% c("left", "right")) {
+                portion <- ifelse(legend.direction == "vertical", 0.2, 0.3)
+                width <- width - (d[2] - 1) * (width / d[2] * portion)
+            } else {
+                portion <- ifelse(legend.direction == "vertical", 0.3, 0.2)
+                height <- height - (d[1] - 1) * (height / d[1] * portion)
+            }
+        }
+        attr(p, "height") <- height
+        attr(p, "width") <- width
         return(p)
     }
 

@@ -186,13 +186,16 @@ UpsetPlotAtomic <- function(
 
     height <- 4.5 + n_sets * 0.5
     width <- n_intersections * 0.6 + maxchars * 0.1
-    if (legend.position %in% c("right", "left")) {
-        width <- width + 1
-    } else if (legend.direction == "horizontal") {
-        height <- height + 1
-    } else {
-        width <- width + 2
+    if (!identical(legend.position, "none")) {
+        if (legend.position %in% c("right", "left")) {
+            width <- width + 1
+        } else if (legend.direction == "horizontal") {
+            height <- height + 1
+        } else {
+            width <- width + 2
+        }
     }
+
     attr(p, "height") <- height
     attr(p, "width") <- width
 
@@ -235,15 +238,25 @@ UpsetPlot <- function(
         datas <- datas[levels(data[[split_by]])]
     } else {
         datas <- list(data)
+        names(datas) <- "..."
     }
 
     plots <- lapply(
-        datas, UpsetPlotAtomic,
-        intype = intype, group_by = group_by, group_by_sep = group_by_sep, id_by = id_by,
-        label = label, label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
-        palette = palette, palcolor = palcolor, alpha = alpha,
-        theme = theme, theme_args = theme_args, title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
-        aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction, ...
+        names(datas), function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+            if (is.function(title)) {
+                title <- title(default_title)
+            } else {
+                title <- title %||% default_title
+            }
+            UpsetPlotAtomic(datas[[nm]],
+                intype = intype, group_by = group_by, group_by_sep = group_by_sep, id_by = id_by,
+                label = label, label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
+                palette = palette, palcolor = palcolor, alpha = alpha,
+                theme = theme, theme_args = theme_args, title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
+                aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction, ...
+            )
+        }
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)

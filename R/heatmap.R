@@ -645,7 +645,7 @@ HeatmapAtomic <- function(
         }
         hmargs$col <- get_col_fun(limits)
         hmargs$layer_fun <- layer_fun_callback
-        if (legend.position != "none") {
+        if (!identical(legend.position, "none")) {
             legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = hmargs$col, border = TRUE, direction = legend.direction)
         }
         # make it longer to show the bars
@@ -702,7 +702,7 @@ HeatmapAtomic <- function(
             }
             hmargs$rect_gp <- gpar(col = "grey80", lwd = 0.1)
             hmargs$layer_fun_callback <- layer_fun_callback
-            if (legend.position != "none") {
+            if (!identical(legend.position, "none")) {
                 legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = hmargs$col, border = TRUE, direction = legend.direction)
             }
         } else if (cell_type == "label") {
@@ -729,11 +729,11 @@ HeatmapAtomic <- function(
                     layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
                 }
             }
-            if (legend.position != "none") {
+            if (!identical(legend.position, "none")) {
                 legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = hmargs$col, border = TRUE, direction = legend.direction)
             }
         } else if (cell_type == "dot") {
-            if (legend.position != "none") {
+            if (!identical(legend.position, "none")) {
                 dot_size_min <- min(hmdf, na.rm = TRUE)
                 dot_size_max <- max(hmdf, na.rm = TRUE)
                 legends$.dot_size <- ComplexHeatmap::Legend(
@@ -763,7 +763,7 @@ HeatmapAtomic <- function(
                     layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
                 }
             }
-            if (legend.position != "none") {
+            if (!identical(legend.position, "none")) {
                 legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = hmargs$col, border = TRUE, direction = legend.direction)
             }
         } else if (cell_type == "violin") {
@@ -780,10 +780,10 @@ HeatmapAtomic <- function(
                     layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
                 }
             }
-            if (is.null(violin_fill) && legend.position != "none") {
+            if (is.null(violin_fill) && !identical(legend.position, "none")) {
                 legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = hmargs$col, border = TRUE,
                                                            direction = legend.direction)
-            } else if (isTRUE(add_bg) && legend.position != "none") {
+            } else if (isTRUE(add_bg) && !identical(legend.position, "none")) {
                 legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = get_col_fun(limits, bg_alpha), border = TRUE,
                                                            direction = legend.direction)
             }
@@ -801,10 +801,10 @@ HeatmapAtomic <- function(
                     layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
                 }
             }
-            if (is.null(boxplot_fill) && legend.position != "none") {
+            if (is.null(boxplot_fill) && !identical(legend.position, "none")) {
                 legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = hmargs$col, border = TRUE,
                                                            direction = legend.direction)
-            } else if (isTRUE(add_bg) && legend.position != "none") {
+            } else if (isTRUE(add_bg) && !identical(legend.position, "none")) {
                 legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = get_col_fun(limits, bg_alpha), border = TRUE,
                                                            direction = legend.direction)
             }
@@ -836,7 +836,7 @@ HeatmapAtomic <- function(
         } else {
             hmargs$column_split <- hmargs$matrix[[columns_split_by]]
         }
-        if (is.null(column_title) && legend.position != "none") {
+        if (is.null(column_title) && !identical(legend.position, "none")) {
             legends$.column_split <- ComplexHeatmap::Legend(
                 title = columns_split_by,
                 labels = levels(hmargs$matrix[[columns_split_by]]),
@@ -859,7 +859,7 @@ HeatmapAtomic <- function(
         )
         top_annos$show_annotation_name[[columns_by]] <- TRUE
         # top_annos$show_legend <- c(top_annos$show_legend, isFALSE(show_column_names))
-        if (isFALSE(show_column_names) && legend.position != "none") {
+        if (isFALSE(show_column_names) && !identical(legend.position, "none")) {
             legends$.columns_by <- ComplexHeatmap::Legend(
                 title = columns_by,
                 labels = levels(hmargs$matrix[[columns_by]]),
@@ -1002,7 +1002,7 @@ HeatmapAtomic <- function(
             hmargs$row_split <- left_annos[[rows_split_by]]
         }
 
-        if (is.null(row_title) && legend.position != "none") {
+        if (is.null(row_title) && !identical(legend.position, "none")) {
             legends$.rows_split <- ComplexHeatmap::Legend(
                 title = rows_split_by,
                 labels = levels(rows_data[[rows_split_by]]),
@@ -1020,7 +1020,7 @@ HeatmapAtomic <- function(
     nrow_annos <- nrow_annos + 1
     left_annos$show_annotation_name$rows <- TRUE
     # left_annos$show_legend <- c(left_annos$show_legend, isFALSE(show_row_names))
-    if (isFALSE(show_row_names) && legend.position != "none") {
+    if (isFALSE(show_row_names) && !identical(legend.position, "none")) {
         legends$.rows <- ComplexHeatmap::Legend(
             title = "rows",
             labels = colnames(hmargs$matrix),
@@ -1141,7 +1141,7 @@ HeatmapAtomic <- function(
         width <- ncols * 0.25 + nrow_annos * 0.5
         height <- nrows * 0.25 + ncol_annos * 0.5
     }
-    if (legend.position != "none") {
+    if (!identical(legend.position, "none")) {
         if (legend.position %in% c("right", "left")) {
             if (legend.direction == "horizontal") {
                 width <- width + 2

@@ -32,9 +32,6 @@ RingPlotAtomic <- function(
         data$.x <- 1
     }
     x <- check_columns(data, x, force_factor = TRUE)
-    if (isFALSE(keep_empty)) {
-        data[[x]] <- droplevels(data[[x]])
-    }
     group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
 
@@ -52,6 +49,16 @@ RingPlotAtomic <- function(
         label <- FALSE
     } else if (length(rings) > 1 && is.null(label)) {
         label <- TRUE
+    }
+    if (isFALSE(keep_empty)) {
+        data[[x]] <- droplevels(data[[x]])
+    } else {
+        # fill y with 0 for empty group_by. 'drop' with scale_fill_* doesn't have color for empty group_by
+        fill_list <- list(0)
+        names(fill_list) <- y
+        data <- data %>%
+            group_by(!!!syms(unique(c(x, facet_by)))) %>%
+            complete(!!sym(group_by), fill = fill_list)
     }
 
     p = ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(group_by))) +
@@ -86,12 +93,14 @@ RingPlotAtomic <- function(
 
     height <- 4.5
     width <- 4.5
-    if (legend.position %in% c("right", "left")) {
-        width <- width + 1
-    } else if (legend.direction == "horizontal") {
-        height <- height + 1
-    } else {
-        width <- width + 2
+    if (!inherits(legend.position, "none")) {
+        if (legend.position %in% c("right", "left")) {
+            width <- width + 1
+        } else if (legend.direction == "horizontal") {
+            height <- height + 1
+        } else {
+            width <- width + 2
+        }
     }
 
     attr(p, "height") <- height
@@ -150,13 +159,13 @@ RingPlot <- function(
                 title <- title %||% default_title
             }
             RingPlotAtomic(datas[[nm]],
-        x = x, y = y, label = label, group_by = group_by, group_by_sep = group_by_sep,
-        facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-        theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
-        alpha = alpha, aspect.ratio = aspect.ratio,
-        legend.position = legend.position, legend.direction = legend.direction,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty,
-        seed = seed, ...
+                x = x, y = y, label = label, group_by = group_by, group_by_sep = group_by_sep,
+                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
+                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
+                alpha = alpha, aspect.ratio = aspect.ratio,
+                legend.position = legend.position, legend.direction = legend.direction,
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty,
+                seed = seed, ...
             )
         }
     )
