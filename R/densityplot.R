@@ -132,11 +132,13 @@ DensityHistoPlotAtomic <- function(
 #' @param alpha A numeric value specifying the alpha of the ridges.
 #' @param keep_empty A logical value. If TRUE, keep the empty groups on the y-axis.
 #' @param reverse A logical value. If TRUE, reverse the order of the groups on the y-axis.
+#' @param scale A numeric value to scale the ridges.
+#'  See also \code{\link[ggridges]{geom_density_ridges}}.
 #' @param ... Additional arguments.
 #' @keywords internal
 RidgePlotAtomic <- function(
     data, x = NULL, in_form = c("long", "wide"), group_by = NULL, group_by_sep = "_", group_name = NULL,
-    flip = FALSE, alpha = 1, theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
+    flip = FALSE, alpha = 1, scale = NULL, theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, x_text_angle = 90, keep_empty = FALSE, reverse = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = "none", legend.direction = "vertical", ...) {
@@ -152,8 +154,14 @@ RidgePlotAtomic <- function(
         data[[group_by]] <- factor(data[[group_by]], levels = rev(levels(data[[group_by]])))
     }
 
-    p <- ggplot(data, aes(x = !!sym(x), y = !!sym(group_by), fill = !!sym(group_by))) +
-        ggridges::geom_density_ridges(alpha = alpha) +
+    p <- ggplot(data, aes(x = !!sym(x), y = !!sym(group_by), fill = !!sym(group_by)))
+    if (!is.null(scale)) {
+        p <- p + ggridges::geom_density_ridges(alpha = alpha, scale = scale)
+    } else {
+        # Let the geom_density_ridges function to calculate the scale
+        p <- p + ggridges::geom_density_ridges(alpha = alpha)
+    }
+    p <- p +
         scale_fill_manual(values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)) +
         scale_y_discrete(drop = !keep_empty, expand = c(0, 0)) +
         scale_x_continuous(expand = c(0, 0)) +
@@ -238,7 +246,7 @@ RidgePlotAtomic <- function(
 #' RidgePlot(data_wide, group_by = LETTERS[1:5], in_form = "wide", facet_by = "group")
 RidgePlot <- function(
     data, x = NULL, in_form = c("long", "wide"), split_by = NULL, split_by_sep = "_",
-    group_by = NULL, group_by_sep = "_", group_name = NULL,
+    group_by = NULL, group_by_sep = "_", group_name = NULL, scale = NULL,
     flip = FALSE, alpha = 1, theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, x_text_angle = 90, keep_empty = FALSE, reverse = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
@@ -267,7 +275,7 @@ RidgePlot <- function(
                 title <- title %||% default_title
             }
             RidgePlotAtomic(datas[[nm]],
-                x = x, in_form = in_form, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
+                x = x, in_form = in_form, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name, scale = scale,
                 flip = flip, alpha = alpha, theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, x_text_angle = x_text_angle, keep_empty = keep_empty,
                 reverse = reverse, facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow,

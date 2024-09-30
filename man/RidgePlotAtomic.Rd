@@ -13,6 +13,7 @@ RidgePlotAtomic(
   group_name = NULL,
   flip = FALSE,
   alpha = 1,
+  scale = NULL,
   theme = "theme_this",
   theme_args = list(),
   palette = "Paired",
@@ -59,6 +60,9 @@ If 'data' is in the wide form, the columns will not be concatenated.}
 \item{flip}{A logical value. If TRUE, the plot will be flipped.}
 
 \item{alpha}{A numeric value specifying the alpha of the ridges.}
+
+\item{scale}{A numeric value to scale the ridges.
+See also \code{\link[ggridges]{geom_density_ridges}}.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}

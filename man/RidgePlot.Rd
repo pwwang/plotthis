@@ -13,6 +13,7 @@ RidgePlot(
   group_by = NULL,
   group_by_sep = "_",
   group_name = NULL,
+  scale = NULL,
   flip = FALSE,
   alpha = 1,
   theme = "theme_this",
@@ -60,6 +61,9 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 \item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
 
 \item{group_name}{A character string to name the legend of 'group_by', if 'legend.position' is not "none".}
+
+\item{scale}{A numeric value to scale the ridges.
+See also \code{\link[ggridges]{geom_density_ridges}}.}
 
 \item{flip}{A logical value. If TRUE, the plot will be flipped.}
 
