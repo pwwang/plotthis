@@ -28,7 +28,7 @@
 #' @return A ggplot object
 #' @keywords internal
 #' @importFrom rlang syms
-#' @importFrom dplyr group_by summarise n %>% distinct ungroup
+#' @importFrom dplyr summarise n %>% distinct ungroup
 #' @importFrom tidyr complete
 #' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_polygon geom_point geom_text scale_y_continuous scale_x_discrete scale_fill_manual
@@ -52,7 +52,7 @@ RadarPlotAtomic <- function(
     if (is.null(y)) {
         y <- ".count"
         data <- data %>%
-            group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>%
+            dplyr::group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>%
             summarise(.count = n(), .groups = "drop")
     }
 
@@ -67,12 +67,12 @@ RadarPlotAtomic <- function(
     scale_y <- match.arg(scale_y)
     if (scale_y == "group") {
         data <- data %>%
-            group_by(!!!syms(unique(c(group_by, facet_by)))) %>%
+            dplyr::group_by(!!!syms(unique(c(group_by, facet_by)))) %>%
             mutate(!!sym(y) := !!sym(y) / sum(!!sym(y)))
     } else if (scale_y == "global") {
         if (!is.null(facet_by)) {
             data <- data %>%
-                group_by(!!!syms(unique(facet_by))) %>%
+                dplyr::group_by(!!!syms(unique(facet_by))) %>%
                 mutate(!!sym(y) := !!sym(y) / sum(!!sym(y)))
         } else {
             data <- data %>%
@@ -80,7 +80,7 @@ RadarPlotAtomic <- function(
         }
     } else if (scale_y == "x") {
         data <- data %>%
-            group_by(!!!syms(unique(c(x, facet_by)))) %>%
+            dplyr::group_by(!!!syms(unique(c(x, facet_by)))) %>%
             mutate(!!sym(y) := !!sym(y) / sum(!!sym(y)))
     }
 
@@ -89,7 +89,7 @@ RadarPlotAtomic <- function(
     complete_fill = list(0)
     names(complete_fill) = y
     data <- data %>%
-        group_by(!!!syms(unique(c(group_by, facet_by)))) %>%
+        dplyr::group_by(!!!syms(unique(c(group_by, facet_by)))) %>%
         complete(!!sym(x), fill = complete_fill) %>%
         ungroup()
 

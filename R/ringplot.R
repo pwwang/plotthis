@@ -10,7 +10,7 @@
 #'   showing the labels for multiple rings.
 #' @return A ggplot object
 #' @importFrom rlang sym syms
-#' @importFrom dplyr %>% group_by summarise n
+#' @importFrom dplyr %>% summarise n
 #' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_col scale_fill_manual scale_x_discrete geom_label
 #' @keywords internal
@@ -36,13 +36,13 @@ RingPlotAtomic <- function(
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
 
     if (is.null(y)) {
-        data <- data %>% group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>% summarise(.y = n(), .groups = "drop")
+        data <- data %>% dplyr::group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>% summarise(.y = n(), .groups = "drop")
         y <- ".y"
     } else {
         y <- check_columns(data, y)
     }
     # make sure each ring sums to 1
-    data <- data %>% group_by(!!!syms(unique(c(x, facet_by)))) %>% mutate(!!sym(y) := !!sym(y) / sum(!!sym(y)))
+    data <- data %>% dplyr::group_by(!!!syms(unique(c(x, facet_by)))) %>% mutate(!!sym(y) := !!sym(y) / sum(!!sym(y)))
 
     rings <- rev(levels(data[[x]]))
     if (length(rings) == 1 && is.null(label)) {
@@ -57,7 +57,7 @@ RingPlotAtomic <- function(
         fill_list <- list(0)
         names(fill_list) <- y
         data <- data %>%
-            group_by(!!!syms(unique(c(x, facet_by)))) %>%
+            dplyr::group_by(!!!syms(unique(c(x, facet_by)))) %>%
             complete(!!sym(group_by), fill = fill_list)
     }
 

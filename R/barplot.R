@@ -183,7 +183,7 @@ BarPlotSingle <- function(
 #' @return A ggplot object.
 #' @keywords internal
 #' @importFrom rlang sym %||%
-#' @importFrom dplyr %>% group_by summarise n
+#' @importFrom dplyr %>% summarise n
 #' @importFrom gglogger ggplot
 #' @importFrom ggplot2 aes geom_bar scale_fill_manual labs position_dodge2 coord_flip guide_legend scale_color_manual
 BarPlotGrouped <- function(
@@ -204,7 +204,7 @@ BarPlotGrouped <- function(
     y <- check_columns(data, y)
     if (is.null(y)) {
         data <- data %>%
-            group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>%
+            dplyr::group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>%
             summarise(.y = n(), .groups = "drop")
         y <- ".y"
     }
@@ -215,7 +215,7 @@ BarPlotGrouped <- function(
         fill_list <- list(0)
         names(fill_list) <- y
         data <- data %>%
-            group_by(!!!syms(unique(c(x, facet_by)))) %>%
+            dplyr::group_by(!!!syms(unique(c(x, facet_by)))) %>%
             complete(!!sym(group_by), fill = fill_list)
     }
 

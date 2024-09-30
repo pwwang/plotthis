@@ -198,7 +198,7 @@ LinePlotGrouped <- function(
         fill_list <- list(0)
         names(fill_list) <- y
         data <- data %>%
-            group_by(!!!syms(unique(c(x, facet_by)))) %>%
+            dplyr::group_by(!!!syms(unique(c(x, facet_by)))) %>%
             complete(!!sym(group_by), fill = fill_list)
     }
 

@@ -17,7 +17,7 @@
 #' @keywords internal
 #' @return A ggplot object
 #' @importFrom rlang syms :=
-#' @importFrom dplyr group_by summarise n %>%
+#' @importFrom dplyr summarise n %>%
 #' @importFrom ggplot2 geom_area scale_x_discrete scale_y_continuous scale_fill_manual
 #' @importFrom ggplot2 labs theme element_line element_text position_stack waiver
 AreaPlotAtomic <- function(
@@ -34,13 +34,13 @@ AreaPlotAtomic <- function(
     if (is.null(y)) {
         y <- ".count"
         data <- data %>%
-            group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>%
+            dplyr::group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>%
             summarise(.count = n(), .groups = "drop")
     }
 
     if (isTRUE(scale_y)) {
         data <- data %>%
-            group_by(!!!syms(unique(c(x, facet_by)))) %>%
+            dplyr::group_by(!!!syms(unique(c(x, facet_by)))) %>%
             mutate(!!sym(y) := !!sym(y) / sum(!!sym(y)))
     }
 
@@ -55,7 +55,7 @@ AreaPlotAtomic <- function(
         complete_fill <- list(0)
         names(complete_fill) <- y
         data <- data %>%
-            group_by(!!!syms(unique(c(group_by, facet_by)))) %>%
+            dplyr::group_by(!!!syms(unique(c(group_by, facet_by)))) %>%
             complete(!!sym(x), fill = complete_fill) %>%
             ungroup()
         legend.position <- ifelse(inherits(legend.position, "waiver"), "right", legend.position)

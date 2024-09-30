@@ -67,7 +67,7 @@
 #' @keywords internal
 #' @importFrom stats median quantile
 #' @importFrom rlang sym syms
-#' @importFrom dplyr group_by mutate ungroup first
+#' @importFrom dplyr mutate ungroup first
 #' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_boxplot geom_violin geom_jitter geom_point geom_line geom_hline geom_vline
 #' @importFrom ggplot2 scale_fill_manual scale_color_manual scale_shape_manual scale_linetype_manual stat_summary
@@ -131,7 +131,7 @@ BoxViolinPlotAtomic <- function(
         stop("Cannot sort x-axis when facet_by is provided.")
     }
     data <- data %>%
-        group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>%
+        dplyr::group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>%
         mutate(.y_mean = mean(!!sym(y)), .y_median = median(!!sym(y))) %>%
         ungroup()
 
