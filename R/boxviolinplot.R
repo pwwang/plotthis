@@ -403,7 +403,7 @@ BoxViolinPlotAtomic <- function(
         } else {
             p <- p + coord_flip(ylim = c(y_min_use, y_max_use))
         }
-        width <- width + 2 + x_maxchars * 0.05
+        width <- max(3, width + 2 + x_maxchars * 0.05)
         height <- height + nx * nd * 0.3
     } else if (isTRUE(flip) && isFALSE(stack)) {
         strip_position <- "top"
@@ -416,7 +416,7 @@ BoxViolinPlotAtomic <- function(
         } else {
             p <- p + coord_flip(ylim = c(y_min_use, y_max_use))
         }
-        width <- width + 2.2 + x_maxchars * 0.05
+        width <- max(3, width + 2.2 + x_maxchars * 0.05)
         height <- height + nx * nd * 0.3
     } else if (isTRUE(stack)) {
         facet_ncol <- facet_ncol %||% 1
@@ -440,7 +440,7 @@ BoxViolinPlotAtomic <- function(
         if (!facet_free) {
             p <- p + coord_cartesian(ylim = c(y_min_use, y_max_use))
         }
-        height <- height + 2 + x_maxchars * 0.05
+        height <- max(3, height + 2 + x_maxchars * 0.05)
         width <- width + nx * nd * 0.3
     }
     attr(p, "height") <- height
