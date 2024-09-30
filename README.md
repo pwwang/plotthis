@@ -49,7 +49,7 @@ $ conda install pwwang::r-plotthis
 
 ![chord-upset-venn](man/figures/chord-upset-venn.png)
 
-[`DensityPlot`][16] / [`Histogram`][16]
+[`DensityPlot`][16] / [`Histogram`][16] / [`RidgePlot`][23]
 
 ![density-histogram](man/figures/density-histogram.png)
 
@@ -100,3 +100,4 @@ $ conda install pwwang::r-plotthis
 [20]: https://pwwang.github.io/plotthis/reference/gsea.html
 [21]: https://pwwang.github.io/plotthis/reference/radarplot.html
 [22]: https://pwwang.github.io/plotthis/reference/sankeyplot.html
+[23]: https://pwwang.github.io/plotthis/reference/RidgePlot.html

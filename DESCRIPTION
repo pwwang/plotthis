@@ -42,6 +42,7 @@ Suggests:
     ggpubr,
     ggforce,
     ggraph,
+    ggridges,
     hexbin,
     igraph,
     scattermore
