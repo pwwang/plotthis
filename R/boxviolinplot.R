@@ -12,8 +12,8 @@
 #' @param sort_x A character string to specify the sorting of x-axis. Either "none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median".
 #' @param flip A logical value to flip the plot.
 #' @param keep_empty A logical value to keep the empty levels in the x-axis.
-#' @param dodge_by A character string of the column name to dodge the boxes/violins
-#' @param dodge_by_sep A character string to concatenate the columns in `dodge_by`, if multiple columns are provided.
+#' @param group_by A character string of the column name to dodge the boxes/violins
+#' @param group_by_sep A character string to concatenate the columns in `group_by`, if multiple columns are provided.
 #' @param dodge_name A character string to name the legend of dodge.
 #' @param fill_mode A character string to specify the fill mode. Either "dodge", "x", "mean", "median".
 #' @param fill_reverse A logical value to reverse the fill colors for gradient fill (mean/median).
@@ -76,9 +76,9 @@
 BoxViolinPlotAtomic <- function(
     data, x, x_sep = "_", y = NULL, base = c("box", "violin"), in_form = c("long", "wide"),
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
-    flip = FALSE, keep_empty = FALSE, dodge_by = NULL, dodge_by_sep = "_", dodge_name = NULL,
+    flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", dodge_name = NULL,
     x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
-    fill_mode = ifelse(!is.null(dodge_by), "dodge", "x"), fill_reverse = FALSE,
+    fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     add_point = FALSE, point_color = "grey30", point_size = NULL, point_alpha = 1, y_nbreaks = 4,
@@ -104,13 +104,13 @@ BoxViolinPlotAtomic <- function(
     x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
     y <- check_columns(data, y)
 
-    dodge_by <- check_columns(data, dodge_by,
+    group_by <- check_columns(data, group_by,
         force_factor = TRUE,
-        allow_multi = TRUE, concat_multi = TRUE, concat_sep = dodge_by_sep
+        allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep
     )
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
-    if (isTRUE(comparisons) && is.null(dodge_by)) {
-        stop("'dodge_by' must be provided to when 'comparisons' is TRUE.")
+    if (isTRUE(comparisons) && is.null(group_by)) {
+        stop("'group_by' must be provided to when 'comparisons' is TRUE.")
     }
     if (isTRUE(multiplegroup_comparisons) || length(comparisons) > 0) {
         # if (!requireNamespace("ggpubr", quietly = TRUE)) {
@@ -124,14 +124,14 @@ BoxViolinPlotAtomic <- function(
             stop("'comparisons' must be a list in which all elements must be vectors of length 2")
         }
         sig_label <- match.arg(sig_label)
-        data <- data %>% unite(".compares_group", !!!syms(unique(c(x, dodge_by, facet_by))), sep = "_", remove = FALSE)
+        data <- data %>% unite(".compares_group", !!!syms(unique(c(x, group_by, facet_by))), sep = "_", remove = FALSE)
     }
     sort_x <- match.arg(sort_x)
     if (sort_x != "none" && !is.null(facet_by)) {
         stop("Cannot sort x-axis when facet_by is provided.")
     }
     data <- data %>%
-        group_by(!!!syms(unique(c(x, dodge_by, facet_by)))) %>%
+        group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>%
         mutate(.y_mean = mean(!!sym(y)), .y_median = median(!!sym(y))) %>%
         ungroup()
 
@@ -195,7 +195,7 @@ BoxViolinPlotAtomic <- function(
     }
     fill_mode <- match.arg(fill_mode, c("dodge", "x", "mean", "median"))
     if (fill_mode == "dodge") {
-        fill_by <- dodge_by
+        fill_by <- group_by
     } else if (fill_mode == "x") {
         fill_by <- x
     } else if (fill_mode == "mean") {
@@ -219,8 +219,8 @@ BoxViolinPlotAtomic <- function(
     }
     if (fill_mode == "dodge") {
         p <- p + scale_fill_manual(
-            name = dodge_name %||% dodge_by,
-            values = palette_this(levels(data[[dodge_by]]), palette = palette, palcolor = palcolor)
+            name = dodge_name %||% group_by,
+            values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
         )
     } else if (fill_mode == "x") {
         p <- p + scale_fill_manual(
@@ -253,8 +253,8 @@ BoxViolinPlotAtomic <- function(
 
     if (length(comparisons) > 0) {
         if (isTRUE(comparisons)) {
-            group_use <- names(which(rowSums(table(data[[x]], data[[dodge_by]]) >= 2) >= 2))
-            if (any(rowSums(table(data[[x]], data[[dodge_by]]) >= 2) >= 3)) {
+            group_use <- names(which(rowSums(table(data[[x]], data[[group_by]]) >= 2) >= 2))
+            if (any(rowSums(table(data[[x]], data[[group_by]]) >= 2) >= 3)) {
                 message("Detected more than 2 groups. Use multiple_method for comparison")
                 method <- multiple_method
             } else {
@@ -319,16 +319,16 @@ BoxViolinPlotAtomic <- function(
     if (isTRUE(add_trend)) {
         p <- p +
             stat_summary(
-                fun = first, geom = "line", mapping = if (!is.null(dodge_by)) {
-                    aes(y = !!sym(".y_median"), group = !!sym(dodge_by))
+                fun = first, geom = "line", mapping = if (!is.null(group_by)) {
+                    aes(y = !!sym(".y_median"), group = !!sym(group_by))
                 } else {
                     aes(y = !!sym(".y_median"), group = 1)
                 },
                 position = position_dodge(width = 0.9), color = trend_color, linewidth = trend_linewidth
             ) +
             stat_summary(
-                fun = first, geom = "point", mapping = if (!is.null(dodge_by)) {
-                    aes(y = !!sym(".y_median"), group = !!sym(dodge_by))
+                fun = first, geom = "point", mapping = if (!is.null(group_by)) {
+                    aes(y = !!sym(".y_median"), group = !!sym(group_by))
                 } else {
                     aes(y = !!sym(".y_median"), group = 1)
                 },
@@ -346,8 +346,8 @@ BoxViolinPlotAtomic <- function(
 
     if (!is.null(add_stat)) {
         p <- p + stat_summary(
-            fun = add_stat, geom = "point", mapping = if (!is.null(dodge_by)) {
-                aes(shape = !!sym("stat_shape"), group = !!sym(dodge_by))
+            fun = add_stat, geom = "point", mapping = if (!is.null(group_by)) {
+                aes(shape = !!sym("stat_shape"), group = !!sym(group_by))
             } else {
                 aes(shape = !!sym("stat_shape"), group = 1)
             },
@@ -384,7 +384,7 @@ BoxViolinPlotAtomic <- function(
     }
     x_maxchars <- max(nchar(levels(data[[x]])))
     nx <- nlevels(data[[x]])
-    nd <- ifelse(is.null(dodge_by), 1, nlevels(data[[dodge_by]]))
+    nd <- ifelse(is.null(group_by), 1, nlevels(data[[group_by]]))
     facet_free <- !is.null(facet_by) && (
         identical(facet_scales, "free") ||
             (!flip && identical(facet_scales, "free_y")) ||
@@ -464,9 +464,9 @@ BoxViolinPlot <- function(
     data, x, x_sep = "_", y = NULL, base = c("box", "violin"), in_form = c("long", "wide"),
     split_by = NULL, split_by_sep = "_",
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
-    flip = FALSE, keep_empty = FALSE, dodge_by = NULL, dodge_by_sep = "_", dodge_name = NULL,
+    flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", dodge_name = NULL,
     x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
-    fill_mode = ifelse(!is.null(dodge_by), "dodge", "x"), fill_reverse = FALSE,
+    fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     add_point = FALSE, point_color = "grey30", point_size = NULL, point_alpha = 1,
@@ -507,7 +507,7 @@ BoxViolinPlot <- function(
             }
             BoxViolinPlotAtomic(datas[[nm]],
                 x = x, x_sep = x_sep, y = y, base = base, in_form = in_form,
-                sort_x = sort_x, flip = flip, keep_empty = keep_empty, dodge_by = dodge_by, dodge_by_sep = dodge_by_sep, dodge_name = dodge_name,
+                sort_x = sort_x, flip = flip, keep_empty = keep_empty, group_by = group_by, group_by_sep = group_by_sep, dodge_name = dodge_name,
                 x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse,
                 theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
@@ -565,9 +565,9 @@ BoxPlot <- function(
     data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
     split_by = NULL, split_by_sep = "_",
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
-    flip = FALSE, keep_empty = FALSE, dodge_by = NULL, dodge_by_sep = "_", dodge_name = NULL,
+    flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", dodge_name = NULL,
     x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
-    fill_mode = ifelse(!is.null(dodge_by), "dodge", "x"), fill_reverse = FALSE,
+    fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     add_point = FALSE, point_color = "grey30", point_size = NULL, point_alpha = 1,
@@ -587,7 +587,7 @@ BoxPlot <- function(
     BoxViolinPlot(
         data = data, x = x, x_sep = x_sep, y = y, base = "box", in_form = in_form,
         split_by = split_by, split_by_sep = split_by_sep,
-        sort_x = sort_x, flip = flip, keep_empty = keep_empty, dodge_by = dodge_by, dodge_by_sep = dodge_by_sep, dodge_name = dodge_name,
+        sort_x = sort_x, flip = flip, keep_empty = keep_empty, group_by = group_by, group_by_sep = group_by_sep, dodge_name = dodge_name,
         x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse,
         theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
         aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
@@ -617,13 +617,13 @@ BoxPlot <- function(
 #' ViolinPlot(data, x = "x", y = "y", add_stat = mean)
 #' ViolinPlot(data, x = "x", y = "y", add_bg = TRUE)
 #' ViolinPlot(data, x = "x", y = "y", add_line = 0)
-#' ViolinPlot(data, x = "x", y = "y", dodge_by = "group1")
+#' ViolinPlot(data, x = "x", y = "y", group_by = "group1")
 #' ViolinPlot(data,
-#'     x = "x", y = "y", dodge_by = "group1",
+#'     x = "x", y = "y", group_by = "group1",
 #'     facet_by = "group2", add_box = TRUE
 #' )
 #' ViolinPlot(data,
-#'     x = "x", y = "y", dodge_by = "group1",
+#'     x = "x", y = "y", group_by = "group1",
 #'     comparisons = TRUE
 #' )
 #' ViolinPlot(data,
@@ -643,9 +643,9 @@ ViolinPlot <- function(
     data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
     split_by = NULL, split_by_sep = "_",
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
-    flip = FALSE, keep_empty = FALSE, dodge_by = NULL, dodge_by_sep = "_", dodge_name = NULL,
+    flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", dodge_name = NULL,
     x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
-    fill_mode = ifelse(!is.null(dodge_by), "dodge", "x"), fill_reverse = FALSE,
+    fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     add_point = FALSE, point_color = "grey30", point_size = NULL, point_alpha = 1,
@@ -666,7 +666,7 @@ ViolinPlot <- function(
     BoxViolinPlot(
         data = data, x = x, x_sep = x_sep, y = y, base = "violin", in_form = in_form,
         split_by = split_by, split_by_sep = split_by_sep,
-        sort_x = sort_x, flip = flip, keep_empty = keep_empty, dodge_by = dodge_by, dodge_by_sep = dodge_by_sep, dodge_name = dodge_name,
+        sort_x = sort_x, flip = flip, keep_empty = keep_empty, group_by = group_by, group_by_sep = group_by_sep, dodge_name = dodge_name,
         x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse,
         theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
         aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
