@@ -112,3 +112,4 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 \description{
 Atomic ridge plot
 }
+\keyword{internal}

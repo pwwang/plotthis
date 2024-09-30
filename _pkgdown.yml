@@ -6,39 +6,40 @@ reference:
   - title: Plotting
     description: Functions for plotting
     contents:
+    - AlluvialPlot
     - AreaPlot
-    - ClustreePlot
-    - Heatmap
-    - LinePlot
-    - PieChart
-    - RingPlot
-    - TrendPlot
-    - VolcanoPlot
-    - WordCloudPlot
     - BarPlot
-    - SplitBarPlot
-    - WaterfallPlot
     - BoxPlot
-    - ViolinPlot
     - ChordPlot
     - CircosPlot
+    - ClustreePlot
     - DensityPlot
-    - Histogram
     - DimPlot
-    - FeatureDimPlot
     - DotPlot
-    - ScatterPlot
-    - LollipopPlot
     - EnrichMap
     - EnrichNetwork
-    - GSEASummaryPlot
+    - FeatureDimPlot
     - GSEAPlot
+    - GSEASummaryPlot
+    - Heatmap
+    - Histogram
+    - LinePlot
+    - LollipopPlot
+    - RidgePlot
+    - PieChart
     - RadarPlot
-    - SpiderPlot
+    - RingPlot
     - SankeyPlot
-    - AlluvialPlot
+    - ScatterPlot
+    - SpiderPlot
+    - SplitBarPlot
+    - TrendPlot
+    - VolcanoPlot
+    - WaterfallPlot
+    - WordCloudPlot
     - UpsetPlot
     - VennDiagram
+    - ViolinPlot
   - title: Theming
     description: Functions for plot theming
     contents:
@@ -50,6 +51,7 @@ reference:
     description: Built-in data for plotting or examples
     contents:
     - enrich_example
+    - enrich_multidb_example
     - gsea_example
     - palette_list
     - words_excluded

@@ -17,7 +17,7 @@ BoxViolinPlotAtomic(
   keep_empty = FALSE,
   group_by = NULL,
   group_by_sep = "_",
-  dodge_name = NULL,
+  group_name = NULL,
   x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
   fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
   fill_reverse = FALSE,
@@ -112,7 +112,7 @@ When \code{in_form} is "wide", \code{y} is not required. The values under \code{
 
 \item{group_by_sep}{A character string to concatenate the columns in \code{group_by}, if multiple columns are provided.}
 
-\item{dodge_name}{A character string to name the legend of dodge.}
+\item{group_name}{A character string to name the legend of dodge.}
 
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
 

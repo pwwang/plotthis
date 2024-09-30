@@ -232,7 +232,7 @@ BarPlotGrouped <- function(
         position <- position_dodge2(preserve = position_dodge_preserve)
     }
     if (inherits(expand, "waiver")) {
-        if (position == "stack") {
+        if (is.character(position) && position == "stack") {
             expand <- c(top = 0, bottom = 0)
         } else if (min(data[[y]], na.rm = TRUE) > 0) {
             expand <- c(bottom = 0)
@@ -296,7 +296,7 @@ BarPlotGrouped <- function(
     }
 
     height <- 4.5
-    if (position == "stack") {
+    if (is.character(position) && position == "stack") {
         width <- max(.5 + nlevels(data[[x]]) * .8, 4.5)
     } else {
         width <- .5 + nlevels(data[[x]]) * length(unique(data[[group_by]])) * .5

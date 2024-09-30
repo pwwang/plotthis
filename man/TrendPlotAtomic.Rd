@@ -9,9 +9,9 @@ TrendPlotAtomic(
   x,
   y = NULL,
   x_sep = "_",
-  fill_by = NULL,
-  fill_by_sep = "_",
-  fill_name = NULL,
+  group_by = NULL,
+  group_by_sep = "_",
+  group_name = NULL,
   scale_y = FALSE,
   theme = "theme_this",
   theme_args = list(),
@@ -46,14 +46,14 @@ If NULL, the count of the x-axis column will be used.}
 
 \item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.}
 
-\item{fill_by}{A character vector of column names to fill the area plot by.
+\item{group_by}{A character vector of column names to fill the area plot by.
 If NULL, the plot will be filled by the first color of the palette.
 If multiple columns are provided, the columns will be concatenated with
-\code{fill_by_sep} and used as the fill column.}
+\code{group_by_sep} and used as the fill column.}
 
-\item{fill_by_sep}{A character string to separate the columns in \code{fill_by}.}
+\item{group_by_sep}{A character string to separate the columns in \code{group_by}.}
 
-\item{fill_name}{A character string to name the legend of fill.}
+\item{group_name}{A character string to name the legend of fill.}
 
 \item{scale_y}{A logical value to scale the y-axis by the total number in each x-axis group.}
 

@@ -19,7 +19,7 @@ BoxPlot(
   keep_empty = FALSE,
   group_by = NULL,
   group_by_sep = "_",
-  dodge_name = NULL,
+  group_name = NULL,
   x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
   fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
   fill_reverse = FALSE,
@@ -100,7 +100,7 @@ ViolinPlot(
   keep_empty = FALSE,
   group_by = NULL,
   group_by_sep = "_",
-  dodge_name = NULL,
+  group_name = NULL,
   x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
   fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
   fill_reverse = FALSE,
@@ -200,7 +200,7 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 
 \item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
 
-\item{dodge_name}{A character string to name the legend of dodge.}
+\item{group_name}{A character string to name the legend of dodge.}
 
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
 
@@ -372,7 +372,7 @@ BoxPlot(data,
 data_wide <- data.frame(
     A = rnorm(100),
     B = rnorm(100),
-    C = rnorm(100),
+    C = rnorm(100)
 )
 BoxPlot(data_wide, x = c("A", "B", "C"), in_form = "wide")
 ViolinPlot(data, x = "x", y = "y")

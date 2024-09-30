@@ -133,6 +133,7 @@ DensityHistoPlotAtomic <- function(
 #' @param keep_empty A logical value. If TRUE, keep the empty groups on the y-axis.
 #' @param reverse A logical value. If TRUE, reverse the order of the groups on the y-axis.
 #' @param ... Additional arguments.
+#' @keywords internal
 RidgePlotAtomic <- function(
     data, x = NULL, in_form = c("long", "wide"), group_by = NULL, group_by_sep = "_", group_name = NULL,
     flip = FALSE, alpha = 1, theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
