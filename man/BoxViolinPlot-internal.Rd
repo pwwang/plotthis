@@ -17,11 +17,11 @@ BoxViolinPlot(
     "median"),
   flip = FALSE,
   keep_empty = FALSE,
-  dodge_by = NULL,
-  dodge_by_sep = "_",
+  group_by = NULL,
+  group_by_sep = "_",
   dodge_name = NULL,
   x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
-  fill_mode = ifelse(!is.null(dodge_by), "dodge", "x"),
+  fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
   fill_reverse = FALSE,
   theme = "theme_this",
   theme_args = list(),
@@ -45,7 +45,7 @@ BoxViolinPlot(
   box_width = 0.1,
   box_ptsize = 2.5,
   add_trend = FALSE,
-  trend_color = "black",
+  trend_color = NULL,
   trend_linewidth = 1,
   trend_ptsize = 2,
   add_stat = NULL,
@@ -115,9 +115,11 @@ When \code{in_form} is "wide", \code{x} columns will not be concatenated.}
 \item{keep_empty}{A logical value indicating whether to keep empty groups.
 If FALSE, empty groups will be removed.}
 
-\item{dodge_by}{A character string of the column name to dodge the boxes/violins}
+\item{group_by}{Columns to group the data for plotting
+For those plotting functions that do not support multiple groups,
+They will be concatenated into one column, using \code{group_by_sep} as the separator}
 
-\item{dodge_by_sep}{A character string to concatenate the columns in \code{dodge_by}, if multiple columns are provided.}
+\item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
 
 \item{dodge_name}{A character string to name the legend of dodge.}
 

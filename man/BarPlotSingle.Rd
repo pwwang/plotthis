@@ -10,6 +10,7 @@ BarPlotSingle(
   y = NULL,
   flip = FALSE,
   facet_by = NULL,
+  facet_scales = "fixed",
   label = NULL,
   label_nudge = 0,
   label_fg = "black",
@@ -60,6 +61,9 @@ Default is NULL, meaning the y axis is the count of the data.}
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
 and combine them into one using \code{patchwork::wrap_plots}}
+
+\item{facet_scales}{Whether to scale the axes of facets. Default is "fixed"
+Other options are "free", "free_x", "free_y". See \code{ggplot2::facet_wrap}}
 
 \item{label}{A column name for the values to be displayed on the top of the bars.
 If TRUE, the y values will be displayed.}

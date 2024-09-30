@@ -84,7 +84,7 @@ BoxViolinPlotAtomic <- function(
     add_point = FALSE, point_color = "grey30", point_size = NULL, point_alpha = 1, y_nbreaks = 4,
     jitter_width = 0.5, jitter_height = 0.1, stack = FALSE, y_max = NULL, y_min = NULL, y_trans = "identity",
     add_box = FALSE, box_color = "black", box_width = 0.1, box_ptsize = 2.5,
-    add_trend = FALSE, trend_color = "black", trend_linewidth = 1, trend_ptsize = 2,
+    add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
     add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     add_line = NULL, line_color = "red2", line_size = .6, line_type = 2,
@@ -317,24 +317,41 @@ BoxViolinPlotAtomic <- function(
     }
 
     if (isTRUE(add_trend)) {
-        p <- p +
-            stat_summary(
+        if (is.null(trend_color)) {
+            p <- p + stat_summary(
+                fun = first, geom = "line", mapping = if (!is.null(group_by)) {
+                    aes(y = !!sym(".y_median"), group = !!sym(group_by), color = !!sym(group_by))
+                } else {
+                    aes(y = !!sym(".y_median"), group = 1)
+                },
+                position = position_dodge(width = 0.9), linewidth = trend_linewidth
+            )
+            if (!is.null(group_by)) {
+                p <- p + scale_color_manual(
+                    values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor),
+                    guide = "none"
+                )
+            }
+        } else {
+            p <- p + stat_summary(
                 fun = first, geom = "line", mapping = if (!is.null(group_by)) {
                     aes(y = !!sym(".y_median"), group = !!sym(group_by))
                 } else {
                     aes(y = !!sym(".y_median"), group = 1)
                 },
-                position = position_dodge(width = 0.9), color = trend_color, linewidth = trend_linewidth
-            ) +
-            stat_summary(
-                fun = first, geom = "point", mapping = if (!is.null(group_by)) {
-                    aes(y = !!sym(".y_median"), group = !!sym(group_by))
-                } else {
-                    aes(y = !!sym(".y_median"), group = 1)
-                },
-                position = position_dodge(width = 0.9), color = "black", fill = "white",
-                size = trend_ptsize, shape = 21
+                position = position_dodge(width = 0.9), color = "black", linewidth = trend_linewidth
             )
+        }
+
+        p <- p + stat_summary(
+            fun = first, geom = "point", mapping = if (!is.null(group_by)) {
+                aes(y = !!sym(".y_median"), group = !!sym(group_by))
+            } else {
+                aes(y = !!sym(".y_median"), group = 1)
+            },
+            position = position_dodge(width = 0.9), color = "black", fill = "white",
+            size = trend_ptsize, shape = 21
+        )
     }
 
     if (!is.null(add_line)) {
@@ -472,7 +489,7 @@ BoxViolinPlot <- function(
     add_point = FALSE, point_color = "grey30", point_size = NULL, point_alpha = 1,
     jitter_width = 0.5, jitter_height = 0.1, stack = FALSE, y_max = NULL, y_min = NULL,
     add_box = FALSE, box_color = "black", box_width = 0.1, box_ptsize = 2.5,
-    add_trend = FALSE, trend_color = "black", trend_linewidth = 1, trend_ptsize = 2,
+    add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
     add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     add_line = NULL, line_color = "red2", line_size = .6, line_type = 2,
@@ -572,7 +589,7 @@ BoxPlot <- function(
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     add_point = FALSE, point_color = "grey30", point_size = NULL, point_alpha = 1,
     jitter_width = 0.5, jitter_height = 0.1, stack = FALSE, y_max = NULL, y_min = NULL,
-    add_trend = FALSE, trend_color = "black", trend_linewidth = 1, trend_ptsize = 2,
+    add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
     add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     add_line = NULL, line_color = "red2", line_size = .6, line_type = 2,
@@ -651,7 +668,7 @@ ViolinPlot <- function(
     add_point = FALSE, point_color = "grey30", point_size = NULL, point_alpha = 1,
     jitter_width = 0.5, jitter_height = 0.1, stack = FALSE, y_max = NULL, y_min = NULL,
     add_box = FALSE, box_color = "black", box_width = 0.1, box_ptsize = 2.5,
-    add_trend = FALSE, trend_color = "black", trend_linewidth = 1, trend_ptsize = 2,
+    add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
     add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     add_line = NULL, line_color = "red2", line_size = .6, line_type = 2,
