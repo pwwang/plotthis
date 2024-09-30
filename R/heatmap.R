@@ -427,6 +427,8 @@ layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
 #'  The `rows` should be multiple columns if you want to plot as rows, which you can refer as "features".
 #' @param rows A character string/vector of the column name(s) to plot for the rows
 #'  Multiple columns in the data frame can be used as the rows.
+#' @param rows_name A character string specifying the name of rows, which will be shown in the
+#'  row group annotation and the legend of it.
 #' @param columns_by A character string of the column name to plot for the columns
 #'  A character/factor column is expected.
 #' @param name A character string specifying the name of the main legend of the heatmap
@@ -539,7 +541,7 @@ layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
 #' @return A drawn HeatmapList object if `return_grob = FALSE`. Otherwise, a grob/gTree object.
 #' @keywords internal
 HeatmapAtomic <- function(
-    data, rows, columns_by, name = "value", border = TRUE, rows_palette = "Paired", rows_palcolor = NULL,
+    data, rows, columns_by, rows_name = "rows", name = "value", border = TRUE, rows_palette = "Paired", rows_palcolor = NULL,
     columns_by_sep = "_", columns_split_by = NULL, columns_palette = "Paired", columns_palcolor = NULL,
     columns_split_by_sep = "_", columns_split_palette = "simspec", columns_split_palcolor = NULL,
     rows_data = NULL, rows_split_by = NULL, rows_split_by_sep = "_", rows_split_palette = "simspec", rows_split_palcolor = NULL,
@@ -1012,19 +1014,19 @@ HeatmapAtomic <- function(
         }
     }
 
-    left_annos$rows <- colnames(hmargs$matrix)
-    left_annos$col$rows <- palette_this(
+    left_annos[[rows_name]] <- colnames(hmargs$matrix)
+    left_annos$col[[rows_name]] <- palette_this(
         colnames(hmargs$matrix),
         palette = rows_palette, palcolor = rows_palcolor
     )
     nrow_annos <- nrow_annos + 1
-    left_annos$show_annotation_name$rows <- TRUE
+    left_annos$show_annotation_name[[rows_name]] <- TRUE
     # left_annos$show_legend <- c(left_annos$show_legend, isFALSE(show_row_names))
     if (isFALSE(show_row_names) && !identical(legend.position, "none")) {
         legends$.rows <- ComplexHeatmap::Legend(
-            title = "rows",
+            title = rows_name,
             labels = colnames(hmargs$matrix),
-            legend_gp = gpar(fill = left_annos$col$rows),
+            legend_gp = gpar(fill = left_annos$col[[rows_name]]),
             border = TRUE, nrow = if (legend.direction == "horizontal") 1 else NULL
         )
     }
@@ -1249,7 +1251,7 @@ HeatmapAtomic <- function(
 #'   row_annotation_params = list(rp = list(width = grid::unit(12, "mm"))),
 #'   show_row_names = TRUE, show_column_names = TRUE, flip = TRUE)
 Heatmap <- function(
-    data, rows, columns_by, split_by = NULL, split_by_sep = "_", split_rows_data = FALSE,
+    data, rows, columns_by, rows_name = "rows", split_by = NULL, split_by_sep = "_", split_rows_data = FALSE,
     name = "value", border = TRUE, rows_palette = "Paired", rows_palcolor = NULL,
     columns_by_sep = "_", columns_split_by = NULL, columns_palette = "Paired", columns_palcolor = NULL,
     columns_split_by_sep = "_", columns_split_palette = "simspec", columns_split_palcolor = NULL,
@@ -1302,7 +1304,7 @@ Heatmap <- function(
 
     plots <- lapply(
         datas, HeatmapAtomic,
-        rows = rows, columns_by = columns_by, name = name, border = border, rows_palette = rows_palette, rows_palcolor = rows_palcolor,
+        rows = rows, columns_by = columns_by, rows_name = rows_name, name = name, border = border, rows_palette = rows_palette, rows_palcolor = rows_palcolor,
         columns_by_sep = columns_by_sep, columns_split_by = columns_split_by, columns_palette = columns_palette, columns_palcolor = columns_palcolor,
         columns_split_by_sep = columns_split_by_sep, columns_split_palette = columns_split_palette, columns_split_palcolor = columns_split_palcolor,
         rows_data = rows_data, rows_split_by = rows_split_by, rows_split_by_sep = rows_split_by_sep, rows_split_palette = rows_split_palette, rows_split_palcolor = rows_split_palcolor,

@@ -8,6 +8,7 @@ HeatmapAtomic(
   data,
   rows,
   columns_by,
+  rows_name = "rows",
   name = "value",
   border = TRUE,
   rows_palette = "Paired",
@@ -83,6 +84,9 @@ Multiple columns in the data frame can be used as the rows.}
 
 \item{columns_by}{A character string of the column name to plot for the columns
 A character/factor column is expected.}
+
+\item{rows_name}{A character string specifying the name of rows, which will be shown in the
+row group annotation and the legend of it.}
 
 \item{name}{A character string specifying the name of the main legend of the heatmap}
 
