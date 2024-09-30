@@ -168,7 +168,7 @@ RidgePlotAtomic <- function(
         just <- calc_just(x_text_angle)
         p <- p +
             ggplot2::theme(
-                axis.text.x = element_text(angle = x_text_angle, hjust = just$v, vjust = just$h),
+                axis.text.x = element_text(angle = x_text_angle, hjust = just$h, vjust = just$v),
                 axis.ticks.x = element_line(),
                 panel.grid.major.x = element_line(color = "grey", linetype = 2)
             ) +
