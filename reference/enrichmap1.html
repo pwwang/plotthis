@@ -56,7 +56,6 @@ EnrichNetwork is a function to plot the enrichment network."><meta property="og:
 <span>  split_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  top_term <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  metric <span class="op">=</span> <span class="st">"p.adjust"</span>,</span>
-<span>  cutoff <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  layout <span class="op">=</span> <span class="st">"fr"</span>,</span>
 <span>  minchar <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  cluster <span class="op">=</span> <span class="st">"fast_greedy"</span>,</span>
@@ -93,7 +92,6 @@ EnrichNetwork is a function to plot the enrichment network."><meta property="og:
 <span>  split_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  top_term <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  metric <span class="op">=</span> <span class="st">"p.adjust"</span>,</span>
-<span>  cutoff <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  character_width <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  layout <span class="op">=</span> <span class="st">"fr"</span>,</span>
 <span>  layoutadjust <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -154,13 +152,8 @@ You can plot them in a single plot using the <code>split_by</code> argument (e.g
 
 <dt id="arg-metric">metric<a class="anchor" aria-label="anchor" href="#arg-metric"></a></dt>
 <dd><p>A character string specifying the metric to use for the size of the nodes.
+It is also used to order the terms when selected the top terms.
 Either "pvalue" or "p.adjust". The default is "p.adjust".</p></dd>
-
-
-<dt id="arg-cutoff">cutoff<a class="anchor" aria-label="anchor" href="#arg-cutoff"></a></dt>
-<dd><p>A numeric value specifying the cutoff of the metric to filter the terms.
-The records will be filtered by both the <code>top_term</code> and <code>cutoff</code> if provided.
-To skip either/both of them, set it/them to <code>NULL</code>.</p></dd>
 
 
 <dt id="arg-layout">layout<a class="anchor" aria-label="anchor" href="#arg-layout"></a></dt>
@@ -241,7 +234,8 @@ Default is "theme_this".</p></dd>
 
 
 <dt id="arg-legend-position">legend.position<a class="anchor" aria-label="anchor" href="#arg-legend-position"></a></dt>
-<dd><p>A character string specifying the position of the legend.</p></dd>
+<dd><p>A character string specifying the position of the legend.
+if <code>waiver()</code>, for single groups, the legend will be "none", otherwise "right".</p></dd>
 
 
 <dt id="arg-legend-direction">legend.direction<a class="anchor" aria-label="anchor" href="#arg-legend-direction"></a></dt>
@@ -249,7 +243,9 @@ Default is "theme_this".</p></dd>
 
 
 <dt id="arg-title">title<a class="anchor" aria-label="anchor" href="#arg-title"></a></dt>
-<dd><p>A character string specifying the title of the plot.</p></dd>
+<dd><p>A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.</p></dd>
 
 
 <dt id="arg-subtitle">subtitle<a class="anchor" aria-label="anchor" href="#arg-subtitle"></a></dt>
@@ -323,10 +319,8 @@ Either "blend", "average", "multiply" and "screen".</p></dd>
 <span class="r-in"><span><span class="fu">EnrichMap</span><span class="op">(</span><span class="va">enrich_example</span>, show_keyword <span class="op">=</span> <span class="cn">TRUE</span>, label <span class="op">=</span> <span class="st">"feature"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="enrichmap1-4.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">enrich_example</span><span class="op">$</span><span class="va">Database</span> <span class="op">&lt;-</span> <span class="st">"DB1"</span></span></span>
-<span class="r-in"><span><span class="va">enrich_example2</span> <span class="op">&lt;-</span> <span class="va">enrich_example</span></span></span>
-<span class="r-in"><span><span class="va">enrich_example2</span><span class="op">$</span><span class="va">Database</span> <span class="op">&lt;-</span> <span class="st">"DB2"</span></span></span>
-<span class="r-in"><span><span class="fu">EnrichMap</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">enrich_example</span>, <span class="va">enrich_example2</span><span class="op">)</span>, split_by <span class="op">=</span> <span class="st">"Database"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">enrich_multidb_example</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">EnrichMap</span><span class="op">(</span><span class="va">enrich_multidb_example</span>, split_by <span class="op">=</span> <span class="st">"Database"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="enrichmap1-5.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">EnrichNetwork</span><span class="op">(</span><span class="va">enrich_example</span>, top_term <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="enrichmap1-6.png" alt="" width="700" height="433"></span>

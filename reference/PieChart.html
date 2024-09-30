@@ -157,7 +157,8 @@ Default is "theme_this".</p></dd>
 
 
 <dt id="arg-legend-position">legend.position<a class="anchor" aria-label="anchor" href="#arg-legend-position"></a></dt>
-<dd><p>A character string specifying the position of the legend.</p></dd>
+<dd><p>A character string specifying the position of the legend.
+if <code>waiver()</code>, for single groups, the legend will be "none", otherwise "right".</p></dd>
 
 
 <dt id="arg-legend-direction">legend.direction<a class="anchor" aria-label="anchor" href="#arg-legend-direction"></a></dt>
@@ -165,7 +166,9 @@ Default is "theme_this".</p></dd>
 
 
 <dt id="arg-title">title<a class="anchor" aria-label="anchor" href="#arg-title"></a></dt>
-<dd><p>A character string specifying the title of the plot.</p></dd>
+<dd><p>A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.</p></dd>
 
 
 <dt id="arg-subtitle">subtitle<a class="anchor" aria-label="anchor" href="#arg-subtitle"></a></dt>

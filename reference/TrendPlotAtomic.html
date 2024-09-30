@@ -47,9 +47,9 @@
 <span>  <span class="va">x</span>,</span>
 <span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  x_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
-<span>  fill_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  fill_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
-<span>  fill_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  group_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  group_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
+<span>  group_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  scale_y <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  theme <span class="op">=</span> <span class="st">"theme_this"</span>,</span>
 <span>  theme_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
@@ -63,7 +63,7 @@
 <span>  facet_byrow <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  x_text_angle <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  aspect.ratio <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  legend.position <span class="op">=</span> <span class="st">"right"</span>,</span>
+<span>  legend.position <span class="op">=</span> <span class="fu">waiver</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  legend.direction <span class="op">=</span> <span class="st">"vertical"</span>,</span>
 <span>  title <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  subtitle <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -96,18 +96,18 @@ If NULL, the count of the x-axis column will be used.</p></dd>
 <dd><p>A character string to concatenate the columns in <code>x</code>, if multiple columns are provided.</p></dd>
 
 
-<dt id="arg-fill-by">fill_by<a class="anchor" aria-label="anchor" href="#arg-fill-by"></a></dt>
+<dt id="arg-group-by">group_by<a class="anchor" aria-label="anchor" href="#arg-group-by"></a></dt>
 <dd><p>A character vector of column names to fill the area plot by.
 If NULL, the plot will be filled by the first color of the palette.
 If multiple columns are provided, the columns will be concatenated with
-<code>fill_by_sep</code> and used as the fill column.</p></dd>
+<code>group_by_sep</code> and used as the fill column.</p></dd>
 
 
-<dt id="arg-fill-by-sep">fill_by_sep<a class="anchor" aria-label="anchor" href="#arg-fill-by-sep"></a></dt>
-<dd><p>A character string to separate the columns in <code>fill_by</code>.</p></dd>
+<dt id="arg-group-by-sep">group_by_sep<a class="anchor" aria-label="anchor" href="#arg-group-by-sep"></a></dt>
+<dd><p>A character string to separate the columns in <code>group_by</code>.</p></dd>
 
 
-<dt id="arg-fill-name">fill_name<a class="anchor" aria-label="anchor" href="#arg-fill-name"></a></dt>
+<dt id="arg-group-name">group_name<a class="anchor" aria-label="anchor" href="#arg-group-name"></a></dt>
 <dd><p>A character string to name the legend of fill.</p></dd>
 
 
@@ -170,7 +170,8 @@ When facet_by is a single column and facet_wrap is used.</p></dd>
 
 
 <dt id="arg-legend-position">legend.position<a class="anchor" aria-label="anchor" href="#arg-legend-position"></a></dt>
-<dd><p>A character string specifying the position of the legend.</p></dd>
+<dd><p>A character string specifying the position of the legend.
+if <code>waiver()</code>, for single groups, the legend will be "none", otherwise "right".</p></dd>
 
 
 <dt id="arg-legend-direction">legend.direction<a class="anchor" aria-label="anchor" href="#arg-legend-direction"></a></dt>
@@ -178,7 +179,9 @@ When facet_by is a single column and facet_wrap is used.</p></dd>
 
 
 <dt id="arg-title">title<a class="anchor" aria-label="anchor" href="#arg-title"></a></dt>
-<dd><p>A character string specifying the title of the plot.</p></dd>
+<dd><p>A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.</p></dd>
 
 
 <dt id="arg-subtitle">subtitle<a class="anchor" aria-label="anchor" href="#arg-subtitle"></a></dt>

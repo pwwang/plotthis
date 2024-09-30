@@ -46,18 +46,18 @@
 <span>  <span class="va">data</span>,</span>
 <span>  <span class="va">x</span>,</span>
 <span>  x_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
-<span>  <span class="va">y</span>,</span>
+<span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  base <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"box"</span>, <span class="st">"violin"</span><span class="op">)</span>,</span>
-<span>  intype <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"long"</span>, <span class="st">"wide"</span><span class="op">)</span>,</span>
+<span>  in_form <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"long"</span>, <span class="st">"wide"</span><span class="op">)</span>,</span>
 <span>  sort_x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"mean_asc"</span>, <span class="st">"mean_desc"</span>, <span class="st">"mean"</span>, <span class="st">"median_asc"</span>, <span class="st">"median_desc"</span>,</span>
 <span>    <span class="st">"median"</span><span class="op">)</span>,</span>
 <span>  flip <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  dodge_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  dodge_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
-<span>  dodge_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  group_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  group_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
+<span>  group_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  x_text_angle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Logic.html" class="external-link">isTRUE</a></span><span class="op">(</span><span class="va">flip</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/Logic.html" class="external-link">isTRUE</a></span><span class="op">(</span><span class="va">stack</span><span class="op">)</span>, <span class="fl">90</span>, <span class="fl">45</span><span class="op">)</span>,</span>
-<span>  fill_mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">dodge_by</span><span class="op">)</span>, <span class="st">"dodge"</span>, <span class="st">"x"</span><span class="op">)</span>,</span>
+<span>  fill_mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">group_by</span><span class="op">)</span>, <span class="st">"dodge"</span>, <span class="st">"x"</span><span class="op">)</span>,</span>
 <span>  fill_reverse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  theme <span class="op">=</span> <span class="st">"theme_this"</span>,</span>
 <span>  theme_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
@@ -83,7 +83,7 @@
 <span>  box_width <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  box_ptsize <span class="op">=</span> <span class="fl">2.5</span>,</span>
 <span>  add_trend <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  trend_color <span class="op">=</span> <span class="st">"black"</span>,</span>
+<span>  trend_color <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  trend_linewidth <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  trend_ptsize <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  add_stat <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -139,18 +139,20 @@ A character/factor column is expected. If multiple columns are provided, the col
 
 
 <dt id="arg-x-sep">x_sep<a class="anchor" aria-label="anchor" href="#arg-x-sep"></a></dt>
-<dd><p>A character string to concatenate the columns in <code>x</code>, if multiple columns are provided.</p></dd>
+<dd><p>A character string to concatenate the columns in <code>x</code>, if multiple columns are provided.
+When <code>in_form</code> is "wide", <code>x</code> columns will not be concatenated.</p></dd>
 
 
 <dt id="arg-y">y<a class="anchor" aria-label="anchor" href="#arg-y"></a></dt>
-<dd><p>A character string of the column name to plot on the y-axis. A numeric column is expected.</p></dd>
+<dd><p>A character string of the column name to plot on the y-axis. A numeric column is expected.
+When <code>in_form</code> is "wide", <code>y</code> is not required. The values under <code>x</code> columns will be used as y-values.</p></dd>
 
 
 <dt id="arg-base">base<a class="anchor" aria-label="anchor" href="#arg-base"></a></dt>
 <dd><p>A character string to specify the base plot type. Either "box" or "violin".</p></dd>
 
 
-<dt id="arg-intype">intype<a class="anchor" aria-label="anchor" href="#arg-intype"></a></dt>
+<dt id="arg-in-form">in_form<a class="anchor" aria-label="anchor" href="#arg-in-form"></a></dt>
 <dd><p>A character string to specify the input data type. Either "long" or "wide".</p></dd>
 
 
@@ -166,15 +168,15 @@ A character/factor column is expected. If multiple columns are provided, the col
 <dd><p>A logical value to keep the empty levels in the x-axis.</p></dd>
 
 
-<dt id="arg-dodge-by">dodge_by<a class="anchor" aria-label="anchor" href="#arg-dodge-by"></a></dt>
+<dt id="arg-group-by">group_by<a class="anchor" aria-label="anchor" href="#arg-group-by"></a></dt>
 <dd><p>A character string of the column name to dodge the boxes/violins</p></dd>
 
 
-<dt id="arg-dodge-by-sep">dodge_by_sep<a class="anchor" aria-label="anchor" href="#arg-dodge-by-sep"></a></dt>
-<dd><p>A character string to concatenate the columns in <code>dodge_by</code>, if multiple columns are provided.</p></dd>
+<dt id="arg-group-by-sep">group_by_sep<a class="anchor" aria-label="anchor" href="#arg-group-by-sep"></a></dt>
+<dd><p>A character string to concatenate the columns in <code>group_by</code>, if multiple columns are provided.</p></dd>
 
 
-<dt id="arg-dodge-name">dodge_name<a class="anchor" aria-label="anchor" href="#arg-dodge-name"></a></dt>
+<dt id="arg-group-name">group_name<a class="anchor" aria-label="anchor" href="#arg-group-name"></a></dt>
 <dd><p>A character string to name the legend of dodge.</p></dd>
 
 
@@ -216,7 +218,8 @@ Default is "theme_this".</p></dd>
 
 
 <dt id="arg-legend-position">legend.position<a class="anchor" aria-label="anchor" href="#arg-legend-position"></a></dt>
-<dd><p>A character string specifying the position of the legend.</p></dd>
+<dd><p>A character string specifying the position of the legend.
+if <code>waiver()</code>, for single groups, the legend will be "none", otherwise "right".</p></dd>
 
 
 <dt id="arg-legend-direction">legend.direction<a class="anchor" aria-label="anchor" href="#arg-legend-direction"></a></dt>
@@ -427,7 +430,9 @@ When facet_by is a single column and facet_wrap is used.</p></dd>
 
 
 <dt id="arg-title">title<a class="anchor" aria-label="anchor" href="#arg-title"></a></dt>
-<dd><p>A character string specifying the title of the plot.</p></dd>
+<dd><p>A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.</p></dd>
 
 
 <dt id="arg-subtitle">subtitle<a class="anchor" aria-label="anchor" href="#arg-subtitle"></a></dt>

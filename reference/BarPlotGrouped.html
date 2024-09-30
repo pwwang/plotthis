@@ -80,7 +80,7 @@
 <span>  xlab <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ylab <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>bottom <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
+<span>  expand <span class="op">=</span> <span class="fu">waiver</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  width <span class="op">=</span> <span class="fl">0.8</span>,</span>
 <span>  facet_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -217,7 +217,8 @@ If "auto", the position will be "stack" if group_by has more than 5 levels, othe
 
 
 <dt id="arg-legend-position">legend.position<a class="anchor" aria-label="anchor" href="#arg-legend-position"></a></dt>
-<dd><p>A character string specifying the position of the legend.</p></dd>
+<dd><p>A character string specifying the position of the legend.
+if <code>waiver()</code>, for single groups, the legend will be "none", otherwise "right".</p></dd>
 
 
 <dt id="arg-legend-direction">legend.direction<a class="anchor" aria-label="anchor" href="#arg-legend-direction"></a></dt>
@@ -225,7 +226,9 @@ If "auto", the position will be "stack" if group_by has more than 5 levels, othe
 
 
 <dt id="arg-title">title<a class="anchor" aria-label="anchor" href="#arg-title"></a></dt>
-<dd><p>A character string specifying the title of the plot.</p></dd>
+<dd><p>A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.</p></dd>
 
 
 <dt id="arg-subtitle">subtitle<a class="anchor" aria-label="anchor" href="#arg-subtitle"></a></dt>

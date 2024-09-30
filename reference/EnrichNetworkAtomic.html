@@ -44,9 +44,8 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">EnrichNetworkAtomic</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
-<span>  top_term <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  top_term <span class="op">=</span> <span class="fl">6</span>,</span>
 <span>  metric <span class="op">=</span> <span class="st">"p.adjust"</span>,</span>
-<span>  cutoff <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  character_width <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  layout <span class="op">=</span> <span class="st">"fr"</span>,</span>
 <span>  layoutadjust <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -122,7 +121,8 @@ Default is "theme_this".</p></dd>
 
 
 <dt id="arg-legend-position">legend.position<a class="anchor" aria-label="anchor" href="#arg-legend-position"></a></dt>
-<dd><p>A character string specifying the position of the legend.</p></dd>
+<dd><p>A character string specifying the position of the legend.
+if <code>waiver()</code>, for single groups, the legend will be "none", otherwise "right".</p></dd>
 
 
 <dt id="arg-legend-direction">legend.direction<a class="anchor" aria-label="anchor" href="#arg-legend-direction"></a></dt>
@@ -130,7 +130,9 @@ Default is "theme_this".</p></dd>
 
 
 <dt id="arg-title">title<a class="anchor" aria-label="anchor" href="#arg-title"></a></dt>
-<dd><p>A character string specifying the title of the plot.</p></dd>
+<dd><p>A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.</p></dd>
 
 
 <dt id="arg-subtitle">subtitle<a class="anchor" aria-label="anchor" href="#arg-subtitle"></a></dt>

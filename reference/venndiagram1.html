@@ -44,7 +44,7 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">PrepareVennData</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
-<span>  intype <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  in_form <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  id_by <span class="op">=</span> <span class="cn">NULL</span></span>
@@ -52,7 +52,7 @@
 <span></span>
 <span><span class="fu">VennDiagram</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
-<span>  intype <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  in_form <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  split_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  split_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  group_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -91,7 +91,7 @@
 <dd><p>A data frame or a list or a VennPlotData object.</p></dd>
 
 
-<dt id="arg-intype">intype<a class="anchor" aria-label="anchor" href="#arg-intype"></a></dt>
+<dt id="arg-in-form">in_form<a class="anchor" aria-label="anchor" href="#arg-in-form"></a></dt>
 <dd><p>A character string indicating the datatype of the input data.
 Possible values are "long", "wide", "list", "venn" or NULL.
 "long" indicates the data is in long format.
@@ -126,7 +126,7 @@ FALSE TRUE
 
 <dt id="arg-group-by-sep">group_by_sep<a class="anchor" aria-label="anchor" href="#arg-group-by-sep"></a></dt>
 <dd><p>A character string to concatenate the columns in <code>group_by</code>,
-if multiple columns are provided and the intype is "long".</p></dd>
+if multiple columns are provided and the in_form is "long".</p></dd>
 
 
 <dt id="arg-id-by">id_by<a class="anchor" aria-label="anchor" href="#arg-id-by"></a></dt>
@@ -200,7 +200,9 @@ Default is "theme_this".</p></dd>
 
 
 <dt id="arg-title">title<a class="anchor" aria-label="anchor" href="#arg-title"></a></dt>
-<dd><p>A character string specifying the title of the plot.</p></dd>
+<dd><p>A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.</p></dd>
 
 
 <dt id="arg-subtitle">subtitle<a class="anchor" aria-label="anchor" href="#arg-subtitle"></a></dt>
@@ -208,7 +210,8 @@ Default is "theme_this".</p></dd>
 
 
 <dt id="arg-legend-position">legend.position<a class="anchor" aria-label="anchor" href="#arg-legend-position"></a></dt>
-<dd><p>A character string specifying the position of the legend.</p></dd>
+<dd><p>A character string specifying the position of the legend.
+if <code><a href="https://ggplot2.tidyverse.org/reference/waiver.html" class="external-link">waiver()</a></code>, for single groups, the legend will be "none", otherwise "right".</p></dd>
 
 
 <dt id="arg-legend-direction">legend.direction<a class="anchor" aria-label="anchor" href="#arg-legend-direction"></a></dt>

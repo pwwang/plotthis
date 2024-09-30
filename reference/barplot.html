@@ -61,6 +61,12 @@ SplitBarPlot (a.k.a WaterfallPlot) is used to create a bar plot with splitting t
 <span>  flip <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  fill_by_x_if_no_group <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  line_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  label_nudge <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  label <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  label_fg <span class="op">=</span> <span class="st">"black"</span>,</span>
+<span>  label_size <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  label_bg <span class="op">=</span> <span class="st">"white"</span>,</span>
+<span>  label_bg_r <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  group_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  split_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -372,7 +378,8 @@ If "auto", the position will be "stack" if group_by has more than 5 levels, othe
 
 
 <dt id="arg-legend-position">legend.position<a class="anchor" aria-label="anchor" href="#arg-legend-position"></a></dt>
-<dd><p>A character string specifying the position of the legend.</p></dd>
+<dd><p>A character string specifying the position of the legend.
+if <code>waiver()</code>, for single groups, the legend will be "none", otherwise "right".</p></dd>
 
 
 <dt id="arg-legend-direction">legend.direction<a class="anchor" aria-label="anchor" href="#arg-legend-direction"></a></dt>
@@ -380,7 +387,9 @@ If "auto", the position will be "stack" if group_by has more than 5 levels, othe
 
 
 <dt id="arg-title">title<a class="anchor" aria-label="anchor" href="#arg-title"></a></dt>
-<dd><p>A character string specifying the title of the plot.</p></dd>
+<dd><p>A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.</p></dd>
 
 
 <dt id="arg-subtitle">subtitle<a class="anchor" aria-label="anchor" href="#arg-subtitle"></a></dt>
@@ -524,29 +533,33 @@ The "*" key is used to order the y axis without considering the direction.</p></
 <span class="r-plt img"><img src="barplot-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">BarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, fill_by_x_if_no_group <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="barplot-2.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">BarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"group"</span>, y <span class="op">=</span> <span class="st">"y"</span>, group_by <span class="op">=</span> <span class="st">"x"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">BarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, label <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="barplot-3.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">BarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, label <span class="op">=</span> <span class="st">"facet"</span>, label_nudge <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="barplot-4.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">BarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"group"</span>, y <span class="op">=</span> <span class="st">"y"</span>, group_by <span class="op">=</span> <span class="st">"x"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="barplot-5.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">BarPlot</span><span class="op">(</span><span class="va">data</span>,</span></span>
 <span class="r-in"><span>    x <span class="op">=</span> <span class="st">"group"</span>, y <span class="op">=</span> <span class="st">"y"</span>, group_by <span class="op">=</span> <span class="st">"x"</span>,</span></span>
 <span class="r-in"><span>    position <span class="op">=</span> <span class="st">"dodge"</span>, add_bg <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="barplot-4.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="barplot-6.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">BarPlot</span><span class="op">(</span><span class="va">data</span>,</span></span>
 <span class="r-in"><span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, split_by <span class="op">=</span> <span class="st">"group"</span>,</span></span>
 <span class="r-in"><span>    facet_by <span class="op">=</span> <span class="st">"facet"</span>, position <span class="op">=</span> <span class="st">"dodge"</span>, facet_ncol <span class="op">=</span> <span class="fl">1</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="barplot-5.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="barplot-7.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">BarPlot</span><span class="op">(</span><span class="va">data</span>,</span></span>
 <span class="r-in"><span>    x <span class="op">=</span> <span class="st">"group"</span>, y <span class="op">=</span> <span class="st">"y"</span>, group_by <span class="op">=</span> <span class="st">"x"</span>,</span></span>
 <span class="r-in"><span>    position <span class="op">=</span> <span class="st">"dodge"</span>, add_bg <span class="op">=</span> <span class="cn">TRUE</span>, bg_palette <span class="op">=</span> <span class="st">"Spectral"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="barplot-6.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="barplot-8.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># use the count</span></span></span>
 <span class="r-in"><span><span class="fu">BarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"group"</span>, ylab <span class="op">=</span> <span class="st">"count"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="barplot-7.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="barplot-9.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># flip the plot</span></span></span>
 <span class="r-in"><span><span class="fu">BarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"group"</span>, flip <span class="op">=</span> <span class="cn">TRUE</span>, ylab <span class="op">=</span> <span class="st">"count"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="barplot-8.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="barplot-10.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>    word <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"apple"</span>, <span class="st">"banana"</span>, <span class="st">"cherry"</span>, <span class="st">"date"</span>, <span class="st">"elderberry"</span>,</span></span>
 <span class="r-in"><span>             <span class="st">"It is a very long term with a lot of words"</span><span class="op">)</span>,</span></span>
@@ -555,15 +568,15 @@ The "*" key is used to order the y axis without considering the direction.</p></
 <span class="r-in"><span>    group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>, <span class="st">"C"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">SplitBarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"count"</span>, y <span class="op">=</span> <span class="st">"word"</span>, alpha_by <span class="op">=</span> <span class="st">"score"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="barplot-9.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="barplot-11.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">SplitBarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"count"</span>, y <span class="op">=</span> <span class="st">"word"</span>, alpha_by <span class="op">=</span> <span class="st">"score"</span>,</span></span>
 <span class="r-in"><span>             max_charwidth <span class="op">=</span> <span class="fl">30</span>, lineheight <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="barplot-10.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="barplot-12.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">SplitBarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"count"</span>, y <span class="op">=</span> <span class="st">"word"</span>, fill_by <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="barplot-11.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="barplot-13.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">SplitBarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"count"</span>, y <span class="op">=</span> <span class="st">"word"</span>, facet_by <span class="op">=</span> <span class="st">"group"</span>,</span></span>
 <span class="r-in"><span>             fill_name <span class="op">=</span> <span class="st">"Direction"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="barplot-12.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="barplot-14.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
