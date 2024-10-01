@@ -101,7 +101,10 @@ The \code{rows} should be multiple columns if you want to plot as rows, which yo
 Multiple columns in the data frame can be used as the rows.}
 
 \item{columns_by}{A character string of the column name to plot for the columns
-A character/factor column is expected.}
+A character/factor column is expected.
+Multiple columns are also supported. If so, \code{NA}s can be used to exclude rows in that group.
+If there is a single value in each group (other than \code{NA}), the group name, rather than the value,
+will be shown in the column group annotation.}
 
 \item{rows_name}{A character string specifying the name of rows, which will be shown in the
 row group annotation and the legend of it.}
@@ -343,6 +346,7 @@ rows_data <- data.frame(
 Heatmap(data, rows = rows, columns_by = "c")
 # Multiple columns_by, each as a split
 Heatmap(data, rows = rows, columns_by = c("c", "s"), columns_by_sep = "/")
+Heatmap(data, rows = rows, columns_by = c("p1", "p2", "p3"))
 Heatmap(data, rows = rows, columns_by = "c", split_by = "s")
 Heatmap(data, rows = rows, columns_by = "c", columns_split_by = "s")
 Heatmap(data, rows = rows, columns_by = "c", columns_split_by = "s",

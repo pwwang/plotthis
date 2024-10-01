@@ -484,6 +484,12 @@ layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
 #'  row group annotation and the legend of it.
 #' @param columns_by A character string of the column name to plot for the columns
 #'  A character/factor column is expected.
+#'  Multiple columns are also supported. If so, `NA`s can be used to exclude rows in that group.
+#'  If there is a single value in each group (other than `NA`), the group name, rather than the value,
+#'  will be shown in the column group annotation.
+#' @param columns_name A character string specifying the name of columns, which will be shown in the
+#'  column group annotation and the legend of it.
+#'  Only used when `columns_by` has multiple columns.
 #' @param name A character string specifying the name of the main legend of the heatmap
 #' @param border A logical value indicating whether to draw the border of the heatmap.
 #'  If TRUE, the borders of the slices will be also drawn.
@@ -607,7 +613,7 @@ layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
 #' @return A drawn HeatmapList object if `return_grob = FALSE`. Otherwise, a grob/gTree object.
 #' @keywords internal
 HeatmapAtomic <- function(
-    data, rows, columns_by, rows_name = "rows", name = "value", border = TRUE, rows_palette = "Paired", rows_palcolor = NULL,
+    data, rows, rows_name = "rows", columns_by, columns_name = "columns", name = "value", border = TRUE, rows_palette = "Paired", rows_palcolor = NULL,
     pie_group_by = NULL, pie_group_by_sep = "_", pie_palette = "Spectral", pie_palcolor = NULL, pie_size = NULL, pie_name = NULL, pie_size_name = "size",
     columns_by_sep = "_", columns_split_by = NULL, columns_palette = "Paired", columns_palcolor = NULL,
     columns_split_by_sep = "_", columns_split_palette = "simspec", columns_split_palcolor = NULL,
@@ -644,11 +650,19 @@ HeatmapAtomic <- function(
         if (!is.null(columns_split_by)) {
             stop("Cannot use 'columns_split_by' with multiple columns in 'columns_by'. The heatmap columns will be split by the multiple 'columns_by'.")
         }
-        data <- data %>% pivot_longer(
-            columns_by, names_to = ".split", values_to = paste(columns_by, collapse = columns_by_sep)
-        )
-        columns_split_by <- ".split"
-        columns_by <- paste(columns_by, collapse = columns_by_sep)
+        pval_col <- paste(columns_by, collapse = columns_by_sep)
+        data <- data %>% pivot_longer(columns_by, names_to = columns_name, values_to = pval_col)
+        data <- data[!is.na(data[[pval_col]]), , drop = FALSE]
+        data[[columns_name]] <- factor(data[[columns_name]], levels = columns_by)
+
+        df_splits <- data %>% distinct(!!sym(columns_name), !!sym(pval_col))
+        if (all(table(df_splits[[columns_name]]) == 1)) {
+            columns_split_by <- NULL
+            columns_by <- columns_name
+        } else {
+            columns_split_by <- columns_name
+            columns_by <- pval_col
+        }
     }
 
     columns_split_by <- check_columns(data, columns_split_by,
@@ -957,7 +971,7 @@ HeatmapAtomic <- function(
             levels(hmargs$matrix[[columns_split_by]]),
             palette = columns_split_palette, palcolor = columns_split_palcolor
         )
-        top_annos$show_annotation_name[[columns_split_by]] <- FALSE
+        top_annos$show_annotation_name[[columns_split_by]] <- is.null(column_title)
         # top_annos$show_legend <- c(top_annos$show_legend, is.null(column_title))
         if (is.null(column_title) && !identical(legend.position, "none")) {
             legends$.column_split <- ComplexHeatmap::Legend(
@@ -1123,7 +1137,7 @@ HeatmapAtomic <- function(
             levels(rows_data[[rows_split_by]]),
             palette = rows_split_palette, palcolor = rows_split_palcolor
         )
-        left_annos$show_annotation_name[[rows_split_by]] <- FALSE
+        left_annos$show_annotation_name[[rows_split_by]] <- is.null(row_title)
         if (isTRUE(flip)) {
             hmargs$column_split <- left_annos[[rows_split_by]]
         } else {
@@ -1342,6 +1356,7 @@ HeatmapAtomic <- function(
 #' Heatmap(data, rows = rows, columns_by = "c")
 #' # Multiple columns_by, each as a split
 #' Heatmap(data, rows = rows, columns_by = c("c", "s"), columns_by_sep = "/")
+#' Heatmap(data, rows = rows, columns_by = c("p1", "p2", "p3"))
 #' Heatmap(data, rows = rows, columns_by = "c", split_by = "s")
 #' Heatmap(data, rows = rows, columns_by = "c", columns_split_by = "s")
 #' Heatmap(data, rows = rows, columns_by = "c", columns_split_by = "s",

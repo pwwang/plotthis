@@ -7,8 +7,9 @@
 HeatmapAtomic(
   data,
   rows,
-  columns_by,
   rows_name = "rows",
+  columns_by,
+  columns_name = "columns",
   name = "value",
   border = TRUE,
   rows_palette = "Paired",
@@ -93,11 +94,18 @@ The \code{rows} should be multiple columns if you want to plot as rows, which yo
 \item{rows}{A character string/vector of the column name(s) to plot for the rows
 Multiple columns in the data frame can be used as the rows.}
 
-\item{columns_by}{A character string of the column name to plot for the columns
-A character/factor column is expected.}
-
 \item{rows_name}{A character string specifying the name of rows, which will be shown in the
 row group annotation and the legend of it.}
+
+\item{columns_by}{A character string of the column name to plot for the columns
+A character/factor column is expected.
+Multiple columns are also supported. If so, \code{NA}s can be used to exclude rows in that group.
+If there is a single value in each group (other than \code{NA}), the group name, rather than the value,
+will be shown in the column group annotation.}
+
+\item{columns_name}{A character string specifying the name of columns, which will be shown in the
+column group annotation and the legend of it.
+Only used when \code{columns_by} has multiple columns.}
 
 \item{name}{A character string specifying the name of the main legend of the heatmap}
 
