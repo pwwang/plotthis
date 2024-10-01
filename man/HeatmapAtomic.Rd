@@ -13,6 +13,13 @@ HeatmapAtomic(
   border = TRUE,
   rows_palette = "Paired",
   rows_palcolor = NULL,
+  pie_group_by = NULL,
+  pie_group_by_sep = "_",
+  pie_palette = "Spectral",
+  pie_palcolor = NULL,
+  pie_size = NULL,
+  pie_name = NULL,
+  pie_size_name = "size",
   columns_by_sep = "_",
   columns_split_by = NULL,
   columns_palette = "Paired",
@@ -45,7 +52,7 @@ HeatmapAtomic(
   label_cutoff = NULL,
   label_accuracy = 0.01,
   layer_fun_callback = NULL,
-  cell_type = c("tile", "bars", "label", "dot", "violin", "boxplot"),
+  cell_type = c("tile", "bars", "label", "dot", "violin", "boxplot", "pie"),
   cell_agg = mean,
   add_bg = FALSE,
   bg_alpha = 0.5,
@@ -102,6 +109,21 @@ The default is "Paired".}
 
 \item{rows_palcolor}{A character vector of colors to override the palette of the row group annotation.}
 
+\item{pie_group_by}{A character string of the column name to group the data for the pie chart.}
+
+\item{pie_group_by_sep}{A character string to concatenate the columns in \code{pie_group_by} if there are multiple columns.}
+
+\item{pie_palette}{A character string specifying the palette of the pie chart.}
+
+\item{pie_palcolor}{A character vector of colors to override the palette of the pie chart.}
+
+\item{pie_size}{A numeric value or a function specifying the size of the pie chart.
+If it is a function, the function should take \code{count} as the argument and return the size.}
+
+\item{pie_name}{A character string specifying the name of the legend for the pie chart.}
+
+\item{pie_size_name}{A character string specifying the name of the legend for the pie size.}
+
 \item{columns_by_sep}{A character string to concatenate the columns in \code{columns_by} if there are multiple columns.}
 
 \item{columns_split_by}{A character string of the column name to split the heatmap columns into slices.
@@ -119,7 +141,9 @@ The default is "simspec".}
 
 \item{columns_split_palcolor}{A character vector of colors to override the palette of the column split annotation.}
 
-\item{lower_quantile, upper_quantile, lower_cutoff, upper_cutoff}{Vector of minimum and maximum cutoff values or quantile values for each feature.}
+\item{lower_quantile, upper_quantile, lower_cutoff, upper_cutoff}{Vector of minimum and maximum cutoff values or quantile values for each feature.
+It's applied to aggregated values when aggregated values are used (e.g. plot_type tile, label, etc).
+It's applied to raw values when raw values are used (e.g. plot_type bars, etc).}
 
 \item{rows_data}{A character string of the column name to use as the data for the row group annotation.
 If it starts with "@", it will be treated as an attribute of the data.}
@@ -153,9 +177,7 @@ If TRUE, the legend of the column group annotation will be hidden.}
 \item{na_col}{A character string specifying the color for missing values.
 The default is "grey85".}
 
-\item{title}{A character string specifying the title of the plot.
-A function can be used to generate the title based on the default title.
-This is useful when split_by is used and the title needs to be dynamic.}
+\item{title}{The global (column) title of the heatmap}
 
 \item{row_names_side}{A character string specifying the side of the row names.
 The default is "right".}
@@ -178,7 +200,9 @@ The function should have the following arguments: \code{j}, \code{i}, \code{x}, 
 Please also refer to the \code{layer_fun} argument in \code{ComplexHeatmap::Heatmap}.}
 
 \item{cell_type}{A character string specifying the type of the heatmap cells.
-The default is "tile". Other options are "bars", "label", "dot", "violin", "boxplot".}
+The default is values. Other options are "bars", "label", "dot", "violin", "boxplot".
+Note that for pie chart, the values under columns specified by \code{rows} will not be used directly. Instead, the values
+will just be counted in different \code{pie_group_by} groups. \code{NA} values will not be counted.}
 
 \item{cell_agg}{A function to aggregate the values in the cell, for the cell type "tile" and "label".
 The default is \code{mean}.}

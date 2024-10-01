@@ -6,6 +6,7 @@
 \alias{layer_reticle}
 \alias{layer_dot}
 \alias{layer_bars}
+\alias{layer_pie}
 \alias{layer_violin}
 \alias{layer_boxplot}
 \title{Heatmap layer functions used to draw on the heatmap cells}
@@ -19,6 +20,8 @@ layer_reticle(j, i, x, y, w, h, fill, color)
 layer_dot(j, i, x, y, w, h, fill, hmdf, dot_size, alpha)
 
 layer_bars(j, i, x, y, w, h, fill, col_fun, hmdf, alpha)
+
+layer_pie(j, i, x, y, w, h, fill, palette, palcolor, hmdf, pie_size)
 
 layer_violin(j, i, x, y, w, h, fill, hmdf, violin_fill)
 
@@ -49,6 +52,8 @@ where each cell could have multiple values.}
 
 \item{dot_size}{A numeric value specifying the size of the dot or a function to calculate the size
 from the values in the cell}
+
+\item{col_fun}{A function to calculate the color of the bars}
 
 \item{violin_fill}{A character vector specifying the fill color of the violin plot.
 If not provided, the fill color of row/column annotation will be used}
