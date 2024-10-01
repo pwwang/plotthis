@@ -50,6 +50,10 @@
 <span></span>
 <span><span class="fu">layer_dot</span><span class="op">(</span><span class="va">j</span>, <span class="va">i</span>, <span class="va">x</span>, <span class="va">y</span>, <span class="va">w</span>, <span class="va">h</span>, <span class="va">fill</span>, <span class="va">hmdf</span>, <span class="va">dot_size</span>, <span class="va">alpha</span><span class="op">)</span></span>
 <span></span>
+<span><span class="fu">layer_bars</span><span class="op">(</span><span class="va">j</span>, <span class="va">i</span>, <span class="va">x</span>, <span class="va">y</span>, <span class="va">w</span>, <span class="va">h</span>, <span class="va">fill</span>, <span class="va">col_fun</span>, <span class="va">hmdf</span>, <span class="va">alpha</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">layer_pie</span><span class="op">(</span><span class="va">j</span>, <span class="va">i</span>, <span class="va">x</span>, <span class="va">y</span>, <span class="va">w</span>, <span class="va">h</span>, <span class="va">fill</span>, <span class="va">palette</span>, <span class="va">palcolor</span>, <span class="va">hmdf</span>, <span class="va">pie_size</span><span class="op">)</span></span>
+<span></span>
 <span><span class="fu">layer_violin</span><span class="op">(</span><span class="va">j</span>, <span class="va">i</span>, <span class="va">x</span>, <span class="va">y</span>, <span class="va">w</span>, <span class="va">h</span>, <span class="va">fill</span>, <span class="va">hmdf</span>, <span class="va">violin_fill</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">layer_boxplot</span><span class="op">(</span><span class="va">j</span>, <span class="va">i</span>, <span class="va">x</span>, <span class="va">y</span>, <span class="va">w</span>, <span class="va">h</span>, <span class="va">fill</span>, <span class="va">hmdf</span>, <span class="va">boxplot_fill</span><span class="op">)</span></span></code></pre></div>
@@ -104,6 +108,10 @@ where each cell could have multiple values.</p></dd>
 <dt id="arg-dot-size">dot_size<a class="anchor" aria-label="anchor" href="#arg-dot-size"></a></dt>
 <dd><p>A numeric value specifying the size of the dot or a function to calculate the size
 from the values in the cell</p></dd>
+
+
+<dt id="arg-col-fun">col_fun<a class="anchor" aria-label="anchor" href="#arg-col-fun"></a></dt>
+<dd><p>A function to calculate the color of the bars</p></dd>
 
 
 <dt id="arg-violin-fill">violin_fill<a class="anchor" aria-label="anchor" href="#arg-violin-fill"></a></dt>
