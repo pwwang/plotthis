@@ -714,6 +714,13 @@ HeatmapAtomic <- function(
         values[values > upper_cutoff] <- upper_cutoff
         data[, rows] <- values
     }
+    if (upper_cutoff == lower_cutoff) {
+        if (upper_cutoff == 0) {
+            upper_cutoff <- 1e-3
+        } else {
+            upper_cutoff <- upper_cutoff + upper_cutoff * 1e-3
+        }
+    }
     hmargs$col <- get_col_fun(lower_cutoff, upper_cutoff)
 
     nrow_multiplier <- ncol_multiplier <- 1

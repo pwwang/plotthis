@@ -197,7 +197,14 @@ DimPlotAtomic <- function(
         } else {
             lower_cutoff <- lower_cutoff %||% quantile(data[[features]][is.finite(data[[features]])], lower_quantile, na.rm = TRUE)
             upper_cutoff <- upper_cutoff %||% quantile(data[[features]][is.finite(data[[features]])], upper_quantile, na.rm = TRUE)
-            upper_cutoff <- upper_cutoff + (upper_cutoff - lower_cutoff) * 0.001
+            if (upper_cutoff == lower_cutoff) {
+                if (upper_cutoff == 0) {
+                    upper_cutoff <- 1e-3
+                } else {
+                    upper_cutoff <- upper_cutoff + upper_cutoff * 1e-3
+                }
+            }
+
             feat_colors_value <- seq(lower_cutoff, upper_cutoff, length.out = 100)
         }
         data[[features]][data[[features]] > max(feat_colors_value, na.rm = TRUE)] <- max(feat_colors_value, na.rm = TRUE)
