@@ -20,6 +20,10 @@ HeatmapAtomic(
   columns_split_by_sep = "_",
   columns_split_palette = "simspec",
   columns_split_palcolor = NULL,
+  lower_quantile = 0,
+  upper_quantile = 0.99,
+  lower_cutoff = NULL,
+  upper_cutoff = NULL,
   rows_data = NULL,
   rows_split_by = NULL,
   rows_split_by_sep = "_",
@@ -32,7 +36,7 @@ HeatmapAtomic(
   column_title = character(0),
   row_title = character(0),
   na_col = "grey85",
-  limits = NULL,
+  title = NULL,
   row_names_side = "right",
   column_names_side = "bottom",
   bars_sample = 100,
@@ -115,6 +119,8 @@ The default is "simspec".}
 
 \item{columns_split_palcolor}{A character vector of colors to override the palette of the column split annotation.}
 
+\item{lower_quantile, upper_quantile, lower_cutoff, upper_cutoff}{Vector of minimum and maximum cutoff values or quantile values for each feature.}
+
 \item{rows_data}{A character string of the column name to use as the data for the row group annotation.
 If it starts with "@", it will be treated as an attribute of the data.}
 
@@ -147,8 +153,9 @@ If TRUE, the legend of the column group annotation will be hidden.}
 \item{na_col}{A character string specifying the color for missing values.
 The default is "grey85".}
 
-\item{limits}{A numeric vector of length 2 specifying the the values in the heatmap.
-If NULL, the limits will be calculated from the data, which is the 1st and 99th quantile.}
+\item{title}{A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{row_names_side}{A character string specifying the side of the row names.
 The default is "right".}

@@ -5,6 +5,7 @@
 \alias{layer_bg}
 \alias{layer_reticle}
 \alias{layer_dot}
+\alias{layer_bars}
 \alias{layer_violin}
 \alias{layer_boxplot}
 \title{Heatmap layer functions used to draw on the heatmap cells}
@@ -16,6 +17,8 @@ layer_bg(j, i, x, y, w, h, fill, alpha)
 layer_reticle(j, i, x, y, w, h, fill, color)
 
 layer_dot(j, i, x, y, w, h, fill, hmdf, dot_size, alpha)
+
+layer_bars(j, i, x, y, w, h, fill, col_fun, hmdf, alpha)
 
 layer_violin(j, i, x, y, w, h, fill, hmdf, violin_fill)
 

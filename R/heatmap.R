@@ -384,6 +384,29 @@ layer_dot <- function(j, i, x, y, w, h, fill, hmdf, dot_size, alpha) {
 }
 
 #' @rdname heatmap-layer
+layer_bars <- function(j, i, x, y, w, h, fill, col_fun, hmdf, alpha) {
+    # colors be like [1,1.9]: '#A6CEE3' (1.9,2.8]: '#1F78B4' (2.8,3.7]: '#B2DF8A'
+    bdata <- ComplexHeatmap::pindex(hmdf, i, j)
+    ns <- lengths(bdata)
+    # rep(w / ns, ns) can't keep the unit
+    bw <- rep(sapply(seq_along(w), function(m) w[m] / ns[m]), ns)
+    bx <- unlist(lapply(seq_along(x), function(m) {
+        x[m] - w[m] / 2 + seq_along(bdata[[m]]) * w[m] / length(bdata[[m]])
+    })) - bw / 2
+    by <- rep(y, lengths(bdata))
+    bh <- rep(h, lengths(bdata))
+    bf <- unlist(lapply(bdata, col_fun))
+    grid.rect(
+        x = bx,
+        y = by,
+        width = bw,
+        height = bh,
+        gp = gpar(fill = bf, col = "transparent")
+    )
+
+}
+
+#' @rdname heatmap-layer
 #' @param violin_fill A character vector specifying the fill color of the violin plot.
 #'  If not provided, the fill color of row/column annotation will be used
 #' @keywords internal
@@ -434,6 +457,10 @@ layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
 #' @param name A character string specifying the name of the main legend of the heatmap
 #' @param border A logical value indicating whether to draw the border of the heatmap.
 #'  If TRUE, the borders of the slices will be also drawn.
+#' @param title The global (column) title of the heatmap
+#' @param lower_quantile,upper_quantile,lower_cutoff,upper_cutoff Vector of minimum and maximum cutoff values or quantile values for each feature.
+#'  It's applied to aggregated values when aggregated values are used (e.g. plot_type tile, label, etc).
+#'  It's applied to raw values when raw values are used (e.g. plot_type bars, etc).
 #' @param rows_palette A character string specifying the palette of the row group annotation.
 #'  The default is "Paired".
 #' @param rows_palcolor A character vector of colors to override the palette of the row group annotation.
@@ -467,8 +494,6 @@ layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
 #' @param row_title A character string/vector of the column name(s) to use as the title of the row group annotation.
 #' @param na_col A character string specifying the color for missing values.
 #'  The default is "grey85".
-#' @param limits A numeric vector of length 2 specifying the the values in the heatmap.
-#'  If NULL, the limits will be calculated from the data, which is the 1st and 99th quantile.
 #' @param row_names_side A character string specifying the side of the row names.
 #'  The default is "right".
 #' @param column_names_side A character string specifying the side of the column names.
@@ -544,9 +569,10 @@ HeatmapAtomic <- function(
     data, rows, columns_by, rows_name = "rows", name = "value", border = TRUE, rows_palette = "Paired", rows_palcolor = NULL,
     columns_by_sep = "_", columns_split_by = NULL, columns_palette = "Paired", columns_palcolor = NULL,
     columns_split_by_sep = "_", columns_split_palette = "simspec", columns_split_palcolor = NULL,
+    lower_quantile = 0, upper_quantile = 0.99, lower_cutoff = NULL, upper_cutoff = NULL,
     rows_data = NULL, rows_split_by = NULL, rows_split_by_sep = "_", rows_split_palette = "simspec", rows_split_palcolor = NULL,
     cluster_columns = TRUE, cluster_rows = TRUE, show_row_names = FALSE, show_column_names = FALSE,
-    column_title = character(0), row_title = character(0), na_col = "grey85", limits = NULL,
+    column_title = character(0), row_title = character(0), na_col = "grey85", title = NULL,
     row_names_side = "right", column_names_side = "bottom", bars_sample = 100, flip = FALSE,
     label_size = 10, label_cutoff = NULL, label_accuracy = 0.01, layer_fun_callback = NULL,
     cell_type = c("tile", "bars", "label", "dot", "violin", "boxplot"), cell_agg = mean,
@@ -565,8 +591,22 @@ HeatmapAtomic <- function(
     # column_annotation_side <- match.arg(column_annotation_side, c("top", "bottom"))
     # column_annotation_type <- match.arg(column_annotation_type, c("auto", "simple", "pie", "ring", "bar", "violin", "boxplot", "density"))
     rows <- check_columns(data, rows, allow_multi = TRUE)
-    columns_by <- check_columns(data, columns_by, force_factor = TRUE)
-    data[[columns_by]] <- droplevels(data[[columns_by]])
+    columns_by <- check_columns(data, columns_by, force_factor = TRUE, allow_multi = TRUE)
+    for (column_by in columns_by) {
+        data[[column_by]] <- droplevels(data[[column_by]])
+    }
+
+    if (length(columns_by) > 1) {
+        if (!is.null(columns_split_by)) {
+            stop("Cannot use 'columns_split_by' with multiple columns in 'columns_by'. The heatmap columns will be split by the multiple 'columns_by'.")
+        }
+        data <- data %>% pivot_longer(
+            columns_by, names_to = ".split", values_to = paste(columns_by, collapse = columns_by_sep)
+        )
+        columns_split_by <- ".split"
+        columns_by <- paste(columns_by, collapse = columns_by_sep)
+    }
+
     columns_split_by <- check_columns(data, columns_split_by,
         force_factor = TRUE, allow_multi = TRUE,
         concat_multi = TRUE, concat_sep = columns_split_by_sep
@@ -587,9 +627,9 @@ HeatmapAtomic <- function(
     if (isTRUE(row_title)) row_title <- character(0)
 
     # limits <- limits %||% quantile(data[, rows], c(0.01, 0.99), na.rm = TRUE)
-    get_col_fun <- function(lims, a = alpha) {
+    get_col_fun <- function(lower, upper, a = alpha) {
         colorRamp2(
-            seq(limits[1], limits[2], length = 100),
+            seq(lower, upper, length = 100),
             palette_this(palette = palette, palcolor = palcolor, alpha = a)
         )
     }
@@ -605,6 +645,32 @@ HeatmapAtomic <- function(
     )
 
     legends <- list()
+    hmargs$matrix <- data %>%
+        group_by(!!!syms(unique(c(columns_by, columns_split_by)))) %>%
+        summarise(across(all_of(rows), ~ cell_agg(.x))) %>%
+        ungroup() %>%
+        as.data.frame()
+
+    if (!is.null(columns_split_by)) {
+        hmargs$matrix <- hmargs$matrix[order(hmargs$matrix[[columns_split_by]], hmargs$matrix[[columns_by]]), , drop = FALSE]
+    } else {
+        hmargs$matrix <- hmargs$matrix[order(hmargs$matrix[[columns_by]]), , drop = FALSE]
+    }
+
+    if (cell_type != "bars") {  # where aggregated values are used
+        values <- as.matrix(hmargs$matrix[, rows])
+        lower_cutoff <- lower_cutoff %||% quantile(values[is.finite(values)], lower_quantile, na.rm = TRUE)
+        upper_cutoff <- upper_cutoff %||% quantile(values[is.finite(values)], upper_quantile, na.rm = TRUE)
+    } else { # where multiple values are used
+        values <- as.matrix(data[, rows])
+        lower_cutoff <- lower_cutoff %||% quantile(values[is.finite(values)], lower_quantile, na.rm = TRUE)
+        upper_cutoff <- upper_cutoff %||% quantile(values[is.finite(values)], upper_quantile, na.rm = TRUE)
+        values[values < lower_cutoff] <- lower_cutoff
+        values[values > upper_cutoff] <- upper_cutoff
+        data[, rows] <- values
+    }
+    hmargs$col <- get_col_fun(lower_cutoff, upper_cutoff)
+
     if (cell_type == "bars") {
         if (isTRUE(add_bg)) {
             stop("Cannot use 'add_bg' with 'cell_type = 'bars'.")
@@ -612,210 +678,173 @@ HeatmapAtomic <- function(
         if (isTRUE(add_reticle)) {
             stop("Cannot use 'add_reticle' with 'cell_type = 'bars'.")
         }
-        if (length(column_annotation) > 0) {
-            stop("'column_annotation' is not supported with 'cell_type = 'bars', yet.")
-        }
-        if (isTRUE(show_column_names) && isFALSE(flip)) {
-            warning("Showing column names when 'cell_type = 'bars'. It may not be a good idea.")
-        } else if (isTRUE(show_row_names) && isTRUE(flip)) {
-            warning("Showing row names when 'cell_type = 'bars'. It may not be a good idea.")
-        }
-        hmargs$matrix <- data %>%
+
+        hmdf <- data %>%
             select(!!!syms(unique(c(columns_by, columns_split_by, rows)))) %>%
             group_by(!!!syms(unique(c(columns_by, columns_split_by)))) %>%
             slice_sample(n = bars_sample) %>%
-            ungroup() %>%
-            as.data.frame()
+            summarise(across(all_of(rows), ~ list(.x)), .groups = "drop")
 
-        if (!is.null(columns_split_by)) {
-            hmargs$matrix <- hmargs$matrix[order(hmargs$matrix[[columns_split_by]], hmargs$matrix[[columns_by]]), , drop = FALSE]
-        } else {
-            hmargs$matrix <- hmargs$matrix[order(hmargs$matrix[[columns_by]]), , drop = FALSE]
+        if (!is.null(columns_split_by)) hmdf[[columns_split_by]] <- NULL
+        if (!is.null(columns_by)) hmdf[[columns_by]] <- NULL
+        hmdf <- t(hmdf)
+        # plot bars in each cell
+        hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
+            layer_white_bg(j, i, x, y, w, h, fill)
+            layer_bars(j, i, x, y, w, h, fill, col_fun = hmargs$col, hmdf = hmdf, alpha = alpha)
+            if (is.function(layer_fun_callback)) {
+                layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
+            }
         }
-
-        if (!is.null(columns_split_by)) {
-            stop("Cannot use 'columns_split_by' with 'cell_type = 'bars', as the columns will be split by the 'columns_by'.")
-        } else {
-            columns_split_by <- columns_by
-            columns_by <- NULL
+        if (!identical(legend.position, "none")) {
+            legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = hmargs$col, border = TRUE, direction = legend.direction)
         }
-        limits <- limits %||% quantile(hmargs$matrix[, rows], c(0.01, 0.99), na.rm = TRUE)
-        if (isTRUE(flip)) {
-            hmargs$row_gap <- unit(0, "mm")
+    } else if (cell_type == "dot") {
+        if (is.function(dot_size)) {
+            hmdf <- data %>%
+                group_by(!!!syms(unique(c(columns_by, columns_split_by)))) %>%
+                summarise(across(all_of(rows), ~ dot_size(.x)), .groups = "drop")
         } else {
-            hmargs$column_gap <- unit(0, "mm")
+            hmdf <- data %>%
+                group_by(!!!syms(unique(c(columns_by, columns_split_by)))) %>%
+                summarise(across(all_of(rows), ~ dot_size), .groups = "drop")
         }
-        hmargs$col <- get_col_fun(limits)
+        if (!is.null(columns_by)) hmdf[[columns_by]] <- NULL
+        if (!is.null(columns_split_by)) hmdf[[columns_split_by]] <- NULL
+        hmdf <- t(hmdf)
+    } else if (cell_type %in% c("violin", "boxplot", "density")) {
+        # df with multiple values in each cell
+        hmdf <- data %>%
+            group_by(!!!syms(unique(c(columns_by, columns_split_by)))) %>%
+            summarise(across(all_of(rows), ~ list(.x)), .groups = "drop")
+        if (!is.null(columns_by)) hmdf[[columns_by]] <- NULL
+        if (!is.null(columns_split_by)) hmdf[[columns_split_by]] <- NULL
+        hmdf <- t(hmdf)
+    } else if (cell_type == "tile") {
+        if (isTRUE(add_bg)) {
+            stop("Cannot use 'add_bg' with 'cell_type = 'tile'.")
+        }
+        if (isTRUE(add_reticle)) {
+            stop("Cannot use 'add_reticle' with 'cell_type = 'tile'.")
+        }
+        hmargs$rect_gp <- gpar(col = "grey80", lwd = 0.1)
         hmargs$layer_fun <- layer_fun_callback
         if (!identical(legend.position, "none")) {
             legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = hmargs$col, border = TRUE, direction = legend.direction)
         }
-        # make it longer to show the bars
-        ncols <- nlevels(data[[columns_split_by]]) * 1.5
-        nrows <- length(rows)
-    } else { # cell_type != "bars"
-        hmargs$matrix <- data %>%
-            group_by(!!!syms(unique(c(columns_by, columns_split_by)))) %>%
-            summarise(across(all_of(rows), ~ cell_agg(.x))) %>%
-            ungroup() %>%
-            as.data.frame()
-
-        if (!is.null(columns_split_by)) {
-            hmargs$matrix <- hmargs$matrix[order(hmargs$matrix[[columns_split_by]], hmargs$matrix[[columns_by]]), , drop = FALSE]
-        } else {
-            hmargs$matrix <- hmargs$matrix[order(hmargs$matrix[[columns_by]]), , drop = FALSE]
+    } else if (cell_type == "label") {
+        if (isTRUE(add_bg)) {
+            stop("Cannot use 'add_bg' with 'cell_type = 'tile'.")
         }
-
-        limits <- limits %||% quantile(hmargs$matrix[, rows], c(0.01, 0.99), na.rm = TRUE)
-        hmargs$col <- get_col_fun(limits)
-
-        if (cell_type == "dot") {
-            if (is.function(dot_size)) {
-                hmdf <- data %>%
-                    group_by(!!!syms(unique(c(columns_by, columns_split_by)))) %>%
-                    summarise(across(all_of(rows), ~ dot_size(.x))) %>%
-                    ungroup()
-            } else {
-                hmdf <- data %>%
-                    group_by(!!!syms(unique(c(columns_by, columns_split_by)))) %>%
-                    summarise(across(all_of(rows), ~ dot_size)) %>%
-                    ungroup()
+        if (isTRUE(add_reticle)) {
+            stop("Cannot use 'add_reticle' with 'cell_type = 'tile'.")
+        }
+        hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
+            labels <- ComplexHeatmap::pindex(hmargs$matrix, i, j)
+            inds <- if (is.null(label_cutoff)) seq_along(labels) else labels >= label_cutoff
+            labels <- scales::number(labels[inds], accuracy = label_accuracy)
+            if (any(inds)) {
+                theta <- seq(pi / 8, 2 * pi, length.out = 16)
+                lapply(theta, function(i) {
+                    x_out <- x[inds] + unit(cos(i) * label_size / 30, "mm")
+                    y_out <- y[inds] + unit(sin(i) * label_size / 30, "mm")
+                    grid.text(labels, x = x_out, y = y_out, gp = gpar(fontsize = label_size, col = "white"))
+                })
+                grid.text(labels, x[inds], y[inds], gp = gpar(fontsize = label_size, col = "black"))
             }
-            if (!is.null(columns_by)) hmdf[[columns_by]] <- NULL
-            if (!is.null(columns_split_by)) hmdf[[columns_split_by]] <- NULL
-            hmdf <- t(hmdf)
-        } else if (cell_type %in% c("violin", "boxplot", "density")) {
-            # df with multiple values in each cell
-            hmdf <- data %>%
-                group_by(!!!syms(unique(c(columns_by, columns_split_by)))) %>%
-                summarise(across(all_of(rows), ~ list(.x))) %>%
-                ungroup()
-            if (!is.null(columns_by)) hmdf[[columns_by]] <- NULL
-            if (!is.null(columns_split_by)) hmdf[[columns_split_by]] <- NULL
-            hmdf <- t(hmdf)
+            if (is.function(layer_fun_callback)) {
+                layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
+            }
         }
+        if (!identical(legend.position, "none")) {
+            legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = hmargs$col, border = TRUE, direction = legend.direction)
+        }
+    }
 
-        if (cell_type == "tile") {
+    if (cell_type == "dot") {
+        if (!identical(legend.position, "none")) {
+            dot_size_min <- min(hmdf, na.rm = TRUE)
+            dot_size_max <- max(hmdf, na.rm = TRUE)
+            legends$.dot_size <- ComplexHeatmap::Legend(
+                title = dot_size_name,
+                labels = scales::number((seq(dot_size_min, dot_size_max, length.out = ifelse(dot_size_max > dot_size_min, 5, 1)))),
+                type = "points",
+                pch = 21,
+                size = unit(8, "mm") * seq(0.2, 1, length.out = 5),
+                grid_height = unit(8, "mm") * seq(0.2, 1, length.out = 5) * 0.8,
+                grid_width = unit(8, "mm"),
+                legend_gp = gpar(fill = "grey30"),
+                border = FALSE,
+                background = "transparent",
+                direction = legend.direction
+            )
+        }
+        hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
+            layer_white_bg(j, i, x, y, w, h, fill)
             if (isTRUE(add_bg)) {
-                stop("Cannot use 'add_bg' with 'cell_type = 'tile'.")
+                layer_bg(j, i, x, y, w, h, fill, alpha = bg_alpha)
             }
             if (isTRUE(add_reticle)) {
-                stop("Cannot use 'add_reticle' with 'cell_type = 'tile'.")
+                layer_reticle(j, i, x, y, w, h, fill, color = reticle_color)
             }
-            hmargs$rect_gp <- gpar(col = "grey80", lwd = 0.1)
-            hmargs$layer_fun_callback <- layer_fun_callback
-            if (!identical(legend.position, "none")) {
-                legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = hmargs$col, border = TRUE, direction = legend.direction)
+            layer_dot(j, i, x, y, w, h, fill, hmdf = hmdf, dot_size = dot_size, alpha = alpha)
+            if (is.function(layer_fun_callback)) {
+                layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
             }
-        } else if (cell_type == "label") {
+        }
+        if (!identical(legend.position, "none")) {
+            legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = hmargs$col, border = TRUE, direction = legend.direction)
+        }
+    } else if (cell_type == "violin") {
+        hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
+            layer_white_bg(j, i, x, y, w, h, fill)
             if (isTRUE(add_bg)) {
-                stop("Cannot use 'add_bg' with 'cell_type = 'tile'.")
+                layer_bg(j, i, x, y, w, h, fill, alpha = bg_alpha)
             }
             if (isTRUE(add_reticle)) {
-                stop("Cannot use 'add_reticle' with 'cell_type = 'tile'.")
+                layer_reticle(j, i, x, y, w, h, fill)
             }
-            hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
-                labels <- ComplexHeatmap::pindex(hmargs$matrix, i, j)
-                inds <- if (is.null(label_cutoff)) seq_along(labels) else labels >= label_cutoff
-                labels <- scales::number(labels[inds], accuracy = label_accuracy)
-                if (any(inds)) {
-                    theta <- seq(pi / 8, 2 * pi, length.out = 16)
-                    lapply(theta, function(i) {
-                        x_out <- x[inds] + unit(cos(i) * label_size / 30, "mm")
-                        y_out <- y[inds] + unit(sin(i) * label_size / 30, "mm")
-                        grid.text(labels, x = x_out, y = y_out, gp = gpar(fontsize = label_size, col = "white"))
-                    })
-                    grid.text(labels, x[inds], y[inds], gp = gpar(fontsize = label_size, col = "black"))
-                }
-                if (is.function(layer_fun_callback)) {
-                    layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
-                }
-            }
-            if (!identical(legend.position, "none")) {
-                legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = hmargs$col, border = TRUE, direction = legend.direction)
-            }
-        } else if (cell_type == "dot") {
-            if (!identical(legend.position, "none")) {
-                dot_size_min <- min(hmdf, na.rm = TRUE)
-                dot_size_max <- max(hmdf, na.rm = TRUE)
-                legends$.dot_size <- ComplexHeatmap::Legend(
-                    title = dot_size_name,
-                    labels = scales::number((seq(dot_size_min, dot_size_max, length.out = ifelse(dot_size_max > dot_size_min, 5, 1)))),
-                    type = "points",
-                    pch = 21,
-                    size = unit(8, "mm") * seq(0.2, 1, length.out = 5),
-                    grid_height = unit(8, "mm") * seq(0.2, 1, length.out = 5) * 0.8,
-                    grid_width = unit(8, "mm"),
-                    legend_gp = gpar(fill = "grey30"),
-                    border = FALSE,
-                    background = "transparent",
-                    direction = legend.direction
-                )
-            }
-            hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
-                layer_white_bg(j, i, x, y, w, h, fill)
-                if (isTRUE(add_bg)) {
-                    layer_bg(j, i, x, y, w, h, fill, alpha = bg_alpha)
-                }
-                if (isTRUE(add_reticle)) {
-                    layer_reticle(j, i, x, y, w, h, fill, color = reticle_color)
-                }
-                layer_dot(j, i, x, y, w, h, fill, hmdf = hmdf, dot_size = dot_size, alpha = alpha)
-                if (is.function(layer_fun_callback)) {
-                    layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
-                }
-            }
-            if (!identical(legend.position, "none")) {
-                legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = hmargs$col, border = TRUE, direction = legend.direction)
-            }
-        } else if (cell_type == "violin") {
-            hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
-                layer_white_bg(j, i, x, y, w, h, fill)
-                if (isTRUE(add_bg)) {
-                    layer_bg(j, i, x, y, w, h, fill, alpha = bg_alpha)
-                }
-                if (isTRUE(add_reticle)) {
-                    layer_reticle(j, i, x, y, w, h, fill)
-                }
-                layer_violin(j, i, x, y, w, h, fill, hmdf, violin_fill = violin_fill)
-                if (is.function(layer_fun_callback)) {
-                    layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
-                }
-            }
-            if (is.null(violin_fill) && !identical(legend.position, "none")) {
-                legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = hmargs$col, border = TRUE,
-                                                           direction = legend.direction)
-            } else if (isTRUE(add_bg) && !identical(legend.position, "none")) {
-                legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = get_col_fun(limits, bg_alpha), border = TRUE,
-                                                           direction = legend.direction)
-            }
-        } else if (cell_type == "boxplot") {
-            hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
-                layer_white_bg(j, i, x, y, w, h, fill)
-                if (isTRUE(add_bg)) {
-                    layer_bg(j, i, x, y, w, h, fill, alpha = bg_alpha)
-                }
-                if (isTRUE(add_reticle)) {
-                    layer_reticle(j, i, x, y, w, h, fill)
-                }
-                layer_boxplot(j, i, x, y, w, h, fill, hmdf, boxplot_fill = boxplot_fill)
-                if (is.function(layer_fun_callback)) {
-                    layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
-                }
-            }
-            if (is.null(boxplot_fill) && !identical(legend.position, "none")) {
-                legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = hmargs$col, border = TRUE,
-                                                           direction = legend.direction)
-            } else if (isTRUE(add_bg) && !identical(legend.position, "none")) {
-                legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = get_col_fun(limits, bg_alpha), border = TRUE,
-                                                           direction = legend.direction)
+            layer_violin(j, i, x, y, w, h, fill, hmdf, violin_fill = violin_fill)
+            if (is.function(layer_fun_callback)) {
+                layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
             }
         }
-        ncols <- nlevels(data[[columns_by]])
-        if (!is.null(columns_split_by)) {
-            ncols <- ncols * nlevels(data[[columns_split_by]])
+        if (is.null(violin_fill) && !identical(legend.position, "none")) {
+            legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = hmargs$col, border = TRUE,
+                direction = legend.direction)
+        } else if (isTRUE(add_bg) && !identical(legend.position, "none")) {
+            legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = get_col_fun(lower_cutoff, upper_cutoff, bg_alpha),
+                border = TRUE, direction = legend.direction)
         }
-        nrows <- length(rows)
+    } else if (cell_type == "boxplot") {
+        hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
+            layer_white_bg(j, i, x, y, w, h, fill)
+            if (isTRUE(add_bg)) {
+                layer_bg(j, i, x, y, w, h, fill, alpha = bg_alpha)
+            }
+            if (isTRUE(add_reticle)) {
+                layer_reticle(j, i, x, y, w, h, fill)
+            }
+            layer_boxplot(j, i, x, y, w, h, fill, hmdf, boxplot_fill = boxplot_fill)
+            if (is.function(layer_fun_callback)) {
+                layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
+            }
+        }
+        if (is.null(boxplot_fill) && !identical(legend.position, "none")) {
+            legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = hmargs$col, border = TRUE,
+                direction = legend.direction)
+        } else if (isTRUE(add_bg) && !identical(legend.position, "none")) {
+            legends$.heatmap <- ComplexHeatmap::Legend(title = name, col_fun = get_col_fun(lower_cutoff, upper_cutoff, bg_alpha),
+                border = TRUE, direction = legend.direction)
+        }
+    }
+    ncols <- nlevels(data[[columns_by]])
+    if (!is.null(columns_split_by)) {
+        ncols <- ncols * nlevels(data[[columns_split_by]])
+    }
+    nrows <- length(rows)
+    if (identical(cell_type, "bars")) {
+        nrows <- nrows / 2
     }
 
     ## Set up the top annotations
@@ -833,11 +862,6 @@ HeatmapAtomic <- function(
         )
         top_annos$show_annotation_name[[columns_split_by]] <- FALSE
         # top_annos$show_legend <- c(top_annos$show_legend, is.null(column_title))
-        if (isTRUE(flip)) {
-            hmargs$row_split <- hmargs$matrix[[columns_split_by]]
-        } else {
-            hmargs$column_split <- hmargs$matrix[[columns_split_by]]
-        }
         if (is.null(column_title) && !identical(legend.position, "none")) {
             legends$.column_split <- ComplexHeatmap::Legend(
                 title = columns_split_by,
@@ -845,6 +869,11 @@ HeatmapAtomic <- function(
                 legend_gp = gpar(fill = top_annos$col[[columns_split_by]]),
                 border = TRUE, nrow = if (legend.direction == "horizontal") 1 else NULL
             )
+        }
+        if (isTRUE(flip)) {
+            hmargs$row_split <- hmargs$matrix[[columns_split_by]]
+        } else {
+            hmargs$column_split <- hmargs$matrix[[columns_split_by]]
         }
     }
     if (!is.null(columns_by)) {
@@ -1159,9 +1188,11 @@ HeatmapAtomic <- function(
 
     p <- do.call(ComplexHeatmap::Heatmap, hmargs)
     if (isTRUE(return_grob)) {
-        p <- grid.grabExpr(ComplexHeatmap::draw(p, annotation_legend_list = legends, annotation_legend_side = legend.position))
+        p <- grid.grabExpr(ComplexHeatmap::draw(p, annotation_legend_list = legends,
+            annotation_legend_side = legend.position, column_title = title))
     } else {
-        p <- ComplexHeatmap::draw(p, annotation_legend_list = legends, annotation_legend_side = legend.position)
+        p <- ComplexHeatmap::draw(p, annotation_legend_list = legends,
+            annotation_legend_side = legend.position, column_title = title)
     }
 
     attr(p, "height") <- height
@@ -1182,7 +1213,7 @@ HeatmapAtomic <- function(
 #' @importFrom patchwork wrap_plots
 #' @seealso \code{\link{anno_simple}}, \code{\link{anno_points}}, \code{\link{anno_lines}}, \code{\link{anno_pie}}, \code{\link{anno_violin}}, \code{\link{anno_boxplot}}, \code{\link{anno_density}}
 #' @examples
-#'set.seed(8525)
+#' set.seed(8525)
 #' data <- data.frame(
 #'    F1 = rnorm(100, 0.1),
 #'    F2 = rnorm(100, 0.2),
@@ -1205,6 +1236,8 @@ HeatmapAtomic <- function(
 #' )
 #'
 #' Heatmap(data, rows = rows, columns_by = "c")
+#' # Multiple columns_by, each as a split
+#' Heatmap(data, rows = rows, columns_by = c("c", "s"), columns_by_sep = "/")
 #' Heatmap(data, rows = rows, columns_by = "c", split_by = "s")
 #' Heatmap(data, rows = rows, columns_by = "c", columns_split_by = "s")
 #' Heatmap(data, rows = rows, columns_by = "c", columns_split_by = "s",
@@ -1252,12 +1285,13 @@ HeatmapAtomic <- function(
 #'   show_row_names = TRUE, show_column_names = TRUE, flip = TRUE)
 Heatmap <- function(
     data, rows, columns_by, rows_name = "rows", split_by = NULL, split_by_sep = "_", split_rows_data = FALSE,
-    name = "value", border = TRUE, rows_palette = "Paired", rows_palcolor = NULL,
+    name = "value", border = TRUE, rows_palette = "Paired", rows_palcolor = NULL, title = NULL,
+    lower_quantile = 0, upper_quantile = 0.99, lower_cutoff = NULL, upper_cutoff = NULL,
     columns_by_sep = "_", columns_split_by = NULL, columns_palette = "Paired", columns_palcolor = NULL,
     columns_split_by_sep = "_", columns_split_palette = "simspec", columns_split_palcolor = NULL,
     rows_data = NULL, rows_split_by = NULL, rows_split_by_sep = "_", rows_split_palette = "simspec", rows_split_palcolor = NULL,
     cluster_columns = TRUE, cluster_rows = TRUE, show_row_names = FALSE, show_column_names = FALSE,
-    column_title = character(0), row_title = character(0), na_col = "grey85", limits = NULL,
+    column_title = character(0), row_title = character(0), na_col = "grey85",
     row_names_side = "right", column_names_side = "bottom", bars_sample = 100, flip = FALSE,
     label_size = 10, label_cutoff = NULL, label_accuracy = 0.01, layer_fun_callback = NULL,
     cell_type = c("tile", "bars", "label", "dot", "violin", "boxplot"), cell_agg = mean,
@@ -1297,30 +1331,41 @@ Heatmap <- function(
         }
     } else {
         datas <- list(data)
+        names(datas) <- "..."
     }
     if (isTRUE(split_rows_data) && !is.null(rows_data)) {
         rows_data <- "@rows_data"
     }
 
     plots <- lapply(
-        datas, HeatmapAtomic,
-        rows = rows, columns_by = columns_by, rows_name = rows_name, name = name, border = border, rows_palette = rows_palette, rows_palcolor = rows_palcolor,
-        columns_by_sep = columns_by_sep, columns_split_by = columns_split_by, columns_palette = columns_palette, columns_palcolor = columns_palcolor,
-        columns_split_by_sep = columns_split_by_sep, columns_split_palette = columns_split_palette, columns_split_palcolor = columns_split_palcolor,
-        rows_data = rows_data, rows_split_by = rows_split_by, rows_split_by_sep = rows_split_by_sep, rows_split_palette = rows_split_palette, rows_split_palcolor = rows_split_palcolor,
-        cluster_columns = cluster_columns, cluster_rows = cluster_rows, show_row_names = show_row_names, show_column_names = show_column_names,
-        column_title = column_title, row_title = row_title, na_col = na_col, limits = limits, return_grob = TRUE,
-        row_names_side = row_names_side, column_names_side = column_names_side, bars_sample = bars_sample, flip = flip,
-        label_size = label_size, label_cutoff = label_cutoff, label_accuracy = label_accuracy, layer_fun_callback = layer_fun_callback,
-        cell_type = cell_type, cell_agg = cell_agg, add_bg = add_bg, bg_alpha = bg_alpha, violin_fill = violin_fill, boxplot_fill = boxplot_fill,
-        dot_size = dot_size, dot_size_name = dot_size_name, column_annotation = column_annotation, column_annotation_side = column_annotation_side,
-        column_annotation_palette = column_annotation_palette, column_annotation_palcolor = column_annotation_palcolor,
-        column_annotation_type = column_annotation_type, column_annotation_params = column_annotation_params, column_annotation_agg = column_annotation_agg,
-        row_annotation = row_annotation, row_annotation_side = row_annotation_side, row_annotation_palette = row_annotation_palette,
-        row_annotation_palcolor = row_annotation_palcolor, row_annotation_type = row_annotation_type, row_annotation_params = row_annotation_params,
-        row_annotation_agg = row_annotation_agg, add_reticle = add_reticle, reticle_color = reticle_color,
-        palette = palette, palcolor = palcolor, alpha = alpha, legend.position = legend.position, legend.direction = legend.direction,
-        ...
+        names(datas), function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+            if (is.function(title)) {
+                title <- title(default_title)
+            } else {
+                title <- title %||% default_title
+            }
+            HeatmapAtomic(datas[[nm]],
+                rows = rows, columns_by = columns_by, rows_name = rows_name, name = name, border = border, rows_palette = rows_palette, rows_palcolor = rows_palcolor,
+                lower_quantile = lower_quantile, upper_quantile = upper_quantile, lower_cutoff = lower_cutoff, upper_cutoff = upper_cutoff,
+                columns_by_sep = columns_by_sep, columns_split_by = columns_split_by, columns_palette = columns_palette, columns_palcolor = columns_palcolor,
+                columns_split_by_sep = columns_split_by_sep, columns_split_palette = columns_split_palette, columns_split_palcolor = columns_split_palcolor,
+                rows_data = rows_data, rows_split_by = rows_split_by, rows_split_by_sep = rows_split_by_sep, rows_split_palette = rows_split_palette, rows_split_palcolor = rows_split_palcolor,
+                cluster_columns = cluster_columns, cluster_rows = cluster_rows, show_row_names = show_row_names, show_column_names = show_column_names,
+                column_title = column_title, row_title = row_title, na_col = na_col, return_grob = TRUE, title = title,
+                row_names_side = row_names_side, column_names_side = column_names_side, bars_sample = bars_sample, flip = flip,
+                label_size = label_size, label_cutoff = label_cutoff, label_accuracy = label_accuracy, layer_fun_callback = layer_fun_callback,
+                cell_type = cell_type, cell_agg = cell_agg, add_bg = add_bg, bg_alpha = bg_alpha, violin_fill = violin_fill, boxplot_fill = boxplot_fill,
+                dot_size = dot_size, dot_size_name = dot_size_name, column_annotation = column_annotation, column_annotation_side = column_annotation_side,
+                column_annotation_palette = column_annotation_palette, column_annotation_palcolor = column_annotation_palcolor,
+                column_annotation_type = column_annotation_type, column_annotation_params = column_annotation_params, column_annotation_agg = column_annotation_agg,
+                row_annotation = row_annotation, row_annotation_side = row_annotation_side, row_annotation_palette = row_annotation_palette,
+                row_annotation_palcolor = row_annotation_palcolor, row_annotation_type = row_annotation_type, row_annotation_params = row_annotation_params,
+                row_annotation_agg = row_annotation_agg, add_reticle = add_reticle, reticle_color = reticle_color,
+                palette = palette, palcolor = palcolor, alpha = alpha, legend.position = legend.position, legend.direction = legend.direction,
+                ...
+            )
+        }
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
