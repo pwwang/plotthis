@@ -1,6 +1,6 @@
 /test.ipynb
 docs/
-# CRAN-SUBMISSION
+CRAN-SUBMISSION
 cran-comments.md
 *.Rcheck/
 plotthis_*.tar.gz
