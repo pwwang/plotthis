@@ -4,7 +4,7 @@ package:
 
 source:
   git_url: https://github.com/pwwang/plotthis
-  git_rev: 870dda5697a79afed0ebf76a11192d756bd0ee56 # on 09/25/2024
+  git_rev: 675668eec7ee3cd2f0b10bb8546425954c227387 # on 10/01/2024
 
 build:
   number: 1
