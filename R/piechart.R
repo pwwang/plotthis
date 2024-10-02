@@ -5,15 +5,16 @@
 #' @param y A character string of the column name to plot on the y-axis.
 #'   A numeric column is expected.
 #'   If NULL, the count of each x column will be used.
+#' @param clockwise A logical value to draw the pie chart clockwise or not.
 #' @keywords internal
 #' @importFrom rlang sym
 #' @importFrom gglogger ggplot
 #' @importFrom dplyr lead if_else mutate %>% group_by summarise n
 #' @importFrom tidyr complete replace_na
-#' @importFrom ggplot2 coord_polar geom_col
+#' @importFrom ggplot2 coord_polar geom_col scale_fill_manual labs element_blank guide_legend
 #' @importFrom ggrepel geom_label_repel
 PieChartAtomic <- function(
-    data, x, y = NULL, label = y,
+    data, x, y = NULL, label = y, clockwise = TRUE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
@@ -53,6 +54,9 @@ PieChartAtomic <- function(
         }
     }
     # order the data by the levels of x
+    if (isTRUE(clockwise)) {
+        data[[x]] <- factor(data[[x]], levels = rev(levels(data[[x]])))
+    }
     data <- data[order(data[[x]]), , drop = FALSE]
 
     .pos_df_one_facet <- function(df) {
@@ -70,11 +74,15 @@ PieChartAtomic <- function(
     if (!is.null(label)) {
         pos_df[[label]] <- data[[label]]
     }
-    colors <- palette_this(levels(data[[x]]), palette = palette, palcolor = palcolor)
+    if (isTRUE(clockwise)) {
+        colors <- palette_this(rev(levels(data[[x]])), palette = palette, palcolor = palcolor)
+    } else {
+        colors <- palette_this(levels(data[[x]]), palette = palette, palcolor = palcolor)
+    }
 
     p <- ggplot(data, aes(x = "", y = !!sym(y), fill = !!sym(x))) +
         geom_col(width = 1, alpha = alpha, color = "white") +
-        scale_fill_manual(name = x, drop = !keep_empty, values = colors) +
+        scale_fill_manual(name = x, drop = !keep_empty, values = colors, guide = guide_legend(reverse = clockwise)) +
         labs(title = title, subtitle = subtitle, x = xlab, y = ylab) +
         coord_polar(theta = "y") +
         do.call(theme, theme_args) +
@@ -135,6 +143,7 @@ PieChartAtomic <- function(
 #' )
 #'
 #' PieChart(data, x = "x", y = "y")
+#' PieChart(data, x = "x", y = "y", clockwise = FALSE)
 #' PieChart(data, x = "x", y = "y", label = "group")
 #' PieChart(data, x = "x", y = "y", facet_by = "facet")
 #' PieChart(data, x = "x", y = "y", split_by = "group")
@@ -142,7 +151,7 @@ PieChartAtomic <- function(
 #' # y from count
 #' PieChart(data, x = "group")
 PieChart <- function(
-    data, x, y = NULL, label = y, split_by = NULL, split_by_sep = "_",
+    data, x, y = NULL, label = y, split_by = NULL, split_by_sep = "_", clockwise = TRUE,
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     alpha = 1, aspect.ratio = 1,
@@ -174,7 +183,7 @@ PieChart <- function(
                 title <- title %||% default_title
             }
             PieChartAtomic(datas[[nm]],
-                x = x, y = y, label = label, split_by = split_by,
+                x = x, y = y, label = label, split_by = split_by, clockwise = clockwise,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow,
                 facet_byrow = facet_byrow,
                 theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,

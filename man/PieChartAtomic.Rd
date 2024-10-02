@@ -9,6 +9,7 @@ PieChartAtomic(
   x,
   y = NULL,
   label = y,
+  clockwise = TRUE,
   theme = "theme_this",
   theme_args = list(),
   palette = "Paired",
@@ -40,6 +41,8 @@ A numeric column is expected.
 If NULL, the count of each x column will be used.}
 
 \item{label}{Which column to use as the label. NULL means no label.}
+
+\item{clockwise}{A logical value to draw the pie chart clockwise or not.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}

@@ -11,6 +11,7 @@ PieChart(
   label = y,
   split_by = NULL,
   split_by_sep = "_",
+  clockwise = TRUE,
   facet_by = NULL,
   facet_scales = "free_y",
   facet_ncol = NULL,
@@ -51,6 +52,8 @@ If NULL, the count of each x column will be used.}
 \item{split_by}{The column(s) to split data by and plot separately.}
 
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
+
+\item{clockwise}{A logical value to draw the pie chart clockwise or not.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
@@ -125,6 +128,7 @@ data <- data.frame(
 )
 
 PieChart(data, x = "x", y = "y")
+PieChart(data, x = "x", y = "y", clockwise = FALSE)
 PieChart(data, x = "x", y = "y", label = "group")
 PieChart(data, x = "x", y = "y", facet_by = "facet")
 PieChart(data, x = "x", y = "y", split_by = "group")
