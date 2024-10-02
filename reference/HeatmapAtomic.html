@@ -45,8 +45,9 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">HeatmapAtomic</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
 <span>  <span class="va">rows</span>,</span>
-<span>  <span class="va">columns_by</span>,</span>
 <span>  rows_name <span class="op">=</span> <span class="st">"rows"</span>,</span>
+<span>  <span class="va">columns_by</span>,</span>
+<span>  columns_name <span class="op">=</span> <span class="st">"columns"</span>,</span>
 <span>  name <span class="op">=</span> <span class="st">"value"</span>,</span>
 <span>  border <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  rows_palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
@@ -139,14 +140,23 @@ The <code>rows</code> should be multiple columns if you want to plot as rows, wh
 Multiple columns in the data frame can be used as the rows.</p></dd>
 
 
-<dt id="arg-columns-by">columns_by<a class="anchor" aria-label="anchor" href="#arg-columns-by"></a></dt>
-<dd><p>A character string of the column name to plot for the columns
-A character/factor column is expected.</p></dd>
-
-
 <dt id="arg-rows-name">rows_name<a class="anchor" aria-label="anchor" href="#arg-rows-name"></a></dt>
 <dd><p>A character string specifying the name of rows, which will be shown in the
 row group annotation and the legend of it.</p></dd>
+
+
+<dt id="arg-columns-by">columns_by<a class="anchor" aria-label="anchor" href="#arg-columns-by"></a></dt>
+<dd><p>A character string of the column name to plot for the columns
+A character/factor column is expected.
+Multiple columns are also supported. If so, <code>NA</code>s can be used to exclude rows in that group.
+If there is a single value in each group (other than <code>NA</code>), the group name, rather than the value,
+will be shown in the column group annotation.</p></dd>
+
+
+<dt id="arg-columns-name">columns_name<a class="anchor" aria-label="anchor" href="#arg-columns-name"></a></dt>
+<dd><p>A character string specifying the name of columns, which will be shown in the
+column group annotation and the legend of it.
+Only used when <code>columns_by</code> has multiple columns.</p></dd>
 
 
 <dt id="arg-name">name<a class="anchor" aria-label="anchor" href="#arg-name"></a></dt>
