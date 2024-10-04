@@ -16,6 +16,10 @@
 <url><loc>https://pwwang.github.io/plotthis/reference/ChordPlotAtomic.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/ClustreePlot.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/ClustreePlotAtomic.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/CorPairsPlot.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/CorPairsPlotAtomic.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/CorPlot.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/CorPlotAtomic.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/DensityHistoPlotAtomic.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/DimPlotAtomic.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/DotPlotAtomic.html</loc></url>
@@ -64,6 +68,7 @@
 <url><loc>https://pwwang.github.io/plotthis/reference/dimplot.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/dot-anno_ggcat.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/dotplot.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/element_textbox.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/enrich_example.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/enrich_multidb_example.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/enrichmap1.html</loc></url>
