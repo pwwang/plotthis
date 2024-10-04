@@ -9,8 +9,8 @@
 #' @param line_type The type of line to draw.
 #' @param line_width The width of the line.
 #' @param line_alpha The alpha value of the line.
-#' @param point_alpha The alpha value of the points.
-#' @param point_size The size of the points.
+#' @param pt_alpha The alpha value of the points.
+#' @param pt_size The size of the points.
 #' @param add_bg A logical value indicating whether to add a background to the plot.
 #' @param bg_palette The palette to use for the background.
 #' @param bg_palcolor The color to use for the background.
@@ -37,7 +37,7 @@ LinePlotSingle <- function(
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     add_errorbars = FALSE, errorbar_width = 0.1, errorbar_alpha = 1,
     errorbar_color = "grey30", errorbar_linewidth = .75, errorbar_min = NULL, errorbar_max = NULL, errorbar_sd = NULL,
-    point_alpha = 1, point_size = 5,
+    pt_alpha = 1, pt_size = 5,
     line_type = "solid", line_width = 1, line_alpha = .8,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     x_text_angle = 0, aspect.ratio = 1,
@@ -108,12 +108,12 @@ LinePlotSingle <- function(
     if (isTRUE(fill_point_by_x)) {
         p <- p + geom_point(
             aes(fill = !!sym(x)),
-            color = "grey20", alpha = point_alpha, size = point_size, shape = 21) +
+            color = "grey20", alpha = pt_alpha, size = pt_size, shape = 21) +
             scale_fill_manual(name = x, values = colors, guide = "legend", drop = !keep_empty)
     } else {
         p <- p + geom_point(
             fill = colors[[1]],
-            color = "grey20", alpha = point_alpha, size = point_size, shape = 21)
+            color = "grey20", alpha = pt_alpha, size = pt_size, shape = 21)
     }
     just <- calc_just(x_text_angle)
     p <- p + scale_x_discrete(drop = !keep_empty) +
@@ -163,7 +163,7 @@ LinePlotGrouped <- function(
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     add_errorbars = FALSE, errorbar_width = 0.1, errorbar_alpha = 1,
     errorbar_color = "grey30", errorbar_linewidth = .75, errorbar_min = NULL, errorbar_max = NULL, errorbar_sd = NULL,
-    point_alpha = 1, point_size = 5,
+    pt_alpha = 1, pt_size = 5,
     line_type = "solid", line_width = 1, line_alpha = .8,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     x_text_angle = 0, aspect.ratio = 1,
@@ -224,7 +224,7 @@ LinePlotGrouped <- function(
     }
     p <- p + geom_point(
         aes(fill = !!sym(group_by)),
-        color = "grey20", alpha = point_alpha, size = point_size, shape = 21) +
+        color = "grey20", alpha = pt_alpha, size = pt_size, shape = 21) +
         scale_fill_manual(name = group_by, values = colors, guide = "legend", drop = !keep_empty)
 
     just <- calc_just(x_text_angle)
@@ -275,7 +275,7 @@ LinePlotAtomic <- function(
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     add_errorbars = FALSE, errorbar_width = 0.1, errorbar_alpha = 1,
     errorbar_color = "grey30", errorbar_linewidth = .75, errorbar_min = NULL, errorbar_max = NULL, errorbar_sd = NULL,
-    point_alpha = 1, point_size = 5,
+    pt_alpha = 1, pt_size = 5,
     line_type = "solid", line_width = 1, line_alpha = .8,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     x_text_angle = 0, aspect.ratio = 1,
@@ -292,7 +292,7 @@ LinePlotAtomic <- function(
             add_errorbars = add_errorbars, errorbar_width = errorbar_width, errorbar_alpha = errorbar_alpha,
             errorbar_color = errorbar_color, errorbar_linewidth = errorbar_linewidth,
             errorbar_min = errorbar_min, errorbar_max = errorbar_max, errorbar_sd = errorbar_sd,
-            point_alpha = point_alpha, point_size = point_size,
+            pt_alpha = pt_alpha, pt_size = pt_size,
             line_type = line_type, line_width = line_width, line_alpha = line_alpha,
             theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
             x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
@@ -306,7 +306,7 @@ LinePlotAtomic <- function(
             add_errorbars = add_errorbars, errorbar_width = errorbar_width, errorbar_alpha = errorbar_alpha,
             errorbar_color = errorbar_color, errorbar_linewidth = errorbar_linewidth,
             errorbar_min = errorbar_min, errorbar_max = errorbar_max, errorbar_sd = errorbar_sd,
-            point_alpha = point_alpha, point_size = point_size,
+            pt_alpha = pt_alpha, pt_size = pt_size,
             line_type = line_type, line_width = line_width, line_alpha = line_alpha,
             theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
             x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
@@ -345,7 +345,7 @@ LinePlot <- function(
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     add_errorbars = FALSE, errorbar_width = 0.1, errorbar_alpha = 1,
     errorbar_color = "grey30", errorbar_linewidth = .75, errorbar_min = NULL, errorbar_max = NULL, errorbar_sd = NULL,
-    point_alpha = 1, point_size = 5,
+    pt_alpha = 1, pt_size = 5,
     line_type = "solid", line_width = 1, line_alpha = .8,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     x_text_angle = 0, aspect.ratio = 1,
@@ -387,7 +387,7 @@ LinePlot <- function(
                 add_errorbars = add_errorbars, errorbar_width = errorbar_width, errorbar_alpha = errorbar_alpha,
                 errorbar_color = errorbar_color, errorbar_linewidth = errorbar_linewidth,
                 errorbar_min = errorbar_min, errorbar_max = errorbar_max, errorbar_sd = errorbar_sd,
-                point_alpha = point_alpha, point_size = point_size,
+                pt_alpha = pt_alpha, pt_size = pt_size,
                 line_type = line_type, line_width = line_width, line_alpha = line_alpha,
                 theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
                 x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,

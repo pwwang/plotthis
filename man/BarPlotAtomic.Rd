@@ -30,7 +30,7 @@ BarPlotAtomic(
   aspect.ratio = 1,
   add_line = NULL,
   line_color = "red2",
-  line_size = 0.6,
+  line_width = 0.6,
   line_type = 2,
   line_name = NULL,
   add_trend = FALSE,
@@ -100,7 +100,7 @@ Default is "theme_this".}
 
 \item{line_color}{A character string indicating the color of the line.}
 
-\item{line_size}{A numeric value indicating the size of the line.}
+\item{line_width}{A numeric value indicating the size of the line.}
 
 \item{line_type}{A numeric value indicating the type of the line.}
 

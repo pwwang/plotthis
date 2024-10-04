@@ -30,9 +30,9 @@ BoxViolinPlotAtomic(
   legend.position = "right",
   legend.direction = "vertical",
   add_point = FALSE,
-  point_color = "grey30",
-  point_size = NULL,
-  point_alpha = 1,
+  pt_color = "grey30",
+  pt_size = NULL,
+  pt_alpha = 1,
   y_nbreaks = 4,
   jitter_width = 0.5,
   jitter_height = 0.1,
@@ -60,7 +60,7 @@ BoxViolinPlotAtomic(
   bg_alpha = 0.2,
   add_line = NULL,
   line_color = "red2",
-  line_size = 0.6,
+  line_width = 0.6,
   line_type = 2,
   highlight = NULL,
   highlight_color = "red2",
@@ -140,11 +140,11 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{add_point}{A logical value to add (jitter) points to the plot.}
 
-\item{point_color}{A character string to specify the color of the points.}
+\item{pt_color}{A character string to specify the color of the points.}
 
-\item{point_size}{A numeric value to specify the size of the points.}
+\item{pt_size}{A numeric value to specify the size of the points.}
 
-\item{point_alpha}{A numeric value to specify the transparency of the points.}
+\item{pt_alpha}{A numeric value to specify the transparency of the points.}
 
 \item{y_nbreaks}{A numeric value to specify the number of breaks in the y-axis.}
 
@@ -200,7 +200,7 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{line_color}{A character string to specify the color of the line.}
 
-\item{line_size}{A numeric value to specify the size of the line.}
+\item{line_width}{A numeric value to specify the size of the line.}
 
 \item{line_type}{A numeric value to specify the type of the line.}
 

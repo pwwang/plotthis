@@ -18,9 +18,9 @@
 #' @param fill_mode A character string to specify the fill mode. Either "dodge", "x", "mean", "median".
 #' @param fill_reverse A logical value to reverse the fill colors for gradient fill (mean/median).
 #' @param add_point A logical value to add (jitter) points to the plot.
-#' @param point_color A character string to specify the color of the points.
-#' @param point_size A numeric value to specify the size of the points.
-#' @param point_alpha A numeric value to specify the transparency of the points.
+#' @param pt_color A character string to specify the color of the points.
+#' @param pt_size A numeric value to specify the size of the points.
+#' @param pt_alpha A numeric value to specify the transparency of the points.
 #' @param jitter_width A numeric value to specify the width of the jitter.
 #' @param jitter_height A numeric value to specify the height of the jitter.
 #' @param stack A logical value whether to stack the facetted plot by 'facet_by'.
@@ -48,7 +48,7 @@
 #' @param bg_alpha A numeric value to specify the transparency of the background.
 #' @param add_line A character string to add a line to the plot.
 #' @param line_color A character string to specify the color of the line.
-#' @param line_size A numeric value to specify the size of the line.
+#' @param line_width A numeric value to specify the size of the line.
 #' @param line_type A numeric value to specify the type of the line.
 #' @param highlight A vector of character strings to highlight the points.
 #'   It should be a subset of the row names of the data.
@@ -81,13 +81,13 @@ BoxViolinPlotAtomic <- function(
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
-    add_point = FALSE, point_color = "grey30", point_size = NULL, point_alpha = 1, y_nbreaks = 4,
+    add_point = FALSE, pt_color = "grey30", pt_size = NULL, pt_alpha = 1, y_nbreaks = 4,
     jitter_width = 0.5, jitter_height = 0.1, stack = FALSE, y_max = NULL, y_min = NULL, y_trans = "identity",
     add_box = FALSE, box_color = "black", box_width = 0.1, box_ptsize = 2.5,
     add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
     add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
-    add_line = NULL, line_color = "red2", line_size = .6, line_type = 2,
+    add_line = NULL, line_color = "red2", line_width = .6, line_type = 2,
     highlight = NULL, highlight_color = "red2", highlight_size = 1, highlight_alpha = 1,
     comparisons = NULL, ref_group = NULL, pairwise_method = "wilcox.test",
     multiplegroup_comparisons = FALSE, multiple_method = "kruskal.test",
@@ -311,9 +311,9 @@ BoxViolinPlotAtomic <- function(
                 ),
                 show.legend = FALSE
             ) +
-            scale_color_manual(values = c("TRUE" = highlight_color, "FALSE" = point_color)) +
-            scale_size_manual(values = c("TRUE" = highlight_size, "FALSE" = point_size %||% min(3000 / nrow(data), 0.6))) +
-            scale_alpha_manual(values = c("TRUE" = highlight_alpha, "FALSE" = point_alpha))
+            scale_color_manual(values = c("TRUE" = highlight_color, "FALSE" = pt_color)) +
+            scale_size_manual(values = c("TRUE" = highlight_size, "FALSE" = pt_size %||% min(3000 / nrow(data), 0.6))) +
+            scale_alpha_manual(values = c("TRUE" = highlight_alpha, "FALSE" = pt_alpha))
     }
 
     if (isTRUE(add_trend)) {
@@ -357,7 +357,7 @@ BoxViolinPlotAtomic <- function(
     if (!is.null(add_line)) {
         p <- p + geom_hline(
             yintercept = add_line,
-            color = line_color, linetype = line_type, linewidth = line_size
+            color = line_color, linetype = line_type, linewidth = line_width
         )
     }
 
@@ -486,13 +486,13 @@ BoxViolinPlot <- function(
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
-    add_point = FALSE, point_color = "grey30", point_size = NULL, point_alpha = 1,
+    add_point = FALSE, pt_color = "grey30", pt_size = NULL, pt_alpha = 1,
     jitter_width = 0.5, jitter_height = 0.1, stack = FALSE, y_max = NULL, y_min = NULL,
     add_box = FALSE, box_color = "black", box_width = 0.1, box_ptsize = 2.5,
     add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
     add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
-    add_line = NULL, line_color = "red2", line_size = .6, line_type = 2,
+    add_line = NULL, line_color = "red2", line_width = .6, line_type = 2,
     highlight = NULL, highlight_color = "red2", highlight_size = 1, highlight_alpha = 1,
     comparisons = NULL, ref_group = NULL, pairwise_method = "wilcox.test",
     multiplegroup_comparisons = FALSE, multiple_method = "kruskal.test",
@@ -528,13 +528,13 @@ BoxViolinPlot <- function(
                 x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse,
                 theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
-                add_point = add_point, point_color = point_color, point_size = point_size, point_alpha = point_alpha,
+                add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha,
                 jitter_width = jitter_width, jitter_height = jitter_height, stack = stack, y_max = y_max, y_min = y_min,
                 add_box = add_box, box_color = box_color, box_width = box_width, box_ptsize = box_ptsize,
                 add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
                 add_stat = add_stat, stat_name = stat_name, stat_color = stat_color, stat_size = stat_size, stat_stroke = stat_stroke, stat_shape = stat_shape,
                 add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
-                add_line = add_line, line_color = line_color, line_size = line_size, line_type = line_type,
+                add_line = add_line, line_color = line_color, line_width = line_width, line_type = line_type,
                 highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha,
                 comparisons = comparisons, ref_group = ref_group, pairwise_method = pairwise_method,
                 multiplegroup_comparisons = multiplegroup_comparisons, multiple_method = multiple_method,
@@ -587,12 +587,12 @@ BoxPlot <- function(
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
-    add_point = FALSE, point_color = "grey30", point_size = NULL, point_alpha = 1,
+    add_point = FALSE, pt_color = "grey30", pt_size = NULL, pt_alpha = 1,
     jitter_width = 0.5, jitter_height = 0.1, stack = FALSE, y_max = NULL, y_min = NULL,
     add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
     add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
-    add_line = NULL, line_color = "red2", line_size = .6, line_type = 2,
+    add_line = NULL, line_color = "red2", line_width = .6, line_type = 2,
     highlight = NULL, highlight_color = "red2", highlight_size = 1, highlight_alpha = 1,
     comparisons = NULL, ref_group = NULL, pairwise_method = "wilcox.test",
     multiplegroup_comparisons = FALSE, multiple_method = "kruskal.test",
@@ -608,12 +608,12 @@ BoxPlot <- function(
         x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse,
         theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
         aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
-        add_point = add_point, point_color = point_color, point_size = point_size, point_alpha = point_alpha,
+        add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha,
         jitter_width = jitter_width, jitter_height = jitter_height, stack = stack, y_max = y_max, y_min = y_min,
         add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
         add_stat = add_stat, stat_name = stat_name, stat_color = stat_color, stat_size = stat_size, stat_stroke = stat_stroke, stat_shape = stat_shape,
         add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
-        add_line = add_line, line_color = line_color, line_size = line_size, line_type = line_type,
+        add_line = add_line, line_color = line_color, line_width = line_width, line_type = line_type,
         highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha,
         comparisons = comparisons, ref_group = ref_group, pairwise_method = pairwise_method,
         multiplegroup_comparisons = multiplegroup_comparisons, multiple_method = multiple_method,
@@ -665,13 +665,13 @@ ViolinPlot <- function(
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
-    add_point = FALSE, point_color = "grey30", point_size = NULL, point_alpha = 1,
+    add_point = FALSE, pt_color = "grey30", pt_size = NULL, pt_alpha = 1,
     jitter_width = 0.5, jitter_height = 0.1, stack = FALSE, y_max = NULL, y_min = NULL,
     add_box = FALSE, box_color = "black", box_width = 0.1, box_ptsize = 2.5,
     add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
     add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
-    add_line = NULL, line_color = "red2", line_size = .6, line_type = 2,
+    add_line = NULL, line_color = "red2", line_width = .6, line_type = 2,
     highlight = NULL, highlight_color = "red2", highlight_size = 1, highlight_alpha = 1,
     comparisons = NULL, ref_group = NULL, pairwise_method = "wilcox.test",
     multiplegroup_comparisons = FALSE, multiple_method = "kruskal.test",
@@ -687,13 +687,13 @@ ViolinPlot <- function(
         x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse,
         theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
         aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
-        add_point = add_point, point_color = point_color, point_size = point_size, point_alpha = point_alpha,
+        add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha,
         jitter_width = jitter_width, jitter_height = jitter_height, stack = stack, y_max = y_max, y_min = y_min,
         add_box = add_box, box_color = box_color, box_width = box_width, box_ptsize = box_ptsize,
         add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
         add_stat = add_stat, stat_name = stat_name, stat_color = stat_color, stat_size = stat_size, stat_stroke = stat_stroke, stat_shape = stat_shape,
         add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
-        add_line = add_line, line_color = line_color, line_size = line_size, line_type = line_type,
+        add_line = add_line, line_color = line_color, line_width = line_width, line_type = line_type,
         highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha,
         comparisons = comparisons, ref_group = ref_group, pairwise_method = pairwise_method,
         multiplegroup_comparisons = multiplegroup_comparisons, multiple_method = multiple_method,

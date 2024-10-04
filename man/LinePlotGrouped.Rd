@@ -23,8 +23,8 @@ LinePlotGrouped(
   errorbar_min = NULL,
   errorbar_max = NULL,
   errorbar_sd = NULL,
-  point_alpha = 1,
-  point_size = 5,
+  pt_alpha = 1,
+  pt_size = 5,
   line_type = "solid",
   line_width = 1,
   line_alpha = 0.8,
@@ -87,9 +87,9 @@ If errorbar_min and errorbar_max are not provided, this column will be used to c
 errorbar_min = y - errorbar_sd, errorbar_max = y + errorbar_sd.
 If errorbar_min and errorbar_max are provided, this column will be ignored.}
 
-\item{point_alpha}{The alpha value of the points.}
+\item{pt_alpha}{The alpha value of the points.}
 
-\item{point_size}{The size of the points.}
+\item{pt_size}{The size of the points.}
 
 \item{line_type}{The type of line to draw.}
 
