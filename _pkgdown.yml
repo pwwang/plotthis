@@ -13,6 +13,8 @@ reference:
     - ChordPlot
     - CircosPlot
     - ClustreePlot
+    - CorPlot
+    - CorPairsPlot
     - DensityPlot
     - DimPlot
     - DotPlot
@@ -47,6 +49,7 @@ reference:
     - theme_this
     - theme_blank
     - show_palettes
+    - element_textbox
   - title: Data
     description: Built-in data for plotting or examples
     contents:
