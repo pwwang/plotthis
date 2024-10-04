@@ -29,6 +29,10 @@ $ conda install pwwang::r-plotthis
 
 ![heatmap](man/figures/heatmap.png)
 
+[CorPlot][24] / [CorPairsPlot][25]
+
+![cor-corpairs](man/figures/cor-corpairs.png)
+
 [`PieChart`][7] / [`RingPlot`][8]
 
 ![pie-ring](man/figures/pie-ring.png)
@@ -101,3 +105,5 @@ $ conda install pwwang::r-plotthis
 [21]: https://pwwang.github.io/plotthis/reference/radarplot.html
 [22]: https://pwwang.github.io/plotthis/reference/sankeyplot.html
 [23]: https://pwwang.github.io/plotthis/reference/RidgePlot.html
+[24]: https://pwwang.github.io/plotthis/reference/CorPlot.html
+[25]: https://pwwang.github.io/plotthis/reference/CorPairsPlot.html
