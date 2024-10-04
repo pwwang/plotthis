@@ -344,6 +344,8 @@ rows_data <- data.frame(
 )
 
 Heatmap(data, rows = rows, columns_by = "c")
+Heatmap(data, rows = list(RG1 = c("F1", "F2", "F3"), RG2 = c("F4", "F5", "F6")),
+   columns_by = "c")
 # Multiple columns_by, each as a split
 Heatmap(data, rows = rows, columns_by = c("c", "s"), columns_by_sep = "/")
 Heatmap(data, rows = rows, columns_by = c("p1", "p2", "p3"))

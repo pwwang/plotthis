@@ -613,8 +613,9 @@ layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
 #' @return A drawn HeatmapList object if `return_grob = FALSE`. Otherwise, a grob/gTree object.
 #' @keywords internal
 HeatmapAtomic <- function(
-    data, rows, rows_name = "rows", columns_by, columns_name = "columns", name = "value", border = TRUE, rows_palette = "Paired", rows_palcolor = NULL,
-    pie_group_by = NULL, pie_group_by_sep = "_", pie_palette = "Spectral", pie_palcolor = NULL, pie_size = NULL, pie_name = NULL, pie_size_name = "size",
+    data, rows, columns_by, rows_name = "rows", rows_split_name = "rows_split", columns_name = "columns", name = "value",
+    border = TRUE, rows_palette = "Paired", rows_palcolor = NULL, pie_group_by = NULL, pie_group_by_sep = "_",
+    pie_palette = "Spectral", pie_palcolor = NULL, pie_size = NULL, pie_name = NULL, pie_size_name = "size",
     columns_by_sep = "_", columns_split_by = NULL, columns_palette = "Paired", columns_palcolor = NULL,
     columns_split_by_sep = "_", columns_split_palette = "simspec", columns_split_palcolor = NULL,
     lower_quantile = 0, upper_quantile = 0.99, lower_cutoff = NULL, upper_cutoff = NULL,
@@ -632,12 +633,30 @@ HeatmapAtomic <- function(
     add_reticle = FALSE, reticle_color = "grey", return_grob = FALSE,
     palette = "RdBu", palcolor = NULL, alpha = 1, legend.position = "right", legend.direction = "vertical",
     ...) {
-    # if (!requireNamespace("ComplexHeatmap", quietly = TRUE)) {
-    #     stop("'Heatmap' requires the 'ComplexHeatmap' package.")
-    # }
-    # row_annotation_side <- match.arg(row_annotation_side, c("left", "right"))
-    # column_annotation_side <- match.arg(column_annotation_side, c("top", "bottom"))
-    # column_annotation_type <- match.arg(column_annotation_type, c("auto", "simple", "pie", "ring", "bar", "violin", "boxplot", "density"))
+    if (is.character(rows_data) && length(rows_data) == 1 && startsWith(rows_data, "@")) {
+        rows_data <- attr(data, substring(rows_data, 2))
+    }
+    if (is.list(rows)) {
+        if (!is.null(rows_split_by)) {
+            stop("When a list is provided for 'rows', 'rows_split_by' should not be provided. The rows will be split by the names of the list.")
+        }
+        if (is.null(names(rows))) {
+            stop("When a list is provided for 'rows', the names of the list should be provided.")
+        }
+        rs <- lapply(names(rows), function(rn) rep(rn, length(rows[[rn]])))
+        rows <- unname(unlist(rows))
+        rd <- data.frame(.rows = rows, rows_split = unlist(rs))
+        colnames(rd)[2] <- rows_split_name
+        if (!is.null(rows_data)) {
+            # Add the names of the list to the rows_data, with rows_split_name
+            colnames(rows_data)[1] <- ".rows"
+            rows_data <- merge(rows_data, rd, by = ".rows", all.x = TRUE)
+        } else {
+            rows_data <- rd
+        }
+        rows_split_by <- rows_split_name
+    }
+
     rows <- check_columns(data, rows, allow_multi = TRUE)
     columns_by <- check_columns(data, columns_by, force_factor = TRUE, allow_multi = TRUE)
     pie_group_by <- check_columns(data, pie_group_by, force_factor = TRUE, allow_multi = TRUE,
@@ -676,9 +695,6 @@ HeatmapAtomic <- function(
     }
 
     cell_type <- match.arg(cell_type)
-    if (is.character(rows_data) && length(rows_data) == 1 && startsWith(rows_data, "@")) {
-        rows_data <- attr(data, substring(rows_data, 2))
-    }
     if (isFALSE(column_title)) column_title <- NULL
     if (isFALSE(row_title)) row_title <- NULL
     if (isTRUE(column_title)) column_title <- character(0)
@@ -1112,9 +1128,11 @@ HeatmapAtomic <- function(
         if (is.null(rows_data)) {
             stop("'rows_data' must be provided for 'rows_split_by.'")
         }
-        if (!setequal(rows_data[, 1], rows)) {
-            stop("The first column of 'rows_data' must be the same as 'rows'.")
+        if (length(setdiff(rows, rows_data[, 1])) > 0) {
+            stop("The first column of 'rows_data' must contain all the unique values of 'rows'.")
         }
+        # select the rows from rows_data
+        rows_data <- rows_data[rows_data[, 1] %in% rows, , drop = FALSE]
         nrow_annos <- nrow_annos + 1
         rows_by <- colnames(rows_data)[1]
         rows_split_by <- check_columns(rows_data, rows_split_by,
@@ -1354,6 +1372,8 @@ HeatmapAtomic <- function(
 #' )
 #'
 #' Heatmap(data, rows = rows, columns_by = "c")
+#' Heatmap(data, rows = list(RG1 = c("F1", "F2", "F3"), RG2 = c("F4", "F5", "F6")),
+#'    columns_by = "c")
 #' # Multiple columns_by, each as a split
 #' Heatmap(data, rows = rows, columns_by = c("c", "s"), columns_by_sep = "/")
 #' Heatmap(data, rows = rows, columns_by = c("p1", "p2", "p3"))
