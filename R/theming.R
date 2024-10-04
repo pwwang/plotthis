@@ -282,8 +282,10 @@ palette_this <- function(
 #' show_palettes(index = 1:10)
 #' show_palettes(type = "discrete", index = 1:10)
 #' show_palettes(type = "continuous", index = 1:10)
-#' show_palettes(palette_names = c("Paired", "nejm", "simspec", "Spectral", "jet"),
-#'    return_palettes = TRUE)
+#' show_palettes(
+#'     palette_names = c("Paired", "nejm", "simspec", "Spectral", "jet"),
+#'     return_palettes = TRUE
+#' )
 #'
 #' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_col scale_fill_manual scale_x_continuous element_blank aes element_text margin element_rect unit theme
@@ -331,4 +333,117 @@ show_palettes <- function(palettes = NULL, type = c("discrete", "continuous"), i
     if (isTRUE(return_names)) {
         return(palette_names)
     }
+}
+
+
+#' Theme element that add a box to the text
+#'
+#' Code grabbed from the `ggtext` package. See the original code at:
+#' https://github.com/wilkelab/ggtext
+#' This is used to create a text box around the text, primarily to be used in `CorPairsPlot`.
+#'
+#' @rdname element_textbox
+#' @param family Font family
+#' @param face Font face
+#' @param size Font size (in pt)
+#' @param colour,color Text color
+#' @param fill Fill color of the enclosing box
+#' @param box.colour,box.color Line color of the enclosing box (if different from the text color)
+#' @param linetype Line type of the enclosing box (like `lty` in base R)
+#' @param linewidth Line width of the enclosing box (measured in mm, just like `size` in
+#'   [ggplot2::element_line()]).
+#' @param hjust Horizontal justification
+#' @param vjust Vertical justification
+#' @param halign Horizontal justification
+#' @param valign Vertical justification
+#' @param lineheight Line height, in multiples of the font size
+#' @param width,height Unit objects specifying the width and height
+#'   of the textbox, as in [gridtext::textbox_grob()].
+#' @param minwidth,minheight,maxwidth,maxheight Min and max values for width and height.
+#'   Set to NULL to impose neither a minimum nor a maximum.
+#' @param padding,margin Padding and margins around the text box.
+#'   See [gridtext::textbox_grob()] for details.
+#' @param r Unit value specifying the corner radius of the box
+#' @param orientation Orientation of the text box. See [gridtext::textbox_grob()] for details.
+#' @param debug Not implemented.
+#' @param inherit.blank See [ggplot2::margin()] for details.
+#' @return A ggplot2 theme element that can be used inside a [ggplot2::theme()] call.
+#' @export
+#' @importFrom grid unit
+element_textbox <- function (family = NULL, face = NULL, size = NULL, colour = NULL,
+    fill = NULL, box.colour = NULL, linetype = NULL, linewidth = NULL,
+    hjust = NULL, vjust = NULL, halign = NULL, valign = NULL,
+    lineheight = NULL, margin = NULL, padding = NULL, width = NULL,
+    height = NULL, minwidth = NULL, maxwidth = NULL, minheight = NULL,
+    maxheight = NULL, r = NULL, orientation = NULL, color = NULL,
+    box.color = NULL, debug = FALSE, inherit.blank = FALSE) {
+    if (!is.null(color)) {
+        colour <- color
+    }
+
+    if (!is.null(box.color)) {
+        box.colour <- box.color
+    }
+    structure(
+        list(
+            family = family, face = face, size = size, colour = colour, fill = fill, box.colour = box.colour,
+            linetype = linetype, linewidth = linewidth,
+            hjust = hjust, vjust = vjust, halign = halign, valign = valign, lineheight = lineheight,
+            margin = margin, padding = padding, width = width, height = height, minwidth = minwidth,
+            maxwidth = maxwidth, minheight = minheight, maxheight = maxheight,
+            r = r, orientation = orientation,
+            debug = debug, inherit.blank = inherit.blank
+        ),
+        class = c("element_textbox", "element_text", "element")
+    )
+}
+
+#' @rdname element_textbox
+#' @importFrom grid gpar
+#' @importFrom gridtext textbox_grob
+#' @importFrom ggplot2 zeroGrob .pt element_grob
+#' @export
+element_grob.element_textbox <- function(
+    element, label = "", x = NULL, y = NULL,
+    family = NULL, face = NULL, colour = NULL, size = NULL,
+    hjust = NULL, vjust = NULL, lineheight = NULL,
+    margin = NULL, ...) {
+    if (is.null(label)) {
+        return(zeroGrob())
+    }
+
+    hj <- hjust %||% element$hjust
+    vj <- vjust %||% element$vjust
+    halign <- element$halign %||% 0
+    valign <- element$valign %||% 1
+    padding <- element$padding %||% ggplot2::margin(0, 0, 0, 0)
+    margin <- margin %||% element$margin %||% ggplot2::margin(0, 0, 0, 0)
+    orientation <- element$orientation %||% "upright"
+    r <- element$r %||% unit(0, "pt")
+    # The gp settings can override element_gp
+    gp <- gpar(
+        fontsize = size %||% element$size,
+        col = colour %||% element$colour,
+        fontfamily = family %||% element$family,
+        fontface = face %||% element$face,
+        lineheight = lineheight %||% element$lineheight
+    )
+
+    box_gp <- gpar(
+        col = element$box.colour %||% gp$col,
+        fill = element$fill %||% NA,
+        lty = element$linetype %||% 0,
+        lwd = (element$linewidth %||% 0.5) * .pt
+    )
+
+    textbox_grob(
+        label,
+        x = x, y = y, hjust = hj, vjust = vj, halign = halign, valign = valign,
+        width = element$width, height = element$height,
+        minwidth = element$minwidth, minheight = element$minheight,
+        maxwidth = element$maxwidth, maxheight = element$maxheight,
+        margin = margin, padding = padding, r = r,
+        orientation = orientation,
+        gp = gp, box_gp = box_gp
+    )
 }
