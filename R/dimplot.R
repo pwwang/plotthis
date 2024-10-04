@@ -379,17 +379,15 @@ DimPlotAtomic <- function(
         #     stop("'scattermore' package is required to raster the plot.")
         # }
         if (!is.null(group_by)) {
-            data_use <- data[!is.na(data[[group_by]]), , drop = FALSE]
             p <- p + scattermore::geom_scattermore(
-                data = data_use,
+                data = data[is.na(data[[group_by]]), , drop = FALSE],
                 mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])), color = bg_color,
                 pointsize = ceiling(pt_size), alpha = pt_alpha, pixels = raster_dpi
             ) + scattermore::geom_scattermore(
-                data = data_use,
+                data = data[!is.na(data[[group_by]]), , drop = FALSE],
                 mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(group_by)),
                 pointsize = ceiling(pt_size), alpha = pt_alpha, pixels = raster_dpi
             )
-            rm(data_use)
         } else {  # features
             p <- p + scattermore::geom_scattermore(
                 mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])), color = bg_color,
