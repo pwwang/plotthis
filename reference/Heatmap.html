@@ -78,10 +78,12 @@
 <span>  rows_split_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  rows_split_palette <span class="op">=</span> <span class="st">"simspec"</span>,</span>
 <span>  rows_split_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  column_name_annotation <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  row_name_annotation <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  cluster_columns <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  cluster_rows <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  show_row_names <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  show_column_names <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  show_row_names <span class="op">=</span> <span class="op">!</span><span class="va">row_name_annotation</span>,</span>
+<span>  show_column_names <span class="op">=</span> <span class="op">!</span><span class="va">column_name_annotation</span>,</span>
 <span>  column_title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  row_title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  na_col <span class="op">=</span> <span class="st">"grey85"</span>,</span>
@@ -282,6 +284,16 @@ The default is "simspec".</p></dd>
 
 <dt id="arg-rows-split-palcolor">rows_split_palcolor<a class="anchor" aria-label="anchor" href="#arg-rows-split-palcolor"></a></dt>
 <dd><p>A character vector of colors to override the palette of the row split annotation.</p></dd>
+
+
+<dt id="arg-column-name-annotation">column_name_annotation<a class="anchor" aria-label="anchor" href="#arg-column-name-annotation"></a></dt>
+<dd><p>A logical value indicating whether to add the column annotation for the column names.
+which is a simple annotaion indicating the column names.</p></dd>
+
+
+<dt id="arg-row-name-annotation">row_name_annotation<a class="anchor" aria-label="anchor" href="#arg-row-name-annotation"></a></dt>
+<dd><p>A logical value indicating whether to add the row annotation for the row names.
+which is a simple annotaion indicating the row names.</p></dd>
 
 
 <dt id="arg-cluster-columns">cluster_columns<a class="anchor" aria-label="anchor" href="#arg-cluster-columns"></a></dt>
@@ -588,23 +600,27 @@ if <code>waiver()</code>, for single groups, the legend will be "none", otherwis
 <span class="r-in"><span>        dot_size <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="Heatmap-14.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, cell_type <span class="op">=</span> <span class="st">"dot"</span>,</span></span>
-<span class="r-in"><span>        dot_size <span class="op">=</span> <span class="va">mean</span>, add_bg <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>        dot_size <span class="op">=</span> <span class="va">mean</span>, row_name_annotation <span class="op">=</span> <span class="cn">FALSE</span>, column_name_annotation <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>        row_names_side <span class="op">=</span> <span class="st">"left"</span>, cluster_rows <span class="op">=</span> <span class="cn">FALSE</span>, cluster_columns <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="Heatmap-15.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, cell_type <span class="op">=</span> <span class="st">"dot"</span>,</span></span>
-<span class="r-in"><span>        dot_size <span class="op">=</span> <span class="va">mean</span>, add_reticle <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>        dot_size <span class="op">=</span> <span class="va">mean</span>, add_bg <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="Heatmap-16.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, cluster_rows <span class="op">=</span> <span class="cn">FALSE</span>, cluster_columns <span class="op">=</span> <span class="cn">FALSE</span>, columns_by <span class="op">=</span> <span class="st">"p"</span>,</span></span>
-<span class="r-in"><span>   rows <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"p1"</span>, <span class="st">"p2"</span>, <span class="st">"p3"</span><span class="op">)</span>, name <span class="op">=</span> <span class="st">"Category"</span>, pie_group_by <span class="op">=</span> <span class="st">"c"</span>,</span></span>
-<span class="r-in"><span>   cell_type <span class="op">=</span> <span class="st">"pie"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, cell_type <span class="op">=</span> <span class="st">"dot"</span>,</span></span>
+<span class="r-in"><span>        dot_size <span class="op">=</span> <span class="va">mean</span>, add_reticle <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="Heatmap-17.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, cluster_rows <span class="op">=</span> <span class="cn">FALSE</span>, cluster_columns <span class="op">=</span> <span class="cn">FALSE</span>, columns_by <span class="op">=</span> <span class="st">"p"</span>,</span></span>
 <span class="r-in"><span>   rows <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"p1"</span>, <span class="st">"p2"</span>, <span class="st">"p3"</span><span class="op">)</span>, name <span class="op">=</span> <span class="st">"Category"</span>, pie_group_by <span class="op">=</span> <span class="st">"c"</span>,</span></span>
-<span class="r-in"><span>   cell_type <span class="op">=</span> <span class="st">"pie"</span>, pie_size <span class="op">=</span> <span class="va">sqrt</span>, add_bg <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>   cell_type <span class="op">=</span> <span class="st">"pie"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="Heatmap-18.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, cell_type <span class="op">=</span> <span class="st">"violin"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, cluster_rows <span class="op">=</span> <span class="cn">FALSE</span>, cluster_columns <span class="op">=</span> <span class="cn">FALSE</span>, columns_by <span class="op">=</span> <span class="st">"p"</span>,</span></span>
+<span class="r-in"><span>   rows <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"p1"</span>, <span class="st">"p2"</span>, <span class="st">"p3"</span><span class="op">)</span>, name <span class="op">=</span> <span class="st">"Category"</span>, pie_group_by <span class="op">=</span> <span class="st">"c"</span>,</span></span>
+<span class="r-in"><span>   cell_type <span class="op">=</span> <span class="st">"pie"</span>, pie_size <span class="op">=</span> <span class="va">sqrt</span>, add_bg <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="Heatmap-19.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, cell_type <span class="op">=</span> <span class="st">"boxplot"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, cell_type <span class="op">=</span> <span class="st">"violin"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="Heatmap-20.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, cell_type <span class="op">=</span> <span class="st">"boxplot"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="Heatmap-21.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, rows_data <span class="op">=</span> <span class="va">rows_data</span>,</span></span>
 <span class="r-in"><span>  column_annotation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>p1 <span class="op">=</span> <span class="st">"p"</span>, p2 <span class="op">=</span> <span class="st">"p"</span>, F1 <span class="op">=</span> <span class="st">"F1"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  column_annotation_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>p1 <span class="op">=</span> <span class="st">"ring"</span>, p2 <span class="op">=</span> <span class="st">"bar"</span>, F1 <span class="op">=</span> <span class="st">"violin"</span><span class="op">)</span>,</span></span>
@@ -618,7 +634,7 @@ if <code>waiver()</code>, for single groups, the legend will be "none", otherwis
 <span class="r-in"><span>  row_annotation_params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fu">grid</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">12</span>, <span class="st">"mm"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  show_row_names <span class="op">=</span> <span class="cn">TRUE</span>, show_column_names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Assuming 'row_annotation_agg["rows1"] = dplyr::first' for the simple column annotation</span>
-<span class="r-plt img"><img src="Heatmap-21.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="Heatmap-22.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, rows_data <span class="op">=</span> <span class="va">rows_data</span>,</span></span>
 <span class="r-in"><span>  column_annotation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>p1 <span class="op">=</span> <span class="st">"p"</span>, p2 <span class="op">=</span> <span class="st">"p"</span>, F1 <span class="op">=</span> <span class="st">"F1"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  column_annotation_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>p1 <span class="op">=</span> <span class="st">"ring"</span>, p2 <span class="op">=</span> <span class="st">"bar"</span>, F1 <span class="op">=</span> <span class="st">"violin"</span><span class="op">)</span>,</span></span>
@@ -632,7 +648,7 @@ if <code>waiver()</code>, for single groups, the legend will be "none", otherwis
 <span class="r-in"><span>  row_annotation_params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fu">grid</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">12</span>, <span class="st">"mm"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  show_row_names <span class="op">=</span> <span class="cn">TRUE</span>, show_column_names <span class="op">=</span> <span class="cn">TRUE</span>, flip <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Assuming 'row_annotation_agg["rows1"] = dplyr::first' for the simple column annotation</span>
-<span class="r-plt img"><img src="Heatmap-22.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="Heatmap-23.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

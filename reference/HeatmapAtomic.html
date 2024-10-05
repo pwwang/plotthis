@@ -76,10 +76,12 @@
 <span>  rows_split_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  rows_split_palette <span class="op">=</span> <span class="st">"simspec"</span>,</span>
 <span>  rows_split_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  column_name_annotation <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  row_name_annotation <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  cluster_columns <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  cluster_rows <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  show_row_names <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  show_column_names <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  show_row_names <span class="op">=</span> <span class="op">!</span><span class="va">row_name_annotation</span>,</span>
+<span>  show_column_names <span class="op">=</span> <span class="op">!</span><span class="va">column_name_annotation</span>,</span>
 <span>  column_title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  row_title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  na_col <span class="op">=</span> <span class="st">"grey85"</span>,</span>
@@ -265,6 +267,16 @@ The default is "simspec".</p></dd>
 
 <dt id="arg-rows-split-palcolor">rows_split_palcolor<a class="anchor" aria-label="anchor" href="#arg-rows-split-palcolor"></a></dt>
 <dd><p>A character vector of colors to override the palette of the row split annotation.</p></dd>
+
+
+<dt id="arg-column-name-annotation">column_name_annotation<a class="anchor" aria-label="anchor" href="#arg-column-name-annotation"></a></dt>
+<dd><p>A logical value indicating whether to add the column annotation for the column names.
+which is a simple annotaion indicating the column names.</p></dd>
+
+
+<dt id="arg-row-name-annotation">row_name_annotation<a class="anchor" aria-label="anchor" href="#arg-row-name-annotation"></a></dt>
+<dd><p>A logical value indicating whether to add the row annotation for the row names.
+which is a simple annotaion indicating the row names.</p></dd>
 
 
 <dt id="arg-cluster-columns">cluster_columns<a class="anchor" aria-label="anchor" href="#arg-cluster-columns"></a></dt>
