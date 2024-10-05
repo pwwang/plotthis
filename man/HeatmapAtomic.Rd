@@ -38,10 +38,12 @@ HeatmapAtomic(
   rows_split_by_sep = "_",
   rows_split_palette = "simspec",
   rows_split_palcolor = NULL,
+  column_name_annotation = TRUE,
+  row_name_annotation = TRUE,
   cluster_columns = TRUE,
   cluster_rows = TRUE,
-  show_row_names = FALSE,
-  show_column_names = FALSE,
+  show_row_names = !row_name_annotation,
+  show_column_names = !column_name_annotation,
   column_title = character(0),
   row_title = character(0),
   na_col = "grey85",
@@ -166,6 +168,12 @@ A character/factor column or multiple columns are expected.}
 The default is "simspec".}
 
 \item{rows_split_palcolor}{A character vector of colors to override the palette of the row split annotation.}
+
+\item{column_name_annotation}{A logical value indicating whether to add the column annotation for the column names.
+which is a simple annotaion indicating the column names.}
+
+\item{row_name_annotation}{A logical value indicating whether to add the row annotation for the row names.
+which is a simple annotaion indicating the row names.}
 
 \item{cluster_columns}{A logical value indicating whether to cluster the columns.
 If TRUE and columns_split_by is provided, the clustering will only be applied to the columns within the same split.}

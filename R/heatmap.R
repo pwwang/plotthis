@@ -566,6 +566,8 @@ layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
 #' @param dot_size A numeric value specifying the size of the dot or a function to calculate the size
 #'  from the values in the cell.
 #' @param dot_size_name A character string specifying the name of the legend for the dot size.
+#' @param column_name_annotation A logical value indicating whether to add the column annotation for the column names.
+#'  which is a simple annotaion indicating the column names.
 #' @param column_annotation A character string/vector of the column name(s) to use as the column annotation.
 #'  Or a list with the keys as the names of the annotation and the values as the column names.
 #' @param column_annotation_side A character string specifying the side of the column annotation.
@@ -582,6 +584,8 @@ layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
 #' @param column_annotation_params A list of parameters passed to the annotation function.
 #'  Could be a list with the keys as the names of the annotation and the values as the parameters.
 #' @param column_annotation_agg A function to aggregate the values in the column annotation.
+#' @param row_name_annotation A logical value indicating whether to add the row annotation for the row names.
+#'  which is a simple annotaion indicating the row names.
 #' @param row_annotation A character string/vector of the column name(s) to use as the row annotation.
 #' Or a list with the keys as the names of the annotation and the values as the column names.
 #' @param row_annotation_side A character string specifying the side of the row annotation.
@@ -620,7 +624,8 @@ HeatmapAtomic <- function(
     columns_split_by_sep = "_", columns_split_palette = "simspec", columns_split_palcolor = NULL,
     lower_quantile = 0, upper_quantile = 0.99, lower_cutoff = NULL, upper_cutoff = NULL,
     rows_data = NULL, rows_split_by = NULL, rows_split_by_sep = "_", rows_split_palette = "simspec", rows_split_palcolor = NULL,
-    cluster_columns = TRUE, cluster_rows = TRUE, show_row_names = FALSE, show_column_names = FALSE,
+    column_name_annotation = TRUE, row_name_annotation = TRUE, cluster_columns = TRUE, cluster_rows = TRUE,
+    show_row_names = !row_name_annotation, show_column_names = !column_name_annotation,
     column_title = character(0), row_title = character(0), na_col = "grey85", title = NULL,
     row_names_side = "right", column_names_side = "bottom", bars_sample = 100, flip = FALSE,
     label_size = 10, label_cutoff = NULL, label_accuracy = 0.01, layer_fun_callback = NULL,
@@ -1004,26 +1009,28 @@ HeatmapAtomic <- function(
         }
     }
     if (!is.null(columns_by)) {
-        ncol_annos <- ncol_annos + 1
         if (isTRUE(flip)) {
             hmargs$row_labels <- hmargs$matrix[[columns_by]]
         } else {
             hmargs$column_labels <- hmargs$matrix[[columns_by]]
         }
-        top_annos[[columns_by]] <- hmargs$matrix[[columns_by]]
-        top_annos$col[[columns_by]] <- palette_this(
-            unique(hmargs$matrix[[columns_by]]),
-            palette = columns_palette, palcolor = columns_palcolor
-        )
-        top_annos$show_annotation_name[[columns_by]] <- TRUE
-        # top_annos$show_legend <- c(top_annos$show_legend, isFALSE(show_column_names))
-        if (isFALSE(show_column_names) && !identical(legend.position, "none")) {
-            legends$.columns_by <- ComplexHeatmap::Legend(
-                title = columns_by,
-                labels = levels(hmargs$matrix[[columns_by]]),
-                legend_gp = gpar(fill = top_annos$col[[columns_by]]),
-                border = TRUE, nrow = if (legend.direction == "horizontal") 1 else NULL
+        if (column_name_annotation) {
+            ncol_annos <- ncol_annos + 1
+            top_annos[[columns_by]] <- hmargs$matrix[[columns_by]]
+            top_annos$col[[columns_by]] <- palette_this(
+                unique(hmargs$matrix[[columns_by]]),
+                palette = columns_palette, palcolor = columns_palcolor
             )
+            top_annos$show_annotation_name[[columns_by]] <- TRUE
+            # top_annos$show_legend <- c(top_annos$show_legend, isFALSE(show_column_names))
+            if (isFALSE(show_column_names) && !identical(legend.position, "none")) {
+                legends$.columns_by <- ComplexHeatmap::Legend(
+                    title = columns_by,
+                    labels = levels(hmargs$matrix[[columns_by]]),
+                    legend_gp = gpar(fill = top_annos$col[[columns_by]]),
+                    border = TRUE, nrow = if (legend.direction == "horizontal") 1 else NULL
+                )
+            }
         }
     }
 
@@ -1099,7 +1106,11 @@ HeatmapAtomic <- function(
     }
 
     if (column_annotation_side == "top") {
-        top_annos <- c(top_annos, column_annos)
+        if (column_name_annotation) {
+            top_annos <- c(top_annos, column_annos)
+        } else {
+            top_annos <- column_annos
+        }
     } else {
         if (isTRUE(flip)) {
             hmargs$right_annotation <- do.call(ComplexHeatmap::rowAnnotation, column_annos)
@@ -1108,10 +1119,12 @@ HeatmapAtomic <- function(
         }
     }
     rm(column_annos)
-    if (isTRUE(flip)) {
-        hmargs$left_annotation <- do.call(ComplexHeatmap::rowAnnotation, top_annos)
-    } else {
-        hmargs$top_annotation <- do.call(ComplexHeatmap::HeatmapAnnotation, top_annos)
+    if (length(top_annos) > 0) {
+        if (isTRUE(flip)) {
+            hmargs$left_annotation <- do.call(ComplexHeatmap::rowAnnotation, top_annos)
+        } else {
+            hmargs$top_annotation <- do.call(ComplexHeatmap::HeatmapAnnotation, top_annos)
+        }
     }
     rm(top_annos)
 
@@ -1172,21 +1185,23 @@ HeatmapAtomic <- function(
         }
     }
 
-    left_annos[[rows_name]] <- colnames(hmargs$matrix)
-    left_annos$col[[rows_name]] <- palette_this(
-        colnames(hmargs$matrix),
-        palette = rows_palette, palcolor = rows_palcolor
-    )
-    nrow_annos <- nrow_annos + 1
-    left_annos$show_annotation_name[[rows_name]] <- TRUE
-    # left_annos$show_legend <- c(left_annos$show_legend, isFALSE(show_row_names))
-    if (isFALSE(show_row_names) && !identical(legend.position, "none")) {
-        legends$.rows <- ComplexHeatmap::Legend(
-            title = rows_name,
-            labels = colnames(hmargs$matrix),
-            legend_gp = gpar(fill = left_annos$col[[rows_name]]),
-            border = TRUE, nrow = if (legend.direction == "horizontal") 1 else NULL
+    if (row_name_annotation) {
+        left_annos[[rows_name]] <- colnames(hmargs$matrix)
+        left_annos$col[[rows_name]] <- palette_this(
+            colnames(hmargs$matrix),
+            palette = rows_palette, palcolor = rows_palcolor
         )
+        nrow_annos <- nrow_annos + 1
+        left_annos$show_annotation_name[[rows_name]] <- TRUE
+        # left_annos$show_legend <- c(left_annos$show_legend, isFALSE(show_row_names))
+        if (isFALSE(show_row_names) && !identical(legend.position, "none")) {
+            legends$.rows <- ComplexHeatmap::Legend(
+                title = rows_name,
+                labels = colnames(hmargs$matrix),
+                legend_gp = gpar(fill = left_annos$col[[rows_name]]),
+                border = TRUE, nrow = if (legend.direction == "horizontal") 1 else NULL
+            )
+        }
     }
 
     ## Set up the row annotations
@@ -1275,7 +1290,11 @@ HeatmapAtomic <- function(
     }
 
     if (row_annotation_side == "left") {
-        left_annos <- c(left_annos, row_annos)
+        if (row_name_annotation) {
+            left_annos <- c(left_annos, row_annos)
+        } else {
+            left_annos <- row_annos
+        }
     } else {
         if (isTRUE(flip)) {
             hmargs$bottom_annotation <- do.call(ComplexHeatmap::HeatmapAnnotation, row_annos)
@@ -1284,10 +1303,12 @@ HeatmapAtomic <- function(
         }
     }
     rm(row_annos)
-    if (isTRUE(flip)) {
-        hmargs$top_annotation <- do.call(ComplexHeatmap::HeatmapAnnotation, left_annos)
-    } else {
-        hmargs$left_annotation <- do.call(ComplexHeatmap::rowAnnotation, left_annos)
+    if (length(left_annos) > 0) {
+        if (isTRUE(flip)) {
+            hmargs$top_annotation <- do.call(ComplexHeatmap::HeatmapAnnotation, left_annos)
+        } else {
+            hmargs$left_annotation <- do.call(ComplexHeatmap::rowAnnotation, left_annos)
+        }
     }
     rm(left_annos)
 
@@ -1393,6 +1414,9 @@ HeatmapAtomic <- function(
 #' Heatmap(data, rows = rows, columns_by = "c", cell_type = "dot",
 #'         dot_size = mean)
 #' Heatmap(data, rows = rows, columns_by = "c", cell_type = "dot",
+#'         dot_size = mean, row_name_annotation = FALSE, column_name_annotation = FALSE,
+#'         row_names_side = "left", cluster_rows = FALSE, cluster_columns = FALSE)
+#' Heatmap(data, rows = rows, columns_by = "c", cell_type = "dot",
 #'         dot_size = mean, add_bg = TRUE)
 #' Heatmap(data, rows = rows, columns_by = "c", cell_type = "dot",
 #'         dot_size = mean, add_reticle = TRUE)
@@ -1436,7 +1460,8 @@ Heatmap <- function(
     columns_by_sep = "_", columns_split_by = NULL, columns_palette = "Paired", columns_palcolor = NULL,
     columns_split_by_sep = "_", columns_split_palette = "simspec", columns_split_palcolor = NULL,
     rows_data = NULL, rows_split_by = NULL, rows_split_by_sep = "_", rows_split_palette = "simspec", rows_split_palcolor = NULL,
-    cluster_columns = TRUE, cluster_rows = TRUE, show_row_names = FALSE, show_column_names = FALSE,
+    column_name_annotation = TRUE, row_name_annotation = TRUE, cluster_columns = TRUE, cluster_rows = TRUE,
+    show_row_names = !row_name_annotation, show_column_names = !column_name_annotation,
     column_title = character(0), row_title = character(0), na_col = "grey85",
     row_names_side = "right", column_names_side = "bottom", bars_sample = 100, flip = FALSE,
     label_size = 10, label_cutoff = NULL, label_accuracy = 0.01, layer_fun_callback = NULL,
@@ -1498,6 +1523,7 @@ Heatmap <- function(
                 columns_by_sep = columns_by_sep, columns_split_by = columns_split_by, columns_palette = columns_palette, columns_palcolor = columns_palcolor,
                 columns_split_by_sep = columns_split_by_sep, columns_split_palette = columns_split_palette, columns_split_palcolor = columns_split_palcolor,
                 rows_data = rows_data, rows_split_by = rows_split_by, rows_split_by_sep = rows_split_by_sep, rows_split_palette = rows_split_palette, rows_split_palcolor = rows_split_palcolor,
+                column_name_annotation = column_name_annotation, row_name_annotation = row_name_annotation,
                 cluster_columns = cluster_columns, cluster_rows = cluster_rows, show_row_names = show_row_names, show_column_names = show_column_names,
                 column_title = column_title, row_title = row_title, na_col = na_col, return_grob = TRUE, title = title,
                 row_names_side = row_names_side, column_names_side = column_names_side, bars_sample = bars_sample, flip = flip,
