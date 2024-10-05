@@ -331,7 +331,7 @@ CorPairsPlotAtomic <- function(
     data, columns = NULL, group_by = NULL, group_by_sep = "_", group_name = NULL,
     diag_type = NULL, diag_args = list(), layout = c(".\\", "\\.", "/.", "./"),
     cor_method = c("pearson", "spearman", "kendall"), cor_palette = "RdBu", cor_palcolor = NULL,
-    cor_size = 3, cor_format = "corr: %.2f", cor_fg = "black", cor_bg = "white", cor_bg_r = 0.1,
+    cor_size = 3, cor_format = "corr: {round(corr, 2)}", cor_fg = "black", cor_bg = "white", cor_bg_r = 0.1,
     theme = "theme_this", theme_args = list(), palette = ifelse(is.null(group_by), "Spectral", "Paired"), palcolor = NULL,
     title = NULL, subtitle = NULL,
     facet_by = NULL, legend.position = "right", legend.direction = "vertical", seed = 8525,
@@ -490,10 +490,11 @@ CorPairsPlotAtomic <- function(
             }
         } else if (info$type == "fill") {
             corr <- cor(data[[x]], data[[y]], method = cor_method)
-            p <- ggplot(data.frame(x = 0.5, y = 0.5, corr = corr), aes(x = x, y = y, fill = corr)) +
+            # x, y for cor_format
+            p <- ggplot(data.frame(i = 0.5, j = 0.5, x = y, y = x, corr = corr), aes(x = i, y = j, fill = corr)) +
                 geom_tile(width = 1, height = 1) +
                 geom_text_repel(
-                    mapping = aes(label = sprintf(cor_format, corr)),
+                    mapping = aes(label = glue(cor_format)),
                     segment.color = "transparent", force = 0,
                     color = cor_fg, bg.color = cor_bg, bg.r = cor_bg_r,
                     size = text_size_scale * cor_size, seed = seed) +
@@ -596,6 +597,7 @@ CorPairsPlotAtomic <- function(
 #' @inheritParams CorPairsPlotAtomic
 #' @return A `patch_work::wrap_plots` object or a list of them if `combine` is `FALSE`.
 #' @export
+#' @importFrom glue glue
 #' @examples
 #' set.seed(8525)
 #' data <- data.frame(x = rnorm(100))
@@ -611,7 +613,8 @@ CorPairsPlotAtomic <- function(
 #'      color = "black", box.color = "grey20", size = 16, halign = 0.5, fill = "grey90",
 #'      linetype = 1, width = grid::unit(1, "npc"), padding = ggplot2::margin(5, 5, 5, 5))))
 #'
-#' CorPairsPlot(data, group_by = "g", diag_type = "violin", layout = "\\.")
+#' CorPairsPlot(data, group_by = "g", diag_type = "violin", layout = "\\.",
+#'   cor_format = "{x}\n{y}\ncorr: {round(corr, 2)}")
 #'
 #' CorPairsPlot(data, split_by = "g", diag_type = "none", layout = ".\\",
 #'  legend.position = "bottom", legend.direction = "horizontal", group_name = "group")
@@ -619,7 +622,7 @@ CorPairsPlot <- function(
     data, columns = NULL, group_by = NULL, group_by_sep = "_", group_name = NULL, split_by = NULL, split_by_sep = "_",
     diag_type = NULL, diag_args = list(), layout = c(".\\", "\\.", "/.", "./"),
     cor_method = c("pearson", "spearman", "kendall"), cor_palette = "RdBu", cor_palcolor = NULL,
-    cor_size = 3, cor_format = "corr: %.2f", cor_fg = "black", cor_bg = "white", cor_bg_r = 0.1,
+    cor_size = 3, cor_format = "corr: {round(corr, 2)}", cor_fg = "black", cor_bg = "white", cor_bg_r = 0.1,
     theme = "theme_this", theme_args = list(), palette = ifelse(is.null(group_by), "Spectral", "Paired"), palcolor = NULL,
     title = NULL, subtitle = NULL, facet_by = NULL, legend.position = "right", legend.direction = "vertical", seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...

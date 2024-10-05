@@ -21,6 +21,7 @@ Imports:
     rlang,
     dplyr,
     tidyr,
+    glue,
     forcats,
     gtable,
     reshape2,

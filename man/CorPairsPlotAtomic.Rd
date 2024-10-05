@@ -17,7 +17,7 @@ CorPairsPlotAtomic(
   cor_palette = "RdBu",
   cor_palcolor = NULL,
   cor_size = 3,
-  cor_format = "corr: \%.2f",
+  cor_format = "corr: {round(corr, 2)}",
   cor_fg = "black",
   cor_bg = "white",
   cor_bg_r = 0.1,

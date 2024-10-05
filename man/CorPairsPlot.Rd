@@ -19,7 +19,7 @@ CorPairsPlot(
   cor_palette = "RdBu",
   cor_palcolor = NULL,
   cor_size = 3,
-  cor_format = "corr: \%.2f",
+  cor_format = "corr: {round(corr, 2)}",
   cor_fg = "black",
   cor_bg = "white",
   cor_bg_r = 0.1,
@@ -146,7 +146,8 @@ CorPairsPlot(data, group_by = "g", diag_type = "none", layout = "./",
      color = "black", box.color = "grey20", size = 16, halign = 0.5, fill = "grey90",
      linetype = 1, width = grid::unit(1, "npc"), padding = ggplot2::margin(5, 5, 5, 5))))
 
-CorPairsPlot(data, group_by = "g", diag_type = "violin", layout = "\\\\.")
+CorPairsPlot(data, group_by = "g", diag_type = "violin", layout = "\\\\.",
+  cor_format = "{x}\n{y}\ncorr: {round(corr, 2)}")
 
 CorPairsPlot(data, split_by = "g", diag_type = "none", layout = ".\\\\",
  legend.position = "bottom", legend.direction = "horizontal", group_name = "group")

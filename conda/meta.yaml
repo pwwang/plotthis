@@ -20,6 +20,7 @@ requirements:
     - r-rlang
     - r-dplyr
     - r-tidyr
+    - r-glue
     - r-forcats
     - r-gtable
     - r-reshape2
@@ -51,6 +52,7 @@ requirements:
     - r-rlang
     - r-dplyr
     - r-tidyr
+    - r-glue
     - r-forcats
     - r-gtable
     - r-reshape2
