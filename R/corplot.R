@@ -527,10 +527,10 @@ CorPairsPlotAtomic <- function(
             }
             if (info$ylab == "left") {
                 p <- p + ggplot2::ylab(y) + scale_y_continuous(expand = expand) +
-                    ggplot2::theme(axis.title.y = element_textbox(orientation = "left-rotated", face = "bold"))
+                    ggplot2::theme(axis.title.y = element_textbox(orientation = "left-rotated"))
             } else if (info$ylab == "right") {
                 p <- p + ggplot2::ylab(y) + scale_y_continuous(position = "right", expand = expand) +
-                    ggplot2::theme(axis.title.y = element_textbox(orientation = "right-rotated", face = "bold"))
+                    ggplot2::theme(axis.title.y = element_textbox(orientation = "right-rotated"))
             } else {
                 p <- p + ggplot2::theme(axis.title.y = ggplot2::element_blank())
             }
