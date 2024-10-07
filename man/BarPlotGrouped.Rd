@@ -7,6 +7,7 @@
 BarPlotGrouped(
   data,
   x,
+  x_sep = "_",
   y = NULL,
   flip = FALSE,
   group_by,
@@ -52,6 +53,8 @@ BarPlotGrouped(
 \item{data}{A data frame.}
 
 \item{x}{A character string specifying the column name of the data frame to plot for the x-axis.}
+
+\item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.}
 
 \item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
 

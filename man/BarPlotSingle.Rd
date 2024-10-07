@@ -7,6 +7,7 @@
 BarPlotSingle(
   data,
   x,
+  x_sep = "_",
   y = NULL,
   flip = FALSE,
   facet_by = NULL,
@@ -51,7 +52,10 @@ BarPlotSingle(
 \arguments{
 \item{data}{A data frame.}
 
-\item{x}{A character string specifying the column name of the data frame to plot for the x-axis.}
+\item{x}{A character vector specifying the column as the x axis of the plot.
+A character/factor column is expected.}
+
+\item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.}
 
 \item{y}{A character vector specifying the column as the y axis of the plot.
 Default is NULL, meaning the y axis is the count of the data.}

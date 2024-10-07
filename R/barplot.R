@@ -3,6 +3,9 @@
 #' @description Create a bar plot without groups.
 #'
 #' @inheritParams common_args
+#' @param x A character vector specifying the column as the x axis of the plot.
+#'  A character/factor column is expected.
+#' @param x_sep A character string to concatenate the columns in `x`, if multiple columns are provided.
 #' @param y A character vector specifying the column as the y axis of the plot.
 #'   Default is NULL, meaning the y axis is the count of the data.
 #' @param fill_by_x A logical value indicating whether to fill the bars by the x-axis values.
@@ -37,7 +40,7 @@
 #' @importFrom ggplot2 element_line waiver coord_flip scale_color_manual guide_legend coord_cartesian
 #' @importFrom ggrepel geom_text_repel
 BarPlotSingle <- function(
-    data, x, y = NULL, flip = FALSE, facet_by = NULL, facet_scales = "fixed", label = NULL, label_nudge = 0,
+    data, x, x_sep = "_", y = NULL, flip = FALSE, facet_by = NULL, facet_scales = "fixed", label = NULL, label_nudge = 0,
     label_fg = "black", label_size = 4, label_bg = "white", label_bg_r = 0.1,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1, y_min = NULL, y_max = NULL,
@@ -56,7 +59,7 @@ BarPlotSingle <- function(
     }
     expand <- norm_expansion(expand, x_type = "discrete", y_type = "continuous")
 
-    x <- check_columns(data, x, force_factor = TRUE)
+    x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
     y <- check_columns(data, y)
     if (isTRUE(label)) {
         label <- y
@@ -187,7 +190,7 @@ BarPlotSingle <- function(
 #' @importFrom gglogger ggplot
 #' @importFrom ggplot2 aes geom_bar scale_fill_manual labs position_dodge2 coord_flip guide_legend scale_color_manual
 BarPlotGrouped <- function(
-    data, x, y = NULL, flip = FALSE, group_by, group_by_sep = "_",
+    data, x, x_sep = "_", y = NULL, flip = FALSE, group_by, group_by_sep = "_",
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1,
@@ -200,7 +203,7 @@ BarPlotGrouped <- function(
 
     group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
-    x <- check_columns(data, x, force_factor = TRUE)
+    x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
     y <- check_columns(data, y)
     if (is.null(y)) {
         data <- data %>%
@@ -331,7 +334,7 @@ BarPlotGrouped <- function(
 #' @importFrom ggplot2 waiver
 #' @keywords internal
 BarPlotAtomic <- function(
-    data, x, y = NULL, flip = FALSE, group_by = NULL, fill_by_x_if_no_group = TRUE, label_nudge = 0,
+    data, x, x_sep = "_", y = NULL, flip = FALSE, group_by = NULL, fill_by_x_if_no_group = TRUE, label_nudge = 0,
     label = NULL, label_fg = "black", label_size = 4, label_bg = "white", label_bg_r = 0.1,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
@@ -345,7 +348,7 @@ BarPlotAtomic <- function(
     facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE, ...) {
     if (is.null(group_by)) {
         p <- BarPlotSingle(
-            data, x, y,
+            data, x, x_sep, y,
             label = label, label_nudge = label_nudge,
             label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
             facet_by = facet_by, facet_scales = facet_scales, flip = flip, line_name = line_name,
@@ -362,7 +365,7 @@ BarPlotAtomic <- function(
             stop("'label' is not supported for BarPlot when 'group_by' is provided.")
         }
         p <- BarPlotGrouped(
-            data, x, y, group_by,
+            data, x, x_sep, y, group_by,
             facet_by = facet_by, facet_scales = facet_scales, flip = flip, line_name = line_name,
             add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
             theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
@@ -421,7 +424,7 @@ BarPlotAtomic <- function(
 #' # flip the plot
 #' BarPlot(data, x = "group", flip = TRUE, ylab = "count")
 BarPlot <- function(
-    data, x, y = NULL, flip = FALSE, fill_by_x_if_no_group = TRUE, line_name = NULL, label_nudge = 0,
+    data, x, x_sep = "_", y = NULL, flip = FALSE, fill_by_x_if_no_group = TRUE, line_name = NULL, label_nudge = 0,
     label = NULL, label_fg = "black", label_size = 4, label_bg = "white", label_bg_r = 0.1,
     group_by = NULL, group_by_sep = "_", split_by = NULL, split_by_sep = "_",
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
@@ -454,7 +457,7 @@ BarPlot <- function(
                 datas[[nm]],
                 label = label, label_nudge = label_nudge,
                 label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
-                x = x, y = y, flip = flip, group_by = group_by, fill_by_x_if_no_group = fill_by_x_if_no_group,
+                x = x, x_sep = x_sep, y = y, flip = flip, group_by = group_by, fill_by_x_if_no_group = fill_by_x_if_no_group,
                 theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
                 add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
                 x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, line_name = line_name,
