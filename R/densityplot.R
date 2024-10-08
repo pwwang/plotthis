@@ -6,23 +6,39 @@
 #' @param group_by A character string specifying the column name to group the data
 #' @param group_by_sep A character string to concatenate the columns in `group_by` if multiple columns are provided
 #' @param group_name A character string to name the legend of group_by
+#' @param xtrans A character string specifying the transformation of the x-axis. Default is "identity".
+#'  Other options see transform of \code{\link[ggplot2]{scale_x_continuous}}.
+#' @param ytrans A character string specifying the transformation of the y-axis. Default is "identity".
+#'  Other options see transform of \code{\link[ggplot2]{scale_y_continuous}}.
 #' @param type A character string specifying the type of plot. Default is "density".
 #'  Other options are "histogram".
 #' @param bins A numeric value specifying the number of bins for the histogram.
 #' @param binwidth A numeric value specifying the width of the bins for the histogram.
 #' @param flip A logical value. If TRUE, the plot will be flipped.
-#' @param add_lines A logical value. If TRUE, add lines to the plot to show the data distribution on the bottom.
-#' @param line_height A numeric value specifying the height of the lines. The actual height will be calculated based on the maximum density or count.
-#' @param line_alpha A numeric value specifying the alpha of the lines.
-#' @param line_width A numeric value specifying the width of the lines.
+#' @param add_bars A logical value. If TRUE, add lines to the plot to show the data distribution on the bottom.
+#' @param bar_height A numeric value specifying the height of the bars. The actual height will be calculated based on the maximum density or count.
+#' @param bar_alpha A numeric value specifying the alpha of the bars.
+#' @param bar_width A numeric value specifying the width of the bars.
+#' @param position How should we position the values in each bin? Default is "identity".
+#'  Unlike the default position = "stack" in [ggplot2::geom_histogram] or [ggplot2::geom_density],
+#'  the default position is "identity" to show the actual count or density for each group.
+#' @param use_trend A logical value. If TRUE, use trend line instead of histogram.
+#' @param add_trend A logical value. If TRUE, add trend line to the histogram.
+#' @param trend_alpha A numeric value specifying the alpha of the trend line and points
+#' @param trend_linewidth A numeric value specifying the width of the trend line
+#' @param trend_pt_size A numeric value specifying the size of the trend points
+#' @param trend_skip_zero A logical value. If TRUE, skip the zero count when drawing the trend line.
+#' @importFrom utils getFromNamespace
+#' @importFrom zoo na.approx
 #' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_density scale_fill_manual labs theme geom_histogram coord_flip waiver
-#' @importFrom ggplot2 scale_color_manual scale_x_continuous scale_y_continuous
+#' @importFrom ggplot2 scale_color_manual scale_x_continuous scale_y_continuous stat_bin
 #' @keywords internal
 DensityHistoPlotAtomic <- function(
-    data, x, group_by = NULL, group_by_sep = "_", group_name = NULL,
+    data, x, group_by = NULL, group_by_sep = "_", group_name = NULL, xtrans = "identity", ytrans = "identity",
     type = c("density", "histogram"), bins = NULL, binwidth = NULL, flip = FALSE,
-    add_lines = TRUE, line_height = 0.025, line_alpha = 1, line_width = .1,
+    add_bars = FALSE, bar_height = 0.025, bar_alpha = 1, bar_width = .1, position = "identity",
+    use_trend = FALSE, add_trend = FALSE, trend_alpha = 1, trend_linewidth = 0.8, trend_pt_size = 1.5, trend_skip_zero = FALSE,
     palette = "Paired", palcolor = NULL, alpha = .5, theme = "theme_this", theme_args = list(),
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(bottom = 0, left = 0, right = 0),
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
@@ -35,7 +51,11 @@ DensityHistoPlotAtomic <- function(
         group_by <- ".group"
         data[[group_by]] <- factor("")
     }
-    if (isTRUE(add_lines)) {
+    if (is.null(bins) && is.null(binwidth)) {
+        bins <- 30
+        message("Using `bins = 30`. Pick better value with `binwidth`.")
+    }
+    if (isTRUE(add_bars)) {
         if (type == "density") {
             # calculate the max density for the y-axis
             max_y <- max(stats::density(data[[x]])$y) * 1.5
@@ -50,23 +70,13 @@ DensityHistoPlotAtomic <- function(
             }
             max_y <- max(table(cut(data[[x]], s)))
         }
-        lnheight <- line_height * max_y
+        lnheight <- bar_height * max_y
         # calculate the ymin ymax for each group to plot the data lines
         data$.ymin <- lnheight * (1 - as.integer(data[[group_by]]))
         data$.ymax <- data$.ymin - lnheight
     }
 
-    p <- ggplot(data, aes(x = !!sym(x), fill = !!sym(group_by), color = !!sym(group_by)))
-    if (type == "histogram") {
-        p <- p + geom_histogram(alpha = alpha, bins = bins, binwidth = binwidth)
-    } else {
-        p <- p + geom_density(alpha = alpha)
-    }
-    if (isTRUE(add_lines)) {
-        p <- p +
-            geom_linerange(aes(ymin = !!sym(".ymin"), ymax = !!sym(".ymax")), size = 1, alpha = line_alpha, linewidth = line_width)
-    }
-    p <- p +
+    p <- ggplot(data, aes(x = !!sym(x), fill = !!sym(group_by), color = !!sym(group_by))) +
         scale_fill_manual(
             name = group_name %||% group_by,
             values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
@@ -74,9 +84,49 @@ DensityHistoPlotAtomic <- function(
         scale_color_manual(
             name = group_name %||% group_by,
             values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
-        ) +
-        scale_x_continuous(expand = expand$x) +
-        scale_y_continuous(expand = expand$y) +
+        )
+
+    if (type == "histogram") {
+        if (!use_trend) {
+            p <- p + geom_histogram(alpha = alpha, bins = bins, binwidth = binwidth, position = position, ...)
+        }
+        if (use_trend || add_trend) {
+            p <- p + stat_bin(geom = "point", bins = bins, binwidth = binwidth, alpha = trend_alpha,
+                size = trend_pt_size, position = position, ...)
+            if (trend_skip_zero) {
+                if (inherits(ytrans, "transform")) {
+                    ytrans_obj <- ytrans
+                } else if (is.character(ytrans)) {
+                    ytrans_obj <- getFromNamespace(paste0("transform_", ytrans), "scales")()
+                } else if (is.function(ytrans)) {
+                    ytrans_obj <- ytrans()
+                } else {
+                    stop("ytrans should be a character, a transform object, or a function returning a transform object.")
+                }
+                p <- p + stat_bin(
+                    aes(y = after_stat({
+                        y <- ifelse(count > 0, count, NA)
+                        y <- ytrans_obj$transform(y)
+                        y <- split(y, ..group..)
+                        y <- unlist(lapply(y, na.approx, na.rm = FALSE))
+                        ytrans_obj$inverse(y)
+                    })), bins = bins, binwidth = binwidth,
+                    geom = "line", position = position, linewidth = trend_linewidth, ...)
+            } else {
+                p <- p + stat_bin(aes(y = after_stat(count)), bins = bins, binwidth = binwidth,
+                    geom = "line", position = position, linewidth = trend_linewidth, ...)
+            }
+        }
+    } else {
+        p <- p + geom_density(alpha = alpha, position = position, ...)
+    }
+    if (isTRUE(add_bars)) {
+        p <- p +
+            geom_linerange(aes(ymin = !!sym(".ymin"), ymax = !!sym(".ymax")), size = 1, alpha = bar_alpha, linewidth = bar_width)
+    }
+    p <- p +
+        scale_x_continuous(expand = expand$x, transform = xtrans) +
+        scale_y_continuous(expand = expand$y, transform = ytrans) +
         do.call(theme, theme_args) +
         labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% ifelse(type == "histogram", "Count", "Density")) +
         ggplot2::theme(legend.position = legend.position, legend.direction = legend.direction)
@@ -305,11 +355,12 @@ RidgePlot <- function(
 #'
 #' DensityPlot(data, x = "x")
 #' DensityPlot(data, x = "x", group_by = "group", facet_by = "facet")
-#' DensityPlot(data, x = "x", split_by = "facet", add_lines = FALSE)
+#' DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE)
 DensityPlot <- function(
-    data, x, group_by = NULL, group_by_sep = "_", group_name = NULL, split_by = NULL, split_by_sep = "_", flip = FALSE,
+    data, x, group_by = NULL, group_by_sep = "_", group_name = NULL, xtrans = "identity", ytrans = "identity",
+    split_by = NULL, split_by_sep = "_", flip = FALSE, position = "identity",
     palette = "Paired", palcolor = NULL, alpha = .5, theme = "theme_this", theme_args = list(),
-    add_lines = TRUE, line_height = 0.025, line_alpha = 1, line_width = .1,
+    add_bars = FALSE, bar_height = 0.025, bar_alpha = 1, bar_width = .1,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(bottom = 0, left = 0, right = 0),
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     legend.position = ifelse(is.null(group_by), "none", "right"), legend.direction = "vertical", seed = 8525,
@@ -335,8 +386,9 @@ DensityPlot <- function(
                 title <- title %||% default_title
             }
             DensityHistoPlotAtomic(datas[[nm]],
-                x = x, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name, type = "density", flip = flip,
-                add_lines = add_lines, line_height = line_height, line_alpha = line_alpha, line_width = line_width,
+                x = x, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
+                type = "density", flip = flip, xtrans = xtrans, ytrans = ytrans, position = position,
+                add_bars = add_bars, bar_height = bar_height, bar_alpha = bar_alpha, bar_width = bar_width,
                 palette = palette, palcolor = palcolor, alpha = alpha, theme = theme, theme_args = theme_args,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, expand = expand,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
@@ -353,13 +405,25 @@ DensityPlot <- function(
 #' @inheritParams DensityHistoPlotAtomic
 #' @export
 #' @examples
+#' set.seed(8525)
+#' data <- data.frame(
+#'     x = sample(setdiff(1:100, c(30:36, 50:55, 70:77)), 1000, replace = TRUE),
+#'     group = factor(rep(c("A", "B"), each = 500), levels = c("A", "B")),
+#'     facet = sample(c("F1", "F2"), 1000, replace = TRUE)
+#' )
+#'
 #' Histogram(data, x = "x")
-#' Histogram(data, x = "x", group_by = "group", facet_by = "facet")
-#' Histogram(data, x = "x", split_by = "facet", add_lines = FALSE)
+#' Histogram(data, x = "x", group_by = "group")
+#' Histogram(data, x = "x", split_by = "facet", add_bars = TRUE)
+#' Histogram(data, x = "x", group_by = "group", add_trend = TRUE)
+#' Histogram(data, x = "x", group_by = "group", add_trend = TRUE, trend_skip_zero = TRUE)
+#' Histogram(data, x = "x", group_by = "group", split_by = "facet",
+#'  use_trend = TRUE, trend_pt_size = 3)
 Histogram <- function(
-    data, x, group_by = NULL, group_by_sep = "_", group_name = NULL, split_by = NULL, split_by_sep = "_",
-    flip = FALSE, bins = NULL, binwidth = NULL,
-    add_lines = TRUE, line_height = 0.025, line_alpha = 1, line_width = .1,
+    data, x, group_by = NULL, group_by_sep = "_", group_name = NULL, xtrans = "identity", ytrans = "identity",
+    split_by = NULL, split_by_sep = "_", flip = FALSE, bins = NULL, binwidth = NULL, trend_skip_zero = FALSE,
+    add_bars = FALSE, bar_height = 0.025, bar_alpha = 1, bar_width = .1, position = "identity",
+    use_trend = FALSE, add_trend = FALSE, trend_alpha = 1, trend_linewidth = 0.8, trend_pt_size = 1.5,
     palette = "Paired", palcolor = NULL, alpha = .5, theme = "theme_this", theme_args = list(),
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(bottom = 0, left = 0, right = 0),
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
@@ -386,9 +450,11 @@ Histogram <- function(
                 title <- title %||% default_title
             }
             DensityHistoPlotAtomic(datas[[nm]],
-                x = x, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name, type = "histogram",
-                add_lines = add_lines, line_height = line_height, line_alpha = line_alpha, line_width = line_width,
-                flip = flip, bins = bins, binwidth = binwidth, expand = expand,
+                x = x, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
+                type = "histogram", flip = flip, xtrans = xtrans, ytrans = ytrans, use_trend = use_trend, trend_skip_zero = trend_skip_zero,
+                add_trend = add_trend, trend_alpha = trend_alpha, trend_linewidth = trend_linewidth, trend_pt_size = trend_pt_size,
+                add_bars = add_bars, bar_height = bar_height, bar_alpha = bar_alpha, bar_width = bar_width,
+                bins = bins, binwidth = binwidth, expand = expand, position = position,
                 palette = palette, palcolor = palcolor, alpha = alpha, theme = theme, theme_args = theme_args,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,

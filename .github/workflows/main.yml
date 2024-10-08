@@ -53,7 +53,8 @@ jobs:
           extra-packages: |
             any::devtools, any::pkgdown, any::circlize, any::ggalluvial, any::ggVennDiagram,
             any::ggupset, any::ggpubr, any::ggforce, any::scattermore, any::ComplexHeatmap,
-            any::clustree, any::ggwordcloud, any::ggraph, any::igraph, any::hexbin, any::ggridges
+            any::clustree, any::ggwordcloud, any::ggraph, any::igraph, any::hexbin, any::ggridges,
+            any::zoo
 
       - name: Install plotthis
         run: |

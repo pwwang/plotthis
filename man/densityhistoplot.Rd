@@ -11,18 +11,21 @@ DensityPlot(
   group_by = NULL,
   group_by_sep = "_",
   group_name = NULL,
+  xtrans = "identity",
+  ytrans = "identity",
   split_by = NULL,
   split_by_sep = "_",
   flip = FALSE,
+  position = "identity",
   palette = "Paired",
   palcolor = NULL,
   alpha = 0.5,
   theme = "theme_this",
   theme_args = list(),
-  add_lines = TRUE,
-  line_height = 0.025,
-  line_alpha = 1,
-  line_width = 0.1,
+  add_bars = FALSE,
+  bar_height = 0.025,
+  bar_alpha = 1,
+  bar_width = 0.1,
   title = NULL,
   subtitle = NULL,
   xlab = NULL,
@@ -49,15 +52,24 @@ Histogram(
   group_by = NULL,
   group_by_sep = "_",
   group_name = NULL,
+  xtrans = "identity",
+  ytrans = "identity",
   split_by = NULL,
   split_by_sep = "_",
   flip = FALSE,
   bins = NULL,
   binwidth = NULL,
-  add_lines = TRUE,
-  line_height = 0.025,
-  line_alpha = 1,
-  line_width = 0.1,
+  trend_skip_zero = FALSE,
+  add_bars = FALSE,
+  bar_height = 0.025,
+  bar_alpha = 1,
+  bar_width = 0.1,
+  position = "identity",
+  use_trend = FALSE,
+  add_trend = FALSE,
+  trend_alpha = 1,
+  trend_linewidth = 0.8,
+  trend_pt_size = 1.5,
   palette = "Paired",
   palcolor = NULL,
   alpha = 0.5,
@@ -96,11 +108,21 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 
 \item{group_name}{A character string to name the legend of group_by}
 
+\item{xtrans}{A character string specifying the transformation of the x-axis. Default is "identity".
+Other options see transform of \code{\link[ggplot2]{scale_x_continuous}}.}
+
+\item{ytrans}{A character string specifying the transformation of the y-axis. Default is "identity".
+Other options see transform of \code{\link[ggplot2]{scale_y_continuous}}.}
+
 \item{split_by}{The column(s) to split data by and plot separately.}
 
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
 \item{flip}{A logical value. If TRUE, the plot will be flipped.}
+
+\item{position}{How should we position the values in each bin? Default is "identity".
+Unlike the default position = "stack" in \link[ggplot2:geom_histogram]{ggplot2::geom_histogram} or \link[ggplot2:geom_density]{ggplot2::geom_density},
+the default position is "identity" to show the actual count or density for each group.}
 
 \item{palette}{A character string specifying the palette to use.}
 
@@ -113,13 +135,13 @@ Default is "theme_this".}
 
 \item{theme_args}{A list of arguments to pass to the theme function.}
 
-\item{add_lines}{A logical value. If TRUE, add lines to the plot to show the data distribution on the bottom.}
+\item{add_bars}{A logical value. If TRUE, add lines to the plot to show the data distribution on the bottom.}
 
-\item{line_height}{A numeric value specifying the height of the lines. The actual height will be calculated based on the maximum density or count.}
+\item{bar_height}{A numeric value specifying the height of the bars. The actual height will be calculated based on the maximum density or count.}
 
-\item{line_alpha}{A numeric value specifying the alpha of the lines.}
+\item{bar_alpha}{A numeric value specifying the alpha of the bars.}
 
-\item{line_width}{A numeric value specifying the width of the lines.}
+\item{bar_width}{A numeric value specifying the width of the bars.}
 
 \item{title}{A character string specifying the title of the plot.
 A function can be used to generate the title based on the default title.
@@ -176,6 +198,18 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 \item{bins}{A numeric value specifying the number of bins for the histogram.}
 
 \item{binwidth}{A numeric value specifying the width of the bins for the histogram.}
+
+\item{trend_skip_zero}{A logical value. If TRUE, skip the zero count when drawing the trend line.}
+
+\item{use_trend}{A logical value. If TRUE, use trend line instead of histogram.}
+
+\item{add_trend}{A logical value. If TRUE, add trend line to the histogram.}
+
+\item{trend_alpha}{A numeric value specifying the alpha of the trend line and points}
+
+\item{trend_linewidth}{A numeric value specifying the width of the trend line}
+
+\item{trend_pt_size}{A numeric value specifying the size of the trend points}
 }
 \value{
 A ggplot object or wrap_plots object or a list of ggplot objects
@@ -193,8 +227,19 @@ data <- data.frame(
 
 DensityPlot(data, x = "x")
 DensityPlot(data, x = "x", group_by = "group", facet_by = "facet")
-DensityPlot(data, x = "x", split_by = "facet", add_lines = FALSE)
+DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE)
+set.seed(8525)
+data <- data.frame(
+    x = sample(setdiff(1:100, c(30:36, 50:55, 70:77)), 1000, replace = TRUE),
+    group = factor(rep(c("A", "B"), each = 500), levels = c("A", "B")),
+    facet = sample(c("F1", "F2"), 1000, replace = TRUE)
+)
+
 Histogram(data, x = "x")
-Histogram(data, x = "x", group_by = "group", facet_by = "facet")
-Histogram(data, x = "x", split_by = "facet", add_lines = FALSE)
+Histogram(data, x = "x", group_by = "group")
+Histogram(data, x = "x", split_by = "facet", add_bars = TRUE)
+Histogram(data, x = "x", group_by = "group", add_trend = TRUE)
+Histogram(data, x = "x", group_by = "group", add_trend = TRUE, trend_skip_zero = TRUE)
+Histogram(data, x = "x", group_by = "group", split_by = "facet",
+ use_trend = TRUE, trend_pt_size = 3)
 }

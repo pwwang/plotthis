@@ -44,6 +44,7 @@ requirements:
     - r-hexbin
     - r-igraph
     - r-scattermore
+    - r-zoo
 
   run:
     - r-base
@@ -76,6 +77,7 @@ requirements:
     - r-hexbin
     - r-igraph
     - r-scattermore
+    - r-zoo
 
 test:
   commands:

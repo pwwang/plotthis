@@ -32,7 +32,8 @@ Imports:
     ggrepel,
     gglogger,
     ggnewscale,
-    cowplot
+    cowplot,
+    zoo
 Suggests:
     ComplexHeatmap,
     clustree,

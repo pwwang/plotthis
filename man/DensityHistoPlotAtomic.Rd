@@ -10,14 +10,23 @@ DensityHistoPlotAtomic(
   group_by = NULL,
   group_by_sep = "_",
   group_name = NULL,
+  xtrans = "identity",
+  ytrans = "identity",
   type = c("density", "histogram"),
   bins = NULL,
   binwidth = NULL,
   flip = FALSE,
-  add_lines = TRUE,
-  line_height = 0.025,
-  line_alpha = 1,
-  line_width = 0.1,
+  add_bars = FALSE,
+  bar_height = 0.025,
+  bar_alpha = 1,
+  bar_width = 0.1,
+  position = "identity",
+  use_trend = FALSE,
+  add_trend = FALSE,
+  trend_alpha = 1,
+  trend_linewidth = 0.8,
+  trend_pt_size = 1.5,
+  trend_skip_zero = FALSE,
   palette = "Paired",
   palcolor = NULL,
   alpha = 0.5,
@@ -50,6 +59,12 @@ A numeric column is expected.}
 
 \item{group_name}{A character string to name the legend of group_by}
 
+\item{xtrans}{A character string specifying the transformation of the x-axis. Default is "identity".
+Other options see transform of \code{\link[ggplot2]{scale_x_continuous}}.}
+
+\item{ytrans}{A character string specifying the transformation of the y-axis. Default is "identity".
+Other options see transform of \code{\link[ggplot2]{scale_y_continuous}}.}
+
 \item{type}{A character string specifying the type of plot. Default is "density".
 Other options are "histogram".}
 
@@ -59,13 +74,29 @@ Other options are "histogram".}
 
 \item{flip}{A logical value. If TRUE, the plot will be flipped.}
 
-\item{add_lines}{A logical value. If TRUE, add lines to the plot to show the data distribution on the bottom.}
+\item{add_bars}{A logical value. If TRUE, add lines to the plot to show the data distribution on the bottom.}
 
-\item{line_height}{A numeric value specifying the height of the lines. The actual height will be calculated based on the maximum density or count.}
+\item{bar_height}{A numeric value specifying the height of the bars. The actual height will be calculated based on the maximum density or count.}
 
-\item{line_alpha}{A numeric value specifying the alpha of the lines.}
+\item{bar_alpha}{A numeric value specifying the alpha of the bars.}
 
-\item{line_width}{A numeric value specifying the width of the lines.}
+\item{bar_width}{A numeric value specifying the width of the bars.}
+
+\item{position}{How should we position the values in each bin? Default is "identity".
+Unlike the default position = "stack" in \link[ggplot2:geom_histogram]{ggplot2::geom_histogram} or \link[ggplot2:geom_density]{ggplot2::geom_density},
+the default position is "identity" to show the actual count or density for each group.}
+
+\item{use_trend}{A logical value. If TRUE, use trend line instead of histogram.}
+
+\item{add_trend}{A logical value. If TRUE, add trend line to the histogram.}
+
+\item{trend_alpha}{A numeric value specifying the alpha of the trend line and points}
+
+\item{trend_linewidth}{A numeric value specifying the width of the trend line}
+
+\item{trend_pt_size}{A numeric value specifying the size of the trend points}
+
+\item{trend_skip_zero}{A logical value. If TRUE, skip the zero count when drawing the trend line.}
 
 \item{palette}{A character string specifying the palette to use.}
 
