@@ -199,7 +199,7 @@ BarPlotGrouped <- function(
     position = "auto", position_dodge_preserve = "total", y_min = NULL, y_max = NULL,
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
-    expand = waiver(), width = 0.8, facet_by = NULL, ...) {
+    expand = waiver(), width = 0.8, facet_by = NULL, facet_scales = "fixed", ...) {
 
     group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
@@ -321,6 +321,7 @@ BarPlotGrouped <- function(
         attr(p, "height") <- height
         attr(p, "width") <- width
     }
+
     p
 }
 

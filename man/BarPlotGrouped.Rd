@@ -46,6 +46,7 @@ BarPlotGrouped(
   expand = waiver(),
   width = 0.8,
   facet_by = NULL,
+  facet_scales = "fixed",
   ...
 )
 }
@@ -150,6 +151,9 @@ See also \url{https://ggplot2.tidyverse.org/reference/expansion.html}}
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
 and combine them into one using \code{patchwork::wrap_plots}}
+
+\item{facet_scales}{Whether to scale the axes of facets. Default is "fixed"
+Other options are "free", "free_x", "free_y". See \code{ggplot2::facet_wrap}}
 
 \item{...}{Additional arguments.}
 }
