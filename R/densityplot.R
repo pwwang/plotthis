@@ -215,13 +215,7 @@ RidgePlotAtomic <- function(
         scale_fill_manual(values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)) +
         scale_y_discrete(drop = !keep_empty, expand = c(0, 0)) +
         scale_x_continuous(expand = c(0, 0)) +
-        do.call(theme, theme_args) +
-        labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% group_by) +
-        ggplot2::theme(
-            aspect.ratio = aspect.ratio,
-            legend.position = legend.position,
-            legend.direction = legend.direction
-        )
+        labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% group_by)
 
     if (flip) {
         just <- calc_just(x_text_angle)
@@ -241,6 +235,14 @@ RidgePlotAtomic <- function(
                 panel.grid.major.y = element_line(color = "grey", linetype = 2)
             )
     }
+
+    p <- p +
+        do.call(theme, theme_args) +
+        ggplot2::theme(
+            aspect.ratio = aspect.ratio,
+            legend.position = legend.position,
+            legend.direction = legend.direction
+        )
 
     height <- 1 + nlevels(data[[group_by]]) * 1
     width <- 3 + nlevels(data[[group_by]]) * 0.5
