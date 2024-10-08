@@ -214,7 +214,11 @@ BoxViolinPlotAtomic <- function(
         )
     } else {
         p <- p + geom_violin(
-            scale = "width", trim = TRUE, alpha = alpha, position = position_dodge()
+            # There is a bug in ggplot2 with preserve = "single" for violin plots
+            # See https://github.com/tidyverse/ggplot2/issues/2801
+            # There is a fix but not yet released
+            position = position_dodge(width = 0.9), scale = "width", trim = TRUE,
+            alpha = alpha, width = 0.8,
         )
     }
     if (fill_mode == "dodge") {
@@ -378,14 +382,7 @@ BoxViolinPlotAtomic <- function(
     just <- calc_just(x_text_angle)
     p <- p +
         scale_x_discrete(drop = !keep_empty) +
-        labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
-        do.call(theme, theme_args) +
-        ggplot2::theme(
-            aspect.ratio = aspect.ratio,
-            axis.text.x = element_text(angle = x_text_angle, hjust = just$h, vjust = just$v),
-            legend.position = legend.position,
-            legend.direction = legend.direction,
-        )
+        labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y)
 
     p <- p + scale_y_continuous(trans = y_trans, n.breaks = y_nbreaks)
 
@@ -460,6 +457,16 @@ BoxViolinPlotAtomic <- function(
         height <- max(3, height + 2 + x_maxchars * 0.05)
         width <- width + nx * nd * 0.3
     }
+
+    p <- p +
+        do.call(theme, theme_args) +
+        ggplot2::theme(
+            aspect.ratio = aspect.ratio,
+            axis.text.x = element_text(angle = x_text_angle, hjust = just$h, vjust = just$v),
+            legend.position = legend.position,
+            legend.direction = legend.direction,
+        )
+
     attr(p, "height") <- height
     attr(p, "width") <- width
 
