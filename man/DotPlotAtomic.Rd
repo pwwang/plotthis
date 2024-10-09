@@ -65,7 +65,8 @@ Could be either numeric or factor/character. When multiple columns are provided,
 When TRUE, 'x' should be a numeric column and 'y' should be a factor/character column.}
 
 \item{size_by}{Which column to use as the size of the dots. It must be a numeric column.
-If not provided, the size will be the count of the instances for each 'y' in 'x'.}
+If not provided, the size will be the count of the instances for each 'y' in 'x'.
+For 'ScatterPlot', it can be a single numeric value to specify the size of the dots.}
 
 \item{fill_by}{Which column to use as the fill the dots. It must be a numeric column.
 If not provided, all dots will be filled with the same color at the middle of the palette.}

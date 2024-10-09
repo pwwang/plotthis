@@ -9,6 +9,7 @@
 #' @param y_sep A character vector to concatenate multiple columns in y. Default is "_".
 #' @param size_by Which column to use as the size of the dots. It must be a numeric column.
 #'   If not provided, the size will be the count of the instances for each 'y' in 'x'.
+#'   For 'ScatterPlot', it can be a single numeric value to specify the size of the dots.
 #' @param fill_by Which column to use as the fill the dots. It must be a numeric column.
 #'   If not provided, all dots will be filled with the same color at the middle of the palette.
 #' @param fill_cutoff A numeric value specifying the cutoff for the fill column.
@@ -65,11 +66,10 @@ DotPlotAtomic <- function(
     }
 
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
-    size_by <- check_columns(data, size_by)
+    if (!is.numeric(size_by)) {
+        size_by <- check_columns(data, size_by)
+    }
     if (is.null(size_by)) {
-        if (x_is_numeric || y_is_numeric) {
-            stop("'size_by' must be provided when 'x' or 'y' is numeric.")
-        }
         if (is.null(fill_by)) {
             data <- data %>%
                 group_by(!!!syms(unique(c(x, y, facet_by)))) %>%
@@ -139,11 +139,17 @@ DotPlotAtomic <- function(
             new_scale_color()
     }
 
-    p <- p + geom_point(aes(size = !!sym(size_by), fill = !!sym(fill_by), color = ""), shape = 21, alpha = alpha) +
-        scale_size_area(max_size = 6, n.breaks = 4) +
-        guides(size = guide_legend(
-            title = size_name %||% size_by,
-            override.aes = list(fill = "grey30", shape = 21), order = 1)) +
+    if (is.numeric(size_by)) {
+        p <- p + geom_point(aes(fill = !!sym(fill_by), color = ""), size = size_by, shape = 21, alpha = alpha)
+    } else {
+        p <- p + geom_point(aes(size = !!sym(size_by), fill = !!sym(fill_by), color = ""), shape = 21, alpha = alpha) +
+            scale_size_area(max_size = 6, n.breaks = 4) +
+            guides(size = guide_legend(
+                title = size_name %||% size_by,
+                override.aes = list(fill = "grey30", shape = 21), order = 1))
+    }
+
+    p <- p +
         scale_fill_gradientn(
             n.breaks = 5,
             colors = palette_this(palette = palette, palcolor = palcolor, reverse = fill_reverse),
@@ -349,6 +355,7 @@ ScatterPlot <- function(
     if (!is.numeric(data[[x]]) || !is.numeric(data[[y]])) {
         stop("Both 'x' and 'y' must be numeric.")
     }
+    size_by <- size_by %||% 1.5
 
     if (!is.null(split_by)) {
         datas <- split(data, data[[split_by]])
