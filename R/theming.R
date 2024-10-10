@@ -255,7 +255,8 @@ palette_this <- function(
         names(color) <- NULL
     }
     if (alpha < 1) {
-        color <- adjcolors(color, alpha)
+        # color <- adjcolors(color, alpha)
+        color <- ggplot2::alpha(color, alpha)
     }
     return(color)
 }

@@ -2,7 +2,6 @@
 % Please edit documentation in R/dotplot.R
 \name{DotPlot}
 \alias{DotPlot}
-\alias{ScatterPlot}
 \alias{LollipopPlot}
 \title{Dot Plot / Scatter Plot / Lollipop Plot}
 \usage{
@@ -23,47 +22,6 @@ DotPlot(
   bg_palcolor = NULL,
   bg_alpha = 0.2,
   bg_direction = c("vertical", "horizontal", "v", "h"),
-  size_by = NULL,
-  fill_by = NULL,
-  fill_cutoff = NULL,
-  fill_reverse = FALSE,
-  theme = "theme_this",
-  theme_args = list(),
-  palette = "Spectral",
-  palcolor = NULL,
-  alpha = 1,
-  facet_by = NULL,
-  facet_scales = "fixed",
-  facet_ncol = NULL,
-  facet_nrow = NULL,
-  facet_byrow = TRUE,
-  x_text_angle = 0,
-  seed = 8525,
-  aspect.ratio = 1,
-  legend.position = "right",
-  legend.direction = "vertical",
-  title = NULL,
-  subtitle = NULL,
-  xlab = NULL,
-  ylab = NULL,
-  keep_empty = FALSE,
-  combine = TRUE,
-  nrow = NULL,
-  ncol = NULL,
-  byrow = TRUE,
-  ...
-)
-
-ScatterPlot(
-  data,
-  x,
-  y,
-  flip = FALSE,
-  split_by = NULL,
-  split_by_sep = "_",
-  size_name = NULL,
-  fill_name = NULL,
-  fill_cutoff_name = NULL,
   size_by = NULL,
   fill_by = NULL,
   fill_cutoff = NULL,
@@ -251,8 +209,6 @@ If FALSE, empty groups will be removed.}
 A ggplot object or wrap_plots object or a list of ggplot objects
 
 A ggplot object or wrap_plots object or a list of ggplot objects
-
-A ggplot object or wrap_plots object or a list of ggplot objects
 }
 \description{
 For \code{DotPlot}, X-axis and Y-axis could be either numeric or factor/character.
@@ -280,10 +236,6 @@ DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
 # works as a scatter plot
 DotPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
         fill_by = "mpg", fill_cutoff = 18, fill_cutoff_name = "Small mpgs")
-ScatterPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
-            fill_by = "mpg")
-ScatterPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
-            fill_by = "mpg", fill_cutoff = 18)
 LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
              fill_by = "mpg")
 LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
