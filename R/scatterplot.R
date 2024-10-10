@@ -18,12 +18,17 @@
 #'  Or TRUE to use the fill color as the border color.
 #' @param alpha A numeric value specifying the transparency of the dots. Default is 1.
 #'  For shapes 21-25, the transparency is applied to the fill color.
+#' @param xtrans A character vector specifying the transformation of the x-axis. Default is "identity".
+#' @param ytrans A character vector specifying the transformation of the y-axis. Default is "identity".
 #' @return A ggplot object
 #' @keywords internal
+#' @importFrom gglogger ggplot
+#' @importFrom ggplot2 aes geom_point scale_size_area scale_fill_gradientn scale_color_gradientn labs
+#' @importFrom ggplot2 guide_colorbar guide_legend guides guide_none scale_size
 ScatterPlotAtomic <- function(
     data, x, y, size_by = 2, size_name = NULL, color_by = NULL, color_name = NULL, color_reverse = FALSE,
     theme = "theme_this", theme_args = list(), alpha = ifelse(shape %in% 21:25, 0.65, 1),
-    shape = 21, border_color = "black",
+    shape = 21, border_color = "black", xtrans = "identity", ytrans = "identity",
     palette = ifelse(!is.null(color_by) && !is.numeric(data[[color_by]]), "Paired", "Spectral"), palcolor = NULL,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
@@ -161,9 +166,11 @@ ScatterPlotAtomic <- function(
     }
 
     p <- p +
+        scale_x_continuous(trans = xtrans) +
+        scale_y_continuous(trans = ytrans) +
         labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
         do.call(theme, theme_args) +
-        theme(
+        ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,
             legend.direction = legend.direction,

@@ -18,6 +18,8 @@ ScatterPlotAtomic(
   alpha = ifelse(shape \%in\% 21:25, 0.65, 1),
   shape = 21,
   border_color = "black",
+  xtrans = "identity",
+  ytrans = "identity",
   palette = ifelse(!is.null(color_by) && !is.numeric(data[[color_by]]), "Paired",
     "Spectral"),
   palcolor = NULL,
@@ -68,6 +70,10 @@ For shapes 21-25, the transparency is applied to the fill color.}
 
 \item{border_color}{A character vector specifying the color for the border of the points.
 Or TRUE to use the fill color as the border color.}
+
+\item{xtrans}{A character vector specifying the transformation of the x-axis. Default is "identity".}
+
+\item{ytrans}{A character vector specifying the transformation of the y-axis. Default is "identity".}
 
 \item{palette}{A character string specifying the palette to use.}
 
