@@ -45,6 +45,7 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">BarPlotSingle</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
 <span>  <span class="va">x</span>,</span>
+<span>  x_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  flip <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  facet_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -96,7 +97,12 @@
 
 
 <dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>A character string specifying the column name of the data frame to plot for the x-axis.</p></dd>
+<dd><p>A character vector specifying the column as the x axis of the plot.
+A character/factor column is expected.</p></dd>
+
+
+<dt id="arg-x-sep">x_sep<a class="anchor" aria-label="anchor" href="#arg-x-sep"></a></dt>
+<dd><p>A character string to concatenate the columns in <code>x</code>, if multiple columns are provided.</p></dd>
 
 
 <dt id="arg-y">y<a class="anchor" aria-label="anchor" href="#arg-y"></a></dt>

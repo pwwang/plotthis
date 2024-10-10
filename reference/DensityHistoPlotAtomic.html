@@ -48,14 +48,23 @@
 <span>  group_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  group_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  xtrans <span class="op">=</span> <span class="st">"identity"</span>,</span>
+<span>  ytrans <span class="op">=</span> <span class="st">"identity"</span>,</span>
 <span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"density"</span>, <span class="st">"histogram"</span><span class="op">)</span>,</span>
 <span>  bins <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  binwidth <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  flip <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  add_lines <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  line_height <span class="op">=</span> <span class="fl">0.025</span>,</span>
-<span>  line_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  line_width <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  add_bars <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  bar_height <span class="op">=</span> <span class="fl">0.025</span>,</span>
+<span>  bar_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  bar_width <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  position <span class="op">=</span> <span class="st">"identity"</span>,</span>
+<span>  use_trend <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  add_trend <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  trend_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  trend_linewidth <span class="op">=</span> <span class="fl">0.8</span>,</span>
+<span>  trend_pt_size <span class="op">=</span> <span class="fl">1.5</span>,</span>
+<span>  trend_skip_zero <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
 <span>  palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.5</span>,</span>
@@ -102,6 +111,16 @@ A numeric column is expected.</p></dd>
 <dd><p>A character string to name the legend of group_by</p></dd>
 
 
+<dt id="arg-xtrans">xtrans<a class="anchor" aria-label="anchor" href="#arg-xtrans"></a></dt>
+<dd><p>A character string specifying the transformation of the x-axis. Default is "identity".
+Other options see transform of <code><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></code>.</p></dd>
+
+
+<dt id="arg-ytrans">ytrans<a class="anchor" aria-label="anchor" href="#arg-ytrans"></a></dt>
+<dd><p>A character string specifying the transformation of the y-axis. Default is "identity".
+Other options see transform of <code><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></code>.</p></dd>
+
+
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
 <dd><p>A character string specifying the type of plot. Default is "density".
 Other options are "histogram".</p></dd>
@@ -119,20 +138,50 @@ Other options are "histogram".</p></dd>
 <dd><p>A logical value. If TRUE, the plot will be flipped.</p></dd>
 
 
-<dt id="arg-add-lines">add_lines<a class="anchor" aria-label="anchor" href="#arg-add-lines"></a></dt>
+<dt id="arg-add-bars">add_bars<a class="anchor" aria-label="anchor" href="#arg-add-bars"></a></dt>
 <dd><p>A logical value. If TRUE, add lines to the plot to show the data distribution on the bottom.</p></dd>
 
 
-<dt id="arg-line-height">line_height<a class="anchor" aria-label="anchor" href="#arg-line-height"></a></dt>
-<dd><p>A numeric value specifying the height of the lines. The actual height will be calculated based on the maximum density or count.</p></dd>
+<dt id="arg-bar-height">bar_height<a class="anchor" aria-label="anchor" href="#arg-bar-height"></a></dt>
+<dd><p>A numeric value specifying the height of the bars. The actual height will be calculated based on the maximum density or count.</p></dd>
 
 
-<dt id="arg-line-alpha">line_alpha<a class="anchor" aria-label="anchor" href="#arg-line-alpha"></a></dt>
-<dd><p>A numeric value specifying the alpha of the lines.</p></dd>
+<dt id="arg-bar-alpha">bar_alpha<a class="anchor" aria-label="anchor" href="#arg-bar-alpha"></a></dt>
+<dd><p>A numeric value specifying the alpha of the bars.</p></dd>
 
 
-<dt id="arg-line-width">line_width<a class="anchor" aria-label="anchor" href="#arg-line-width"></a></dt>
-<dd><p>A numeric value specifying the width of the lines.</p></dd>
+<dt id="arg-bar-width">bar_width<a class="anchor" aria-label="anchor" href="#arg-bar-width"></a></dt>
+<dd><p>A numeric value specifying the width of the bars.</p></dd>
+
+
+<dt id="arg-position">position<a class="anchor" aria-label="anchor" href="#arg-position"></a></dt>
+<dd><p>How should we position the values in each bin? Default is "identity".
+Unlike the default position = "stack" in <a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">ggplot2::geom_histogram</a> or <a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">ggplot2::geom_density</a>,
+the default position is "identity" to show the actual count or density for each group.</p></dd>
+
+
+<dt id="arg-use-trend">use_trend<a class="anchor" aria-label="anchor" href="#arg-use-trend"></a></dt>
+<dd><p>A logical value. If TRUE, use trend line instead of histogram.</p></dd>
+
+
+<dt id="arg-add-trend">add_trend<a class="anchor" aria-label="anchor" href="#arg-add-trend"></a></dt>
+<dd><p>A logical value. If TRUE, add trend line to the histogram.</p></dd>
+
+
+<dt id="arg-trend-alpha">trend_alpha<a class="anchor" aria-label="anchor" href="#arg-trend-alpha"></a></dt>
+<dd><p>A numeric value specifying the alpha of the trend line and points</p></dd>
+
+
+<dt id="arg-trend-linewidth">trend_linewidth<a class="anchor" aria-label="anchor" href="#arg-trend-linewidth"></a></dt>
+<dd><p>A numeric value specifying the width of the trend line</p></dd>
+
+
+<dt id="arg-trend-pt-size">trend_pt_size<a class="anchor" aria-label="anchor" href="#arg-trend-pt-size"></a></dt>
+<dd><p>A numeric value specifying the size of the trend points</p></dd>
+
+
+<dt id="arg-trend-skip-zero">trend_skip_zero<a class="anchor" aria-label="anchor" href="#arg-trend-skip-zero"></a></dt>
+<dd><p>A logical value. If TRUE, skip the zero count when drawing the trend line.</p></dd>
 
 
 <dt id="arg-palette">palette<a class="anchor" aria-label="anchor" href="#arg-palette"></a></dt>
