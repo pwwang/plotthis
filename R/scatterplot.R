@@ -86,7 +86,7 @@ ScatterPlotAtomic <- function(
                 n.breaks = 5,
                 colors = palette_this(data[[color_by]], palette = palette, palcolor = palcolor, reverse = color_reverse, alpha = alpha),
                 na.value = "grey80",
-                guide = if (isFALSE(color_legend)) {
+                guide = if (isTRUE(color_legend)) {
                     guide_none()
                 } else {
                     guide_colorbar(
