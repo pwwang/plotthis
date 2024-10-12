@@ -12,7 +12,7 @@
 #'   "venn" indicates the data is a VennPlotData object.
 detect_venn_datatype <- function(data, group_by = NULL, id_by = NULL) {
     if (inherits(data, "data.frame")) {
-        if (length(group_by) < 2) {
+        if (length(group_by) < 2 && !is.null(group_by)) {
             return("long")
         } else {  # length(group_by) > 1
             return("wide")
@@ -93,7 +93,10 @@ PrepareVennData <- function(data, in_form = NULL, group_by = NULL, group_by_sep 
         group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
         listdata <- split(data[[id_by]], data[[group_by]])
     } else {  # in_form == "wide"
-        group_by <- check_columns(data, group_by)
+        group_by <- check_columns(data, group_by, allow_multi = TRUE)
+        if (is.null(group_by)) {
+            group_by <- colnames(data)
+        }
         for (g in group_by) {
             # columns must be logical or 0/1
             if (!is.logical(data[[g]]) && !all(data[[g]] %in% c(0, 1))) {
@@ -101,7 +104,14 @@ PrepareVennData <- function(data, in_form = NULL, group_by = NULL, group_by_sep 
             }
         }
         data$.id <- paste0("id", seq_len(nrow(data)))
-        listdata <- lapply(group_by, function(g) data[data[[g]] == 1, ".id"])
+        listdata <- lapply(group_by, function(g) data[as.logical(data[[g]]), ".id", drop = TRUE])
+        names(listdata) <- group_by
+        for (nm in names(listdata)) {
+            if (length(listdata[[nm]]) == 0) {
+                warning("The group '", nm, "' has no elements, ignored.", immediate. = TRUE)
+                listdata[[nm]] <- NULL
+            }
+        }
     }
     ggVennDiagram::process_data(ggVennDiagram::Venn(listdata))
 }
@@ -110,6 +120,8 @@ PrepareVennData <- function(data, in_form = NULL, group_by = NULL, group_by_sep 
 #'
 #' @inheritParams common_args
 #' @inheritParams PrepareVennData
+#' @param group_by A character string specifying the column name of the data frame to group the data.
+#'  When in_form is "wide", it should be the columns for the groups.
 #' @param label A character string specifying the label to show on the Venn diagram.
 #'  Possible values are "count", "percent", "both", "none" and a function.
 #'  "count" indicates the count of the intersection. "percent" indicates the percentage of the intersection.
