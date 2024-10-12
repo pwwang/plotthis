@@ -16,7 +16,7 @@ detect_upset_datatype <- function(data, group_by = NULL, id_by = NULL) {
     }
 
     if (inherits(data, "data.frame")) {
-        if (length(group_by) < 2) {
+        if (length(group_by) < 2 && !is.null(group_by)) {
             return("long")
         } else { # length(group_by) > 1
             return("wide")
@@ -208,6 +208,7 @@ UpsetPlotAtomic <- function(
 #' @export
 #' @rdname upsetplot1
 #' @examples
+#' set.seed(8525)
 #' data = list(
 #'     A = sort(sample(letters, 8)),
 #'     B = sort(sample(letters, 8)),
@@ -248,6 +249,9 @@ UpsetPlot <- function(
                 title <- title(default_title)
             } else {
                 title <- title %||% default_title
+            }
+            if (is.null(group_by) && (is.null(in_form) || identical(in_form, "wide"))) {
+                group_by <- setdiff(colnames(datas[[nm]]), c(id_by, split_by))
             }
             UpsetPlotAtomic(datas[[nm]],
                 in_form = in_form, group_by = group_by, group_by_sep = group_by_sep, id_by = id_by,

@@ -163,6 +163,7 @@ A ggplot object or wrap_plots object or a list of ggplot objects
 \code{UpsetPlot} is used to plot the processed data.
 }
 \examples{
+set.seed(8525)
 data = list(
     A = sort(sample(letters, 8)),
     B = sort(sample(letters, 8)),
