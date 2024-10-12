@@ -10,7 +10,7 @@ VennDiagramAtomic(
   group_by = NULL,
   group_by_sep = "_",
   id_by = NULL,
-  label = c("count", "percent", "both", "none"),
+  label = "count",
   label_fg = "black",
   label_size = NULL,
   label_bg = "white",
@@ -64,9 +64,8 @@ A list format data would look like:
 list(A = c("a1", "a2"), B = c("a1", "a3"))
 }}
 
-\item{group_by}{Columns to group the data for plotting
-For those plotting functions that do not support multiple groups,
-They will be concatenated into one column, using \code{group_by_sep} as the separator}
+\item{group_by}{A character string specifying the column name of the data frame to group the data.
+When in_form is "wide", it should be the columns for the groups.}
 
 \item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
 
@@ -74,9 +73,11 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 Required when \code{group_by} is a single column and data is a data frame.}
 
 \item{label}{A character string specifying the label to show on the Venn diagram.
-Possible values are "count", "percent", "both", "none".
+Possible values are "count", "percent", "both", "none" and a function.
 "count" indicates the count of the intersection. "percent" indicates the percentage of the intersection.
-"both" indicates both the count and the percentage of the intersection. "none" indicates no label.}
+"both" indicates both the count and the percentage of the intersection. "none" indicates no label.
+If it is a function, if takes a data frame as input and returns a character vector as label.
+The data frame has columns "id", "X", "Y", "name", "item" and "count".}
 
 \item{label_fg}{A character string specifying the color of the label text.}
 

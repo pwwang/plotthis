@@ -111,9 +111,11 @@ PrepareVennData <- function(data, in_form = NULL, group_by = NULL, group_by_sep 
 #' @inheritParams common_args
 #' @inheritParams PrepareVennData
 #' @param label A character string specifying the label to show on the Venn diagram.
-#'  Possible values are "count", "percent", "both", "none".
+#'  Possible values are "count", "percent", "both", "none" and a function.
 #'  "count" indicates the count of the intersection. "percent" indicates the percentage of the intersection.
 #'  "both" indicates both the count and the percentage of the intersection. "none" indicates no label.
+#'  If it is a function, if takes a data frame as input and returns a character vector as label.
+#'  The data frame has columns "id", "X", "Y", "name", "item" and "count".
 #' @param label_fg A character string specifying the color of the label text.
 #' @param label_size A numeric value specifying the size of the label text.
 #' @param label_bg A character string specifying the background color of the label.
@@ -133,8 +135,7 @@ PrepareVennData <- function(data, in_form = NULL, group_by = NULL, group_by_sep 
 #' @importFrom ggrepel geom_text_repel
 VennDiagramAtomic <- function(
     data, in_form = NULL, group_by = NULL, group_by_sep = "_", id_by = NULL,
-    label = c("count", "percent", "both", "none"), label_fg = "black",
-    label_size = NULL, label_bg = "white", label_bg_r = 0.1,
+    label = "count", label_fg = "black", label_size = NULL, label_bg = "white", label_bg_r = 0.1,
     fill_mode = "count", fill_name = NULL,
     palette = ifelse(fill_mode == "set", "Paired", "Spectral"), palcolor = NULL, alpha = 1,
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL,
@@ -146,12 +147,14 @@ VennDiagramAtomic <- function(
     base_size <- theme_args$base_size %||% 12
     text_size_scale <- base_size / 12
 
-    label <- match.arg(label)
+    s <- data$.split
+    data$.split <- NULL
     fill_mode <- match.arg(fill_mode, c("count", "set", "count_rev"))
     data <- PrepareVennData(data, in_form, group_by, group_by_sep, id_by)
     data_regionedge <- ggVennDiagram::venn_regionedge(data)
     data_setedge <- ggVennDiagram::venn_setedge(data)
     data_regionlabel <- ggVennDiagram::venn_regionlabel(data)
+    data_regionlabel$.split <- if (is.null(s)) NULL else s[1]
     data_setlabel <- ggVennDiagram::venn_setlabel(data)
     # Calculate the fill colors for the regions when fill_mode is set
     if (fill_mode == "set") {
@@ -172,16 +175,19 @@ VennDiagramAtomic <- function(
     }
 
     data_setlabel$label <- paste0(data_setlabel$name, "\n(", data_setlabel$count, ")")
-
-    if (label == "percent") {
+    if (identical(label, "percent")) {
         data_regionlabel$label <- scales::percent(
             data_regionlabel$count / sum(data_regionlabel$count))
-    } else if (label == "both") {
+    } else if (identical(label, "both")) {
         data_regionlabel$label <- paste(
             data_regionlabel$count, "\n",
             scales::percent(data_regionlabel$count / sum(data_regionlabel$count)))
-    } else {
+    } else if (identical(label, "count")) {
         data_regionlabel$label <- data_regionlabel$count
+    } else if (is.function(label)) {
+        data_regionlabel$label <- label(data_regionlabel)
+    } else if (!identical(label, "none")) {
+        stop("Invalid label argument. Possible values are 'count', 'percent', 'both', 'none' or a function.")
     }
 
     p <- ggplot()
@@ -206,7 +212,7 @@ VennDiagramAtomic <- function(
             geom_path(data = data_setedge, aes(!!sym("X"), !!sym("Y"), color = !!sym("id"), group = !!sym("id")), color = "grey20", show.legend = FALSE)
     }
 
-    if (label != "none") {
+    if (!identical(label, "none")) {
         p <- p + geom_text_repel(
             data = data_regionlabel, aes(!!sym("X"), !!sym("Y"), label = !!sym("label")),
             color = label_fg, bg.color = label_bg, bg.r = label_bg_r,
@@ -236,7 +242,9 @@ VennDiagramAtomic <- function(
         )
 
     maxchars <- max(sapply(data_setlabel$name, nchar))
-    p <- p + scale_x_continuous(expand = expansion(add = 0.05 + 0.012 * maxchars * text_size_scale))
+    p <- p + scale_x_continuous(
+        expand = expansion(add = 0.001 * maxchars * text_size_scale, mult = 0.1),
+    )
 
     height <- 5.5
     width <- 6
@@ -273,13 +281,13 @@ VennDiagramAtomic <- function(
 #' VennDiagram(data)
 #' VennDiagram(data, fill_mode = "set")
 #' VennDiagram(data, label = "both")
+#' # label with a function
+#' VennDiagram(data, label = function(df) df$name)
 #' VennDiagram(data, palette = "material-indigo", alpha = 0.6)
 VennDiagram <- function(
     data, in_form = NULL, split_by = NULL, split_by_sep = "_",
-    group_by = NULL, group_by_sep = "_", id_by = NULL,
-    label = c("count", "percent", "both", "none"), label_fg = "black",
-    label_size = NULL, label_bg = "white", label_bg_r = 0.1,
-    fill_mode = "count", fill_name = NULL,
+    group_by = NULL, group_by_sep = "_", id_by = NULL, label = "count", label_fg = "black",
+    label_size = NULL, label_bg = "white", label_bg_r = 0.1, fill_mode = "count", fill_name = NULL,
     palette = ifelse(fill_mode == "set", "Paired", "Spectral"), palcolor = NULL, alpha = 1,
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL,
     legend.position = "right", legend.direction = "vertical",
@@ -307,6 +315,9 @@ VennDiagram <- function(
                 title <- title(default_title)
             } else {
                 title <- title %||% default_title
+            }
+            if (length(datas) > 1 || !identical(nm, "...")) {
+                datas[[nm]]$.split <- nm
             }
             VennDiagramAtomic(datas[[nm]],
                 in_form = in_form, group_by = group_by, group_by_sep = group_by_sep, id_by = id_by,

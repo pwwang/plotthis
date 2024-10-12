@@ -21,7 +21,7 @@ VennDiagram(
   group_by = NULL,
   group_by_sep = "_",
   id_by = NULL,
-  label = c("count", "percent", "both", "none"),
+  label = "count",
   label_fg = "black",
   label_size = NULL,
   label_bg = "white",
@@ -93,9 +93,11 @@ Required when \code{group_by} is a single column and data is a data frame.}
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
 \item{label}{A character string specifying the label to show on the Venn diagram.
-Possible values are "count", "percent", "both", "none".
+Possible values are "count", "percent", "both", "none" and a function.
 "count" indicates the count of the intersection. "percent" indicates the percentage of the intersection.
-"both" indicates both the count and the percentage of the intersection. "none" indicates no label.}
+"both" indicates both the count and the percentage of the intersection. "none" indicates no label.
+If it is a function, if takes a data frame as input and returns a character vector as label.
+The data frame has columns "id", "X", "Y", "name", "item" and "count".}
 
 \item{label_fg}{A character string specifying the color of the label text.}
 
@@ -168,5 +170,7 @@ data = list(
 VennDiagram(data)
 VennDiagram(data, fill_mode = "set")
 VennDiagram(data, label = "both")
+# label with a function
+VennDiagram(data, label = function(df) df$name)
 VennDiagram(data, palette = "material-indigo", alpha = 0.6)
 }
