@@ -58,7 +58,7 @@
 <span>  group_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  id_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span>, <span class="st">"percent"</span>, <span class="st">"both"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
+<span>  label <span class="op">=</span> <span class="st">"count"</span>,</span>
 <span>  label_fg <span class="op">=</span> <span class="st">"black"</span>,</span>
 <span>  label_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  label_bg <span class="op">=</span> <span class="st">"white"</span>,</span>
@@ -144,9 +144,11 @@ Required when <code>group_by</code> is a single column and data is a data frame.
 
 <dt id="arg-label">label<a class="anchor" aria-label="anchor" href="#arg-label"></a></dt>
 <dd><p>A character string specifying the label to show on the Venn diagram.
-Possible values are "count", "percent", "both", "none".
+Possible values are "count", "percent", "both", "none" and a function.
 "count" indicates the count of the intersection. "percent" indicates the percentage of the intersection.
-"both" indicates both the count and the percentage of the intersection. "none" indicates no label.</p></dd>
+"both" indicates both the count and the percentage of the intersection. "none" indicates no label.
+If it is a function, if takes a data frame as input and returns a character vector as label.
+The data frame has columns "id", "X", "Y", "name", "item" and "count".</p></dd>
 
 
 <dt id="arg-label-fg">label_fg<a class="anchor" aria-label="anchor" href="#arg-label-fg"></a></dt>
@@ -264,8 +266,11 @@ if <code><a href="https://ggplot2.tidyverse.org/reference/waiver.html" class="ex
 <span class="r-plt img"><img src="venndiagram1-2.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">VennDiagram</span><span class="op">(</span><span class="va">data</span>, label <span class="op">=</span> <span class="st">"both"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="venndiagram1-3.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">VennDiagram</span><span class="op">(</span><span class="va">data</span>, palette <span class="op">=</span> <span class="st">"material-indigo"</span>, alpha <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># label with a function</span></span></span>
+<span class="r-in"><span><span class="fu">VennDiagram</span><span class="op">(</span><span class="va">data</span>, label <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="va">df</span><span class="op">$</span><span class="va">name</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="venndiagram1-4.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">VennDiagram</span><span class="op">(</span><span class="va">data</span>, palette <span class="op">=</span> <span class="st">"material-indigo"</span>, alpha <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="venndiagram1-5.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

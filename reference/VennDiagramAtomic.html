@@ -48,7 +48,7 @@
 <span>  group_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  id_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"count"</span>, <span class="st">"percent"</span>, <span class="st">"both"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
+<span>  label <span class="op">=</span> <span class="st">"count"</span>,</span>
 <span>  label_fg <span class="op">=</span> <span class="st">"black"</span>,</span>
 <span>  label_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  label_bg <span class="op">=</span> <span class="st">"white"</span>,</span>
@@ -106,9 +106,8 @@ FALSE TRUE
 
 
 <dt id="arg-group-by">group_by<a class="anchor" aria-label="anchor" href="#arg-group-by"></a></dt>
-<dd><p>Columns to group the data for plotting
-For those plotting functions that do not support multiple groups,
-They will be concatenated into one column, using <code>group_by_sep</code> as the separator</p></dd>
+<dd><p>A character string specifying the column name of the data frame to group the data.
+When in_form is "wide", it should be the columns for the groups.</p></dd>
 
 
 <dt id="arg-group-by-sep">group_by_sep<a class="anchor" aria-label="anchor" href="#arg-group-by-sep"></a></dt>
@@ -122,9 +121,11 @@ Required when <code>group_by</code> is a single column and data is a data frame.
 
 <dt id="arg-label">label<a class="anchor" aria-label="anchor" href="#arg-label"></a></dt>
 <dd><p>A character string specifying the label to show on the Venn diagram.
-Possible values are "count", "percent", "both", "none".
+Possible values are "count", "percent", "both", "none" and a function.
 "count" indicates the count of the intersection. "percent" indicates the percentage of the intersection.
-"both" indicates both the count and the percentage of the intersection. "none" indicates no label.</p></dd>
+"both" indicates both the count and the percentage of the intersection. "none" indicates no label.
+If it is a function, if takes a data frame as input and returns a character vector as label.
+The data frame has columns "id", "X", "Y", "name", "item" and "count".</p></dd>
 
 
 <dt id="arg-label-fg">label_fg<a class="anchor" aria-label="anchor" href="#arg-label-fg"></a></dt>
