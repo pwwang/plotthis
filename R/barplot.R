@@ -183,6 +183,10 @@ BarPlotSingle <- function(
 #' @param bg_palette A character string indicating the palette to use for the background.
 #' @param bg_palcolor A character string indicating the color to use for the background.
 #' @param bg_alpha A numeric value indicating the alpha of the background.
+#' @param group_by A character vector specifying the column as the group_by of the plot.
+#'  A character/factor column is expected.
+#' @param group_by_sep A character string to concatenate the columns in `group_by`, if multiple columns are provided.
+#' @param group_name A character string to specify the name of the group_by in the legend.
 #' @return A ggplot object.
 #' @keywords internal
 #' @importFrom rlang sym %||%
@@ -190,7 +194,7 @@ BarPlotSingle <- function(
 #' @importFrom gglogger ggplot
 #' @importFrom ggplot2 aes geom_bar scale_fill_manual labs position_dodge2 coord_flip guide_legend scale_color_manual
 BarPlotGrouped <- function(
-    data, x, x_sep = "_", y = NULL, flip = FALSE, group_by, group_by_sep = "_",
+    data, x, x_sep = "_", y = NULL, flip = FALSE, group_by, group_by_sep = "_", group_name = NULL,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1,
@@ -248,7 +252,7 @@ BarPlotGrouped <- function(
     expand <- norm_expansion(expand, x_type = "discrete", y_type = "continuous")
 
     p <- p + geom_col(alpha = alpha, position = position, width = width) +
-        scale_fill_manual(name = group_by, values = colors, guide = guide_legend(order = 1)) +
+        scale_fill_manual(name = group_name %||% group_by, values = colors, guide = guide_legend(order = 1)) +
         labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
         scale_x_discrete(expand = expand$x) +
         scale_y_continuous(expand = expand$y) +
@@ -335,7 +339,8 @@ BarPlotGrouped <- function(
 #' @importFrom ggplot2 waiver
 #' @keywords internal
 BarPlotAtomic <- function(
-    data, x, x_sep = "_", y = NULL, flip = FALSE, group_by = NULL, fill_by_x_if_no_group = TRUE, label_nudge = 0,
+    data, x, x_sep = "_", y = NULL, flip = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
+    fill_by_x_if_no_group = TRUE, label_nudge = 0,
     label = NULL, label_fg = "black", label_size = 4, label_bg = "white", label_bg_r = 0.1,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
@@ -366,7 +371,7 @@ BarPlotAtomic <- function(
             stop("'label' is not supported for BarPlot when 'group_by' is provided.")
         }
         p <- BarPlotGrouped(
-            data, x, x_sep, y, group_by,
+            data, x, x_sep, y, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
             facet_by = facet_by, facet_scales = facet_scales, flip = flip, line_name = line_name,
             add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
             theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
@@ -427,7 +432,7 @@ BarPlotAtomic <- function(
 BarPlot <- function(
     data, x, x_sep = "_", y = NULL, flip = FALSE, fill_by_x_if_no_group = TRUE, line_name = NULL, label_nudge = 0,
     label = NULL, label_fg = "black", label_size = 4, label_bg = "white", label_bg_r = 0.1,
-    group_by = NULL, group_by_sep = "_", split_by = NULL, split_by_sep = "_",
+    group_by = NULL, group_by_sep = "_", group_name = NULL, split_by = NULL, split_by_sep = "_",
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     add_line = NULL, line_color = "red2", line_width = .6, line_type = 2,
@@ -458,7 +463,8 @@ BarPlot <- function(
                 datas[[nm]],
                 label = label, label_nudge = label_nudge,
                 label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
-                x = x, x_sep = x_sep, y = y, flip = flip, group_by = group_by, fill_by_x_if_no_group = fill_by_x_if_no_group,
+                x = x, x_sep = x_sep, y = y, flip = flip, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
+                fill_by_x_if_no_group = fill_by_x_if_no_group,
                 theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
                 add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
                 x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, line_name = line_name,
