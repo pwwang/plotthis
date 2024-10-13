@@ -10,7 +10,9 @@ RingPlotAtomic(
   y = NULL,
   group_by = NULL,
   group_by_sep = "_",
+  group_name = NULL,
   label = NULL,
+  clockwise = TRUE,
   facet_by = NULL,
   facet_scales = "free_y",
   facet_ncol = NULL,
@@ -36,20 +38,21 @@ RingPlotAtomic(
 \arguments{
 \item{data}{A data frame.}
 
-\item{x}{A character string specifying the column name of the data frame to plot for the x-axis.}
+\item{x}{A character vector specifying the column as the rings of the plot.}
 
 \item{y}{A character vector specifying the column as the y axis of the plot.
 Default is NULL, meaning the y axis is the count of the data.}
 
-\item{group_by}{Columns to group the data for plotting
-For those plotting functions that do not support multiple groups,
-They will be concatenated into one column, using \code{group_by_sep} as the separator}
+\item{group_by}{A character vector specifying the column as the group_by of the plot.
+How the ring is divided.}
 
-\item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
+\item{group_by_sep}{A character string to concatenate the columns in \code{group_by}, if multiple columns are provided.}
 
 \item{label}{A logical value indicating whether to show the labels on the rings.
 The labels should be the values of group_by. Default is NULL, meaning no labels for one ring and
 showing the labels for multiple rings.}
+
+\item{clockwise}{A logical value to draw the ring plot clockwise or not.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots

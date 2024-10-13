@@ -11,6 +11,8 @@ BarPlotAtomic(
   y = NULL,
   flip = FALSE,
   group_by = NULL,
+  group_by_sep = "_",
+  group_name = NULL,
   fill_by_x_if_no_group = TRUE,
   label_nudge = 0,
   label = NULL,
@@ -73,6 +75,10 @@ BarPlotAtomic(
 \item{group_by}{Columns to group the data for plotting
 For those plotting functions that do not support multiple groups,
 They will be concatenated into one column, using \code{group_by_sep} as the separator}
+
+\item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
+
+\item{group_name}{A character string to specify the name of the group_by in the legend.}
 
 \item{fill_by_x_if_no_group}{A logical value indicating whether to fill the bars by the x-axis values if there is no group_by.}
 

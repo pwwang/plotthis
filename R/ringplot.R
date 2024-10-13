@@ -3,11 +3,16 @@
 #' Ring plot for atomic data
 #'
 #' @inheritParams common_args
+#' @param x A character vector specifying the column as the rings of the plot.
 #' @param y A character vector specifying the column as the y axis of the plot.
 #'   Default is NULL, meaning the y axis is the count of the data.
+#' @param group_by A character vector specifying the column as the group_by of the plot.
+#'   How the ring is divided.
+#' @param group_by_sep A character string to concatenate the columns in `group_by`, if multiple columns are provided.
 #' @param label A logical value indicating whether to show the labels on the rings.
 #'   The labels should be the values of group_by. Default is NULL, meaning no labels for one ring and
 #'   showing the labels for multiple rings.
+#' @param clockwise A logical value to draw the ring plot clockwise or not.
 #' @return A ggplot object
 #' @importFrom rlang sym syms
 #' @importFrom dplyr %>% summarise n
@@ -15,11 +20,11 @@
 #' @importFrom ggplot2 geom_col scale_fill_manual scale_x_discrete geom_label
 #' @keywords internal
 RingPlotAtomic <- function(
-    data, x = NULL, y = NULL, group_by = NULL, group_by_sep = "_", label = NULL,
+    data, x = NULL, y = NULL, group_by = NULL, group_by_sep = "_",  group_name = NULL,
+    label = NULL, clockwise = TRUE,
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
-    alpha = 1, aspect.ratio = 1,
-    legend.position = "right", legend.direction = "vertical",
+    alpha = 1, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
     seed = 8525, ...
 ) {
@@ -61,11 +66,18 @@ RingPlotAtomic <- function(
             complete(!!sym(group_by), fill = fill_list)
     }
 
+    if (isTRUE(clockwise)) {
+        data[[group_by]] <- factor(data[[group_by]], levels = rev(levels(data[[group_by]])))
+        colors <- palette_this(rev(levels(data[[group_by]])), palette = palette, palcolor = palcolor)
+    } else {
+        colors <- palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
+    }
+    data <- data[order(data[[group_by]]), , drop = FALSE]
+
     p = ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(group_by))) +
         geom_col(width = 0.9, color = "white", alpha = alpha) +
         coord_polar("y", start = 0) +
-        scale_fill_manual(values = palette_this(
-            levels(data[[group_by]]), palette = palette, palcolor = palcolor)) +
+        scale_fill_manual(name = group_name %||% group_by, values = colors, guide = guide_legend(reverse = clockwise)) +
         scale_x_discrete(limits = c(" ", rings)) +
         do.call(theme, theme_args) +
         ggplot2::theme(
@@ -128,8 +140,8 @@ RingPlotAtomic <- function(
 #' RingPlot(datasets::mtcars, x = "cyl", group_by = "carb", facet_by = "vs")
 #' RingPlot(datasets::mtcars, x = "cyl", group_by = "carb", split_by = "vs")
 RingPlot <- function(
-    data, x = NULL, y = NULL, group_by = NULL, group_by_sep = "_", label = NULL,
-    split_by = NULL, split_by_sep = "_",
+    data, x = NULL, y = NULL, group_by = NULL, group_by_sep = "_", group_name = NULL,
+    label = NULL, split_by = NULL, split_by_sep = "_",
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     alpha = 1, aspect.ratio = 1,
@@ -139,7 +151,8 @@ RingPlot <- function(
     seed = 8525, ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
+    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE,
+        concat_multi = TRUE, concat_sep = split_by_sep)
 
     if (!is.null(split_by)) {
         datas <- split(data, data[[split_by]])
@@ -159,7 +172,7 @@ RingPlot <- function(
                 title <- title %||% default_title
             }
             RingPlotAtomic(datas[[nm]],
-                x = x, y = y, label = label, group_by = group_by, group_by_sep = group_by_sep,
+                x = x, y = y, label = label, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
                 alpha = alpha, aspect.ratio = aspect.ratio,

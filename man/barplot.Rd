@@ -22,6 +22,7 @@ BarPlot(
   label_bg_r = 0.1,
   group_by = NULL,
   group_by_sep = "_",
+  group_name = NULL,
   split_by = NULL,
   split_by_sep = "_",
   facet_by = NULL,
@@ -183,6 +184,8 @@ For those plotting functions that do not support multiple groups,
 They will be concatenated into one column, using \code{group_by_sep} as the separator}
 
 \item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
+
+\item{group_name}{A character string to specify the name of the group_by in the legend.}
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
