@@ -27,6 +27,7 @@ Imports:
     reshape2,
     stringr,
     scales,
+    gridtext,
     methods,
     patchwork,
     ggrepel,

@@ -18,10 +18,12 @@
 #'  Or TRUE to use the fill color as the border color.
 #' @param alpha A numeric value specifying the transparency of the dots. Default is 1.
 #'  For shapes 21-25, the transparency is applied to the fill color.
+#' @param shape A numeric value specifying the shape of the points. Default is 21.
 #' @param xtrans A character vector specifying the transformation of the x-axis. Default is "identity".
 #' @param ytrans A character vector specifying the transformation of the y-axis. Default is "identity".
 #' @return A ggplot object
 #' @keywords internal
+#' @importFrom utils getFromNamespace
 #' @importFrom gglogger ggplot
 #' @importFrom ggplot2 aes geom_point scale_size_area scale_fill_gradientn scale_color_gradientn labs
 #' @importFrom ggplot2 guide_colorbar guide_legend guides guide_none scale_size
@@ -70,7 +72,8 @@ ScatterPlotAtomic <- function(
     } else {
         mapping[[length(mapping) + 1]] <- aes(size = !!sym(size_by))
     }
-    point_layer_args$mapping <- Reduce(ggplot2:::modify_list, mapping)
+    modify_list <- getFromNamespace("modify_list", "ggplot2")
+    point_layer_args$mapping <- Reduce(modify_list, mapping)
     point_layer <- do.call(geom_point, point_layer_args)
 
     p <- p + point_layer

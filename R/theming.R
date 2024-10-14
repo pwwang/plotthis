@@ -400,6 +400,10 @@ element_textbox <- function (family = NULL, face = NULL, size = NULL, colour = N
 }
 
 #' @rdname element_textbox
+#' @param element A theme element created by [element_textbox()].
+#' @param label Text to display in the textbox.
+#' @param x,y Position of the textbox.
+#' @param ... Other arguments passed to [gridtext::textbox_grob()].
 #' @importFrom grid gpar
 #' @importFrom gridtext textbox_grob
 #' @importFrom ggplot2 zeroGrob .pt element_grob

@@ -179,6 +179,19 @@ WaterfallPlot(
 
 \item{line_name}{A character string indicating the name of the line.}
 
+\item{label_nudge}{A numeric value to nudge the labels (the distance between the label and the top of the bar).}
+
+\item{label}{A column name for the values to be displayed on the top of the bars.
+If TRUE, the y values will be displayed.}
+
+\item{label_fg}{A character string indicating the color of the label.}
+
+\item{label_size}{A numeric value indicating the size of the label.}
+
+\item{label_bg}{A character string indicating the background color of the label.}
+
+\item{label_bg_r}{A numeric value indicating the radius of the background.}
+
 \item{group_by}{Columns to group the data for plotting
 For those plotting functions that do not support multiple groups,
 They will be concatenated into one column, using \code{group_by_sep} as the separator}

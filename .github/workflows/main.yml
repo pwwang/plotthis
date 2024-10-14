@@ -54,7 +54,9 @@ jobs:
             any::devtools, any::pkgdown, any::circlize, any::ggalluvial, any::ggVennDiagram,
             any::ggupset, any::ggpubr, any::ggforce, any::scattermore, any::ComplexHeatmap,
             any::clustree, any::ggwordcloud, any::ggraph, any::igraph, any::hexbin, any::ggridges,
-            any::zoo
+            any::zoo, any::gridtext
+
+      - uses: r-lib/actions/check-r-package@v2
 
       - name: Install plotthis
         run: |

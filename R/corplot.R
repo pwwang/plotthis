@@ -33,6 +33,7 @@
 #' @param smooth_se Whether to add the standard error band to the regression line.
 #' @return A ggplot object.
 #' @keywords internal
+#' @importFrom stats cor lm coef
 #' @importFrom rlang syms sym
 #' @importFrom dplyr group_modify filter
 #' @importFrom ggplot2 geom_point geom_smooth geom_text scale_color_manual labs
@@ -188,7 +189,7 @@ CorPlotAtomic <- function(
         geom_smooth(method = "lm", formula = y ~ x, se = smooth_se, color = smooth_color, linewidth = smooth_width, alpha = 0.5) +
         geom_text_repel(
             data = annodata, parse = TRUE, hjust = 0, direction = "y",
-            aes(label = anno), x = anno_x, y = anno_y, seed = seed,
+            aes(label = !!sym("anno")), x = anno_x, y = anno_y, seed = seed,
             size = text_size_scale * anno_size,
             bg.color = anno_bg, bg.r = anno_bg_r, color = anno_fg,
             force = 0.5, max.overlaps = 100, segment.color = "transparent"

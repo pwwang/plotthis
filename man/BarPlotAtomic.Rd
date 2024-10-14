@@ -82,6 +82,19 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 
 \item{fill_by_x_if_no_group}{A logical value indicating whether to fill the bars by the x-axis values if there is no group_by.}
 
+\item{label_nudge}{A numeric value to nudge the labels (the distance between the label and the top of the bar).}
+
+\item{label}{A column name for the values to be displayed on the top of the bars.
+If TRUE, the y values will be displayed.}
+
+\item{label_fg}{A character string indicating the color of the label.}
+
+\item{label_size}{A numeric value indicating the size of the label.}
+
+\item{label_bg}{A character string indicating the background color of the label.}
+
+\item{label_bg_r}{A numeric value indicating the radius of the background.}
+
 \item{add_bg}{A logical value indicating whether to add a background to the plot.}
 
 \item{bg_palette}{A character string indicating the palette to use for the background.}

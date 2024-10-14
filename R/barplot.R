@@ -333,6 +333,7 @@ BarPlotGrouped <- function(
 #'
 #' @description Create a bar plot with or without groups. This function does not handle splitting but only facetting.
 #' @inheritParams common_args
+#' @inheritParams BarPlotSingle
 #' @inheritParams BarPlotGrouped
 #' @param fill_by_x_if_no_group A logical value indicating whether to fill the bars by the x-axis values if there is no group_by.
 #' @return A ggplot object.

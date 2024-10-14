@@ -95,6 +95,14 @@ Set to NULL to impose neither a minimum nor a maximum.}
 \item{debug}{Not implemented.}
 
 \item{inherit.blank}{See \code{\link[ggplot2:element]{ggplot2::margin()}} for details.}
+
+\item{element}{A theme element created by \code{\link[=element_textbox]{element_textbox()}}.}
+
+\item{label}{Text to display in the textbox.}
+
+\item{x, y}{Position of the textbox.}
+
+\item{...}{Other arguments passed to \code{\link[gridtext:textbox_grob]{gridtext::textbox_grob()}}.}
 }
 \value{
 A ggplot2 theme element that can be used inside a \code{\link[ggplot2:theme]{ggplot2::theme()}} call.

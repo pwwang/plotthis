@@ -67,6 +67,8 @@ For shapes 21-25, the color is applied to the fill color.}
 
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
+\item{shape}{A numeric value specifying the shape of the points. Default is 21.}
+
 \item{alpha}{A numeric value specifying the transparency of the plot.}
 
 \item{border_color}{A character vector specifying the color for the border of the points.

@@ -48,6 +48,8 @@ How the ring is divided.}
 
 \item{group_by_sep}{A character string to concatenate the columns in \code{group_by}, if multiple columns are provided.}
 
+\item{group_name}{A character string to specify the name of the group_by in the legend.}
+
 \item{label}{A logical value indicating whether to show the labels on the rings.
 The labels should be the values of group_by. Default is NULL, meaning no labels for one ring and
 showing the labels for multiple rings.}

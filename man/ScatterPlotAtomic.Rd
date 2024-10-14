@@ -68,6 +68,8 @@ Default is "theme_this".}
 \item{alpha}{A numeric value specifying the transparency of the dots. Default is 1.
 For shapes 21-25, the transparency is applied to the fill color.}
 
+\item{shape}{A numeric value specifying the shape of the points. Default is 21.}
+
 \item{border_color}{A character vector specifying the color for the border of the points.
 Or TRUE to use the fill color as the border color.}
 

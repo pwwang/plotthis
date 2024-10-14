@@ -105,15 +105,15 @@ DensityHistoPlotAtomic <- function(
                 }
                 p <- p + stat_bin(
                     aes(y = after_stat({
-                        y <- ifelse(count > 0, count, NA)
+                        y <- ifelse(!!sym("count") > 0, !!sym("count"), NA)
                         y <- ytrans_obj$transform(y)
-                        y <- split(y, ..group..)
+                        y <- split(y, !!sym("..group.."))
                         y <- unlist(lapply(y, na.approx, na.rm = FALSE))
                         ytrans_obj$inverse(y)
                     })), bins = bins, binwidth = binwidth,
                     geom = "line", position = position, linewidth = trend_linewidth, ...)
             } else {
-                p <- p + stat_bin(aes(y = after_stat(count)), bins = bins, binwidth = binwidth,
+                p <- p + stat_bin(aes(y = after_stat(!!sym("count"))), bins = bins, binwidth = binwidth,
                     geom = "line", position = position, linewidth = trend_linewidth, ...)
             }
         }
