@@ -48,7 +48,8 @@ Suggests:
     ggridges,
     hexbin,
     igraph,
-    scattermore
+    scattermore,
+    concaveman
 Remotes: pwwang/gglogger
 LazyData: true
 Config/Needs/website: rmarkdown
