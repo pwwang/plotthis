@@ -9,6 +9,7 @@ Heatmap(
   rows,
   columns_by,
   rows_name = "rows",
+  columns_name = "columns",
   split_by = NULL,
   split_by_sep = "_",
   split_rows_data = FALSE,
@@ -110,6 +111,10 @@ will be shown in the column group annotation.}
 
 \item{rows_name}{A character string specifying the name of rows, which will be shown in the
 row group annotation and the legend of it.}
+
+\item{columns_name}{A character string specifying the name of columns, which will be shown in the
+column group annotation and the legend of it.
+Only used when \code{columns_by} has multiple columns.}
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 

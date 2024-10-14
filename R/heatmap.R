@@ -1453,7 +1453,7 @@ HeatmapAtomic <- function(
 #'   row_annotation_params = list(rp = list(width = grid::unit(12, "mm"))),
 #'   show_row_names = TRUE, show_column_names = TRUE, flip = TRUE)
 Heatmap <- function(
-    data, rows, columns_by, rows_name = "rows", split_by = NULL, split_by_sep = "_", split_rows_data = FALSE,
+    data, rows, columns_by, rows_name = "rows", columns_name = "columns", split_by = NULL, split_by_sep = "_", split_rows_data = FALSE,
     name = "value", border = TRUE, rows_palette = "Paired", rows_palcolor = NULL, title = NULL,
     pie_group_by = NULL, pie_group_by_sep = "_", pie_palette = "Spectral", pie_palcolor = NULL, pie_size = NULL, pie_name = NULL, pie_size_name = "size",
     lower_quantile = 0, upper_quantile = 0.99, lower_cutoff = NULL, upper_cutoff = NULL,
@@ -1517,7 +1517,7 @@ Heatmap <- function(
                 title <- title %||% default_title
             }
             HeatmapAtomic(datas[[nm]],
-                rows = rows, columns_by = columns_by, rows_name = rows_name, name = name, border = border, rows_palette = rows_palette, rows_palcolor = rows_palcolor,
+                rows = rows, columns_by = columns_by, rows_name = rows_name, columns_name = columns_name, name = name, border = border, rows_palette = rows_palette, rows_palcolor = rows_palcolor,
                 lower_quantile = lower_quantile, upper_quantile = upper_quantile, lower_cutoff = lower_cutoff, upper_cutoff = upper_cutoff,
                 pie_group_by = pie_group_by, pie_group_by_sep = pie_group_by_sep, pie_palette = pie_palette, pie_palcolor = pie_palcolor, pie_size = pie_size, pie_name = pie_name, pie_size_name = pie_size_name,
                 columns_by_sep = columns_by_sep, columns_split_by = columns_split_by, columns_palette = columns_palette, columns_palcolor = columns_palcolor,
