@@ -96,6 +96,7 @@
 <span>  facet_nrow <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  facet_ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  facet_byrow <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  facet_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -337,6 +338,10 @@ When facet_by is a single column and facet_wrap is used.</p></dd>
 
 <dt id="arg-facet-byrow">facet_byrow<a class="anchor" aria-label="anchor" href="#arg-facet-byrow"></a></dt>
 <dd><p>A logical value indicating whether to fill the plots by row. Default is TRUE.</p></dd>
+
+
+<dt id="arg-facet-args">facet_args<a class="anchor" aria-label="anchor" href="#arg-facet-args"></a></dt>
+<dd><p>A list of arguments to pass to <a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">ggplot2::facet_grid</a> or <a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">ggplot2::facet_wrap</a>.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
