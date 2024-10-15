@@ -58,6 +58,7 @@ BarPlotAtomic(
   facet_nrow = NULL,
   facet_ncol = NULL,
   facet_byrow = TRUE,
+  facet_args = list(),
   ...
 )
 }
@@ -190,6 +191,8 @@ When facet_by is a single column and facet_wrap is used.}
 When facet_by is a single column and facet_wrap is used.}
 
 \item{facet_byrow}{A logical value indicating whether to fill the plots by row. Default is TRUE.}
+
+\item{facet_args}{A list of arguments to pass to \link[ggplot2:facet_grid]{ggplot2::facet_grid} or \link[ggplot2:facet_wrap]{ggplot2::facet_wrap}.}
 
 \item{...}{Additional arguments.}
 }

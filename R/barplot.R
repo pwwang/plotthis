@@ -336,6 +336,7 @@ BarPlotGrouped <- function(
 #' @inheritParams BarPlotSingle
 #' @inheritParams BarPlotGrouped
 #' @param fill_by_x_if_no_group A logical value indicating whether to fill the bars by the x-axis values if there is no group_by.
+#' @param facet_args A list of arguments to pass to [ggplot2::facet_grid] or [ggplot2::facet_wrap].
 #' @return A ggplot object.
 #' @importFrom ggplot2 waiver
 #' @keywords internal
@@ -352,7 +353,7 @@ BarPlotAtomic <- function(
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
     expand = waiver(), width = waiver(), facet_by = NULL, facet_scales = "fixed",
-    facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE, ...) {
+    facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE, facet_args = list(), ...) {
     if (is.null(group_by)) {
         p <- BarPlotSingle(
             data, x, x_sep, y,
@@ -386,8 +387,15 @@ BarPlotAtomic <- function(
         )
     }
 
-    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-        legend.position = legend.position, legend.direction = legend.direction)
+    facet_args$plot <- p
+    facet_args["facet_by"] <- list(facet_by)
+    facet_args["facet_scales"] <- list(facet_scales)
+    facet_args["nrow"] <- list(facet_nrow)
+    facet_args["ncol"] <- list(facet_ncol)
+    facet_args["byrow"] <- list(facet_byrow)
+    facet_args["legend.position"] <- list(legend.position)
+    facet_args["legend.direction"] <- list(legend.direction)
+    do.call(facet_plot, facet_args)
 }
 
 #' Bar Plot
@@ -434,7 +442,7 @@ BarPlot <- function(
     data, x, x_sep = "_", y = NULL, flip = FALSE, fill_by_x_if_no_group = TRUE, line_name = NULL, label_nudge = 0,
     label = NULL, label_fg = "black", label_size = 4, label_bg = "white", label_bg_r = 0.1,
     group_by = NULL, group_by_sep = "_", group_name = NULL, split_by = NULL, split_by_sep = "_",
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
+    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE, facet_args = list(),
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     add_line = NULL, line_color = "red2", line_width = .6, line_type = 2,
     add_trend = FALSE, trend_color = "black", trend_linewidth = 1, trend_ptsize = 2,
@@ -475,7 +483,7 @@ BarPlot <- function(
                 legend.position = legend.position, legend.direction = legend.direction,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty,
                 expand = expand, width = width, facet_by = facet_by, facet_scales = facet_scales,
-                facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
+                facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow, facet_args = facet_args,
                 ...
             )
         }
