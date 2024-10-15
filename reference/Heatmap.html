@@ -63,6 +63,7 @@
 <span>  pie_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pie_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pie_size_name <span class="op">=</span> <span class="st">"size"</span>,</span>
+<span>  pie_values <span class="op">=</span> <span class="st">"count"</span>,</span>
 <span>  lower_quantile <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  upper_quantile <span class="op">=</span> <span class="fl">0.99</span>,</span>
 <span>  lower_cutoff <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -231,6 +232,17 @@ If it is a function, the function should take <code>count</code> as the argument
 
 <dt id="arg-pie-size-name">pie_size_name<a class="anchor" aria-label="anchor" href="#arg-pie-size-name"></a></dt>
 <dd><p>A character string specifying the name of the legend for the pie size.</p></dd>
+
+
+<dt id="arg-pie-values">pie_values<a class="anchor" aria-label="anchor" href="#arg-pie-values"></a></dt>
+<dd><p>How to calculate the values for the pie chart. Default is "count".
+Other options are "value" and a function.</p><ul><li><p>"count": Count the number of instances in <code>pie_group_by</code>.</p></li>
+<li><p>"value": Use the values in the columns specified by <code>rows</code> as the values.
+If there are multiple values for a single group in <code>pie_group_by</code>, a function should be provided to aggregate the values.
+If not, the sum of the values will be used and a warning will be shown.</p></li>
+<li><p>A function: The function should take a vector of values as the argument and return a single value, for each
+group in <code>pie_group_by</code>.</p></li>
+</ul></dd>
 
 
 <dt id="arg-lower-quantile-upper-quantile-lower-cutoff-upper-cutoff">lower_quantile, upper_quantile, lower_cutoff, upper_cutoff<a class="anchor" aria-label="anchor" href="#arg-lower-quantile-upper-quantile-lower-cutoff-upper-cutoff"></a></dt>
