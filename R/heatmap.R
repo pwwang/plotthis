@@ -1060,7 +1060,7 @@ HeatmapAtomic <- function(
         annoagg <- column_annotation_agg[[caname]]
         annotype <- column_annotation_type[[caname]]
         param <- column_annotation_params[[caname]] %||% list()
-        annodata <- param$x %||% data
+        annodata <- param$x %||% data  # TODO: order in param$x
         annocol <- check_columns(annodata, annocol)
         if (annotype == "auto") {
             all_ones <- annodata %>% group_by(!!!syms(unique(c(columns_split_by, columns_by)))) %>%
@@ -1236,15 +1236,14 @@ HeatmapAtomic <- function(
                 pivot_longer(cols = -c(rows_split_by, rows_by), names_to = ".rows", values_to = annocol) %>%
                 select(!!sym(".rows"), everything())
             rows_by <- ".rows"
-        } else if (identical(param$x, "rows_data")) {
-            param$x <- rows_data
-            rows_by <- colnames(rows_data)[1]
-        } else if (is.null(param$x)) {
+        } else if (identical(param$x, "rows_data") || is.null(param$x)) {
             param$x <- rows_data
             rows_by <- colnames(rows_data)[1]
         } else {
             rows_by <- colnames(param$x)[1]
         }
+        param$x[[1]] <- factor(param$x[[1]], levels = rows)
+        param$x <- param$x[order(param$x[[1]]), , drop = FALSE]
 
         annocol <- check_columns(param$x, annocol)
         if (annotype == "auto") {
@@ -1476,6 +1475,8 @@ Heatmap <- function(
     seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...
 ) {
     validate_common_args(seed)
+    if (is.null(split_by)) { split_rows_data <- FALSE }
+
     d_split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
     if (isTRUE(split_rows_data) && !is.null(rows_data)) {
         if (is.character(rows_data) && length(rows_data) == 1 && startsWith(rows_data, "@")) {
@@ -1491,11 +1492,13 @@ Heatmap <- function(
         datas <- split(data, data[[split_by]])
         if (isTRUE(split_rows_data) && !is.null(rows_data)) {
             rows_datas <- split(rows_data, rows_data[[split_by]])
-            datas <- lapply(names(datas), function(nm) {
+            nms <- names(datas)
+            datas <- lapply(nms, function(nm) {
                 dat <- datas[[nm]]
                 attr(dat, "rows_data") <- rows_datas[[nm]]
                 dat
             })
+            names(datas) <- nms
         } else {
             # keep the order of levels
             datas <- datas[levels(data[[split_by]])]
@@ -1516,6 +1519,7 @@ Heatmap <- function(
             } else {
                 title <- title %||% default_title
             }
+
             HeatmapAtomic(datas[[nm]],
                 rows = rows, columns_by = columns_by, rows_name = rows_name, columns_name = columns_name, name = name, border = border, rows_palette = rows_palette, rows_palcolor = rows_palcolor,
                 lower_quantile = lower_quantile, upper_quantile = upper_quantile, lower_cutoff = lower_cutoff, upper_cutoff = upper_cutoff,
