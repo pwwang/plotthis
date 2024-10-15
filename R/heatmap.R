@@ -540,6 +540,14 @@ layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
 #' @param pie_group_by_sep A character string to concatenate the columns in `pie_group_by` if there are multiple columns.
 #' @param pie_palette A character string specifying the palette of the pie chart.
 #' @param pie_palcolor A character vector of colors to override the palette of the pie chart.
+#' @param pie_values How to calculate the values for the pie chart. Default is "count".
+#'  Other options are "value" and a function.
+#'  * "count": Count the number of instances in `pie_group_by`.
+#'  * "value": Use the values in the columns specified by `rows` as the values.
+#'    If there are multiple values for a single group in `pie_group_by`, a function should be provided to aggregate the values.
+#'    If not, the sum of the values will be used and a warning will be shown.
+#'  * A function: The function should take a vector of values as the argument and return a single value, for each
+#'    group in `pie_group_by`.
 #' @param pie_size A numeric value or a function specifying the size of the pie chart.
 #'  If it is a function, the function should take `count` as the argument and return the size.
 #' @param pie_name A character string specifying the name of the legend for the pie chart.
@@ -619,7 +627,7 @@ layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
 HeatmapAtomic <- function(
     data, rows, columns_by, rows_name = "rows", rows_split_name = "rows_split", columns_name = "columns", name = "value",
     border = TRUE, rows_palette = "Paired", rows_palcolor = NULL, pie_group_by = NULL, pie_group_by_sep = "_",
-    pie_palette = "Spectral", pie_palcolor = NULL, pie_size = NULL, pie_name = NULL, pie_size_name = "size",
+    pie_palette = "Spectral", pie_palcolor = NULL, pie_size = NULL, pie_name = NULL, pie_size_name = "size", pie_values = "count",
     columns_by_sep = "_", columns_split_by = NULL, columns_palette = "Paired", columns_palcolor = NULL,
     columns_split_by_sep = "_", columns_split_palette = "simspec", columns_split_palcolor = NULL,
     lower_quantile = 0, upper_quantile = 0.99, lower_cutoff = NULL, upper_cutoff = NULL,
@@ -770,7 +778,25 @@ HeatmapAtomic <- function(
             group_by(!!!syms(unique(c(columns_by, columns_split_by)))) %>%
             summarise(across(
                 all_of(rows),
-                function(.x, .g) { list(table(.g[!is.na(.x)])) },
+                function(.x, .g) {
+                    if (identical(pie_values, "count")) {
+                        list(table(.g[!is.na(.x)]))
+                    } else {
+                        .d <- lapply(split(.x[!is.na(.x)], .g[!is.na(.x)]), function(.v) {
+                            if (length(.v) > 1) {
+                                if (is.function(pie_values)) {
+                                    pie_values(.v)
+                                } else {
+                                    warning("Multiple values in a group in 'pie_group_by'. Using the sum of the values.")
+                                    sum(.v)
+                                }
+                            } else {
+                                .v
+                            }
+                        })
+                        list(as.table(unlist(.d)))
+                    }
+                },
                 !!sym(pie_group_by)
             ), .groups = "drop")
         # match the dimensions of the heatmap matrix
@@ -1454,7 +1480,8 @@ HeatmapAtomic <- function(
 Heatmap <- function(
     data, rows, columns_by, rows_name = "rows", columns_name = "columns", split_by = NULL, split_by_sep = "_", split_rows_data = FALSE,
     name = "value", border = TRUE, rows_palette = "Paired", rows_palcolor = NULL, title = NULL,
-    pie_group_by = NULL, pie_group_by_sep = "_", pie_palette = "Spectral", pie_palcolor = NULL, pie_size = NULL, pie_name = NULL, pie_size_name = "size",
+    pie_group_by = NULL, pie_group_by_sep = "_", pie_palette = "Spectral", pie_palcolor = NULL, pie_size = NULL,
+    pie_name = NULL, pie_size_name = "size", pie_values = "count",
     lower_quantile = 0, upper_quantile = 0.99, lower_cutoff = NULL, upper_cutoff = NULL,
     columns_by_sep = "_", columns_split_by = NULL, columns_palette = "Paired", columns_palcolor = NULL,
     columns_split_by_sep = "_", columns_split_palette = "simspec", columns_split_palcolor = NULL,
@@ -1523,7 +1550,8 @@ Heatmap <- function(
             HeatmapAtomic(datas[[nm]],
                 rows = rows, columns_by = columns_by, rows_name = rows_name, columns_name = columns_name, name = name, border = border, rows_palette = rows_palette, rows_palcolor = rows_palcolor,
                 lower_quantile = lower_quantile, upper_quantile = upper_quantile, lower_cutoff = lower_cutoff, upper_cutoff = upper_cutoff,
-                pie_group_by = pie_group_by, pie_group_by_sep = pie_group_by_sep, pie_palette = pie_palette, pie_palcolor = pie_palcolor, pie_size = pie_size, pie_name = pie_name, pie_size_name = pie_size_name,
+                pie_group_by = pie_group_by, pie_group_by_sep = pie_group_by_sep, pie_palette = pie_palette, pie_palcolor = pie_palcolor,
+                pie_size = pie_size, pie_name = pie_name, pie_size_name = pie_size_name, pie_values = pie_values,
                 columns_by_sep = columns_by_sep, columns_split_by = columns_split_by, columns_palette = columns_palette, columns_palcolor = columns_palcolor,
                 columns_split_by_sep = columns_split_by_sep, columns_split_palette = columns_split_palette, columns_split_palcolor = columns_split_palcolor,
                 rows_data = rows_data, rows_split_by = rows_split_by, rows_split_by_sep = rows_split_by_sep, rows_split_palette = rows_split_palette, rows_split_palcolor = rows_split_palcolor,

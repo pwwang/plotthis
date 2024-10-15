@@ -22,6 +22,7 @@ HeatmapAtomic(
   pie_size = NULL,
   pie_name = NULL,
   pie_size_name = "size",
+  pie_values = "count",
   columns_by_sep = "_",
   columns_split_by = NULL,
   columns_palette = "Paired",
@@ -134,6 +135,17 @@ If it is a function, the function should take \code{count} as the argument and r
 \item{pie_name}{A character string specifying the name of the legend for the pie chart.}
 
 \item{pie_size_name}{A character string specifying the name of the legend for the pie size.}
+
+\item{pie_values}{How to calculate the values for the pie chart. Default is "count".
+Other options are "value" and a function.
+\itemize{
+\item "count": Count the number of instances in \code{pie_group_by}.
+\item "value": Use the values in the columns specified by \code{rows} as the values.
+If there are multiple values for a single group in \code{pie_group_by}, a function should be provided to aggregate the values.
+If not, the sum of the values will be used and a warning will be shown.
+\item A function: The function should take a vector of values as the argument and return a single value, for each
+group in \code{pie_group_by}.
+}}
 
 \item{columns_by_sep}{A character string to concatenate the columns in \code{columns_by} if there are multiple columns.}
 
