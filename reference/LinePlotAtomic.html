@@ -81,6 +81,7 @@
 <span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  facet_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  facet_scales <span class="op">=</span> <span class="st">"fixed"</span>,</span>
+<span>  facet_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  facet_nrow <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  facet_ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  facet_byrow <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -116,8 +117,7 @@ when there is no group_by column.</p></dd>
 
 
 <dt id="arg-color-line-by-x-if-no-group">color_line_by_x_if_no_group<a class="anchor" aria-label="anchor" href="#arg-color-line-by-x-if-no-group"></a></dt>
-<dd><p>A logical value indicating whether to color the lines by the x-axis values
-when there is no group_by column.</p></dd>
+<dd><p>A logical value indicating whether to color the lines by the x-axis values</p></dd>
 
 
 <dt id="arg-add-bg">add_bg<a class="anchor" aria-label="anchor" href="#arg-add-bg"></a></dt>
@@ -258,6 +258,11 @@ and combine them into one using <code><a href="https://patchwork.data-imaginist.
 <dt id="arg-facet-scales">facet_scales<a class="anchor" aria-label="anchor" href="#arg-facet-scales"></a></dt>
 <dd><p>Whether to scale the axes of facets. Default is "fixed"
 Other options are "free", "free_x", "free_y". See <code><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">ggplot2::facet_wrap</a></code></p></dd>
+
+
+<dt id="arg-facet-args">facet_args<a class="anchor" aria-label="anchor" href="#arg-facet-args"></a></dt>
+<dd><p>A list of arguments to pass to <code><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">ggplot2::facet_wrap()</a></code> or <code><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">ggplot2::facet_grid()</a></code>.
+when there is no group_by column.</p></dd>
 
 
 <dt id="arg-facet-nrow">facet_nrow<a class="anchor" aria-label="anchor" href="#arg-facet-nrow"></a></dt>
