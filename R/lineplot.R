@@ -266,6 +266,7 @@ LinePlotGrouped <- function(
 #' @param fill_point_by_x_if_no_group A logical value indicating whether to color the points by the x-axis values
 #'  when there is no group_by column.
 #' @param color_line_by_x_if_no_group A logical value indicating whether to color the lines by the x-axis values
+#' @param facet_args A list of arguments to pass to [ggplot2::facet_wrap()] or [ggplot2::facet_grid()].
 #' when there is no group_by column.
 #' @return A ggplot object
 #' @keywords internal
@@ -281,7 +282,7 @@ LinePlotAtomic <- function(
     x_text_angle = 0, aspect.ratio = 1,
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
-    facet_by = NULL, facet_scales = "fixed",
+    facet_by = NULL, facet_scales = "fixed", facet_args = list(),
     facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE, ...
 ) {
     if (is.null(group_by)) {
@@ -314,8 +315,15 @@ LinePlotAtomic <- function(
             title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...
         )
     }
-    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-        legend.position = legend.position, legend.direction = legend.direction)
+    facet_args$plot <- p
+    facet_args["facet_by"] <- list(facet_by)
+    facet_args["facet_scales"] <- list(facet_scales)
+    facet_args["nrow"] <- list(facet_nrow)
+    facet_args["ncol"] <- list(facet_ncol)
+    facet_args["byrow"] <- list(facet_byrow)
+    facet_args["legend.position"] <- list(legend.position)
+    facet_args["legend.direction"] <- list(legend.direction)
+    do.call(facet_plot, facet_args)
 }
 
 #' Line Plot
@@ -352,7 +360,7 @@ LinePlot <- function(
     legend.position = "right", legend.direction = "vertical",
     facet_by = NULL, facet_scales = "fixed",
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
-    facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
+    facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE, facet_args = list(),
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, seed = 8525, ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
@@ -391,7 +399,7 @@ LinePlot <- function(
                 line_type = line_type, line_width = line_width, line_alpha = line_alpha,
                 theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
                 x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
-                legend.position = legend.position, legend.direction = legend.direction,
+                legend.position = legend.position, legend.direction = legend.direction, facet_args = facet_args,
                 facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...
             )

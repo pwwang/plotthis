@@ -48,6 +48,7 @@ LinePlot(
   facet_nrow = NULL,
   facet_ncol = NULL,
   facet_byrow = TRUE,
+  facet_args = list(),
   title = NULL,
   subtitle = NULL,
   xlab = NULL,
@@ -77,8 +78,7 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 \item{fill_point_by_x_if_no_group}{A logical value indicating whether to color the points by the x-axis values
 when there is no group_by column.}
 
-\item{color_line_by_x_if_no_group}{A logical value indicating whether to color the lines by the x-axis values
-when there is no group_by column.}
+\item{color_line_by_x_if_no_group}{A logical value indicating whether to color the lines by the x-axis values}
 
 \item{add_bg}{A logical value indicating whether to add a background to the plot.}
 
@@ -158,6 +158,9 @@ When facet_by is a single column and facet_wrap is used.}
 When facet_by is a single column and facet_wrap is used.}
 
 \item{facet_byrow}{A logical value indicating whether to fill the plots by row. Default is TRUE.}
+
+\item{facet_args}{A list of arguments to pass to \code{\link[ggplot2:facet_wrap]{ggplot2::facet_wrap()}} or \code{\link[ggplot2:facet_grid]{ggplot2::facet_grid()}}.
+when there is no group_by column.}
 
 \item{title}{A character string specifying the title of the plot.
 A function can be used to generate the title based on the default title.

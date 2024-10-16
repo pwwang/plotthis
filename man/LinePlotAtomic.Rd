@@ -43,6 +43,7 @@ LinePlotAtomic(
   keep_empty = FALSE,
   facet_by = NULL,
   facet_scales = "fixed",
+  facet_args = list(),
   facet_nrow = NULL,
   facet_ncol = NULL,
   facet_byrow = TRUE,
@@ -63,8 +64,7 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 \item{fill_point_by_x_if_no_group}{A logical value indicating whether to color the points by the x-axis values
 when there is no group_by column.}
 
-\item{color_line_by_x_if_no_group}{A logical value indicating whether to color the lines by the x-axis values
-when there is no group_by column.}
+\item{color_line_by_x_if_no_group}{A logical value indicating whether to color the lines by the x-axis values}
 
 \item{add_bg}{A logical value indicating whether to add a background to the plot.}
 
@@ -141,6 +141,9 @@ and combine them into one using \code{patchwork::wrap_plots}}
 
 \item{facet_scales}{Whether to scale the axes of facets. Default is "fixed"
 Other options are "free", "free_x", "free_y". See \code{ggplot2::facet_wrap}}
+
+\item{facet_args}{A list of arguments to pass to \code{\link[ggplot2:facet_wrap]{ggplot2::facet_wrap()}} or \code{\link[ggplot2:facet_grid]{ggplot2::facet_grid()}}.
+when there is no group_by column.}
 
 \item{facet_nrow}{A numeric value specifying the number of rows in the facet.
 When facet_by is a single column and facet_wrap is used.}
