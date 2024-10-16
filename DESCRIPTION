@@ -48,6 +48,7 @@ Suggests:
     ggridges,
     hexbin,
     igraph,
+    iNEXT,
     scattermore,
     concaveman
 Remotes: pwwang/gglogger

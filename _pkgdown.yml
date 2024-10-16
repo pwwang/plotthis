@@ -30,6 +30,7 @@ reference:
     - RidgePlot
     - PieChart
     - RadarPlot
+    - RarefactionPlot
     - RingPlot
     - SankeyPlot
     - ScatterPlot

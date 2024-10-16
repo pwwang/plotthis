@@ -73,7 +73,7 @@ $ conda install pwwang::r-plotthis
 
 ![gsea](man/figures/gsea.png)
 
-[`RadarPlot`][21] / [`SpiderPlot`][21]
+[`RadarPlot`][21] / [`SpiderPlot`][21] / [`RarefactionPlot`][26]
 
 ![radar-spider](man/figures/radar-spider.png)
 
@@ -107,3 +107,4 @@ $ conda install pwwang::r-plotthis
 [23]: https://pwwang.github.io/plotthis/reference/RidgePlot.html
 [24]: https://pwwang.github.io/plotthis/reference/CorPlot.html
 [25]: https://pwwang.github.io/plotthis/reference/CorPairsPlot.html
+[25]: https://pwwang.github.io/plotthis/reference/RarefactionPlot.html
