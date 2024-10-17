@@ -100,15 +100,15 @@ Unlike other plotting packages, `plotthis` provides a unified interface for both
 
 Most of the plotting functions in `plotthis` support both splitting and faceting.
 
-The `split_by` argument is used to split the data and generate multiple plots. The `facet` argument is used to facet the plot. When `facet` is TRUE, the `split_by` columns will be used to facet the plot. When `facet` is FALSE, the `split_by` columns will be used to split the data and generate multiple plots, which will be combined into one plot.
+The `split_by` argument is used to split the data and generate multiple plots, and the data in the `split_by` columns will be used to split the data and generate multiple plots, which will be combined into one plot. Those sub-plots are independent of each other, and they have their own scales and guides.
 
-For faceting, the `facet_scales` argument is used to control the scales of the facets. The `facet_wrap` function is used when `split_by` has one column; otherwise, the `facet_grid` function is used when `split_by` has two columns.
+For faceting, the `facet_scales` argument is used to control the scales of the facets. The `facet_wrap` function is used when `facet_by` has one column; otherwise, the `facet_grid` function is used when `facet_by` has two columns.
 
-For splitting, the data will be split by the `split_by` columns and each split will be plotted separately. So each plot has its own scales and guides. Unlike faceting, the scales and guides are not shared between the plots.
+For the plots that do not support faceting (they are not built directly based on `ggplot2`), the `split_by` will be a good choice to split the data and generate multiple plots.
 
 ## Argument naming conventions
 
-The arguments in the plotting functions are named in a consistent way. `_` is used to separate words in the argument names, in favor of `.`, unless the argument is passed to a `ggplot2` function (e.g. `theme`). The `_` is used to separate words in the argument names to make the argument names more readable and less confusing with the `.` in the function names, which could work as a method call. The argument names are all lowercase.
+The arguments in the plotting functions are named in a consistent way. `_` is used to separate words in the argument names, in favor of `.`, unless the argument is passed to a `ggplot2` function (e.g. `theme`). The `_` is used to separate words in the argument names to make the argument names more readable and less confusing with the `.` in the function names, which could work as a method call. The argument names are all lowercased.
 
 ## The `height` and `width` attributes
 
