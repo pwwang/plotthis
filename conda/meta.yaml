@@ -45,6 +45,8 @@ requirements:
     - r-igraph
     - r-scattermore
     - r-zoo
+    - r-concaveman
+    - r-inext
 
   run:
     - r-base
@@ -78,6 +80,8 @@ requirements:
     - r-igraph
     - r-scattermore
     - r-zoo
+    - r-concaveman
+    - r-inext
 
 test:
   commands:
