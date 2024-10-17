@@ -36,7 +36,7 @@ Network(
   cluster_scale = c("fill", "color", "shape"),
   node_size_range = c(5, 20),
   link_weight_range = c(0.5, 5),
-  link_arrow_offset = ifelse(directed, 0.035, 0),
+  link_arrow_offset = 20,
   link_curvature = 0,
   link_palette = "Greys",
   link_palcolor = NULL,
@@ -253,14 +253,15 @@ relations <- data.frame(
   to = c("Alice", "Bob", "Alice", "Alice", "Bob", "Alice", "Bob", "Alice", "Cecil",
      "David"),
   friendship = c(4, 5, 5, 2, 1, 1, 2, 1, 3, 4),
-  advice = c(4, 5, 5, 4, 2, 3, 3, 1, 2, 1),
+  advice = factor(c(4, 5, 5, 4, 2, 3, 3, 1, 2, 1)),
   type = c(1, 1, 1, 1, 1, 2, 2, 2, 2, 2)
 )
-
 Network(relations, actors)
-Network(relations, actors, link_weight_by = "friendship", node_size_by = 15,
- node_fill_by = "gender", link_color_by = "advice", node_color_by = "black",
- layout = "circle", link_curvature = 0.2, link_palette = "Set1")
-Network(relations, actors, directed = FALSE, cluster = "fast_greedy", add_mark = TRUE)
-Network(relations, actors, split_by = "type", link_arrow_offset = 0.075)
+Network(relations, actors, link_weight_by = "friendship", node_size_by = "age",
+ link_weight_name = "FRIENDSHIP", node_fill_by = "gender", link_color_by = "advice",
+ link_type_by = "type", node_color_by = "black", layout = "circle", link_curvature = 0.2,
+ link_palette = "Set1")
+Network(relations, actors, layout = "tree", directed = FALSE, cluster = "fast_greedy",
+ add_mark = TRUE)
+Network(relations, actors, split_by = "type")
 }

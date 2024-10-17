@@ -80,7 +80,7 @@
 #' @importFrom utils getFromNamespace
 #' @importFrom dplyr %>% rename relocate
 #' @importFrom ggplot2 aes geom_curve geom_point scale_x_continuous scale_y_continuous
-#' @importFrom ggplot2 scale_size_continuous scale_linetype_discrete
+#' @importFrom ggplot2 scale_size_continuous scale_linetype_discrete guide_colorbar guide_legend
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom ggnewscale new_scale_color
 NetworkAtomic <- function(
@@ -90,7 +90,7 @@ NetworkAtomic <- function(
     node_size_by = 15, node_size_name = NULL, node_color_by = "black", node_color_name = NULL,
     node_shape_by = 21, node_shape_name = NULL, node_fill_by = "grey20", node_fill_name = NULL,
     link_alpha = 1, node_alpha = 0.95, node_stroke = 1.5, cluster_scale = c("fill", "color", "shape"),
-    node_size_range = c(5, 20), link_weight_range = c(0.5, 5), link_arrow_offset = ifelse(directed, 0.035, 0),
+    node_size_range = c(5, 20), link_weight_range = c(0.5, 5), link_arrow_offset = 20,
     link_curvature = 0, link_palette = "Greys", link_palcolor = NULL, node_palette = "Paired", node_palcolor = NULL,
     directed = TRUE, layout = "circle", cluster = "none", add_mark = FALSE, mark_expand = ggplot2::unit(10, "mm"),
     mark_type = c("hull", "ellipse", "rect", "circle"), mark_alpha = 0.1, mark_linetype = 1, add_label = TRUE,
@@ -159,30 +159,14 @@ NetworkAtomic <- function(
         }
     }
 
-    df_graph <- igraph::as_data_frame(graph, what = "both")
-    df_nodes <- df_graph$vertices
-    df_nodes$dim1 <- layout[, 1]
-    df_nodes$dim2 <- layout[, 2]
+    df <- igraph::as_data_frame(graph, what = "both")
+    df_nodes <- df$vertices
+    df_nodes$x <- layout[, 1]
+    df_nodes$y <- layout[, 2]
+    df_edges <- df$edges
+    rm(df)
 
-    df_edges <- df_graph$edges
-    df_edges$from_dim1 <- df_nodes[df_edges$from, "dim1"]
-    df_edges$from_dim2 <- df_nodes[df_edges$from, "dim2"]
-    to_dim1 <- df_nodes[df_edges$to, "dim1"]
-    to_dim2 <- df_nodes[df_edges$to, "dim2"]
-    x_len <- to_dim1 - df_edges$from_dim1
-    y_len <- to_dim2 - df_edges$from_dim2
-    if (is.numeric(node_size_by)) {
-        scale_factor <- rep(node_size_by, length(df_edges$to)) / 3.25
-    } else {
-        scale_factor <- df_nodes[df_edges$to, node_size_by]
-        scale_factor <- log(scales::rescale(scale_factor, to = node_size_range) * 10)
-    }
-    offset <- link_arrow_offset / sqrt(x_len^2 + y_len^2) * scale_factor
-    df_edges$to_dim1 <- df_edges$from_dim1 + (1 - offset) * x_len
-    df_edges$to_dim2 <- df_edges$from_dim2 + (1 - offset) * y_len
-
-    p <- ggplot()
-
+    p <- ggraph::ggraph(graph, layout = "manual", x = df_nodes$x, y = df_nodes$y)
     if (cluster != "none") {
         clfun <- getFromNamespace(paste0("cluster_", cluster), "igraph")
         clusters <- clfun(graph)
@@ -215,7 +199,7 @@ NetworkAtomic <- function(
         )
         p <- p + mark_fun(
             data = df_nodes,
-            mapping = aes(x = !!sym("dim1"), y = !!sym("dim2"), color = !!sym("cluster"), fill = !!sym("cluster")),
+            mapping = aes(x = !!sym("x"), y = !!sym("y"), color = !!sym("cluster"), fill = !!sym("cluster")),
             expand = mark_expand, alpha = mark_alpha, linetype = mark_linetype,
             show.legend = FALSE
         ) +
@@ -225,9 +209,8 @@ NetworkAtomic <- function(
             new_scale_color()
     }
 
-    ## LINKS
-    link_layer_args <- list(mapping = list(aes(x = !!sym("from_dim1"), y = !!sym("from_dim2"), xend = !!sym("to_dim1"), yend = !!sym("to_dim2"))),
-        alpha = link_alpha)
+    # LINKS
+    link_layer_args <- list(alpha = link_alpha, check_overlap = TRUE, mapping = list())
     if (isTRUE(directed)) {
         link_layer_args$arrow <- arrow
     }
@@ -244,7 +227,7 @@ NetworkAtomic <- function(
         link_layer_args$color <- link_color_by
         link_color_by_guide <- "none"
     } else {
-        link_color_by <- check_columns(df_edges, link_color_by, force_factor = TRUE)
+        # link_color_by <- check_columns(df_edges, link_color_by, force_factor = TRUE)
         link_layer_args$mapping[[length(link_layer_args$mapping) + 1]] <- aes(color = !!sym(link_color_by))
         link_color_by_guide <- "guide"
     }
@@ -253,62 +236,63 @@ NetworkAtomic <- function(
         link_layer_args$linetype <- link_type_by
         link_type_by_guide <- "none"
     } else {
-        link_type_by <- check_columns(df_edges, link_type_by, force_factor = TRUE)
-        link_layer_args$mapping[[length(link_layer_args$mapping) + 1]] <- aes(linetype = !!sym(link_type_by))
+        # link_type_by <- check_columns(df_edges, link_type_by, force_factor = TRUE)
+        link_layer_args$mapping[[length(link_layer_args$mapping) + 1]] <- aes(linetype = factor(!!sym(link_type_by)))
         link_type_by_guide <- "guide"
     }
 
-    link_layer_args$data <- df_edges[df_edges$from != df_edges$to, , drop = FALSE]
+    if (isTRUE(directed)) {
+        link_layer_args$end_cap <- ggraph::circle(link_arrow_offset, "pt")
+    }
+    link_loop_layer_args <- link_layer_args
+    link_loop_layer_args$mapping[[length(link_loop_layer_args$mapping) + 1]] <- aes(direction = (!!sym("from") - 1) * 360 / length(graph))
+    # link_layer_args$data <- df_edges[df_edges$from != df_edges$to, , drop = FALSE]
+    link_layer_args$strength <- link_curvature
     link_layer_args$mapping <- Reduce(modify_list, link_layer_args$mapping)
-    if (link_curvature > 0) {
-        link_layer_args$curvature <- link_curvature
-        p <- p + do.call(geom_curve, link_layer_args)
-    } else {
-        p <- p + do.call(geom_segment, link_layer_args)
-    }
+    link_loop_layer_args$mapping <- Reduce(modify_list, link_loop_layer_args$mapping)
 
-    ## Self-links
-    link_layer_args$data <- df_edges[df_edges$from == df_edges$to, , drop = FALSE]
-    delta <- scale_factor[df_edges$from == df_edges$to] * ifelse(link_arrow_offset == 0, 0.035, link_arrow_offset) / 1.2
-    xcenter <- (min(df_nodes$dim1) + max(df_nodes$dim1)) / 2
-    ycenter <- (min(df_nodes$dim2) + max(df_nodes$dim2)) / 2
-    link_layer_args$data$to_dim1 <- link_layer_args$data$from_dim1
-    link_layer_args$data$to_dim2 <- link_layer_args$data$from_dim2
-
-    for (i in seq_len(nrow(link_layer_args$data))) {
-        theta <- atan2(link_layer_args$data[i, "from_dim2"] - ycenter, link_layer_args$data[i, "from_dim1"] - xcenter)
-        link_layer_args$data[i, "from_dim1"] <- link_layer_args$data[i, "from_dim1"] + delta[i] * cos(theta - pi / 36)
-        link_layer_args$data[i, "from_dim2"] <- link_layer_args$data[i, "from_dim2"] + delta[i] * sin(theta - pi / 36)
-        link_layer_args$data[i, "to_dim1"] <- link_layer_args$data[i, "to_dim1"] + delta[i] * cos(theta + pi / 36)
-        link_layer_args$data[i, "to_dim2"] <- link_layer_args$data[i, "to_dim2"] + delta[i] * sin(theta + pi / 36)
-    }
-    if (nrow(link_layer_args$data) > 0) {
-        link_layer_args$curvature <- 15
-        # link_layer_args$ncp <- 10
-        p <- p + do.call(geom_curve, link_layer_args)
-    }
+    p <- p +
+        do.call(ggraph::geom_edge_arc, link_layer_args) +
+        do.call(ggraph::geom_edge_loop, link_loop_layer_args)
 
     if (link_weight_by_guide == "guide") {
-        p <- p + scale_linewidth_continuous(
+        p <- p + ggraph::scale_edge_width_continuous(
             range = link_weight_range, breaks = scales::pretty_breaks(n = 4),
             guide = guide_legend(title = link_weight_name %||% link_weight_by))
     }
 
     if (link_color_by_guide == "guide") {
-        p <- p + scale_color_manual(
-            values = palette_this(levels(df_edges[[link_color_by]]), palette = link_palette, palcolor = link_palcolor),
-            guide = guide_legend(title = link_color_by)) +
-            new_scale_color()
+        if (is.numeric(df_edges[[link_color_by]])) {
+            p <- p + ggraph::scale_edge_color_gradientn(
+                n.breaks = 5,
+                colors = palette_this(palette = link_palette, palcolor = link_palcolor),
+                na.value = "grey80",
+                guide = ggraph::guide_edge_colourbar(
+                    title = link_color_name %||% link_color_by, order = 10,
+                    frame.colour = "black", ticks.colour = "black", title.hjust = 0)
+                ) +
+                new_scale_color()
+        } else {
+            if (is.factor(df_edges[[link_color_by]])) {
+                col_values <- levels(df_edges[[link_color_by]])
+            } else {
+                col_values <- unique(df_edges[[link_color_by]])
+            }
+            p <- p + ggraph::scale_edge_color_manual(
+                values = palette_this(col_values, palette = link_palette, palcolor = link_palcolor),
+                guide = guide_legend(title = link_color_name %||% link_color_by, order = 10)) +
+                new_scale_color()
+        }
     }
 
     if (link_type_by_guide == "guide") {
-        p <- p + scale_linetype_discrete(
-            guide = guide_legend(title = link_type_by)
+        p <- p + ggraph::scale_edge_linetype_discrete(
+            guide = guide_legend(title = link_type_name %||% link_type_by, order = 11)
         )
     }
 
     ## NODES
-    node_layer_args <- list(mapping = list(aes(x = !!sym("dim1"), y = !!sym("dim2"))),
+    node_layer_args <- list(mapping = list(aes(x = !!sym("x"), y = !!sym("y"))),
         stroke = node_stroke)
 
     if (is.numeric(node_size_by)) {
@@ -353,34 +337,37 @@ NetworkAtomic <- function(
     if (node_size_by_guide == "guide") {
         p <- p + scale_size_continuous(
             range = node_size_range, breaks = scales::pretty_breaks(n = 4),
-            guide = guide_legend(title = node_size_name %||% node_size_by,
+            guide = guide_legend(title = node_size_name %||% node_size_by, order = 1,
                 override.aes = list(size = scales::rescale(sort(df_nodes[[node_size_by]]), c(1, 6)))))
     }
 
     if (node_color_by_guide == "guide") {
         p <- p + scale_color_manual(
             values = palette_this(levels(df_nodes[[node_color_by]]), palette = node_palette, palcolor = node_palcolor),
-            guide = guide_legend(title = node_color_name %||% node_color_by, override.aes = list(size = 4))
+            guide = guide_legend(title = node_color_name %||% node_color_by, order = 2,
+                override.aes = list(size = 4))
         )
     }
 
     if (node_shape_by_guide == "guide") {
         p <- p + scale_shape_manual(
-            guide = guide_legend(title = node_shape_name %||% node_shape_by, override.aes = list(size = 4))
+            guide = guide_legend(title = node_shape_name %||% node_shape_by, order = 3,
+                override.aes = list(size = 4))
         )
     }
 
     if (node_fill_by_guide == "guide") {
         p <- p + scale_fill_manual(
             values = palette_this(levels(df_nodes[[node_fill_by]]), palette = node_palette, palcolor = node_palcolor, alpha = node_alpha),
-            guide = guide_legend(title = node_fill_name %||% node_fill_by, override.aes = list(size = 4))
+            guide = guide_legend(title = node_fill_name %||% node_fill_by, order = 4,
+                override.aes = list(size = 4))
         )
     }
 
     ## NODE LABELS
     if (isTRUE(add_label)) {
         p <- p + geom_text_repel(
-            data = df_nodes, mapping = aes(x = !!sym("dim1"), y = !!sym("dim2"), label = !!sym("name")),
+            data = df_nodes, mapping = aes(x = !!sym("x"), y = !!sym("y"), label = !!sym("name")),
             min.segment.length = 0, segment.color = "transparent",
             point.size = NA, max.overlaps = 100, force = 0, color = label_fg, bg.color = label_bg, bg.r = label_bg_r,
             size = label_size * text_size_scale
@@ -399,7 +386,6 @@ NetworkAtomic <- function(
             legend.position = legend.position,
             legend.direction = legend.direction
         )
-
 
     height <- width <- 5
 
@@ -442,16 +428,17 @@ NetworkAtomic <- function(
 #'   to = c("Alice", "Bob", "Alice", "Alice", "Bob", "Alice", "Bob", "Alice", "Cecil",
 #'      "David"),
 #'   friendship = c(4, 5, 5, 2, 1, 1, 2, 1, 3, 4),
-#'   advice = c(4, 5, 5, 4, 2, 3, 3, 1, 2, 1),
+#'   advice = factor(c(4, 5, 5, 4, 2, 3, 3, 1, 2, 1)),
 #'   type = c(1, 1, 1, 1, 1, 2, 2, 2, 2, 2)
 #' )
-#'
 #' Network(relations, actors)
-#' Network(relations, actors, link_weight_by = "friendship", node_size_by = 15,
-#'  node_fill_by = "gender", link_color_by = "advice", node_color_by = "black",
-#'  layout = "circle", link_curvature = 0.2, link_palette = "Set1")
-#' Network(relations, actors, directed = FALSE, cluster = "fast_greedy", add_mark = TRUE)
-#' Network(relations, actors, split_by = "type", link_arrow_offset = 0.075)
+#' Network(relations, actors, link_weight_by = "friendship", node_size_by = "age",
+#'  link_weight_name = "FRIENDSHIP", node_fill_by = "gender", link_color_by = "advice",
+#'  link_type_by = "type", node_color_by = "black", layout = "circle", link_curvature = 0.2,
+#'  link_palette = "Set1")
+#' Network(relations, actors, layout = "tree", directed = FALSE, cluster = "fast_greedy",
+#'  add_mark = TRUE)
+#' Network(relations, actors, split_by = "type")
 Network <- function(
     links, nodes = NULL, split_by = NULL, split_by_sep = "_", split_nodes = FALSE,
     from_by = NULL, from_by_sep = "_", to_by = NULL, to_by_sep = "_",
@@ -460,7 +447,7 @@ Network <- function(
     node_size_by = 15, node_size_name = NULL, node_color_by = "black", node_color_name = NULL,
     node_shape_by = 21, node_shape_name = NULL, node_fill_by = "grey20", node_fill_name = NULL,
     link_alpha = 1, node_alpha = 0.95, node_stroke = 1.5, cluster_scale = c("fill", "color", "shape"),
-    node_size_range = c(5, 20), link_weight_range = c(0.5, 5), link_arrow_offset = ifelse(directed, 0.035, 0),
+    node_size_range = c(5, 20), link_weight_range = c(0.5, 5), link_arrow_offset = 20,
     link_curvature = 0, link_palette = "Greys", link_palcolor = NULL, node_palette = "Paired", node_palcolor = NULL,
     directed = TRUE, layout = "circle", cluster = "none", add_mark = FALSE, mark_expand = ggplot2::unit(10, "mm"),
     mark_type = c("hull", "ellipse", "rect", "circle"), mark_alpha = 0.1, mark_linetype = 1, add_label = TRUE,

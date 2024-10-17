@@ -33,7 +33,7 @@ NetworkAtomic(
   cluster_scale = c("fill", "color", "shape"),
   node_size_range = c(5, 20),
   link_weight_range = c(0.5, 5),
-  link_arrow_offset = ifelse(directed, 0.035, 0),
+  link_arrow_offset = 20,
   link_curvature = 0,
   link_palette = "Greys",
   link_palcolor = NULL,
