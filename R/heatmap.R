@@ -1018,7 +1018,7 @@ HeatmapAtomic <- function(
             levels(hmargs$matrix[[columns_split_by]]),
             palette = columns_split_palette, palcolor = columns_split_palcolor
         )
-        top_annos$show_annotation_name[[columns_split_by]] <- is.null(column_title)
+        top_annos$show_annotation_name[[columns_split_by]] <- TRUE
         # top_annos$show_legend <- c(top_annos$show_legend, is.null(column_title))
         if (is.null(column_title) && !identical(legend.position, "none")) {
             legends$.column_split <- ComplexHeatmap::Legend(
@@ -1194,7 +1194,7 @@ HeatmapAtomic <- function(
             levels(rows_data[[rows_split_by]]),
             palette = rows_split_palette, palcolor = rows_split_palcolor
         )
-        left_annos$show_annotation_name[[rows_split_by]] <- is.null(row_title)
+        left_annos$show_annotation_name[[rows_split_by]] <- TRUE
         if (isTRUE(flip)) {
             hmargs$column_split <- left_annos[[rows_split_by]]
         } else {
