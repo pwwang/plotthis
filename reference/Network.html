@@ -48,16 +48,14 @@
 <span>  split_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  split_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  split_nodes <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  from_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  from_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
-<span>  to_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  to_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
+<span>  from <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  from_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
+<span>  to <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  to_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  node_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  node_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  link_weight_by <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  link_weight_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  link_color_by <span class="op">=</span> <span class="st">"grey40"</span>,</span>
-<span>  link_color_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  link_type_by <span class="op">=</span> <span class="st">"solid"</span>,</span>
 <span>  link_type_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  node_size_by <span class="op">=</span> <span class="fl">15</span>,</span>
@@ -76,10 +74,12 @@
 <span>  link_weight_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">5</span><span class="op">)</span>,</span>
 <span>  link_arrow_offset <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  link_curvature <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  link_palette <span class="op">=</span> <span class="st">"Greys"</span>,</span>
-<span>  link_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  node_palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
-<span>  node_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  link_color_by <span class="op">=</span> <span class="st">"from"</span>,</span>
+<span>  link_color_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
+<span>  palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  link_palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">link_color_by</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"from"</span>, <span class="st">"to"</span><span class="op">)</span>, <span class="va">palette</span>, <span class="st">"Set1"</span><span class="op">)</span>,</span>
+<span>  link_palcolor <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="va">link_color_by</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"from"</span>, <span class="st">"to"</span><span class="op">)</span><span class="op">)</span> <span class="va">palcolor</span> <span class="kw">else</span> <span class="cn">NULL</span>,</span>
 <span>  directed <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  layout <span class="op">=</span> <span class="st">"circle"</span>,</span>
 <span>  cluster <span class="op">=</span> <span class="st">"none"</span>,</span>
@@ -139,22 +139,22 @@ If <code>"@nodes"</code> is provided, the nodes data frame will be extracted fro
 If TRUE, the nodes data will also be split by the <code>split_by</code> column.</p></dd>
 
 
-<dt id="arg-from-by">from_by<a class="anchor" aria-label="anchor" href="#arg-from-by"></a></dt>
+<dt id="arg-from">from<a class="anchor" aria-label="anchor" href="#arg-from"></a></dt>
 <dd><p>A character string specifying the column name of the links data frame for the source nodes.
 Default is the first column of the links data frame.</p></dd>
 
 
-<dt id="arg-from-by-sep">from_by_sep<a class="anchor" aria-label="anchor" href="#arg-from-by-sep"></a></dt>
-<dd><p>A character string to concatenate the columns in <code>from_by</code>, if multiple columns are provided.</p></dd>
+<dt id="arg-from-sep">from_sep<a class="anchor" aria-label="anchor" href="#arg-from-sep"></a></dt>
+<dd><p>A character string to concatenate the columns in <code>from</code>, if multiple columns are provided.</p></dd>
 
 
-<dt id="arg-to-by">to_by<a class="anchor" aria-label="anchor" href="#arg-to-by"></a></dt>
+<dt id="arg-to">to<a class="anchor" aria-label="anchor" href="#arg-to"></a></dt>
 <dd><p>A character string specifying the column name of the links data frame for the target nodes.
 Default is the second column of the links data frame.</p></dd>
 
 
-<dt id="arg-to-by-sep">to_by_sep<a class="anchor" aria-label="anchor" href="#arg-to-by-sep"></a></dt>
-<dd><p>A character string to concatenate the columns in <code>to_by</code>, if multiple columns are provided.</p></dd>
+<dt id="arg-to-sep">to_sep<a class="anchor" aria-label="anchor" href="#arg-to-sep"></a></dt>
+<dd><p>A character string to concatenate the columns in <code>to</code>, if multiple columns are provided.</p></dd>
 
 
 <dt id="arg-node-by">node_by<a class="anchor" aria-label="anchor" href="#arg-node-by"></a></dt>
@@ -174,16 +174,6 @@ This determines the width of the links.</p></dd>
 
 <dt id="arg-link-weight-name">link_weight_name<a class="anchor" aria-label="anchor" href="#arg-link-weight-name"></a></dt>
 <dd><p>A character string specifying the name of the link weight in the legend.</p></dd>
-
-
-<dt id="arg-link-color-by">link_color_by<a class="anchor" aria-label="anchor" href="#arg-link-color-by"></a></dt>
-<dd><p>A character string specifying the color of the links.
-This can be a color name, a hex code, or a column name from the links data frame.
-It has higher priority when it is a column name.</p></dd>
-
-
-<dt id="arg-link-color-name">link_color_name<a class="anchor" aria-label="anchor" href="#arg-link-color-name"></a></dt>
-<dd><p>A character string specifying the name of the link color in the legend.</p></dd>
 
 
 <dt id="arg-link-type-by">link_type_by<a class="anchor" aria-label="anchor" href="#arg-link-type-by"></a></dt>
@@ -269,20 +259,34 @@ So that they won't overlap with the nodes.</p></dd>
 <dd><p>A numeric value specifying the curvature of the links.</p></dd>
 
 
+<dt id="arg-link-color-by">link_color_by<a class="anchor" aria-label="anchor" href="#arg-link-color-by"></a></dt>
+<dd><p>A character string specifying the colors of the link. It can be:</p><ul><li><p>"from" means the color of the link is determined by the source node.</p></li>
+<li><p>"to" means the color of the link is determined by the target node.</p></li>
+<li><p>Otherwise, the color of the link is determined by the column name from the links data frame.</p></li>
+</ul></dd>
+
+
+<dt id="arg-link-color-name">link_color_name<a class="anchor" aria-label="anchor" href="#arg-link-color-name"></a></dt>
+<dd><p>A character string specifying the name of the link color in the legend.
+Only used when <code>link_color_by</code> is a column name.</p></dd>
+
+
+<dt id="arg-palette">palette<a class="anchor" aria-label="anchor" href="#arg-palette"></a></dt>
+<dd><p>A character string specifying the palette to use.</p></dd>
+
+
+<dt id="arg-palcolor">palcolor<a class="anchor" aria-label="anchor" href="#arg-palcolor"></a></dt>
+<dd><p>A character string specifying the color to use in the palette.</p></dd>
+
+
 <dt id="arg-link-palette">link_palette<a class="anchor" aria-label="anchor" href="#arg-link-palette"></a></dt>
-<dd><p>A character string specifying the palette of the links.</p></dd>
+<dd><p>A character string specifying the palette of the links.
+When <code>link_color_by</code> is "from" or "to", the palette of the links defaults to the palette of the nodes.</p></dd>
 
 
 <dt id="arg-link-palcolor">link_palcolor<a class="anchor" aria-label="anchor" href="#arg-link-palcolor"></a></dt>
-<dd><p>A character vector specifying the colors of the link palette.</p></dd>
-
-
-<dt id="arg-node-palette">node_palette<a class="anchor" aria-label="anchor" href="#arg-node-palette"></a></dt>
-<dd><p>A character string specifying the palette of the nodes.</p></dd>
-
-
-<dt id="arg-node-palcolor">node_palcolor<a class="anchor" aria-label="anchor" href="#arg-node-palcolor"></a></dt>
-<dd><p>A character vector specifying the colors of the node palette.</p></dd>
+<dd><p>A character vector specifying the colors of the link palette.
+When <code>link_color_by</code> is "from" or "to", the colors of the link palette defaults to the colors of the node palette.</p></dd>
 
 
 <dt id="arg-directed">directed<a class="anchor" aria-label="anchor" href="#arg-directed"></a></dt>
@@ -427,15 +431,13 @@ if <code>waiver()</code>, for single groups, the legend will be "none", otherwis
 <span class="r-in"><span>  to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Alice"</span>, <span class="st">"Bob"</span>, <span class="st">"Alice"</span>, <span class="st">"Alice"</span>, <span class="st">"Bob"</span>, <span class="st">"Alice"</span>, <span class="st">"Bob"</span>, <span class="st">"Alice"</span>, <span class="st">"Cecil"</span>,</span></span>
 <span class="r-in"><span>     <span class="st">"David"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  friendship <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">5</span>, <span class="fl">5</span>, <span class="fl">2</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">1</span>, <span class="fl">3</span>, <span class="fl">4</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  advice <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">5</span>, <span class="fl">5</span>, <span class="fl">4</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">3</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">Network</span><span class="op">(</span><span class="va">relations</span>, <span class="va">actors</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="Network-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Network</span><span class="op">(</span><span class="va">relations</span>, <span class="va">actors</span>, link_weight_by <span class="op">=</span> <span class="st">"friendship"</span>, node_size_by <span class="op">=</span> <span class="st">"age"</span>,</span></span>
-<span class="r-in"><span> link_weight_name <span class="op">=</span> <span class="st">"FRIENDSHIP"</span>, node_fill_by <span class="op">=</span> <span class="st">"gender"</span>, link_color_by <span class="op">=</span> <span class="st">"advice"</span>,</span></span>
-<span class="r-in"><span> link_type_by <span class="op">=</span> <span class="st">"type"</span>, node_color_by <span class="op">=</span> <span class="st">"black"</span>, layout <span class="op">=</span> <span class="st">"circle"</span>, link_curvature <span class="op">=</span> <span class="fl">0.2</span>,</span></span>
-<span class="r-in"><span> link_palette <span class="op">=</span> <span class="st">"Set1"</span><span class="op">)</span></span></span>
+<span class="r-in"><span> link_weight_name <span class="op">=</span> <span class="st">"FRIENDSHIP"</span>, node_fill_by <span class="op">=</span> <span class="st">"gender"</span>, link_color_by <span class="op">=</span> <span class="st">"to"</span>,</span></span>
+<span class="r-in"><span> link_type_by <span class="op">=</span> <span class="st">"type"</span>, node_color_by <span class="op">=</span> <span class="st">"black"</span>, layout <span class="op">=</span> <span class="st">"circle"</span>, link_curvature <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="Network-2.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Network</span><span class="op">(</span><span class="va">relations</span>, <span class="va">actors</span>, layout <span class="op">=</span> <span class="st">"tree"</span>, directed <span class="op">=</span> <span class="cn">FALSE</span>, cluster <span class="op">=</span> <span class="st">"fast_greedy"</span>,</span></span>
 <span class="r-in"><span> add_mark <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
