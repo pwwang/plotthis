@@ -404,8 +404,6 @@ NetworkAtomic <- function(
         )
     }
 
-    theme_args$legend.key.size <- theme_args$legend.key.size %||% unit(0.5, "cm")
-    theme_args$legend.key.width <- theme_args$legend.key.width %||% unit(0.8, "cm")
     p <- p +
         scale_x_continuous(expand = c(0, .4)) +
         scale_y_continuous(expand = c(0, .4)) +
@@ -414,7 +412,9 @@ NetworkAtomic <- function(
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,
-            legend.direction = legend.direction
+            legend.direction = legend.direction,
+            legend.key.size = unit(0.5, "cm"),
+            legend.key.width = unit(0.8, "cm")
         )
 
     height <- width <- 5

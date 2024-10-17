@@ -130,7 +130,7 @@ RadarPlotAtomic <- function(
 
     mc <- min(max(nchar(levels(data[[x]]))), max_charwidth)
     panel.spacing <- theme_args$panel.spacing %||% unit(mc * 2, "points")
-    theme_args$panel.spacing <- panel.spacing
+    theme_args$panel.spacing <- NULL
     p <- p +
         geom_point(aes(colour = !!sym(group_by), fill = !!sym(group_by)), size = pt_size, shape = 21) +
         geom_text(
@@ -156,6 +156,7 @@ RadarPlotAtomic <- function(
             axis.title = element_blank(),
             panel.grid = element_blank(),
             panel.border = element_blank(),
+            panel.spacing = panel.spacing,
             panel.grid.major.x = element_line(colour = "grey80", linetype = 1)
         )
 
