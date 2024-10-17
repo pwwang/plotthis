@@ -164,14 +164,14 @@
 </h2>
 <p>Unlike other plotting packages, <code>plotthis</code> provides a unified interface for both splitting and faceting. For most plots that are created by <code>ggplot2</code> behind the scenes, <code>plotthis</code> is “facet-aware”.</p>
 <p>Most of the plotting functions in <code>plotthis</code> support both splitting and faceting.</p>
-<p>The <code>split_by</code> argument is used to split the data and generate multiple plots. The <code>facet</code> argument is used to facet the plot. When <code>facet</code> is TRUE, the <code>split_by</code> columns will be used to facet the plot. When <code>facet</code> is FALSE, the <code>split_by</code> columns will be used to split the data and generate multiple plots, which will be combined into one plot.</p>
-<p>For faceting, the <code>facet_scales</code> argument is used to control the scales of the facets. The <code>facet_wrap</code> function is used when <code>split_by</code> has one column; otherwise, the <code>facet_grid</code> function is used when <code>split_by</code> has two columns.</p>
-<p>For splitting, the data will be split by the <code>split_by</code> columns and each split will be plotted separately. So each plot has its own scales and guides. Unlike faceting, the scales and guides are not shared between the plots.</p>
+<p>The <code>split_by</code> argument is used to split the data and generate multiple plots, and the data in the <code>split_by</code> columns will be used to split the data and generate multiple plots, which will be combined into one plot. Those sub-plots are independent of each other, and they have their own scales and guides.</p>
+<p>For faceting, the <code>facet_scales</code> argument is used to control the scales of the facets. The <code>facet_wrap</code> function is used when <code>facet_by</code> has one column; otherwise, the <code>facet_grid</code> function is used when <code>facet_by</code> has two columns.</p>
+<p>For the plots that do not support faceting (they are not built directly based on <code>ggplot2</code>), the <code>split_by</code> will be a good choice to split the data and generate multiple plots.</p>
 </div>
 <div class="section level2">
 <h2 id="argument-naming-conventions">Argument naming conventions<a class="anchor" aria-label="anchor" href="#argument-naming-conventions"></a>
 </h2>
-<p>The arguments in the plotting functions are named in a consistent way. <code>_</code> is used to separate words in the argument names, in favor of <code>.</code>, unless the argument is passed to a <code>ggplot2</code> function (e.g. <code>theme</code>). The <code>_</code> is used to separate words in the argument names to make the argument names more readable and less confusing with the <code>.</code> in the function names, which could work as a method call. The argument names are all lowercase.</p>
+<p>The arguments in the plotting functions are named in a consistent way. <code>_</code> is used to separate words in the argument names, in favor of <code>.</code>, unless the argument is passed to a <code>ggplot2</code> function (e.g. <code>theme</code>). The <code>_</code> is used to separate words in the argument names to make the argument names more readable and less confusing with the <code>.</code> in the function names, which could work as a method call. The argument names are all lowercased.</p>
 </div>
 <div class="section level2">
 <h2 id="the-height-and-width-attributes">The <code>height</code> and <code>width</code> attributes<a class="anchor" aria-label="anchor" href="#the-height-and-width-attributes"></a>
