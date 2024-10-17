@@ -10,16 +10,14 @@ Network(
   split_by = NULL,
   split_by_sep = "_",
   split_nodes = FALSE,
-  from_by = NULL,
-  from_by_sep = "_",
-  to_by = NULL,
-  to_by_sep = "_",
+  from = NULL,
+  from_sep = "_",
+  to = NULL,
+  to_sep = "_",
   node_by = NULL,
   node_by_sep = "_",
   link_weight_by = 2,
   link_weight_name = NULL,
-  link_color_by = "grey40",
-  link_color_name = NULL,
   link_type_by = "solid",
   link_type_name = NULL,
   node_size_by = 15,
@@ -38,10 +36,12 @@ Network(
   link_weight_range = c(0.5, 5),
   link_arrow_offset = 20,
   link_curvature = 0,
-  link_palette = "Greys",
-  link_palcolor = NULL,
-  node_palette = "Paired",
-  node_palcolor = NULL,
+  link_color_by = "from",
+  link_color_name = NULL,
+  palette = "Paired",
+  palcolor = NULL,
+  link_palette = ifelse(link_color_by \%in\% c("from", "to"), palette, "Set1"),
+  link_palcolor = if (link_color_by \%in\% c("from", "to")) palcolor else NULL,
   directed = TRUE,
   layout = "circle",
   cluster = "none",
@@ -87,15 +87,15 @@ If \code{"@nodes"} is provided, the nodes data frame will be extracted from the 
 \item{split_nodes}{A logical value specifying whether to split the nodes data.
 If TRUE, the nodes data will also be split by the \code{split_by} column.}
 
-\item{from_by}{A character string specifying the column name of the links data frame for the source nodes.
+\item{from}{A character string specifying the column name of the links data frame for the source nodes.
 Default is the first column of the links data frame.}
 
-\item{from_by_sep}{A character string to concatenate the columns in \code{from_by}, if multiple columns are provided.}
+\item{from_sep}{A character string to concatenate the columns in \code{from}, if multiple columns are provided.}
 
-\item{to_by}{A character string specifying the column name of the links data frame for the target nodes.
+\item{to}{A character string specifying the column name of the links data frame for the target nodes.
 Default is the second column of the links data frame.}
 
-\item{to_by_sep}{A character string to concatenate the columns in \code{to_by}, if multiple columns are provided.}
+\item{to_sep}{A character string to concatenate the columns in \code{to}, if multiple columns are provided.}
 
 \item{node_by}{A character string specifying the column name of the nodes data frame for the node names.
 Default is the first column of the nodes data frame.}
@@ -107,12 +107,6 @@ If a numeric value is provided, all links will have the same weight.
 This determines the width of the links.}
 
 \item{link_weight_name}{A character string specifying the name of the link weight in the legend.}
-
-\item{link_color_by}{A character string specifying the color of the links.
-This can be a color name, a hex code, or a column name from the links data frame.
-It has higher priority when it is a column name.}
-
-\item{link_color_name}{A character string specifying the name of the link color in the legend.}
 
 \item{link_type_by}{A character string specifying the type of the links.
 This can be "solid", "dashed", "dotted", or a column name from the links data frame.
@@ -161,13 +155,25 @@ So that they won't overlap with the nodes.}
 
 \item{link_curvature}{A numeric value specifying the curvature of the links.}
 
-\item{link_palette}{A character string specifying the palette of the links.}
+\item{link_color_by}{A character string specifying the colors of the link. It can be:
+\itemize{
+\item "from" means the color of the link is determined by the source node.
+\item "to" means the color of the link is determined by the target node.
+\item Otherwise, the color of the link is determined by the column name from the links data frame.
+}}
 
-\item{link_palcolor}{A character vector specifying the colors of the link palette.}
+\item{link_color_name}{A character string specifying the name of the link color in the legend.
+Only used when \code{link_color_by} is a column name.}
 
-\item{node_palette}{A character string specifying the palette of the nodes.}
+\item{palette}{A character string specifying the palette to use.}
 
-\item{node_palcolor}{A character vector specifying the colors of the node palette.}
+\item{palcolor}{A character string specifying the color to use in the palette.}
+
+\item{link_palette}{A character string specifying the palette of the links.
+When \code{link_color_by} is "from" or "to", the palette of the links defaults to the palette of the nodes.}
+
+\item{link_palcolor}{A character vector specifying the colors of the link palette.
+When \code{link_color_by} is "from" or "to", the colors of the link palette defaults to the colors of the node palette.}
 
 \item{directed}{A logical value specifying whether the graph is directed.}
 
@@ -253,14 +259,12 @@ relations <- data.frame(
   to = c("Alice", "Bob", "Alice", "Alice", "Bob", "Alice", "Bob", "Alice", "Cecil",
      "David"),
   friendship = c(4, 5, 5, 2, 1, 1, 2, 1, 3, 4),
-  advice = factor(c(4, 5, 5, 4, 2, 3, 3, 1, 2, 1)),
   type = c(1, 1, 1, 1, 1, 2, 2, 2, 2, 2)
 )
 Network(relations, actors)
 Network(relations, actors, link_weight_by = "friendship", node_size_by = "age",
- link_weight_name = "FRIENDSHIP", node_fill_by = "gender", link_color_by = "advice",
- link_type_by = "type", node_color_by = "black", layout = "circle", link_curvature = 0.2,
- link_palette = "Set1")
+ link_weight_name = "FRIENDSHIP", node_fill_by = "gender", link_color_by = "to",
+ link_type_by = "type", node_color_by = "black", layout = "circle", link_curvature = 0.2)
 Network(relations, actors, layout = "tree", directed = FALSE, cluster = "fast_greedy",
  add_mark = TRUE)
 Network(relations, actors, split_by = "type")
