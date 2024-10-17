@@ -1516,9 +1516,9 @@ Heatmap <- function(
     }
 
     if (!is.null(split_by)) {
-        datas <- split(data, data[[split_by]])
+        datas <- split(data, data[[d_split_by]])
         if (isTRUE(split_rows_data) && !is.null(rows_data)) {
-            rows_datas <- split(rows_data, rows_data[[split_by]])
+            rows_datas <- split(rows_data, rows_data[[d_split_by]])
             nms <- names(datas)
             datas <- lapply(nms, function(nm) {
                 dat <- datas[[nm]]
@@ -1528,7 +1528,7 @@ Heatmap <- function(
             names(datas) <- nms
         } else {
             # keep the order of levels
-            datas <- datas[levels(data[[split_by]])]
+            datas <- datas[levels(data[[d_split_by]])]
         }
     } else {
         datas <- list(data)
