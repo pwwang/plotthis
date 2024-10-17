@@ -461,6 +461,7 @@ NetworkAtomic <- function(
 #'   type = c(1, 1, 1, 1, 1, 2, 2, 2, 2, 2)
 #' )
 #' Network(relations, actors)
+#' Network(relations, actors, theme = "theme_blank", theme_args = list(add_coord = FALSE))
 #' Network(relations, actors, link_weight_by = "friendship", node_size_by = "age",
 #'  link_weight_name = "FRIENDSHIP", node_fill_by = "gender", link_color_by = "to",
 #'  link_type_by = "type", node_color_by = "black", layout = "circle", link_curvature = 0.2)
