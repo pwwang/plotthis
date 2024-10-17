@@ -27,6 +27,7 @@ reference:
     - Histogram
     - LinePlot
     - LollipopPlot
+    - Network
     - RidgePlot
     - PieChart
     - RadarPlot

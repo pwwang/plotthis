@@ -21,7 +21,7 @@ $ conda install pwwang::r-plotthis
 
 ![area-trend](man/figures/area-trend.png)
 
-[`ClustreePlot`][4] / [`LinePlot`][5]
+[`ClustreePlot`][4] / [`LinePlot`][5] / [`Network`][26]
 
 ![clustree-line](man/figures/clustree-line.png)
 
@@ -108,3 +108,4 @@ $ conda install pwwang::r-plotthis
 [24]: https://pwwang.github.io/plotthis/reference/CorPlot.html
 [25]: https://pwwang.github.io/plotthis/reference/CorPairsPlot.html
 [25]: https://pwwang.github.io/plotthis/reference/RarefactionPlot.html
+[26]: https://pwwang.github.io/plotthis/reference/Network.html
