@@ -94,7 +94,7 @@ DimPlotAtomic <- function(
     add_density = FALSE, density_color = "grey80", density_filled = FALSE,
     density_filled_palette = "Greys", density_filled_palcolor = NULL,
     lineages = NULL, lineages_trim = c(0.01, 0.99), lineages_span = 0.75,
-    lineages_palette = "Dark2", lineages_palcolor = NULL, lineages_arrow = arrow(length = unit(0.1, "inches")),
+    lineages_palette = "Dark2", lineages_palcolor = NULL, lineages_arrow = ggplot2::arrow(length = unit(0.1, "inches")),
     lineages_linewidth = 1, lineages_line_bg = "white", lineages_line_bg_stroke = 0.5,
     lineages_whiskers = FALSE, lineages_whiskers_linewidth = 0.5, lineages_whiskers_alpha = 0.5,
     facet_by = NULL, facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,

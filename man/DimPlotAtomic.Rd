@@ -60,7 +60,7 @@ DimPlotAtomic(
   lineages_span = 0.75,
   lineages_palette = "Dark2",
   lineages_palcolor = NULL,
-  lineages_arrow = arrow(length = unit(0.1, "inches")),
+  lineages_arrow = ggplot2::arrow(length = unit(0.1, "inches")),
   lineages_linewidth = 1,
   lineages_line_bg = "white",
   lineages_line_bg_stroke = 0.5,
