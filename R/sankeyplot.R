@@ -61,7 +61,7 @@ SankeyPlotAtomic <- function(
         data[[new_links_by]] <- data[[links_by]]
         links_by <- new_links_by
     }
-    all_nodes <- unique(unlist(sapply(nodes_by, function(x) levels(data[[x]]))))
+    all_nodes <- unique(unlist(lapply(nodes_by, function(x) levels(data[[x]]))))
     data <- ggalluvial::to_lodes_form(data, key = ".Group", value = ".GroupValue", id = ".ID", axes = nodes_by)
     data$.GroupValue <- factor(data$.GroupValue, levels = all_nodes)
     nodes_colors <- palette_this(levels(data$.GroupValue), palette = nodes_palette, palcolor = nodes_palcolor)
