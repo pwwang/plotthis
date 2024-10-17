@@ -52,8 +52,8 @@ DotPlotAtomic <- function(
     } else {
         bg_direction <- "vertical"
     }
-    x_is_numeric <- !is.character(data[[x]]) && !is.factor(data[[x]]) && length(x) == 1
-    y_is_numeric <- !is.character(data[[y]]) && !is.factor(data[[y]]) && length(y) == 1
+    x_is_numeric <- length(x) == 1 && !is.character(data[[x]]) && !is.factor(data[[x]])
+    y_is_numeric <- length(y) == 1 && !is.character(data[[y]]) && !is.factor(data[[y]])
     if (!x_is_numeric) {
         x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
     }
