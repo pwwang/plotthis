@@ -387,6 +387,8 @@ ViolinPlot(data,
     x = "x", y = "y", group_by = "group1",
     facet_by = "group2", add_box = TRUE
 )
+ViolinPlot(data, x = "x", y = "y", add_point = TRUE, highlight = 'group1 == "g1"',
+    alpha = 0.8, highlight_size = 1.5, pt_size = 1, add_box = TRUE)
 ViolinPlot(data,
     x = "x", y = "y", group_by = "group1",
     comparisons = TRUE

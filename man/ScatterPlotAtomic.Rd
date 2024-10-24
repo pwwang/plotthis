@@ -20,6 +20,11 @@ ScatterPlotAtomic(
   border_color = "black",
   xtrans = "identity",
   ytrans = "identity",
+  highlight = NULL,
+  highlight_shape = 16,
+  highlight_size = 3,
+  highlight_color = "red",
+  highlight_alpha = 1,
   palette = ifelse(!is.null(color_by) && !is.numeric(data[[color_by]]), "Paired",
     "Spectral"),
   palcolor = NULL,
@@ -76,6 +81,17 @@ Or TRUE to use the fill color as the border color.}
 \item{xtrans}{A character vector specifying the transformation of the x-axis. Default is "identity".}
 
 \item{ytrans}{A character vector specifying the transformation of the y-axis. Default is "identity".}
+
+\item{highlight}{A vector of indexes or rownames to select the points to highlight.
+It could also be an expression (in string) to filter the data.}
+
+\item{highlight_shape}{A numeric value specifying the shape of the highlighted points. Default is 16.}
+
+\item{highlight_size}{A numeric value specifying the size of the highlighted points. Default is 3.}
+
+\item{highlight_color}{A character vector specifying the color of the highlighted points. Default is "red".}
+
+\item{highlight_alpha}{A numeric value specifying the transparency of the highlighted points. Default is 1.}
 
 \item{palette}{A character string specifying the palette to use.}
 

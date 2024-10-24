@@ -18,6 +18,11 @@ ScatterPlot(
   shape = 21,
   alpha = ifelse(shape \%in\% 21:25, 0.65, 1),
   border_color = "black",
+  highlight = NULL,
+  highlight_shape = 16,
+  highlight_size = 3,
+  highlight_color = "red",
+  highlight_alpha = 1,
   theme = "theme_this",
   theme_args = list(),
   palette = ifelse(!is.null(color_by) && !is.numeric(data[[color_by]]), "Paired",
@@ -73,6 +78,17 @@ For shapes 21-25, the color is applied to the fill color.}
 
 \item{border_color}{A character vector specifying the color for the border of the points.
 Or TRUE to use the fill color as the border color.}
+
+\item{highlight}{A vector of indexes or rownames to select the points to highlight.
+It could also be an expression (in string) to filter the data.}
+
+\item{highlight_shape}{A numeric value specifying the shape of the highlighted points. Default is 16.}
+
+\item{highlight_size}{A numeric value specifying the size of the highlighted points. Default is 3.}
+
+\item{highlight_color}{A character vector specifying the color of the highlighted points. Default is "red".}
+
+\item{highlight_alpha}{A numeric value specifying the transparency of the highlighted points. Default is 1.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -143,6 +159,9 @@ data <- data.frame(
    t = sample(c("A", "B"), 20, replace = TRUE)
 )
 ScatterPlot(data, x = "x", y = "y")
+
+# highlight points
+ScatterPlot(data, x = "x", y = "y", highlight = 'x > 0')
 
 # size_by is a numeric column
 ScatterPlot(data, x = "x", y = "y", size_by = "w")

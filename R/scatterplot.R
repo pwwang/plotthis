@@ -16,6 +16,12 @@
 #' @param color_reverse A logical value indicating whether to reverse the color direction. Default is FALSE.
 #' @param border_color A character vector specifying the color for the border of the points.
 #'  Or TRUE to use the fill color as the border color.
+#' @param highlight A vector of indexes or rownames to select the points to highlight.
+#'  It could also be an expression (in string) to filter the data.
+#' @param highlight_shape A numeric value specifying the shape of the highlighted points. Default is 16.
+#' @param highlight_size A numeric value specifying the size of the highlighted points. Default is 3.
+#' @param highlight_color A character vector specifying the color of the highlighted points. Default is "red".
+#' @param highlight_alpha A numeric value specifying the transparency of the highlighted points. Default is 1.
 #' @param alpha A numeric value specifying the transparency of the dots. Default is 1.
 #'  For shapes 21-25, the transparency is applied to the fill color.
 #' @param shape A numeric value specifying the shape of the points. Default is 21.
@@ -24,12 +30,14 @@
 #' @return A ggplot object
 #' @keywords internal
 #' @importFrom utils getFromNamespace
+#' @importFrom dplyr filter
 #' @importFrom ggplot2 aes geom_point scale_size_area scale_fill_gradientn scale_color_gradientn labs
 #' @importFrom ggplot2 guide_colorbar guide_legend guides guide_none scale_size
 ScatterPlotAtomic <- function(
     data, x, y, size_by = 2, size_name = NULL, color_by = NULL, color_name = NULL, color_reverse = FALSE,
     theme = "theme_this", theme_args = list(), alpha = ifelse(shape %in% 21:25, 0.65, 1),
     shape = 21, border_color = "black", xtrans = "identity", ytrans = "identity",
+    highlight = NULL, highlight_shape = 16, highlight_size = 3, highlight_color = "red", highlight_alpha = 1,
     palette = ifelse(!is.null(color_by) && !is.numeric(data[[color_by]]), "Paired", "Spectral"), palcolor = NULL,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
@@ -56,7 +64,23 @@ ScatterPlotAtomic <- function(
         color_by <- check_columns(data, color_by, force_factor = TRUE)
     }
 
+    hidata <- NULL
+    if (!is.null(highlight)) {
+        if (isTRUE(highlight)) {
+            hidata <- data
+        } else if (is.numeric(highlight)) {
+            hidata <- data[highlight, , drop = FALSE]
+        } else if (is.character(highlight) && length(highlight) == 1) {
+            hidata <- filter(data, !!parse_expr(highlight))
+        } else if (is.null(rownames(data))) {
+            stop("No row names in the data, please provide a vector of indexes to highlight.")
+        } else {
+            hidata <- data[highlight, , drop = FALSE]
+        }
+    }
+
     shape_has_fill <- shape %in% 21:25
+    hishape_has_fill <- highlight_shape %in% 21:25
 
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y)))
     mapping <- list()
@@ -172,6 +196,18 @@ ScatterPlotAtomic <- function(
         }
     }
 
+    if (!is.null(hidata)) {
+        if (hishape_has_fill) {
+            p <- p + geom_point(data = hidata,
+                shape = highlight_shape, fill = highlight_color, color = "transparent",
+                size = highlight_size, alpha = highlight_alpha)
+        } else {
+            p <- p + geom_point(data = hidata,
+                shape = highlight_shape, color = highlight_color,
+                size = highlight_size, alpha = highlight_alpha)
+        }
+    }
+
     p <- p +
         scale_x_continuous(trans = xtrans) +
         scale_y_continuous(trans = ytrans) +
@@ -220,6 +256,9 @@ ScatterPlotAtomic <- function(
 #' )
 #' ScatterPlot(data, x = "x", y = "y")
 #'
+#' # highlight points
+#' ScatterPlot(data, x = "x", y = "y", highlight = 'x > 0')
+#'
 #' # size_by is a numeric column
 #' ScatterPlot(data, x = "x", y = "y", size_by = "w")
 #'
@@ -240,6 +279,7 @@ ScatterPlotAtomic <- function(
 ScatterPlot <- function(
     data, x, y, size_by = 2, size_name = NULL, color_by = NULL, color_name = NULL, color_reverse = FALSE,
     split_by = NULL, split_by_sep = "_", shape = 21, alpha = ifelse(shape %in% 21:25, 0.65, 1), border_color = "black",
+    highlight = NULL, highlight_shape = 16, highlight_size = 3, highlight_color = "red", highlight_alpha = 1,
     theme = "theme_this", theme_args = list(),
     palette = ifelse(!is.null(color_by) && !is.numeric(data[[color_by]]), "Paired", "Spectral"), palcolor = NULL,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
@@ -271,6 +311,8 @@ ScatterPlot <- function(
             }
             ScatterPlotAtomic(
                 datas[[nm]], x = x, y = y, size_by = size_by, size_name = size_name, color_by = color_by,
+                highlight = highlight, highlight_shape = highlight_shape, highlight_size = highlight_size,
+                highlight_color = highlight_color, highlight_alpha = highlight_alpha,
                 color_name = color_name, color_reverse = color_reverse, theme = theme, theme_args = theme_args,
                 alpha = alpha, shape = shape, border_color = border_color, palette = palette, palcolor = palcolor,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
