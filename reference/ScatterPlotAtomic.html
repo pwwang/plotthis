@@ -58,6 +58,11 @@
 <span>  border_color <span class="op">=</span> <span class="st">"black"</span>,</span>
 <span>  xtrans <span class="op">=</span> <span class="st">"identity"</span>,</span>
 <span>  ytrans <span class="op">=</span> <span class="st">"identity"</span>,</span>
+<span>  highlight <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  highlight_shape <span class="op">=</span> <span class="fl">16</span>,</span>
+<span>  highlight_size <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  highlight_color <span class="op">=</span> <span class="st">"red"</span>,</span>
+<span>  highlight_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">color_by</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">is.numeric</a></span><span class="op">(</span><span class="va">data</span><span class="op">[[</span><span class="va">color_by</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, <span class="st">"Paired"</span>,</span>
 <span>    <span class="st">"Spectral"</span><span class="op">)</span>,</span>
 <span>  palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -147,6 +152,27 @@ Or TRUE to use the fill color as the border color.</p></dd>
 
 <dt id="arg-ytrans">ytrans<a class="anchor" aria-label="anchor" href="#arg-ytrans"></a></dt>
 <dd><p>A character vector specifying the transformation of the y-axis. Default is "identity".</p></dd>
+
+
+<dt id="arg-highlight">highlight<a class="anchor" aria-label="anchor" href="#arg-highlight"></a></dt>
+<dd><p>A vector of indexes or rownames to select the points to highlight.
+It could also be an expression (in string) to filter the data.</p></dd>
+
+
+<dt id="arg-highlight-shape">highlight_shape<a class="anchor" aria-label="anchor" href="#arg-highlight-shape"></a></dt>
+<dd><p>A numeric value specifying the shape of the highlighted points. Default is 16.</p></dd>
+
+
+<dt id="arg-highlight-size">highlight_size<a class="anchor" aria-label="anchor" href="#arg-highlight-size"></a></dt>
+<dd><p>A numeric value specifying the size of the highlighted points. Default is 3.</p></dd>
+
+
+<dt id="arg-highlight-color">highlight_color<a class="anchor" aria-label="anchor" href="#arg-highlight-color"></a></dt>
+<dd><p>A character vector specifying the color of the highlighted points. Default is "red".</p></dd>
+
+
+<dt id="arg-highlight-alpha">highlight_alpha<a class="anchor" aria-label="anchor" href="#arg-highlight-alpha"></a></dt>
+<dd><p>A numeric value specifying the transparency of the highlighted points. Default is 1.</p></dd>
 
 
 <dt id="arg-palette">palette<a class="anchor" aria-label="anchor" href="#arg-palette"></a></dt>

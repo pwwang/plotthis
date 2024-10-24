@@ -56,6 +56,11 @@
 <span>  shape <span class="op">=</span> <span class="fl">21</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">shape</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fl">21</span><span class="op">:</span><span class="fl">25</span>, <span class="fl">0.65</span>, <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  border_color <span class="op">=</span> <span class="st">"black"</span>,</span>
+<span>  highlight <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  highlight_shape <span class="op">=</span> <span class="fl">16</span>,</span>
+<span>  highlight_size <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  highlight_color <span class="op">=</span> <span class="st">"red"</span>,</span>
+<span>  highlight_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  theme <span class="op">=</span> <span class="st">"theme_this"</span>,</span>
 <span>  theme_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">color_by</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">is.numeric</a></span><span class="op">(</span><span class="va">data</span><span class="op">[[</span><span class="va">color_by</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, <span class="st">"Paired"</span>,</span>
@@ -140,6 +145,27 @@ For shapes 21-25, the color is applied to the fill color.</p></dd>
 <dt id="arg-border-color">border_color<a class="anchor" aria-label="anchor" href="#arg-border-color"></a></dt>
 <dd><p>A character vector specifying the color for the border of the points.
 Or TRUE to use the fill color as the border color.</p></dd>
+
+
+<dt id="arg-highlight">highlight<a class="anchor" aria-label="anchor" href="#arg-highlight"></a></dt>
+<dd><p>A vector of indexes or rownames to select the points to highlight.
+It could also be an expression (in string) to filter the data.</p></dd>
+
+
+<dt id="arg-highlight-shape">highlight_shape<a class="anchor" aria-label="anchor" href="#arg-highlight-shape"></a></dt>
+<dd><p>A numeric value specifying the shape of the highlighted points. Default is 16.</p></dd>
+
+
+<dt id="arg-highlight-size">highlight_size<a class="anchor" aria-label="anchor" href="#arg-highlight-size"></a></dt>
+<dd><p>A numeric value specifying the size of the highlighted points. Default is 3.</p></dd>
+
+
+<dt id="arg-highlight-color">highlight_color<a class="anchor" aria-label="anchor" href="#arg-highlight-color"></a></dt>
+<dd><p>A character vector specifying the color of the highlighted points. Default is "red".</p></dd>
+
+
+<dt id="arg-highlight-alpha">highlight_alpha<a class="anchor" aria-label="anchor" href="#arg-highlight-alpha"></a></dt>
+<dd><p>A numeric value specifying the transparency of the highlighted points. Default is 1.</p></dd>
 
 
 <dt id="arg-theme">theme<a class="anchor" aria-label="anchor" href="#arg-theme"></a></dt>
@@ -257,28 +283,32 @@ This is useful when split_by is used and the title needs to be dynamic.</p></dd>
 <span class="r-in"><span><span class="fu">ScatterPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="ScatterPlot-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># highlight points</span></span></span>
+<span class="r-in"><span><span class="fu">ScatterPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, highlight <span class="op">=</span> <span class="st">'x &gt; 0'</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="ScatterPlot-2.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># size_by is a numeric column</span></span></span>
 <span class="r-in"><span><span class="fu">ScatterPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, size_by <span class="op">=</span> <span class="st">"w"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="ScatterPlot-2.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="ScatterPlot-3.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># color_by is a numeric column</span></span></span>
 <span class="r-in"><span><span class="fu">ScatterPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, color_by <span class="op">=</span> <span class="st">"w"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="ScatterPlot-3.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="ScatterPlot-4.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># color_by is a factor/character column and set a border_color</span></span></span>
 <span class="r-in"><span><span class="fu">ScatterPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, size_by <span class="op">=</span> <span class="st">"w"</span>, color_by <span class="op">=</span> <span class="st">"t"</span>,</span></span>
 <span class="r-in"><span> border_color <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="ScatterPlot-4.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="ScatterPlot-5.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Same border_color as the fill color</span></span></span>
 <span class="r-in"><span><span class="fu">ScatterPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, size_by <span class="op">=</span> <span class="st">"w"</span>, color_by <span class="op">=</span> <span class="st">"t"</span>,</span></span>
 <span class="r-in"><span> border_color <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="ScatterPlot-5.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="ScatterPlot-6.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Shape doesn't have fill color</span></span></span>
 <span class="r-in"><span><span class="fu">ScatterPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, size_by <span class="op">=</span> <span class="st">"w"</span>, color_by <span class="op">=</span> <span class="st">"t"</span>,</span></span>
 <span class="r-in"><span> shape <span class="op">=</span> <span class="fl">1</span>, palette <span class="op">=</span> <span class="st">"Set1"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="ScatterPlot-6.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="ScatterPlot-7.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
