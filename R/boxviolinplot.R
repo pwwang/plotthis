@@ -66,7 +66,7 @@
 #' @return A ggplot object
 #' @keywords internal
 #' @importFrom stats median quantile
-#' @importFrom rlang sym syms
+#' @importFrom rlang sym syms parse_expr
 #' @importFrom dplyr mutate ungroup first
 #' @importFrom ggplot2 geom_boxplot geom_violin geom_jitter geom_point geom_line geom_hline geom_vline
 #' @importFrom ggplot2 scale_fill_manual scale_color_manual scale_shape_manual scale_linetype_manual stat_summary
@@ -161,8 +161,12 @@ BoxViolinPlotAtomic <- function(
     if (!is.null(highlight)) {
         if (isTRUE(highlight)) {
             data$.highlight <- TRUE
+        } else if (is.numeric(highlight)) {
+            data$.highlight <- 1:nrow(data) %in% highlight
+        } else if (is.character(highlight) && length(highlight) == 1) {
+            data <- mutate(data, .highlight = !!parse_expr(highlight))
         } else if (is.null(rownames(data))) {
-            stop("Row names are missing in the data to select points to highlight.")
+            stop("No row names in the data, please provide a vector of indexes to highlight.")
         } else {
             data$.highlight <- rownames(data) %in% highlight
         }
@@ -650,6 +654,8 @@ BoxPlot <- function(
 #'     x = "x", y = "y", group_by = "group1",
 #'     facet_by = "group2", add_box = TRUE
 #' )
+#' ViolinPlot(data, x = "x", y = "y", add_point = TRUE, highlight = 'group1 == "g1"',
+#'     alpha = 0.8, highlight_size = 1.5, pt_size = 1, add_box = TRUE)
 #' ViolinPlot(data,
 #'     x = "x", y = "y", group_by = "group1",
 #'     comparisons = TRUE
