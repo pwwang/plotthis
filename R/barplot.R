@@ -152,7 +152,7 @@ BarPlotSingle <- function(
     }
 
     height <- 4.5
-    width <- .5 + nlevels(data[[x]]) * .8
+    width <- .5 + min(nlevels(data[[x]]) * .8, height / aspect.ratio)
     if (!identical(legend.position, "none")) {
         if (legend.position %in% c("right", "left")) {
             width <- width + 1
@@ -312,9 +312,9 @@ BarPlotGrouped <- function(
 
     height <- 4.5
     if (is.character(position) && position == "stack") {
-        width <- max(.5 + nlevels(data[[x]]) * .8, 4.5)
+        width <- max(min(.5 + nlevels(data[[x]]) * .8, 1.2 * height / aspect.ratio), 4.5)
     } else {
-        width <- .5 + nlevels(data[[x]]) * length(unique(data[[group_by]])) * .5
+        width <- .5 + min(nlevels(data[[x]]) * length(unique(data[[group_by]])) * .5, 1.2 * height / aspect.ratio)
     }
     if (!identical(legend.position, "none")) {
         if (legend.position %in% c("right", "left")) {
