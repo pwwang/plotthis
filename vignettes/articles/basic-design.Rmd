@@ -130,6 +130,8 @@ dev.off()
 If a plot is created by `ggplot2` behind the scenes, `plotthis` relies on the `gglogger` package to trace the `ggplot2` calls. The `gglogger` package is used to log the `ggplot2` calls and the arguments passed to the `ggplot2` functions. This is useful for debugging and understanding how the plot is created.
 
 ```r
+options(plotthis.gglogger.enabled = TRUE)
+
 p <- BarPlot(data = iris, x = "Species")
 p$logs
 

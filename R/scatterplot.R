@@ -24,7 +24,6 @@
 #' @return A ggplot object
 #' @keywords internal
 #' @importFrom utils getFromNamespace
-#' @importFrom gglogger ggplot
 #' @importFrom ggplot2 aes geom_point scale_size_area scale_fill_gradientn scale_color_gradientn labs
 #' @importFrom ggplot2 guide_colorbar guide_legend guides guide_none scale_size
 ScatterPlotAtomic <- function(
@@ -36,6 +35,11 @@ ScatterPlotAtomic <- function(
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, ...
 ) {
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
     if (!is.numeric(size_by)) {
         size_by <- check_columns(data, size_by)

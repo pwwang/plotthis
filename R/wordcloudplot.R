@@ -34,6 +34,11 @@ WordCloudPlotAtomic <- function(
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, seed = 8525, ...
 ) {
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     if (sum(is.null(word_by), is.null(sentence_by)) != 1) {
         stop("Either 'word_by' or 'sentence_by' should be specified.")
     }

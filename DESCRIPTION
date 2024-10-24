@@ -31,13 +31,13 @@ Imports:
     methods,
     patchwork,
     ggrepel,
-    gglogger,
     ggnewscale,
     cowplot,
     zoo
 Suggests:
     ComplexHeatmap,
     clustree,
+    gglogger,
     ggwordcloud,
     ggalluvial,
     ggVennDiagram (>= 1.5.0),

@@ -53,6 +53,11 @@ VolcanoPlotAtomic <- function(
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical", seed = 8525,
     ...
 ) {
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     x <- check_columns(data, x)
     y <- check_columns(data, y)
     color_by <- check_columns(data, color_by)

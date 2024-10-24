@@ -100,6 +100,11 @@ GSEASummaryPlot <- function(
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL,
     seed = 8525, ...) {
     set.seed(seed)
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     line_by <- match.arg(line_by)
     if (inherits(data, "gseaResult")) {
         data <- as.data.frame(data)
@@ -277,7 +282,6 @@ GSEASummaryPlot <- function(
 #' @param ylab The label of the y-axis, will be shown on the right side
 #' @keywords internal
 #' @importFrom scales alpha
-#' @importFrom gglogger ggplot
 #' @importFrom ggplot2 ggtitle theme_classic annotate
 #' @importFrom patchwork plot_layout wrap_plots plot_spacer
 GSEAPlotAtomic <- function(
@@ -285,6 +289,11 @@ GSEAPlotAtomic <- function(
     line_width = 1.5, line_alpha = 1, line_color = "#6BB82D", n_coregenes = 10, genes_label = NULL,
     label_fg = "black", label_bg = "white", label_bg_r = 0.1, label_size = 4,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, ...) {
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     if (nrow(data) > 1) {
         data <- data[data$ID == gs, , drop = FALSE]
     }

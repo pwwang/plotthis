@@ -288,10 +288,15 @@ palette_this <- function(
 #'     return_palettes = TRUE
 #' )
 #'
-#' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_col scale_fill_manual scale_x_continuous element_blank aes element_text margin element_rect unit theme
 #' @export
 show_palettes <- function(palettes = NULL, type = c("discrete", "continuous"), index = NULL, palette_names = NULL, return_names = TRUE, return_palettes = FALSE) {
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
+
     if (!is.null(palettes)) {
         palette_list <- palettes
     } else {

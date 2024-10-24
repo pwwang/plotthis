@@ -30,7 +30,6 @@
 #' @importFrom rlang syms
 #' @importFrom dplyr summarise n %>% distinct ungroup
 #' @importFrom tidyr complete
-#' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_polygon geom_point geom_text scale_y_continuous scale_x_discrete scale_fill_manual
 #' @importFrom ggplot2 scale_color_manual coord_polar labs theme element_blank element_line element_text element_rect
 #' @importFrom ggplot2 ggproto CoordPolar waiver
@@ -42,7 +41,11 @@ RadarPlotAtomic <- function(
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     alpha = 0.2, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
     title = NULL, subtitle = NULL, ...) {
-
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
     data[[x]] <- droplevels(data[[x]])
     y <- check_columns(data, y)

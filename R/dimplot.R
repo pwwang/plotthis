@@ -73,7 +73,6 @@
 #' @importFrom stats loess formula na.omit aggregate
 #' @importFrom dplyr %>% group_by group_map pull filter
 #' @importFrom tidyr pivot_longer
-#' @importFrom gglogger ggplot
 #' @importFrom ggplot2 scale_linewidth_continuous geom_density_2d stat_density_2d geom_hex
 #' @importFrom ggplot2 ggplotGrob theme_void as_labeller stat_summary_hex
 #' @importFrom cowplot get_plot_component
@@ -103,6 +102,11 @@ DimPlotAtomic <- function(
     raster = NULL, raster_dpi = c(512, 512),
     hex = FALSE, hex_linewidth = 0.5, hex_count = !is.null(group_by), hex_bins = 50, hex_binwidth = NULL,
     palette = ifelse(is.null(features), "Paired", "Spectral"), palcolor = NULL, seed = 8525, ...) {
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     ## Setting up the parameters
     if (is.numeric(dims)) {
         dims <- colnames(data)[dims]

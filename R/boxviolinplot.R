@@ -68,7 +68,6 @@
 #' @importFrom stats median quantile
 #' @importFrom rlang sym syms
 #' @importFrom dplyr mutate ungroup first
-#' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_boxplot geom_violin geom_jitter geom_point geom_line geom_hline geom_vline
 #' @importFrom ggplot2 scale_fill_manual scale_color_manual scale_shape_manual scale_linetype_manual stat_summary
 #' @importFrom ggplot2 labs theme element_line element_text position_dodge position_jitter coord_flip layer_scales
@@ -95,6 +94,11 @@ BoxViolinPlotAtomic <- function(
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525, ...) {
     set.seed(seed)
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     in_form <- match.arg(in_form)
     if (in_form == "wide") {
         data <- data %>% pivot_longer(cols = x, names_to = ".x", values_to = ".y")

@@ -23,7 +23,6 @@
 #' @keywords internal
 #' @importFrom rlang syms %||%
 #' @importFrom dplyr %>% group_by summarise n
-#' @importFrom gglogger ggplot
 #' @importFrom ggnewscale new_scale_fill
 #' @importFrom ggplot2 geom_col scale_fill_manual geom_label after_stat scale_x_discrete scale_y_continuous labs
 SankeyPlotAtomic <- function(
@@ -34,6 +33,11 @@ SankeyPlotAtomic <- function(
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     ...
 ) {
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     # if (!requireNamespace("ggalluvial", quietly = TRUE)) {
     #     stop("ggalluvial is required to use SankeyPlot/AlluvialPlot.")
     # }

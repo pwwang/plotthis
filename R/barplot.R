@@ -35,7 +35,6 @@
 #' @importFrom rlang sym %||%
 #' @importFrom dplyr %>% group_by summarise n
 #' @importFrom tidyr complete
-#' @importFrom gglogger ggplot
 #' @importFrom ggplot2 aes geom_bar scale_fill_manual labs scale_x_discrete scale_y_continuous
 #' @importFrom ggplot2 element_line waiver coord_flip scale_color_manual guide_legend coord_cartesian
 #' @importFrom ggrepel geom_text_repel
@@ -49,6 +48,11 @@ BarPlotSingle <- function(
     add_trend = FALSE, trend_color = "black", trend_linewidth = 1, trend_ptsize = 2.5,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
     expand = waiver(), fill_by_x = TRUE, width = 0.9, ...) {
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     if (inherits(width, "waiver")) width <- 0.9
     if (inherits(expand, "waiver")) {
         if (!is.null(label)) {
@@ -191,7 +195,6 @@ BarPlotSingle <- function(
 #' @keywords internal
 #' @importFrom rlang sym %||%
 #' @importFrom dplyr %>% summarise n
-#' @importFrom gglogger ggplot
 #' @importFrom ggplot2 aes geom_bar scale_fill_manual labs position_dodge2 coord_flip guide_legend scale_color_manual
 BarPlotGrouped <- function(
     data, x, x_sep = "_", y = NULL, flip = FALSE, group_by, group_by_sep = "_", group_name = NULL,
@@ -205,6 +208,11 @@ BarPlotGrouped <- function(
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
     expand = waiver(), width = 0.8, facet_by = NULL, facet_scales = "fixed", ...) {
 
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
     x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
@@ -521,7 +529,6 @@ BarPlot <- function(
 #' @param x_min A numeric value indicating the minimum value of the x axis.
 #' @param x_max A numeric value indicating the maximum value of the x axis.
 #' @keywords internal
-#' @importFrom gglogger ggplot
 #' @importFrom stringr str_wrap
 #' @importFrom forcats fct_relabel
 #' @importFrom dplyr .data
@@ -538,6 +545,11 @@ SplitBarPlotAtomic <- function(
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
     ...) {
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     x <- check_columns(data, x)
     y <- check_columns(data, y, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = y_sep)
     fill_by <- check_columns(data, fill_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = fill_by_sep)

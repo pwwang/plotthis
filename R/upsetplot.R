@@ -136,6 +136,11 @@ UpsetPlotAtomic <- function(
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     aspect.ratio = 0.6, legend.position = "right", legend.direction = "vertical", ...
 ) {
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     # if (!requireNamespace("ggupset", quietly = TRUE)) {
     #     stop("ggupset is required to plot Upset plot. Please install it first.")
     # }

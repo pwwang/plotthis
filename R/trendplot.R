@@ -27,6 +27,11 @@ TrendPlotAtomic <- function(
     x_text_angle = 0, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, ...
 ) {
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
     data[[x]] <- droplevels(data[[x]])
     y <- check_columns(data, y)

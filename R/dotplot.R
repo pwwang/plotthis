@@ -32,7 +32,6 @@
 #' @return A ggplot object
 #' @keywords internal
 #' @importFrom dplyr %>% group_by summarise n first
-#' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_point scale_y_discrete scale_size_area scale_fill_gradientn scale_color_gradientn labs
 #' @importFrom ggplot2 coord_flip guide_colorbar guide_legend guides guide_none scale_size geom_segment
 #' @importFrom ggnewscale new_scale_color
@@ -46,6 +45,11 @@ DotPlotAtomic <- function(
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2, bg_direction = c("vertical", "horizontal", "v", "h"),
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, ...
 ) {
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     bg_direction <- match.arg(bg_direction)
     if (bg_direction %in% c("h", "horizontal")) {
         bg_direction <- "horizontal"

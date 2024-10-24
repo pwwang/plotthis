@@ -30,7 +30,6 @@
 #'
 #' @keywords internal
 #' @importFrom rlang sym
-#' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_line scale_color_manual labs geom_rect geom_errorbar geom_point
 LinePlotSingle <- function(
     data, x, y = NULL, fill_point_by_x = TRUE, color_line_by_x = TRUE, facet_by = NULL,
@@ -44,6 +43,11 @@ LinePlotSingle <- function(
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, ...
 ) {
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     x <- check_columns(data, x, force_factor = TRUE)
     y <- check_columns(data, y)
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
@@ -156,7 +160,6 @@ LinePlotSingle <- function(
 #' @keywords internal
 #' @importFrom rlang syms
 #' @importFrom dplyr summarise %>% mutate n
-#' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_line scale_color_manual labs geom_errorbar geom_point
 LinePlotGrouped <- function(
     data, x, y = NULL, group_by, group_by_sep = "_", facet_by = NULL,
@@ -170,6 +173,11 @@ LinePlotGrouped <- function(
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, ...
 ) {
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     x <- check_columns(data, x, force_factor = TRUE)
     y <- check_columns(data, y)
     group_by <- check_columns(

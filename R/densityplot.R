@@ -30,7 +30,6 @@
 #' @param trend_skip_zero A logical value. If TRUE, skip the zero count when drawing the trend line.
 #' @importFrom utils getFromNamespace
 #' @importFrom zoo na.approx
-#' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_density scale_fill_manual labs theme geom_histogram coord_flip waiver
 #' @importFrom ggplot2 scale_color_manual scale_x_continuous scale_y_continuous stat_bin
 #' @keywords internal
@@ -43,6 +42,11 @@ DensityHistoPlotAtomic <- function(
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(bottom = 0, left = 0, right = 0),
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     legend.position = ifelse(is.null(group_by), "none", "right"), legend.direction = "vertical", ...) {
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     type <- match.arg(type)
     expand <- norm_expansion(expand, x_type = "continuous", y_type = "continuous")
     x <- check_columns(data, x)
@@ -192,6 +196,11 @@ RidgePlotAtomic <- function(
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, x_text_angle = 90, keep_empty = FALSE, reverse = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = "none", legend.direction = "vertical", ...) {
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     in_form <- match.arg(in_form)
     if (in_form == "wide") {
         data <- data %>% pivot_longer(cols = group_by, names_to = ".group_by", values_to = ".x")

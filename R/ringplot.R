@@ -17,7 +17,6 @@
 #' @return A ggplot object
 #' @importFrom rlang sym syms
 #' @importFrom dplyr %>% summarise n
-#' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_col scale_fill_manual scale_x_discrete geom_label
 #' @keywords internal
 RingPlotAtomic <- function(
@@ -29,7 +28,11 @@ RingPlotAtomic <- function(
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
     seed = 8525, ...
 ) {
-
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     base_size <- theme_args$base_size %||% 12
     text_size_scale <- base_size / 12
 

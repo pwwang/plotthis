@@ -142,7 +142,6 @@ PrepareVennData <- function(data, in_form = NULL, group_by = NULL, group_by_sep 
 #' @return A ggplot object with Venn diagram
 #' @keywords internal
 #' @importFrom rlang %||%
-#' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_polygon geom_path coord_equal aes scale_x_continuous labs
 #' @importFrom ggrepel geom_text_repel
 VennDiagramAtomic <- function(
@@ -153,6 +152,11 @@ VennDiagramAtomic <- function(
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL,
     legend.position = "right", legend.direction = "vertical", ...
 ) {
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     # if (!requireNamespace("ggVennDiagram", quietly = TRUE)) {
     #     stop("ggVennDiagram (v1.5+) is required for Venn diagram.")
     # }

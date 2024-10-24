@@ -51,6 +51,11 @@ CorPlotAtomic <- function(
     ...
 ) {
     set.seed(seed)
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     anno_position <- match.arg(anno_position)
     anno_position <- switch(anno_position,
         tl = "topleft", tr = "topright", bl = "bottomleft", br = "bottomright",
@@ -322,7 +327,6 @@ CorPlot <- function(
 #' @param ... Additional arguments to pass to \code{\link{CorPlot}}.
 #' @details `theme` and `theme_args` are also supported, they will be passed to each individual plot.
 #' @return A `patch_work::wrap_plots` object.
-#' @importFrom gglogger ggplot
 #' @importFrom ggplot2 waiver geom_tile element_blank scale_fill_gradientn guide_colorbar scale_x_continuous
 #' @importFrom ggplot2 geom_line scale_y_continuous
 #' @importFrom ggrepel geom_text_repel
@@ -339,6 +343,11 @@ CorPairsPlotAtomic <- function(
     ...
 ) {
     set.seed(seed)
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     if (!is.null(facet_by)) {
         stop("'facet_by' is not supported in CorPairsPlot. Consider using 'split_by'.")
     }

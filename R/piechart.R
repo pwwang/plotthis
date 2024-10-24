@@ -8,7 +8,6 @@
 #' @param clockwise A logical value to draw the pie chart clockwise or not.
 #' @keywords internal
 #' @importFrom rlang sym
-#' @importFrom gglogger ggplot
 #' @importFrom dplyr lead if_else mutate %>% group_by summarise n
 #' @importFrom tidyr complete replace_na
 #' @importFrom ggplot2 coord_polar geom_col scale_fill_manual labs element_blank guide_legend
@@ -20,6 +19,11 @@ PieChartAtomic <- function(
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, ...
 ) {
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     base_size <- theme_args$base_size %||% 12
     text_size_scale <- base_size / 12
 

@@ -101,7 +101,6 @@ adjust_network_layout <- function(graph, layout, width, height = 2, scale = 100,
 #' @importFrom utils combn
 #' @importFrom dplyr slice_min slice_head reframe distinct group_by arrange reframe desc
 #' @importFrom scales breaks_extended
-#' @importFrom gglogger ggplot
 #' @importFrom ggplot2 geom_segment geom_point labs scale_size guides scale_linewidth scale_fill_manual scale_x_continuous
 #' @importFrom ggplot2 scale_y_continuous
 EnrichMapAtomic <- function(
@@ -119,6 +118,11 @@ EnrichMapAtomic <- function(
     # if (!requireNamespace("ggforce", quietly = TRUE)) {
     #     stop("The 'ggforce' package is required 'EnrichMap'. Please install it first.")
     # }
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     if (inherits(data, "enrichResult")) {
         data <- as.data.frame(data)
     }
@@ -332,6 +336,11 @@ EnrichNetworkAtomic <- function(
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     ...
 ) {
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     # if (!requireNamespace("igraph", quietly = TRUE)) {
     #     stop("The 'igraph' package is required 'EnrichMap'. Please install it first.")
     # }

@@ -19,7 +19,6 @@
 #' @keywords internal
 #' @return A ggplot object.
 #' @importFrom dplyr rename
-#' @importFrom gglogger ggplot
 #' @importFrom ggplot2 fortify geom_point geom_line geom_ribbon scale_color_manual scale_linetype_manual
 #' @importFrom ggplot2 element_line element_text scale_shape_discrete unit
 RarefactionPlotAtomic <- function(
@@ -29,7 +28,11 @@ RarefactionPlotAtomic <- function(
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, ...
 ) {
-
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     datatype <- unique(data$datatype)
     if (type == 2L) {
         if (identical(datatype, "abundance")) {
