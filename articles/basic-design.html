@@ -190,7 +190,9 @@
 </h2>
 <p>If a plot is created by <code>ggplot2</code> behind the scenes, <code>plotthis</code> relies on the <code>gglogger</code> package to trace the <code>ggplot2</code> calls. The <code>gglogger</code> package is used to log the <code>ggplot2</code> calls and the arguments passed to the <code>ggplot2</code> functions. This is useful for debugging and understanding how the plot is created.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/barplot.html">BarPlot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">iris</span>, x <span class="op">=</span> <span class="st">"Species"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>plotthis.gglogger.enabled <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/barplot.html">BarPlot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">iris</span>, x <span class="op">=</span> <span class="st">"Species"</span><span class="op">)</span></span>
 <span><span class="va">p</span><span class="op">$</span><span class="va">logs</span></span>
 <span></span>
 <span><span class="co"># ggplot2::ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(x))) +</span></span>
