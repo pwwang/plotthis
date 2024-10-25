@@ -476,7 +476,7 @@ BoxViolinPlotAtomic <- function(
         )
 
     attr(p, "height") <- height
-    attr(p, "width") <- width
+    attr(p, "width") <- max(width, height)
 
     facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
         strip.position = strip_position, legend.position = legend.position,
