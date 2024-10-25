@@ -65,7 +65,7 @@ jobs:
       - name: Build pkgdown site
         run: |
           devtools::document()
-          pkgdown::build_site_github_pages(new_process = TRUE, install = TRUE)
+          pkgdown::build_site_github_pages(new_process = TRUE, install = TRUE, run_dont_run = TRUE)
 
       - name: Deploy to GitHub pages
         if: github.event_name != 'pull_request'

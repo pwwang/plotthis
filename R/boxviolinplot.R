@@ -571,6 +571,7 @@ BoxViolinPlot <- function(
 #' @export
 #' @inheritParams BoxViolinPlot
 #' @examples
+#' \dontrun{
 #' set.seed(8525)
 #' data <- data.frame(
 #'     x = rep(LETTERS[1:8], 40),
@@ -593,6 +594,7 @@ BoxViolinPlot <- function(
 #'     C = rnorm(100)
 #' )
 #' BoxPlot(data_wide, x = c("A", "B", "C"), in_form = "wide")
+#' }
 BoxPlot <- function(
     data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
     split_by = NULL, split_by_sep = "_",
@@ -642,6 +644,7 @@ BoxPlot <- function(
 #' @export
 #' @inheritParams BoxViolinPlot
 #' @examples
+#' \dontrun{
 #' ViolinPlot(data, x = "x", y = "y")
 #' ViolinPlot(data, x = "x", y = "y", add_box = TRUE)
 #' ViolinPlot(data, x = "x", y = "y", add_point = TRUE)
@@ -673,6 +676,7 @@ BoxPlot <- function(
 #'     facet_by = "group2", add_box = TRUE, add_bg = TRUE,
 #'     bg_palette = "Paired"
 #' )
+#' }
 ViolinPlot <- function(
     data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
     split_by = NULL, split_by_sep = "_",

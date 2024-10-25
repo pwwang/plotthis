@@ -159,6 +159,7 @@ ChordPlotAtomic <- function(
 #' @rdname chordplot
 #' @export
 #' @examples
+#' \dontrun{
 #' set.seed(8525)
 #' data <- data.frame(
 #'     nodes1 = sample(c("Soure1", "Source2", "Source3"), 10, replace = TRUE),
@@ -172,6 +173,7 @@ ChordPlotAtomic <- function(
 #' ChordPlot(data, from = "nodes1", to = "nodes2", y = "y")
 #' ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y")
 #' ChordPlot(data, from = "nodes1", to = "nodes2", flip = TRUE)
+#' }
 ChordPlot <- function(
     data, y = NULL, from = NULL, from_sep = "_", to = NULL, to_sep = "_",
     split_by = NULL, split_by_sep = "_", flip = FALSE, links_color = c("from", "to"),

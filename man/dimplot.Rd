@@ -388,6 +388,7 @@ Visualizing the dimension reduction data.
 \code{FeatureDimPlot} is used to plot the feature numeric values on the dimension reduction plot.
 }
 \examples{
+\dontrun{
 # generate a PCA dimension data for DimPlot
 set.seed(8525)
 df <- matrix(c(rnorm(333), rnorm(334, 0.2), rnorm(333, .4)), ncol = 10)
@@ -443,6 +444,8 @@ DimPlot(data, group_by = "cluster", lineages = c("L1", "L2", "L3"),
         lineages_whiskers = TRUE)
 DimPlot(data, group_by = "cluster", lineages = c("L1", "L2", "L3"),
         lineages_span = 1)
+}
+\dontrun{
 # Feature Dim Plot
 FeatureDimPlot(data, features = "L1", pt_size = 2)
 FeatureDimPlot(data, features = "L1", pt_size = 2, bg_cutoff = -Inf)
@@ -455,4 +458,5 @@ FeatureDimPlot(data, features = c("L1", "L2", "L3"), pt_size = 2)
 FeatureDimPlot(data, features = c("L1", "L2", "L3"), split_by = "group", nrow = 2)
 FeatureDimPlot(data, features = c("L1", "L2", "L3"), highlight = TRUE)
 FeatureDimPlot(data, features = c("L1", "L2", "L3"), hex = TRUE, hex_bins = 15)
+}
 }

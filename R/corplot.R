@@ -609,6 +609,7 @@ CorPairsPlotAtomic <- function(
 #' @export
 #' @importFrom glue glue
 #' @examples
+#' \dontrun{
 #' set.seed(8525)
 #' data <- data.frame(x = rnorm(100))
 #' data$y <- rnorm(100, 10, sd = 0.5)
@@ -628,6 +629,7 @@ CorPairsPlotAtomic <- function(
 #'
 #' CorPairsPlot(data, split_by = "g", diag_type = "none", layout = ".\\",
 #'  legend.position = "bottom", legend.direction = "horizontal", group_name = "group")
+#' }
 CorPairsPlot <- function(
     data, columns = NULL, group_by = NULL, group_by_sep = "_", group_name = NULL, split_by = NULL, split_by_sep = "_",
     diag_type = NULL, diag_args = list(), layout = c(".\\", "\\.", "/.", "./"),

@@ -343,6 +343,7 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 Heatmap is a popular way to visualize data in matrix format. It is widely used in biology to visualize gene expression data in microarray and RNA-seq data. The heatmap is a matrix where rows represent the samples and columns represent the features. The color of each cell represents the value of the feature in the sample. The color can be continuous or discrete. The heatmap can be split by the columns or rows to show the subgroups in the data. The heatmap can also be annotated by the columns or rows to show the additional information of the samples or features.
 }
 \examples{
+\dontrun{
 set.seed(8525)
 data <- data.frame(
    F1 = rnorm(100, 0.1),
@@ -428,6 +429,7 @@ Heatmap(data, rows = rows, columns_by = "c", rows_data = rows_data,
   row_annotation_type = list(rp = "pie", rv = "density", rows1 = "simple"),
   row_annotation_params = list(rp = list(width = grid::unit(12, "mm"))),
   show_row_names = TRUE, show_column_names = TRUE, flip = TRUE)
+}
 }
 \seealso{
 \code{\link{anno_simple}}, \code{\link{anno_points}}, \code{\link{anno_lines}}, \code{\link{anno_pie}}, \code{\link{anno_violin}}, \code{\link{anno_boxplot}}, \code{\link{anno_density}}

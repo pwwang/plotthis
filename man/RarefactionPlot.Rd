@@ -129,6 +129,7 @@ A ggplot object or wrap_plots object or a list of ggplot objects
 This function generates a rarefraction plot for a given dataset.
 }
 \examples{
+\dontrun{
 set.seed(8525)
 spider <- list(
    Girdled = c(46, 22, 17, 15, 15, 9, 8, 6, 6, 4, rep(2, 4), rep(1, 12)),
@@ -141,4 +142,5 @@ RarefactionPlot(spider, q = c(0, 1, 2), facet_by = "q")
 RarefactionPlot(spider, q = c(0, 1, 2), split_by = "q")
 RarefactionPlot(spider, q = c(0, 1, 2), group_by = "q",
  facet_by = "group", palette = "Set1", type = 3)
+}
 }

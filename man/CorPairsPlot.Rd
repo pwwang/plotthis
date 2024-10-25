@@ -132,6 +132,7 @@ A \code{patch_work::wrap_plots} object or a list of them if \code{combine} is \c
 Generate a grid of scatter correlation plots for all pairs of variables.
 }
 \examples{
+\dontrun{
 set.seed(8525)
 data <- data.frame(x = rnorm(100))
 data$y <- rnorm(100, 10, sd = 0.5)
@@ -151,4 +152,5 @@ CorPairsPlot(data, group_by = "g", diag_type = "violin", layout = "\\\\.",
 
 CorPairsPlot(data, split_by = "g", diag_type = "none", layout = ".\\\\",
  legend.position = "bottom", legend.direction = "horizontal", group_name = "group")
+}
 }

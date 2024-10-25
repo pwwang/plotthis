@@ -1392,6 +1392,7 @@ HeatmapAtomic <- function(
 #' @importFrom patchwork wrap_plots
 #' @seealso \code{\link{anno_simple}}, \code{\link{anno_points}}, \code{\link{anno_lines}}, \code{\link{anno_pie}}, \code{\link{anno_violin}}, \code{\link{anno_boxplot}}, \code{\link{anno_density}}
 #' @examples
+#' \dontrun{
 #' set.seed(8525)
 #' data <- data.frame(
 #'    F1 = rnorm(100, 0.1),
@@ -1477,6 +1478,7 @@ HeatmapAtomic <- function(
 #'   row_annotation_type = list(rp = "pie", rv = "density", rows1 = "simple"),
 #'   row_annotation_params = list(rp = list(width = grid::unit(12, "mm"))),
 #'   show_row_names = TRUE, show_column_names = TRUE, flip = TRUE)
+#' }
 Heatmap <- function(
     data, rows, columns_by, rows_name = "rows", columns_name = "columns", split_by = NULL, split_by_sep = "_", split_rows_data = FALSE,
     name = "value", border = TRUE, rows_palette = "Paired", rows_palcolor = NULL, title = NULL,

@@ -117,6 +117,7 @@ RarefactionPlotAtomic <- function(
 #' @export
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @examples
+#' \dontrun{
 #' set.seed(8525)
 #' spider <- list(
 #'    Girdled = c(46, 22, 17, 15, 15, 9, 8, 6, 6, 4, rep(2, 4), rep(1, 12)),
@@ -129,6 +130,7 @@ RarefactionPlotAtomic <- function(
 #' RarefactionPlot(spider, q = c(0, 1, 2), split_by = "q")
 #' RarefactionPlot(spider, q = c(0, 1, 2), group_by = "q",
 #'  facet_by = "group", palette = "Set1", type = 3)
+#' }
 RarefactionPlot <- function(
     data, type = 1, se = NULL, group_by = "group", group_by_sep = "_", group_name = NULL, split_by = NULL, split_by_sep = "_",
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 0.2, pt_size = 3, line_width = 1,

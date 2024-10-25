@@ -122,6 +122,7 @@ A combined plot or a list of plots
 \code{CircosPlot} is an alias of \code{ChordPlot}.
 }
 \examples{
+\dontrun{
 set.seed(8525)
 data <- data.frame(
     nodes1 = sample(c("Soure1", "Source2", "Source3"), 10, replace = TRUE),
@@ -135,4 +136,5 @@ ChordPlot(data, from = "nodes1", to = "nodes2",
 ChordPlot(data, from = "nodes1", to = "nodes2", y = "y")
 ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y")
 ChordPlot(data, from = "nodes1", to = "nodes2", flip = TRUE)
+}
 }

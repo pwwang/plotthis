@@ -353,6 +353,7 @@ This is useful when split_by is used and the title needs to be dynamic.}
 Box plot or violin plot with optional jitter points, trend line, statistical test, background, line, and highlight.
 }
 \examples{
+\dontrun{
 set.seed(8525)
 data <- data.frame(
     x = rep(LETTERS[1:8], 40),
@@ -375,6 +376,8 @@ data_wide <- data.frame(
     C = rnorm(100)
 )
 BoxPlot(data_wide, x = c("A", "B", "C"), in_form = "wide")
+}
+\dontrun{
 ViolinPlot(data, x = "x", y = "y")
 ViolinPlot(data, x = "x", y = "y", add_box = TRUE)
 ViolinPlot(data, x = "x", y = "y", add_point = TRUE)
@@ -406,4 +409,5 @@ ViolinPlot(data,
     facet_by = "group2", add_box = TRUE, add_bg = TRUE,
     bg_palette = "Paired"
 )
+}
 }

@@ -749,6 +749,7 @@ DimPlotAtomic <- function(
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
 #' @examples
+#' \dontrun{
 #' # generate a PCA dimension data for DimPlot
 #' set.seed(8525)
 #' df <- matrix(c(rnorm(333), rnorm(334, 0.2), rnorm(333, .4)), ncol = 10)
@@ -804,6 +805,7 @@ DimPlotAtomic <- function(
 #'         lineages_whiskers = TRUE)
 #' DimPlot(data, group_by = "cluster", lineages = c("L1", "L2", "L3"),
 #'         lineages_span = 1)
+#' }
 DimPlot <- function(
     data, dims = 1:2, group_by, group_by_sep = "_", split_by = NULL, split_by_sep = "_",
     pt_size = NULL, pt_alpha = 1, bg_color = "grey80",
@@ -899,6 +901,7 @@ DimPlot <- function(
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
 #' @examples
+#' \dontrun{
 #' # Feature Dim Plot
 #' FeatureDimPlot(data, features = "L1", pt_size = 2)
 #' FeatureDimPlot(data, features = "L1", pt_size = 2, bg_cutoff = -Inf)
@@ -911,6 +914,7 @@ DimPlot <- function(
 #' FeatureDimPlot(data, features = c("L1", "L2", "L3"), split_by = "group", nrow = 2)
 #' FeatureDimPlot(data, features = c("L1", "L2", "L3"), highlight = TRUE)
 #' FeatureDimPlot(data, features = c("L1", "L2", "L3"), hex = TRUE, hex_bins = 15)
+#' }
 FeatureDimPlot <- function(
     data, dims = 1:2, features, split_by = NULL, split_by_sep = "_",
     lower_quantile = 0, upper_quantile = 0.99, lower_cutoff = NULL, upper_cutoff = NULL,
