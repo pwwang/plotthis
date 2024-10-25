@@ -1,10 +1,10 @@
 Package: plotthis
-Title: An R Package Built Upon `ggplot2` and Other Plotting Packages
+Title: High-level Plotting Built Upon 'ggplot2' and Other Plotting Packages
 Version: 0.3.2
 Authors@R:
     person("Panwen", "Wang", , "pwwang@pwwang.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-4614-8970"))
-Description: `plotthis` is an R package that is built upon `ggplot2` and other plotting packages. It provides high-level APIs and a wide range of options to create stunning, publication-quality plots effortlessly.
+Description: Provides high-level APIs and a wide range of options to create stunning, publication-quality plots effortlessly.
 License: GPL (>= 3)
 Encoding: UTF-8
 URL: https://github.com/pwwang/plotthis
@@ -51,6 +51,5 @@ Suggests:
     iNEXT,
     scattermore,
     concaveman
-Remotes: pwwang/gglogger
 LazyData: true
 Config/Needs/website: rmarkdown
