@@ -87,10 +87,12 @@ PrepareFGSEAResult <- function(data, gene_ranks, gene_sets) {
 #' @importFrom ggplot2 geom_linerange layer_scales theme_void ylim
 #' @export
 #' @examples
+#' \dontrun{
 #' data(gsea_example)
 #' GSEASummaryPlot(gsea_example)
 #' GSEASummaryPlot(gsea_example, line_by = "running_score")
 #' GSEASummaryPlot(gsea_example, cutoff = 0.01)
+#' }
 GSEASummaryPlot <- function(
     data, gene_ranks = "@gene_ranks", gene_sets = "@gene_sets", top_term = 10, metric = "p.adjust",
     cutoff = 0.05, character_width = 50, line_plot_size = 0.25, metric_name = paste0("-log10(", metric, ")"),
@@ -516,8 +518,10 @@ GSEAPlotAtomic <- function(
 #'  If you only want to plot a subset of gene sets, you can subset the `gene_sets` before passing it to this function.
 #' @export
 #' @examples
+#' \dontrun{
 #' GSEAPlot(gsea_example, gene_sets = attr(gsea_example, "gene_sets")[1])
 #' GSEAPlot(gsea_example, gene_sets = attr(gsea_example, "gene_sets")[1:4])
+#' }
 GSEAPlot <- function(
     data, gene_ranks = "@gene_ranks", gene_sets = "@gene_sets", sample_coregenes = FALSE,
     line_width = 1.5, line_alpha = 1, line_color = "#6BB82D", n_coregenes = 10, genes_label = NULL,

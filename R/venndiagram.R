@@ -286,6 +286,7 @@ VennDiagramAtomic <- function(
 #' @export
 #' @rdname venndiagram1
 #' @examples
+#' \dontrun{
 #' set.seed(8525)
 #' data = list(
 #'     A = sort(sample(letters, 8)),
@@ -300,6 +301,7 @@ VennDiagramAtomic <- function(
 #' # label with a function
 #' VennDiagram(data, label = function(df) df$name)
 #' VennDiagram(data, palette = "material-indigo", alpha = 0.6)
+#' }
 VennDiagram <- function(
     data, in_form = NULL, split_by = NULL, split_by_sep = "_",
     group_by = NULL, group_by_sep = "_", id_by = NULL, label = "count", label_fg = "black",

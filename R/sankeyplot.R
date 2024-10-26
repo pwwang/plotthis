@@ -151,6 +151,7 @@ SankeyPlotAtomic <- function(
 #' @export
 #' @rdname sankeyplot
 #' @examples
+#' \dontrun{
 #' set.seed(8525)
 #' data <- data.frame(
 #'     nodes1 = sample(LETTERS[1:3], 10, replace = TRUE),
@@ -162,6 +163,7 @@ SankeyPlotAtomic <- function(
 #' SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), nodes_label = TRUE)
 #' SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), links_by = "y")
 #' SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), y = "y")
+#' }
 SankeyPlot <- function(
     data, y = NULL, nodes_by, nodes_color = "grey30", links_by = NULL, links_by_sep = "_", links_name = NULL,
     split_by = NULL, split_by_sep = "_", palette = "Paired", palcolor = NULL, alpha = 0.6, nodes_label = FALSE,

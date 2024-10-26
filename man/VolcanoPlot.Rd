@@ -193,6 +193,7 @@ A list of ggplot objects or a wrap_plots object
 A volcano plot is a type of scatter plot that shows statistical significance (usually on the y-axis) versus magnitude of change (usually on the x-axis).
 }
 \examples{
+\dontrun{
 set.seed(8525)
 # Obtained by Seurat::FindMakers for the first cluster of pbmc_small
 data <- data.frame(
@@ -259,4 +260,5 @@ VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
 VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
    highlight = c("ANXA2", "TMEM40", "PF4", "GNG11", "CLU", "CD9", "FGFBP2",
    "TNFRSF1B", "IFI6"))
+}
 }

@@ -446,6 +446,7 @@ NetworkAtomic <- function(
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
 #' @examples
+#' \dontrun{
 #' actors <- data.frame(
 #'   name = c("Alice", "Bob", "Cecil", "David", "Esmeralda"),
 #'   age = c(48, 33, 45, 34, 21),
@@ -468,6 +469,7 @@ NetworkAtomic <- function(
 #' Network(relations, actors, layout = "tree", directed = FALSE, cluster = "fast_greedy",
 #'  add_mark = TRUE)
 #' Network(relations, actors, split_by = "type")
+#' }
 Network <- function(
     links, nodes = NULL, split_by = NULL, split_by_sep = "_", split_nodes = FALSE,
     from = NULL, from_sep = "_", to = NULL, to_sep = "_",

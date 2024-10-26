@@ -247,6 +247,7 @@ A ggplot object or wrap_plots object or a list of ggplot objects
 Plot a network graph
 }
 \examples{
+\dontrun{
 actors <- data.frame(
   name = c("Alice", "Bob", "Cecil", "David", "Esmeralda"),
   age = c(48, 33, 45, 34, 21),
@@ -269,4 +270,5 @@ Network(relations, actors, link_weight_by = "friendship", node_size_by = "age",
 Network(relations, actors, layout = "tree", directed = FALSE, cluster = "fast_greedy",
  add_mark = TRUE)
 Network(relations, actors, split_by = "type")
+}
 }

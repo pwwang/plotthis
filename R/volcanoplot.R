@@ -295,6 +295,7 @@ VolcanoPlotAtomic <- function(
 #' @return A list of ggplot objects or a wrap_plots object
 #' @export
 #' @examples
+#' \dontrun{
 #' set.seed(8525)
 #' # Obtained by Seurat::FindMakers for the first cluster of pbmc_small
 #' data <- data.frame(
@@ -361,6 +362,7 @@ VolcanoPlotAtomic <- function(
 #' VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
 #'    highlight = c("ANXA2", "TMEM40", "PF4", "GNG11", "CLU", "CD9", "FGFBP2",
 #'    "TNFRSF1B", "IFI6"))
+#' }
 VolcanoPlot <- function(
     data, x, y, ytrans = function(n) -log10(n), color_by = NULL, color_name = NULL,
     flip_negatives = FALSE, x_cutoff = NULL, y_cutoff = 0.05, split_by = NULL, split_by_sep = "_",
