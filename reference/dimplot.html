@@ -608,7 +608,8 @@ if <code>waiver()</code>, for single groups, the legend will be "none", otherwis
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># generate a PCA dimension data for DimPlot</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="co"># generate a PCA dimension data for DimPlot</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">8525</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">333</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">334</span>, <span class="fl">0.2</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">333</span>, <span class="fl">.4</span><span class="op">)</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># run PCA</span></span></span>
@@ -707,6 +708,8 @@ if <code>waiver()</code>, for single groups, the legend will be "none", otherwis
 <span class="r-in"><span><span class="fu">DimPlot</span><span class="op">(</span><span class="va">data</span>, group_by <span class="op">=</span> <span class="st">"cluster"</span>, lineages <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"L1"</span>, <span class="st">"L2"</span>, <span class="st">"L3"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>        lineages_span <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="dimplot-24.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
+<span class="r-in"><span><span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co"># Feature Dim Plot</span></span></span>
 <span class="r-in"><span><span class="fu">FeatureDimPlot</span><span class="op">(</span><span class="va">data</span>, features <span class="op">=</span> <span class="st">"L1"</span>, pt_size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="dimplot-25.png" alt="" width="700" height="433"></span>
@@ -732,6 +735,7 @@ if <code>waiver()</code>, for single groups, the legend will be "none", otherwis
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Removed 9 rows containing missing values or values outside the scale range</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> (`geom_hex()`).</span>
 <span class="r-plt img"><img src="dimplot-33.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
