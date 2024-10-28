@@ -102,6 +102,7 @@ GSEASummaryPlot <- function(
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL,
     seed = 8525, ...) {
     set.seed(seed)
+    theme <- process_theme(theme)
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
     } else {
@@ -206,7 +207,7 @@ GSEASummaryPlot <- function(
             geom_linerange(aes(ymin = !!sym("ymin"), ymax = !!sym("ymax")), linewidth = linewidth) +
             ylim(-yr, yr) +
             theme_void() +
-            theme(
+            ggplot2::theme(
                 axis.text = element_blank(),
                 axis.title = element_blank(),
                 axis.ticks = element_blank(),
@@ -342,7 +343,7 @@ GSEAPlotAtomic <- function(
     p <- ggplot(df, aes(x = !!sym("x"))) +
         ggplot2::xlab(NULL) +
         theme_classic(base_size = 12) +
-        theme(
+        ggplot2::theme(
             panel.grid.major = element_line(colour = "grey90", linetype = 2),
             panel.grid.minor = element_line(colour = "grey90", linetype = 2)
         ) +
@@ -486,7 +487,7 @@ GSEAPlotAtomic <- function(
             annotate(geom = "text", y = 0, x = cross_x, vjust = ifelse(diff(abs(range(df$ranks))) > 0, -0.3, 1.3), size = 4, label = paste0("Zero cross at ", cross_x))
     }
     p3 <- p3 + ggplot2::ylab("Ranked List Metric") + ggplot2::xlab(xlab %||% "Rank in Ordered Dataset") +
-        theme(
+        ggplot2::theme(
             plot.margin = margin(t = -0.1, r = 0.2, b = 0.2, l = 0.2, unit = "cm"),
             axis.line = element_blank(), axis.line.x = element_blank(),
             panel.border = element_rect(color = "black", fill = "transparent", linewidth = 1)
@@ -549,6 +550,7 @@ GSEAPlot <- function(
     gsnames <- intersect(as.character(data$ID), names(gene_sets))
     gene_sets <- gene_sets[gsnames]
     data <- data[as.character(data$ID) %in% gsnames, , drop = FALSE]
+    theme <- process_theme(theme)
 
     plots <- lapply(names(gene_sets), function(gs) {
         GSEAPlotAtomic(

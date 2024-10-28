@@ -315,6 +315,7 @@ RidgePlot <- function(
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525, ...) {
 
     validate_common_args(seed, facet_by = facet_by)
+    theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE,
         concat_multi = TRUE, concat_sep = split_by_sep)
 
@@ -377,6 +378,7 @@ DensityPlot <- function(
     legend.position = ifelse(is.null(group_by), "none", "right"), legend.direction = "vertical", seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...) {
     validate_common_args(seed, facet_by = facet_by)
+    theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
 
     if (!is.null(split_by)) {
@@ -441,6 +443,7 @@ Histogram <- function(
     legend.position = ifelse(is.null(group_by), "none", "right"), legend.direction = "vertical", seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...) {
     validate_common_args(seed, facet_by = facet_by)
+    theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
 
     if (!is.null(split_by)) {

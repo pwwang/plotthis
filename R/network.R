@@ -491,6 +491,7 @@ Network <- function(
     seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...
 ) {
     validate_common_args(seed = seed)
+    theme <- process_theme(theme)
     if (is.null(split_by)) { split_nodes <- FALSE }
 
     l_split_by <- check_columns(links, split_by, force_factor = TRUE, allow_multi = TRUE,

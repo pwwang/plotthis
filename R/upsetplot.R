@@ -233,6 +233,7 @@ UpsetPlot <- function(
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525, ...
 ) {
     validate_common_args(seed)
+    theme <- process_theme(theme)
     if (!is.null(split_by) && !inherits(data, "data.frame")) {
         stop("'split_by' is only available for data frame.")
     }

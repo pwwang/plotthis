@@ -372,6 +372,7 @@ LinePlot <- function(
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, seed = 8525, ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
+    theme <- process_theme(theme)
 
     x <- check_columns(data, x, force_factor = TRUE)
     y <- check_columns(data, y)

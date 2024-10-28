@@ -415,7 +415,7 @@ BoxViolinPlotAtomic <- function(
     if (isTRUE(flip) && isTRUE(stack)) {
         facet_nrow <- facet_nrow %||% 1
         strip_position <- "top"
-        p <- p + theme(
+        p <- p + ggplot2::theme(
             strip.text.x = element_text(angle = 90),
             panel.grid.major.x = element_line(color = "grey", linetype = 2),
             panel.spacing.x = unit(-1, "pt")
@@ -429,7 +429,7 @@ BoxViolinPlotAtomic <- function(
         height <- height + nx * nd * 0.3
     } else if (isTRUE(flip) && isFALSE(stack)) {
         strip_position <- "top"
-        p <- p + theme(
+        p <- p + ggplot2::theme(
             strip.text.y = element_text(angle = 0),
             panel.grid.major.x = element_line(color = "grey", linetype = 2),
         )
@@ -443,7 +443,7 @@ BoxViolinPlotAtomic <- function(
     } else if (isTRUE(stack)) {
         facet_ncol <- facet_ncol %||% 1
         strip_position <- "right"
-        p <- p + theme(
+        p <- p + ggplot2::theme(
             panel.spacing.y = unit(-1, "pt"),
             strip.text.y = element_text(angle = 0),
             panel.grid.major.y = element_line(color = "grey", linetype = 2),
@@ -455,7 +455,7 @@ BoxViolinPlotAtomic <- function(
         width <- width + nx * nd * 0.3
     } else {
         strip_position <- "top"
-        p <- p + theme(
+        p <- p + ggplot2::theme(
             strip.text.x = element_text(angle = 0),
             panel.grid.major.x = element_line(color = "grey", linetype = 2),
         )
@@ -516,6 +516,7 @@ BoxViolinPlot <- function(
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...) {
     validate_common_args(seed)
+    theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
 
     if (!is.null(split_by)) {

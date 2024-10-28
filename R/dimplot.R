@@ -606,7 +606,7 @@ DimPlotAtomic <- function(
         })
 
         p <- suppressWarnings({
-            p + new_scale_color() + lineage_layers + theme(legend.position = "none")
+            p + new_scale_color() + lineage_layers + ggplot2::theme(legend.position = "none")
         })
         if (is.null(legend_list[["lineages"]])) {
             legend_list["lineages"] <- list(NULL)
@@ -655,14 +655,14 @@ DimPlotAtomic <- function(
         stat_plot_list <- list()
         for (i in seq_len(nrow(coord_df))) {
             stat_plot_list[[i]] <- annotation_custom(
-                ggplotGrob(stat_plots[[coord_df[i, group_by]]] + theme_void() + theme(legend.position = "none")),
+                ggplotGrob(stat_plots[[coord_df[i, group_by]]] + theme_void() + ggplot2::theme(legend.position = "none")),
                 xmin = coord_df[i, dims[1]] - x_range * stat_plot_size / 2, ymin = coord_df[i, dims[2]] - y_range * stat_plot_size / 2,
                 xmax = coord_df[i, dims[1]] + x_range * stat_plot_size / 2, ymax = coord_df[i, dims[2]] + y_range * stat_plot_size / 2
             )
         }
         p <- p + stat_plot_list
         legend_list$stat_by <- get_plot_component(
-            stat_plots[[coord_df[i, group_by]]] + theme(legend.position = "bottom"),
+            stat_plots[[coord_df[i, group_by]]] + ggplot2::theme(legend.position = "bottom"),
             "guide-box-bottom"
         )
     }
@@ -710,7 +710,7 @@ DimPlotAtomic <- function(
         } else {
             legend <- do.call(rbind, c(list(base = legend_base), legend_list))
         }
-        gtable <- ggplotGrob(p + theme(legend.position = "none"))
+        gtable <- ggplotGrob(p + ggplot2::theme(legend.position = "none"))
         gtable <- add_grob(gtable, legend, legend.position)
         p <- wrap_plots(gtable)
     }
@@ -833,7 +833,7 @@ DimPlot <- function(
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...) {
 
     validate_common_args(seed, facet_by = facet_by)
-
+    theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE,
         concat_multi = TRUE, concat_sep = split_by_sep)
 

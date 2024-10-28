@@ -544,6 +544,7 @@ EnrichMap <- function(
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...
 ) {
     validate_common_args(seed)
+    theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE,
         concat_multi = TRUE, concat_sep = split_by_sep)
 
@@ -610,6 +611,7 @@ EnrichNetwork <- function(
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...
 ) {
     validate_common_args(seed)
+    theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE,
         concat_multi = TRUE, concat_sep = split_by_sep)
 

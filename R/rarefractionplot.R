@@ -140,6 +140,7 @@ RarefactionPlot <- function(
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
+    theme <- process_theme(theme)
     stopifnot("Invalid 'type' value. It must be 1, 2, or 3 or combination of them." =
         length(type) > 0 && length(setdiff(type, 1:3)) == 0)
     # check group_by, split_by, facet_by.

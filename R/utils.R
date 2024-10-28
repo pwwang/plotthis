@@ -500,3 +500,30 @@ adjcolors <- function(colors, alpha) {
     }
     return(colors_out)
 }
+
+#' Process theme to allow 'ggplot2::theme_minimal' to work
+#'
+#' @param theme The theme to process
+#' @return The processed theme
+#' @keywords internal
+#' @importFrom utils getFromNamespace
+process_theme <- function(theme) {
+    if (is.function(theme)) {
+        return(theme)
+    }
+
+    if (!is.character(theme)) {
+        stop("The theme must be a character string or a theme function.")
+    }
+
+    if (!grepl("::", theme)) {
+        return(theme)
+    }
+
+    parts <- unlist(strsplit(theme, "::"))
+    if (length(parts) != 2) {
+        stop("Invalid theme '", theme, "'")
+    }
+
+    return(getFromNamespace(parts[2], parts[1]))
+}

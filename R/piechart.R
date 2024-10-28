@@ -164,6 +164,7 @@ PieChart <- function(
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525, ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
+    theme <- process_theme(theme)
 
     x <- check_columns(data, x, force_factor = TRUE)
     y <- check_columns(data, y)
