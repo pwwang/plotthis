@@ -978,6 +978,7 @@ HeatmapAtomic <- function(
         }
         hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
             labels <- ComplexHeatmap::pindex(hmargs$matrix, i, j)
+            labels <- labels[!is.na(labels)]
             inds <- if (is.null(label_cutoff)) seq_along(labels) else labels >= label_cutoff
             labels <- scales::number(labels[inds], accuracy = label_accuracy)
             if (any(inds)) {
