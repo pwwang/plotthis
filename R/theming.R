@@ -67,7 +67,7 @@ theme_this <- function(aspect.ratio = NULL, base_size = 12, font_family = NULL, 
 #' @param ylab y-axis label.
 #' @param lab_size Label size.
 #' @param ... Arguments passed to the \code{\link[ggplot2]{theme}}.
-#'
+#' @return A ggplot2 theme.
 #' @examples
 #' library(ggplot2)
 #' p <- ggplot(mtcars, aes(x = wt, y = mpg, colour = factor(cyl))) +
@@ -143,7 +143,7 @@ theme_blank <- function(add_coord = TRUE, xlen_npc = 0.15, ylen_npc = 0.15, xlab
 #' @param reverse Whether to invert the colors.
 #' @param NA_keep Whether to keep the color assignment to NA in \code{x}.
 #' @param NA_color Color assigned to NA if NA_keep is \code{TRUE}.
-#'
+#' @return A vector of colors.
 #' @importFrom grDevices colorRampPalette
 #' @importFrom stats setNames
 #' @export
@@ -271,6 +271,7 @@ palette_this <- function(
 #' @param palette_names A character vector specifying the names of the SCP palettes to include. Default is `NULL`.
 #' @param return_names A logical value indicating whether to return the names of the selected palettes. Default is `TRUE`.
 #' @param return_palettes A logical value indicating whether to return the colors of selected palettes. Default is `FALSE`.
+#' @return A list of palette names or a list of palettes.
 #'
 #' @seealso \code{\link{palette_list}}
 #' @seealso \href{../articles/all-available-palettes.html}{All available palettes}

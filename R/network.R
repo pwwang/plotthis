@@ -446,7 +446,7 @@ NetworkAtomic <- function(
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' actors <- data.frame(
 #'   name = c("Alice", "Bob", "Cecil", "David", "Esmeralda"),
 #'   age = c(48, 33, 45, 34, 21),

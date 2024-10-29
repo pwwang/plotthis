@@ -145,7 +145,7 @@ A plot visualizing flow/movement/change from one state to another or one time to
 \code{AlluvialPlot} is an alias of \code{SankeyPlot}.
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(8525)
 data <- data.frame(
     nodes1 = sample(LETTERS[1:3], 10, replace = TRUE),

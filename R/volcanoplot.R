@@ -295,7 +295,7 @@ VolcanoPlotAtomic <- function(
 #' @return A list of ggplot objects or a wrap_plots object
 #' @export
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(8525)
 #' # Obtained by Seurat::FindMakers for the first cluster of pbmc_small
 #' data <- data.frame(

@@ -610,7 +610,7 @@ CorPairsPlotAtomic <- function(
 #' @export
 #' @importFrom glue glue
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(8525)
 #' data <- data.frame(x = rnorm(100))
 #' data$y <- rnorm(100, 10, sd = 0.5)

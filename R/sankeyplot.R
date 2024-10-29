@@ -151,7 +151,7 @@ SankeyPlotAtomic <- function(
 #' @export
 #' @rdname sankeyplot
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(8525)
 #' data <- data.frame(
 #'     nodes1 = sample(LETTERS[1:3], 10, replace = TRUE),

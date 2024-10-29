@@ -175,13 +175,13 @@ A data frame with the desired columns for plotting and the gene ranks and gene s
 }
 }
 \examples{
-\dontrun{
+\donttest{
 data(gsea_example)
 GSEASummaryPlot(gsea_example)
 GSEASummaryPlot(gsea_example, line_by = "running_score")
 GSEASummaryPlot(gsea_example, cutoff = 0.01)
 }
-\dontrun{
+\donttest{
 GSEAPlot(gsea_example, gene_sets = attr(gsea_example, "gene_sets")[1])
 GSEAPlot(gsea_example, gene_sets = attr(gsea_example, "gene_sets")[1:4])
 }

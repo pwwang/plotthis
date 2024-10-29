@@ -122,7 +122,7 @@ A combined plot or a list of plots
 \code{CircosPlot} is an alias of \code{ChordPlot}.
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(8525)
 data <- data.frame(
     nodes1 = sample(c("Soure1", "Source2", "Source3"), 10, replace = TRUE),

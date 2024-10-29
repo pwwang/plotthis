@@ -129,7 +129,7 @@ A ggplot object or wrap_plots object or a list of ggplot objects
 This function generates a rarefraction plot for a given dataset.
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(8525)
 spider <- list(
    Girdled = c(46, 22, 17, 15, 15, 9, 8, 6, 6, 4, rep(2, 4), rep(1, 12)),

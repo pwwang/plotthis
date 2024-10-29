@@ -286,7 +286,7 @@ VennDiagramAtomic <- function(
 #' @export
 #' @rdname venndiagram1
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(8525)
 #' data = list(
 #'     A = sort(sample(letters, 8)),

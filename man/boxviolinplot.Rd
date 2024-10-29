@@ -349,11 +349,17 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{box_ptsize}{A numeric value to specify the size of the box plot points in the middle.}
 }
+\value{
+The Box / Violin plot(s).
+When \code{split_by} is not provided, it returns a ggplot object.
+When \code{split_by} is provided, it returns a object of plots wrapped by \code{patchwork::wrap_plots} if \code{combine = TRUE};
+otherwise, it returns a list of ggplot objects.
+}
 \description{
 Box plot or violin plot with optional jitter points, trend line, statistical test, background, line, and highlight.
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(8525)
 data <- data.frame(
     x = rep(LETTERS[1:8], 40),
@@ -377,7 +383,7 @@ data_wide <- data.frame(
 )
 BoxPlot(data_wide, x = c("A", "B", "C"), in_form = "wide")
 }
-\dontrun{
+\donttest{
 ViolinPlot(data, x = "x", y = "y")
 ViolinPlot(data, x = "x", y = "y", add_box = TRUE)
 ViolinPlot(data, x = "x", y = "y", add_point = TRUE)

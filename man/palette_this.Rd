@@ -41,6 +41,9 @@ palette_this(
 
 \item{NA_color}{Color assigned to NA if NA_keep is \code{TRUE}.}
 }
+\value{
+A vector of colors.
+}
 \description{
 Color palettes collected in plotthis.
 }

@@ -9,11 +9,8 @@ A list of palettes for use in data visualization
 \examples{
 \dontrun{
 if (interactive()) {
-  # check_R(c("stringr", "RColorBrewer", "ggsci", "Redmonder", "rcartocolor", "nord",
-  #   "viridis", "pals", "oompaBase", "dichromat", "jaredhuling/jcolors"))
   library(stringr)
   library(RColorBrewer)
-  library(ggsci)
   library(Redmonder)
   library(rcartocolor)
   library(nord)
@@ -22,8 +19,9 @@ if (interactive()) {
   library(dichromat)
   library(jcolors)
   library(scales)
+  syspals <- utils::getFromNamespace("syspals", "pals")
   brewer.pal.info <- RColorBrewer::brewer.pal.info
-  ggsci_db <- ggsci:::ggsci_db
+  ggsci_db <- utils::getFromNamespace("ggsci_db", "ggsci")
   redmonder.pal.info <- Redmonder::redmonder.pal.info
   metacartocolors <- rcartocolor::metacartocolors
   rownames(metacartocolors) <- metacartocolors$Name
@@ -32,8 +30,8 @@ if (interactive()) {
      "mako", "turbo")
   viridis_palettes <- lapply(setNames(viridis_names, viridis_names),
      function(x) viridis::viridis(100, option = x))
-  ocean_names <- names(pals:::syspals)[grep("ocean", names(pals:::syspals))]
-  ocean_palettes <- pals:::syspals[ocean_names]
+  ocean_names <- names(syspals)[grep("ocean", names(syspals))]
+  ocean_palettes <- syspals[ocean_names]
   dichromat_palettes <- dichromat::colorschemes
   jcolors_names <- paste0("jcolors-", c("default", "pal2", "pal3", "pal4", "pal5",
      "pal6", "pal7", "pal8", "pal9", "pal10", "pal11", "pal12", "rainbow"))
@@ -212,7 +210,6 @@ if (interactive()) {
     }
     palette_list[[pal]] <- palcolor
   }
-  # usethis::use_data(palette_list)
 }
 }
 }

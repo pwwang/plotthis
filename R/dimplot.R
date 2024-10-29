@@ -749,7 +749,7 @@ DimPlotAtomic <- function(
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' # generate a PCA dimension data for DimPlot
 #' set.seed(8525)
 #' df <- matrix(c(rnorm(333), rnorm(334, 0.2), rnorm(333, .4)), ncol = 10)
@@ -901,7 +901,7 @@ DimPlot <- function(
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' # Feature Dim Plot
 #' FeatureDimPlot(data, features = "L1", pt_size = 2)
 #' FeatureDimPlot(data, features = "L1", pt_size = 2, bg_cutoff = -Inf)

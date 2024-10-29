@@ -16,7 +16,6 @@ if (interactive()) {
     "organization", "system", "regulation", "regulated", "positive", "negative",
     "response", "process", "processing", "small", "large", "change", "disease"
   )
-  # usethis::use_data(words_excluded)
 }
 }
 }

@@ -129,6 +129,12 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{...}{Additional arguments.}
 }
+\value{
+A ggplot object or wrap_plots object or a list of ggplot objects.
+If no \code{split_by} is provided, a single plot (ggplot object) will be returned.
+If 'combine' is TRUE, a wrap_plots object will be returned.
+If 'combine' is FALSE, a list of ggplot objects will be returned.
+}
 \description{
 Ridge plot to illustrate the distribution of the data in different groups.
 }

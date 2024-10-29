@@ -339,11 +339,17 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{...}{Additional arguments.}
 }
+\value{
+The heatmap(s).
+When \code{split_by} is not provided, the function returns a single heatmap (\link[ComplexHeatmap:Heatmap]{ComplexHeatmap::Heatmap}-class object).
+When \code{split_by} is provided, the function returns a combined plot of multiple heatmaps wrapped by \link[patchwork:wrap_plots]{patchwork::wrap_plots}
+if \code{combine = TRUE}, otherwise, it returns a list of heatmaps.
+}
 \description{
 Heatmap is a popular way to visualize data in matrix format. It is widely used in biology to visualize gene expression data in microarray and RNA-seq data. The heatmap is a matrix where rows represent the samples and columns represent the features. The color of each cell represents the value of the feature in the sample. The color can be continuous or discrete. The heatmap can be split by the columns or rows to show the subgroups in the data. The heatmap can also be annotated by the columns or rows to show the additional information of the samples or features.
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(8525)
 data <- data.frame(
    F1 = rnorm(100, 0.1),

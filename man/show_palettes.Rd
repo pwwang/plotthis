@@ -26,6 +26,9 @@ show_palettes(
 
 \item{return_palettes}{A logical value indicating whether to return the colors of selected palettes. Default is \code{FALSE}.}
 }
+\value{
+A list of palette names or a list of palettes.
+}
 \description{
 This function displays color palettes using ggplot2.
 }

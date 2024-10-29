@@ -569,10 +569,14 @@ BoxViolinPlot <- function(
 #' @description
 #'  Box plot or violin plot with optional jitter points, trend line, statistical test, background, line, and highlight.
 #' @rdname boxviolinplot
+#' @return The Box / Violin plot(s).
+#'  When `split_by` is not provided, it returns a ggplot object.
+#'  When `split_by` is provided, it returns a object of plots wrapped by `patchwork::wrap_plots` if `combine = TRUE`;
+#'  otherwise, it returns a list of ggplot objects.
 #' @export
 #' @inheritParams BoxViolinPlot
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(8525)
 #' data <- data.frame(
 #'     x = rep(LETTERS[1:8], 40),
@@ -645,7 +649,7 @@ BoxPlot <- function(
 #' @export
 #' @inheritParams BoxViolinPlot
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' ViolinPlot(data, x = "x", y = "y")
 #' ViolinPlot(data, x = "x", y = "y", add_box = TRUE)
 #' ViolinPlot(data, x = "x", y = "y", add_point = TRUE)

@@ -159,7 +159,7 @@ A combined ggplot object or wrap_plots object or a list of ggplot objects
 \code{PrepareVennData} is helper function to process the input data for Venn diagram.
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(8525)
 data = list(
     A = sort(sample(letters, 8)),

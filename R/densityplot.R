@@ -284,6 +284,10 @@ RidgePlotAtomic <- function(
 #' @description Ridge plot to illustrate the distribution of the data in different groups.
 #' @inheritParams common_args
 #' @inheritParams RidgePlotAtomic
+#' @return A ggplot object or wrap_plots object or a list of ggplot objects.
+#'  If no `split_by` is provided, a single plot (ggplot object) will be returned.
+#'  If 'combine' is TRUE, a wrap_plots object will be returned.
+#'  If 'combine' is FALSE, a list of ggplot objects will be returned.
 #' @export
 #' @examples
 #' set.seed(8525)

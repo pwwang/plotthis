@@ -396,10 +396,11 @@ blend_rgblist <- function(Clist, mode = "blend", RGB_BackGround = c(1, 1, 1)) {
 #' @param mode Blend mode. One of "blend", "average", "screen", or "multiply".
 #'
 #' @examples
-#' blend <- c("red", "green", plotthis:::blend_colors(c("red", "green"), mode = "blend"))
-#' average <- c("red", "green", plotthis:::blend_colors(c("red", "green"), mode = "average"))
-#' screen <- c("red", "green", plotthis:::blend_colors(c("red", "green"), mode = "screen"))
-#' multiply <- c("red", "green", plotthis:::blend_colors(c("red", "green"), mode = "multiply"))
+#' blend_colors <- utils::getFromNamespace("blend_colors", "plotthis")
+#' blend <- c("red", "green", blend_colors(c("red", "green"), mode = "blend"))
+#' average <- c("red", "green", blend_colors(c("red", "green"), mode = "average"))
+#' screen <- c("red", "green", blend_colors(c("red", "green"), mode = "screen"))
+#' multiply <- c("red", "green", blend_colors(c("red", "green"), mode = "multiply"))
 #' show_palettes(list("blend" = blend, "average" = average, "screen" = screen, "multiply" = multiply))
 #'
 #' @keywords internal
@@ -473,14 +474,16 @@ add_grob <- function(gtable, grob, position = c("top", "bottom", "left", "right"
 #'
 #' @param colors Color vectors.
 #' @param alpha Alpha level ranging from 0 to 1.
+#' @return The colors with the specified alpha level.
 #' @examples
 #' colors <- c("red", "blue", "green")
-#' plotthis:::adjcolors(colors, 0.5)
+#' adjcolors <- utils::getFromNamespace("adjcolors", "plotthis")
+#' adjcolors(colors, 0.5)
 #' ggplot2::alpha(colors, 0.5)
 #'
 #' show_palettes(list(
 #'     "raw" = colors,
-#'     "adjcolors" = plotthis:::adjcolors(colors, 0.5),
+#'     "adjcolors" = adjcolors(colors, 0.5),
 #'     "ggplot2::alpha" = ggplot2::alpha(colors, 0.5)
 #' ))
 #'

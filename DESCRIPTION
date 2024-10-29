@@ -5,6 +5,11 @@ Authors@R:
     person("Panwen", "Wang", , "pwwang@pwwang.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-4614-8970"))
 Description: Provides high-level API and a wide range of options to create stunning, publication-quality plots effortlessly.
+    It is built upon 'ggplot2' and other plotting packages, and is designed to be easy to use and to work seamlessly with 'ggplot2' objects.
+    It is particularly useful for creating complex plots with multiple layers, facets, and annotations.
+    It also provides a set of functions to create plots for specific types of data, such as Venn diagrams, alluvial diagrams, and phylogenetic trees.
+    The package is designed to be flexible and customizable, and to work well with the 'ggplot2' ecosystem.
+    The API can be found at <https://pwwang.github.io/plotthis/reference/index.html>.
 License: GPL (>= 3)
 Encoding: UTF-8
 URL: https://github.com/pwwang/plotthis

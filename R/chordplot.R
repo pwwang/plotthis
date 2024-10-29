@@ -159,7 +159,7 @@ ChordPlotAtomic <- function(
 #' @rdname chordplot
 #' @export
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(8525)
 #' data <- data.frame(
 #'     nodes1 = sample(c("Soure1", "Source2", "Source3"), 10, replace = TRUE),

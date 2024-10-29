@@ -4,11 +4,8 @@
 #' @examples
 #' \dontrun{
 #' if (interactive()) {
-#'   # check_R(c("stringr", "RColorBrewer", "ggsci", "Redmonder", "rcartocolor", "nord",
-#'   #   "viridis", "pals", "oompaBase", "dichromat", "jaredhuling/jcolors"))
 #'   library(stringr)
 #'   library(RColorBrewer)
-#'   library(ggsci)
 #'   library(Redmonder)
 #'   library(rcartocolor)
 #'   library(nord)
@@ -17,8 +14,9 @@
 #'   library(dichromat)
 #'   library(jcolors)
 #'   library(scales)
+#'   syspals <- utils::getFromNamespace("syspals", "pals")
 #'   brewer.pal.info <- RColorBrewer::brewer.pal.info
-#'   ggsci_db <- ggsci:::ggsci_db
+#'   ggsci_db <- utils::getFromNamespace("ggsci_db", "ggsci")
 #'   redmonder.pal.info <- Redmonder::redmonder.pal.info
 #'   metacartocolors <- rcartocolor::metacartocolors
 #'   rownames(metacartocolors) <- metacartocolors$Name
@@ -27,8 +25,8 @@
 #'      "mako", "turbo")
 #'   viridis_palettes <- lapply(setNames(viridis_names, viridis_names),
 #'      function(x) viridis::viridis(100, option = x))
-#'   ocean_names <- names(pals:::syspals)[grep("ocean", names(pals:::syspals))]
-#'   ocean_palettes <- pals:::syspals[ocean_names]
+#'   ocean_names <- names(syspals)[grep("ocean", names(syspals))]
+#'   ocean_palettes <- syspals[ocean_names]
 #'   dichromat_palettes <- dichromat::colorschemes
 #'   jcolors_names <- paste0("jcolors-", c("default", "pal2", "pal3", "pal4", "pal5",
 #'      "pal6", "pal7", "pal8", "pal9", "pal10", "pal11", "pal12", "rainbow"))
@@ -207,7 +205,6 @@
 #'     }
 #'     palette_list[[pal]] <- palcolor
 #'   }
-#'   # usethis::use_data(palette_list)
 #' }
 #' }
 #' @name palette_list
@@ -227,7 +224,6 @@ NULL
 #'     "organization", "system", "regulation", "regulated", "positive", "negative",
 #'     "response", "process", "processing", "small", "large", "change", "disease"
 #'   )
-#'   # usethis::use_data(words_excluded)
 #' }
 #' }
 #' @name words_excluded
@@ -242,7 +238,6 @@ NULL
 #'   de <- names(geneList)[abs(geneList) > 1.5]
 #'   enrich_example <- clusterProfiler::enrichPathway(gene=de, pvalueCutoff = 0.05, readable=TRUE)
 #'   enrich_example <- as.data.frame(enrich_example)
-#'   # usethis::use_data(enrich_example)
 #' }
 #' }
 #' @name enrich_example
@@ -260,7 +255,6 @@ NULL
 #'   enrich_example2$ID <- paste0(enrich_example2$ID, "_DB2")
 #'   enrich_example2$Description <- paste0(enrich_example2$Description, " (DB2)")
 #'   enrich_multidb_example <- rbind(enrich_example, enrich_example2)
-#'   # usethis::use_data(enrich_multidb_example)
 #' }
 #' }
 #' @name enrich_multidb_example
@@ -285,7 +279,6 @@ NULL
 #'
 #'  attr(gsea_example, "gene_ranks") <- gene_ranks
 #'  attr(gsea_example, "gene_sets") <- gene_sets[gsea_example$ID]
-#'  # usethis::use_data(gsea_example)
 #' }
 #' }
 #' @name gsea_example

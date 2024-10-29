@@ -132,7 +132,7 @@ A \code{patch_work::wrap_plots} object or a list of them if \code{combine} is \c
 Generate a grid of scatter correlation plots for all pairs of variables.
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(8525)
 data <- data.frame(x = rnorm(100))
 data$y <- rnorm(100, 10, sd = 0.5)

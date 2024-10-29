@@ -1389,11 +1389,15 @@ HeatmapAtomic <- function(
 #'  The data should be in a long form where each row represents a instance in the heatmap.
 #'  The `rows` should be multiple columns if you want to plot as rows, which you can refer as "features".
 #' @param split_rows_data A logical value indicating whether to split the rows data as well using 'split_by' and 'split_by_sep'.
+#' @return The heatmap(s).
+#'  When `split_by` is not provided, the function returns a single heatmap ([ComplexHeatmap::Heatmap]-class object).
+#'  When `split_by` is provided, the function returns a combined plot of multiple heatmaps wrapped by [patchwork::wrap_plots]
+#'  if `combine = TRUE`, otherwise, it returns a list of heatmaps.
 #' @export
 #' @importFrom patchwork wrap_plots
 #' @seealso \code{\link{anno_simple}}, \code{\link{anno_points}}, \code{\link{anno_lines}}, \code{\link{anno_pie}}, \code{\link{anno_violin}}, \code{\link{anno_boxplot}}, \code{\link{anno_density}}
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(8525)
 #' data <- data.frame(
 #'    F1 = rnorm(100, 0.1),

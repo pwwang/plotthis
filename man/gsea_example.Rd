@@ -23,7 +23,6 @@ if (interactive()) {
 
  attr(gsea_example, "gene_ranks") <- gene_ranks
  attr(gsea_example, "gene_sets") <- gene_sets[gsea_example$ID]
- # usethis::use_data(gsea_example)
 }
 }
 }
