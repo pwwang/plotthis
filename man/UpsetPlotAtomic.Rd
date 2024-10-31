@@ -18,6 +18,7 @@ UpsetPlotAtomic(
   palette = "material-indigo",
   palcolor = NULL,
   alpha = 1,
+  specific = TRUE,
   theme = "theme_this",
   theme_args = list(),
   title = NULL,
@@ -27,6 +28,7 @@ UpsetPlotAtomic(
   aspect.ratio = 0.6,
   legend.position = "right",
   legend.direction = "vertical",
+  levels = NULL,
   ...
 )
 }
@@ -100,6 +102,11 @@ Required when \code{group_by} is a single column and data is a data frame.}
 
 \item{alpha}{A numeric value specifying the transparency of the plot.}
 
+\item{specific}{A logical value to show the specific intersections only.
+ggVennDiagram, by default, only return the specific subsets of a region. However,
+sometimes, we want to show all the overlapping items for two or more sets.
+See \url{https://github.com/gaospecial/ggVennDiagram/issues/64} for more details.}
+
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
 
@@ -122,7 +129,7 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
-\item{...}{Additional arguments passed to ggplot2::scale_x_upset}
+\item{...}{Additional arguments passed to \link[ggupset:scale_x_upset]{ggupset::scale_x_upset}.}
 }
 \value{
 A ggplot object with Upset plot

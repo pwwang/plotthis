@@ -85,9 +85,16 @@ detect_upset_datatype <- function(data, group_by = NULL, id_by = NULL) {
 #'   if multiple columns are provided and the in_form is "long".
 #' @param id_by A character string specifying the column name of the data frame to identify the instances.
 #'  Required when `group_by` is a single column and data is a data frame.
+#' @param specific A logical value to show the specific intersections only.
+#'  ggVennDiagram, by default, only return the specific subsets of a region. However,
+#'  sometimes, we want to show all the overlapping items for two or more sets.
+#'  See \url{https://github.com/gaospecial/ggVennDiagram/issues/64} for more details.
 #' @return A UpsetPlotData object
+#' @importFrom rlang sym
+#' @importFrom dplyr distinct %>%
+#' @importFrom utils getFromNamespace
 #' @importFrom tidyr uncount
-PrepareUpsetData <- function(data, in_form = NULL, group_by = NULL, group_by_sep = "_", id_by = NULL) {
+PrepareUpsetData <- function(data, in_form = NULL, group_by = NULL, group_by_sep = "_", id_by = NULL, specific = TRUE) {
     if (is.null(in_form)) {
         in_form <- detect_upset_datatype(data, group_by, id_by)
     }
@@ -99,21 +106,48 @@ PrepareUpsetData <- function(data, in_form = NULL, group_by = NULL, group_by_sep
         return(data)
     }
 
-    data <- PrepareVennData(data, in_form, group_by, group_by_sep, id_by)
-    data <- ggVennDiagram::venn_regionlabel(data)
-    single_ids <- data$id[!grepl("/", data$id, fixed = TRUE)]
-    idnames <- data$name[match(single_ids, data$id)]
-    names(idnames) <- single_ids
-    out <- data.frame(.id = data$id, .count = data$count)
-    out$Intersection <- lapply(data$id, function(x) {
-        sapply(strsplit(x, "/")[[1]], function(y) {
-            idnames[y]
-        })
+    process_upset_data <- getFromNamespace("process_upset_data", "ggVennDiagram")
+    if (in_form == "list") {
+        listdata <- data
+    } else if (in_form == "long") {
+        group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
+        listdata <- split(data[[id_by]], data[[group_by]])
+    } else { # in_form == "wide"
+        group_by <- check_columns(data, group_by, allow_multi = TRUE)
+        if (is.null(group_by)) {
+            group_by <- colnames(data)
+        }
+        for (g in group_by) {
+            # columns must be logical or 0/1
+            if (!is.logical(data[[g]]) && !all(data[[g]] %in% c(0, 1))) {
+                stop("The columns in group_by must be logical or 0/1 when the in_form is 'wide'.")
+            }
+        }
+        data$.id <- paste0("id", seq_len(nrow(data)))
+        listdata <- lapply(group_by, function(g) data[as.logical(data[[g]]), ".id", drop = TRUE])
+        names(listdata) <- group_by
+        for (nm in names(listdata)) {
+            if (length(listdata[[nm]]) == 0) {
+                warning("The group '", nm, "' has no elements, ignored.", immediate. = TRUE)
+                listdata[[nm]] <- NULL
+            }
+        }
+    }
+
+    data <- process_upset_data(ggVennDiagram::Venn(listdata), specific = specific)
+    idnames <- paste0(as.character(data$left_data$set), " (", as.character(data$left_data$size), ")")
+    names(idnames) <- as.character(seq_along(idnames))
+
+    sep <- ifelse(specific, "/", "~")
+    data <- distinct(data$main_data, !!sym("id"), !!sym("size"))
+
+    data$Intersection <- lapply(as.character(data$id), function(x) {
+        idnames[strsplit(x, sep, fixed = TRUE)[[1]]]
     })
-    out <- uncount(out, !!sym(".count"))
-    class(out) <- c("UpsetPlotData", class(out))
-    return(out)
+
+    uncount(data, !!sym("size"))
 }
+
 
 #' Atomic Upset plot
 #' @inheritParams common_args
@@ -123,7 +157,7 @@ PrepareUpsetData <- function(data, in_form = NULL, group_by = NULL, group_by_sep
 #' @param label_size A numeric value specifying the size of the label text.
 #' @param label_bg A character string specifying the background color of the label.
 #' @param label_bg_r A numeric value specifying the radius of the background of the label.
-#' @param ... Additional arguments passed to ggplot2::scale_x_upset
+#' @param ... Additional arguments passed to [ggupset::scale_x_upset].
 #' @return A ggplot object with Upset plot
 #' @keywords internal
 #' @importFrom rlang %||%
@@ -132,10 +166,9 @@ PrepareUpsetData <- function(data, in_form = NULL, group_by = NULL, group_by_sep
 UpsetPlotAtomic <- function(
     data, in_form = NULL, group_by = NULL, group_by_sep = "_", id_by = NULL,
     label = TRUE, label_fg = "black", label_size = NULL, label_bg = "white", label_bg_r = 0.1,
-    palette = "material-indigo", palcolor = NULL, alpha = 1,
+    palette = "material-indigo", palcolor = NULL, alpha = 1, specific = TRUE,
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
-    aspect.ratio = 0.6, legend.position = "right", legend.direction = "vertical", ...
-) {
+    aspect.ratio = 0.6, legend.position = "right", legend.direction = "vertical", levels = NULL, ...) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
     } else {
@@ -144,7 +177,7 @@ UpsetPlotAtomic <- function(
     # if (!requireNamespace("ggupset", quietly = TRUE)) {
     #     stop("ggupset is required to plot Upset plot. Please install it first.")
     # }
-    data <- PrepareUpsetData(data, in_form, group_by, group_by_sep, id_by)
+    data <- PrepareUpsetData(data, in_form, group_by, group_by_sep, id_by, specific)
     base_size <- theme_args$base_size %||% 12
     text_size_scale <- base_size / 12
 
@@ -156,7 +189,8 @@ UpsetPlotAtomic <- function(
             na.value = "grey80",
             guide = guide_colorbar(
                 title = "", alpha = alpha,
-                frame.colour = "black", ticks.colour = "black", title.hjust = 0)
+                frame.colour = "black", ticks.colour = "black", title.hjust = 0
+            )
         )
     if (isTRUE(label)) {
         p <- p + geom_text_repel(aes(label = after_stat(!!sym("count"))),
@@ -172,7 +206,7 @@ UpsetPlotAtomic <- function(
         ggupset::scale_x_upset(...) +
         do.call(theme, theme_args) +
         ggplot2::theme(
-            aspect.ratio = 0.6,
+            aspect.ratio = aspect.ratio,
             legend.position = legend.position,
             legend.direction = legend.direction,
             panel.grid.major = element_line(colour = "grey80", linetype = 2)
@@ -190,7 +224,7 @@ UpsetPlotAtomic <- function(
     maxchars <- max(sapply(unique(unlist(data$Intersection)), nchar))
 
     height <- 4.5 + n_sets * 0.5
-    width <- n_intersections * 0.6 + maxchars * 0.1
+    width <- n_intersections * aspect.ratio + maxchars * 0.05
     if (!identical(legend.position, "none")) {
         if (legend.position %in% c("right", "left")) {
             width <- width + 1
@@ -213,25 +247,22 @@ UpsetPlotAtomic <- function(
 #' @export
 #' @rdname upsetplot1
 #' @examples
-#' set.seed(8525)
-#' data = list(
-#'     A = sort(sample(letters, 8)),
-#'     B = sort(sample(letters, 8)),
-#'     C = sort(sample(letters, 8)),
-#'     D = sort(sample(letters, 8))
+#' data <- list(
+#'     A = 1:5,
+#'     B = 2:6,
+#'     C = 3:7,
+#'     D = 4:8
 #' )
 #' UpsetPlot(data)
 #' UpsetPlot(data, label = FALSE)
-#' UpsetPlot(data, palette = "Reds")
-#'
+#' UpsetPlot(data, palette = "Reds", specific = FALSE)
 UpsetPlot <- function(
     data, in_form = NULL, split_by = NULL, split_by_sep = "_", group_by = NULL, group_by_sep = "_", id_by = NULL,
     label = TRUE, label_fg = "black", label_size = NULL, label_bg = "white", label_bg_r = 0.1,
-    palette = "material-indigo", palcolor = NULL, alpha = 1,
+    palette = "material-indigo", palcolor = NULL, alpha = 1, specific = TRUE,
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     aspect.ratio = 0.6, legend.position = "right", legend.direction = "vertical",
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525, ...
-) {
+    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525, ...) {
     validate_common_args(seed)
     theme <- process_theme(theme)
     if (!is.null(split_by) && !inherits(data, "data.frame")) {
@@ -262,7 +293,7 @@ UpsetPlot <- function(
             UpsetPlotAtomic(datas[[nm]],
                 in_form = in_form, group_by = group_by, group_by_sep = group_by_sep, id_by = id_by,
                 label = label, label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
-                palette = palette, palcolor = palcolor, alpha = alpha,
+                palette = palette, palcolor = palcolor, alpha = alpha, specific = specific,
                 theme = theme, theme_args = theme_args, title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction, ...
             )

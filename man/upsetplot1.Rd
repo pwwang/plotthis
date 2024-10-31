@@ -10,7 +10,8 @@ PrepareUpsetData(
   in_form = NULL,
   group_by = NULL,
   group_by_sep = "_",
-  id_by = NULL
+  id_by = NULL,
+  specific = TRUE
 )
 
 UpsetPlot(
@@ -29,6 +30,7 @@ UpsetPlot(
   palette = "material-indigo",
   palcolor = NULL,
   alpha = 1,
+  specific = TRUE,
   theme = "theme_this",
   theme_args = list(),
   title = NULL,
@@ -99,6 +101,11 @@ if multiple columns are provided and the in_form is "long".}
 \item{id_by}{A character string specifying the column name of the data frame to identify the instances.
 Required when \code{group_by} is a single column and data is a data frame.}
 
+\item{specific}{A logical value to show the specific intersections only.
+ggVennDiagram, by default, only return the specific subsets of a region. However,
+sometimes, we want to show all the overlapping items for two or more sets.
+See \url{https://github.com/gaospecial/ggVennDiagram/issues/64} for more details.}
+
 \item{split_by}{The column(s) to split data by and plot separately.}
 
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
@@ -163,15 +170,13 @@ A ggplot object or wrap_plots object or a list of ggplot objects
 \code{UpsetPlot} is used to plot the processed data.
 }
 \examples{
-set.seed(8525)
-data = list(
-    A = sort(sample(letters, 8)),
-    B = sort(sample(letters, 8)),
-    C = sort(sample(letters, 8)),
-    D = sort(sample(letters, 8))
+data <- list(
+    A = 1:5,
+    B = 2:6,
+    C = 3:7,
+    D = 4:8
 )
 UpsetPlot(data)
 UpsetPlot(data, label = FALSE)
-UpsetPlot(data, palette = "Reds")
-
+UpsetPlot(data, palette = "Reds", specific = FALSE)
 }
