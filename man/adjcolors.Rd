@@ -18,17 +18,4 @@ The colors with the specified alpha level.
 This function takes a vector of colors and an alpha level and converts the colors
 to fixed colors with the specified alpha level.
 }
-\examples{
-colors <- c("red", "blue", "green")
-adjcolors <- utils::getFromNamespace("adjcolors", "plotthis")
-adjcolors(colors, 0.5)
-ggplot2::alpha(colors, 0.5)
-
-show_palettes(list(
-    "raw" = colors,
-    "adjcolors" = adjcolors(colors, 0.5),
-    "ggplot2::alpha" = ggplot2::alpha(colors, 0.5)
-))
-
-}
 \keyword{internal}

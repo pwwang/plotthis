@@ -17,13 +17,4 @@ The blended color.
 \description{
 This function blends a list of colors using the specified blend mode.
 }
-\examples{
-blend_colors <- utils::getFromNamespace("blend_colors", "plotthis")
-blend <- c("red", "green", blend_colors(c("red", "green"), mode = "blend"))
-average <- c("red", "green", blend_colors(c("red", "green"), mode = "average"))
-screen <- c("red", "green", blend_colors(c("red", "green"), mode = "screen"))
-multiply <- c("red", "green", blend_colors(c("red", "green"), mode = "multiply"))
-show_palettes(list("blend" = blend, "average" = average, "screen" = screen, "multiply" = multiply))
-
-}
 \keyword{internal}
