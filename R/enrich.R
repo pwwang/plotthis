@@ -499,10 +499,10 @@ PrepareEnrichrResult <- function(data) {
     data$geneID <- data$Genes
     data$Genes <- NULL
     data$geneID <- gsub(";", "/", data$geneID)
-    data$pvalue <- data[["P-value"]]
-    data[["P-value"]] <- NULL
-    data$p.adjust <- data[["Adjusted P-value"]]
-    data[["Adjusted P-value"]] <- NULL
+    data$pvalue <- data[["P.value"]]
+    data[["P.value"]] <- NULL
+    data$p.adjust <- data[["Adjusted.P.value"]]
+    data[["Adjusted.P.value"]] <- NULL
 
     data
 }
