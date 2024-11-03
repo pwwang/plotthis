@@ -535,6 +535,7 @@ PrepareEnrichrResult <- function(data, n_input = NULL) {
         D <- data$Odds.Ratio * pmax((B - A) * (C - A), 1) / A + B + C - A
     }
     D <- round(D)
+    data$Count <- A
     data$GeneRatio <- paste(A, C, sep = "/")
     data$BgRatio <- paste(B, D, sep = "/")
     data$Overlap <- NULL
