@@ -6,7 +6,7 @@
 \alias{EnrichNetwork}
 \title{Enrichment Map/Network}
 \usage{
-PrepareEnrichrResult(data)
+PrepareEnrichrResult(data, n_input = NULL)
 
 EnrichMap(
   data,
@@ -93,6 +93,10 @@ qvalue, geneID and Count.
 If you have enrichment results from multiple databases, you can combine them into one data frame and add a column (e.g. Database)
 to indicate the database.
 You can plot them in a single plot using the \code{split_by} argument (e.g. \code{split_by = "Database"}).}
+
+\item{n_input}{An integer specifying the number of input genes.
+Enrichr result doesn't ship with the number of input genes.
+You can either provide the number directly or we will infer it. See details.}
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
@@ -194,6 +198,27 @@ A ggplot object or wrap_plots object or a list of ggplot objects
 \code{PrepareEnrichrResult} is a function to process the enrichment results from Enrichr.
 \code{EnrichMap} is a function to plot the enrichment map.
 \code{EnrichNetwork} is a function to plot the enrichment network.
+}
+\details{
+In order to use the \code{EnrichMap} and \code{EnrichNetwork} functions and other visualization functions in \code{plotthis},
+the enrichment results from Enrichr need to be processed by the \code{PrepareEnrichrResult} function.
+The following columns are renamed:
+\itemize{
+\item \code{Term} -> \code{Description}
+\item \code{Genes} -> \code{geneID} (separated replaced by \code{/})
+\item \code{P.value} -> \code{pvalue}
+\item \code{Adjusted.P.value} -> \code{p.adjust}
+Additionally, GeneRatio and BgRatio columns are inferred.
+From \href{https://maayanlab.cloud/Enrichr/help#background}{enrichr's documentation}, the oddsRatio is defined as:
+\verb{oddsRatio = (A * (D - B - C + A) / max((B - A) * (C - A), 1)}, where A is the overlapping genes; B is the total genes in the gene set;
+C (n_input) is the genes in input list; D is the total genes in the background.
+D is not provided by Enrichr. To infer it, \code{D = oddsRatio * max((B - A) * (C - A), 1) / A + B + C - A}.
+\item \code{Overlap = A / B} (from Enrichr)
+\item \code{GeneRatio = A / C} (from ClusterProfiler)
+\item \code{BgRatio = B / D} (from ClusterProfiler)
+\code{C (n_input)}, if not provided, will be inferred when \code{D} for all terms are equal.
+When starting inferrence, the minimum value to try will be unique genes in \code{data$Genes}/\code{data$geneID}.
+}
 }
 \examples{
 data(enrich_example)

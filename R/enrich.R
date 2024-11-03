@@ -489,16 +489,58 @@ EnrichNetworkAtomic <- function(
 #'
 #' @rdname enrichmap1
 #' @param data A data frame containing the result by Enrichr.
+#' @param n_input An integer specifying the number of input genes.
+#' Enrichr result doesn't ship with the number of input genes.
+#' You can either provide the number directly or we will infer it. See details.
 #' @return A data frame that can be used in `EnrichMap`.
 #' @export
-PrepareEnrichrResult <- function(data) {
-    data$GeneRatio <- data$Overlap
-    data$Overlap <- NULL
-    data$Description <- data$Term
-    data$Term <- NULL
+#' @details
+#' In order to use the `EnrichMap` and `EnrichNetwork` functions and other visualization functions in `plotthis`,
+#' the enrichment results from Enrichr need to be processed by the `PrepareEnrichrResult` function.
+#' The following columns are renamed:
+#' * `Term` -> `Description`
+#' * `Genes` -> `geneID` (separated replaced by `/`)
+#' * `P.value` -> `pvalue`
+#' * `Adjusted.P.value` -> `p.adjust`
+#' Additionally, GeneRatio and BgRatio columns are inferred.
+#' From [enrichr's documentation](https://maayanlab.cloud/Enrichr/help#background), the oddsRatio is defined as:
+#' `oddsRatio = (A * (D - B - C + A) / max((B - A) * (C - A), 1)`, where A is the overlapping genes; B is the total genes in the gene set;
+#' C (n_input) is the genes in input list; D is the total genes in the background.
+#' D is not provided by Enrichr. To infer it, `D = oddsRatio * max((B - A) * (C - A), 1) / A + B + C - A`.
+#' * `Overlap = A / B` (from Enrichr)
+#' * `GeneRatio = A / C` (from ClusterProfiler)
+#' * `BgRatio = B / D` (from ClusterProfiler)
+#' `C (n_input)`, if not provided, will be inferred when `D` for all terms are equal.
+#' When starting inferrence, the minimum value to try will be unique genes in `data$Genes`/`data$geneID`.
+PrepareEnrichrResult <- function(data, n_input = NULL) {
+    # Calculate GeneRatio and BgRatio
+    A_B <- strsplit(data$Overlap, "/", fixed = TRUE)
+    A <- as.numeric(sapply(A_B, `[`, 1))
+    B <- as.numeric(sapply(A_B, `[`, 2))
     data$geneID <- data$Genes
     data$Genes <- NULL
-    data$geneID <- gsub(";", "/", data$geneID)
+    data$geneID <- gsub(";", "/", data$geneID, fixed = TRUE)
+    if (is.null(n_input)) {
+        C <- length(unique(unlist(strsplit(unlist(data$geneID), "/", fixed = TRUE))))
+        while(TRUE) {
+            D <- data$Odds.Ratio * pmax((B - A) * (C - A), 1) / A + B + C - A
+            if (isTRUE(all.equal(D, rep(D[1], length(D))))) { break }
+            if (D[1] > 100000) {
+                stop("Failed to infer the number of input genes. Please provide it manually.")
+            }
+            C <- C + 1
+        }
+    } else {
+        C <- n_input
+        D <- data$Odds.Ratio * pmax((B - A) * (C - A), 1) / A + B + C - A
+    }
+    D <- round(D)
+    data$GeneRatio <- paste(A, C, sep = "/")
+    data$BgRatio <- paste(B, D, sep = "/")
+    data$Overlap <- NULL
+    data$Odds.Ratio <- NULL
+    data$Description <- data$Term
+    data$Term <- NULL
     data$pvalue <- data[["P.value"]]
     data[["P.value"]] <- NULL
     data$p.adjust <- data[["Adjusted.P.value"]]
