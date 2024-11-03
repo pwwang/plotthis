@@ -48,7 +48,7 @@ EnrichNetwork is a function to plot the enrichment network."><meta property="og:
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">PrepareEnrichrResult</span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">PrepareEnrichrResult</span><span class="op">(</span><span class="va">data</span>, n_input <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">EnrichMap</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
@@ -136,6 +136,12 @@ qvalue, geneID and Count.</p><ul><li><p>The <code>ID</code>, <code>qvalue</code>
 </ul><p>If you have enrichment results from multiple databases, you can combine them into one data frame and add a column (e.g. Database)
 to indicate the database.
 You can plot them in a single plot using the <code>split_by</code> argument (e.g. <code>split_by = "Database"</code>).</p></dd>
+
+
+<dt id="arg-n-input">n_input<a class="anchor" aria-label="anchor" href="#arg-n-input"></a></dt>
+<dd><p>An integer specifying the number of input genes.
+Enrichr result doesn't ship with the number of input genes.
+You can either provide the number directly or we will infer it. See details.</p></dd>
 
 
 <dt id="arg-split-by">split_by<a class="anchor" aria-label="anchor" href="#arg-split-by"></a></dt>
@@ -306,6 +312,25 @@ Either "blend", "average", "multiply" and "screen".</p></dd>
     <p>A data frame that can be used in <code>EnrichMap</code>.</p>
 <p>A ggplot object or wrap_plots object or a list of ggplot objects</p>
     </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>In order to use the <code>EnrichMap</code> and <code>EnrichNetwork</code> functions and other visualization functions in <code>plotthis</code>,
+the enrichment results from Enrichr need to be processed by the <code>PrepareEnrichrResult</code> function.
+The following columns are renamed:</p><ul><li><p><code>Term</code> -&gt; <code>Description</code></p></li>
+<li><p><code>Genes</code> -&gt; <code>geneID</code> (separated replaced by <code>/</code>)</p></li>
+<li><p><code>P.value</code> -&gt; <code>pvalue</code></p></li>
+<li><p><code>Adjusted.P.value</code> -&gt; <code>p.adjust</code>
+Additionally, GeneRatio and BgRatio columns are inferred.
+From <a href="https://maayanlab.cloud/Enrichr/help#background" class="external-link">enrichr's documentation</a>, the oddsRatio is defined as:
+<code>oddsRatio = (A * (D - B - C + A) / max((B - A) * (C - A), 1)</code>, where A is the overlapping genes; B is the total genes in the gene set;
+C (n_input) is the genes in input list; D is the total genes in the background.
+D is not provided by Enrichr. To infer it, <code>D = oddsRatio * max((B - A) * (C - A), 1) / A + B + C - A</code>.</p></li>
+<li><p><code>Overlap = A / B</code> (from Enrichr)</p></li>
+<li><p><code>GeneRatio = A / C</code> (from ClusterProfiler)</p></li>
+<li><p><code>BgRatio = B / D</code> (from ClusterProfiler)
+<code>C (n_input)</code>, if not provided, will be inferred when <code>D</code> for all terms are equal.
+When starting inferrence, the minimum value to try will be unique genes in <code>data$Genes</code>/<code>data$geneID</code>.</p></li>
+</ul></div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
