@@ -5,10 +5,15 @@
 ## Installation
 
 ```r
+install.packages("plotthis")
+# or to install the latest version:
 remotes::install_github("pwwang/plotthis")
-# or
 devtools::install_github("pwwang/plotthis")
-# or using conda
+```
+
+You can also install the package using `conda`:
+
+```
 $ conda install pwwang::r-plotthis
 ```
 
