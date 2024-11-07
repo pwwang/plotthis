@@ -523,9 +523,16 @@ BoxViolinPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
+        if (length(palette) > 1) {
+        	if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
+        } else {
+        	palette <- rep(palette, length(datas))
+        }
+    	names(palette) <- names(datas)
     } else {
         datas <- list(data)
         names(datas) <- "..."
+        names(palette) <- "..."
     }
 
     stat_name <- stat_name %||% paste0(y, " (", deparse(substitute(add_stat)), ")")
@@ -542,7 +549,7 @@ BoxViolinPlot <- function(
                 x = x, x_sep = x_sep, y = y, base = base, in_form = in_form,
                 sort_x = sort_x, flip = flip, keep_empty = keep_empty, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
                 x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse,
-                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
+                theme = theme, theme_args = theme_args, palette = palette[nm], palcolor = palcolor, alpha = alpha,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
                 add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha,
                 jitter_width = jitter_width, jitter_height = jitter_height, stack = stack, y_max = y_max, y_min = y_min,
