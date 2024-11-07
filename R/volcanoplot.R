@@ -106,12 +106,7 @@ VolcanoPlotAtomic <- function(
     }
     data$.label <- rownames(data)
     data$.show_label <- FALSE
-    if (!is.null(labels)) {
-        data$.show_label[labels] <- TRUE
-    } else {
-        # calculate the distance to the origin
-        data$.distance <- sqrt(data[[x]]^2 + data[[y]]^2)
-    }
+
 
     x_upper <- quantile(data[[x]][is.finite(data[[x]])], c(0.99, 1))
     x_lower <- quantile(data[[x]][is.finite(data[[x]])], c(0.01, 0))
@@ -126,16 +121,22 @@ VolcanoPlotAtomic <- function(
     data[[x]][data[[x]] > x_upper] <- x_upper
     data[[x]][data[[x]] < x_lower] <- x_lower
 
-    if (!is.null(facet_by)) {
-        data <- data %>% group_by(!!!syms(facet_by), sign(data[[x]])) %>%
-            arrange(desc(!!sym(".distance"))) %>%
-            mutate(.show_label = row_number() <= nlabel) %>%
-            ungroup()
+    if (!is.null(labels)) {
+        data[labels, ".show_label"] <- TRUE
     } else {
-        data <- data %>% group_by(sign(data[[x]])) %>%
-            arrange(desc(!!sym(".distance"))) %>%
-            mutate(.show_label = row_number() <= nlabel) %>%
-            ungroup()
+        # calculate the distance to the origin
+        data$.distance <- sqrt(data[[x]]^2 + data[[y]]^2)
+        if (!is.null(facet_by)) {
+            data <- data %>% group_by(!!!syms(facet_by), sign(data[[x]])) %>%
+                arrange(desc(!!sym(".distance"))) %>%
+                mutate(.show_label = row_number() <= nlabel) %>%
+                ungroup()
+        } else {
+            data <- data %>% group_by(sign(data[[x]])) %>%
+                arrange(desc(!!sym(".distance"))) %>%
+                mutate(.show_label = row_number() <= nlabel) %>%
+                ungroup()
+        }
     }
     data <- data %>% mutate(.show_label = !!sym(".show_label") & !!sym(".category") != "insig") %>%
         as.data.frame()
