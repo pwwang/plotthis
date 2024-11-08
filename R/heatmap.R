@@ -787,7 +787,7 @@ HeatmapAtomic <- function(
                 lgd_items <- sort(unique(as.vector(as.matrix(hmargs$matrix[, unlist(rows)]))), decreasing = TRUE)
                 names(lgd_items) <- as.character(lgd_items)
             } else {
-                lgd_items <- legend_items
+                lgd_items <- unlist(legend_items)
             }
             ComplexHeatmap::Legend(
                 title = name, at = lgd_items, labels = names(lgd_items),
