@@ -15,7 +15,8 @@ palette_this(
   matched = FALSE,
   reverse = FALSE,
   NA_keep = FALSE,
-  NA_color = "grey80"
+  NA_color = "grey80",
+  transparent = TRUE
 )
 }
 \arguments{
@@ -40,6 +41,11 @@ palette_this(
 \item{NA_keep}{Whether to keep the color assignment to NA in \code{x}.}
 
 \item{NA_color}{Color assigned to NA if NA_keep is \code{TRUE}.}
+
+\item{transparent}{Whether to make the colors transparent when alpha < 1.
+When \code{TRUE}, \code{\link[ggplot2:reexports]{ggplot2::alpha()}} is used to make the colors transparent.
+Otherwise, \code{adjcolors} is used to adjust the colors based on the alpha. The color will be not be actually transparent.
+For example, \code{ggplot2::alpha("red", 0.5) == "#FF000080"}; while \code{adjcolors("red", 0.5) == "#FF8080"}.}
 }
 \value{
 A vector of colors.

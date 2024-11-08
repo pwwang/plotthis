@@ -143,6 +143,10 @@ theme_blank <- function(add_coord = TRUE, xlen_npc = 0.15, ylen_npc = 0.15, xlab
 #' @param reverse Whether to invert the colors.
 #' @param NA_keep Whether to keep the color assignment to NA in \code{x}.
 #' @param NA_color Color assigned to NA if NA_keep is \code{TRUE}.
+#' @param transparent Whether to make the colors transparent when alpha < 1.
+#'  When `TRUE`, [ggplot2::alpha()] is used to make the colors transparent.
+#'  Otherwise, `adjcolors` is used to adjust the colors based on the alpha. The color will be not be actually transparent.
+#'  For example, `ggplot2::alpha("red", 0.5) == "#FF000080"`; while `adjcolors("red", 0.5) == "#FF8080"`.
 #' @return A vector of colors.
 #' @importFrom grDevices colorRampPalette
 #' @importFrom stats setNames
@@ -150,7 +154,7 @@ theme_blank <- function(add_coord = TRUE, xlen_npc = 0.15, ylen_npc = 0.15, xlab
 #'
 palette_this <- function(
     x, n = 100, palette = "Paired", palcolor = NULL, type = "auto", keep_names = TRUE, alpha = 1,
-    matched = FALSE, reverse = FALSE, NA_keep = FALSE, NA_color = "grey80") {
+    matched = FALSE, reverse = FALSE, NA_keep = FALSE, NA_color = "grey80", transparent = TRUE) {
     palette_list <- plotthis::palette_list
     if (missing(x)) {
         x <- 1:n
@@ -255,8 +259,11 @@ palette_this <- function(
         names(color) <- NULL
     }
     if (alpha < 1) {
-        # color <- adjcolors(color, alpha)
-        color <- ggplot2::alpha(color, alpha)
+        if (isTRUE(transparent)) {
+            color <- ggplot2::alpha(color, alpha)
+        } else {
+            color <- adjcolors(color, alpha)
+        }
     }
     return(color)
 }
