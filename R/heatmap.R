@@ -1170,7 +1170,7 @@ HeatmapAtomic <- function(
         }
     }
     rm(column_annos)
-    if (length(top_annos) > 0) {
+    if (length(top_annos$show_annotation_name) > 0) {
         if (isTRUE(flip)) {
             hmargs$left_annotation <- do.call(ComplexHeatmap::rowAnnotation, top_annos)
         } else {
@@ -1349,7 +1349,7 @@ HeatmapAtomic <- function(
         }
     }
     rm(row_annos)
-    if (length(left_annos) > 0) {
+    if (length(left_annos$show_annotation_name) > 0) {
         if (isTRUE(flip)) {
             hmargs$top_annotation <- do.call(ComplexHeatmap::HeatmapAnnotation, left_annos)
         } else {
