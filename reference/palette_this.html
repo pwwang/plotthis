@@ -53,7 +53,8 @@
 <span>  matched <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  reverse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  NA_keep <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  NA_color <span class="op">=</span> <span class="st">"grey80"</span></span>
+<span>  NA_color <span class="op">=</span> <span class="st">"grey80"</span>,</span>
+<span>  transparent <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -103,6 +104,13 @@
 
 <dt id="arg-na-color">NA_color<a class="anchor" aria-label="anchor" href="#arg-na-color"></a></dt>
 <dd><p>Color assigned to NA if NA_keep is <code>TRUE</code>.</p></dd>
+
+
+<dt id="arg-transparent">transparent<a class="anchor" aria-label="anchor" href="#arg-transparent"></a></dt>
+<dd><p>Whether to make the colors transparent when alpha &lt; 1.
+When <code>TRUE</code>, <code><a href="https://ggplot2.tidyverse.org/reference/reexports.html" class="external-link">ggplot2::alpha()</a></code> is used to make the colors transparent.
+Otherwise, <code>adjcolors</code> is used to adjust the colors based on the alpha. The color will be not be actually transparent.
+For example, <code>ggplot2::alpha("red", 0.5) == "#FF000080"</code>; while <code>adjcolors("red", 0.5) == "#FF8080"</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

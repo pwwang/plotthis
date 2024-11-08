@@ -64,12 +64,15 @@
 <span>  pie_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pie_size_name <span class="op">=</span> <span class="st">"size"</span>,</span>
 <span>  pie_values <span class="op">=</span> <span class="st">"count"</span>,</span>
+<span>  legend_items <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  legend_discrete <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  lower_quantile <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  upper_quantile <span class="op">=</span> <span class="fl">0.99</span>,</span>
 <span>  lower_cutoff <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  upper_cutoff <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  columns_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  columns_split_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  columns_split_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  columns_palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
 <span>  columns_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  columns_split_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
@@ -81,7 +84,9 @@
 <span>  rows_split_palette <span class="op">=</span> <span class="st">"simspec"</span>,</span>
 <span>  rows_split_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  column_name_annotation <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  column_name_legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Logic.html" class="external-link">isFALSE</a></span><span class="op">(</span><span class="va">show_column_names</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">legend.position</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
 <span>  row_name_annotation <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  row_name_legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Logic.html" class="external-link">isFALSE</a></span><span class="op">(</span><span class="va">show_row_names</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">legend.position</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
 <span>  cluster_columns <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  cluster_rows <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  show_row_names <span class="op">=</span> <span class="op">!</span><span class="va">row_name_annotation</span>,</span>
@@ -245,6 +250,15 @@ group in <code>pie_group_by</code>.</p></li>
 </ul></dd>
 
 
+<dt id="arg-legend-items">legend_items<a class="anchor" aria-label="anchor" href="#arg-legend-items"></a></dt>
+<dd><p>A numeric vector with names to specifiy the items in the main legend.
+The names will be working as the labels of the legend items.</p></dd>
+
+
+<dt id="arg-legend-discrete">legend_discrete<a class="anchor" aria-label="anchor" href="#arg-legend-discrete"></a></dt>
+<dd><p>A logical value indicating whether the main legend is discrete.</p></dd>
+
+
 <dt id="arg-lower-quantile-upper-quantile-lower-cutoff-upper-cutoff">lower_quantile, upper_quantile, lower_cutoff, upper_cutoff<a class="anchor" aria-label="anchor" href="#arg-lower-quantile-upper-quantile-lower-cutoff-upper-cutoff"></a></dt>
 <dd><p>Vector of minimum and maximum cutoff values or quantile values for each feature.
 It's applied to aggregated values when aggregated values are used (e.g. plot_type tile, label, etc).
@@ -258,6 +272,10 @@ It's applied to raw values when raw values are used (e.g. plot_type bars, etc).<
 <dt id="arg-columns-split-by">columns_split_by<a class="anchor" aria-label="anchor" href="#arg-columns-split-by"></a></dt>
 <dd><p>A character string of the column name to split the heatmap columns into slices.
 A character/factor column or multiple columns are expected.</p></dd>
+
+
+<dt id="arg-columns-split-name">columns_split_name<a class="anchor" aria-label="anchor" href="#arg-columns-split-name"></a></dt>
+<dd><p>A character string specifying the name of the column split annotation.</p></dd>
 
 
 <dt id="arg-columns-palette">columns_palette<a class="anchor" aria-label="anchor" href="#arg-columns-palette"></a></dt>
@@ -310,9 +328,17 @@ The default is "simspec".</p></dd>
 which is a simple annotaion indicating the column names.</p></dd>
 
 
+<dt id="arg-column-name-legend">column_name_legend<a class="anchor" aria-label="anchor" href="#arg-column-name-legend"></a></dt>
+<dd><p>A logical value indicating whether to show the legend of the column name annotation.</p></dd>
+
+
 <dt id="arg-row-name-annotation">row_name_annotation<a class="anchor" aria-label="anchor" href="#arg-row-name-annotation"></a></dt>
 <dd><p>A logical value indicating whether to add the row annotation for the row names.
 which is a simple annotaion indicating the row names.</p></dd>
+
+
+<dt id="arg-row-name-legend">row_name_legend<a class="anchor" aria-label="anchor" href="#arg-row-name-legend"></a></dt>
+<dd><p>A logical value indicating whether to show the legend of the row name annotation.</p></dd>
 
 
 <dt id="arg-cluster-columns">cluster_columns<a class="anchor" aria-label="anchor" href="#arg-cluster-columns"></a></dt>
