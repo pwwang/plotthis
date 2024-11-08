@@ -25,6 +25,7 @@ HeatmapAtomic(
   pie_values = "count",
   columns_by_sep = "_",
   columns_split_by = NULL,
+  columns_split_name = NULL,
   columns_palette = "Paired",
   columns_palcolor = NULL,
   columns_split_by_sep = "_",
@@ -40,9 +41,13 @@ HeatmapAtomic(
   rows_split_palette = "simspec",
   rows_split_palcolor = NULL,
   column_name_annotation = TRUE,
+  column_name_legend = isFALSE(show_column_names) && !identical(legend.position, "none"),
   row_name_annotation = TRUE,
+  row_name_legend = isFALSE(show_row_names) && !identical(legend.position, "none"),
   cluster_columns = TRUE,
   cluster_rows = TRUE,
+  legend_items = NULL,
+  legend_discrete = FALSE,
   show_row_names = !row_name_annotation,
   show_column_names = !column_name_annotation,
   column_title = character(0),
@@ -152,6 +157,8 @@ group in \code{pie_group_by}.
 \item{columns_split_by}{A character string of the column name to split the heatmap columns into slices.
 A character/factor column or multiple columns are expected.}
 
+\item{columns_split_name}{A character string specifying the name of the column split annotation.}
+
 \item{columns_palette}{A character string specifying the palette of the column group annotation.
 The default is "Paired".}
 
@@ -184,14 +191,23 @@ The default is "simspec".}
 \item{column_name_annotation}{A logical value indicating whether to add the column annotation for the column names.
 which is a simple annotaion indicating the column names.}
 
+\item{column_name_legend}{A logical value indicating whether to show the legend of the column name annotation.}
+
 \item{row_name_annotation}{A logical value indicating whether to add the row annotation for the row names.
 which is a simple annotaion indicating the row names.}
+
+\item{row_name_legend}{A logical value indicating whether to show the legend of the row name annotation.}
 
 \item{cluster_columns}{A logical value indicating whether to cluster the columns.
 If TRUE and columns_split_by is provided, the clustering will only be applied to the columns within the same split.}
 
 \item{cluster_rows}{A logical value indicating whether to cluster the rows.
 If TRUE and rows_split_by is provided, the clustering will only be applied to the rows within the same split.}
+
+\item{legend_items}{A numeric vector with names to specifiy the items in the main legend.
+The names will be working as the labels of the legend items.}
+
+\item{legend_discrete}{A logical value indicating whether the main legend is discrete.}
 
 \item{show_row_names}{A logical value indicating whether to show the row names.
 If TRUE, the legend of the row group annotation will be hidden.}
