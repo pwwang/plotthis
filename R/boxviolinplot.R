@@ -525,10 +525,11 @@ BoxViolinPlot <- function(
         datas <- datas[levels(data[[split_by]])]
         if (length(palette) > 1) {
         	if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
+        	if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
         } else {
         	palette <- rep(palette, length(datas))
+	    	names(palette) <- names(datas)
         }
-    	names(palette) <- names(datas)
     } else {
         datas <- list(data)
         names(datas) <- "..."
