@@ -386,9 +386,29 @@ VolcanoPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
+        if (length(palette) > 1) {
+            if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
+            if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
+        } else {
+            palette <- rep(palette, length(datas))
+            names(palette) <- names(datas)
+        }
+        if (length(palcolor) > 1) {
+            if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
+            if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
+        } else {
+            if (!is.null(palcolor)) {
+                palcolor <- rep(palcolor, length(datas))
+                names(palcolor) <- names(datas)                
+            }
+        }
     } else {
         datas <- list(data)
         names(datas) <- "..."
+        names(palette) <- "..."
+        if (!is.null(palcolor)) {
+            names(palcolor) <- "..."
+        }
     }
 
     plots <- lapply(
@@ -408,7 +428,7 @@ VolcanoPlot <- function(
                 label_bg_r = label_bg_r, highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha,
                 highlight_stroke = highlight_stroke,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
+                theme = theme, theme_args = theme_args, palette = palette[nm], palcolor = palcolor[nm],
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction, seed = seed, ...
             )

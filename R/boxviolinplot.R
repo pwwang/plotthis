@@ -530,10 +530,22 @@ BoxViolinPlot <- function(
         	palette <- rep(palette, length(datas))
 	    	names(palette) <- names(datas)
         }
+        if (length(palcolor) > 1) {
+            if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
+            if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
+        } else {
+            if (!is.null(palcolor)) {
+                palcolor <- rep(palcolor, length(datas))
+                names(palcolor) <- names(datas)                
+            }
+        }
     } else {
         datas <- list(data)
         names(datas) <- "..."
         names(palette) <- "..."
+        if (!is.null(palcolor)) {
+            names(palcolor) <- "..."
+        }
     }
 
     stat_name <- stat_name %||% paste0(y, " (", deparse(substitute(add_stat)), ")")
@@ -550,7 +562,7 @@ BoxViolinPlot <- function(
                 x = x, x_sep = x_sep, y = y, base = base, in_form = in_form,
                 sort_x = sort_x, flip = flip, keep_empty = keep_empty, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
                 x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse,
-                theme = theme, theme_args = theme_args, palette = palette[nm], palcolor = palcolor, alpha = alpha,
+                theme = theme, theme_args = theme_args, palette = palette[nm], palcolor = palcolor[nm], alpha = alpha,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
                 add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha,
                 jitter_width = jitter_width, jitter_height = jitter_height, stack = stack, y_max = y_max, y_min = y_min,

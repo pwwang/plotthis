@@ -327,9 +327,29 @@ RidgePlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
+        if (length(palette) > 1) {
+            if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
+            if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
+        } else {
+            palette <- rep(palette, length(datas))
+            names(palette) <- names(datas)
+        }
+        if (length(palcolor) > 1) {
+            if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
+            if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
+        } else {
+            if (!is.null(palcolor)) {
+                palcolor <- rep(palcolor, length(datas))
+                names(palcolor) <- names(datas)                
+            }
+        }
     } else {
         datas <- list(data)
         names(datas) <- "..."
+        names(palette) <- "..."
+        if (!is.null(palcolor)) {
+            names(palcolor) <- "..."
+        }
     }
 
     plots <- lapply(
@@ -342,7 +362,7 @@ RidgePlot <- function(
             }
             RidgePlotAtomic(datas[[nm]],
                 x = x, in_form = in_form, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name, scale = scale,
-                flip = flip, alpha = alpha, theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
+                flip = flip, alpha = alpha, theme = theme, theme_args = theme_args, palette = palette[nm], palcolor = palcolor[nm],
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, x_text_angle = x_text_angle, keep_empty = keep_empty,
                 reverse = reverse, facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction, ...
@@ -389,10 +409,31 @@ DensityPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
+        if (length(palette) > 1) {
+            if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
+            if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
+        } else {
+            palette <- rep(palette, length(datas))
+            names(palette) <- names(datas)
+        }
+        if (length(palcolor) > 1) {
+            if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
+            if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
+        } else {
+            if (!is.null(palcolor)) {
+                palcolor <- rep(palcolor, length(datas))
+                names(palcolor) <- names(datas)                
+            }
+        }
     } else {
         datas <- list(data)
         names(datas) <- "..."
+        names(palette) <- "..."
+        if (!is.null(palcolor)) {
+            names(palcolor) <- "..."
+        }
     }
+
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -406,7 +447,7 @@ DensityPlot <- function(
                 x = x, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
                 type = "density", flip = flip, xtrans = xtrans, ytrans = ytrans, position = position,
                 add_bars = add_bars, bar_height = bar_height, bar_alpha = bar_alpha, bar_width = bar_width,
-                palette = palette, palcolor = palcolor, alpha = alpha, theme = theme, theme_args = theme_args,
+                palette = palette[nm], palcolor = palcolor[nm], alpha = alpha, theme = theme, theme_args = theme_args,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, expand = expand,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 legend.position = legend.position, legend.direction = legend.direction, ...
@@ -454,10 +495,31 @@ Histogram <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
+        if (length(palette) > 1) {
+            if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
+            if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
+        } else {
+            palette <- rep(palette, length(datas))
+            names(palette) <- names(datas)
+        }
+        if (length(palcolor) > 1) {
+            if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
+            if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
+        } else {
+            if (!is.null(palcolor)) {
+                palcolor <- rep(palcolor, length(datas))
+                names(palcolor) <- names(datas)                
+            }
+        }
     } else {
         datas <- list(data)
         names(datas) <- "..."
+        names(palette) <- "..."
+        if (!is.null(palcolor)) {
+            names(palcolor) <- "..."
+        }
     }
+
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -473,7 +535,7 @@ Histogram <- function(
                 add_trend = add_trend, trend_alpha = trend_alpha, trend_linewidth = trend_linewidth, trend_pt_size = trend_pt_size,
                 add_bars = add_bars, bar_height = bar_height, bar_alpha = bar_alpha, bar_width = bar_width,
                 bins = bins, binwidth = binwidth, expand = expand, position = position,
-                palette = palette, palcolor = palcolor, alpha = alpha, theme = theme, theme_args = theme_args,
+                palette = palette[nm], palcolor = palcolor[nm], alpha = alpha, theme = theme, theme_args = theme_args,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 legend.position = legend.position, legend.direction = legend.direction, ...

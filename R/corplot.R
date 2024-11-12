@@ -264,9 +264,29 @@ CorPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
+        if (length(palette) > 1) {
+            if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
+            if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
+        } else {
+            palette <- rep(palette, length(datas))
+            names(palette) <- names(datas)
+        }
+        if (length(palcolor) > 1) {
+            if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
+            if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
+        } else {
+            if (!is.null(palcolor)) {
+                palcolor <- rep(palcolor, length(datas))
+                names(palcolor) <- names(datas)                
+            }
+        }
     } else {
         datas <- list(data)
         names(datas) <- "..."
+        names(palette) <- "..."
+        if (!is.null(palcolor)) {
+            names(palcolor) <- "..."
+        }
     }
 
     plots <- lapply(
@@ -283,7 +303,7 @@ CorPlot <- function(
                 highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha, highlight_stroke = highlight_stroke,
                 anno_items = anno_items, anno_size = anno_size, anno_fg = anno_fg, anno_bg = anno_bg, anno_bg_r = anno_bg_r,
                 anno_position = anno_position, add_smooth = add_smooth, smooth_color = smooth_color, smooth_width = smooth_width, smooth_se = smooth_se,
-                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
+                theme = theme, theme_args = theme_args, palette = palette[nm], palcolor = palcolor[nm], alpha = alpha,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction, seed = seed,
@@ -647,9 +667,29 @@ CorPairsPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
+        if (length(palette) > 1) {
+            if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
+            if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
+        } else {
+            palette <- rep(palette, length(datas))
+            names(palette) <- names(datas)
+        }
+        if (length(palcolor) > 1) {
+            if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
+            if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
+        } else {
+            if (!is.null(palcolor)) {
+                palcolor <- rep(palcolor, length(datas))
+                names(palcolor) <- names(datas)                
+            }
+        }
     } else {
         datas <- list(data)
         names(datas) <- "..."
+        names(palette) <- "..."
+        if (!is.null(palcolor)) {
+            names(palcolor) <- "..."
+        }
     }
 
     plots <- lapply(
@@ -669,7 +709,7 @@ CorPairsPlot <- function(
                 diag_type = diag_type, diag_args = diag_args, layout = layout,
                 cor_method = cor_method, cor_palette = cor_palette, cor_palcolor = cor_palcolor,
                 cor_size = cor_size, cor_format = cor_format, cor_fg = cor_fg, cor_bg = cor_bg, cor_bg_r = cor_bg_r,
-                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
+                theme = theme, theme_args = theme_args, palette = palette[nm], palcolor = palcolor[nm],
                 title = title, subtitle = subtitle, legend.position = legend.position, legend.direction = legend.direction, seed = seed,
                 ...
             )

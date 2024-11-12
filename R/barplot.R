@@ -468,9 +468,29 @@ BarPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
+        if (length(palette) > 1) {
+            if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
+            if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
+        } else {
+            palette <- rep(palette, length(datas))
+            names(palette) <- names(datas)
+        }
+        if (length(palcolor) > 1) {
+            if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
+            if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
+        } else {
+            if (!is.null(palcolor)) {
+                palcolor <- rep(palcolor, length(datas))
+                names(palcolor) <- names(datas)                
+            }
+        }
     } else {
         datas <- list(data)
         names(datas) <- "..."
+        names(palette) <- "..."
+        if (!is.null(palcolor)) {
+            names(palcolor) <- "..."
+        }
     }
 
     plots <- lapply(
@@ -482,7 +502,7 @@ BarPlot <- function(
                 label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
                 x = x, x_sep = x_sep, y = y, flip = flip, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
                 fill_by_x_if_no_group = fill_by_x_if_no_group,
-                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
+                theme = theme, theme_args = theme_args, palette = palette[nm], palcolor = palcolor[nm], alpha = alpha,
                 add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
                 x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, line_name = line_name,
                 add_line = add_line, line_color = line_color, line_width = line_width, line_type = line_type,

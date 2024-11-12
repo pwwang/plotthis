@@ -213,9 +213,29 @@ RadarPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
+        if (length(palette) > 1) {
+            if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
+            if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
+        } else {
+            palette <- rep(palette, length(datas))
+            names(palette) <- names(datas)
+        }
+        if (length(palcolor) > 1) {
+            if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
+            if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
+        } else {
+            if (!is.null(palcolor)) {
+                palcolor <- rep(palcolor, length(datas))
+                names(palcolor) <- names(datas)                
+            }
+        }
     } else {
         datas <- list(data)
         names(datas) <- "..."
+        names(palette) <- "..."
+        if (!is.null(palcolor)) {
+            names(palcolor) <- "..."
+        }
     }
 
     plots <- lapply(
@@ -230,7 +250,7 @@ RadarPlot <- function(
                 x = x, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, y = y, group_name = group_name,
                 scale_y = scale_y, y_min = y_min, y_max = y_max, y_nbreaks = y_nbreaks, polygon = FALSE,
                 fill = fill, linewidth = linewidth, pt_size = pt_size, max_charwidth = max_charwidth,
-                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
+                theme = theme, theme_args = theme_args, palette = palette[nm], palcolor = palcolor[nm],
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 alpha = alpha, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
                 title = title, subtitle = subtitle, ...
@@ -283,9 +303,29 @@ SpiderPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
+        if (length(palette) > 1) {
+            if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
+            if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
+        } else {
+            palette <- rep(palette, length(datas))
+            names(palette) <- names(datas)
+        }
+        if (length(palcolor) > 1) {
+            if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
+            if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
+        } else {
+            if (!is.null(palcolor)) {
+                palcolor <- rep(palcolor, length(datas))
+                names(palcolor) <- names(datas)                
+            }
+        }
     } else {
         datas <- list(data)
         names(datas) <- "..."
+        names(palette) <- "..."
+        if (!is.null(palcolor)) {
+            names(palcolor) <- "..."
+        }
     }
 
     plots <- lapply(
@@ -300,7 +340,7 @@ SpiderPlot <- function(
                 x = x, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, y = y, group_name = group_name,
                 scale_y = scale_y, y_min = y_min, y_max = y_max, y_nbreaks = y_nbreaks, polygon = TRUE,
                 fill = fill, linewidth = linewidth, pt_size = pt_size, max_charwidth = max_charwidth,
-                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
+                theme = theme, theme_args = theme_args, palette = palette[nm], palcolor = palcolor[nm],
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 alpha = alpha, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
                 title = title, subtitle = subtitle, ...

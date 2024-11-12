@@ -296,9 +296,29 @@ ScatterPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
+        if (length(palette) > 1) {
+            if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
+            if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
+        } else {
+            palette <- rep(palette, length(datas))
+            names(palette) <- names(datas)
+        }
+        if (length(palcolor) > 1) {
+            if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
+            if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
+        } else {
+            if (!is.null(palcolor)) {
+                palcolor <- rep(palcolor, length(datas))
+                names(palcolor) <- names(datas)                
+            }
+        }
     } else {
         datas <- list(data)
         names(datas) <- "..."
+        names(palette) <- "..."
+        if (!is.null(palcolor)) {
+            names(palcolor) <- "..."
+        }
     }
 
     plots <- lapply(
@@ -314,7 +334,7 @@ ScatterPlot <- function(
                 highlight = highlight, highlight_shape = highlight_shape, highlight_size = highlight_size,
                 highlight_color = highlight_color, highlight_alpha = highlight_alpha,
                 color_name = color_name, color_reverse = color_reverse, theme = theme, theme_args = theme_args,
-                alpha = alpha, shape = shape, border_color = border_color, palette = palette, palcolor = palcolor,
+                alpha = alpha, shape = shape, border_color = border_color, palette = palette[nm], palcolor = palcolor[nm],
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, ...
