@@ -74,6 +74,7 @@ gggrob <- function(p, void = TRUE, nolegend = TRUE) {
             grid.lines(x = c(0, 1), y = c(1, 1), gp = gpar(col = "black", lwd = 1))
             for (i in seq_along(grobs)) {
                 if (which == "row") {
+                    i <- total - i + 1
                     grobs[[i]]$vp <- viewport(x = 0.5, y = (i - 1) * 1/total + 1/(2*total), width = 0.95, height = 1/total)
                 } else {
                     grobs[[i]]$vp <- viewport(x = (i - 1) * 1/total + 1/(2*total), y = 0.5, width = 1/total, height = 1)
@@ -118,6 +119,7 @@ gggrob <- function(p, void = TRUE, nolegend = TRUE) {
     colors <- palette_this(glevels, palette = palette, palcolor = palcolor)
     if (!is.null(split_by)) {
         x <- x %>% unite("..split", split_by, group_by, remove = FALSE)
+        names(colors) <- names(split(x, x[["..split"]]))
         plots <- .plotting(data = x, column = column, group_by = "..split", palette = palette, palcolor = colors)
         plots <- lapply(plots, gggrob)
     } else {
@@ -148,6 +150,7 @@ gggrob <- function(p, void = TRUE, nolegend = TRUE) {
             grid.lines(x = c(0, 1), y = c(1, 1), gp = gpar(col = "black", lwd = 1))
             for (i in seq_along(grobs)) {
                 if (which == "row") {
+                    i <- total - i + 1
                     grobs[[i]]$vp <- viewport(x = 0.5, y = (i - 1) * 1/total + 1/(2*total), width = 0.95, height = 1/total)
                 } else {
                     grobs[[i]]$vp <- viewport(x = (i - 1) * 1/total + 1/(2*total), y = 0.5, width = 1/total, height = 0.95)
