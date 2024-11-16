@@ -327,31 +327,19 @@ RidgePlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        if (length(palette) > 1) {
-            if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
-            if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
-        } else {
-            palette <- rep(palette, length(datas))
-            names(palette) <- names(datas)
-        }
-        if (length(palcolor) > 1) {
-            if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
-            if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
-        } else {
-            if (!is.null(palcolor)) {
-                palcolor <- rep(palcolor, length(datas))
-                names(palcolor) <- names(datas)                
-            }
-        }
+        palette <- check_palette(palette, names(datas))
+        palcolor <- check_palette(palcolor, names(datas))
     } else {
         datas <- list(data)
+        palette <- list(palette)
         names(datas) <- "..."
         names(palette) <- "..."
         if (!is.null(palcolor)) {
+	        palcolor <- list(palcolor)
             names(palcolor) <- "..."
         }
     }
-
+    
     plots <- lapply(
         names(datas), function(nm) {
             default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
@@ -362,7 +350,7 @@ RidgePlot <- function(
             }
             RidgePlotAtomic(datas[[nm]],
                 x = x, in_form = in_form, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name, scale = scale,
-                flip = flip, alpha = alpha, theme = theme, theme_args = theme_args, palette = palette[nm], palcolor = palcolor[nm],
+                flip = flip, alpha = alpha, theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, x_text_angle = x_text_angle, keep_empty = keep_empty,
                 reverse = reverse, facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction, ...

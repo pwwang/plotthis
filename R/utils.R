@@ -510,3 +510,29 @@ process_theme <- function(theme) {
 
     return(getFromNamespace(parts[2], parts[1]))
 }
+
+
+#' check_palette
+#' Check if the palette and palcolor can be properly used
+#' @param palette palette or palcolor
+#' @param datas_name name of the split data
+#' @keywords internal
+#' @return named list containing palette or color name
+check_palette <- function(palette, datas_name) {
+    if (length(palette) > 1) {
+		if (!is.list(palette)) {
+			stopifnot("palette (palcolor) should be named if provided as a vector." = !is.null(names(palette)))
+			palette <- split(unname(palette), names(palette))
+		} else {
+			stopifnot("palette (palcolor) should be named if provided as a list." = !is.null(names(palette)))
+		}
+        stopifnot("split_by and palette (palcolor) length mismatches." = length(palette) == length(datas_name))
+    } else {
+    	if (!is.null(palette)) {
+	        palette <- rep(palette, length(datas_name))
+	        names(palette) <- datas_name
+			palette <- split(unname(palette), names(palette))	
+    	}
+    }
+    return(palette)
+}
