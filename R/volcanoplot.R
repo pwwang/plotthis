@@ -94,8 +94,7 @@ VolcanoPlotAtomic <- function(
     if (is.null(color_by)) {
         color_by <- ".category"
         color_type <- "discrete"
-    } else if (is.null(color_by)) {
-        color_by <- ".category"
+    } else if (is.character(data[[color_by]]) || is.factor(data[[color_by]])) {
         color_type <- "discrete"
     } else {
         color_type <- "continuous"
@@ -204,7 +203,7 @@ VolcanoPlotAtomic <- function(
                 data = vline_df,
                 mapping = aes(
                     xintercept = !!sym("xintercept"),
-                    color = x_cutoff_name %||% paste0(x, " = +/-", scales::number(x_cutoff))),
+                    color = x_cutoff_name %||% paste0(x, " = +/-", scales::number(x_cutoff, accuracy = 0.01))),
                 alpha = 0.4, linetype = x_cutoff_linetype, size = x_cutoff_linewidth,
             ) +
             scale_color_manual(name = NULL, values = x_cutoff_color, guide = guide)
