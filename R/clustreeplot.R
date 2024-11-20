@@ -189,7 +189,7 @@ ClustreePlot <- function(
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
         palette <- check_palette(palette, names(datas))
-        palcolor <- check_palette(palcolor, names(datas))
+        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
 		datas <- list(data)
         palette <- list(palette)
