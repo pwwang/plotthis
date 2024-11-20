@@ -276,6 +276,10 @@ ScatterPlotAtomic <- function(
 #' # Shape doesn't have fill color
 #' ScatterPlot(data, x = "x", y = "y", size_by = "w", color_by = "t",
 #'  shape = 1, palette = "Set1")
+#' 
+#' # Change color per plot
+#' ScatterPlot(data, x = "x", y = "y", split_by = "t",
+#'             palcolor = c("A" = "blue", "B" = "red"))
 ScatterPlot <- function(
     data, x, y, size_by = 2, size_name = NULL, color_by = NULL, color_name = NULL, color_reverse = FALSE,
     split_by = NULL, split_by_sep = "_", shape = 21, alpha = ifelse(shape %in% 21:25, 0.65, 1), border_color = "black",
@@ -296,28 +300,16 @@ ScatterPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        if (length(palette) > 1) {
-            if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
-            if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
-        } else {
-            palette <- rep(palette, length(datas))
-            names(palette) <- names(datas)
-        }
-        if (length(palcolor) > 1) {
-            if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
-            if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
-        } else {
-            if (!is.null(palcolor)) {
-                palcolor <- rep(palcolor, length(datas))
-                names(palcolor) <- names(datas)                
-            }
-        }
+        palette <- check_palette(palette, names(datas))
+        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-        datas <- list(data)
+		datas <- list(data)
+        palette <- list(palette)
         names(datas) <- "..."
         names(palette) <- "..."
         if (!is.null(palcolor)) {
-            names(palcolor) <- "..."
+	        palcolor <- list(palcolor)
+            palcolor <- check_palcolor(palcolor, "...")
         }
     }
 
@@ -334,7 +326,7 @@ ScatterPlot <- function(
                 highlight = highlight, highlight_shape = highlight_shape, highlight_size = highlight_size,
                 highlight_color = highlight_color, highlight_alpha = highlight_alpha,
                 color_name = color_name, color_reverse = color_reverse, theme = theme, theme_args = theme_args,
-                alpha = alpha, shape = shape, border_color = border_color, palette = palette[nm], palcolor = palcolor[nm],
+                alpha = alpha, shape = shape, border_color = border_color, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, ...

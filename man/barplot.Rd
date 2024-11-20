@@ -380,6 +380,11 @@ BarPlot(data,
     facet_by = "facet", position = "dodge", facet_ncol = 1
 )
 BarPlot(data,
+    x = "x", y = "y", split_by = "group",
+    palette = list("G1" = "Reds","G2" = "Blues","G3" = "Greens","G4" = "Purp"),
+    facet_by = "facet", position = "dodge", facet_ncol = 1
+)
+BarPlot(data,
     x = "group", y = "y", group_by = "x",
     position = "dodge", add_bg = TRUE, bg_palette = "Spectral"
 )
@@ -400,4 +405,6 @@ SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
 SplitBarPlot(data, x = "count", y = "word", fill_by = "group")
 SplitBarPlot(data, x = "count", y = "word", facet_by = "group",
              fill_name = "Direction")
+SplitBarPlot(data, x = "count", y = "word", alpha_by = "score", split_by="group",
+             palette = c("A" = "Reds", "B" = "Blues", "C" = "Greens"))
 }

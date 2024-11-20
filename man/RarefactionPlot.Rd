@@ -140,6 +140,8 @@ spider <- list(
 RarefactionPlot(spider)
 RarefactionPlot(spider, q = c(0, 1, 2), facet_by = "q")
 RarefactionPlot(spider, q = c(0, 1, 2), split_by = "q")
+RarefactionPlot(spider, q = c(0, 1, 2), split_by = "q",
+                palette = c("0" = "Paired", "1" = "Set1", "2" = "Dark2"))
 RarefactionPlot(spider, q = c(0, 1, 2), group_by = "q",
  facet_by = "group", palette = "Set1", type = 3)
 }

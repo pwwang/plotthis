@@ -172,6 +172,8 @@ ChordPlotAtomic <- function(
 #'           links_color = "to", labels_rot = TRUE)
 #' ChordPlot(data, from = "nodes1", to = "nodes2", y = "y")
 #' ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y")
+#' ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y",
+#'           palette=c("1"="Reds","2"="Blues","3"="Greens","4"="Purp"))
 #' ChordPlot(data, from = "nodes1", to = "nodes2", flip = TRUE)
 #' }
 ChordPlot <- function(
@@ -189,28 +191,16 @@ ChordPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        if (length(palette) > 1) {
-            if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
-            if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
-        } else {
-            palette <- rep(palette, length(datas))
-            names(palette) <- names(datas)
-        }
-        if (length(palcolor) > 1) {
-            if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
-            if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
-        } else {
-            if (!is.null(palcolor)) {
-                palcolor <- rep(palcolor, length(datas))
-                names(palcolor) <- names(datas)                
-            }
-        }
+        palette <- check_palette(palette, names(datas))
+        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-        datas <- list(data)
+		datas <- list(data)
+        palette <- list(palette)
         names(datas) <- "..."
         names(palette) <- "..."
         if (!is.null(palcolor)) {
-            names(palcolor) <- "..."
+	        palcolor <- list(palcolor)
+            palcolor <- check_palcolor(palcolor, "...")
         }
     }
 
@@ -224,7 +214,7 @@ ChordPlot <- function(
             }
             ChordPlotAtomic(datas[[nm]],
                 y = y, from = from, from_sep = from_sep, to = to, to_sep = to_sep, flip = flip, links_color = links_color,
-                theme = theme, theme_args = theme_args, palette = palette[nm], palcolor = palcolor[nm], alpha = alpha,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 labels_rot = labels_rot, title = title, subtitle = subtitle, ...
             )
         }

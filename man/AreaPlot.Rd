@@ -142,4 +142,5 @@ AreaPlot(data, x = "x", y = "y", group_by = "group")
 AreaPlot(data, x = "x", y = "y", group_by = "group",
          scale_y = TRUE)
 AreaPlot(data, x = "x", y = "y", split_by = "group")
+AreaPlot(data, x = "x", y = "y", split_by = "group", palette = c("F1" = "Blues","F2" = "Reds"))
 }

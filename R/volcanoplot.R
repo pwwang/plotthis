@@ -362,6 +362,9 @@ VolcanoPlotAtomic <- function(
 #' VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
 #'    highlight = c("ANXA2", "TMEM40", "PF4", "GNG11", "CLU", "CD9", "FGFBP2",
 #'    "TNFRSF1B", "IFI6"))
+#' VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", color_by = "pct_diff",
+#'    y_cutoff_name = "-log10(0.05)", split_by = "group",
+#'    palette = c("A" = "Set1", "B" = "Dark2"))
 #' }
 VolcanoPlot <- function(
     data, x, y, ytrans = function(n) -log10(n), color_by = NULL, color_name = NULL,
@@ -386,28 +389,16 @@ VolcanoPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        if (length(palette) > 1) {
-            if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
-            if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
-        } else {
-            palette <- rep(palette, length(datas))
-            names(palette) <- names(datas)
-        }
-        if (length(palcolor) > 1) {
-            if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
-            if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
-        } else {
-            if (!is.null(palcolor)) {
-                palcolor <- rep(palcolor, length(datas))
-                names(palcolor) <- names(datas)                
-            }
-        }
+        palette <- check_palette(palette, names(datas))
+        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-        datas <- list(data)
+		datas <- list(data)
+        palette <- list(palette)
         names(datas) <- "..."
         names(palette) <- "..."
         if (!is.null(palcolor)) {
-            names(palcolor) <- "..."
+	        palcolor <- list(palcolor)
+            palcolor <- check_palcolor(palcolor, "...")
         }
     }
 
@@ -428,7 +419,7 @@ VolcanoPlot <- function(
                 label_bg_r = label_bg_r, highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha,
                 highlight_stroke = highlight_stroke,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                theme = theme, theme_args = theme_args, palette = palette[nm], palcolor = palcolor[nm],
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction, seed = seed, ...
             )

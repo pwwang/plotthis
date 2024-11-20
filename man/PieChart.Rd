@@ -132,6 +132,8 @@ PieChart(data, x = "x", y = "y", clockwise = FALSE)
 PieChart(data, x = "x", y = "y", label = "group")
 PieChart(data, x = "x", y = "y", facet_by = "facet")
 PieChart(data, x = "x", y = "y", split_by = "group")
+PieChart(data, x = "x", y = "y", split_by = "group",
+         palette = list("G1" = "Reds", "G2" = "Blues", "G3" = "Greens", "G4" = "Purp"))
 
 # y from count
 PieChart(data, x = "group")

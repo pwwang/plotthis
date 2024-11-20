@@ -260,5 +260,8 @@ VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
 VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
    highlight = c("ANXA2", "TMEM40", "PF4", "GNG11", "CLU", "CD9", "FGFBP2",
    "TNFRSF1B", "IFI6"))
+VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", color_by = "pct_diff",
+   y_cutoff_name = "-log10(0.05)", split_by = "group",
+   palette = c("A" = "Set1", "B" = "Dark2"))
 }
 }

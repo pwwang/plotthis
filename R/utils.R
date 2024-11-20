@@ -513,20 +513,20 @@ process_theme <- function(theme) {
 
 
 #' check_palette
-#' Check if the palette and palcolor can be properly used
-#' @param palette palette or palcolor
+#' Check if the palette can be properly used
+#' @param palette palette
 #' @param datas_name name of the split data
 #' @keywords internal
-#' @return named list containing palette or color name
+#' @return named list containing palette names
 check_palette <- function(palette, datas_name) {
     if (length(palette) > 1) {
 		if (!is.list(palette)) {
-			stopifnot("palette (palcolor) should be named if provided as a vector." = !is.null(names(palette)))
+			stopifnot("palette should be named if provided as a vector." = !is.null(names(palette)))
 			palette <- split(unname(palette), names(palette))
 		} else {
-			stopifnot("palette (palcolor) should be named if provided as a list." = !is.null(names(palette)))
+			stopifnot("palette should be named if provided as a list." = !is.null(names(palette)))
 		}
-        stopifnot("split_by and palette (palcolor) length mismatches." = length(palette) == length(datas_name))
+        stopifnot("split_by and palette length mismatches." = length(palette) == length(datas_name))
     } else {
     	if (!is.null(palette)) {
 	        palette <- rep(palette, length(datas_name))
@@ -535,4 +535,35 @@ check_palette <- function(palette, datas_name) {
     	}
     }
     return(palette)
+}
+
+#' check_palcolor
+#' Check if the palcolor can be properly used
+#' @param palcolor palcolor
+#' @param datas_name name of the split data
+#' @keywords internal
+#' @return named list containing color names
+check_palcolor <- function(palcolor, datas_name) {
+    if (length(palcolor) > 1) {
+		if (!is.list(palcolor)) {
+			if (!is.null(names(palcolor))) {
+				palcolor <- split(unname(palcolor), names(palcolor))			
+			} else {
+				# If palcolor is not named and length > 1, returns the list of 
+				# colors with the datas_name
+				palcolor <- rep(list(palcolor), length(datas_name))
+		        names(palcolor) <- datas_name
+			}
+		} else {
+			stopifnot("palcolor should be named if provided as a list." = !is.null(names(palcolor)))
+		}
+        stopifnot("split_by and palcolor length mismatches." = length(palcolor) == length(datas_name))
+    } else {
+    	if (!is.null(palcolor)) {
+	        palcolor <- rep(palcolor, length(datas_name))
+	        names(palcolor) <- datas_name
+			palcolor <- split(unname(palcolor), names(palcolor))	
+    	}
+    }
+    return(palcolor)
 }

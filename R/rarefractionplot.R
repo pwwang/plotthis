@@ -128,6 +128,8 @@ RarefactionPlotAtomic <- function(
 #' RarefactionPlot(spider)
 #' RarefactionPlot(spider, q = c(0, 1, 2), facet_by = "q")
 #' RarefactionPlot(spider, q = c(0, 1, 2), split_by = "q")
+#' RarefactionPlot(spider, q = c(0, 1, 2), split_by = "q",
+#'                 palette = c("0" = "Paired", "1" = "Set1", "2" = "Dark2"))
 #' RarefactionPlot(spider, q = c(0, 1, 2), group_by = "q",
 #'  facet_by = "group", palette = "Set1", type = 3)
 #' }
@@ -189,28 +191,16 @@ RarefactionPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        if (length(palette) > 1) {
-            if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
-            if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
-        } else {
-            palette <- rep(palette, length(datas))
-            names(palette) <- names(datas)
-        }
-        if (length(palcolor) > 1) {
-            if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
-            if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
-        } else {
-            if (!is.null(palcolor)) {
-                palcolor <- rep(palcolor, length(datas))
-                names(palcolor) <- names(datas)                
-            }
-        }
+        palette <- check_palette(palette, names(datas))
+        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-        datas <- list(data)
+		datas <- list(data)
+        palette <- list(palette)
         names(datas) <- "..."
         names(palette) <- "..."
         if (!is.null(palcolor)) {
-            names(palcolor) <- "..."
+	        palcolor <- list(palcolor)
+            palcolor <- check_palcolor(palcolor, "...")
         }
     }
     
@@ -227,7 +217,7 @@ RarefactionPlot <- function(
                 title <- title %||% default_title
             }
             RarefactionPlotAtomic(datas[[nm]], type = type, se = se, group_by = group_by, group_name = group_name, pt_size = pt_size,
-                theme = theme, theme_args = theme_args, palette = palette[nm], palcolor = palcolor[nm], line_width = line_width,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], line_width = line_width,
                 alpha = alpha, facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol,
                 facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,

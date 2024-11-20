@@ -152,5 +152,8 @@ CorPairsPlot(data, group_by = "g", diag_type = "violin", layout = "\\\\.",
 
 CorPairsPlot(data, split_by = "g", diag_type = "none", layout = ".\\\\",
  legend.position = "bottom", legend.direction = "horizontal", group_name = "group")
+
+CorPairsPlot(data, split_by = "g",
+ palcolor = c("1"="red", "2"="blue", "3"="green", "4"="yellow"))
 }
 }

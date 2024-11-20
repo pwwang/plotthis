@@ -435,6 +435,8 @@ Heatmap(data, rows = rows, columns_by = "c", rows_data = rows_data,
   row_annotation_type = list(rp = "pie", rv = "density", rows1 = "simple"),
   row_annotation_params = list(rp = list(width = grid::unit(12, "mm"))),
   show_row_names = TRUE, show_column_names = TRUE, flip = TRUE)
+Heatmap(data, rows = rows, columns_by = "c", split_by = "p",
+        palette = list("X" = "Reds", "Y" = "Blues", "Z" = "Purp"))
 }
 }
 \seealso{

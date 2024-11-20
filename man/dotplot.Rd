@@ -233,6 +233,9 @@ DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
         facet_scales = "free_x")
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
         fill_by = "mpg", fill_cutoff = 18, split_by = "cyl")
+DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
+        fill_by = "mpg", fill_cutoff = 18, split_by = "cyl",
+        palette = list("4" = "Set1", "6" = "Paired", "8" = "Reds"))
 # works as a scatter plot
 DotPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
         fill_by = "mpg", fill_cutoff = 18, fill_cutoff_name = "Small mpgs")
@@ -241,4 +244,6 @@ LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
 LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
              fill_by = "mpg", fill_cutoff = 18, facet_by = "cyl",
              facet_scales = "free_y")
+LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
+             split_by = "vs", palette = list("0" = "Reds", "1" = "Blues"))
 }

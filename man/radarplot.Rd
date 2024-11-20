@@ -210,4 +210,6 @@ data <- data.frame(
 RadarPlot(data, x = "x", y = "y", scale_y = "none", group_by = "group")
 RadarPlot(data, x = "x", y = "y", facet_by = "group")
 RadarPlot(data, x = "x", y = "y", split_by = "group")
+RadarPlot(data, x = "x", y = "y", split_by = "group",
+          palette = c("G1" = "Set1", "G2" = "Paired"))
 }

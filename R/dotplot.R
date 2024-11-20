@@ -278,6 +278,9 @@ DotPlotAtomic <- function(
 #'         facet_scales = "free_x")
 #' DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
 #'         fill_by = "mpg", fill_cutoff = 18, split_by = "cyl")
+#' DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
+#'         fill_by = "mpg", fill_cutoff = 18, split_by = "cyl",
+#'         palette = list("4" = "Set1", "6" = "Paired", "8" = "Reds"))
 #' # works as a scatter plot
 #' DotPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
 #'         fill_by = "mpg", fill_cutoff = 18, fill_cutoff_name = "Small mpgs")
@@ -300,30 +303,19 @@ DotPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        if (length(palette) > 1) {
-            if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
-            if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
-        } else {
-            palette <- rep(palette, length(datas))
-            names(palette) <- names(datas)
-        }
-        if (length(palcolor) > 1) {
-            if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
-            if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
-        } else {
-            if (!is.null(palcolor)) {
-                palcolor <- rep(palcolor, length(datas))
-                names(palcolor) <- names(datas)                
-            }
-        }
+        palette <- check_palette(palette, names(datas))
+        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-        datas <- list(data)
+		datas <- list(data)
+        palette <- list(palette)
         names(datas) <- "..."
         names(palette) <- "..."
         if (!is.null(palcolor)) {
-            names(palcolor) <- "..."
+	        palcolor <- list(palcolor)
+            palcolor <- check_palcolor(palcolor, "...")
         }
     }
+    
     plots <- lapply(
         names(datas), function(nm) {
             default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
@@ -335,7 +327,7 @@ DotPlot <- function(
             DotPlotAtomic(datas[[nm]],
                 x = x, y = y, x_sep = x_sep, y_sep = y_sep, flip = flip, bg_direction = bg_direction,
                 size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, fill_reverse = fill_reverse,
-                theme = theme, theme_args = theme_args, palette = palette[nm], palcolor = palcolor[nm], alpha = alpha,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 x_text_angle = x_text_angle, size_name = size_name, fill_name = fill_name, fill_cutoff_name = fill_cutoff_name,
                 add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
@@ -363,6 +355,8 @@ DotPlot <- function(
 #' LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
 #'              fill_by = "mpg", fill_cutoff = 18, facet_by = "cyl",
 #'              facet_scales = "free_y")
+#' LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
+#'              split_by = "vs", palette = list("0" = "Reds", "1" = "Blues"))
 LollipopPlot <- function(
     data, x, y, y_sep = NULL, flip = FALSE,
     split_by = NULL, split_by_sep = "_", size_name = NULL, fill_name = NULL, fill_cutoff_name = NULL,
@@ -381,9 +375,17 @@ LollipopPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
+        palette <- check_palette(palette, names(datas))
+        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-        datas <- list(data)
+		datas <- list(data)
+        palette <- list(palette)
         names(datas) <- "..."
+        names(palette) <- "..."
+        if (!is.null(palcolor)) {
+	        palcolor <- list(palcolor)
+            palcolor <- check_palcolor(palcolor, "...")
+        }
     }
 
     plots <- lapply(
@@ -397,7 +399,7 @@ LollipopPlot <- function(
             DotPlotAtomic(datas[[nm]], lollipop = TRUE,
                 x = x, y = y, x_sep = NULL, y_sep = y_sep, flip = flip,
                 size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, fill_reverse = fill_reverse,
-                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 x_text_angle = x_text_angle, size_name = size_name, fill_name = fill_name, fill_cutoff_name = fill_cutoff_name,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,

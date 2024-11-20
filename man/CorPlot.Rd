@@ -188,4 +188,6 @@ CorPlot(iris, "Sepal.Length", "Sepal.Width", group_by = "Species",
  highlight = 'Species == "setosa"', highlight_stroke = 1.5,
  anno_items = c("eq", "pearson"), anno_position = "bottomright")
 CorPlot(iris, "Sepal.Length", "Sepal.Width", facet_by = "Species", facet_scales = "free")
+CorPlot(iris, "Sepal.Length", "Sepal.Width", split_by = "Species",
+        palette = c("setosa" = "Set1", "versicolor" = "Dark2", "virginica" = "Paired"))
 }

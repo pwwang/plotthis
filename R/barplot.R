@@ -440,7 +440,7 @@ BarPlotAtomic <- function(
 #' )
 #' BarPlot(data,
 #'     x = "x", y = "y", split_by = "group",
-#'     palette = list("G1" = "Reds","G2" = "Blues","G3" = "Greens","G4" = "Yellow"),
+#'     palette = list("G1" = "Reds","G2" = "Blues","G3" = "Greens","G4" = "Purp"),
 #'     facet_by = "facet", position = "dodge", facet_ncol = 1
 #' )
 #' BarPlot(data,
@@ -474,7 +474,7 @@ BarPlot <- function(
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
         palette <- check_palette(palette, names(datas))
-        palcolor <- check_palette(palcolor, names(datas))
+        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
         datas <- list(data)
         palette <- list(palette)
@@ -482,7 +482,7 @@ BarPlot <- function(
         names(palette) <- "..."
         if (!is.null(palcolor)) {
 	        palcolor <- list(palcolor)
-            names(palcolor) <- "..."
+	        palcolor <- check_palcolor(palcolor, "...")
         }
     }
 
@@ -746,7 +746,7 @@ SplitBarPlot <- function(
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
         palette <- check_palette(palette, names(datas))
-        palcolor <- check_palette(palcolor, names(datas))
+        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
         datas <- list(data)
         palette <- list(palette)
@@ -754,7 +754,7 @@ SplitBarPlot <- function(
         names(palette) <- "..."
         if (!is.null(palcolor)) {
 	        palcolor <- list(palcolor)
-            names(palcolor) <- "..."
+	        palcolor <- check_palcolor(palcolor, "...")
         }
     }
 

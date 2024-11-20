@@ -805,6 +805,8 @@ DimPlotAtomic <- function(
 #'         lineages_whiskers = TRUE)
 #' DimPlot(data, group_by = "cluster", lineages = c("L1", "L2", "L3"),
 #'         lineages_span = 1)
+#' DimPlot(data, group_by = "cluster",  split_by = "cluster",
+#'         palcolor = list("C1" = "red", "C2" = "blue", "C3" = "green"))
 #' }
 DimPlot <- function(
     data, dims = 1:2, group_by, group_by_sep = "_", split_by = NULL, split_by_sep = "_",
@@ -849,28 +851,16 @@ DimPlot <- function(
                 d
             })
         }
-        if (length(palette) > 1) {
-            if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
-            if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
-        } else {
-            palette <- rep(palette, length(datas))
-            names(palette) <- names(datas)
-        }
-        if (length(palcolor) > 1) {
-            if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
-            if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
-        } else {
-            if (!is.null(palcolor)) {
-                palcolor <- rep(palcolor, length(datas))
-                names(palcolor) <- names(datas)                
-            }
-        }
+        palette <- check_palette(palette, names(datas))
+        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-        datas <- list(data)
+		datas <- list(data)
+        palette <- list(palette)
         names(datas) <- "..."
         names(palette) <- "..."
         if (!is.null(palcolor)) {
-            names(palcolor) <- "..."
+	        palcolor <- list(palcolor)
+            palcolor <- check_palcolor(palcolor, "...")
         }
     }
 
@@ -904,7 +894,7 @@ DimPlot <- function(
                 theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
                 raster = raster, raster_dpi = raster_dpi,
                 hex = hex, hex_linewidth = hex_linewidth, hex_count = hex_count, hex_bins = hex_bins, hex_binwidth = hex_binwidth,
-                palette = palette[nm], palcolor = palcolor[nm], seed = seed, ...
+                palette = palette[[nm]], palcolor = palcolor[[nm]], seed = seed, ...
             )
         }
     )
@@ -934,6 +924,8 @@ DimPlot <- function(
 #' FeatureDimPlot(data, features = c("L1", "L2", "L3"), split_by = "group", nrow = 2)
 #' FeatureDimPlot(data, features = c("L1", "L2", "L3"), highlight = TRUE)
 #' FeatureDimPlot(data, features = c("L1", "L2", "L3"), hex = TRUE, hex_bins = 15)
+#' FeatureDimPlot(data, features = c("L1", "L2", "L3"), hex = TRUE, hex_bins = 15,
+#'                split_by = "cluster", palcolor = list("C1" = "red", "C2" = "blue", "C3" = "green"))
 #' }
 FeatureDimPlot <- function(
     data, dims = 1:2, features, split_by = NULL, split_by_sep = "_",
@@ -1008,30 +1000,18 @@ FeatureDimPlot <- function(
                     d
                 })
             }
-            if (length(palette) > 1) {
-                if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
-                if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
-            } else {
-                palette <- rep(palette, length(datas))
-                names(palette) <- names(datas)
-            }
-            if (length(palcolor) > 1) {
-                if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
-                if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
-            } else {
-                if (!is.null(palcolor)) {
-                    palcolor <- rep(palcolor, length(datas))
-                    names(palcolor) <- names(datas)                
-                }
-            }
-        } else {
-            datas <- list(data)
-            names(datas) <- "..."
-            names(palette) <- "..."
-            if (!is.null(palcolor)) {
-                names(palcolor) <- "..."
-            }
-        }
+	        palette <- check_palette(palette, names(datas))
+	        palcolor <- check_palcolor(palcolor, names(datas))
+	    } else {
+			datas <- list(data)
+	        palette <- list(palette)
+	        names(datas) <- "..."
+	        names(palette) <- "..."
+	        if (!is.null(palcolor)) {
+		        palcolor <- list(palcolor)
+	            palcolor <- check_palcolor(palcolor, "...")
+	        }
+	    }
 
         plots <- lapply(
             names(datas), function(nm) {
@@ -1064,7 +1044,7 @@ FeatureDimPlot <- function(
                     theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
                     raster = raster, raster_dpi = raster_dpi,
                     hex = hex, hex_linewidth = hex_linewidth, hex_count = hex_count, hex_bins = hex_bins, hex_binwidth = hex_binwidth,
-                    palette = palette[nm], palcolor = palcolor[nm], seed = seed, ...
+                    palette = palette[[nm]], palcolor = palcolor[[nm]], seed = seed, ...
                 )
             }
         )

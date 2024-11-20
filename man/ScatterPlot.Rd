@@ -180,4 +180,8 @@ ScatterPlot(data, x = "x", y = "y", size_by = "w", color_by = "t",
 # Shape doesn't have fill color
 ScatterPlot(data, x = "x", y = "y", size_by = "w", color_by = "t",
  shape = 1, palette = "Set1")
+
+# Change color per plot
+ScatterPlot(data, x = "x", y = "y", split_by = "t",
+            palcolor = c("A" = "blue", "B" = "red"))
 }

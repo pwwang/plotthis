@@ -119,4 +119,7 @@ data <- data.frame(
 ClustreePlot(data, prefix = "p")
 ClustreePlot(data, prefix = "p", flip = TRUE)
 ClustreePlot(data, prefix = "p", split_by = "split")
+ClustreePlot(data, prefix = "p", split_by = "split",
+             palette = c("1"="Set1", "2"="Paired"))
+
 }

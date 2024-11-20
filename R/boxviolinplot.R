@@ -524,7 +524,7 @@ BoxViolinPlot <- function(
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
         palette <- check_palette(palette, names(datas))
-        palcolor <- check_palette(palcolor, names(datas))
+        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
 		datas <- list(data)
         palette <- list(palette)
@@ -532,7 +532,7 @@ BoxViolinPlot <- function(
         names(palette) <- "..."
         if (!is.null(palcolor)) {
 	        palcolor <- list(palcolor)
-            names(palcolor) <- "..."
+	        palcolor <- check_palcolor(palcolor, "...")
         }
     }
 
@@ -598,6 +598,12 @@ BoxViolinPlot <- function(
 #'     x = "x", y = "y",
 #'     stack = TRUE, flip = TRUE, facet_by = "group1",
 #'     add_bg = TRUE, bg_palette = "Paired"
+#' )
+#' BoxPlot(data,
+#'     x = "x", y = "y",
+#'     stack = TRUE, flip = TRUE, split_by = "group1",
+#'     add_bg = TRUE, bg_palette = "Paired",
+#'     palcolor= list("g1" = c("red","blue"), "g2" = c("blue", "red"))
 #' )
 #'
 #' # wide form data
@@ -683,6 +689,10 @@ BoxPlot <- function(
 #' ViolinPlot(data,
 #'     x = "x", y = "y", fill_mode = "mean",
 #'     facet_by = "group2", palette = "Blues"
+#' )
+#' ViolinPlot(data,
+#'     x = "x", y = "y", fill_mode = "mean",
+#'     split_by = "group1", palette = c(g1="Blues", g2="Reds")
 #' )
 #' ViolinPlot(data,
 #'     x = "x", y = "y", stack = TRUE,

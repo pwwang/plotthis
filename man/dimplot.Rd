@@ -444,6 +444,8 @@ DimPlot(data, group_by = "cluster", lineages = c("L1", "L2", "L3"),
         lineages_whiskers = TRUE)
 DimPlot(data, group_by = "cluster", lineages = c("L1", "L2", "L3"),
         lineages_span = 1)
+DimPlot(data, group_by = "cluster",  split_by = "cluster",
+        palcolor = list("C1" = "red", "C2" = "blue", "C3" = "green"))
 }
 \donttest{
 # Feature Dim Plot
@@ -458,5 +460,7 @@ FeatureDimPlot(data, features = c("L1", "L2", "L3"), pt_size = 2)
 FeatureDimPlot(data, features = c("L1", "L2", "L3"), split_by = "group", nrow = 2)
 FeatureDimPlot(data, features = c("L1", "L2", "L3"), highlight = TRUE)
 FeatureDimPlot(data, features = c("L1", "L2", "L3"), hex = TRUE, hex_bins = 15)
+FeatureDimPlot(data, features = c("L1", "L2", "L3"), hex = TRUE, hex_bins = 15,
+               split_by = "cluster", palcolor = list("C1" = "red", "C2" = "blue", "C3" = "green"))
 }
 }

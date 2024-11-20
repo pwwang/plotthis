@@ -374,6 +374,12 @@ BoxPlot(data,
     stack = TRUE, flip = TRUE, facet_by = "group1",
     add_bg = TRUE, bg_palette = "Paired"
 )
+BoxPlot(data,
+    x = "x", y = "y",
+    stack = TRUE, flip = TRUE, split_by = "group1",
+    add_bg = TRUE, bg_palette = "Paired",
+    palcolor= list("g1" = c("red","blue"), "g2" = c("blue", "red"))
+)
 
 # wide form data
 data_wide <- data.frame(
@@ -409,6 +415,10 @@ ViolinPlot(data,
 ViolinPlot(data,
     x = "x", y = "y", fill_mode = "mean",
     facet_by = "group2", palette = "Blues"
+)
+ViolinPlot(data,
+    x = "x", y = "y", fill_mode = "mean",
+    split_by = "group1", palette = c(g1="Blues", g2="Reds")
 )
 ViolinPlot(data,
     x = "x", y = "y", stack = TRUE,

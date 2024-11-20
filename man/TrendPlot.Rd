@@ -137,6 +137,8 @@ TrendPlot(data, x = "x", y = "y", group_by = "group")
 TrendPlot(data, x = "x", y = "y", group_by = "group",
          scale_y = TRUE)
 TrendPlot(data, x = "x", y = "y", split_by = "group")
+TrendPlot(data, x = "x", y = "y", split_by = "group",
+          palette = c("F1" = "Set1", "F2" = "Paired"))
 }
 \seealso{
 \code{\link{AreaPlot}}

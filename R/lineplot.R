@@ -355,6 +355,8 @@ LinePlotAtomic <- function(
 #' LinePlot(data, x = "x", y = "y", group_by = "group", add_bg = TRUE)
 #' LinePlot(data, x = "x", y = "y", group_by = "group", facet_by = "facet")
 #' LinePlot(data, x = "x", y = "y", group_by = "group", split_by = "facet")
+#' LinePlot(data, x = "x", y = "y", split_by = "group",
+#'          palcolor = list("G1" = c("red","blue"), "G2" = c("green", "black")))
 LinePlot <- function(
     data, x, y = NULL, group_by = NULL, group_by_sep = "_", split_by = NULL, split_by_sep = "_",
     fill_point_by_x_if_no_group = TRUE, color_line_by_x_if_no_group = TRUE,
@@ -383,28 +385,16 @@ LinePlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        if (length(palette) > 1) {
-            if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
-            if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
-        } else {
-            palette <- rep(palette, length(datas))
-            names(palette) <- names(datas)
-        }
-        if (length(palcolor) > 1) {
-            if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
-            if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
-        } else {
-            if (!is.null(palcolor)) {
-                palcolor <- rep(palcolor, length(datas))
-                names(palcolor) <- names(datas)                
-            }
-        }
+        palette <- check_palette(palette, names(datas))
+        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-        datas <- list(data)
+		datas <- list(data)
+        palette <- list(palette)
         names(datas) <- "..."
         names(palette) <- "..."
         if (!is.null(palcolor)) {
-            names(palcolor) <- "..."
+	        palcolor <- list(palcolor)
+            palcolor <- check_palcolor(palcolor, "...")
         }
     }
 
@@ -426,7 +416,7 @@ LinePlot <- function(
                 errorbar_min = errorbar_min, errorbar_max = errorbar_max, errorbar_sd = errorbar_sd,
                 pt_alpha = pt_alpha, pt_size = pt_size,
                 line_type = line_type, line_width = line_width, line_alpha = line_alpha,
-                theme = theme, theme_args = theme_args, palette = palette[nm], palcolor = palcolor[nm],
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
                 legend.position = legend.position, legend.direction = legend.direction, facet_args = facet_args,
                 facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,

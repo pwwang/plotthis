@@ -169,6 +169,9 @@ ClustreePlotAtomic <- function(
 #' ClustreePlot(data, prefix = "p")
 #' ClustreePlot(data, prefix = "p", flip = TRUE)
 #' ClustreePlot(data, prefix = "p", split_by = "split")
+#' ClustreePlot(data, prefix = "p", split_by = "split",
+#'              palette = c("1"="Set1", "2"="Paired"))
+#' 
 ClustreePlot <- function(
     data, prefix, flip = FALSE, split_by = NULL, split_by_sep = "_",
     palette = "Paired", palcolor = NULL, edge_palette = "Spectral", edge_palcolor = NULL,
@@ -185,27 +188,15 @@ ClustreePlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        if (length(palette) > 1) {
-            if (length(palette)!=length(datas)) {stop("split_by and palette length mismatches.")}
-            if (is.null(names(palette))) {stop("palette should be named vector if multiple palettes are provided.")}
-        } else {
-            palette <- rep(palette, length(datas))
-            names(palette) <- names(datas)
-        }
-        if (length(palcolor) > 1) {
-            if (length(palcolor)!=length(datas)) {stop("split_by and palcolor length mismatches.")}
-            if (is.null(names(palcolor))) {stop("palcolor should be named vector if multiple colors are provided.")}
-        } else {
-            if (!is.null(palcolor)) {
-                palcolor <- rep(palcolor, length(datas))
-                names(palcolor) <- names(datas)                
-            }
-        }
+        palette <- check_palette(palette, names(datas))
+        palcolor <- check_palette(palcolor, names(datas))
     } else {
-        datas <- list(data)
+		datas <- list(data)
+        palette <- list(palette)
         names(datas) <- "..."
         names(palette) <- "..."
         if (!is.null(palcolor)) {
+	        palcolor <- list(palcolor)
             names(palcolor) <- "..."
         }
     }
@@ -219,7 +210,7 @@ ClustreePlot <- function(
                 title <- title %||% default_title
             }
             ClustreePlotAtomic(datas[[nm]],
-                prefix = prefix, flip = flip, palette = palette[nm], palcolor = palcolor[nm],
+                prefix = prefix, flip = flip, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 edge_palette = edge_palette, edge_palcolor = edge_palcolor, expand = expand,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,

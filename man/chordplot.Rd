@@ -135,6 +135,8 @@ ChordPlot(data, from = "nodes1", to = "nodes2",
           links_color = "to", labels_rot = TRUE)
 ChordPlot(data, from = "nodes1", to = "nodes2", y = "y")
 ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y")
+ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y",
+          palette=c("1"="Reds","2"="Blues","3"="Greens","4"="Purp"))
 ChordPlot(data, from = "nodes1", to = "nodes2", flip = TRUE)
 }
 }
