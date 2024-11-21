@@ -279,7 +279,7 @@ ScatterPlotAtomic <- function(
 #'
 #' # Change color per plot
 #' ScatterPlot(data, x = "x", y = "y", split_by = "t",
-#'             palcolor = c(A = "blue", B = "red"))
+#'             palcolor = list(A = "blue", B = "red"))
 ScatterPlot <- function(
     data, x, y, size_by = 2, size_name = NULL, color_by = NULL, color_name = NULL, color_reverse = FALSE,
     split_by = NULL, split_by_sep = "_", shape = 21, alpha = ifelse(shape %in% 21:25, 0.65, 1), border_color = "black",

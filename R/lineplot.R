@@ -356,7 +356,7 @@ LinePlotAtomic <- function(
 #' LinePlot(data, x = "x", y = "y", group_by = "group", facet_by = "facet")
 #' LinePlot(data, x = "x", y = "y", group_by = "group", split_by = "facet")
 #' LinePlot(data, x = "x", y = "y", split_by = "group",
-#'          palcolor = list("G1" = c("red","blue"), "G2" = c("green", "black")))
+#'          palcolor = list(G1 = c("red", "blue"), G2 = c("green", "black")))
 LinePlot <- function(
     data, x, y = NULL, group_by = NULL, group_by_sep = "_", split_by = NULL, split_by_sep = "_",
     fill_point_by_x_if_no_group = TRUE, color_line_by_x_if_no_group = TRUE,
