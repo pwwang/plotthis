@@ -141,7 +141,7 @@ TrendPlotAtomic <- function(
 #'          scale_y = TRUE)
 #' TrendPlot(data, x = "x", y = "y", split_by = "group")
 #' TrendPlot(data, x = "x", y = "y", split_by = "group",
-#'           palette = c("F1" = "Set1", "F2" = "Paired"))
+#'           palette = c(F1 = "Set1", F2 = "Paired"))
 TrendPlot <- function(
     data, x, y = NULL, x_sep = "_", split_by = NULL, split_by_sep = "_",
     group_by = NULL, group_by_sep = "_", group_name = NULL, scale_y = FALSE,
@@ -159,18 +159,12 @@ TrendPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        palette <- check_palette(palette, names(datas))
-        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-		datas <- list(data)
-        palette <- list(palette)
+        datas <- list(data)
         names(datas) <- "..."
-        names(palette) <- "..."
-        if (!is.null(palcolor)) {
-	        palcolor <- list(palcolor)
-            palcolor <- check_palcolor(palcolor, "...")
-        }
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {

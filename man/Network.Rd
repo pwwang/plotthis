@@ -165,9 +165,12 @@ So that they won't overlap with the nodes.}
 \item{link_color_name}{A character string specifying the name of the link color in the legend.
 Only used when \code{link_color_by} is a column name.}
 
-\item{palette}{A character string specifying the palette to use.}
+\item{palette}{A character string specifying the palette to use.
+A named list or vector can be used to specify the palettes for different \code{split_by} values.}
 
-\item{palcolor}{A character string specifying the color to use in the palette.}
+\item{palcolor}{A character string specifying the color to use in the palette.
+A named list can be used to specify the colors for different \code{split_by} values.
+If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).}
 
 \item{link_palette}{A character string specifying the palette of the links.
 When \code{link_color_by} is "from" or "to", the palette of the links defaults to the palette of the nodes.}

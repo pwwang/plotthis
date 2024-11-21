@@ -10,7 +10,7 @@ check_palcolor(palcolor, datas_name)
 \arguments{
 \item{palcolor}{palcolor}
 
-\item{datas_name}{name of the split data}
+\item{datas_name}{names of the split data}
 }
 \value{
 named list containing color names

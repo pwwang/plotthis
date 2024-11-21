@@ -19,7 +19,10 @@
 #'
 #' @param theme_args A list of arguments to pass to the theme function.
 #' @param palette A character string specifying the palette to use.
+#'   A named list or vector can be used to specify the palettes for different `split_by` values.
 #' @param palcolor A character string specifying the color to use in the palette.
+#'   A named list can be used to specify the colors for different `split_by` values.
+#'   If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).
 #' @param alpha A numeric value specifying the transparency of the plot.
 #' @param x_text_angle A numeric value specifying the angle of the x-axis text.
 #' @param aspect.ratio A numeric value specifying the aspect ratio of the plot.

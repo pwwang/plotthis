@@ -142,7 +142,8 @@ RingPlotAtomic <- function(
 #' )
 #' RingPlot(data, x = "x", y = "y", group_by = "group")
 #' RingPlot(datasets::mtcars, x = "cyl", group_by = "carb", facet_by = "vs")
-#' RingPlot(datasets::mtcars, x = "cyl", group_by = "carb", split_by = "vs")
+#' RingPlot(datasets::mtcars, x = "cyl", group_by = "carb", split_by = "vs",
+#'         palette = c("0" = "Set1", "1" = "Paired"))
 RingPlot <- function(
     data, x = NULL, y = NULL, group_by = NULL, group_by_sep = "_", group_name = NULL,
     label = NULL, split_by = NULL, split_by_sep = "_",
@@ -163,18 +164,12 @@ RingPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        palette <- check_palette(palette, names(datas))
-        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-		datas <- list(data)
-        palette <- list(palette)
+        datas <- list(data)
         names(datas) <- "..."
-        names(palette) <- "..."
-        if (!is.null(palcolor)) {
-	        palcolor <- list(palcolor)
-            palcolor <- check_palcolor(palcolor, "...")
-        }
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {

@@ -576,8 +576,8 @@ PrepareEnrichrResult <- function(data, n_input = NULL) {
 #'
 #' data(enrich_multidb_example)
 #' EnrichMap(enrich_multidb_example, split_by = "Database")
-#' EnrichMap(enrich_multidb_example, split_by = "Database", 
-#'           palette = list("DB1" = "Paired", "DB2" = "Set1"))
+#' EnrichMap(enrich_multidb_example, split_by = "Database",
+#'           palette = list(DB1 = "Paired", DB2 = "Set1"))
 EnrichMap <- function(
     data, split_by = NULL, split_by_sep = "_",
     top_term = 10, metric = "p.adjust", layout = "fr", minchar = 2,
@@ -597,18 +597,12 @@ EnrichMap <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        palette <- check_palette(palette, names(datas))
-        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-		datas <- list(data)
-        palette <- list(palette)
+        datas <- list(data)
         names(datas) <- "..."
-        names(palette) <- "..."
-        if (!is.null(palcolor)) {
-	        palcolor <- list(palcolor)
-            palcolor <- check_palcolor(palcolor, "...")
-        }
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas),
@@ -672,18 +666,12 @@ EnrichNetwork <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        palette <- check_palette(palette, names(datas))
-        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-		datas <- list(data)
-        palette <- list(palette)
+        datas <- list(data)
         names(datas) <- "..."
-        names(palette) <- "..."
-        if (!is.null(palcolor)) {
-	        palcolor <- list(palcolor)
-            palcolor <- check_palcolor(palcolor, "...")
-        }
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas),

@@ -316,9 +316,12 @@ Could be a list with the keys as the names of the annotation and the values as t
 
 \item{reticle_color}{A character string specifying the color of the reticle.}
 
-\item{palette}{A character string specifying the palette to use.}
+\item{palette}{A character string specifying the palette to use.
+A named list or vector can be used to specify the palettes for different \code{split_by} values.}
 
-\item{palcolor}{A character string specifying the color to use in the palette.}
+\item{palcolor}{A character string specifying the color to use in the palette.
+A named list can be used to specify the colors for different \code{split_by} values.
+If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).}
 
 \item{alpha}{A numeric value specifying the transparency of the plot.}
 
@@ -436,7 +439,7 @@ Heatmap(data, rows = rows, columns_by = "c", rows_data = rows_data,
   row_annotation_params = list(rp = list(width = grid::unit(12, "mm"))),
   show_row_names = TRUE, show_column_names = TRUE, flip = TRUE)
 Heatmap(data, rows = rows, columns_by = "c", split_by = "p",
-        palette = list("X" = "Reds", "Y" = "Blues", "Z" = "Purp"))
+        palette = list(X = "Reds", Y = "Blues", Z = "Purp"))
 }
 }
 \seealso{

@@ -124,9 +124,12 @@ Other options see transform of \code{\link[ggplot2]{scale_y_continuous}}.}
 Unlike the default position = "stack" in \link[ggplot2:geom_histogram]{ggplot2::geom_histogram} or \link[ggplot2:geom_density]{ggplot2::geom_density},
 the default position is "identity" to show the actual count or density for each group.}
 
-\item{palette}{A character string specifying the palette to use.}
+\item{palette}{A character string specifying the palette to use.
+A named list or vector can be used to specify the palettes for different \code{split_by} values.}
 
-\item{palcolor}{A character string specifying the color to use in the palette.}
+\item{palcolor}{A character string specifying the color to use in the palette.
+A named list can be used to specify the colors for different \code{split_by} values.
+If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).}
 
 \item{alpha}{A numeric value specifying the transparency of the plot.}
 
@@ -228,6 +231,8 @@ data <- data.frame(
 DensityPlot(data, x = "x")
 DensityPlot(data, x = "x", group_by = "group", facet_by = "facet")
 DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE)
+DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE,
+    palette = c(F1 = "Set1", F2 = "Set2"))
 set.seed(8525)
 data <- data.frame(
     x = sample(setdiff(1:100, c(30:36, 50:55, 70:77)), 1000, replace = TRUE),
@@ -242,4 +247,6 @@ Histogram(data, x = "x", group_by = "group", add_trend = TRUE)
 Histogram(data, x = "x", group_by = "group", add_trend = TRUE, trend_skip_zero = TRUE)
 Histogram(data, x = "x", group_by = "group", split_by = "facet",
  use_trend = TRUE, trend_pt_size = 3)
+Histogram(data, x = "x", group_by = "group", split_by = "facet",
+ palette = c(F1 = "Paired", F2 = "Spectral"))
 }

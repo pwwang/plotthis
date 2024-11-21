@@ -10,7 +10,7 @@ check_palette(palette, datas_name)
 \arguments{
 \item{palette}{palette}
 
-\item{datas_name}{name of the split data}
+\item{datas_name}{names of the split data}
 }
 \value{
 named list containing palette names

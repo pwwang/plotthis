@@ -354,9 +354,12 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{hex_binwidth}{A numeric value of the hex bin width. Default is NULL.}
 
-\item{palette}{A character string specifying the palette to use.}
+\item{palette}{A character string specifying the palette to use.
+A named list or vector can be used to specify the palettes for different \code{split_by} values.}
 
-\item{palcolor}{A character string specifying the color to use in the palette.}
+\item{palcolor}{A character string specifying the color to use in the palette.
+A named list can be used to specify the colors for different \code{split_by} values.
+If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).}
 
 \item{seed}{The random seed to use. Default is 8525.}
 
@@ -445,7 +448,7 @@ DimPlot(data, group_by = "cluster", lineages = c("L1", "L2", "L3"),
 DimPlot(data, group_by = "cluster", lineages = c("L1", "L2", "L3"),
         lineages_span = 1)
 DimPlot(data, group_by = "cluster",  split_by = "cluster",
-        palcolor = list("C1" = "red", "C2" = "blue", "C3" = "green"))
+        palcolor = list(C1 = "red", C2 = "blue", C3 = "green"))
 }
 \donttest{
 # Feature Dim Plot
@@ -461,6 +464,6 @@ FeatureDimPlot(data, features = c("L1", "L2", "L3"), split_by = "group", nrow = 
 FeatureDimPlot(data, features = c("L1", "L2", "L3"), highlight = TRUE)
 FeatureDimPlot(data, features = c("L1", "L2", "L3"), hex = TRUE, hex_bins = 15)
 FeatureDimPlot(data, features = c("L1", "L2", "L3"), hex = TRUE, hex_bins = 15,
-               split_by = "cluster", palcolor = list("C1" = "red", "C2" = "blue", "C3" = "green"))
+  split_by = "cluster", palette = list(C1 = "Reds", C2 = "Blues", C3 = "Greens"))
 }
 }

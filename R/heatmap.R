@@ -74,8 +74,7 @@ gggrob <- function(p, void = TRUE, nolegend = TRUE) {
             grid.lines(x = c(0, 1), y = c(1, 1), gp = gpar(col = "black", lwd = 1))
             for (i in seq_along(grobs)) {
                 if (which == "row") {
-                	j <- total - i + 1
-                    grobs[[i]]$vp <- viewport(x = 0.5, y = (j - 1) * 1/total + 1/(2*total), width = 0.95, height = 1/total)
+                    grobs[[i]]$vp <- viewport(x = 0.5, y = (i - 1) * 1/total + 1/(2*total), width = 0.95, height = 1/total)
                 } else {
                     grobs[[i]]$vp <- viewport(x = (i - 1) * 1/total + 1/(2*total), y = 0.5, width = 1/total, height = 1)
                 }
@@ -119,7 +118,6 @@ gggrob <- function(p, void = TRUE, nolegend = TRUE) {
     colors <- palette_this(glevels, palette = palette, palcolor = palcolor)
     if (!is.null(split_by)) {
         x <- x %>% unite("..split", split_by, group_by, remove = FALSE)
-        names(colors) <- names(split(x, x[["..split"]]))
         plots <- .plotting(data = x, column = column, group_by = "..split", palette = palette, palcolor = colors)
         plots <- lapply(plots, gggrob)
     } else {
@@ -138,6 +136,7 @@ gggrob <- function(p, void = TRUE, nolegend = TRUE) {
     } else {
         lgd <- NULL
     }
+
     anno <- ComplexHeatmap::AnnotationFunction(
         fun = function(index, k, n) {
             grobs <- grobs[index]
@@ -149,8 +148,7 @@ gggrob <- function(p, void = TRUE, nolegend = TRUE) {
             grid.lines(x = c(0, 1), y = c(1, 1), gp = gpar(col = "black", lwd = 1))
             for (i in seq_along(grobs)) {
                 if (which == "row") {
-                	j <- total - i + 1
-                    grobs[[i]]$vp <- viewport(x = 0.5, y = (j - 1) * 1/total + 1/(2*total), width = 0.95, height = 1/total)
+                    grobs[[i]]$vp <- viewport(x = 0.5, y = (i - 1) * 1/total + 1/(2*total), width = 0.95, height = 1/total)
                 } else {
                     grobs[[i]]$vp <- viewport(x = (i - 1) * 1/total + 1/(2*total), y = 0.5, width = 1/total, height = 0.95)
                 }
@@ -1486,7 +1484,7 @@ HeatmapAtomic <- function(
 #'   row_annotation_params = list(rp = list(width = grid::unit(12, "mm"))),
 #'   show_row_names = TRUE, show_column_names = TRUE, flip = TRUE)
 #' Heatmap(data, rows = rows, columns_by = "c", split_by = "p",
-#'         palette = list("X" = "Reds", "Y" = "Blues", "Z" = "Purp"))
+#'         palette = list(X = "Reds", Y = "Blues", Z = "Purp"))
 #' }
 Heatmap <- function(
     data, rows, columns_by, rows_name = "rows", columns_name = "columns", split_by = NULL, split_by_sep = "_", split_rows_data = FALSE,
@@ -1541,19 +1539,13 @@ Heatmap <- function(
             # keep the order of levels
             datas <- datas[levels(data[[d_split_by]])]
         }
-        palette <- check_palette(palette, names(datas))
-        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-		datas <- list(data)
-        palette <- list(palette)
+        datas <- list(data)
         names(datas) <- "..."
-        names(palette) <- "..."
-        if (!is.null(palcolor)) {
-	        palcolor <- list(palcolor)
-            palcolor <- check_palcolor(palcolor, "...")
-        }
     }
-    
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
+
     if (isTRUE(split_rows_data) && !is.null(rows_data)) {
         rows_data <- "@rows_data"
     }

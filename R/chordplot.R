@@ -173,7 +173,7 @@ ChordPlotAtomic <- function(
 #' ChordPlot(data, from = "nodes1", to = "nodes2", y = "y")
 #' ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y")
 #' ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y",
-#'           palette=c("1"="Reds","2"="Blues","3"="Greens","4"="Purp"))
+#'           palette = c("1" = "Reds", "2" = "Blues", "3" = "Greens", "4" = "Purp"))
 #' ChordPlot(data, from = "nodes1", to = "nodes2", flip = TRUE)
 #' }
 ChordPlot <- function(
@@ -191,18 +191,13 @@ ChordPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        palette <- check_palette(palette, names(datas))
-        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-		datas <- list(data)
-        palette <- list(palette)
+        datas <- list(data)
         names(datas) <- "..."
-        names(palette) <- "..."
-        if (!is.null(palcolor)) {
-	        palcolor <- list(palcolor)
-            palcolor <- check_palcolor(palcolor, "...")
-        }
     }
+
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {

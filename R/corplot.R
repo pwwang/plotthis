@@ -244,7 +244,7 @@ CorPlotAtomic <- function(
 #'  anno_items = c("eq", "pearson"), anno_position = "bottomright")
 #' CorPlot(iris, "Sepal.Length", "Sepal.Width", facet_by = "Species", facet_scales = "free")
 #' CorPlot(iris, "Sepal.Length", "Sepal.Width", split_by = "Species",
-#'         palette = c("setosa" = "Set1", "versicolor" = "Dark2", "virginica" = "Paired"))
+#'         palette = c(setosa = "Set1", versicolor = "Dark2", virginica = "Paired"))
 CorPlot <- function(
     data, x, y, group_by = NULL, group_by_sep = "_", group_name = NULL, split_by = NULL, split_by_sep = "_",
     pt_size = 2, pt_shape = 16, raster = FALSE, alpha = 1, raster_dpi = c(512, 512),
@@ -266,18 +266,13 @@ CorPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        palette <- check_palette(palette, names(datas))
-        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-		datas <- list(data)
-        palette <- list(palette)
+        datas <- list(data)
         names(datas) <- "..."
-        names(palette) <- "..."
-        if (!is.null(palcolor)) {
-	        palcolor <- list(palcolor)
-            palcolor <- check_palcolor(palcolor, "...")
-        }
     }
+
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -640,9 +635,9 @@ CorPairsPlotAtomic <- function(
 #'
 #' CorPairsPlot(data, split_by = "g", diag_type = "none", layout = ".\\",
 #'  legend.position = "bottom", legend.direction = "horizontal", group_name = "group")
-#' 
+#'
 #' CorPairsPlot(data, split_by = "g",
-#'  palcolor = c("1"="red", "2"="blue", "3"="green", "4"="yellow"))
+#'  palcolor = list("1" = "red", "2" = "blue", "3" = "green", "4" = "yellow"))
 #' }
 CorPairsPlot <- function(
     data, columns = NULL, group_by = NULL, group_by_sep = "_", group_name = NULL, split_by = NULL, split_by_sep = "_",
@@ -660,18 +655,13 @@ CorPairsPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        palette <- check_palette(palette, names(datas))
-        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-		datas <- list(data)
-        palette <- list(palette)
+        datas <- list(data)
         names(datas) <- "..."
-        names(palette) <- "..."
-        if (!is.null(palcolor)) {
-	        palcolor <- list(palcolor)
-            palcolor <- check_palcolor(palcolor, "...")
-        }
     }
+
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {

@@ -170,8 +170,7 @@ ClustreePlotAtomic <- function(
 #' ClustreePlot(data, prefix = "p", flip = TRUE)
 #' ClustreePlot(data, prefix = "p", split_by = "split")
 #' ClustreePlot(data, prefix = "p", split_by = "split",
-#'              palette = c("1"="Set1", "2"="Paired"))
-#' 
+#'              palette = c("1" = "Set1", "2" = "Paired"))
 ClustreePlot <- function(
     data, prefix, flip = FALSE, split_by = NULL, split_by_sep = "_",
     palette = "Paired", palcolor = NULL, edge_palette = "Spectral", edge_palcolor = NULL,
@@ -188,18 +187,13 @@ ClustreePlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        palette <- check_palette(palette, names(datas))
-        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-		datas <- list(data)
-        palette <- list(palette)
+        datas <- list(data)
         names(datas) <- "..."
-        names(palette) <- "..."
-        if (!is.null(palcolor)) {
-	        palcolor <- list(palcolor)
-            names(palcolor) <- "..."
-        }
     }
+
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {

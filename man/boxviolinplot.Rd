@@ -213,9 +213,12 @@ Default is "theme_this".}
 
 \item{theme_args}{A list of arguments to pass to the theme function.}
 
-\item{palette}{A character string specifying the palette to use.}
+\item{palette}{A character string specifying the palette to use.
+A named list or vector can be used to specify the palettes for different \code{split_by} values.}
 
-\item{palcolor}{A character string specifying the color to use in the palette.}
+\item{palcolor}{A character string specifying the color to use in the palette.
+A named list can be used to specify the colors for different \code{split_by} values.
+If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).}
 
 \item{alpha}{A numeric value specifying the transparency of the plot.}
 
@@ -378,7 +381,7 @@ BoxPlot(data,
     x = "x", y = "y",
     stack = TRUE, flip = TRUE, split_by = "group1",
     add_bg = TRUE, bg_palette = "Paired",
-    palcolor= list("g1" = c("red","blue"), "g2" = c("blue", "red"))
+    palcolor = list(g1 = c("red", "blue"), g2 = c("blue", "red"))
 )
 
 # wide form data
@@ -418,7 +421,7 @@ ViolinPlot(data,
 )
 ViolinPlot(data,
     x = "x", y = "y", fill_mode = "mean",
-    split_by = "group1", palette = c(g1="Blues", g2="Reds")
+    split_by = "group1", palette = c(g1 = "Blues", g2 = "Reds")
 )
 ViolinPlot(data,
     x = "x", y = "y", stack = TRUE,

@@ -364,7 +364,7 @@ VolcanoPlotAtomic <- function(
 #'    "TNFRSF1B", "IFI6"))
 #' VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", color_by = "pct_diff",
 #'    y_cutoff_name = "-log10(0.05)", split_by = "group",
-#'    palette = c("A" = "Set1", "B" = "Dark2"))
+#'    palette = c(A = "Set1", B = "Dark2"))
 #' }
 VolcanoPlot <- function(
     data, x, y, ytrans = function(n) -log10(n), color_by = NULL, color_name = NULL,
@@ -389,18 +389,12 @@ VolcanoPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        palette <- check_palette(palette, names(datas))
-        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-		datas <- list(data)
-        palette <- list(palette)
+        datas <- list(data)
         names(datas) <- "..."
-        names(palette) <- "..."
-        if (!is.null(palcolor)) {
-	        palcolor <- list(palcolor)
-            palcolor <- check_palcolor(palcolor, "...")
-        }
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {

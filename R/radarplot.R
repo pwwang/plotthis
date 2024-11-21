@@ -213,18 +213,12 @@ RadarPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        palette <- check_palette(palette, names(datas))
-        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-		datas <- list(data)
-        palette <- list(palette)
+        datas <- list(data)
         names(datas) <- "..."
-        names(palette) <- "..."
-        if (!is.null(palcolor)) {
-	        palcolor <- list(palcolor)
-            palcolor <- check_palcolor(palcolor, "...")
-        }
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -275,7 +269,7 @@ RadarPlot <- function(
 #' RadarPlot(data, x = "x", y = "y", facet_by = "group")
 #' RadarPlot(data, x = "x", y = "y", split_by = "group")
 #' RadarPlot(data, x = "x", y = "y", split_by = "group",
-#'           palette = c("G1" = "Set1", "G2" = "Paired"))
+#'           palette = c(G1 = "Set1", G2 = "Paired"))
 SpiderPlot <- function(
     data, x, x_sep = "_", group_by = NULL, group_by_sep = "_", y = NULL, group_name = NULL,
     scale_y = c("group", "global", "x", "none"), y_min = 0, y_max = NULL, y_nbreaks = 4,
@@ -293,18 +287,12 @@ SpiderPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        palette <- check_palette(palette, names(datas))
-        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-		datas <- list(data)
-        palette <- list(palette)
+        datas <- list(data)
         names(datas) <- "..."
-        names(palette) <- "..."
-        if (!is.null(palcolor)) {
-	        palcolor <- list(palcolor)
-            palcolor <- check_palcolor(palcolor, "...")
-        }
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {

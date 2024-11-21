@@ -806,7 +806,7 @@ DimPlotAtomic <- function(
 #' DimPlot(data, group_by = "cluster", lineages = c("L1", "L2", "L3"),
 #'         lineages_span = 1)
 #' DimPlot(data, group_by = "cluster",  split_by = "cluster",
-#'         palcolor = list("C1" = "red", "C2" = "blue", "C3" = "green"))
+#'         palcolor = list(C1 = "red", C2 = "blue", C3 = "green"))
 #' }
 DimPlot <- function(
     data, dims = 1:2, group_by, group_by_sep = "_", split_by = NULL, split_by_sep = "_",
@@ -851,18 +851,12 @@ DimPlot <- function(
                 d
             })
         }
-        palette <- check_palette(palette, names(datas))
-        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-		datas <- list(data)
-        palette <- list(palette)
+        datas <- list(data)
         names(datas) <- "..."
-        names(palette) <- "..."
-        if (!is.null(palcolor)) {
-	        palcolor <- list(palcolor)
-            palcolor <- check_palcolor(palcolor, "...")
-        }
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -925,7 +919,7 @@ DimPlot <- function(
 #' FeatureDimPlot(data, features = c("L1", "L2", "L3"), highlight = TRUE)
 #' FeatureDimPlot(data, features = c("L1", "L2", "L3"), hex = TRUE, hex_bins = 15)
 #' FeatureDimPlot(data, features = c("L1", "L2", "L3"), hex = TRUE, hex_bins = 15,
-#'                split_by = "cluster", palcolor = list("C1" = "red", "C2" = "blue", "C3" = "green"))
+#'   split_by = "cluster", palette = list(C1 = "Reds", C2 = "Blues", C3 = "Greens"))
 #' }
 FeatureDimPlot <- function(
     data, dims = 1:2, features, split_by = NULL, split_by_sep = "_",
@@ -1000,18 +994,12 @@ FeatureDimPlot <- function(
                     d
                 })
             }
-	        palette <- check_palette(palette, names(datas))
-	        palcolor <- check_palcolor(palcolor, names(datas))
-	    } else {
-			datas <- list(data)
-	        palette <- list(palette)
-	        names(datas) <- "..."
-	        names(palette) <- "..."
-	        if (!is.null(palcolor)) {
-		        palcolor <- list(palcolor)
-	            palcolor <- check_palcolor(palcolor, "...")
-	        }
-	    }
+        } else {
+            datas <- list(data)
+            names(datas) <- "..."
+        }
+        palette <- check_palette(palette, names(datas))
+        palcolor <- check_palcolor(palcolor, names(datas))
 
         plots <- lapply(
             names(datas), function(nm) {

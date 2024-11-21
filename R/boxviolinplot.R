@@ -527,7 +527,7 @@ BoxViolinPlot <- function(
         datas <- list(data)
         names(datas) <- "..."
     }
-    
+
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
 
@@ -598,7 +598,7 @@ BoxViolinPlot <- function(
 #'     x = "x", y = "y",
 #'     stack = TRUE, flip = TRUE, split_by = "group1",
 #'     add_bg = TRUE, bg_palette = "Paired",
-#'     palcolor= list("g1" = c("red","blue"), "g2" = c("blue", "red"))
+#'     palcolor = list(g1 = c("red", "blue"), g2 = c("blue", "red"))
 #' )
 #'
 #' # wide form data
@@ -687,7 +687,7 @@ BoxPlot <- function(
 #' )
 #' ViolinPlot(data,
 #'     x = "x", y = "y", fill_mode = "mean",
-#'     split_by = "group1", palette = c(g1="Blues", g2="Reds")
+#'     split_by = "group1", palette = c(g1 = "Blues", g2 = "Reds")
 #' )
 #' ViolinPlot(data,
 #'     x = "x", y = "y", stack = TRUE,

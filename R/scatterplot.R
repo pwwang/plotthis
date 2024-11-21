@@ -276,10 +276,10 @@ ScatterPlotAtomic <- function(
 #' # Shape doesn't have fill color
 #' ScatterPlot(data, x = "x", y = "y", size_by = "w", color_by = "t",
 #'  shape = 1, palette = "Set1")
-#' 
+#'
 #' # Change color per plot
 #' ScatterPlot(data, x = "x", y = "y", split_by = "t",
-#'             palcolor = c("A" = "blue", "B" = "red"))
+#'             palcolor = c(A = "blue", B = "red"))
 ScatterPlot <- function(
     data, x, y, size_by = 2, size_name = NULL, color_by = NULL, color_name = NULL, color_reverse = FALSE,
     split_by = NULL, split_by_sep = "_", shape = 21, alpha = ifelse(shape %in% 21:25, 0.65, 1), border_color = "black",
@@ -300,18 +300,12 @@ ScatterPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        palette <- check_palette(palette, names(datas))
-        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-		datas <- list(data)
-        palette <- list(palette)
+        datas <- list(data)
         names(datas) <- "..."
-        names(palette) <- "..."
-        if (!is.null(palcolor)) {
-	        palcolor <- list(palcolor)
-            palcolor <- check_palcolor(palcolor, "...")
-        }
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {

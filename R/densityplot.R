@@ -309,6 +309,8 @@ RidgePlotAtomic <- function(
 #' )
 #' RidgePlot(data_wide, group_by = LETTERS[1:5], in_form = "wide")
 #' RidgePlot(data_wide, group_by = LETTERS[1:5], in_form = "wide", facet_by = "group")
+#' RidgePlot(data_wide, group_by = LETTERS[1:5], in_form = "wide", split_by = "group",
+#'    palette = list(a = "Reds", b = "Blues", c = "Greens", d = "Purples"))
 RidgePlot <- function(
     data, x = NULL, in_form = c("long", "wide"), split_by = NULL, split_by_sep = "_",
     group_by = NULL, group_by_sep = "_", group_name = NULL, scale = NULL,
@@ -327,19 +329,14 @@ RidgePlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        palette <- check_palette(palette, names(datas))
-        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-		datas <- list(data)
-        palette <- list(palette)
+        datas <- list(data)
         names(datas) <- "..."
-        names(palette) <- "..."
-        if (!is.null(palcolor)) {
-	        palcolor <- list(palcolor)
-            palcolor <- check_palcolor(palcolor, "...")
-        }
     }
-    
+
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
+
     plots <- lapply(
         names(datas), function(nm) {
             default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
@@ -380,6 +377,8 @@ RidgePlot <- function(
 #' DensityPlot(data, x = "x")
 #' DensityPlot(data, x = "x", group_by = "group", facet_by = "facet")
 #' DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE)
+#' DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE,
+#'     palette = c(F1 = "Set1", F2 = "Set2"))
 DensityPlot <- function(
     data, x, group_by = NULL, group_by_sep = "_", group_name = NULL, xtrans = "identity", ytrans = "identity",
     split_by = NULL, split_by_sep = "_", flip = FALSE, position = "identity",
@@ -397,19 +396,13 @@ DensityPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        palette <- check_palette(palette, names(datas))
-        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-		datas <- list(data)
-        palette <- list(palette)
+        datas <- list(data)
         names(datas) <- "..."
-        names(palette) <- "..."
-        if (!is.null(palcolor)) {
-	        palcolor <- list(palcolor)
-            palcolor <- check_palcolor(palcolor, "...")
-        }
     }
 
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -453,6 +446,8 @@ DensityPlot <- function(
 #' Histogram(data, x = "x", group_by = "group", add_trend = TRUE, trend_skip_zero = TRUE)
 #' Histogram(data, x = "x", group_by = "group", split_by = "facet",
 #'  use_trend = TRUE, trend_pt_size = 3)
+#' Histogram(data, x = "x", group_by = "group", split_by = "facet",
+#'  palette = c(F1 = "Paired", F2 = "Spectral"))
 Histogram <- function(
     data, x, group_by = NULL, group_by_sep = "_", group_name = NULL, xtrans = "identity", ytrans = "identity",
     split_by = NULL, split_by_sep = "_", flip = FALSE, bins = NULL, binwidth = NULL, trend_skip_zero = FALSE,
@@ -471,19 +466,13 @@ Histogram <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        palette <- check_palette(palette, names(datas))
-        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-		datas <- list(data)
-        palette <- list(palette)
+        datas <- list(data)
         names(datas) <- "..."
-        names(palette) <- "..."
-        if (!is.null(palcolor)) {
-	        palcolor <- list(palcolor)
-            palcolor <- check_palcolor(palcolor, "...")
-        }
     }
 
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {

@@ -440,7 +440,7 @@ BarPlotAtomic <- function(
 #' )
 #' BarPlot(data,
 #'     x = "x", y = "y", split_by = "group",
-#'     palette = list("G1" = "Reds","G2" = "Blues","G3" = "Greens","G4" = "Purp"),
+#'     palette = list(G1 = "Reds", G2 = "Blues", G3 = "Greens", G4 = "Purp"),
 #'     facet_by = "facet", position = "dodge", facet_ncol = 1
 #' )
 #' BarPlot(data,
@@ -718,7 +718,7 @@ SplitBarPlotAtomic <- function(
 #' SplitBarPlot(data, x = "count", y = "word", facet_by = "group",
 #'              fill_name = "Direction")
 #' SplitBarPlot(data, x = "count", y = "word", alpha_by = "score", split_by="group",
-#'              palette = c("A" = "Reds", "B" = "Blues", "C" = "Greens"))
+#'              palette = c(A = "Reds", B = "Blues", C = "Greens"))
 SplitBarPlot <- function(
     data, x, y, y_sep = "_", flip = FALSE, split_by = NULL, split_by_sep = "_",
     alpha_by = NULL, alpha_reverse = FALSE, alpha_name = NULL,

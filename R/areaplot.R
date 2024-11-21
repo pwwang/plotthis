@@ -124,7 +124,7 @@ AreaPlotAtomic <- function(
 #' AreaPlot(data, x = "x", y = "y", group_by = "group",
 #'          scale_y = TRUE)
 #' AreaPlot(data, x = "x", y = "y", split_by = "group")
-#' AreaPlot(data, x = "x", y = "y", split_by = "group", palette = c("F1" = "Blues","F2" = "Reds"))
+#' AreaPlot(data, x = "x", y = "y", split_by = "group", palette = c(F1 = "Blues", F2 = "Reds"))
 AreaPlot <- function(
     data, x, y = NULL, x_sep = "_", split_by = NULL, split_by_sep = "_",
     group_by = NULL, group_by_sep = "_", group_name = NULL, scale_y = FALSE,
@@ -146,7 +146,6 @@ AreaPlot <- function(
         datas <- list(data)
         names(datas) <- "..."
     }
-
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
 

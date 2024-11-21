@@ -152,7 +152,7 @@ PieChartAtomic <- function(
 #' PieChart(data, x = "x", y = "y", facet_by = "facet")
 #' PieChart(data, x = "x", y = "y", split_by = "group")
 #' PieChart(data, x = "x", y = "y", split_by = "group",
-#'          palette = list("G1" = "Reds", "G2" = "Blues", "G3" = "Greens", "G4" = "Purp"))
+#'          palette = list(G1 = "Reds", G2 = "Blues", G3 = "Greens", G4 = "Purp"))
 #'
 #' # y from count
 #' PieChart(data, x = "group")
@@ -176,18 +176,12 @@ PieChart <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        palette <- check_palette(palette, names(datas))
-        palcolor <- check_palcolor(palcolor, names(datas))
     } else {
-		datas <- list(data)
-        palette <- list(palette)
+        datas <- list(data)
         names(datas) <- "..."
-        names(palette) <- "..."
-        if (!is.null(palcolor)) {
-	        palcolor <- list(palcolor)
-            palcolor <- check_palcolor(palcolor, "...")
-        }
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {

@@ -515,7 +515,7 @@ process_theme <- function(theme) {
 #' check_palette
 #' Check if the palette can be properly used
 #' @param palette palette
-#' @param datas_name name of the split data
+#' @param datas_name names of the split data
 #' @keywords internal
 #' @return named list containing palette names
 check_palette <- function(palette, datas_name) {
@@ -524,11 +524,16 @@ check_palette <- function(palette, datas_name) {
     if (length(palette) == 1 && length(datas_name) > 1) {
         palette <- rep(palette, length(datas_name))
     }
-    stopifnot("'palette' has a length that differs the number of unique values in 'split.by'" = length(palette) == length(datas_name))
+    if (length(palette) < length(datas_name)) {
+        stop("The length of 'palette' (", length(palette), ") is less than the number ",
+            "(", length(datas_name), ") of unique values in 'split_by'")
+    }
     if (is.null(names(palette))) {
-        names(palette) <- datas_name
-    } else {
-        stopifnot("'palette' has names that don't match values in 'split.by'" = setequal(names(palette), datas_name))
+        names(palette)[1:length(datas_name)] <- datas_name
+    } else if (length(setdiff(datas_name, names(palette))) > 0) {
+        stop("Values in 'split_by' (",
+            paste(setdiff(datas_name, names(palette)), collapse = ", "), ") ",
+            "have no corresponding palette assigned in 'palette'")
     }
     return(palette)
 }
@@ -537,20 +542,21 @@ check_palette <- function(palette, datas_name) {
 #' check_palcolor
 #' Check if the palcolor can be properly used
 #' @param palcolor palcolor
-#' @param datas_name name of the split data
+#' @param datas_name names of the split data
 #' @keywords internal
 #' @return named list containing color names
 check_palcolor <- function(palcolor, datas_name) {
-    if (is.null(palcolor)) {return(NULL)}
-    palcolor <- as.list(palcolor)    
+    if (is.null(palcolor)) { return(NULL) }
+    # as.list() will turn c("red", "blue") into list("red", "blue")
+    # but we need list(c("red", "blue"))
+    if (!is.list(palcolor)) { palcolor <- list(palcolor) }
     if (length(palcolor) == 1 && length(datas_name) > 1) {
         palcolor <- rep(palcolor, length(datas_name))
     }
-    stopifnot("'palcolor' has a length that differs the number of unique values in 'split.by'" = length(palcolor) == length(datas_name))
     if (is.null(names(palcolor))) {
-        names(palcolor) <- datas_name
-    } else {
-        stopifnot("'palcolor' has names that don't match values in 'split.by'" = setequal(names(palcolor), datas_name))
+        names(palcolor)[1:length(datas_name)] <- datas_name
     }
+    # It's okay that some split_by values have no corresponding palcolor
+    # because they can be NULL
     return(palcolor)
 }
