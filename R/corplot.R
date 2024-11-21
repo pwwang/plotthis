@@ -450,7 +450,7 @@ CorPairsPlotAtomic <- function(
             args$data <- data
             args$x <- x
             args$group_by <- group_by
-            args$add_lines <- args$add_lines %||% FALSE
+            args$add_bars <- args$add_bars %||% FALSE
             args$palette <- args$palette %||% palette
             args$palcolor <- args$palcolor %||% palcolor
             p <- do.call(DensityPlot, args)
