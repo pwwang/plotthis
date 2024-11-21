@@ -44,9 +44,12 @@ The columns with the prefix will be used to plot the tree.}
 
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
-\item{palette}{A character string specifying the palette to use.}
+\item{palette}{A character string specifying the palette to use.
+A named list or vector can be used to specify the palettes for different \code{split_by} values.}
 
-\item{palcolor}{A character string specifying the color to use in the palette.}
+\item{palcolor}{A character string specifying the color to use in the palette.
+A named list can be used to specify the colors for different \code{split_by} values.
+If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).}
 
 \item{edge_palette}{A character string of the palette name to color the edges.}
 
@@ -119,4 +122,6 @@ data <- data.frame(
 ClustreePlot(data, prefix = "p")
 ClustreePlot(data, prefix = "p", flip = TRUE)
 ClustreePlot(data, prefix = "p", split_by = "split")
+ClustreePlot(data, prefix = "p", split_by = "split",
+             palette = c("1" = "Set1", "2" = "Paired"))
 }

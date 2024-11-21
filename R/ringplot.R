@@ -142,7 +142,8 @@ RingPlotAtomic <- function(
 #' )
 #' RingPlot(data, x = "x", y = "y", group_by = "group")
 #' RingPlot(datasets::mtcars, x = "cyl", group_by = "carb", facet_by = "vs")
-#' RingPlot(datasets::mtcars, x = "cyl", group_by = "carb", split_by = "vs")
+#' RingPlot(datasets::mtcars, x = "cyl", group_by = "carb", split_by = "vs",
+#'         palette = c("0" = "Set1", "1" = "Paired"))
 RingPlot <- function(
     data, x = NULL, y = NULL, group_by = NULL, group_by_sep = "_", group_name = NULL,
     label = NULL, split_by = NULL, split_by_sep = "_",
@@ -167,6 +168,8 @@ RingPlot <- function(
         datas <- list(data)
         names(datas) <- "..."
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -179,7 +182,7 @@ RingPlot <- function(
             RingPlotAtomic(datas[[nm]],
                 x = x, y = y, label = label, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 alpha = alpha, aspect.ratio = aspect.ratio,
                 legend.position = legend.position, legend.direction = legend.direction,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty,

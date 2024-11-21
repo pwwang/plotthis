@@ -217,6 +217,8 @@ RadarPlot <- function(
         datas <- list(data)
         names(datas) <- "..."
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -230,7 +232,7 @@ RadarPlot <- function(
                 x = x, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, y = y, group_name = group_name,
                 scale_y = scale_y, y_min = y_min, y_max = y_max, y_nbreaks = y_nbreaks, polygon = FALSE,
                 fill = fill, linewidth = linewidth, pt_size = pt_size, max_charwidth = max_charwidth,
-                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 alpha = alpha, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
                 title = title, subtitle = subtitle, ...
@@ -266,6 +268,8 @@ RadarPlot <- function(
 #' RadarPlot(data, x = "x", y = "y", scale_y = "none", group_by = "group")
 #' RadarPlot(data, x = "x", y = "y", facet_by = "group")
 #' RadarPlot(data, x = "x", y = "y", split_by = "group")
+#' RadarPlot(data, x = "x", y = "y", split_by = "group",
+#'           palette = c(G1 = "Set1", G2 = "Paired"))
 SpiderPlot <- function(
     data, x, x_sep = "_", group_by = NULL, group_by_sep = "_", y = NULL, group_name = NULL,
     scale_y = c("group", "global", "x", "none"), y_min = 0, y_max = NULL, y_nbreaks = 4,
@@ -287,6 +291,8 @@ SpiderPlot <- function(
         datas <- list(data)
         names(datas) <- "..."
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -300,7 +306,7 @@ SpiderPlot <- function(
                 x = x, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, y = y, group_name = group_name,
                 scale_y = scale_y, y_min = y_min, y_max = y_max, y_nbreaks = y_nbreaks, polygon = TRUE,
                 fill = fill, linewidth = linewidth, pt_size = pt_size, max_charwidth = max_charwidth,
-                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 alpha = alpha, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
                 title = title, subtitle = subtitle, ...

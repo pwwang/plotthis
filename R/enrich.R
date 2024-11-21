@@ -576,6 +576,8 @@ PrepareEnrichrResult <- function(data, n_input = NULL) {
 #'
 #' data(enrich_multidb_example)
 #' EnrichMap(enrich_multidb_example, split_by = "Database")
+#' EnrichMap(enrich_multidb_example, split_by = "Database",
+#'           palette = list(DB1 = "Paired", DB2 = "Set1"))
 EnrichMap <- function(
     data, split_by = NULL, split_by_sep = "_",
     top_term = 10, metric = "p.adjust", layout = "fr", minchar = 2,
@@ -599,6 +601,8 @@ EnrichMap <- function(
         datas <- list(data)
         names(datas) <- "..."
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas),
@@ -614,7 +618,7 @@ EnrichMap <- function(
                 top_term = top_term, metric = metric, layout = layout, minchar = minchar,
                 cluster = cluster, show_keyword = show_keyword, nlabel = nlabel, character_width = character_width,
                 mark = mark, label = label, labelsize = labelsize, expand = expand,
-                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, ...
             )
@@ -666,6 +670,8 @@ EnrichNetwork <- function(
         datas <- list(data)
         names(datas) <- "..."
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas),
@@ -680,7 +686,7 @@ EnrichNetwork <- function(
                 datas[[nm]],
                 top_term = top_term, metric = metric, character_width = character_width,
                 layout = layout, layoutadjust = layoutadjust, adjscale = adjscale, adjiter = adjiter, blendmode = blendmode,
-                labelsize = labelsize, theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
+                labelsize = labelsize, theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, ...
             )

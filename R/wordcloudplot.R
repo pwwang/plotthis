@@ -211,6 +211,8 @@ WordCloudPlot <- function(
         datas <- list(data)
         names(datas) <- "..."
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -225,7 +227,7 @@ WordCloudPlot <- function(
                 count_name = count_name, score_name = score_name, words_excluded = words_excluded, score_agg = score_agg, minchar = minchar,
                 word_size = word_size, top_words = top_words,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha, palreverse = palreverse,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha, palreverse = palreverse,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
                 title = title, subtitle = subtitle, seed = seed, ...
             )

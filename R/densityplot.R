@@ -309,6 +309,8 @@ RidgePlotAtomic <- function(
 #' )
 #' RidgePlot(data_wide, group_by = LETTERS[1:5], in_form = "wide")
 #' RidgePlot(data_wide, group_by = LETTERS[1:5], in_form = "wide", facet_by = "group")
+#' RidgePlot(data_wide, group_by = LETTERS[1:5], in_form = "wide", split_by = "group",
+#'    palette = list(a = "Reds", b = "Blues", c = "Greens", d = "Purples"))
 RidgePlot <- function(
     data, x = NULL, in_form = c("long", "wide"), split_by = NULL, split_by_sep = "_",
     group_by = NULL, group_by_sep = "_", group_name = NULL, scale = NULL,
@@ -332,6 +334,9 @@ RidgePlot <- function(
         names(datas) <- "..."
     }
 
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
+
     plots <- lapply(
         names(datas), function(nm) {
             default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
@@ -342,7 +347,7 @@ RidgePlot <- function(
             }
             RidgePlotAtomic(datas[[nm]],
                 x = x, in_form = in_form, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name, scale = scale,
-                flip = flip, alpha = alpha, theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
+                flip = flip, alpha = alpha, theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, x_text_angle = x_text_angle, keep_empty = keep_empty,
                 reverse = reverse, facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction, ...
@@ -372,6 +377,8 @@ RidgePlot <- function(
 #' DensityPlot(data, x = "x")
 #' DensityPlot(data, x = "x", group_by = "group", facet_by = "facet")
 #' DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE)
+#' DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE,
+#'     palette = c(F1 = "Set1", F2 = "Set2"))
 DensityPlot <- function(
     data, x, group_by = NULL, group_by_sep = "_", group_name = NULL, xtrans = "identity", ytrans = "identity",
     split_by = NULL, split_by_sep = "_", flip = FALSE, position = "identity",
@@ -394,6 +401,9 @@ DensityPlot <- function(
         names(datas) <- "..."
     }
 
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
+
     plots <- lapply(
         names(datas), function(nm) {
             default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
@@ -406,7 +416,7 @@ DensityPlot <- function(
                 x = x, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
                 type = "density", flip = flip, xtrans = xtrans, ytrans = ytrans, position = position,
                 add_bars = add_bars, bar_height = bar_height, bar_alpha = bar_alpha, bar_width = bar_width,
-                palette = palette, palcolor = palcolor, alpha = alpha, theme = theme, theme_args = theme_args,
+                palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha, theme = theme, theme_args = theme_args,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, expand = expand,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 legend.position = legend.position, legend.direction = legend.direction, ...
@@ -436,6 +446,8 @@ DensityPlot <- function(
 #' Histogram(data, x = "x", group_by = "group", add_trend = TRUE, trend_skip_zero = TRUE)
 #' Histogram(data, x = "x", group_by = "group", split_by = "facet",
 #'  use_trend = TRUE, trend_pt_size = 3)
+#' Histogram(data, x = "x", group_by = "group", split_by = "facet",
+#'  palette = c(F1 = "Paired", F2 = "Spectral"))
 Histogram <- function(
     data, x, group_by = NULL, group_by_sep = "_", group_name = NULL, xtrans = "identity", ytrans = "identity",
     split_by = NULL, split_by_sep = "_", flip = FALSE, bins = NULL, binwidth = NULL, trend_skip_zero = FALSE,
@@ -459,6 +471,9 @@ Histogram <- function(
         names(datas) <- "..."
     }
 
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
+
     plots <- lapply(
         names(datas), function(nm) {
             default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
@@ -473,7 +488,7 @@ Histogram <- function(
                 add_trend = add_trend, trend_alpha = trend_alpha, trend_linewidth = trend_linewidth, trend_pt_size = trend_pt_size,
                 add_bars = add_bars, bar_height = bar_height, bar_alpha = bar_alpha, bar_width = bar_width,
                 bins = bins, binwidth = binwidth, expand = expand, position = position,
-                palette = palette, palcolor = palcolor, alpha = alpha, theme = theme, theme_args = theme_args,
+                palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha, theme = theme, theme_args = theme_args,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 legend.position = legend.position, legend.direction = legend.direction, ...

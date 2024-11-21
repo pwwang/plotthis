@@ -805,6 +805,8 @@ DimPlotAtomic <- function(
 #'         lineages_whiskers = TRUE)
 #' DimPlot(data, group_by = "cluster", lineages = c("L1", "L2", "L3"),
 #'         lineages_span = 1)
+#' DimPlot(data, group_by = "cluster",  split_by = "cluster",
+#'         palcolor = list(C1 = "red", C2 = "blue", C3 = "green"))
 #' }
 DimPlot <- function(
     data, dims = 1:2, group_by, group_by_sep = "_", split_by = NULL, split_by_sep = "_",
@@ -853,6 +855,8 @@ DimPlot <- function(
         datas <- list(data)
         names(datas) <- "..."
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -884,7 +888,7 @@ DimPlot <- function(
                 theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
                 raster = raster, raster_dpi = raster_dpi,
                 hex = hex, hex_linewidth = hex_linewidth, hex_count = hex_count, hex_bins = hex_bins, hex_binwidth = hex_binwidth,
-                palette = palette, palcolor = palcolor, seed = seed, ...
+                palette = palette[[nm]], palcolor = palcolor[[nm]], seed = seed, ...
             )
         }
     )
@@ -914,6 +918,8 @@ DimPlot <- function(
 #' FeatureDimPlot(data, features = c("L1", "L2", "L3"), split_by = "group", nrow = 2)
 #' FeatureDimPlot(data, features = c("L1", "L2", "L3"), highlight = TRUE)
 #' FeatureDimPlot(data, features = c("L1", "L2", "L3"), hex = TRUE, hex_bins = 15)
+#' FeatureDimPlot(data, features = c("L1", "L2", "L3"), hex = TRUE, hex_bins = 15,
+#'   split_by = "cluster", palette = list(C1 = "Reds", C2 = "Blues", C3 = "Greens"))
 #' }
 FeatureDimPlot <- function(
     data, dims = 1:2, features, split_by = NULL, split_by_sep = "_",
@@ -992,6 +998,8 @@ FeatureDimPlot <- function(
             datas <- list(data)
             names(datas) <- "..."
         }
+        palette <- check_palette(palette, names(datas))
+        palcolor <- check_palcolor(palcolor, names(datas))
 
         plots <- lapply(
             names(datas), function(nm) {
@@ -1024,7 +1032,7 @@ FeatureDimPlot <- function(
                     theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
                     raster = raster, raster_dpi = raster_dpi,
                     hex = hex, hex_linewidth = hex_linewidth, hex_count = hex_count, hex_bins = hex_bins, hex_binwidth = hex_binwidth,
-                    palette = palette, palcolor = palcolor, seed = seed, ...
+                    palette = palette[[nm]], palcolor = palcolor[[nm]], seed = seed, ...
                 )
             }
         )

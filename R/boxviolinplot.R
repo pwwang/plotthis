@@ -528,6 +528,9 @@ BoxViolinPlot <- function(
         names(datas) <- "..."
     }
 
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
+
     stat_name <- stat_name %||% paste0(y, " (", deparse(substitute(add_stat)), ")")
 
     plots <- lapply(
@@ -542,7 +545,7 @@ BoxViolinPlot <- function(
                 x = x, x_sep = x_sep, y = y, base = base, in_form = in_form,
                 sort_x = sort_x, flip = flip, keep_empty = keep_empty, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
                 x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse,
-                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
                 add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha,
                 jitter_width = jitter_width, jitter_height = jitter_height, stack = stack, y_max = y_max, y_min = y_min,
@@ -590,6 +593,12 @@ BoxViolinPlot <- function(
 #'     x = "x", y = "y",
 #'     stack = TRUE, flip = TRUE, facet_by = "group1",
 #'     add_bg = TRUE, bg_palette = "Paired"
+#' )
+#' BoxPlot(data,
+#'     x = "x", y = "y",
+#'     stack = TRUE, flip = TRUE, split_by = "group1",
+#'     add_bg = TRUE, bg_palette = "Paired",
+#'     palcolor = list(g1 = c("red", "blue"), g2 = c("blue", "red"))
 #' )
 #'
 #' # wide form data
@@ -675,6 +684,10 @@ BoxPlot <- function(
 #' ViolinPlot(data,
 #'     x = "x", y = "y", fill_mode = "mean",
 #'     facet_by = "group2", palette = "Blues"
+#' )
+#' ViolinPlot(data,
+#'     x = "x", y = "y", fill_mode = "mean",
+#'     split_by = "group1", palette = c(g1 = "Blues", g2 = "Reds")
 #' )
 #' ViolinPlot(data,
 #'     x = "x", y = "y", stack = TRUE,

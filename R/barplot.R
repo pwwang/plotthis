@@ -439,6 +439,11 @@ BarPlotAtomic <- function(
 #'     facet_by = "facet", position = "dodge", facet_ncol = 1
 #' )
 #' BarPlot(data,
+#'     x = "x", y = "y", split_by = "group",
+#'     palette = list(G1 = "Reds", G2 = "Blues", G3 = "Greens", G4 = "Purp"),
+#'     facet_by = "facet", position = "dodge", facet_ncol = 1
+#' )
+#' BarPlot(data,
 #'     x = "group", y = "y", group_by = "x",
 #'     position = "dodge", add_bg = TRUE, bg_palette = "Spectral"
 #' )
@@ -473,6 +478,9 @@ BarPlot <- function(
         names(datas) <- "..."
     }
 
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
+
     plots <- lapply(
         names(datas), function(nm) {
             title <- title %||% (if (length(datas) == 1 && identical(nm, "...")) NULL else nm)
@@ -482,7 +490,7 @@ BarPlot <- function(
                 label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
                 x = x, x_sep = x_sep, y = y, flip = flip, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
                 fill_by_x_if_no_group = fill_by_x_if_no_group,
-                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
                 x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, line_name = line_name,
                 add_line = add_line, line_color = line_color, line_width = line_width, line_type = line_type,
@@ -709,6 +717,8 @@ SplitBarPlotAtomic <- function(
 #' SplitBarPlot(data, x = "count", y = "word", fill_by = "group")
 #' SplitBarPlot(data, x = "count", y = "word", facet_by = "group",
 #'              fill_name = "Direction")
+#' SplitBarPlot(data, x = "count", y = "word", alpha_by = "score", split_by="group",
+#'              palette = c(A = "Reds", B = "Blues", C = "Greens"))
 SplitBarPlot <- function(
     data, x, y, y_sep = "_", flip = FALSE, split_by = NULL, split_by_sep = "_",
     alpha_by = NULL, alpha_reverse = FALSE, alpha_name = NULL,
@@ -735,6 +745,9 @@ SplitBarPlot <- function(
         names(datas) <- "..."
     }
 
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
+
     plots <- lapply(
         names(datas), function(nm) {
             default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
@@ -748,7 +761,7 @@ SplitBarPlot <- function(
                 order_y = order_y, bar_height = bar_height, lineheight = lineheight, max_charwidth = max_charwidth,
                 fill_by = fill_by, fill_by_sep = fill_by_sep, fill_name = fill_name,
                 direction_pos_name = direction_pos_name, direction_neg_name = direction_neg_name,
-                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
                 aspect.ratio = aspect.ratio, x_min = x_min, x_max = x_max,
                 legend.position = legend.position, legend.direction = legend.direction,

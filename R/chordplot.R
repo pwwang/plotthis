@@ -172,6 +172,8 @@ ChordPlotAtomic <- function(
 #'           links_color = "to", labels_rot = TRUE)
 #' ChordPlot(data, from = "nodes1", to = "nodes2", y = "y")
 #' ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y")
+#' ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y",
+#'           palette = c("1" = "Reds", "2" = "Blues", "3" = "Greens", "4" = "Purp"))
 #' ChordPlot(data, from = "nodes1", to = "nodes2", flip = TRUE)
 #' }
 ChordPlot <- function(
@@ -194,6 +196,9 @@ ChordPlot <- function(
         names(datas) <- "..."
     }
 
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
+
     plots <- lapply(
         names(datas), function(nm) {
             default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
@@ -204,7 +209,7 @@ ChordPlot <- function(
             }
             ChordPlotAtomic(datas[[nm]],
                 y = y, from = from, from_sep = from_sep, to = to, to_sep = to_sep, flip = flip, links_color = links_color,
-                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 labels_rot = labels_rot, title = title, subtitle = subtitle, ...
             )
         }

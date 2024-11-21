@@ -278,6 +278,8 @@ UpsetPlot <- function(
         datas <- list(data)
         names(datas) <- "..."
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -293,7 +295,7 @@ UpsetPlot <- function(
             UpsetPlotAtomic(datas[[nm]],
                 in_form = in_form, group_by = group_by, group_by_sep = group_by_sep, id_by = id_by,
                 label = label, label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
-                palette = palette, palcolor = palcolor, alpha = alpha, specific = specific,
+                palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha, specific = specific,
                 theme = theme, theme_args = theme_args, title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction, ...
             )

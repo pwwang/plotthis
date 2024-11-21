@@ -251,9 +251,12 @@ Default is "theme_this".}
 
 \item{theme_args}{A list of arguments to pass to the theme function.}
 
-\item{palette}{A character string specifying the palette to use.}
+\item{palette}{A character string specifying the palette to use.
+A named list or vector can be used to specify the palettes for different \code{split_by} values.}
 
-\item{palcolor}{A character string specifying the color to use in the palette.}
+\item{palcolor}{A character string specifying the color to use in the palette.
+A named list can be used to specify the colors for different \code{split_by} values.
+If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).}
 
 \item{alpha}{A numeric value specifying the transparency of the plot.}
 
@@ -380,6 +383,11 @@ BarPlot(data,
     facet_by = "facet", position = "dodge", facet_ncol = 1
 )
 BarPlot(data,
+    x = "x", y = "y", split_by = "group",
+    palette = list(G1 = "Reds", G2 = "Blues", G3 = "Greens", G4 = "Purp"),
+    facet_by = "facet", position = "dodge", facet_ncol = 1
+)
+BarPlot(data,
     x = "group", y = "y", group_by = "x",
     position = "dodge", add_bg = TRUE, bg_palette = "Spectral"
 )
@@ -400,4 +408,6 @@ SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
 SplitBarPlot(data, x = "count", y = "word", fill_by = "group")
 SplitBarPlot(data, x = "count", y = "word", facet_by = "group",
              fill_name = "Direction")
+SplitBarPlot(data, x = "count", y = "word", alpha_by = "score", split_by="group",
+             palette = c(A = "Reds", B = "Blues", C = "Greens"))
 }

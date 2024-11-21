@@ -150,9 +150,12 @@ Default is "theme_this".}
 
 \item{theme_args}{A list of arguments to pass to the theme function.}
 
-\item{palette}{A character string specifying the palette to use.}
+\item{palette}{A character string specifying the palette to use.
+A named list or vector can be used to specify the palettes for different \code{split_by} values.}
 
-\item{palcolor}{A character string specifying the color to use in the palette.}
+\item{palcolor}{A character string specifying the color to use in the palette.
+A named list can be used to specify the colors for different \code{split_by} values.
+If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).}
 
 \item{alpha}{A numeric value specifying the transparency of the plot.}
 
@@ -233,6 +236,9 @@ DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
         facet_scales = "free_x")
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
         fill_by = "mpg", fill_cutoff = 18, split_by = "cyl")
+DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
+        fill_by = "mpg", fill_cutoff = 18, split_by = "cyl",
+        palette = list("4" = "Set1", "6" = "Paired", "8" = "Reds"))
 # works as a scatter plot
 DotPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
         fill_by = "mpg", fill_cutoff = 18, fill_cutoff_name = "Small mpgs")
@@ -241,4 +247,6 @@ LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
 LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
              fill_by = "mpg", fill_cutoff = 18, facet_by = "cyl",
              facet_scales = "free_y")
+LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
+             split_by = "vs", palette = list("0" = "Reds", "1" = "Blues"))
 }

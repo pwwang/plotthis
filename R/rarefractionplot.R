@@ -128,6 +128,8 @@ RarefactionPlotAtomic <- function(
 #' RarefactionPlot(spider)
 #' RarefactionPlot(spider, q = c(0, 1, 2), facet_by = "q")
 #' RarefactionPlot(spider, q = c(0, 1, 2), split_by = "q")
+#' RarefactionPlot(spider, q = c(0, 1, 2), split_by = "q",
+#'                 palette = c("0" = "Paired", "1" = "Set1", "2" = "Dark2"))
 #' RarefactionPlot(spider, q = c(0, 1, 2), group_by = "q",
 #'  facet_by = "group", palette = "Set1", type = 3)
 #' }
@@ -193,6 +195,8 @@ RarefactionPlot <- function(
         datas <- list(data)
         names(datas) <- "..."
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -207,7 +211,7 @@ RarefactionPlot <- function(
                 title <- title %||% default_title
             }
             RarefactionPlotAtomic(datas[[nm]], type = type, se = se, group_by = group_by, group_name = group_name, pt_size = pt_size,
-                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, line_width = line_width,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], line_width = line_width,
                 alpha = alpha, facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol,
                 facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,

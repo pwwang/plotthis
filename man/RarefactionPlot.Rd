@@ -68,9 +68,12 @@ Default is "theme_this".}
 
 \item{theme_args}{A list of arguments to pass to the theme function.}
 
-\item{palette}{A character string specifying the palette to use.}
+\item{palette}{A character string specifying the palette to use.
+A named list or vector can be used to specify the palettes for different \code{split_by} values.}
 
-\item{palcolor}{A character string specifying the color to use in the palette.}
+\item{palcolor}{A character string specifying the color to use in the palette.
+A named list can be used to specify the colors for different \code{split_by} values.
+If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).}
 
 \item{alpha}{A numeric value specifying the transparency of the plot.}
 
@@ -140,6 +143,8 @@ spider <- list(
 RarefactionPlot(spider)
 RarefactionPlot(spider, q = c(0, 1, 2), facet_by = "q")
 RarefactionPlot(spider, q = c(0, 1, 2), split_by = "q")
+RarefactionPlot(spider, q = c(0, 1, 2), split_by = "q",
+                palette = c("0" = "Paired", "1" = "Set1", "2" = "Dark2"))
 RarefactionPlot(spider, q = c(0, 1, 2), group_by = "q",
  facet_by = "group", palette = "Set1", type = 3)
 }

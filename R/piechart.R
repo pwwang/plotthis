@@ -151,6 +151,8 @@ PieChartAtomic <- function(
 #' PieChart(data, x = "x", y = "y", label = "group")
 #' PieChart(data, x = "x", y = "y", facet_by = "facet")
 #' PieChart(data, x = "x", y = "y", split_by = "group")
+#' PieChart(data, x = "x", y = "y", split_by = "group",
+#'          palette = list(G1 = "Reds", G2 = "Blues", G3 = "Greens", G4 = "Purp"))
 #'
 #' # y from count
 #' PieChart(data, x = "group")
@@ -178,6 +180,8 @@ PieChart <- function(
         datas <- list(data)
         names(datas) <- "..."
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -191,7 +195,7 @@ PieChart <- function(
                 x = x, y = y, label = label, split_by = split_by, clockwise = clockwise,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow,
                 facet_byrow = facet_byrow,
-                theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 alpha = alpha, aspect.ratio = aspect.ratio,
                 legend.position = legend.position, legend.direction = legend.direction,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...

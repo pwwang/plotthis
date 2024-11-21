@@ -1503,6 +1503,8 @@ HeatmapAtomic <- function(
 #'   row_annotation_type = list(rp = "pie", rv = "density", rows1 = "simple"),
 #'   row_annotation_params = list(rp = list(width = grid::unit(12, "mm"))),
 #'   show_row_names = TRUE, show_column_names = TRUE, flip = TRUE)
+#' Heatmap(data, rows = rows, columns_by = "c", split_by = "p",
+#'         palette = list(X = "Reds", Y = "Blues", Z = "Purp"))
 #' }
 Heatmap <- function(
     data, rows, columns_by, rows_name = "rows", columns_name = "columns", split_by = NULL, split_by_sep = "_", split_rows_data = FALSE,
@@ -1562,6 +1564,9 @@ Heatmap <- function(
         datas <- list(data)
         names(datas) <- "..."
     }
+    palette <- check_palette(palette, names(datas))
+    palcolor <- check_palcolor(palcolor, names(datas))
+
     if (isTRUE(split_rows_data) && !is.null(rows_data)) {
         rows_data <- "@rows_data"
     }
@@ -1596,7 +1601,7 @@ Heatmap <- function(
                 row_annotation = row_annotation, row_annotation_side = row_annotation_side, row_annotation_palette = row_annotation_palette,
                 row_annotation_palcolor = row_annotation_palcolor, row_annotation_type = row_annotation_type, row_annotation_params = row_annotation_params,
                 row_annotation_agg = row_annotation_agg, add_reticle = add_reticle, reticle_color = reticle_color,
-                palette = palette, palcolor = palcolor, alpha = alpha, legend.position = legend.position, legend.direction = legend.direction,
+                palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha, legend.position = legend.position, legend.direction = legend.direction,
                 ...
             )
         }
