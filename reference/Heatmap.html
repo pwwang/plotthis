@@ -533,11 +533,14 @@ Could be a list with the keys as the names of the annotation and the values as t
 
 
 <dt id="arg-palette">palette<a class="anchor" aria-label="anchor" href="#arg-palette"></a></dt>
-<dd><p>A character string specifying the palette to use.</p></dd>
+<dd><p>A character string specifying the palette to use.
+A named list or vector can be used to specify the palettes for different <code>split_by</code> values.</p></dd>
 
 
 <dt id="arg-palcolor">palcolor<a class="anchor" aria-label="anchor" href="#arg-palcolor"></a></dt>
-<dd><p>A character string specifying the color to use in the palette.</p></dd>
+<dd><p>A character string specifying the color to use in the palette.
+A named list can be used to specify the colors for different <code>split_by</code> values.
+If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).</p></dd>
 
 
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
@@ -714,6 +717,9 @@ if <code>combine = TRUE</code>, otherwise, it returns a list of heatmaps.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Assuming 'row_annotation_agg["rows1"] = dplyr::first' for the simple column annotation</span>
 <span class="r-plt img"><img src="Heatmap-23.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, split_by <span class="op">=</span> <span class="st">"p"</span>,</span></span>
+<span class="r-in"><span>        palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>X <span class="op">=</span> <span class="st">"Reds"</span>, Y <span class="op">=</span> <span class="st">"Blues"</span>, Z <span class="op">=</span> <span class="st">"Purp"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="Heatmap-24.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

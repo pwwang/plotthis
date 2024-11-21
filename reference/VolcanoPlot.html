@@ -274,11 +274,14 @@ Default is "theme_this".</p></dd>
 
 
 <dt id="arg-palette">palette<a class="anchor" aria-label="anchor" href="#arg-palette"></a></dt>
-<dd><p>A character string specifying the palette to use.</p></dd>
+<dd><p>A character string specifying the palette to use.
+A named list or vector can be used to specify the palettes for different <code>split_by</code> values.</p></dd>
 
 
 <dt id="arg-palcolor">palcolor<a class="anchor" aria-label="anchor" href="#arg-palcolor"></a></dt>
-<dd><p>A character string specifying the color to use in the palette.</p></dd>
+<dd><p>A character string specifying the color to use in the palette.
+A named list can be used to specify the colors for different <code>split_by</code> values.
+If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).</p></dd>
 
 
 <dt id="arg-title">title<a class="anchor" aria-label="anchor" href="#arg-title"></a></dt>
@@ -415,6 +418,10 @@ if <code>waiver()</code>, for single groups, the legend will be "none", otherwis
 <span class="r-in"><span>   highlight <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ANXA2"</span>, <span class="st">"TMEM40"</span>, <span class="st">"PF4"</span>, <span class="st">"GNG11"</span>, <span class="st">"CLU"</span>, <span class="st">"CD9"</span>, <span class="st">"FGFBP2"</span>,</span></span>
 <span class="r-in"><span>   <span class="st">"TNFRSF1B"</span>, <span class="st">"IFI6"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="VolcanoPlot-5.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">VolcanoPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"avg_log2FC"</span>, y <span class="op">=</span> <span class="st">"p_val_adj"</span>, color_by <span class="op">=</span> <span class="st">"pct_diff"</span>,</span></span>
+<span class="r-in"><span>   y_cutoff_name <span class="op">=</span> <span class="st">"-log10(0.05)"</span>, split_by <span class="op">=</span> <span class="st">"group"</span>,</span></span>
+<span class="r-in"><span>   palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>A <span class="op">=</span> <span class="st">"Set1"</span>, B <span class="op">=</span> <span class="st">"Dark2"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="VolcanoPlot-6.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

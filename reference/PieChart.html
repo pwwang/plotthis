@@ -146,11 +146,14 @@ Default is "theme_this".</p></dd>
 
 
 <dt id="arg-palette">palette<a class="anchor" aria-label="anchor" href="#arg-palette"></a></dt>
-<dd><p>A character string specifying the palette to use.</p></dd>
+<dd><p>A character string specifying the palette to use.
+A named list or vector can be used to specify the palettes for different <code>split_by</code> values.</p></dd>
 
 
 <dt id="arg-palcolor">palcolor<a class="anchor" aria-label="anchor" href="#arg-palcolor"></a></dt>
-<dd><p>A character string specifying the color to use in the palette.</p></dd>
+<dd><p>A character string specifying the color to use in the palette.
+A named list can be used to specify the colors for different <code>split_by</code> values.
+If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).</p></dd>
 
 
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
@@ -241,10 +244,13 @@ If FALSE, empty groups will be removed.</p></dd>
 <span class="r-plt img"><img src="PieChart-4.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">PieChart</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, split_by <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="PieChart-5.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">PieChart</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, split_by <span class="op">=</span> <span class="st">"group"</span>,</span></span>
+<span class="r-in"><span>         palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>G1 <span class="op">=</span> <span class="st">"Reds"</span>, G2 <span class="op">=</span> <span class="st">"Blues"</span>, G3 <span class="op">=</span> <span class="st">"Greens"</span>, G4 <span class="op">=</span> <span class="st">"Purp"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="PieChart-6.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># y from count</span></span></span>
 <span class="r-in"><span><span class="fu">PieChart</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="PieChart-6.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="PieChart-7.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -175,11 +175,14 @@ Default is "theme_this".</p></dd>
 
 
 <dt id="arg-palette">palette<a class="anchor" aria-label="anchor" href="#arg-palette"></a></dt>
-<dd><p>A character string specifying the palette to use.</p></dd>
+<dd><p>A character string specifying the palette to use.
+A named list or vector can be used to specify the palettes for different <code>split_by</code> values.</p></dd>
 
 
 <dt id="arg-palcolor">palcolor<a class="anchor" aria-label="anchor" href="#arg-palcolor"></a></dt>
-<dd><p>A character string specifying the color to use in the palette.</p></dd>
+<dd><p>A character string specifying the color to use in the palette.
+A named list can be used to specify the colors for different <code>split_by</code> values.
+If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).</p></dd>
 
 
 <dt id="arg-title">title<a class="anchor" aria-label="anchor" href="#arg-title"></a></dt>
@@ -262,6 +265,34 @@ if <code>waiver()</code>, for single groups, the legend will be "none", otherwis
 <span class="r-in"><span><span class="fu">CorPairsPlot</span><span class="op">(</span><span class="va">data</span>, split_by <span class="op">=</span> <span class="st">"g"</span>, diag_type <span class="op">=</span> <span class="st">"none"</span>, layout <span class="op">=</span> <span class="st">".\\"</span>,</span></span>
 <span class="r-in"><span> legend.position <span class="op">=</span> <span class="st">"bottom"</span>, legend.direction <span class="op">=</span> <span class="st">"horizontal"</span>, group_name <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="CorPairsPlot-4.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu">CorPairsPlot</span><span class="op">(</span><span class="va">data</span>, split_by <span class="op">=</span> <span class="st">"g"</span>,</span></span>
+<span class="r-in"><span> palcolor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"1"</span> <span class="op">=</span> <span class="st">"red"</span>, <span class="st">"2"</span> <span class="op">=</span> <span class="st">"blue"</span>, <span class="st">"3"</span> <span class="op">=</span> <span class="st">"green"</span>, <span class="st">"4"</span> <span class="op">=</span> <span class="st">"yellow"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Ignoring unknown parameters: `add_lines`</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Ignoring unknown parameters: `add_lines`</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Ignoring unknown parameters: `add_lines`</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Ignoring unknown parameters: `add_lines`</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Ignoring unknown parameters: `add_lines`</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Ignoring unknown parameters: `add_lines`</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Ignoring unknown parameters: `add_lines`</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Ignoring unknown parameters: `add_lines`</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Ignoring unknown parameters: `add_lines`</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Ignoring unknown parameters: `add_lines`</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Ignoring unknown parameters: `add_lines`</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Ignoring unknown parameters: `add_lines`</span>
+<span class="r-plt img"><img src="CorPairsPlot-5.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

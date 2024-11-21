@@ -158,11 +158,14 @@ Default is "theme_this".</p></dd>
 
 
 <dt id="arg-palette">palette<a class="anchor" aria-label="anchor" href="#arg-palette"></a></dt>
-<dd><p>A character string specifying the palette to use.</p></dd>
+<dd><p>A character string specifying the palette to use.
+A named list or vector can be used to specify the palettes for different <code>split_by</code> values.</p></dd>
 
 
 <dt id="arg-palcolor">palcolor<a class="anchor" aria-label="anchor" href="#arg-palcolor"></a></dt>
-<dd><p>A character string specifying the color to use in the palette.</p></dd>
+<dd><p>A character string specifying the color to use in the palette.
+A named list can be used to specify the colors for different <code>split_by</code> values.
+If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).</p></dd>
 
 
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
@@ -252,7 +255,8 @@ If FALSE, empty groups will be removed.</p></dd>
 <span class="r-plt img"><img src="RingPlot-2.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">RingPlot</span><span class="op">(</span><span class="fu">datasets</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/datasets/mtcars.html" class="external-link">mtcars</a></span>, x <span class="op">=</span> <span class="st">"cyl"</span>, group_by <span class="op">=</span> <span class="st">"carb"</span>, facet_by <span class="op">=</span> <span class="st">"vs"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="RingPlot-3.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">RingPlot</span><span class="op">(</span><span class="fu">datasets</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/datasets/mtcars.html" class="external-link">mtcars</a></span>, x <span class="op">=</span> <span class="st">"cyl"</span>, group_by <span class="op">=</span> <span class="st">"carb"</span>, split_by <span class="op">=</span> <span class="st">"vs"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">RingPlot</span><span class="op">(</span><span class="fu">datasets</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/datasets/mtcars.html" class="external-link">mtcars</a></span>, x <span class="op">=</span> <span class="st">"cyl"</span>, group_by <span class="op">=</span> <span class="st">"carb"</span>, split_by <span class="op">=</span> <span class="st">"vs"</span>,</span></span>
+<span class="r-in"><span>        palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"0"</span> <span class="op">=</span> <span class="st">"Set1"</span>, <span class="st">"1"</span> <span class="op">=</span> <span class="st">"Paired"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="RingPlot-4.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>

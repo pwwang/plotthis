@@ -222,11 +222,14 @@ Default is "theme_this".</p></dd>
 
 
 <dt id="arg-palette">palette<a class="anchor" aria-label="anchor" href="#arg-palette"></a></dt>
-<dd><p>A character string specifying the palette to use.</p></dd>
+<dd><p>A character string specifying the palette to use.
+A named list or vector can be used to specify the palettes for different <code>split_by</code> values.</p></dd>
 
 
 <dt id="arg-palcolor">palcolor<a class="anchor" aria-label="anchor" href="#arg-palcolor"></a></dt>
-<dd><p>A character string specifying the color to use in the palette.</p></dd>
+<dd><p>A character string specifying the color to use in the palette.
+A named list can be used to specify the colors for different <code>split_by</code> values.
+If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).</p></dd>
 
 
 <dt id="arg-x-text-angle">x_text_angle<a class="anchor" aria-label="anchor" href="#arg-x-text-angle"></a></dt>
@@ -347,6 +350,9 @@ If FALSE, empty groups will be removed.</p></dd>
 <span class="r-plt img"><img src="LinePlot-4.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">LinePlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, group_by <span class="op">=</span> <span class="st">"group"</span>, split_by <span class="op">=</span> <span class="st">"facet"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="LinePlot-5.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">LinePlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, split_by <span class="op">=</span> <span class="st">"group"</span>,</span></span>
+<span class="r-in"><span>         palcolor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"G1"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"red"</span>,<span class="st">"blue"</span><span class="op">)</span>, <span class="st">"G2"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"green"</span>, <span class="st">"black"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="LinePlot-6.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

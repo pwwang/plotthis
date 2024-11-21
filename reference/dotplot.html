@@ -242,11 +242,14 @@ Default is "theme_this".</p></dd>
 
 
 <dt id="arg-palette">palette<a class="anchor" aria-label="anchor" href="#arg-palette"></a></dt>
-<dd><p>A character string specifying the palette to use.</p></dd>
+<dd><p>A character string specifying the palette to use.
+A named list or vector can be used to specify the palettes for different <code>split_by</code> values.</p></dd>
 
 
 <dt id="arg-palcolor">palcolor<a class="anchor" aria-label="anchor" href="#arg-palcolor"></a></dt>
-<dd><p>A character string specifying the color to use in the palette.</p></dd>
+<dd><p>A character string specifying the color to use in the palette.
+A named list can be used to specify the colors for different <code>split_by</code> values.
+If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).</p></dd>
 
 
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
@@ -373,17 +376,24 @@ If FALSE, empty groups will be removed.</p></dd>
 <span class="r-in"><span><span class="fu">DotPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"carb"</span>, y <span class="op">=</span> <span class="st">"gear"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
 <span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="fl">18</span>, split_by <span class="op">=</span> <span class="st">"cyl"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="dotplot-6.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">DotPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"carb"</span>, y <span class="op">=</span> <span class="st">"gear"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
+<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="fl">18</span>, split_by <span class="op">=</span> <span class="st">"cyl"</span>,</span></span>
+<span class="r-in"><span>        palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"4"</span> <span class="op">=</span> <span class="st">"Set1"</span>, <span class="st">"6"</span> <span class="op">=</span> <span class="st">"Paired"</span>, <span class="st">"8"</span> <span class="op">=</span> <span class="st">"Reds"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="dotplot-7.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># works as a scatter plot</span></span></span>
 <span class="r-in"><span><span class="fu">DotPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"qsec"</span>, y <span class="op">=</span> <span class="st">"drat"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
 <span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="fl">18</span>, fill_cutoff_name <span class="op">=</span> <span class="st">"Small mpgs"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="dotplot-7.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="dotplot-8.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">LollipopPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"qsec"</span>, y <span class="op">=</span> <span class="st">"drat"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
 <span class="r-in"><span>             fill_by <span class="op">=</span> <span class="st">"mpg"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="dotplot-8.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="dotplot-9.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">LollipopPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"qsec"</span>, y <span class="op">=</span> <span class="st">"drat"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
 <span class="r-in"><span>             fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="fl">18</span>, facet_by <span class="op">=</span> <span class="st">"cyl"</span>,</span></span>
 <span class="r-in"><span>             facet_scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="dotplot-9.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="dotplot-10.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">LollipopPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"qsec"</span>, y <span class="op">=</span> <span class="st">"drat"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
+<span class="r-in"><span>             split_by <span class="op">=</span> <span class="st">"vs"</span>, palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"0"</span> <span class="op">=</span> <span class="st">"Reds"</span>, <span class="st">"1"</span> <span class="op">=</span> <span class="st">"Blues"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="dotplot-11.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

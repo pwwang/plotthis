@@ -188,11 +188,14 @@ the default position is "identity" to show the actual count or density for each 
 
 
 <dt id="arg-palette">palette<a class="anchor" aria-label="anchor" href="#arg-palette"></a></dt>
-<dd><p>A character string specifying the palette to use.</p></dd>
+<dd><p>A character string specifying the palette to use.
+A named list or vector can be used to specify the palettes for different <code>split_by</code> values.</p></dd>
 
 
 <dt id="arg-palcolor">palcolor<a class="anchor" aria-label="anchor" href="#arg-palcolor"></a></dt>
-<dd><p>A character string specifying the color to use in the palette.</p></dd>
+<dd><p>A character string specifying the color to use in the palette.
+A named list can be used to specify the colors for different <code>split_by</code> values.
+If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).</p></dd>
 
 
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
@@ -368,6 +371,11 @@ if <code>waiver()</code>, for single groups, the legend will be "none", otherwis
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
 <span class="r-plt img"><img src="densityhistoplot-3.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">DensityPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, split_by <span class="op">=</span> <span class="st">"facet"</span>, add_bars <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>    palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>F1 <span class="op">=</span> <span class="st">"Set1"</span>, F2 <span class="op">=</span> <span class="st">"Set2"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-plt img"><img src="densityhistoplot-4.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">8525</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>    x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span><span class="op">:</span><span class="fl">36</span>, <span class="fl">50</span><span class="op">:</span><span class="fl">55</span>, <span class="fl">70</span><span class="op">:</span><span class="fl">77</span><span class="op">)</span><span class="op">)</span>, <span class="fl">1000</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span></span>
@@ -377,25 +385,30 @@ if <code>waiver()</code>, for single groups, the legend will be "none", otherwis
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">Histogram</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
-<span class="r-plt img"><img src="densityhistoplot-4.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="densityhistoplot-5.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Histogram</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
-<span class="r-plt img"><img src="densityhistoplot-5.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="densityhistoplot-6.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Histogram</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, split_by <span class="op">=</span> <span class="st">"facet"</span>, add_bars <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
-<span class="r-plt img"><img src="densityhistoplot-6.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="densityhistoplot-7.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Histogram</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span>, add_trend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
-<span class="r-plt img"><img src="densityhistoplot-7.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="densityhistoplot-8.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Histogram</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span>, add_trend <span class="op">=</span> <span class="cn">TRUE</span>, trend_skip_zero <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
-<span class="r-plt img"><img src="densityhistoplot-8.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="densityhistoplot-9.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Histogram</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span>, split_by <span class="op">=</span> <span class="st">"facet"</span>,</span></span>
 <span class="r-in"><span> use_trend <span class="op">=</span> <span class="cn">TRUE</span>, trend_pt_size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
-<span class="r-plt img"><img src="densityhistoplot-9.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="densityhistoplot-10.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">Histogram</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span>, split_by <span class="op">=</span> <span class="st">"facet"</span>,</span></span>
+<span class="r-in"><span> palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>F1 <span class="op">=</span> <span class="st">"Paired"</span>, F2 <span class="op">=</span> <span class="st">"Spectral"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-plt img"><img src="densityhistoplot-11.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
