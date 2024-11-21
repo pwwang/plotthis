@@ -186,5 +186,5 @@ ScatterPlot(data, x = "x", y = "y", size_by = "w", color_by = "t",
 
 # Change color per plot
 ScatterPlot(data, x = "x", y = "y", split_by = "t",
-            palcolor = c(A = "blue", B = "red"))
+            palcolor = list(A = "blue", B = "red"))
 }

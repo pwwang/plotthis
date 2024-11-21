@@ -197,13 +197,17 @@ palette_this <- function(
         n_x <- nlevels(x)
         if (isTRUE(attr(palcolor, "type") == "continuous")) {
             color <- colorRampPalette(palcolor)(n_x)
+            names(color) <- levels(x)
+        } else if (!is.null(names(palcolor))) {
+            color <- palcolor[intersect(names(palcolor), levels(x))]
         } else {
             color <- ifelse(rep(n_x, n_x) <= pal_n,
                 palcolor[1:n_x],
                 colorRampPalette(palcolor)(n_x)
             )
+            names(color) <- levels(x)
         }
-        names(color) <- levels(x)
+
         if (any(is.na(x))) {
             color <- c(color, setNames(NA_color, "NA"))
         }

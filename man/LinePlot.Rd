@@ -202,5 +202,5 @@ LinePlot(data, x = "x", y = "y", group_by = "group", add_bg = TRUE)
 LinePlot(data, x = "x", y = "y", group_by = "group", facet_by = "facet")
 LinePlot(data, x = "x", y = "y", group_by = "group", split_by = "facet")
 LinePlot(data, x = "x", y = "y", split_by = "group",
-         palcolor = list("G1" = c("red","blue"), "G2" = c("green", "black")))
+         palcolor = list(G1 = c("red", "blue"), G2 = c("green", "black")))
 }
