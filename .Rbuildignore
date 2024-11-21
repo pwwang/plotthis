@@ -3,10 +3,15 @@
 ^cran-comments\.md$
 ^_pkgdown\.yml$
 ^\.github\/.*
+^\.github$
 ^conda\/.*
+^conda$
 ^docs\/.*
+^docs$
 ^pkgdown\/.*
+^pkgdown$
 ^vignettes\/.*
+^vignettes$
 ^test\.ipynb$
 ^.+\.Rcheck/.+$
 ^.+\.tar\.gz$
