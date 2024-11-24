@@ -6,6 +6,9 @@
 #' @param truth_by A character string of the column name that contains the true class labels.
 #' (a.k.a. the binary outcome, 1/0 or TRUE/FALSE.)
 #' @param score_by character strings of the column names that contains the predicted scores.
+#' When multiple columns are provided, the ROC curve is plotted for each column.
+#' @param pos_label A character string of the positive class label.
+#' When NULL, the labels will be handled by the `plotROC` package.
 #' @param group_by A character vector of column names to group the ROC curve by.
 #' When `score_by` contains multiple columns, `group_by` should be NULL.
 #' @param group_by_sep A character string to separate the columns in `group_by`.
@@ -28,7 +31,7 @@
 #' @return A ggplot object.
 #' @keywords internal
 #' @importFrom ggplot2 geom_abline scale_color_manual scale_x_reverse scale_x_continuous scale_y_continuous waiver
-ROCCurveAtomic <- function(data, truth_by, score_by,
+ROCCurveAtomic <- function(data, truth_by, score_by, pos_label = NULL,
     group_by = NULL, group_by_sep = "_", group_name = NULL,
     x_axis_reverse = FALSE, percent = FALSE, n.cuts = 0, ci = NULL,
     show_auc = c("auto", "none", "legend", "plot"), auc_accuracy = 0.01, auc_size = 4,
@@ -41,6 +44,11 @@ ROCCurveAtomic <- function(data, truth_by, score_by,
     score_by <- check_columns(data, score_by, force_factor = FALSE, allow_multi = TRUE)
     group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
     stopifnot("'group_by' should be NULL when mulitple 'score_by' columns are provided." = length(score_by) == 1 || is.null(group_by))
+
+    if (!is.null(pos_label)) {
+        data[[truth_by]] <- factor(data[[truth_by]], levels = c(setdiff(unique(data[[truth_by]]), pos_label), pos_label))
+        data[[truth_by]] <- as.numeric(data[[truth_by]]) - 1
+    }
 
     if (length(score_by) > 1) {
         data <- pivot_longer(data, cols = score_by, names_to = ".group", values_to = ".score")
@@ -202,7 +210,7 @@ ROCCurveAtomic <- function(data, truth_by, score_by,
 #' p
 #' # Retrieve the AUC values
 #' attr(p, "auc")
-ROCCurve <- function(data, truth_by, score_by, split_by = NULL, split_by_sep = "_",
+ROCCurve <- function(data, truth_by, score_by, pos_label = NULL, split_by = NULL, split_by_sep = "_",
     group_by = NULL, group_by_sep = "_", group_name = NULL,
     x_axis_reverse = FALSE, percent = FALSE, n.cuts = 0, ci = NULL,
     show_auc = c("auto", "none", "legend", "plot"), auc_accuracy = 0.01, auc_size = 4,
@@ -238,7 +246,7 @@ ROCCurve <- function(data, truth_by, score_by, split_by = NULL, split_by_sep = "
                 datas[[nm]][[split_by]] <- NULL
             }
 
-            ROCCurveAtomic(datas[[nm]], truth_by, score_by,
+            ROCCurveAtomic(datas[[nm]], truth_by, score_by, pos_label = pos_label,
                 group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
                 x_axis_reverse = x_axis_reverse, percent = percent, n.cuts = n.cuts, ci = ci,
                 show_auc = show_auc, auc_accuracy = auc_accuracy, auc_size = auc_size,

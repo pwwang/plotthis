@@ -8,6 +8,7 @@ ROCCurveAtomic(
   data,
   truth_by,
   score_by,
+  pos_label = NULL,
   group_by = NULL,
   group_by_sep = "_",
   group_name = NULL,
@@ -45,7 +46,11 @@ See also https://cran.r-project.org/web/packages/plotROC/vignettes/examples.html
 \item{truth_by}{A character string of the column name that contains the true class labels.
 (a.k.a. the binary outcome, 1/0 or TRUE/FALSE.)}
 
-\item{score_by}{character strings of the column names that contains the predicted scores.}
+\item{score_by}{character strings of the column names that contains the predicted scores.
+When multiple columns are provided, the ROC curve is plotted for each column.}
+
+\item{pos_label}{A character string of the positive class label.
+When NULL, the labels will be handled by the \code{plotROC} package.}
 
 \item{group_by}{A character vector of column names to group the ROC curve by.
 When \code{score_by} contains multiple columns, \code{group_by} should be NULL.}

@@ -8,6 +8,7 @@ ROCCurve(
   data,
   truth_by,
   score_by,
+  pos_label = NULL,
   split_by = NULL,
   split_by_sep = "_",
   group_by = NULL,
@@ -51,7 +52,11 @@ ROCCurve(
 \item{truth_by}{A character string of the column name that contains the true class labels.
 (a.k.a. the binary outcome, 1/0 or TRUE/FALSE.)}
 
-\item{score_by}{character strings of the column names that contains the predicted scores.}
+\item{score_by}{character strings of the column names that contains the predicted scores.
+When multiple columns are provided, the ROC curve is plotted for each column.}
+
+\item{pos_label}{A character string of the positive class label.
+When NULL, the labels will be handled by the \code{plotROC} package.}
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
