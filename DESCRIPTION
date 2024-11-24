@@ -56,6 +56,7 @@ Suggests:
     igraph,
     iNEXT,
     scattermore,
-    concaveman
+    concaveman,
+    plotROC
 LazyData: true
 Config/Needs/website: rmarkdown

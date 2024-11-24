@@ -22,7 +22,7 @@ $ conda install pwwang::r-plotthis
 `plotthis` is greatly inspired by the [`SCP`][1] package, but with the plotting functions detached from the Seurat object or single-cell data analysis. It is designed to be more flexible and general-purpose, and can be used for a wide range of data types and analysis scenarios.
 
 ## Gallery
-[`AreaPlot`][2] / [`TrendPlot`][3]
+[`AreaPlot`][2] / [`TrendPlot`][3] / [`ROCCurve`][28]
 
 ![area-trend](man/figures/area-trend.png)
 
@@ -114,3 +114,4 @@ $ conda install pwwang::r-plotthis
 [25]: https://pwwang.github.io/plotthis/reference/CorPairsPlot.html
 [26]: https://pwwang.github.io/plotthis/reference/RarefactionPlot.html
 [27]: https://pwwang.github.io/plotthis/reference/Network.html
+[28]: https://pwwang.github.io/plotthis/reference/ROCCurve.html

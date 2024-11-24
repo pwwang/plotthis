@@ -33,6 +33,7 @@ reference:
     - RadarPlot
     - RarefactionPlot
     - RingPlot
+    - ROCCurve
     - SankeyPlot
     - ScatterPlot
     - SpiderPlot
