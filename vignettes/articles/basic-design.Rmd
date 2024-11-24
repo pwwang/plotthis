@@ -100,7 +100,7 @@ Unlike other plotting packages, `plotthis` provides a unified interface for both
 
 Most of the plotting functions in `plotthis` support both splitting and faceting.
 
-The `split_by` argument is used to split the data and generate multiple plots, and the data in the `split_by` columns will be used to split the data and generate multiple plots, which will be combined into one plot. Those sub-plots are independent of each other, and they have their own scales and guides.
+The `split_by` argument is used to split the data and generate multiple plots, and the data in the `split_by` columns will be used to split the data and generate multiple plots, which will be combined into one plot. Those sub-plots are independent of each other, and they have their own scales and guides. In addition, the `split_by_sep` argument is used to concatenate the columns specified in `split_by` into one column, using the specified separator. The palettes/palcolors can be different for each sub-plot using the `palette`/`palcolor` argument.
 
 For faceting, the `facet_scales` argument is used to control the scales of the facets. The `facet_wrap` function is used when `facet_by` has one column; otherwise, the `facet_grid` function is used when `facet_by` has two columns.
 
