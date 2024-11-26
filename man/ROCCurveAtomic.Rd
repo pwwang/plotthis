@@ -14,11 +14,22 @@ ROCCurveAtomic(
   group_name = NULL,
   x_axis_reverse = FALSE,
   percent = FALSE,
-  n.cuts = 0,
   ci = NULL,
+  n_cuts = 0,
+  cutoffs_at = NULL,
+  cutoffs_labels = NULL,
+  cutoffs_accuracy = 0.01,
+  cutoffs_pt_size = 5,
+  cutoffs_pt_shape = 4,
+  cutoffs_pt_stroke = 1,
+  cutoffs_labal_fg = "black",
+  cutoffs_label_size = 4,
+  cutoffs_label_bg = "white",
+  cutoffs_label_bg_r = 0.1,
   show_auc = c("auto", "none", "legend", "plot"),
   auc_accuracy = 0.01,
   auc_size = 4,
+  increasing = TRUE,
   theme = "theme_this",
   theme_args = list(),
   palette = "Spectral",
@@ -63,11 +74,72 @@ When \code{score_by} contains multiple columns, \code{group_by} should be NULL.}
 
 \item{percent}{A logical to display the x and y axis as percentages.}
 
-\item{n.cuts}{An integer to specify the number of cuts on the ROC curve.
-Passed to \code{\link[plotROC:geom_roc]{plotROC::geom_roc()}}.}
-
 \item{ci}{A list of arguments to pass to \code{\link[plotROC:geom_rocci]{plotROC::geom_rocci()}} to add confidence intervals.
 When NULL, no confidence intervals are added.}
+
+\item{n_cuts}{An integer to specify the number of cutpoints on the ROC curve.
+It will be the quantiles of the predicted scores.}
+
+\item{cutoffs_at}{Vector of user supplied cutoffs to plot as points. If non-NULL,
+it will override the values of n_cuts and plot the observed cutoffs closest to the user-supplied ones.
+Both \code{cutoffs_at} and \code{cutoffs.labels} will be passed to \code{\link[plotROC:geom_roc]{plotROC::geom_roc()}}.
+Other than numeric values, the following special values are allowed. These values are the methods of
+\code{\link[OptimalCutpoints:optimal.cutpoints]{OptimalCutpoints::optimal.cutpoints()}}, they are literally:
+\itemize{
+\item "CB" (cost-benefit method);
+\item "MCT" (minimizes Misclassification Cost Term);
+\item "MinValueSp" (a minimum value set for Specificity);
+\item "MinValueSe" (a minimum value set for Sensitivity);
+\item "ValueSe" (a value set for Sensitivity);
+\item "MinValueSpSe" (a minimum value set for Specificity and Sensitivity);
+\item "MaxSp" (maximizes Specificity);
+\item "MaxSe" (maximizes Sensitivity);
+\item "MaxSpSe" (maximizes Sensitivity and Specificity simultaneously);
+\item "MaxProdSpSe" (maximizes the product of Sensitivity and Specificity or Accuracy Area);
+\item "ROC01" (minimizes distance between ROC plot and point (0,1));
+\item "SpEqualSe" (Sensitivity = Specificity);
+\item "Youden" (Youden Index);
+\item "MaxEfficiency" (maximizes Efficiency or Accuracy, similar to minimize Error Rate);
+\item "Minimax" (minimizes the most frequent error);
+\item "MaxDOR" (maximizes Diagnostic Odds Ratio);
+\item "MaxKappa" (maximizes Kappa Index);
+\item "MinValueNPV" (a minimum value set for Negative Predictive Value);
+\item "MinValuePPV" (a minimum value set for Positive Predictive Value);
+\item "ValueNPV" (a value set for Negative Predictive Value);
+\item "ValuePPV" (a value set for Positive Predictive Value);
+\item "MinValueNPVPPV" (a minimum value set for Predictive Values);
+\item "PROC01" (minimizes distance between PROC plot and point (0,1));
+\item "NPVEqualPPV" (Negative Predictive Value = Positive Predictive Value);
+\item "MaxNPVPPV" (maximizes Positive Predictive Value and Negative Predictive Value simultaneously);
+\item "MaxSumNPVPPV" (maximizes the sum of the Predictive Values);
+\item "MaxProdNPVPPV" (maximizes the product of Predictive Values);
+\item "ValueDLR.Negative" (a value set for Negative Diagnostic Likelihood Ratio);
+\item "ValueDLR.Positive" (a value set for Positive Diagnostic Likelihood Ratio);
+\item "MinPvalue" (minimizes p-value associated with the statistical Chi-squared test which measures the association between
+the marker and the binary result obtained on using the cutpoint);
+\item "ObservedPrev" (The closest value to observed prevalence);
+\item "MeanPrev" (The closest value to the mean of the diagnostic test values);
+\item "PrevalenceMatching" (The value for which predicted prevalence is practically equal to observed prevalence).
+}}
+
+\item{cutoffs_labels}{vector of user-supplied labels for the cutoffs. Must be a character vector of the
+same length as cutoffs_at.}
+
+\item{cutoffs_accuracy}{A numeric to specify the accuracy of the cutoff values to show.}
+
+\item{cutoffs_pt_size}{A numeric to specify the size of the cutoff points.}
+
+\item{cutoffs_pt_shape}{A numeric to specify the shape of the cutoff points.}
+
+\item{cutoffs_pt_stroke}{A numeric to specify the stroke of the cutoff points.}
+
+\item{cutoffs_labal_fg}{A character string to specify the color of the cutoff labels.}
+
+\item{cutoffs_label_size}{A numeric to specify the size of the cutoff labels.}
+
+\item{cutoffs_label_bg}{A character string to specify the background color of the cutoff labels.}
+
+\item{cutoffs_label_bg_r}{A numeric to specify the radius of the background of the cutoff labels.}
 
 \item{show_auc}{A character string to specify the position of the AUC values.
 \itemize{

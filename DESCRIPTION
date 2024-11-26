@@ -57,6 +57,7 @@ Suggests:
     iNEXT,
     scattermore,
     concaveman,
-    plotROC
+    plotROC,
+    OptimalCutpoints
 LazyData: true
 Config/Needs/website: rmarkdown
