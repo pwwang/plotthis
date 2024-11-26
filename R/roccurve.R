@@ -273,10 +273,14 @@ ROCCurveAtomic <- function(data, truth_by, score_by, pos_label = NULL,
                     "AUC (", !!sym(group_by), ") = ", scales::number(!!sym("AUC"), accuracy = auc_accuracy),
                     collapse = "\n"), .groups = "drop")
         }
+
+        auc_pos_x <- ifelse(increasing, ifelse(x_axis_reverse, -1, 1), 0)
+        auc_pos_y <- ifelse(increasing, 0, 1)
+        auc_pos_hjust <- ifelse(increasing == x_axis_reverse, -0.05, 1.05)
+        auc_pos_vjust <- ifelse(increasing, -0.5 / nlevels(data[[group_by]]), 1 + .5 / nlevels(data[[group_by]]))
         p <- p + geom_text(
-            data = auc_df, x = if (x_axis_reverse) -Inf else Inf, y = -Inf, size = auc_size * text_size_scale,
-            hjust = ifelse(x_axis_reverse, -0.1, 1.1), vjust = -0.5,
-            mapping = aes(label = !!sym("AUC")), inherit.aes = FALSE)
+            data = auc_df, x = auc_pos_x, y = auc_pos_y, size = auc_size * text_size_scale,
+            hjust = auc_pos_hjust, vjust = auc_pos_vjust, aes(label = !!sym("AUC")), inherit.aes = FALSE)
         labels <- levels(data[[group_by]])
     } else if (show_auc == "legend") {
         if (!is.null(facet_by)) {
