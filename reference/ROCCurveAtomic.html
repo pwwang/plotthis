@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">plotthis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,16 +46,28 @@
 <span>  <span class="va">data</span>,</span>
 <span>  <span class="va">truth_by</span>,</span>
 <span>  <span class="va">score_by</span>,</span>
+<span>  pos_label <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  group_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  x_axis_reverse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  percent <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  n.cuts <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  ci <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  n_cuts <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  cutoffs_at <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  cutoffs_labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  cutoffs_accuracy <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  cutoffs_pt_size <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  cutoffs_pt_shape <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  cutoffs_pt_stroke <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  cutoffs_labal_fg <span class="op">=</span> <span class="st">"black"</span>,</span>
+<span>  cutoffs_label_size <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  cutoffs_label_bg <span class="op">=</span> <span class="st">"white"</span>,</span>
+<span>  cutoffs_label_bg_r <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  show_auc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"none"</span>, <span class="st">"legend"</span>, <span class="st">"plot"</span><span class="op">)</span>,</span>
 <span>  auc_accuracy <span class="op">=</span> <span class="fl">0.01</span>,</span>
 <span>  auc_size <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  increasing <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  theme <span class="op">=</span> <span class="st">"theme_this"</span>,</span>
 <span>  theme_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  palette <span class="op">=</span> <span class="st">"Spectral"</span>,</span>
@@ -92,7 +104,13 @@ See also https://cran.r-project.org/web/packages/plotROC/vignettes/examples.html
 
 
 <dt id="arg-score-by">score_by<a class="anchor" aria-label="anchor" href="#arg-score-by"></a></dt>
-<dd><p>character strings of the column names that contains the predicted scores.</p></dd>
+<dd><p>character strings of the column names that contains the predicted scores.
+When multiple columns are provided, the ROC curve is plotted for each column.</p></dd>
+
+
+<dt id="arg-pos-label">pos_label<a class="anchor" aria-label="anchor" href="#arg-pos-label"></a></dt>
+<dd><p>A character string of the positive class label.
+When NULL, the labels will be handled by the <code>plotROC</code> package.</p></dd>
 
 
 <dt id="arg-group-by">group_by<a class="anchor" aria-label="anchor" href="#arg-group-by"></a></dt>
@@ -116,14 +134,93 @@ When <code>score_by</code> contains multiple columns, <code>group_by</code> shou
 <dd><p>A logical to display the x and y axis as percentages.</p></dd>
 
 
-<dt id="arg-n-cuts">n.cuts<a class="anchor" aria-label="anchor" href="#arg-n-cuts"></a></dt>
-<dd><p>An integer to specify the number of cuts on the ROC curve.
-Passed to <code><a href="https://rdrr.io/pkg/plotROC/man/geom_roc.html" class="external-link">plotROC::geom_roc()</a></code>.</p></dd>
-
-
 <dt id="arg-ci">ci<a class="anchor" aria-label="anchor" href="#arg-ci"></a></dt>
 <dd><p>A list of arguments to pass to <code><a href="https://rdrr.io/pkg/plotROC/man/geom_rocci.html" class="external-link">plotROC::geom_rocci()</a></code> to add confidence intervals.
 When NULL, no confidence intervals are added.</p></dd>
+
+
+<dt id="arg-n-cuts">n_cuts<a class="anchor" aria-label="anchor" href="#arg-n-cuts"></a></dt>
+<dd><p>An integer to specify the number of cutpoints on the ROC curve.
+It will be the quantiles of the predicted scores.</p></dd>
+
+
+<dt id="arg-cutoffs-at">cutoffs_at<a class="anchor" aria-label="anchor" href="#arg-cutoffs-at"></a></dt>
+<dd><p>Vector of user supplied cutoffs to plot as points. If non-NULL,
+it will override the values of n_cuts and plot the observed cutoffs closest to the user-supplied ones.
+Both <code>cutoffs_at</code> and <code>cutoffs.labels</code> will be passed to <code><a href="https://rdrr.io/pkg/plotROC/man/geom_roc.html" class="external-link">plotROC::geom_roc()</a></code>.
+Other than numeric values, the following special values are allowed. These values are the methods of
+<code><a href="https://rdrr.io/pkg/OptimalCutpoints/man/optimal.cutpoints.html" class="external-link">OptimalCutpoints::optimal.cutpoints()</a></code>, they are literally:</p><ul><li><p>"CB" (cost-benefit method);</p></li>
+<li><p>"MCT" (minimizes Misclassification Cost Term);</p></li>
+<li><p>"MinValueSp" (a minimum value set for Specificity);</p></li>
+<li><p>"MinValueSe" (a minimum value set for Sensitivity);</p></li>
+<li><p>"ValueSe" (a value set for Sensitivity);</p></li>
+<li><p>"MinValueSpSe" (a minimum value set for Specificity and Sensitivity);</p></li>
+<li><p>"MaxSp" (maximizes Specificity);</p></li>
+<li><p>"MaxSe" (maximizes Sensitivity);</p></li>
+<li><p>"MaxSpSe" (maximizes Sensitivity and Specificity simultaneously);</p></li>
+<li><p>"MaxProdSpSe" (maximizes the product of Sensitivity and Specificity or Accuracy Area);</p></li>
+<li><p>"ROC01" (minimizes distance between ROC plot and point (0,1));</p></li>
+<li><p>"SpEqualSe" (Sensitivity = Specificity);</p></li>
+<li><p>"Youden" (Youden Index);</p></li>
+<li><p>"MaxEfficiency" (maximizes Efficiency or Accuracy, similar to minimize Error Rate);</p></li>
+<li><p>"Minimax" (minimizes the most frequent error);</p></li>
+<li><p>"MaxDOR" (maximizes Diagnostic Odds Ratio);</p></li>
+<li><p>"MaxKappa" (maximizes Kappa Index);</p></li>
+<li><p>"MinValueNPV" (a minimum value set for Negative Predictive Value);</p></li>
+<li><p>"MinValuePPV" (a minimum value set for Positive Predictive Value);</p></li>
+<li><p>"ValueNPV" (a value set for Negative Predictive Value);</p></li>
+<li><p>"ValuePPV" (a value set for Positive Predictive Value);</p></li>
+<li><p>"MinValueNPVPPV" (a minimum value set for Predictive Values);</p></li>
+<li><p>"PROC01" (minimizes distance between PROC plot and point (0,1));</p></li>
+<li><p>"NPVEqualPPV" (Negative Predictive Value = Positive Predictive Value);</p></li>
+<li><p>"MaxNPVPPV" (maximizes Positive Predictive Value and Negative Predictive Value simultaneously);</p></li>
+<li><p>"MaxSumNPVPPV" (maximizes the sum of the Predictive Values);</p></li>
+<li><p>"MaxProdNPVPPV" (maximizes the product of Predictive Values);</p></li>
+<li><p>"ValueDLR.Negative" (a value set for Negative Diagnostic Likelihood Ratio);</p></li>
+<li><p>"ValueDLR.Positive" (a value set for Positive Diagnostic Likelihood Ratio);</p></li>
+<li><p>"MinPvalue" (minimizes p-value associated with the statistical Chi-squared test which measures the association between
+the marker and the binary result obtained on using the cutpoint);</p></li>
+<li><p>"ObservedPrev" (The closest value to observed prevalence);</p></li>
+<li><p>"MeanPrev" (The closest value to the mean of the diagnostic test values);</p></li>
+<li><p>"PrevalenceMatching" (The value for which predicted prevalence is practically equal to observed prevalence).</p></li>
+</ul></dd>
+
+
+<dt id="arg-cutoffs-labels">cutoffs_labels<a class="anchor" aria-label="anchor" href="#arg-cutoffs-labels"></a></dt>
+<dd><p>vector of user-supplied labels for the cutoffs. Must be a character vector of the
+same length as cutoffs_at.</p></dd>
+
+
+<dt id="arg-cutoffs-accuracy">cutoffs_accuracy<a class="anchor" aria-label="anchor" href="#arg-cutoffs-accuracy"></a></dt>
+<dd><p>A numeric to specify the accuracy of the cutoff values to show.</p></dd>
+
+
+<dt id="arg-cutoffs-pt-size">cutoffs_pt_size<a class="anchor" aria-label="anchor" href="#arg-cutoffs-pt-size"></a></dt>
+<dd><p>A numeric to specify the size of the cutoff points.</p></dd>
+
+
+<dt id="arg-cutoffs-pt-shape">cutoffs_pt_shape<a class="anchor" aria-label="anchor" href="#arg-cutoffs-pt-shape"></a></dt>
+<dd><p>A numeric to specify the shape of the cutoff points.</p></dd>
+
+
+<dt id="arg-cutoffs-pt-stroke">cutoffs_pt_stroke<a class="anchor" aria-label="anchor" href="#arg-cutoffs-pt-stroke"></a></dt>
+<dd><p>A numeric to specify the stroke of the cutoff points.</p></dd>
+
+
+<dt id="arg-cutoffs-labal-fg">cutoffs_labal_fg<a class="anchor" aria-label="anchor" href="#arg-cutoffs-labal-fg"></a></dt>
+<dd><p>A character string to specify the color of the cutoff labels.</p></dd>
+
+
+<dt id="arg-cutoffs-label-size">cutoffs_label_size<a class="anchor" aria-label="anchor" href="#arg-cutoffs-label-size"></a></dt>
+<dd><p>A numeric to specify the size of the cutoff labels.</p></dd>
+
+
+<dt id="arg-cutoffs-label-bg">cutoffs_label_bg<a class="anchor" aria-label="anchor" href="#arg-cutoffs-label-bg"></a></dt>
+<dd><p>A character string to specify the background color of the cutoff labels.</p></dd>
+
+
+<dt id="arg-cutoffs-label-bg-r">cutoffs_label_bg_r<a class="anchor" aria-label="anchor" href="#arg-cutoffs-label-bg-r"></a></dt>
+<dd><p>A numeric to specify the radius of the background of the cutoff labels.</p></dd>
 
 
 <dt id="arg-show-auc">show_auc<a class="anchor" aria-label="anchor" href="#arg-show-auc"></a></dt>
