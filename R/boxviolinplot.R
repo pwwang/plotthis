@@ -57,6 +57,7 @@
 #' @param highlight_size A numeric value to specify the size of the highlighted points.
 #' @param highlight_alpha A numeric value to specify the transparency of the highlighted points.
 #' @param comparisons A logical value or a list of vectors to perform pairwise comparisons.
+#' If `TRUE`, it will perform pairwise comparisons for all pairs.
 #' @param ref_group A character string to specify the reference group for comparisons.
 #' @param pairwise_method A character string to specify the pairwise comparison method.
 #' @param multiplegroup_comparisons A logical value to perform multiple group comparisons.
@@ -65,6 +66,7 @@
 #' @param sig_labelsize A numeric value to specify the size of the significance test label.
 #' @return A ggplot object
 #' @keywords internal
+#' @importFrom utils combn
 #' @importFrom stats median quantile
 #' @importFrom rlang sym syms parse_expr
 #' @importFrom dplyr mutate ungroup first
@@ -114,7 +116,8 @@ BoxViolinPlotAtomic <- function(
     )
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
     if (isTRUE(comparisons) && is.null(group_by)) {
-        stop("'group_by' must be provided to when 'comparisons' is TRUE.")
+        # stop("'group_by' must be provided to when 'comparisons' is TRUE.")
+        comparisons <- combn(levels(data[[x]]), 2, simplify = FALSE)
     }
     if (isTRUE(multiplegroup_comparisons) || length(comparisons) > 0) {
         # if (!requireNamespace("ggpubr", quietly = TRUE)) {

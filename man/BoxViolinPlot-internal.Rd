@@ -222,7 +222,8 @@ If TRUE, it will highlight all points.}
 
 \item{highlight_alpha}{A numeric value to specify the transparency of the highlighted points.}
 
-\item{comparisons}{A logical value or a list of vectors to perform pairwise comparisons.}
+\item{comparisons}{A logical value or a list of vectors to perform pairwise comparisons.
+If \code{TRUE}, it will perform pairwise comparisons for all pairs.}
 
 \item{ref_group}{A character string to specify the reference group for comparisons.}
 
