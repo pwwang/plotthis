@@ -9,6 +9,7 @@ BarPlotAtomic(
   x,
   x_sep = "_",
   y = NULL,
+  scale_y = FALSE,
   flip = FALSE,
   group_by = NULL,
   group_by_sep = "_",
@@ -70,6 +71,9 @@ BarPlotAtomic(
 \item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.}
 
 \item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
+
+\item{scale_y}{A logical value indicating whether to scale the total y values in each group to 100\%.
+Only works when group_by is specified.}
 
 \item{flip}{A logical value indicating whether to flip the x and y axes.}
 

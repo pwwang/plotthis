@@ -179,6 +179,8 @@ BarPlotSingle <- function(
 #'
 #' @inheritParams common_args
 #' @inheritParams BarPlotSingle
+#' @param scale_y A logical value indicating whether to scale the total y values in each group to 100%.
+#' Only works when group_by is specified.
 #' @param position A character string indicating the position of the bars.
 #'  If "auto", the position will be "stack" if group_by has more than 5 levels, otherwise "dodge".
 #'  "fill" is also a valid option. Only works when group_by is not NULL.
@@ -197,7 +199,7 @@ BarPlotSingle <- function(
 #' @importFrom dplyr %>% summarise n
 #' @importFrom ggplot2 aes geom_bar scale_fill_manual labs position_dodge2 coord_flip guide_legend scale_color_manual
 BarPlotGrouped <- function(
-    data, x, x_sep = "_", y = NULL, flip = FALSE, group_by, group_by_sep = "_", group_name = NULL,
+    data, x, x_sep = "_", y = NULL, scale_y = FALSE, flip = FALSE, group_by, group_by_sep = "_", group_name = NULL,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1,
@@ -223,18 +225,27 @@ BarPlotGrouped <- function(
             summarise(.y = n(), .groups = "drop")
         y <- ".y"
     }
+    if (isTRUE(scale_y)) {
+        y_scaled <- paste0(y, "_scaled")
+        data <- data %>%
+            dplyr::group_by(!!!syms(unique(c(x, facet_by)))) %>%
+            mutate(!!sym(y_scaled) := !!sym(y) / sum(!!sym(y)))
+    }
     if (inherits(width, "waiver")) width <- 0.8
 
     if (keep_empty) {
         # fill y with 0 for empty group_by. 'drop' with scale_fill_* doesn't have color for empty group_by
         fill_list <- list(0)
         names(fill_list) <- y
+        if (isTRUE(scale_y)) {
+            fill_list[[y_scaled]] <- 0
+        }
         data <- data %>%
             dplyr::group_by(!!!syms(unique(c(x, facet_by)))) %>%
             complete(!!sym(group_by), fill = fill_list)
     }
 
-    p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(group_by)))
+    p <- ggplot(data, aes(x = !!sym(x), y = !!sym(ifelse(scale_y, y_scaled, y)), fill = !!sym(group_by)))
     if (isTRUE(add_bg)) {
         p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by)
     }
@@ -349,7 +360,7 @@ BarPlotGrouped <- function(
 #' @importFrom ggplot2 waiver
 #' @keywords internal
 BarPlotAtomic <- function(
-    data, x, x_sep = "_", y = NULL, flip = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
+    data, x, x_sep = "_", y = NULL, scale_y = FALSE, flip = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
     fill_by_x_if_no_group = TRUE, label_nudge = 0,
     label = NULL, label_fg = "black", label_size = 4, label_bg = "white", label_bg_r = 0.1,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
@@ -381,7 +392,7 @@ BarPlotAtomic <- function(
             stop("'label' is not supported for BarPlot when 'group_by' is provided.")
         }
         p <- BarPlotGrouped(
-            data, x, x_sep, y, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
+            data, x, x_sep, y, scale_y = scale_y, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
             facet_by = facet_by, facet_scales = facet_scales, flip = flip, line_name = line_name,
             add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
             theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
