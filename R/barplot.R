@@ -151,7 +151,7 @@ BarPlotSingle <- function(
         p <- p + coord_cartesian(ylim = c(y_min, y_max))
     }
 
-    height <- 4.5
+    height <- 3.5 + max(nchar(unlist(strsplit(levels(data[[x]]), "\n"))) * 0.1, 1)
     width <- .5 + min(nlevels(data[[x]]) * .8, height / aspect.ratio)
     if (!identical(legend.position, "none")) {
         if (legend.position %in% c("right", "left")) {
