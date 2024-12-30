@@ -96,7 +96,8 @@ If NULL, the count of each x column will be used.</p></dd>
 
 
 <dt id="arg-label">label<a class="anchor" aria-label="anchor" href="#arg-label"></a></dt>
-<dd><p>Which column to use as the label. NULL means no label.</p></dd>
+<dd><p>Which column to use as the label. NULL means no label.
+Default is the same as y. If y is NULL, you should use ".y" to specify the count as the label.</p></dd>
 
 
 <dt id="arg-split-by">split_by<a class="anchor" aria-label="anchor" href="#arg-split-by"></a></dt>
@@ -251,6 +252,9 @@ If FALSE, empty groups will be removed.</p></dd>
 <span class="r-in"><span><span class="co"># y from count</span></span></span>
 <span class="r-in"><span><span class="fu">PieChart</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="PieChart-7.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="co"># add label</span></span></span>
+<span class="r-in"><span><span class="fu">PieChart</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"group"</span>, label <span class="op">=</span> <span class="st">".y"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="PieChart-8.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
