@@ -27,15 +27,21 @@
 #'   If errorbar_min and errorbar_max are not provided, this column will be used to calculate the error bars.
 #'   errorbar_min = y - errorbar_sd, errorbar_max = y + errorbar_sd.
 #'   If errorbar_min and errorbar_max are provided, this column will be ignored.
+#' @param highlight A vector of indexes or rownames to select the points to highlight.
+#'  It could also be an expression (in string) to filter the data.
+#' @param highlight_size The size of the highlighted points.
+#' @param highlight_color A character vector specifying the color of the highlighted points. Default is "red".
+#' @param highlight_alpha A numeric value specifying the transparency of the highlighted points. Default is 1.
 #'
 #' @keywords internal
-#' @importFrom rlang sym
+#' @importFrom rlang sym parse_expr
 #' @importFrom ggplot2 geom_line scale_color_manual labs geom_rect geom_errorbar geom_point
 LinePlotSingle <- function(
     data, x, y = NULL, fill_point_by_x = TRUE, color_line_by_x = TRUE, facet_by = NULL,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     add_errorbars = FALSE, errorbar_width = 0.1, errorbar_alpha = 1,
     errorbar_color = "grey30", errorbar_linewidth = .75, errorbar_min = NULL, errorbar_max = NULL, errorbar_sd = NULL,
+    highlight = NULL, highlight_size = pt_size - 0.75, highlight_color = "red2", highlight_alpha = 0.8,
     pt_alpha = 1, pt_size = 5,
     line_type = "solid", line_width = 1, line_alpha = .8,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
@@ -79,6 +85,21 @@ LinePlotSingle <- function(
         }
     }
 
+    hidata <- NULL
+    if (!is.null(highlight)) {
+        if (isTRUE(highlight)) {
+            hidata <- data
+        } else if (is.numeric(highlight)) {
+            hidata <- data[highlight, , drop = FALSE]
+        } else if (is.character(highlight) && length(highlight) == 1) {
+            hidata <- filter(data, !!parse_expr(highlight))
+        } else if (is.null(rownames(data))) {
+            stop("No row names in the data, please provide a vector of indexes to highlight.")
+        } else {
+            hidata <- data[highlight, , drop = FALSE]
+        }
+    }
+
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y)))
     if (isTRUE(add_bg)) {
         p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by)
@@ -119,6 +140,13 @@ LinePlotSingle <- function(
             fill = colors[[1]],
             color = "grey20", alpha = pt_alpha, size = pt_size, shape = 21)
     }
+
+    if (!is.null(hidata)) {
+        p <- p + geom_point(
+            data = hidata, fill = highlight_color, color = "transparent",
+            size = highlight_size, shape = 21)
+    }
+
     just <- calc_just(x_text_angle)
     p <- p + scale_x_discrete(drop = !keep_empty) +
         labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
@@ -166,6 +194,7 @@ LinePlotGrouped <- function(
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     add_errorbars = FALSE, errorbar_width = 0.1, errorbar_alpha = 1,
     errorbar_color = "grey30", errorbar_linewidth = .75, errorbar_min = NULL, errorbar_max = NULL, errorbar_sd = NULL,
+    highlight = NULL, highlight_size = pt_size - 0.75, highlight_color = "red2", highlight_alpha = 0.8,
     pt_alpha = 1, pt_size = 5,
     line_type = "solid", line_width = 1, line_alpha = .8,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
@@ -210,6 +239,21 @@ LinePlotGrouped <- function(
             complete(!!sym(group_by), fill = fill_list)
     }
 
+    hidata <- NULL
+    if (!is.null(highlight)) {
+        if (isTRUE(highlight)) {
+            hidata <- data
+        } else if (is.numeric(highlight)) {
+            hidata <- data[highlight, , drop = FALSE]
+        } else if (is.character(highlight) && length(highlight) == 1) {
+            hidata <- filter(data, !!parse_expr(highlight))
+        } else if (is.null(rownames(data))) {
+            stop("No row names in the data, please provide a vector of indexes to highlight.")
+        } else {
+            hidata <- data[highlight, , drop = FALSE]
+        }
+    }
+
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y)))
     if (isTRUE(add_bg)) {
         p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by)
@@ -234,6 +278,12 @@ LinePlotGrouped <- function(
         aes(fill = !!sym(group_by)),
         color = "grey20", alpha = pt_alpha, size = pt_size, shape = 21) +
         scale_fill_manual(name = group_by, values = colors, guide = "legend", drop = !keep_empty)
+
+    if (!is.null(hidata)) {
+        p <- p + geom_point(
+            data = hidata, fill = highlight_color, color = "transparent",
+            size = highlight_size, shape = 21)
+    }
 
     just <- calc_just(x_text_angle)
     p <- p + scale_x_discrete(drop = !keep_empty) +
@@ -284,6 +334,7 @@ LinePlotAtomic <- function(
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     add_errorbars = FALSE, errorbar_width = 0.1, errorbar_alpha = 1,
     errorbar_color = "grey30", errorbar_linewidth = .75, errorbar_min = NULL, errorbar_max = NULL, errorbar_sd = NULL,
+    highlight = NULL, highlight_size = pt_size - 0.75, highlight_color = "red2", highlight_alpha = 0.8,
     pt_alpha = 1, pt_size = 5,
     line_type = "solid", line_width = 1, line_alpha = .8,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
@@ -301,7 +352,8 @@ LinePlotAtomic <- function(
             add_errorbars = add_errorbars, errorbar_width = errorbar_width, errorbar_alpha = errorbar_alpha,
             errorbar_color = errorbar_color, errorbar_linewidth = errorbar_linewidth,
             errorbar_min = errorbar_min, errorbar_max = errorbar_max, errorbar_sd = errorbar_sd,
-            pt_alpha = pt_alpha, pt_size = pt_size,
+            highlight = highlight, highlight_size = highlight_size, highlight_color = highlight_color,
+            highlight_alpha = highlight_alpha, pt_alpha = pt_alpha, pt_size = pt_size,
             line_type = line_type, line_width = line_width, line_alpha = line_alpha,
             theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
             x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
@@ -315,7 +367,8 @@ LinePlotAtomic <- function(
             add_errorbars = add_errorbars, errorbar_width = errorbar_width, errorbar_alpha = errorbar_alpha,
             errorbar_color = errorbar_color, errorbar_linewidth = errorbar_linewidth,
             errorbar_min = errorbar_min, errorbar_max = errorbar_max, errorbar_sd = errorbar_sd,
-            pt_alpha = pt_alpha, pt_size = pt_size,
+            highlight = highlight, highlight_size = highlight_size, highlight_color = highlight_color,
+            highlight_alpha = highlight_alpha, pt_alpha = pt_alpha, pt_size = pt_size,
             line_type = line_type, line_width = line_width, line_alpha = line_alpha,
             theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
             x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
@@ -351,8 +404,11 @@ LinePlotAtomic <- function(
 #' )
 #'
 #' LinePlot(data, x = "x", y = "y")
+#' LinePlot(data, x = "x", y = "y", highlight = "group == 'G1'",
+#'    fill_point_by_x_if_no_group = F, color_line_by_x_if_no_group = F)
 #' LinePlot(data, x = "x", y = "y", group_by = "group")
-#' LinePlot(data, x = "x", y = "y", group_by = "group", add_bg = TRUE)
+#' LinePlot(data, x = "x", y = "y", group_by = "group", add_bg = TRUE,
+#'    highlight = "y > 10")
 #' LinePlot(data, x = "x", y = "y", group_by = "group", facet_by = "facet")
 #' LinePlot(data, x = "x", y = "y", group_by = "group", split_by = "facet")
 #' LinePlot(data, x = "x", y = "y", split_by = "group",
@@ -363,6 +419,7 @@ LinePlot <- function(
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     add_errorbars = FALSE, errorbar_width = 0.1, errorbar_alpha = 1,
     errorbar_color = "grey30", errorbar_linewidth = .75, errorbar_min = NULL, errorbar_max = NULL, errorbar_sd = NULL,
+    highlight = NULL, highlight_size = pt_size - 0.75, highlight_color = "red2", highlight_alpha = 0.8,
     pt_alpha = 1, pt_size = 5,
     line_type = "solid", line_width = 1, line_alpha = .8,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
@@ -408,7 +465,8 @@ LinePlot <- function(
                 add_errorbars = add_errorbars, errorbar_width = errorbar_width, errorbar_alpha = errorbar_alpha,
                 errorbar_color = errorbar_color, errorbar_linewidth = errorbar_linewidth,
                 errorbar_min = errorbar_min, errorbar_max = errorbar_max, errorbar_sd = errorbar_sd,
-                pt_alpha = pt_alpha, pt_size = pt_size,
+                highlight = highlight, highlight_size = highlight_size, highlight_color = highlight_color,
+                highlight_alpha = highlight_alpha, pt_alpha = pt_alpha, pt_size = pt_size,
                 line_type = line_type, line_width = line_width, line_alpha = line_alpha,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,

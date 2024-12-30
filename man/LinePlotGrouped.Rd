@@ -23,6 +23,10 @@ LinePlotGrouped(
   errorbar_min = NULL,
   errorbar_max = NULL,
   errorbar_sd = NULL,
+  highlight = NULL,
+  highlight_size = pt_size - 0.75,
+  highlight_color = "red2",
+  highlight_alpha = 0.8,
   pt_alpha = 1,
   pt_size = 5,
   line_type = "solid",
@@ -86,6 +90,15 @@ If "line", the error bars will be colored the same as the lines.}
 If errorbar_min and errorbar_max are not provided, this column will be used to calculate the error bars.
 errorbar_min = y - errorbar_sd, errorbar_max = y + errorbar_sd.
 If errorbar_min and errorbar_max are provided, this column will be ignored.}
+
+\item{highlight}{A vector of indexes or rownames to select the points to highlight.
+It could also be an expression (in string) to filter the data.}
+
+\item{highlight_size}{The size of the highlighted points.}
+
+\item{highlight_color}{A character vector specifying the color of the highlighted points. Default is "red".}
+
+\item{highlight_alpha}{A numeric value specifying the transparency of the highlighted points. Default is 1.}
 
 \item{pt_alpha}{The alpha value of the points.}
 
