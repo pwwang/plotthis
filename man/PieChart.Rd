@@ -141,4 +141,6 @@ PieChart(data, x = "x", y = "y", split_by = "group",
 
 # y from count
 PieChart(data, x = "group")
+# add label
+PieChart(data, x = "group", label = ".y")
 }

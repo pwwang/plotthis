@@ -76,9 +76,6 @@ PieChartAtomic <- function(
     } else {
         pos_df <- do.call(rbind, lapply(split(data, data[[concated_facet_by]]), .pos_df_one_facet))
     }
-    if (!is.null(label)) {
-        pos_df[[label]] <- data[[label]]
-    }
     if (isTRUE(clockwise)) {
         colors <- palette_this(rev(levels(data[[x]])), palette = palette, palcolor = palcolor)
     } else {
@@ -157,6 +154,8 @@ PieChartAtomic <- function(
 #'
 #' # y from count
 #' PieChart(data, x = "group")
+#' # add label
+#' PieChart(data, x = "group", label = ".y")
 PieChart <- function(
     data, x, y = NULL, label = y, split_by = NULL, split_by_sep = "_", clockwise = TRUE,
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
