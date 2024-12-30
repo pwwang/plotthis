@@ -2,6 +2,7 @@
 #'
 #' @inheritParams common_args
 #' @param label Which column to use as the label. NULL means no label.
+#' Default is the same as y. If y is NULL, you should use ".y" to specify the count as the label.
 #' @param y A character string of the column name to plot on the y-axis.
 #'   A numeric column is expected.
 #'   If NULL, the count of each x column will be used.

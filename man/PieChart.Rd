@@ -47,7 +47,8 @@ PieChart(
 A numeric column is expected.
 If NULL, the count of each x column will be used.}
 
-\item{label}{Which column to use as the label. NULL means no label.}
+\item{label}{Which column to use as the label. NULL means no label.
+Default is the same as y. If y is NULL, you should use ".y" to specify the count as the label.}
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
