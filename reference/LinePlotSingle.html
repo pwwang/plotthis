@@ -61,6 +61,10 @@
 <span>  errorbar_min <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  errorbar_max <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  errorbar_sd <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  highlight <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  highlight_size <span class="op">=</span> <span class="va">pt_size</span> <span class="op">-</span> <span class="fl">0.75</span>,</span>
+<span>  highlight_color <span class="op">=</span> <span class="st">"red2"</span>,</span>
+<span>  highlight_alpha <span class="op">=</span> <span class="fl">0.8</span>,</span>
 <span>  pt_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  pt_size <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  line_type <span class="op">=</span> <span class="st">"solid"</span>,</span>
@@ -165,6 +169,23 @@ If "line", the error bars will be colored the same as the lines.</p></dd>
 If errorbar_min and errorbar_max are not provided, this column will be used to calculate the error bars.
 errorbar_min = y - errorbar_sd, errorbar_max = y + errorbar_sd.
 If errorbar_min and errorbar_max are provided, this column will be ignored.</p></dd>
+
+
+<dt id="arg-highlight">highlight<a class="anchor" aria-label="anchor" href="#arg-highlight"></a></dt>
+<dd><p>A vector of indexes or rownames to select the points to highlight.
+It could also be an expression (in string) to filter the data.</p></dd>
+
+
+<dt id="arg-highlight-size">highlight_size<a class="anchor" aria-label="anchor" href="#arg-highlight-size"></a></dt>
+<dd><p>The size of the highlighted points.</p></dd>
+
+
+<dt id="arg-highlight-color">highlight_color<a class="anchor" aria-label="anchor" href="#arg-highlight-color"></a></dt>
+<dd><p>A character vector specifying the color of the highlighted points. Default is "red".</p></dd>
+
+
+<dt id="arg-highlight-alpha">highlight_alpha<a class="anchor" aria-label="anchor" href="#arg-highlight-alpha"></a></dt>
+<dd><p>A numeric value specifying the transparency of the highlighted points. Default is 1.</p></dd>
 
 
 <dt id="arg-pt-alpha">pt_alpha<a class="anchor" aria-label="anchor" href="#arg-pt-alpha"></a></dt>
