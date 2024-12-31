@@ -405,7 +405,7 @@ LinePlotAtomic <- function(
 #'
 #' LinePlot(data, x = "x", y = "y")
 #' LinePlot(data, x = "x", y = "y", highlight = "group == 'G1'",
-#'    fill_point_by_x_if_no_group = F, color_line_by_x_if_no_group = F)
+#'    fill_point_by_x_if_no_group = FALSE, color_line_by_x_if_no_group = FALSE)
 #' LinePlot(data, x = "x", y = "y", group_by = "group")
 #' LinePlot(data, x = "x", y = "y", group_by = "group", add_bg = TRUE,
 #'    highlight = "y > 10")
