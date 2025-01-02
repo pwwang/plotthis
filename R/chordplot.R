@@ -131,6 +131,8 @@ ChordPlotAtomic <- function(
     if (!is.null(title) || !is.null(subtitle)) {
         p <- p + plot_annotation(title = title, subtitle = subtitle, theme = do.call(theme, theme_args))
     }
+    # allow to access data from the plot object
+    p$data <- data
 
     base_size <- 7
     if (isTRUE(labels_rot)) {
