@@ -11,13 +11,16 @@
 #'  If NULL, the links_by will be the first column in nodes_by.
 #' @param links_by_sep A character string to concatenate the columns in `links_by`, if multiple columns are provided.
 #' @param links_name A character string to name the legend of links.
+#' @param links_color A character string to color the borders of links.
 #' @param nodes_palette A character string to specify the palette of nodes.
 #' @param nodes_palcolor A character vector to specify the colors of nodes.
 #' @param nodes_alpha A numeric value to specify the transparency of nodes.
 #' @param nodes_label A logical value to show the labels on the nodes.
+#' @param nodes_width A numeric value to specify the width of nodes.
 #' @param links_palette A character string to specify the palette of links.
 #' @param links_palcolor A character vector to specify the colors of links.
 #' @param links_alpha A numeric value to specify the transparency of links.
+#' @param keep_empty A logical value to keep the empty nodes.
 #' @param legend.box A character string to specify the box of the legend, either "vertical" or "horizontal".
 #' @return A ggplot object
 #' @keywords internal
@@ -26,8 +29,8 @@
 #' @importFrom ggnewscale new_scale_fill
 #' @importFrom ggplot2 geom_col scale_fill_manual geom_label after_stat scale_x_discrete scale_y_continuous labs
 SankeyPlotAtomic <- function(
-    data, y = NULL, nodes_by, nodes_color = "grey30", links_by = NULL, links_by_sep = "_", links_name = NULL,
-    nodes_palette = "Paired", nodes_palcolor = NULL, nodes_alpha = 1, nodes_label = FALSE,
+    data, y = NULL, nodes_by, nodes_color = "grey30", links_by = NULL, links_by_sep = "_", links_name = NULL, links_color = "gray80",
+    nodes_palette = "Paired", nodes_palcolor = NULL, nodes_alpha = 1, nodes_label = FALSE, nodes_width = 0.25, keep_empty = FALSE,
     links_palette = "Paired", links_palcolor = NULL, links_alpha = 0.6, legend.box = "vertical",
     x_text_angle = 0, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
@@ -38,9 +41,6 @@ SankeyPlotAtomic <- function(
     } else {
         ggplot2::ggplot
     }
-    # if (!requireNamespace("ggalluvial", quietly = TRUE)) {
-    #     stop("ggalluvial is required to use SankeyPlot/AlluvialPlot.")
-    # }
 
     nodes_by <- check_columns(data, nodes_by, force_factor = TRUE, allow_multi = TRUE)
     if (length(nodes_by) < 2) {
@@ -98,7 +98,7 @@ SankeyPlotAtomic <- function(
     p <- p +
         ggalluvial::geom_alluvium(
             aes(x = !!sym(".Group"), stratum = !!sym(".GroupValue"), alluvium = !!sym(".ID"), y = !!sym(y), fill = !!sym(links_by)),
-            alpha = links_alpha) +
+            width = nodes_width, alpha = links_alpha, na.rm = !keep_empty, color = links_color) +
         scale_fill_manual(
             name = links_name %||% ifelse(orig_links_by %in% nodes_by, paste0("Links: ", orig_links_by), orig_links_by),
             values = links_colors, breaks = levels(data[[links_by]]),
@@ -106,7 +106,7 @@ SankeyPlotAtomic <- function(
         new_scale_fill() +
         ggalluvial::geom_stratum(
             aes(x = !!sym(".Group"), stratum = !!sym(".GroupValue"), alluvium = !!sym(".ID"), y = !!sym(y), fill = !!sym(".GroupValue")),
-            alpha = nodes_alpha, width = 0.25, color = nodes_color) +
+            alpha = nodes_alpha, width = nodes_width, color = nodes_color, na.rm = !keep_empty) +
         scale_fill_manual(values = nodes_colors, breaks = levels(data$.GroupValue),
                           guide = "none")
 
@@ -114,6 +114,7 @@ SankeyPlotAtomic <- function(
         p <- p + geom_label(
             aes(x = !!sym(".Group"), stratum = !!sym(".GroupValue"), alluvium = !!sym(".ID"), label = !!sym(".GroupValue"), y = !!sym(y)),
             stat = ggalluvial::StatStratum,
+            na.rm = !keep_empty,
             size = text_size_scale * 3)
     }
 
@@ -155,19 +156,21 @@ SankeyPlotAtomic <- function(
 #' set.seed(8525)
 #' data <- data.frame(
 #'     nodes1 = sample(LETTERS[1:3], 10, replace = TRUE),
-#'     nodes2 = sample(letters[1:3], 10, replace = TRUE),
+#'     nodes2 = sample(c(letters[1:2], NA), 10, replace = TRUE),
 #'     nodes3 = sample(LETTERS[4:6], 10, replace = TRUE),
 #'     y = sample(1:5, 10, replace = TRUE)
 #' )
+#' SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), keep_empty = TRUE)
 #' SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"))
 #' SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), nodes_label = TRUE)
 #' SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), links_by = "y")
 #' SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), y = "y")
 #' }
 SankeyPlot <- function(
-    data, y = NULL, nodes_by, nodes_color = "grey30", links_by = NULL, links_by_sep = "_", links_name = NULL,
+    data, y = NULL, nodes_by, nodes_color = "grey30", links_by = NULL, links_by_sep = "_", links_name = NULL, links_color = "gray80",
     split_by = NULL, split_by_sep = "_", palette = "Paired", palcolor = NULL, alpha = 0.6, nodes_label = FALSE,
-    x_text_angle = 0, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical", legend.box = "vertical",
+    nodes_width = 0.25, keep_empty = FALSE, x_text_angle = 0, aspect.ratio = 1,
+    legend.position = "right", legend.direction = "vertical", legend.box = "vertical",
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525, ...
 ) {
@@ -192,10 +195,10 @@ SankeyPlot <- function(
             } else {
                 title <- title %||% default_title
             }
-            SankeyPlotAtomic(datas[[nm]], y = y, nodes_by = nodes_by, nodes_color = nodes_color,
-                links_by = links_by, links_by_sep = links_by_sep, links_name = links_name,
+            SankeyPlotAtomic(datas[[nm]], y = y, nodes_by = nodes_by, nodes_color = nodes_color, links_color = links_color,
+                nodes_width = nodes_width, links_by = links_by, links_by_sep = links_by_sep, links_name = links_name,
                 palette = palette, palcolor = palcolor, alpha = alpha, nodes_label = nodes_label,
-                x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
+                x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, keep_empty = keep_empty,
                 legend.position = legend.position, legend.direction = legend.direction, legend.box = legend.box,
                 theme = theme, theme_args = theme_args, title = title, subtitle = subtitle,
                 xlab = xlab, ylab = ylab, ...

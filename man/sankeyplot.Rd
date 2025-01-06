@@ -13,12 +13,15 @@ SankeyPlot(
   links_by = NULL,
   links_by_sep = "_",
   links_name = NULL,
+  links_color = "gray80",
   split_by = NULL,
   split_by_sep = "_",
   palette = "Paired",
   palcolor = NULL,
   alpha = 0.6,
   nodes_label = FALSE,
+  nodes_width = 0.25,
+  keep_empty = FALSE,
   x_text_angle = 0,
   aspect.ratio = 1,
   legend.position = "right",
@@ -46,12 +49,15 @@ AlluvialPlot(
   links_by = NULL,
   links_by_sep = "_",
   links_name = NULL,
+  links_color = "gray80",
   split_by = NULL,
   split_by_sep = "_",
   palette = "Paired",
   palcolor = NULL,
   alpha = 0.6,
   nodes_label = FALSE,
+  nodes_width = 0.25,
+  keep_empty = FALSE,
   x_text_angle = 0,
   aspect.ratio = 1,
   legend.position = "right",
@@ -87,6 +93,8 @@ If NULL, the links_by will be the first column in nodes_by.}
 
 \item{links_name}{A character string to name the legend of links.}
 
+\item{links_color}{A character string to color the borders of links.}
+
 \item{split_by}{The column(s) to split data by and plot separately.}
 
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
@@ -101,6 +109,11 @@ If some values are missing, the values from the palette will be used (palcolor w
 \item{alpha}{A numeric value specifying the transparency of the plot.}
 
 \item{nodes_label}{A logical value to show the labels on the nodes.}
+
+\item{nodes_width}{A numeric value to specify the width of nodes.}
+
+\item{keep_empty}{A logical value indicating whether to keep empty groups.
+If FALSE, empty groups will be removed.}
 
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
 
@@ -152,10 +165,11 @@ A plot visualizing flow/movement/change from one state to another or one time to
 set.seed(8525)
 data <- data.frame(
     nodes1 = sample(LETTERS[1:3], 10, replace = TRUE),
-    nodes2 = sample(letters[1:3], 10, replace = TRUE),
+    nodes2 = sample(c(letters[1:2], NA), 10, replace = TRUE),
     nodes3 = sample(LETTERS[4:6], 10, replace = TRUE),
     y = sample(1:5, 10, replace = TRUE)
 )
+SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), keep_empty = TRUE)
 SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"))
 SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), nodes_label = TRUE)
 SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), links_by = "y")

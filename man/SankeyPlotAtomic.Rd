@@ -12,10 +12,13 @@ SankeyPlotAtomic(
   links_by = NULL,
   links_by_sep = "_",
   links_name = NULL,
+  links_color = "gray80",
   nodes_palette = "Paired",
   nodes_palcolor = NULL,
   nodes_alpha = 1,
   nodes_label = FALSE,
+  nodes_width = 0.25,
+  keep_empty = FALSE,
   links_palette = "Paired",
   links_palcolor = NULL,
   links_alpha = 0.6,
@@ -51,6 +54,8 @@ If NULL, the links_by will be the first column in nodes_by.}
 
 \item{links_name}{A character string to name the legend of links.}
 
+\item{links_color}{A character string to color the borders of links.}
+
 \item{nodes_palette}{A character string to specify the palette of nodes.}
 
 \item{nodes_palcolor}{A character vector to specify the colors of nodes.}
@@ -58,6 +63,10 @@ If NULL, the links_by will be the first column in nodes_by.}
 \item{nodes_alpha}{A numeric value to specify the transparency of nodes.}
 
 \item{nodes_label}{A logical value to show the labels on the nodes.}
+
+\item{nodes_width}{A numeric value to specify the width of nodes.}
+
+\item{keep_empty}{A logical value to keep the empty nodes.}
 
 \item{links_palette}{A character string to specify the palette of links.}
 
