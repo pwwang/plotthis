@@ -7,113 +7,197 @@
 \usage{
 SankeyPlot(
   data,
+  x,
+  x_sep = "_",
   y = NULL,
-  nodes_by,
-  nodes_color = "grey30",
-  links_by = NULL,
-  links_by_sep = "_",
-  links_name = NULL,
-  links_color = "gray80",
+  stratum = NULL,
+  stratum_sep = "_",
+  alluvium,
+  alluvium_sep = "_",
   split_by = NULL,
   split_by_sep = "_",
-  palette = "Paired",
-  palcolor = NULL,
-  alpha = 0.6,
+  keep_empty = TRUE,
+  flow = FALSE,
+  expand = c(0, 0, 0, 0),
+  nodes_legend = c("auto", "separate", "merge", "none"),
+  nodes_color = "grey30",
+  links_fill_by = NULL,
+  links_fill_by_sep = "_",
+  links_name = NULL,
+  links_color = "gray80",
+  nodes_palette = "Paired",
+  nodes_palcolor = NULL,
+  nodes_alpha = 1,
   nodes_label = FALSE,
+  nodes_label_miny = 0,
   nodes_width = 0.25,
-  keep_empty = FALSE,
+  links_palette = "Paired",
+  links_palcolor = NULL,
+  links_alpha = 0.6,
+  legend.box = "vertical",
   x_text_angle = 0,
   aspect.ratio = 1,
   legend.position = "right",
   legend.direction = "vertical",
-  legend.box = "vertical",
+  flip = FALSE,
   theme = "theme_this",
   theme_args = list(),
   title = NULL,
   subtitle = NULL,
   xlab = NULL,
   ylab = NULL,
+  facet_by = NULL,
+  facet_scales = "fixed",
+  facet_ncol = NULL,
+  facet_nrow = NULL,
+  facet_byrow = TRUE,
+  seed = 8525,
   combine = TRUE,
   nrow = NULL,
   ncol = NULL,
   byrow = TRUE,
-  seed = 8525,
   ...
 )
 
 AlluvialPlot(
   data,
+  x,
+  x_sep = "_",
   y = NULL,
-  nodes_by,
-  nodes_color = "grey30",
-  links_by = NULL,
-  links_by_sep = "_",
-  links_name = NULL,
-  links_color = "gray80",
+  stratum = NULL,
+  stratum_sep = "_",
+  alluvium,
+  alluvium_sep = "_",
   split_by = NULL,
   split_by_sep = "_",
-  palette = "Paired",
-  palcolor = NULL,
-  alpha = 0.6,
+  keep_empty = TRUE,
+  flow = FALSE,
+  expand = c(0, 0, 0, 0),
+  nodes_legend = c("auto", "separate", "merge", "none"),
+  nodes_color = "grey30",
+  links_fill_by = NULL,
+  links_fill_by_sep = "_",
+  links_name = NULL,
+  links_color = "gray80",
+  nodes_palette = "Paired",
+  nodes_palcolor = NULL,
+  nodes_alpha = 1,
   nodes_label = FALSE,
+  nodes_label_miny = 0,
   nodes_width = 0.25,
-  keep_empty = FALSE,
+  links_palette = "Paired",
+  links_palcolor = NULL,
+  links_alpha = 0.6,
+  legend.box = "vertical",
   x_text_angle = 0,
   aspect.ratio = 1,
   legend.position = "right",
   legend.direction = "vertical",
-  legend.box = "vertical",
+  flip = FALSE,
   theme = "theme_this",
   theme_args = list(),
   title = NULL,
   subtitle = NULL,
   xlab = NULL,
   ylab = NULL,
+  facet_by = NULL,
+  facet_scales = "fixed",
+  facet_ncol = NULL,
+  facet_nrow = NULL,
+  facet_byrow = TRUE,
+  seed = 8525,
   combine = TRUE,
   nrow = NULL,
   ncol = NULL,
   byrow = TRUE,
-  seed = 8525,
   ...
 )
 }
 \arguments{
 \item{data}{A data frame.}
 
+\item{x}{A character string specifying the column name of the data frame to plot for the x-axis.}
+
+\item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.}
+
 \item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
 
-\item{nodes_by}{A character vector of column names to define the nodes.}
+\item{stratum}{A character string of the column name to group the nodes for each \code{x}.
+Works as aes \code{stratum} in \link[ggalluvial:geom_alluvium]{ggalluvial::geom_alluvium} or \link[ggalluvial:geom_flow]{ggalluvial::geom_flow}.
+If not provided, \code{alluvium} will be used. That is, the nodes for each \code{x} will be the same as \code{alluvium}.
+This works for longtitudinal data.}
 
-\item{nodes_color}{A character string to color the nodes.}
+\item{stratum_sep}{A character string to concatenate the columns in \code{stratum}, if multiple columns are provided.}
 
-\item{links_by}{A character vector of column names to define the links.
-If NULL, the links_by will be the first column in nodes_by.}
+\item{alluvium}{A character string of the column name to define the links.
+Works as aes \code{alluvium} in \link[ggalluvial:geom_alluvium]{ggalluvial::geom_alluvium}.}
 
-\item{links_by_sep}{A character string to concatenate the columns in \code{links_by}, if multiple columns are provided.}
-
-\item{links_name}{A character string to name the legend of links.}
-
-\item{links_color}{A character string to color the borders of links.}
+\item{alluvium_sep}{A character string to concatenate the columns in \code{alluvium}, if multiple columns are provided.}
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
-\item{palette}{A character string specifying the palette to use.
-A named list or vector can be used to specify the palettes for different \code{split_by} values.}
+\item{keep_empty}{A logical value indicating whether to keep empty groups.
+If FALSE, empty groups will be removed.}
 
-\item{palcolor}{A character string specifying the color to use in the palette.
-A named list can be used to specify the colors for different \code{split_by} values.
-If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).}
+\item{flow}{A logical value to use \link[ggalluvial:geom_flow]{ggalluvial::geom_flow} instead of \link[ggalluvial:geom_alluvium]{ggalluvial::geom_alluvium}.}
 
-\item{alpha}{A numeric value specifying the transparency of the plot.}
+\item{expand}{The values to expand the x and y axes. It is like CSS padding.
+When a single value is provided, it is used for both axes on both sides.
+When two values are provided, the first value is used for the top/bottom side and the second value is used for the left/right side.
+When three values are provided, the first value is used for the top side, the second value is used for the left/right side, and the third value is used for the bottom side.
+When four values are provided, the values are used for the top, right, bottom, and left sides, respectively.
+You can also use a named vector to specify the values for each side.
+When the axis is discrete, the values will be applied as 'add' to the 'expansion' function.
+When the axis is continuous, the values will be applied as 'mult' to the 'expansion' function.
+See also \url{https://ggplot2.tidyverse.org/reference/expansion.html}}
+
+\item{nodes_legend}{Controls how the legend of nodes will be shown. Possible values are:
+\itemize{
+\item "merge": Merge the legends of nodes. That is only one legend will be shown for all nodes.
+\item "separate": Show the legends of nodes separately. That is, nodes on each \code{x} will have their own legend.
+\item "none": Do not show the legend of nodes.
+\item "auto": Automatically determine how to show the legend.
+When \code{nodes_label} is TRUE, "none" will apply.
+When \code{nodes_label} is FALSE, and if stratum is the same as links_fill_by, "none" will apply.
+If there is any overlapping values between the nodes on different \code{x},
+"merge" will apply. Otherwise, "separate" will apply.
+}}
+
+\item{nodes_color}{A character string to color the nodes.
+Use a special value ".fill" to use the same color as the fill.}
+
+\item{links_fill_by}{A character string of the column name to fill the links.
+Works as aes \code{fill} in \link[ggalluvial:geom_alluvium]{ggalluvial::geom_alluvium} or \link[ggalluvial:geom_flow]{ggalluvial::geom_flow}.
+If not provided, \code{alluvium} will be used.}
+
+\item{links_fill_by_sep}{A character string to concatenate the columns in \code{links_fill_by}, if multiple columns are provided.}
+
+\item{links_name}{A character string to name the legend of links.}
+
+\item{links_color}{A character string to color the borders of links.
+Use a special value ".fill" to use the same color as the fill.}
+
+\item{nodes_palette}{A character string to specify the palette of nodes fill.}
+
+\item{nodes_palcolor}{A character vector to specify the colors of nodes fill.}
+
+\item{nodes_alpha}{A numeric value to specify the transparency of nodes fill.}
 
 \item{nodes_label}{A logical value to show the labels on the nodes.}
 
+\item{nodes_label_miny}{A numeric value to specify the minimum y (frequency) to show the labels.}
+
 \item{nodes_width}{A numeric value to specify the width of nodes.}
 
-\item{keep_empty}{A logical value indicating whether to keep empty groups.
-If FALSE, empty groups will be removed.}
+\item{links_palette}{A character string to specify the palette of links fill.}
+
+\item{links_palcolor}{A character vector to specify the colors of links fill.}
+
+\item{links_alpha}{A numeric value to specify the transparency of links fill.}
+
+\item{legend.box}{A character string to specify the box of the legend, either "vertical" or "horizontal".}
 
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
 
@@ -124,7 +208,7 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
-\item{legend.box}{A character string to specify the box of the legend, either "vertical" or "horizontal".}
+\item{flip}{A logical value to flip the plot.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -141,6 +225,23 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{ylab}{A character string specifying the y-axis label.}
 
+\item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
+Otherwise, the data will be split by \code{split_by} and generate multiple plots
+and combine them into one using \code{patchwork::wrap_plots}}
+
+\item{facet_scales}{Whether to scale the axes of facets. Default is "fixed"
+Other options are "free", "free_x", "free_y". See \code{ggplot2::facet_wrap}}
+
+\item{facet_ncol}{A numeric value specifying the number of columns in the facet.
+When facet_by is a single column and facet_wrap is used.}
+
+\item{facet_nrow}{A numeric value specifying the number of rows in the facet.
+When facet_by is a single column and facet_wrap is used.}
+
+\item{facet_byrow}{A logical value indicating whether to fill the plots by row. Default is TRUE.}
+
+\item{seed}{The random seed to use. Default is 8525.}
+
 \item{combine}{Whether to combine the plots into one when facet is FALSE. Default is TRUE.}
 
 \item{nrow}{A numeric value specifying the number of rows in the facet.}
@@ -148,8 +249,6 @@ This is useful when split_by is used and the title needs to be dynamic.}
 \item{ncol}{A numeric value specifying the number of columns in the facet.}
 
 \item{byrow}{A logical value indicating whether to fill the plots by row.}
-
-\item{seed}{The random seed to use. Default is 8525.}
 
 \item{...}{Additional arguments.}
 }
@@ -162,17 +261,91 @@ A plot visualizing flow/movement/change from one state to another or one time to
 }
 \examples{
 \donttest{
+# Reproduce the examples in ggalluvial
 set.seed(8525)
-data <- data.frame(
-    nodes1 = sample(LETTERS[1:3], 10, replace = TRUE),
-    nodes2 = sample(c(letters[1:2], NA), 10, replace = TRUE),
-    nodes3 = sample(LETTERS[4:6], 10, replace = TRUE),
-    y = sample(1:5, 10, replace = TRUE)
+
+data(UCBAdmissions, package = "datasets")
+UCBAdmissions <- as.data.frame(UCBAdmissions)
+UCBAdmissions <- ggalluvial::to_lodes_form(UCBAdmissions, axes = c("Gender", "Dept"))
+SankeyPlot(UCBAdmissions, x = "x", stratum = "stratum", alluvium = "alluvium",
+    y = "Freq", nodes_width = 1/12, links_fill_by = "Admit", nodes_label = TRUE,
+    nodes_palette = "simspec", links_palette = "Set1", links_alpha = 0.5,
+    nodes_palcolor = "black", links_color = "transparent")
+
+data(HairEyeColor, package = "datasets")
+HairEyeColor <- as.data.frame(HairEyeColor)
+HairEyeColor$Eye2 <- HairEyeColor$Eye
+HairEyeColor <- ggalluvial::to_lodes_form(HairEyeColor, axes = c("Hair", "Eye", "Sex"), weight)
+SankeyPlot(HairEyeColor, x = "x", stratum = "stratum", alluvium = "alluvium",
+    y = "Freq", links_fill_by = "Eye2", nodes_width = 1/8, nodes_alpha = 0.4,
+    flip = TRUE, reverse = FALSE, knot.pos = 0, links_color = "transparent",
+    ylab = "Freq", links_alpha = 0.5, links_name = "Eye (links)", links_palcolor = c(
+        Brown = "#70493D", Hazel = "#E2AC76", Green = "#3F752B", Blue = "#81B0E4"))
+
+data(Refugees, package = "alluvial")
+country_regions <- c(
+    Afghanistan = "Middle East",
+    Burundi = "Central Africa",
+    `Congo DRC` = "Central Africa",
+    Iraq = "Middle East",
+    Myanmar = "Southeast Asia",
+    Palestine = "Middle East",
+    Somalia = "Horn of Africa",
+    Sudan = "Central Africa",
+    Syria = "Middle East",
+    Vietnam = "Southeast Asia"
 )
-SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), keep_empty = TRUE)
-SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"))
-SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), nodes_label = TRUE)
-SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), links_by = "y")
-SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), y = "y")
+Refugees$region <- country_regions[Refugees$country]
+SankeyPlot(Refugees, x = "year", y = "refugees", alluvium = "country",
+    links_fill_by = "country", links_color = ".fill", links_alpha = 0.75,
+    links_palette = "Set3", facet_by = "region", x_text_angle = -45,
+    decreasing = FALSE, nodes_width = 0, nodes_color = "transparent", ylab = "refugees",
+    theme_args = list(strip.background = ggplot2::element_rect(fill="grey80")),
+    title = "Refugee volume by country and region of origin")
+
+data(majors, package = "ggalluvial")
+majors$curriculum <- as.factor(majors$curriculum)
+SankeyPlot(majors, x = "semester", stratum = "curriculum", alluvium = "student",
+    links_fill_by = "curriculum", flow = TRUE, stat = "alluvium", nodes_palette = "Set2",
+    links_palette = "Set2")
+
+data(vaccinations, package = "ggalluvial")
+vaccinations <- transform(vaccinations,
+    response = factor(response, rev(levels(response))))
+SankeyPlot(vaccinations, x = "survey", stratum = "response", alluvium = "subject",
+    y = "freq", links_fill_by = "response", nodes_label = TRUE, nodes_alpha = 0.5,
+    nodes_palette = "seurat", links_palette = "seurat", links_alpha = 0.5,
+    legend.position = "none", flow = TRUE, expand = c(0, 0, 0, .15), stat = "alluvium",
+    title = "vaccination survey responses at three points in time")
+
+data(Titanic, package = "datasets")
+Titanic <- as.data.frame(Titanic)
+Titanic <- ggalluvial::to_lodes_form(Titanic, axes = c("Class", "Sex"))
+SankeyPlot(Titanic, x = "x", y = "Freq", stratum = "stratum", alluvium = "alluvium",
+    links_fill_by = "Survived", flow = TRUE, facet_by = "Age", facet_scales = "free_y",
+    nodes_label = TRUE, expand = c(0.05, 0), xlab = "", links_palette = "Set1",
+    nodes_palcolor = "white", nodes_label_miny = 10)
+
+# Simulated examples
+df <- data.frame(
+    Clone = paste0("clone", 1:10),
+    Timepoint1 = sample(c(rep(0, 30), 1:100), 10),
+    Timepoint2 = sample(c(rep(0, 30), 1:100), 10)
+)
+df <- tidyr::pivot_longer(df, -"Clone", names_to = "Timepoint", values_to = "Freq")
+SankeyPlot(df, x = "Timepoint", stratum = "Clone", alluvium = "Clone",
+    y = "Freq", links_fill_by = "Clone", links_color = ".fill")
+
+df <- data.frame(
+    Clone = rep(paste0("clone", 1:10), each = 2),
+    Sample = rep(c("A", "B"), 10),
+    Timepoint1 = sample(c(rep(0, 30), 1:100), 20),
+    Timepoint2 = sample(c(rep(0, 30), 1:100), 20),
+    ID = 1:20
+)
+df <- tidyr::pivot_longer(df, -c("Clone", "Sample", "ID"),
+    names_to = "Timepoint", values_to = "Freq")
+SankeyPlot(df, x = "Timepoint", stratum = "Sample", alluvium = "ID",
+    y = "Freq", links_fill_by = "Clone", links_color = ".fill")
 }
 }

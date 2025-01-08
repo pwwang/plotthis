@@ -41,6 +41,8 @@ Imports:
     zoo
 Suggests:
     testthat,
+    alluvial,
+    datasets,
     ComplexHeatmap,
     clustree,
     gglogger,

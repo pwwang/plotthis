@@ -2,38 +2,70 @@
 #'
 #' @description Plot a Sankey plot without splitting the data.
 #' @inheritParams common_args
+#' @param data A data frame in either long (lodes) format.
+#' If your data is in wide (alluvia) format, you can use [ggalluvial::to_lodes_form] to convert it.
+#' @param x A character string of the column name to plot on the x-axis.
+#' Works as aes `x` in [ggalluvial::geom_alluvium] or [ggalluvial::geom_flow].
+#' @param x_sep A character string to concatenate the columns in `x`, if multiple columns are provided.
 #' @param y A character string of the column name to plot on the y-axis.
-#'   A numeric column is expected.
-#'   If NULL, the count of each nodes_by column will be used.
-#' @param nodes_by A character vector of column names to define the nodes.
+#' Works as aes `y` in [ggalluvial::geom_alluvium] or [ggalluvial::geom_flow].
+#' If not provided, the number of observations for each `x`, `stratum`, and `alluvium` will be calculated.
+#' @param stratum A character string of the column name to group the nodes for each `x`.
+#' Works as aes `stratum` in [ggalluvial::geom_alluvium] or [ggalluvial::geom_flow].
+#' If not provided, `alluvium` will be used. That is, the nodes for each `x` will be the same as `alluvium`.
+#' This works for longtitudinal data.
+#' @param stratum_sep A character string to concatenate the columns in `stratum`, if multiple columns are provided.
+#' @param alluvium A character string of the column name to define the links.
+#' Works as aes `alluvium` in [ggalluvial::geom_alluvium].
+#' @param alluvium_sep A character string to concatenate the columns in `alluvium`, if multiple columns are provided.
+#' @param flow A logical value to use [ggalluvial::geom_flow] instead of [ggalluvial::geom_alluvium].
 #' @param nodes_color A character string to color the nodes.
-#' @param links_by A character vector of column names to define the links.
-#'  If NULL, the links_by will be the first column in nodes_by.
-#' @param links_by_sep A character string to concatenate the columns in `links_by`, if multiple columns are provided.
+#' Use a special value ".fill" to use the same color as the fill.
+#' @param links_fill_by A character string of the column name to fill the links.
+#' Works as aes `fill` in [ggalluvial::geom_alluvium] or [ggalluvial::geom_flow].
+#' If not provided, `alluvium` will be used.
+#' @param links_fill_by_sep A character string to concatenate the columns in `links_fill_by`, if multiple columns are provided.
 #' @param links_name A character string to name the legend of links.
 #' @param links_color A character string to color the borders of links.
-#' @param nodes_palette A character string to specify the palette of nodes.
-#' @param nodes_palcolor A character vector to specify the colors of nodes.
-#' @param nodes_alpha A numeric value to specify the transparency of nodes.
+#' Use a special value ".fill" to use the same color as the fill.
+#' @param nodes_palette A character string to specify the palette of nodes fill.
+#' @param nodes_palcolor A character vector to specify the colors of nodes fill.
+#' @param nodes_alpha A numeric value to specify the transparency of nodes fill.
 #' @param nodes_label A logical value to show the labels on the nodes.
+#' @param nodes_label_miny A numeric value to specify the minimum y (frequency) to show the labels.
 #' @param nodes_width A numeric value to specify the width of nodes.
-#' @param links_palette A character string to specify the palette of links.
-#' @param links_palcolor A character vector to specify the colors of links.
-#' @param links_alpha A numeric value to specify the transparency of links.
-#' @param keep_empty A logical value to keep the empty nodes.
+#' @param nodes_legend Controls how the legend of nodes will be shown. Possible values are:
+#' * "merge": Merge the legends of nodes. That is only one legend will be shown for all nodes.
+#' * "separate": Show the legends of nodes separately. That is, nodes on each `x` will have their own legend.
+#' * "none": Do not show the legend of nodes.
+#' * "auto": Automatically determine how to show the legend.
+#' When `nodes_label` is TRUE, "none" will apply.
+#' When `nodes_label` is FALSE, and if stratum is the same as links_fill_by, "none" will apply.
+#' If there is any overlapping values between the nodes on different `x`,
+#' "merge" will apply. Otherwise, "separate" will apply.
+#' @param links_palette A character string to specify the palette of links fill.
+#' @param links_palcolor A character vector to specify the colors of links fill.
+#' @param links_alpha A numeric value to specify the transparency of links fill.
 #' @param legend.box A character string to specify the box of the legend, either "vertical" or "horizontal".
+#' @param keep_empty A logical value to keep the empty nodes.
+#' @param flip A logical value to flip the plot.
+#' @param ... Other arguments to pass to [ggalluvial::geom_alluvium] or [ggalluvial::geom_flow].
 #' @return A ggplot object
 #' @keywords internal
-#' @importFrom rlang syms %||%
+#' @importFrom utils combn
+#' @importFrom rlang syms %||% dots_n
 #' @importFrom dplyr %>% group_by summarise n
+#' @importFrom tidyr pivot_wider
 #' @importFrom ggnewscale new_scale_fill
-#' @importFrom ggplot2 geom_col scale_fill_manual geom_label after_stat scale_x_discrete scale_y_continuous labs
+#' @importFrom ggplot2 geom_col scale_fill_manual geom_label after_stat scale_x_discrete scale_y_continuous labs coord_flip
 SankeyPlotAtomic <- function(
-    data, y = NULL, nodes_by, nodes_color = "grey30", links_by = NULL, links_by_sep = "_", links_name = NULL, links_color = "gray80",
-    nodes_palette = "Paired", nodes_palcolor = NULL, nodes_alpha = 1, nodes_label = FALSE, nodes_width = 0.25, keep_empty = FALSE,
-    links_palette = "Paired", links_palcolor = NULL, links_alpha = 0.6, legend.box = "vertical",
-    x_text_angle = 0, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
+    data, x, x_sep = "_", y = NULL, stratum = NULL, stratum_sep = "_", alluvium, alluvium_sep = "_", flow = FALSE,
+    nodes_color = "grey30", links_fill_by = NULL, links_fill_by_sep = "_", links_name = NULL, links_color = "gray80",
+    nodes_palette = "Paired", nodes_palcolor = NULL, nodes_alpha = 1, nodes_label = FALSE, nodes_width = 0.25,  nodes_label_miny = 0,
+    nodes_legend = c("auto", "separate", "merge", "none"), expand = c(0, 0, 0, 0), links_palette = "Paired", links_palcolor = NULL,
+    links_alpha = 0.6, legend.box = "vertical", keep_empty = TRUE, x_text_angle = 0, aspect.ratio = 1, legend.position = "right",
+    legend.direction = "vertical", flip = FALSE, theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL,
+    xlab = NULL, ylab = NULL, facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     ...
 ) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
@@ -42,87 +74,150 @@ SankeyPlotAtomic <- function(
         ggplot2::ggplot
     }
 
-    nodes_by <- check_columns(data, nodes_by, force_factor = TRUE, allow_multi = TRUE)
-    if (length(nodes_by) < 2) {
-        stop("'nodes_by' must have at least 2 columns.")
-    }
-    links_by <- check_columns(data, links_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = links_by_sep)
-    if (is.null(links_by)) {
-        links_by <- nodes_by[1]
-    }
+    nodes_legend <- match.arg(nodes_legend)
+    x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
+    alluvium <- check_columns(data, alluvium, force_factor = TRUE, allow_multi = TRUE,
+        concat_multi = TRUE, concat_sep = alluvium_sep)
+    stratum <- check_columns(data, stratum, force_factor = TRUE, allow_multi = TRUE,
+        concat_multi = TRUE, concat_sep = stratum_sep) %||% alluvium
+    links_fill_by <- check_columns(data, links_fill_by, force_factor = TRUE, allow_multi = TRUE,
+        concat_multi = TRUE, concat_sep = links_fill_by_sep) %||% alluvium
 
     if (is.null(y)) {
         data <- data %>%
-            group_by(!!!syms(unique(c(nodes_by, links_by)))) %>%
+            group_by(!!!syms(unique(c(x, stratum, alluvium, links_fill_by)))) %>%
             summarise(.y = n(), .groups = "drop")
         y <- ".y"
     }
 
-    orig_links_by <- links_by
-    if (links_by %in% nodes_by) {
-        # keep the links_by column when transforming to lodes form
-        new_links_by <- paste0(".sankey.", links_by)
-        data[[new_links_by]] <- data[[links_by]]
-        links_by <- new_links_by
-    }
-    all_nodes <- unique(unlist(lapply(nodes_by, function(x) levels(data[[x]]))))
-    data <- ggalluvial::to_lodes_form(data, key = ".Group", value = ".GroupValue", id = ".ID", axes = nodes_by)
-    data$.GroupValue <- factor(data$.GroupValue, levels = all_nodes)
-    nodes_colors <- palette_this(levels(data$.GroupValue), palette = nodes_palette, palcolor = nodes_palcolor)
-    # make sure links colors are consistent with nodes colors when links_by is in nodes_by
-    # and the nodes_palette/nodes_palcolor are the same as links_palette/links_palcolor
-    if (orig_links_by %in% nodes_by && identical(nodes_palette, links_palette) && identical(nodes_palcolor, links_palcolor)) {
-        links_colors <- nodes_colors
-        links_guide = "none"
-    } else {
-        links_colors <- palette_this(levels(data[[links_by]]), palette = links_palette, palcolor = links_palcolor)
-        links_guide = guide_legend(order = 1)
-    }
+    nodes_colors <- palette_this(levels(data[[stratum]]), palette = nodes_palette, palcolor = nodes_palcolor)
+    links_colors <- palette_this(levels(data[[links_fill_by]]), palette = links_palette, palcolor = links_palcolor)
+    links_guide = guide_legend(order = 1, override.aes = list(alpha = min(links_alpha + 0.2, 1), color = "transparent"))
 
     just <- calc_just(x_text_angle)
     base_size <- theme_args$base_size %||% 12
     text_size_scale <- base_size / 12
+    expand <- norm_expansion(expand, x_type = "discrete", y_type = "continuous")
+    if (nodes_legend == "auto") {
+        if (isTRUE(nodes_label) || identical(stratum, links_fill_by)) {
+            nodes_legend <- "none"
+        } else {
+            stratum_values <- lapply(levels(data[[x]]), function(xval) {
+                as.character(unique(data[data[[x]] == xval, stratum, drop = TRUE]))
+            })
+            idxes <- combn(seq_along(stratum_values), 2)
+            nodes_legend <- ifelse(
+                any(sapply(
+                    as.data.frame(idxes),
+                    function(idx) length(intersect(stratum_values[[idx[1]]], stratum_values[[idx[2]]])) > 0
+                )),
+                "merge",
+                "separate"
+            )
+        }
+    }
 
-    p <- ggplot(data)
-    # nodes filling
-    for (i in seq_along(nodes_by)) {
-        gvalues <- levels(data$.GroupValue)
-        gvalues <- gvalues[gvalues %in% data[data$.Group == nodes_by[i], ".GroupValue", drop = TRUE]]
-        p <- p +
-            geom_col(aes(x = !!sym(".Group"), fill = !!sym(".GroupValue"), y = 0), width = 0) +
-            scale_fill_manual(name = nodes_by[i], values = nodes_colors, breaks = gvalues,
-                              guide = guide_legend(order = i + 1)) +
-            new_scale_fill()
+    p <- ggplot(
+        data = data,
+        aes(x = !!sym(x), stratum = !!sym(stratum), alluvium = !!sym(alluvium), y = !!sym(y)))
+
+    # fill nodes on each x so they can have different legends/guides
+    # but when stratum and alluvium are the same, they should be filled with the same palette
+    if (!identical(stratum, links_fill_by) && nodes_legend == "separate") {
+        xs <- levels(data[[x]])
+        for (i in seq_along(xs)) {
+            xdf <- filter(data, !!sym(x) == xs[i])
+            xdf <- xdf[order(xdf[[stratum]]), , drop = FALSE]
+            p <- p +
+                geom_col(
+                    data = xdf, inherit.aes = FALSE,
+                    aes(x = !!sym(x), fill = !!sym(stratum), y = 0), width = 0) +
+                scale_fill_manual(name = xs[i], values = nodes_colors, breaks = unique(xdf[[stratum]]),
+                    guide = guide_legend(order = i + 1, override.aes = list(alpha = min(nodes_alpha + 0.2, 1)))) +
+                new_scale_fill()
+        }
+    }
+
+    if (!isTRUE(flow)) {
+        if (identical(links_color, ".fill")) {
+            p <- p + ggalluvial::geom_alluvium(aes(fill = !!sym(links_fill_by), color = !!sym(links_fill_by)), width = nodes_width,
+                alpha = links_alpha, na.rm = !keep_empty, ...) +
+                scale_color_manual(guide = "none", values = links_colors)
+        } else {
+            p <- p + ggalluvial::geom_alluvium(aes(fill = !!sym(links_fill_by)), width = nodes_width, alpha = links_alpha,
+                color = links_color, na.rm = !keep_empty, ...)
+        }
+    } else {
+        if (identical(links_color, ".fill")) {
+            # stratum changed to "stratum" after flow stat
+            if (identical(stratum, links_fill_by)) {
+                p <- p + ggalluvial::geom_flow(aes(fill = after_stat(!!sym("stratum")), color = after_stat(!!sym("stratum"))),
+                    width = nodes_width, alpha = links_alpha, na.rm = !keep_empty, ...) +
+                    scale_color_manual(guide = "none", values = links_colors)
+            } else {
+
+                p <- p + ggalluvial::geom_flow(aes(fill = !!sym(links_fill_by), color = !!sym(links_fill_by)), width = nodes_width,
+                    alpha = links_alpha, na.rm = !keep_empty, ...) +
+                    scale_color_manual(guide = "none", values = links_colors)
+            }
+        } else {
+            if (identical(stratum, links_fill_by)) {
+                p <- p + ggalluvial::geom_flow(aes(fill = after_stat(!!sym("stratum"))), width = nodes_width, alpha = links_alpha,
+                    color = links_color, na.rm = !keep_empty, ...) +
+                    scale_color_manual(guide = "none", values = links_colors)
+            } else if (dots_n(...) == 0 || !"stat" %in% names(list(...))) {
+                p <- p + ggalluvial::geom_flow(aes(fill = !!sym(links_fill_by)), width = nodes_width, alpha = links_alpha,
+                    color = links_color, na.rm = !keep_empty, stat = "alluvium", ...)
+            } else {
+                warning(
+                    "[SankeyPlot] You probably see no color filling for the links. ",
+                    paste0("This is because 'flow' stat of ggalluvial::geom_flow loses '", links_fill_by, "' "),
+                    "while building the plot. Please use 'stat = 'alluvium' instead.")
+                p <- p + ggalluvial::geom_flow(aes(fill = !!sym(links_fill_by)), width = nodes_width, alpha = links_alpha,
+                    color = links_color, na.rm = !keep_empty, ...)
+            }
+        }
     }
 
     p <- p +
-        ggalluvial::geom_alluvium(
-            aes(x = !!sym(".Group"), stratum = !!sym(".GroupValue"), alluvium = !!sym(".ID"), y = !!sym(y), fill = !!sym(links_by)),
-            width = nodes_width, alpha = links_alpha, na.rm = !keep_empty, color = links_color) +
         scale_fill_manual(
-            name = links_name %||% ifelse(orig_links_by %in% nodes_by, paste0("Links: ", orig_links_by), orig_links_by),
-            values = links_colors, breaks = levels(data[[links_by]]),
+            name = links_name %||% links_fill_by,
+            values = links_colors, breaks = levels(data[[links_fill_by]]),
             guide = links_guide) +
-        new_scale_fill() +
-        ggalluvial::geom_stratum(
-            aes(x = !!sym(".Group"), stratum = !!sym(".GroupValue"), alluvium = !!sym(".ID"), y = !!sym(y), fill = !!sym(".GroupValue")),
-            alpha = nodes_alpha, width = nodes_width, color = nodes_color, na.rm = !keep_empty) +
-        scale_fill_manual(values = nodes_colors, breaks = levels(data$.GroupValue),
-                          guide = "none")
+        new_scale_fill()
+
+    if (identical(nodes_color, ".fill")) {
+        p <- p +
+            ggalluvial::geom_stratum(aes(fill = !!sym(stratum), color = !!sym(stratum)), alpha = nodes_alpha,
+                width = nodes_width, na.rm = !keep_empty) +
+            scale_color_manual(guide = "none", values = nodes_colors)
+    } else {
+        p <- p +
+            ggalluvial::geom_stratum(aes(fill = !!sym(stratum)), alpha = nodes_alpha, width = nodes_width,
+                color = nodes_color, na.rm = !keep_empty)
+    }
+
+    p <- p +
+        scale_fill_manual(
+            values = nodes_colors,
+            breaks = levels(data[[stratum]]),
+            guide = ifelse(nodes_legend %in% c("none", "separate"), "none", "legend")
+        )
 
     if (isTRUE(nodes_label)) {
         p <- p + geom_label(
-            aes(x = !!sym(".Group"), stratum = !!sym(".GroupValue"), alluvium = !!sym(".ID"), label = !!sym(".GroupValue"), y = !!sym(y)),
+            aes(label = !!sym(stratum)),
             stat = ggalluvial::StatStratum,
-            na.rm = !keep_empty,
+            min.y = nodes_label_miny,
             size = text_size_scale * 3)
     }
 
     p <- p +
-        scale_x_discrete(expand = c(0, 0)) +
-        scale_y_continuous(expand = c(0, 0)) +
+        scale_x_discrete(expand = expand$x) +
+        scale_y_continuous(expand = expand$y) +
         do.call(theme, theme_args) +
-        labs(title = title, subtitle = subtitle, x = xlab %||% "", y = xlab %||% orig_links_by) +
+        labs(title = title, subtitle = subtitle, x = xlab %||% x,
+            y = ylab %||% ifelse(identical(y, ".y"), links_fill_by, "Frequency")) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,
@@ -135,10 +230,17 @@ SankeyPlotAtomic <- function(
             axis.text.x = element_text(angle = x_text_angle, hjust = just$h, vjust = just$v)
         )
 
-    attr(p, "height") <- 6
-    attr(p, "width") <- nlevels(data$.Group) * ifelse(nlevels(data$.Group) < 5, 2, 1.5)
+    if (isTRUE(flip)) {
+        p <- p + coord_flip()
+        attr(p, "height") <- nlevels(data[[stratum]]) * ifelse(nlevels(data[[stratum]]) < 5, 2, 1.5)
+        attr(p, "width") <- 6
+    } else {
+        attr(p, "height") <- 6
+        attr(p, "width") <- nlevels(data[[x]]) * ifelse(nlevels(data[[x]]) < 5, 2, 1.5)
+    }
 
-    p
+    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
+        legend.position = legend.position, legend.direction = legend.direction)
 }
 
 
@@ -153,28 +255,106 @@ SankeyPlotAtomic <- function(
 #' @rdname sankeyplot
 #' @examples
 #' \donttest{
+#' # Reproduce the examples in ggalluvial
 #' set.seed(8525)
-#' data <- data.frame(
-#'     nodes1 = sample(LETTERS[1:3], 10, replace = TRUE),
-#'     nodes2 = sample(c(letters[1:2], NA), 10, replace = TRUE),
-#'     nodes3 = sample(LETTERS[4:6], 10, replace = TRUE),
-#'     y = sample(1:5, 10, replace = TRUE)
+#'
+#' data(UCBAdmissions, package = "datasets")
+#' UCBAdmissions <- as.data.frame(UCBAdmissions)
+#' UCBAdmissions <- ggalluvial::to_lodes_form(UCBAdmissions, axes = c("Gender", "Dept"))
+#' SankeyPlot(UCBAdmissions, x = "x", stratum = "stratum", alluvium = "alluvium",
+#'     y = "Freq", nodes_width = 1/12, links_fill_by = "Admit", nodes_label = TRUE,
+#'     nodes_palette = "simspec", links_palette = "Set1", links_alpha = 0.5,
+#'     nodes_palcolor = "black", links_color = "transparent")
+#'
+#' data(HairEyeColor, package = "datasets")
+#' HairEyeColor <- as.data.frame(HairEyeColor)
+#' HairEyeColor$Eye2 <- HairEyeColor$Eye
+#' HairEyeColor <- ggalluvial::to_lodes_form(HairEyeColor, axes = c("Hair", "Eye", "Sex"), weight)
+#' SankeyPlot(HairEyeColor, x = "x", stratum = "stratum", alluvium = "alluvium",
+#'     y = "Freq", links_fill_by = "Eye2", nodes_width = 1/8, nodes_alpha = 0.4,
+#'     flip = TRUE, reverse = FALSE, knot.pos = 0, links_color = "transparent",
+#'     ylab = "Freq", links_alpha = 0.5, links_name = "Eye (links)", links_palcolor = c(
+#'         Brown = "#70493D", Hazel = "#E2AC76", Green = "#3F752B", Blue = "#81B0E4"))
+#'
+#' data(Refugees, package = "alluvial")
+#' country_regions <- c(
+#'     Afghanistan = "Middle East",
+#'     Burundi = "Central Africa",
+#'     `Congo DRC` = "Central Africa",
+#'     Iraq = "Middle East",
+#'     Myanmar = "Southeast Asia",
+#'     Palestine = "Middle East",
+#'     Somalia = "Horn of Africa",
+#'     Sudan = "Central Africa",
+#'     Syria = "Middle East",
+#'     Vietnam = "Southeast Asia"
 #' )
-#' SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), keep_empty = TRUE)
-#' SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"))
-#' SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), nodes_label = TRUE)
-#' SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), links_by = "y")
-#' SankeyPlot(data, nodes_by = c("nodes1", "nodes2", "nodes3"), y = "y")
+#' Refugees$region <- country_regions[Refugees$country]
+#' SankeyPlot(Refugees, x = "year", y = "refugees", alluvium = "country",
+#'     links_fill_by = "country", links_color = ".fill", links_alpha = 0.75,
+#'     links_palette = "Set3", facet_by = "region", x_text_angle = -45,
+#'     decreasing = FALSE, nodes_width = 0, nodes_color = "transparent", ylab = "refugees",
+#'     theme_args = list(strip.background = ggplot2::element_rect(fill="grey80")),
+#'     title = "Refugee volume by country and region of origin")
+#'
+#' data(majors, package = "ggalluvial")
+#' majors$curriculum <- as.factor(majors$curriculum)
+#' SankeyPlot(majors, x = "semester", stratum = "curriculum", alluvium = "student",
+#'     links_fill_by = "curriculum", flow = TRUE, stat = "alluvium", nodes_palette = "Set2",
+#'     links_palette = "Set2")
+#'
+#' data(vaccinations, package = "ggalluvial")
+#' vaccinations <- transform(vaccinations,
+#'     response = factor(response, rev(levels(response))))
+#' SankeyPlot(vaccinations, x = "survey", stratum = "response", alluvium = "subject",
+#'     y = "freq", links_fill_by = "response", nodes_label = TRUE, nodes_alpha = 0.5,
+#'     nodes_palette = "seurat", links_palette = "seurat", links_alpha = 0.5,
+#'     legend.position = "none", flow = TRUE, expand = c(0, 0, 0, .15), stat = "alluvium",
+#'     title = "vaccination survey responses at three points in time")
+#'
+#' data(Titanic, package = "datasets")
+#' Titanic <- as.data.frame(Titanic)
+#' Titanic <- ggalluvial::to_lodes_form(Titanic, axes = c("Class", "Sex"))
+#' SankeyPlot(Titanic, x = "x", y = "Freq", stratum = "stratum", alluvium = "alluvium",
+#'     links_fill_by = "Survived", flow = TRUE, facet_by = "Age", facet_scales = "free_y",
+#'     nodes_label = TRUE, expand = c(0.05, 0), xlab = "", links_palette = "Set1",
+#'     nodes_palcolor = "white", nodes_label_miny = 10)
+#'
+#' # Simulated examples
+#' df <- data.frame(
+#'     Clone = paste0("clone", 1:10),
+#'     Timepoint1 = sample(c(rep(0, 30), 1:100), 10),
+#'     Timepoint2 = sample(c(rep(0, 30), 1:100), 10)
+#' )
+#' df <- tidyr::pivot_longer(df, -"Clone", names_to = "Timepoint", values_to = "Freq")
+#' SankeyPlot(df, x = "Timepoint", stratum = "Clone", alluvium = "Clone",
+#'     y = "Freq", links_fill_by = "Clone", links_color = ".fill")
+#'
+#' df <- data.frame(
+#'     Clone = rep(paste0("clone", 1:10), each = 2),
+#'     Sample = rep(c("A", "B"), 10),
+#'     Timepoint1 = sample(c(rep(0, 30), 1:100), 20),
+#'     Timepoint2 = sample(c(rep(0, 30), 1:100), 20),
+#'     ID = 1:20
+#' )
+#' df <- tidyr::pivot_longer(df, -c("Clone", "Sample", "ID"),
+#'     names_to = "Timepoint", values_to = "Freq")
+#' SankeyPlot(df, x = "Timepoint", stratum = "Sample", alluvium = "ID",
+#'     y = "Freq", links_fill_by = "Clone", links_color = ".fill")
 #' }
 SankeyPlot <- function(
-    data, y = NULL, nodes_by, nodes_color = "grey30", links_by = NULL, links_by_sep = "_", links_name = NULL, links_color = "gray80",
-    split_by = NULL, split_by_sep = "_", palette = "Paired", palcolor = NULL, alpha = 0.6, nodes_label = FALSE,
-    nodes_width = 0.25, keep_empty = FALSE, x_text_angle = 0, aspect.ratio = 1,
-    legend.position = "right", legend.direction = "vertical", legend.box = "vertical",
-    theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525, ...
+    data, x, x_sep = "_", y = NULL, stratum = NULL, stratum_sep = "_", alluvium, alluvium_sep = "_",
+    split_by = NULL, split_by_sep = "_", keep_empty = TRUE, flow = FALSE, expand = c(0, 0, 0, 0),
+    nodes_legend = c("auto", "separate", "merge", "none"), nodes_color = "grey30", links_fill_by = NULL,
+    links_fill_by_sep = "_", links_name = NULL, links_color = "gray80", nodes_palette = "Paired", nodes_palcolor = NULL,
+    nodes_alpha = 1, nodes_label = FALSE, nodes_label_miny = 0, nodes_width = 0.25, links_palette = "Paired",
+    links_palcolor = NULL, links_alpha = 0.6, legend.box = "vertical", x_text_angle = 0, aspect.ratio = 1,
+    legend.position = "right", legend.direction = "vertical", flip = FALSE, theme = "theme_this", theme_args = list(),
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
+    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
+    seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...
 ) {
-    validate_common_args(seed)
+    validate_common_args(seed, facet_by = facet_by)
     theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
 
@@ -195,13 +375,19 @@ SankeyPlot <- function(
             } else {
                 title <- title %||% default_title
             }
-            SankeyPlotAtomic(datas[[nm]], y = y, nodes_by = nodes_by, nodes_color = nodes_color, links_color = links_color,
-                nodes_width = nodes_width, links_by = links_by, links_by_sep = links_by_sep, links_name = links_name,
-                palette = palette, palcolor = palcolor, alpha = alpha, nodes_label = nodes_label,
-                x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, keep_empty = keep_empty,
-                legend.position = legend.position, legend.direction = legend.direction, legend.box = legend.box,
-                theme = theme, theme_args = theme_args, title = title, subtitle = subtitle,
-                xlab = xlab, ylab = ylab, ...
+            SankeyPlotAtomic(datas[[nm]],
+                x = x, x_sep = x_sep, y = y, stratum = stratum, stratum_sep = stratum_sep,
+                alluvium = alluvium, alluvium_sep = alluvium_sep, keep_empty = keep_empty, nodes_legend = nodes_legend,
+                nodes_color = nodes_color, links_fill_by = links_fill_by, links_fill_by_sep = links_fill_by_sep,
+                links_name = links_name, links_color = links_color, expand = expand, nodes_label_miny = nodes_label_miny,
+                nodes_palette = nodes_palette, nodes_palcolor = nodes_palcolor, nodes_alpha = nodes_alpha,
+                nodes_label = nodes_label, nodes_width = nodes_width, flow = flow,
+                links_palette = links_palette, links_palcolor = links_palcolor, links_alpha = links_alpha,
+                legend.box = legend.box, x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
+                legend.position = legend.position, legend.direction = legend.direction, flip = flip,
+                theme = theme, theme_args = theme_args, title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
+                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
+                ...
             )
         }
     )
