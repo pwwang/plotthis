@@ -44,30 +44,48 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">SankeyPlotAtomic</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
+<span>  <span class="va">x</span>,</span>
+<span>  x_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">nodes_by</span>,</span>
+<span>  stratum <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  stratum_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
+<span>  <span class="va">alluvium</span>,</span>
+<span>  alluvium_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
+<span>  flow <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  nodes_color <span class="op">=</span> <span class="st">"grey30"</span>,</span>
-<span>  links_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  links_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
+<span>  links_fill_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  links_fill_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  links_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  links_color <span class="op">=</span> <span class="st">"gray80"</span>,</span>
 <span>  nodes_palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
 <span>  nodes_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  nodes_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  nodes_label <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  nodes_width <span class="op">=</span> <span class="fl">0.25</span>,</span>
+<span>  nodes_label_miny <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  nodes_legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"separate"</span>, <span class="st">"merge"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
+<span>  expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>,</span>
 <span>  links_palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
 <span>  links_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  links_alpha <span class="op">=</span> <span class="fl">0.6</span>,</span>
 <span>  legend.box <span class="op">=</span> <span class="st">"vertical"</span>,</span>
+<span>  keep_empty <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  x_text_angle <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  aspect.ratio <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  legend.position <span class="op">=</span> <span class="st">"right"</span>,</span>
 <span>  legend.direction <span class="op">=</span> <span class="st">"vertical"</span>,</span>
+<span>  flip <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  theme <span class="op">=</span> <span class="st">"theme_this"</span>,</span>
 <span>  theme_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  title <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  subtitle <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  xlab <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ylab <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  facet_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  facet_scales <span class="op">=</span> <span class="st">"fixed"</span>,</span>
+<span>  facet_ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  facet_nrow <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  facet_byrow <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -77,66 +95,139 @@
 
 
 <dl><dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
-<dd><p>A data frame.</p></dd>
+<dd><p>A data frame in either long (lodes) format.
+If your data is in wide (alluvia) format, you can use <a href="http://corybrunson.github.io/ggalluvial/reference/alluvial-data.html" class="external-link">ggalluvial::to_lodes_form</a> to convert it.</p></dd>
+
+
+<dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
+<dd><p>A character string of the column name to plot on the x-axis.
+Works as aes <code>x</code> in <a href="http://corybrunson.github.io/ggalluvial/reference/geom_alluvium.html" class="external-link">ggalluvial::geom_alluvium</a> or <a href="http://corybrunson.github.io/ggalluvial/reference/geom_flow.html" class="external-link">ggalluvial::geom_flow</a>.</p></dd>
+
+
+<dt id="arg-x-sep">x_sep<a class="anchor" aria-label="anchor" href="#arg-x-sep"></a></dt>
+<dd><p>A character string to concatenate the columns in <code>x</code>, if multiple columns are provided.</p></dd>
 
 
 <dt id="arg-y">y<a class="anchor" aria-label="anchor" href="#arg-y"></a></dt>
 <dd><p>A character string of the column name to plot on the y-axis.
-A numeric column is expected.
-If NULL, the count of each nodes_by column will be used.</p></dd>
+Works as aes <code>y</code> in <a href="http://corybrunson.github.io/ggalluvial/reference/geom_alluvium.html" class="external-link">ggalluvial::geom_alluvium</a> or <a href="http://corybrunson.github.io/ggalluvial/reference/geom_flow.html" class="external-link">ggalluvial::geom_flow</a>.
+If not provided, the number of observations for each <code>x</code>, <code>stratum</code>, and <code>alluvium</code> will be calculated.</p></dd>
 
 
-<dt id="arg-nodes-by">nodes_by<a class="anchor" aria-label="anchor" href="#arg-nodes-by"></a></dt>
-<dd><p>A character vector of column names to define the nodes.</p></dd>
+<dt id="arg-stratum">stratum<a class="anchor" aria-label="anchor" href="#arg-stratum"></a></dt>
+<dd><p>A character string of the column name to group the nodes for each <code>x</code>.
+Works as aes <code>stratum</code> in <a href="http://corybrunson.github.io/ggalluvial/reference/geom_alluvium.html" class="external-link">ggalluvial::geom_alluvium</a> or <a href="http://corybrunson.github.io/ggalluvial/reference/geom_flow.html" class="external-link">ggalluvial::geom_flow</a>.
+If not provided, <code>alluvium</code> will be used. That is, the nodes for each <code>x</code> will be the same as <code>alluvium</code>.
+This works for longtitudinal data.</p></dd>
+
+
+<dt id="arg-stratum-sep">stratum_sep<a class="anchor" aria-label="anchor" href="#arg-stratum-sep"></a></dt>
+<dd><p>A character string to concatenate the columns in <code>stratum</code>, if multiple columns are provided.</p></dd>
+
+
+<dt id="arg-alluvium">alluvium<a class="anchor" aria-label="anchor" href="#arg-alluvium"></a></dt>
+<dd><p>A character string of the column name to define the links.
+Works as aes <code>alluvium</code> in <a href="http://corybrunson.github.io/ggalluvial/reference/geom_alluvium.html" class="external-link">ggalluvial::geom_alluvium</a>.</p></dd>
+
+
+<dt id="arg-alluvium-sep">alluvium_sep<a class="anchor" aria-label="anchor" href="#arg-alluvium-sep"></a></dt>
+<dd><p>A character string to concatenate the columns in <code>alluvium</code>, if multiple columns are provided.</p></dd>
+
+
+<dt id="arg-flow">flow<a class="anchor" aria-label="anchor" href="#arg-flow"></a></dt>
+<dd><p>A logical value to use <a href="http://corybrunson.github.io/ggalluvial/reference/geom_flow.html" class="external-link">ggalluvial::geom_flow</a> instead of <a href="http://corybrunson.github.io/ggalluvial/reference/geom_alluvium.html" class="external-link">ggalluvial::geom_alluvium</a>.</p></dd>
 
 
 <dt id="arg-nodes-color">nodes_color<a class="anchor" aria-label="anchor" href="#arg-nodes-color"></a></dt>
-<dd><p>A character string to color the nodes.</p></dd>
+<dd><p>A character string to color the nodes.
+Use a special value ".fill" to use the same color as the fill.</p></dd>
 
 
-<dt id="arg-links-by">links_by<a class="anchor" aria-label="anchor" href="#arg-links-by"></a></dt>
-<dd><p>A character vector of column names to define the links.
-If NULL, the links_by will be the first column in nodes_by.</p></dd>
+<dt id="arg-links-fill-by">links_fill_by<a class="anchor" aria-label="anchor" href="#arg-links-fill-by"></a></dt>
+<dd><p>A character string of the column name to fill the links.
+Works as aes <code>fill</code> in <a href="http://corybrunson.github.io/ggalluvial/reference/geom_alluvium.html" class="external-link">ggalluvial::geom_alluvium</a> or <a href="http://corybrunson.github.io/ggalluvial/reference/geom_flow.html" class="external-link">ggalluvial::geom_flow</a>.
+If not provided, <code>alluvium</code> will be used.</p></dd>
 
 
-<dt id="arg-links-by-sep">links_by_sep<a class="anchor" aria-label="anchor" href="#arg-links-by-sep"></a></dt>
-<dd><p>A character string to concatenate the columns in <code>links_by</code>, if multiple columns are provided.</p></dd>
+<dt id="arg-links-fill-by-sep">links_fill_by_sep<a class="anchor" aria-label="anchor" href="#arg-links-fill-by-sep"></a></dt>
+<dd><p>A character string to concatenate the columns in <code>links_fill_by</code>, if multiple columns are provided.</p></dd>
 
 
 <dt id="arg-links-name">links_name<a class="anchor" aria-label="anchor" href="#arg-links-name"></a></dt>
 <dd><p>A character string to name the legend of links.</p></dd>
 
 
+<dt id="arg-links-color">links_color<a class="anchor" aria-label="anchor" href="#arg-links-color"></a></dt>
+<dd><p>A character string to color the borders of links.
+Use a special value ".fill" to use the same color as the fill.</p></dd>
+
+
 <dt id="arg-nodes-palette">nodes_palette<a class="anchor" aria-label="anchor" href="#arg-nodes-palette"></a></dt>
-<dd><p>A character string to specify the palette of nodes.</p></dd>
+<dd><p>A character string to specify the palette of nodes fill.</p></dd>
 
 
 <dt id="arg-nodes-palcolor">nodes_palcolor<a class="anchor" aria-label="anchor" href="#arg-nodes-palcolor"></a></dt>
-<dd><p>A character vector to specify the colors of nodes.</p></dd>
+<dd><p>A character vector to specify the colors of nodes fill.</p></dd>
 
 
 <dt id="arg-nodes-alpha">nodes_alpha<a class="anchor" aria-label="anchor" href="#arg-nodes-alpha"></a></dt>
-<dd><p>A numeric value to specify the transparency of nodes.</p></dd>
+<dd><p>A numeric value to specify the transparency of nodes fill.</p></dd>
 
 
 <dt id="arg-nodes-label">nodes_label<a class="anchor" aria-label="anchor" href="#arg-nodes-label"></a></dt>
 <dd><p>A logical value to show the labels on the nodes.</p></dd>
 
 
+<dt id="arg-nodes-width">nodes_width<a class="anchor" aria-label="anchor" href="#arg-nodes-width"></a></dt>
+<dd><p>A numeric value to specify the width of nodes.</p></dd>
+
+
+<dt id="arg-nodes-label-miny">nodes_label_miny<a class="anchor" aria-label="anchor" href="#arg-nodes-label-miny"></a></dt>
+<dd><p>A numeric value to specify the minimum y (frequency) to show the labels.</p></dd>
+
+
+<dt id="arg-nodes-legend">nodes_legend<a class="anchor" aria-label="anchor" href="#arg-nodes-legend"></a></dt>
+<dd><p>Controls how the legend of nodes will be shown. Possible values are:</p><ul><li><p>"merge": Merge the legends of nodes. That is only one legend will be shown for all nodes.</p></li>
+<li><p>"separate": Show the legends of nodes separately. That is, nodes on each <code>x</code> will have their own legend.</p></li>
+<li><p>"none": Do not show the legend of nodes.</p></li>
+<li><p>"auto": Automatically determine how to show the legend.
+When <code>nodes_label</code> is TRUE, "none" will apply.
+When <code>nodes_label</code> is FALSE, and if stratum is the same as links_fill_by, "none" will apply.
+If there is any overlapping values between the nodes on different <code>x</code>,
+"merge" will apply. Otherwise, "separate" will apply.</p></li>
+</ul></dd>
+
+
+<dt id="arg-expand">expand<a class="anchor" aria-label="anchor" href="#arg-expand"></a></dt>
+<dd><p>The values to expand the x and y axes. It is like CSS padding.
+When a single value is provided, it is used for both axes on both sides.
+When two values are provided, the first value is used for the top/bottom side and the second value is used for the left/right side.
+When three values are provided, the first value is used for the top side, the second value is used for the left/right side, and the third value is used for the bottom side.
+When four values are provided, the values are used for the top, right, bottom, and left sides, respectively.
+You can also use a named vector to specify the values for each side.
+When the axis is discrete, the values will be applied as 'add' to the 'expansion' function.
+When the axis is continuous, the values will be applied as 'mult' to the 'expansion' function.
+See also <a href="https://ggplot2.tidyverse.org/reference/expansion.html" class="external-link">https://ggplot2.tidyverse.org/reference/expansion.html</a></p></dd>
+
+
 <dt id="arg-links-palette">links_palette<a class="anchor" aria-label="anchor" href="#arg-links-palette"></a></dt>
-<dd><p>A character string to specify the palette of links.</p></dd>
+<dd><p>A character string to specify the palette of links fill.</p></dd>
 
 
 <dt id="arg-links-palcolor">links_palcolor<a class="anchor" aria-label="anchor" href="#arg-links-palcolor"></a></dt>
-<dd><p>A character vector to specify the colors of links.</p></dd>
+<dd><p>A character vector to specify the colors of links fill.</p></dd>
 
 
 <dt id="arg-links-alpha">links_alpha<a class="anchor" aria-label="anchor" href="#arg-links-alpha"></a></dt>
-<dd><p>A numeric value to specify the transparency of links.</p></dd>
+<dd><p>A numeric value to specify the transparency of links fill.</p></dd>
 
 
 <dt id="arg-legend-box">legend.box<a class="anchor" aria-label="anchor" href="#arg-legend-box"></a></dt>
 <dd><p>A character string to specify the box of the legend, either "vertical" or "horizontal".</p></dd>
+
+
+<dt id="arg-keep-empty">keep_empty<a class="anchor" aria-label="anchor" href="#arg-keep-empty"></a></dt>
+<dd><p>A logical value to keep the empty nodes.</p></dd>
 
 
 <dt id="arg-x-text-angle">x_text_angle<a class="anchor" aria-label="anchor" href="#arg-x-text-angle"></a></dt>
@@ -154,6 +245,10 @@ if <code>waiver()</code>, for single groups, the legend will be "none", otherwis
 
 <dt id="arg-legend-direction">legend.direction<a class="anchor" aria-label="anchor" href="#arg-legend-direction"></a></dt>
 <dd><p>A character string specifying the direction of the legend.</p></dd>
+
+
+<dt id="arg-flip">flip<a class="anchor" aria-label="anchor" href="#arg-flip"></a></dt>
+<dd><p>A logical value to flip the plot.</p></dd>
 
 
 <dt id="arg-theme">theme<a class="anchor" aria-label="anchor" href="#arg-theme"></a></dt>
@@ -183,8 +278,33 @@ This is useful when split_by is used and the title needs to be dynamic.</p></dd>
 <dd><p>A character string specifying the y-axis label.</p></dd>
 
 
+<dt id="arg-facet-by">facet_by<a class="anchor" aria-label="anchor" href="#arg-facet-by"></a></dt>
+<dd><p>A character string specifying the column name of the data frame to facet the plot.
+Otherwise, the data will be split by <code>split_by</code> and generate multiple plots
+and combine them into one using <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">patchwork::wrap_plots</a></code></p></dd>
+
+
+<dt id="arg-facet-scales">facet_scales<a class="anchor" aria-label="anchor" href="#arg-facet-scales"></a></dt>
+<dd><p>Whether to scale the axes of facets. Default is "fixed"
+Other options are "free", "free_x", "free_y". See <code><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">ggplot2::facet_wrap</a></code></p></dd>
+
+
+<dt id="arg-facet-ncol">facet_ncol<a class="anchor" aria-label="anchor" href="#arg-facet-ncol"></a></dt>
+<dd><p>A numeric value specifying the number of columns in the facet.
+When facet_by is a single column and facet_wrap is used.</p></dd>
+
+
+<dt id="arg-facet-nrow">facet_nrow<a class="anchor" aria-label="anchor" href="#arg-facet-nrow"></a></dt>
+<dd><p>A numeric value specifying the number of rows in the facet.
+When facet_by is a single column and facet_wrap is used.</p></dd>
+
+
+<dt id="arg-facet-byrow">facet_byrow<a class="anchor" aria-label="anchor" href="#arg-facet-byrow"></a></dt>
+<dd><p>A logical value indicating whether to fill the plots by row. Default is TRUE.</p></dd>
+
+
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Additional arguments.</p></dd>
+<dd><p>Other arguments to pass to <a href="http://corybrunson.github.io/ggalluvial/reference/geom_alluvium.html" class="external-link">ggalluvial::geom_alluvium</a> or <a href="http://corybrunson.github.io/ggalluvial/reference/geom_flow.html" class="external-link">ggalluvial::geom_flow</a>.</p></dd>
 
 </dl></div>
     <div class="section level2">

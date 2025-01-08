@@ -47,67 +47,109 @@ AlluvialPlot is an alias of SankeyPlot."><meta property="og:image" content="http
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">SankeyPlot</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
+<span>  <span class="va">x</span>,</span>
+<span>  x_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">nodes_by</span>,</span>
-<span>  nodes_color <span class="op">=</span> <span class="st">"grey30"</span>,</span>
-<span>  links_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  links_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
-<span>  links_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  stratum <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  stratum_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
+<span>  <span class="va">alluvium</span>,</span>
+<span>  alluvium_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  split_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  split_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
-<span>  palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
-<span>  palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  alpha <span class="op">=</span> <span class="fl">0.6</span>,</span>
+<span>  keep_empty <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  flow <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>,</span>
+<span>  nodes_legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"separate"</span>, <span class="st">"merge"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
+<span>  nodes_color <span class="op">=</span> <span class="st">"grey30"</span>,</span>
+<span>  links_fill_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  links_fill_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
+<span>  links_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  links_color <span class="op">=</span> <span class="st">"gray80"</span>,</span>
+<span>  nodes_palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
+<span>  nodes_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  nodes_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  nodes_label <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  nodes_label_miny <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  nodes_width <span class="op">=</span> <span class="fl">0.25</span>,</span>
+<span>  links_palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
+<span>  links_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  links_alpha <span class="op">=</span> <span class="fl">0.6</span>,</span>
+<span>  legend.box <span class="op">=</span> <span class="st">"vertical"</span>,</span>
 <span>  x_text_angle <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  aspect.ratio <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  legend.position <span class="op">=</span> <span class="st">"right"</span>,</span>
 <span>  legend.direction <span class="op">=</span> <span class="st">"vertical"</span>,</span>
-<span>  legend.box <span class="op">=</span> <span class="st">"vertical"</span>,</span>
+<span>  flip <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  theme <span class="op">=</span> <span class="st">"theme_this"</span>,</span>
 <span>  theme_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  title <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  subtitle <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  xlab <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ylab <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  facet_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  facet_scales <span class="op">=</span> <span class="st">"fixed"</span>,</span>
+<span>  facet_ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  facet_nrow <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  facet_byrow <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">8525</span>,</span>
 <span>  combine <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  nrow <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  byrow <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">8525</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">AlluvialPlot</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
+<span>  <span class="va">x</span>,</span>
+<span>  x_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">nodes_by</span>,</span>
-<span>  nodes_color <span class="op">=</span> <span class="st">"grey30"</span>,</span>
-<span>  links_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  links_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
-<span>  links_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  stratum <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  stratum_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
+<span>  <span class="va">alluvium</span>,</span>
+<span>  alluvium_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  split_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  split_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
-<span>  palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
-<span>  palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  alpha <span class="op">=</span> <span class="fl">0.6</span>,</span>
+<span>  keep_empty <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  flow <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>,</span>
+<span>  nodes_legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"separate"</span>, <span class="st">"merge"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
+<span>  nodes_color <span class="op">=</span> <span class="st">"grey30"</span>,</span>
+<span>  links_fill_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  links_fill_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
+<span>  links_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  links_color <span class="op">=</span> <span class="st">"gray80"</span>,</span>
+<span>  nodes_palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
+<span>  nodes_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  nodes_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  nodes_label <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  nodes_label_miny <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  nodes_width <span class="op">=</span> <span class="fl">0.25</span>,</span>
+<span>  links_palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
+<span>  links_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  links_alpha <span class="op">=</span> <span class="fl">0.6</span>,</span>
+<span>  legend.box <span class="op">=</span> <span class="st">"vertical"</span>,</span>
 <span>  x_text_angle <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  aspect.ratio <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  legend.position <span class="op">=</span> <span class="st">"right"</span>,</span>
 <span>  legend.direction <span class="op">=</span> <span class="st">"vertical"</span>,</span>
-<span>  legend.box <span class="op">=</span> <span class="st">"vertical"</span>,</span>
+<span>  flip <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  theme <span class="op">=</span> <span class="st">"theme_this"</span>,</span>
 <span>  theme_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  title <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  subtitle <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  xlab <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ylab <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  facet_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  facet_scales <span class="op">=</span> <span class="st">"fixed"</span>,</span>
+<span>  facet_ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  facet_nrow <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  facet_byrow <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">8525</span>,</span>
 <span>  combine <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  nrow <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  byrow <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">8525</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -120,29 +162,36 @@ AlluvialPlot is an alias of SankeyPlot."><meta property="og:image" content="http
 <dd><p>A data frame.</p></dd>
 
 
+<dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
+<dd><p>A character string specifying the column name of the data frame to plot for the x-axis.</p></dd>
+
+
+<dt id="arg-x-sep">x_sep<a class="anchor" aria-label="anchor" href="#arg-x-sep"></a></dt>
+<dd><p>A character string to concatenate the columns in <code>x</code>, if multiple columns are provided.</p></dd>
+
+
 <dt id="arg-y">y<a class="anchor" aria-label="anchor" href="#arg-y"></a></dt>
 <dd><p>A character string specifying the column name of the data frame to plot for the y-axis.</p></dd>
 
 
-<dt id="arg-nodes-by">nodes_by<a class="anchor" aria-label="anchor" href="#arg-nodes-by"></a></dt>
-<dd><p>A character vector of column names to define the nodes.</p></dd>
+<dt id="arg-stratum">stratum<a class="anchor" aria-label="anchor" href="#arg-stratum"></a></dt>
+<dd><p>A character string of the column name to group the nodes for each <code>x</code>.
+Works as aes <code>stratum</code> in <a href="http://corybrunson.github.io/ggalluvial/reference/geom_alluvium.html" class="external-link">ggalluvial::geom_alluvium</a> or <a href="http://corybrunson.github.io/ggalluvial/reference/geom_flow.html" class="external-link">ggalluvial::geom_flow</a>.
+If not provided, <code>alluvium</code> will be used. That is, the nodes for each <code>x</code> will be the same as <code>alluvium</code>.
+This works for longtitudinal data.</p></dd>
 
 
-<dt id="arg-nodes-color">nodes_color<a class="anchor" aria-label="anchor" href="#arg-nodes-color"></a></dt>
-<dd><p>A character string to color the nodes.</p></dd>
+<dt id="arg-stratum-sep">stratum_sep<a class="anchor" aria-label="anchor" href="#arg-stratum-sep"></a></dt>
+<dd><p>A character string to concatenate the columns in <code>stratum</code>, if multiple columns are provided.</p></dd>
 
 
-<dt id="arg-links-by">links_by<a class="anchor" aria-label="anchor" href="#arg-links-by"></a></dt>
-<dd><p>A character vector of column names to define the links.
-If NULL, the links_by will be the first column in nodes_by.</p></dd>
+<dt id="arg-alluvium">alluvium<a class="anchor" aria-label="anchor" href="#arg-alluvium"></a></dt>
+<dd><p>A character string of the column name to define the links.
+Works as aes <code>alluvium</code> in <a href="http://corybrunson.github.io/ggalluvial/reference/geom_alluvium.html" class="external-link">ggalluvial::geom_alluvium</a>.</p></dd>
 
 
-<dt id="arg-links-by-sep">links_by_sep<a class="anchor" aria-label="anchor" href="#arg-links-by-sep"></a></dt>
-<dd><p>A character string to concatenate the columns in <code>links_by</code>, if multiple columns are provided.</p></dd>
-
-
-<dt id="arg-links-name">links_name<a class="anchor" aria-label="anchor" href="#arg-links-name"></a></dt>
-<dd><p>A character string to name the legend of links.</p></dd>
+<dt id="arg-alluvium-sep">alluvium_sep<a class="anchor" aria-label="anchor" href="#arg-alluvium-sep"></a></dt>
+<dd><p>A character string to concatenate the columns in <code>alluvium</code>, if multiple columns are provided.</p></dd>
 
 
 <dt id="arg-split-by">split_by<a class="anchor" aria-label="anchor" href="#arg-split-by"></a></dt>
@@ -153,23 +202,101 @@ If NULL, the links_by will be the first column in nodes_by.</p></dd>
 <dd><p>The separator for multiple split_by columns. See <code>split_by</code></p></dd>
 
 
-<dt id="arg-palette">palette<a class="anchor" aria-label="anchor" href="#arg-palette"></a></dt>
-<dd><p>A character string specifying the palette to use.
-A named list or vector can be used to specify the palettes for different <code>split_by</code> values.</p></dd>
+<dt id="arg-keep-empty">keep_empty<a class="anchor" aria-label="anchor" href="#arg-keep-empty"></a></dt>
+<dd><p>A logical value indicating whether to keep empty groups.
+If FALSE, empty groups will be removed.</p></dd>
 
 
-<dt id="arg-palcolor">palcolor<a class="anchor" aria-label="anchor" href="#arg-palcolor"></a></dt>
-<dd><p>A character string specifying the color to use in the palette.
-A named list can be used to specify the colors for different <code>split_by</code> values.
-If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).</p></dd>
+<dt id="arg-flow">flow<a class="anchor" aria-label="anchor" href="#arg-flow"></a></dt>
+<dd><p>A logical value to use <a href="http://corybrunson.github.io/ggalluvial/reference/geom_flow.html" class="external-link">ggalluvial::geom_flow</a> instead of <a href="http://corybrunson.github.io/ggalluvial/reference/geom_alluvium.html" class="external-link">ggalluvial::geom_alluvium</a>.</p></dd>
 
 
-<dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
-<dd><p>A numeric value specifying the transparency of the plot.</p></dd>
+<dt id="arg-expand">expand<a class="anchor" aria-label="anchor" href="#arg-expand"></a></dt>
+<dd><p>The values to expand the x and y axes. It is like CSS padding.
+When a single value is provided, it is used for both axes on both sides.
+When two values are provided, the first value is used for the top/bottom side and the second value is used for the left/right side.
+When three values are provided, the first value is used for the top side, the second value is used for the left/right side, and the third value is used for the bottom side.
+When four values are provided, the values are used for the top, right, bottom, and left sides, respectively.
+You can also use a named vector to specify the values for each side.
+When the axis is discrete, the values will be applied as 'add' to the 'expansion' function.
+When the axis is continuous, the values will be applied as 'mult' to the 'expansion' function.
+See also <a href="https://ggplot2.tidyverse.org/reference/expansion.html" class="external-link">https://ggplot2.tidyverse.org/reference/expansion.html</a></p></dd>
+
+
+<dt id="arg-nodes-legend">nodes_legend<a class="anchor" aria-label="anchor" href="#arg-nodes-legend"></a></dt>
+<dd><p>Controls how the legend of nodes will be shown. Possible values are:</p><ul><li><p>"merge": Merge the legends of nodes. That is only one legend will be shown for all nodes.</p></li>
+<li><p>"separate": Show the legends of nodes separately. That is, nodes on each <code>x</code> will have their own legend.</p></li>
+<li><p>"none": Do not show the legend of nodes.</p></li>
+<li><p>"auto": Automatically determine how to show the legend.
+When <code>nodes_label</code> is TRUE, "none" will apply.
+When <code>nodes_label</code> is FALSE, and if stratum is the same as links_fill_by, "none" will apply.
+If there is any overlapping values between the nodes on different <code>x</code>,
+"merge" will apply. Otherwise, "separate" will apply.</p></li>
+</ul></dd>
+
+
+<dt id="arg-nodes-color">nodes_color<a class="anchor" aria-label="anchor" href="#arg-nodes-color"></a></dt>
+<dd><p>A character string to color the nodes.
+Use a special value ".fill" to use the same color as the fill.</p></dd>
+
+
+<dt id="arg-links-fill-by">links_fill_by<a class="anchor" aria-label="anchor" href="#arg-links-fill-by"></a></dt>
+<dd><p>A character string of the column name to fill the links.
+Works as aes <code>fill</code> in <a href="http://corybrunson.github.io/ggalluvial/reference/geom_alluvium.html" class="external-link">ggalluvial::geom_alluvium</a> or <a href="http://corybrunson.github.io/ggalluvial/reference/geom_flow.html" class="external-link">ggalluvial::geom_flow</a>.
+If not provided, <code>alluvium</code> will be used.</p></dd>
+
+
+<dt id="arg-links-fill-by-sep">links_fill_by_sep<a class="anchor" aria-label="anchor" href="#arg-links-fill-by-sep"></a></dt>
+<dd><p>A character string to concatenate the columns in <code>links_fill_by</code>, if multiple columns are provided.</p></dd>
+
+
+<dt id="arg-links-name">links_name<a class="anchor" aria-label="anchor" href="#arg-links-name"></a></dt>
+<dd><p>A character string to name the legend of links.</p></dd>
+
+
+<dt id="arg-links-color">links_color<a class="anchor" aria-label="anchor" href="#arg-links-color"></a></dt>
+<dd><p>A character string to color the borders of links.
+Use a special value ".fill" to use the same color as the fill.</p></dd>
+
+
+<dt id="arg-nodes-palette">nodes_palette<a class="anchor" aria-label="anchor" href="#arg-nodes-palette"></a></dt>
+<dd><p>A character string to specify the palette of nodes fill.</p></dd>
+
+
+<dt id="arg-nodes-palcolor">nodes_palcolor<a class="anchor" aria-label="anchor" href="#arg-nodes-palcolor"></a></dt>
+<dd><p>A character vector to specify the colors of nodes fill.</p></dd>
+
+
+<dt id="arg-nodes-alpha">nodes_alpha<a class="anchor" aria-label="anchor" href="#arg-nodes-alpha"></a></dt>
+<dd><p>A numeric value to specify the transparency of nodes fill.</p></dd>
 
 
 <dt id="arg-nodes-label">nodes_label<a class="anchor" aria-label="anchor" href="#arg-nodes-label"></a></dt>
 <dd><p>A logical value to show the labels on the nodes.</p></dd>
+
+
+<dt id="arg-nodes-label-miny">nodes_label_miny<a class="anchor" aria-label="anchor" href="#arg-nodes-label-miny"></a></dt>
+<dd><p>A numeric value to specify the minimum y (frequency) to show the labels.</p></dd>
+
+
+<dt id="arg-nodes-width">nodes_width<a class="anchor" aria-label="anchor" href="#arg-nodes-width"></a></dt>
+<dd><p>A numeric value to specify the width of nodes.</p></dd>
+
+
+<dt id="arg-links-palette">links_palette<a class="anchor" aria-label="anchor" href="#arg-links-palette"></a></dt>
+<dd><p>A character string to specify the palette of links fill.</p></dd>
+
+
+<dt id="arg-links-palcolor">links_palcolor<a class="anchor" aria-label="anchor" href="#arg-links-palcolor"></a></dt>
+<dd><p>A character vector to specify the colors of links fill.</p></dd>
+
+
+<dt id="arg-links-alpha">links_alpha<a class="anchor" aria-label="anchor" href="#arg-links-alpha"></a></dt>
+<dd><p>A numeric value to specify the transparency of links fill.</p></dd>
+
+
+<dt id="arg-legend-box">legend.box<a class="anchor" aria-label="anchor" href="#arg-legend-box"></a></dt>
+<dd><p>A character string to specify the box of the legend, either "vertical" or "horizontal".</p></dd>
 
 
 <dt id="arg-x-text-angle">x_text_angle<a class="anchor" aria-label="anchor" href="#arg-x-text-angle"></a></dt>
@@ -189,8 +316,8 @@ if <code>waiver()</code>, for single groups, the legend will be "none", otherwis
 <dd><p>A character string specifying the direction of the legend.</p></dd>
 
 
-<dt id="arg-legend-box">legend.box<a class="anchor" aria-label="anchor" href="#arg-legend-box"></a></dt>
-<dd><p>A character string to specify the box of the legend, either "vertical" or "horizontal".</p></dd>
+<dt id="arg-flip">flip<a class="anchor" aria-label="anchor" href="#arg-flip"></a></dt>
+<dd><p>A logical value to flip the plot.</p></dd>
 
 
 <dt id="arg-theme">theme<a class="anchor" aria-label="anchor" href="#arg-theme"></a></dt>
@@ -220,6 +347,35 @@ This is useful when split_by is used and the title needs to be dynamic.</p></dd>
 <dd><p>A character string specifying the y-axis label.</p></dd>
 
 
+<dt id="arg-facet-by">facet_by<a class="anchor" aria-label="anchor" href="#arg-facet-by"></a></dt>
+<dd><p>A character string specifying the column name of the data frame to facet the plot.
+Otherwise, the data will be split by <code>split_by</code> and generate multiple plots
+and combine them into one using <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">patchwork::wrap_plots</a></code></p></dd>
+
+
+<dt id="arg-facet-scales">facet_scales<a class="anchor" aria-label="anchor" href="#arg-facet-scales"></a></dt>
+<dd><p>Whether to scale the axes of facets. Default is "fixed"
+Other options are "free", "free_x", "free_y". See <code><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">ggplot2::facet_wrap</a></code></p></dd>
+
+
+<dt id="arg-facet-ncol">facet_ncol<a class="anchor" aria-label="anchor" href="#arg-facet-ncol"></a></dt>
+<dd><p>A numeric value specifying the number of columns in the facet.
+When facet_by is a single column and facet_wrap is used.</p></dd>
+
+
+<dt id="arg-facet-nrow">facet_nrow<a class="anchor" aria-label="anchor" href="#arg-facet-nrow"></a></dt>
+<dd><p>A numeric value specifying the number of rows in the facet.
+When facet_by is a single column and facet_wrap is used.</p></dd>
+
+
+<dt id="arg-facet-byrow">facet_byrow<a class="anchor" aria-label="anchor" href="#arg-facet-byrow"></a></dt>
+<dd><p>A logical value indicating whether to fill the plots by row. Default is TRUE.</p></dd>
+
+
+<dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
+<dd><p>The random seed to use. Default is 8525.</p></dd>
+
+
 <dt id="arg-combine">combine<a class="anchor" aria-label="anchor" href="#arg-combine"></a></dt>
 <dd><p>Whether to combine the plots into one when facet is FALSE. Default is TRUE.</p></dd>
 
@@ -236,10 +392,6 @@ This is useful when split_by is used and the title needs to be dynamic.</p></dd>
 <dd><p>A logical value indicating whether to fill the plots by row.</p></dd>
 
 
-<dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
-<dd><p>The random seed to use. Default is 8525.</p></dd>
-
-
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Additional arguments.</p></dd>
 
@@ -252,21 +404,100 @@ This is useful when split_by is used and the title needs to be dynamic.</p></dd>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="co"># Reproduce the examples in ggalluvial</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">8525</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>    nodes1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">LETTERS</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="fl">10</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    nodes2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="fl">10</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    nodes3 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">LETTERS</span><span class="op">[</span><span class="fl">4</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span>, <span class="fl">10</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fl">10</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">SankeyPlot</span><span class="op">(</span><span class="va">data</span>, nodes_by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nodes1"</span>, <span class="st">"nodes2"</span>, <span class="st">"nodes3"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">UCBAdmissions</span>, package <span class="op">=</span> <span class="st">"datasets"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">UCBAdmissions</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">UCBAdmissions</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">UCBAdmissions</span> <span class="op">&lt;-</span> <span class="fu">ggalluvial</span><span class="fu">::</span><span class="fu"><a href="http://corybrunson.github.io/ggalluvial/reference/alluvial-data.html" class="external-link">to_lodes_form</a></span><span class="op">(</span><span class="va">UCBAdmissions</span>, axes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Gender"</span>, <span class="st">"Dept"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">SankeyPlot</span><span class="op">(</span><span class="va">UCBAdmissions</span>, x <span class="op">=</span> <span class="st">"x"</span>, stratum <span class="op">=</span> <span class="st">"stratum"</span>, alluvium <span class="op">=</span> <span class="st">"alluvium"</span>,</span></span>
+<span class="r-in"><span>    y <span class="op">=</span> <span class="st">"Freq"</span>, nodes_width <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="fl">12</span>, links_fill_by <span class="op">=</span> <span class="st">"Admit"</span>, nodes_label <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>    nodes_palette <span class="op">=</span> <span class="st">"simspec"</span>, links_palette <span class="op">=</span> <span class="st">"Set1"</span>, links_alpha <span class="op">=</span> <span class="fl">0.5</span>,</span></span>
+<span class="r-in"><span>    nodes_palcolor <span class="op">=</span> <span class="st">"black"</span>, links_color <span class="op">=</span> <span class="st">"transparent"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="sankeyplot-1.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">SankeyPlot</span><span class="op">(</span><span class="va">data</span>, nodes_by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nodes1"</span>, <span class="st">"nodes2"</span>, <span class="st">"nodes3"</span><span class="op">)</span>, nodes_label <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">HairEyeColor</span>, package <span class="op">=</span> <span class="st">"datasets"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">HairEyeColor</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">HairEyeColor</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">HairEyeColor</span><span class="op">$</span><span class="va">Eye2</span> <span class="op">&lt;-</span> <span class="va">HairEyeColor</span><span class="op">$</span><span class="va">Eye</span></span></span>
+<span class="r-in"><span><span class="va">HairEyeColor</span> <span class="op">&lt;-</span> <span class="fu">ggalluvial</span><span class="fu">::</span><span class="fu"><a href="http://corybrunson.github.io/ggalluvial/reference/alluvial-data.html" class="external-link">to_lodes_form</a></span><span class="op">(</span><span class="va">HairEyeColor</span>, axes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Hair"</span>, <span class="st">"Eye"</span>, <span class="st">"Sex"</span><span class="op">)</span>, <span class="va">weight</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">SankeyPlot</span><span class="op">(</span><span class="va">HairEyeColor</span>, x <span class="op">=</span> <span class="st">"x"</span>, stratum <span class="op">=</span> <span class="st">"stratum"</span>, alluvium <span class="op">=</span> <span class="st">"alluvium"</span>,</span></span>
+<span class="r-in"><span>    y <span class="op">=</span> <span class="st">"Freq"</span>, links_fill_by <span class="op">=</span> <span class="st">"Eye2"</span>, nodes_width <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="fl">8</span>, nodes_alpha <span class="op">=</span> <span class="fl">0.4</span>,</span></span>
+<span class="r-in"><span>    flip <span class="op">=</span> <span class="cn">TRUE</span>, reverse <span class="op">=</span> <span class="cn">FALSE</span>, knot.pos <span class="op">=</span> <span class="fl">0</span>, links_color <span class="op">=</span> <span class="st">"transparent"</span>,</span></span>
+<span class="r-in"><span>    ylab <span class="op">=</span> <span class="st">"Freq"</span>, links_alpha <span class="op">=</span> <span class="fl">0.5</span>, links_name <span class="op">=</span> <span class="st">"Eye (links)"</span>, links_palcolor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>        Brown <span class="op">=</span> <span class="st">"#70493D"</span>, Hazel <span class="op">=</span> <span class="st">"#E2AC76"</span>, Green <span class="op">=</span> <span class="st">"#3F752B"</span>, Blue <span class="op">=</span> <span class="st">"#81B0E4"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="sankeyplot-2.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">SankeyPlot</span><span class="op">(</span><span class="va">data</span>, nodes_by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nodes1"</span>, <span class="st">"nodes2"</span>, <span class="st">"nodes3"</span><span class="op">)</span>, links_by <span class="op">=</span> <span class="st">"y"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">Refugees</span>, package <span class="op">=</span> <span class="st">"alluvial"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">country_regions</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    Afghanistan <span class="op">=</span> <span class="st">"Middle East"</span>,</span></span>
+<span class="r-in"><span>    Burundi <span class="op">=</span> <span class="st">"Central Africa"</span>,</span></span>
+<span class="r-in"><span>    `Congo DRC` <span class="op">=</span> <span class="st">"Central Africa"</span>,</span></span>
+<span class="r-in"><span>    Iraq <span class="op">=</span> <span class="st">"Middle East"</span>,</span></span>
+<span class="r-in"><span>    Myanmar <span class="op">=</span> <span class="st">"Southeast Asia"</span>,</span></span>
+<span class="r-in"><span>    Palestine <span class="op">=</span> <span class="st">"Middle East"</span>,</span></span>
+<span class="r-in"><span>    Somalia <span class="op">=</span> <span class="st">"Horn of Africa"</span>,</span></span>
+<span class="r-in"><span>    Sudan <span class="op">=</span> <span class="st">"Central Africa"</span>,</span></span>
+<span class="r-in"><span>    Syria <span class="op">=</span> <span class="st">"Middle East"</span>,</span></span>
+<span class="r-in"><span>    Vietnam <span class="op">=</span> <span class="st">"Southeast Asia"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">Refugees</span><span class="op">$</span><span class="va">region</span> <span class="op">&lt;-</span> <span class="va">country_regions</span><span class="op">[</span><span class="va">Refugees</span><span class="op">$</span><span class="va">country</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="fu">SankeyPlot</span><span class="op">(</span><span class="va">Refugees</span>, x <span class="op">=</span> <span class="st">"year"</span>, y <span class="op">=</span> <span class="st">"refugees"</span>, alluvium <span class="op">=</span> <span class="st">"country"</span>,</span></span>
+<span class="r-in"><span>    links_fill_by <span class="op">=</span> <span class="st">"country"</span>, links_color <span class="op">=</span> <span class="st">".fill"</span>, links_alpha <span class="op">=</span> <span class="fl">0.75</span>,</span></span>
+<span class="r-in"><span>    links_palette <span class="op">=</span> <span class="st">"Set3"</span>, facet_by <span class="op">=</span> <span class="st">"region"</span>, x_text_angle <span class="op">=</span> <span class="op">-</span><span class="fl">45</span>,</span></span>
+<span class="r-in"><span>    decreasing <span class="op">=</span> <span class="cn">FALSE</span>, nodes_width <span class="op">=</span> <span class="fl">0</span>, nodes_color <span class="op">=</span> <span class="st">"transparent"</span>, ylab <span class="op">=</span> <span class="st">"refugees"</span>,</span></span>
+<span class="r-in"><span>    theme_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>strip.background <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_rect</a></span><span class="op">(</span>fill<span class="op">=</span><span class="st">"grey80"</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    title <span class="op">=</span> <span class="st">"Refugee volume by country and region of origin"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="sankeyplot-3.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">SankeyPlot</span><span class="op">(</span><span class="va">data</span>, nodes_by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nodes1"</span>, <span class="st">"nodes2"</span>, <span class="st">"nodes3"</span><span class="op">)</span>, y <span class="op">=</span> <span class="st">"y"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">majors</span>, package <span class="op">=</span> <span class="st">"ggalluvial"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">majors</span><span class="op">$</span><span class="va">curriculum</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">majors</span><span class="op">$</span><span class="va">curriculum</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">SankeyPlot</span><span class="op">(</span><span class="va">majors</span>, x <span class="op">=</span> <span class="st">"semester"</span>, stratum <span class="op">=</span> <span class="st">"curriculum"</span>, alluvium <span class="op">=</span> <span class="st">"student"</span>,</span></span>
+<span class="r-in"><span>    links_fill_by <span class="op">=</span> <span class="st">"curriculum"</span>, flow <span class="op">=</span> <span class="cn">TRUE</span>, stat <span class="op">=</span> <span class="st">"alluvium"</span>, nodes_palette <span class="op">=</span> <span class="st">"Set2"</span>,</span></span>
+<span class="r-in"><span>    links_palette <span class="op">=</span> <span class="st">"Set2"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="sankeyplot-4.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">vaccinations</span>, package <span class="op">=</span> <span class="st">"ggalluvial"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">vaccinations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">vaccinations</span>,</span></span>
+<span class="r-in"><span>    response <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">response</span>, <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">response</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">SankeyPlot</span><span class="op">(</span><span class="va">vaccinations</span>, x <span class="op">=</span> <span class="st">"survey"</span>, stratum <span class="op">=</span> <span class="st">"response"</span>, alluvium <span class="op">=</span> <span class="st">"subject"</span>,</span></span>
+<span class="r-in"><span>    y <span class="op">=</span> <span class="st">"freq"</span>, links_fill_by <span class="op">=</span> <span class="st">"response"</span>, nodes_label <span class="op">=</span> <span class="cn">TRUE</span>, nodes_alpha <span class="op">=</span> <span class="fl">0.5</span>,</span></span>
+<span class="r-in"><span>    nodes_palette <span class="op">=</span> <span class="st">"seurat"</span>, links_palette <span class="op">=</span> <span class="st">"seurat"</span>, links_alpha <span class="op">=</span> <span class="fl">0.5</span>,</span></span>
+<span class="r-in"><span>    legend.position <span class="op">=</span> <span class="st">"none"</span>, flow <span class="op">=</span> <span class="cn">TRUE</span>, expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">.15</span><span class="op">)</span>, stat <span class="op">=</span> <span class="st">"alluvium"</span>,</span></span>
+<span class="r-in"><span>    title <span class="op">=</span> <span class="st">"vaccination survey responses at three points in time"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="sankeyplot-5.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">Titanic</span>, package <span class="op">=</span> <span class="st">"datasets"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">Titanic</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">Titanic</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">Titanic</span> <span class="op">&lt;-</span> <span class="fu">ggalluvial</span><span class="fu">::</span><span class="fu"><a href="http://corybrunson.github.io/ggalluvial/reference/alluvial-data.html" class="external-link">to_lodes_form</a></span><span class="op">(</span><span class="va">Titanic</span>, axes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Class"</span>, <span class="st">"Sex"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">SankeyPlot</span><span class="op">(</span><span class="va">Titanic</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"Freq"</span>, stratum <span class="op">=</span> <span class="st">"stratum"</span>, alluvium <span class="op">=</span> <span class="st">"alluvium"</span>,</span></span>
+<span class="r-in"><span>    links_fill_by <span class="op">=</span> <span class="st">"Survived"</span>, flow <span class="op">=</span> <span class="cn">TRUE</span>, facet_by <span class="op">=</span> <span class="st">"Age"</span>, facet_scales <span class="op">=</span> <span class="st">"free_y"</span>,</span></span>
+<span class="r-in"><span>    nodes_label <span class="op">=</span> <span class="cn">TRUE</span>, expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.05</span>, <span class="fl">0</span><span class="op">)</span>, xlab <span class="op">=</span> <span class="st">""</span>, links_palette <span class="op">=</span> <span class="st">"Set1"</span>,</span></span>
+<span class="r-in"><span>    nodes_palcolor <span class="op">=</span> <span class="st">"white"</span>, nodes_label_miny <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="sankeyplot-6.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Simulated examples</span></span></span>
+<span class="r-in"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    Clone <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"clone"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    Timepoint1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">30</span><span class="op">)</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">100</span><span class="op">)</span>, <span class="fl">10</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    Timepoint2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">30</span><span class="op">)</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">100</span><span class="op">)</span>, <span class="fl">10</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span><span class="va">df</span>, <span class="op">-</span><span class="st">"Clone"</span>, names_to <span class="op">=</span> <span class="st">"Timepoint"</span>, values_to <span class="op">=</span> <span class="st">"Freq"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">SankeyPlot</span><span class="op">(</span><span class="va">df</span>, x <span class="op">=</span> <span class="st">"Timepoint"</span>, stratum <span class="op">=</span> <span class="st">"Clone"</span>, alluvium <span class="op">=</span> <span class="st">"Clone"</span>,</span></span>
+<span class="r-in"><span>    y <span class="op">=</span> <span class="st">"Freq"</span>, links_fill_by <span class="op">=</span> <span class="st">"Clone"</span>, links_color <span class="op">=</span> <span class="st">".fill"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="sankeyplot-7.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    Clone <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"clone"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    Sample <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span>, <span class="fl">10</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    Timepoint1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">30</span><span class="op">)</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">100</span><span class="op">)</span>, <span class="fl">20</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    Timepoint2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">30</span><span class="op">)</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">100</span><span class="op">)</span>, <span class="fl">20</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    ID <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">20</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span><span class="va">df</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Clone"</span>, <span class="st">"Sample"</span>, <span class="st">"ID"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    names_to <span class="op">=</span> <span class="st">"Timepoint"</span>, values_to <span class="op">=</span> <span class="st">"Freq"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">SankeyPlot</span><span class="op">(</span><span class="va">df</span>, x <span class="op">=</span> <span class="st">"Timepoint"</span>, stratum <span class="op">=</span> <span class="st">"Sample"</span>, alluvium <span class="op">=</span> <span class="st">"ID"</span>,</span></span>
+<span class="r-in"><span>    y <span class="op">=</span> <span class="st">"Freq"</span>, links_fill_by <span class="op">=</span> <span class="st">"Clone"</span>, links_color <span class="op">=</span> <span class="st">".fill"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="sankeyplot-8.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
