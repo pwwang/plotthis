@@ -337,7 +337,8 @@ SankeyPlotAtomic <- function(
 #'     Timepoint2 = sample(c(rep(0, 30), 1:100), 20),
 #'     ID = 1:20
 #' )
-#' df <- tidyr::pivot_longer(df, -c("Clone", "Sample", "ID"), names_to = "Timepoint", values_to = "Freq")
+#' df <- tidyr::pivot_longer(df, -c("Clone", "Sample", "ID"), names_to = "Timepoint",
+#'     values_to = "Freq")
 #' SankeyPlot(df, x = "Timepoint", stratum = "Sample", alluvium = "ID",
 #'     y = "Freq", links_fill_by = "Clone", links_color = ".fill")
 #' }
