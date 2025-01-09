@@ -124,8 +124,8 @@ AlluvialPlot(
 
 \item{stratum}{A character string of the column name to group the nodes for each \code{x}.
 Works as aes \code{stratum} in \link[ggalluvial:geom_alluvium]{ggalluvial::geom_alluvium} or \link[ggalluvial:geom_flow]{ggalluvial::geom_flow}.
-If not provided, \code{alluvium} will be used. That is, the nodes for each \code{x} will be the same as \code{alluvium}.
-This works for longtitudinal data.}
+If not provided, \code{links_fill_by} will be used if provided, otherwise, \code{alluvium} will be used.
+That is, the nodes for each \code{x} will be the same as \code{alluvium}.}
 
 \item{stratum_sep}{A character string to concatenate the columns in \code{stratum}, if multiple columns are provided.}
 
@@ -333,8 +333,8 @@ df <- data.frame(
     Timepoint2 = sample(c(rep(0, 30), 1:100), 10)
 )
 df <- tidyr::pivot_longer(df, -"Clone", names_to = "Timepoint", values_to = "Freq")
-SankeyPlot(df, x = "Timepoint", stratum = "Clone", alluvium = "Clone",
-    y = "Freq", links_fill_by = "Clone", links_color = ".fill")
+SankeyPlot(df, x = "Timepoint", alluvium = "Clone",
+    y = "Freq", links_color = ".fill")
 
 df <- data.frame(
     Clone = rep(paste0("clone", 1:10), each = 2),
@@ -343,8 +343,7 @@ df <- data.frame(
     Timepoint2 = sample(c(rep(0, 30), 1:100), 20),
     ID = 1:20
 )
-df <- tidyr::pivot_longer(df, -c("Clone", "Sample", "ID"),
-    names_to = "Timepoint", values_to = "Freq")
+df <- tidyr::pivot_longer(df, -c("Clone", "Sample", "ID"), names_to = "Timepoint", values_to = "Freq")
 SankeyPlot(df, x = "Timepoint", stratum = "Sample", alluvium = "ID",
     y = "Freq", links_fill_by = "Clone", links_color = ".fill")
 }

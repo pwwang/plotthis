@@ -66,8 +66,8 @@ If not provided, the number of observations for each \code{x}, \code{stratum}, a
 
 \item{stratum}{A character string of the column name to group the nodes for each \code{x}.
 Works as aes \code{stratum} in \link[ggalluvial:geom_alluvium]{ggalluvial::geom_alluvium} or \link[ggalluvial:geom_flow]{ggalluvial::geom_flow}.
-If not provided, \code{alluvium} will be used. That is, the nodes for each \code{x} will be the same as \code{alluvium}.
-This works for longtitudinal data.}
+If not provided, \code{links_fill_by} will be used if provided, otherwise, \code{alluvium} will be used.
+That is, the nodes for each \code{x} will be the same as \code{alluvium}.}
 
 \item{stratum_sep}{A character string to concatenate the columns in \code{stratum}, if multiple columns are provided.}
 

@@ -12,8 +12,8 @@
 #' If not provided, the number of observations for each `x`, `stratum`, and `alluvium` will be calculated.
 #' @param stratum A character string of the column name to group the nodes for each `x`.
 #' Works as aes `stratum` in [ggalluvial::geom_alluvium] or [ggalluvial::geom_flow].
-#' If not provided, `alluvium` will be used. That is, the nodes for each `x` will be the same as `alluvium`.
-#' This works for longtitudinal data.
+#' If not provided, `links_fill_by` will be used if provided, otherwise, `alluvium` will be used.
+#' That is, the nodes for each `x` will be the same as `alluvium`.
 #' @param stratum_sep A character string to concatenate the columns in `stratum`, if multiple columns are provided.
 #' @param alluvium A character string of the column name to define the links.
 #' Works as aes `alluvium` in [ggalluvial::geom_alluvium].
@@ -78,10 +78,10 @@ SankeyPlotAtomic <- function(
     x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
     alluvium <- check_columns(data, alluvium, force_factor = TRUE, allow_multi = TRUE,
         concat_multi = TRUE, concat_sep = alluvium_sep)
-    stratum <- check_columns(data, stratum, force_factor = TRUE, allow_multi = TRUE,
-        concat_multi = TRUE, concat_sep = stratum_sep) %||% alluvium
     links_fill_by <- check_columns(data, links_fill_by, force_factor = TRUE, allow_multi = TRUE,
         concat_multi = TRUE, concat_sep = links_fill_by_sep) %||% alluvium
+    stratum <- check_columns(data, stratum, force_factor = TRUE, allow_multi = TRUE,
+        concat_multi = TRUE, concat_sep = stratum_sep) %||% links_fill_by
 
     if (is.null(y)) {
         data <- data %>%
@@ -327,8 +327,8 @@ SankeyPlotAtomic <- function(
 #'     Timepoint2 = sample(c(rep(0, 30), 1:100), 10)
 #' )
 #' df <- tidyr::pivot_longer(df, -"Clone", names_to = "Timepoint", values_to = "Freq")
-#' SankeyPlot(df, x = "Timepoint", stratum = "Clone", alluvium = "Clone",
-#'     y = "Freq", links_fill_by = "Clone", links_color = ".fill")
+#' SankeyPlot(df, x = "Timepoint", alluvium = "Clone",
+#'     y = "Freq", links_color = ".fill")
 #'
 #' df <- data.frame(
 #'     Clone = rep(paste0("clone", 1:10), each = 2),
@@ -337,8 +337,7 @@ SankeyPlotAtomic <- function(
 #'     Timepoint2 = sample(c(rep(0, 30), 1:100), 20),
 #'     ID = 1:20
 #' )
-#' df <- tidyr::pivot_longer(df, -c("Clone", "Sample", "ID"),
-#'     names_to = "Timepoint", values_to = "Freq")
+#' df <- tidyr::pivot_longer(df, -c("Clone", "Sample", "ID"), names_to = "Timepoint", values_to = "Freq")
 #' SankeyPlot(df, x = "Timepoint", stratum = "Sample", alluvium = "ID",
 #'     y = "Freq", links_fill_by = "Clone", links_color = ".fill")
 #' }
