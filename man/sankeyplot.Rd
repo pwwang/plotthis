@@ -7,12 +7,13 @@
 \usage{
 SankeyPlot(
   data,
+  in_form = c("auto", "long", "lodes", "wide", "alluvia", "counts"),
   x,
   x_sep = "_",
   y = NULL,
   stratum = NULL,
   stratum_sep = "_",
-  alluvium,
+  alluvium = NULL,
   alluvium_sep = "_",
   split_by = NULL,
   split_by_sep = "_",
@@ -61,12 +62,13 @@ SankeyPlot(
 
 AlluvialPlot(
   data,
+  in_form = c("auto", "long", "lodes", "wide", "alluvia", "counts"),
   x,
   x_sep = "_",
   y = NULL,
   stratum = NULL,
   stratum_sep = "_",
-  alluvium,
+  alluvium = NULL,
   alluvium_sep = "_",
   split_by = NULL,
   split_by_sep = "_",
@@ -116,6 +118,9 @@ AlluvialPlot(
 \arguments{
 \item{data}{A data frame.}
 
+\item{in_form}{A character string to specify the format of the data.
+Possible values are "auto", "long", "lodes", "wide", "alluvia", and "counts".}
+
 \item{x}{A character string specifying the column name of the data frame to plot for the x-axis.}
 
 \item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.}
@@ -123,14 +128,12 @@ AlluvialPlot(
 \item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
 
 \item{stratum}{A character string of the column name to group the nodes for each \code{x}.
-Works as aes \code{stratum} in \link[ggalluvial:geom_alluvium]{ggalluvial::geom_alluvium} or \link[ggalluvial:geom_flow]{ggalluvial::geom_flow}.
-If not provided, \code{links_fill_by} will be used if provided, otherwise, \code{alluvium} will be used.
-That is, the nodes for each \code{x} will be the same as \code{alluvium}.}
+See \code{data} for more details.}
 
 \item{stratum_sep}{A character string to concatenate the columns in \code{stratum}, if multiple columns are provided.}
 
 \item{alluvium}{A character string of the column name to define the links.
-Works as aes \code{alluvium} in \link[ggalluvial:geom_alluvium]{ggalluvial::geom_alluvium}.}
+See \code{data} for more details.}
 
 \item{alluvium_sep}{A character string to concatenate the columns in \code{alluvium}, if multiple columns are provided.}
 
@@ -168,9 +171,7 @@ If there is any overlapping values between the nodes on different \code{x},
 \item{nodes_color}{A character string to color the nodes.
 Use a special value ".fill" to use the same color as the fill.}
 
-\item{links_fill_by}{A character string of the column name to fill the links.
-Works as aes \code{fill} in \link[ggalluvial:geom_alluvium]{ggalluvial::geom_alluvium} or \link[ggalluvial:geom_flow]{ggalluvial::geom_flow}.
-If not provided, \code{alluvium} will be used.}
+\item{links_fill_by}{A character string of the column name to fill the links.}
 
 \item{links_fill_by_sep}{A character string to concatenate the columns in \code{links_fill_by}, if multiple columns are provided.}
 
@@ -266,18 +267,14 @@ set.seed(8525)
 
 data(UCBAdmissions, package = "datasets")
 UCBAdmissions <- as.data.frame(UCBAdmissions)
-UCBAdmissions <- ggalluvial::to_lodes_form(UCBAdmissions, axes = c("Gender", "Dept"))
-SankeyPlot(UCBAdmissions, x = "x", stratum = "stratum", alluvium = "alluvium",
+SankeyPlot(as.data.frame(UCBAdmissions), x = c("Gender", "Dept"),
     y = "Freq", nodes_width = 1/12, links_fill_by = "Admit", nodes_label = TRUE,
     nodes_palette = "simspec", links_palette = "Set1", links_alpha = 0.5,
     nodes_palcolor = "black", links_color = "transparent")
 
 data(HairEyeColor, package = "datasets")
-HairEyeColor <- as.data.frame(HairEyeColor)
-HairEyeColor$Eye2 <- HairEyeColor$Eye
-HairEyeColor <- ggalluvial::to_lodes_form(HairEyeColor, axes = c("Hair", "Eye", "Sex"), weight)
-SankeyPlot(HairEyeColor, x = "x", stratum = "stratum", alluvium = "alluvium",
-    y = "Freq", links_fill_by = "Eye2", nodes_width = 1/8, nodes_alpha = 0.4,
+SankeyPlot(as.data.frame(HairEyeColor), x = c("Hair", "Eye", "Sex"),
+    y = "Freq", links_fill_by = "Eye", nodes_width = 1/8, nodes_alpha = 0.4,
     flip = TRUE, reverse = FALSE, knot.pos = 0, links_color = "transparent",
     ylab = "Freq", links_alpha = 0.5, links_name = "Eye (links)", links_palcolor = c(
         Brown = "#70493D", Hazel = "#E2AC76", Green = "#3F752B", Blue = "#81B0E4"))
@@ -298,9 +295,9 @@ country_regions <- c(
 Refugees$region <- country_regions[Refugees$country]
 SankeyPlot(Refugees, x = "year", y = "refugees", alluvium = "country",
     links_fill_by = "country", links_color = ".fill", links_alpha = 0.75,
-    links_palette = "Set3", facet_by = "region", x_text_angle = -45,
-    decreasing = FALSE, nodes_width = 0, nodes_color = "transparent", ylab = "refugees",
+    links_palette = "Set3", facet_by = "region", x_text_angle = -45, nodes_legend = "none",
     theme_args = list(strip.background = ggplot2::element_rect(fill="grey80")),
+    decreasing = FALSE, nodes_width = 0, nodes_color = "transparent", ylab = "refugees",
     title = "Refugee volume by country and region of origin")
 
 data(majors, package = "ggalluvial")
@@ -319,9 +316,7 @@ SankeyPlot(vaccinations, x = "survey", stratum = "response", alluvium = "subject
     title = "vaccination survey responses at three points in time")
 
 data(Titanic, package = "datasets")
-Titanic <- as.data.frame(Titanic)
-Titanic <- ggalluvial::to_lodes_form(Titanic, axes = c("Class", "Sex"))
-SankeyPlot(Titanic, x = "x", y = "Freq", stratum = "stratum", alluvium = "alluvium",
+SankeyPlot(as.data.frame(Titanic), x = c("Class", "Sex"), y = "Freq",
     links_fill_by = "Survived", flow = TRUE, facet_by = "Age", facet_scales = "free_y",
     nodes_label = TRUE, expand = c(0.05, 0), xlab = "", links_palette = "Set1",
     nodes_palcolor = "white", nodes_label_miny = 10)
@@ -332,20 +327,16 @@ df <- data.frame(
     Timepoint1 = sample(c(rep(0, 30), 1:100), 10),
     Timepoint2 = sample(c(rep(0, 30), 1:100), 10)
 )
-df <- tidyr::pivot_longer(df, -"Clone", names_to = "Timepoint", values_to = "Freq")
-SankeyPlot(df, x = "Timepoint", alluvium = "Clone",
-    y = "Freq", links_color = ".fill")
+SankeyPlot(df, x = c("Timepoint1", "Timepoint2"), alluvium = "Clone",
+    links_color = ".fill")
 
 df <- data.frame(
-    Clone = rep(paste0("clone", 1:10), each = 2),
-    Sample = rep(c("A", "B"), 10),
-    Timepoint1 = sample(c(rep(0, 30), 1:100), 20),
-    Timepoint2 = sample(c(rep(0, 30), 1:100), 20),
-    ID = 1:20
+    Clone = rep(paste0("clone", 1:6), each = 2),
+    Timepoint1 = sample(c(rep(0, 30), 1:100), 6),
+    Timepoint2 = sample(c(rep(0, 30), 1:100), 6),
+    Group = rep(c("A", "B"), 6)
 )
-df <- tidyr::pivot_longer(df, -c("Clone", "Sample", "ID"), names_to = "Timepoint",
-    values_to = "Freq")
-SankeyPlot(df, x = "Timepoint", stratum = "Sample", alluvium = "ID",
-    y = "Freq", links_fill_by = "Clone", links_color = ".fill")
+SankeyPlot(df, x = c(".", "Timepoint1", "Timepoint2"),
+    stratum = "Group", links_fill_by = "Clone", links_color = ".fill")
 }
 }
