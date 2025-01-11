@@ -44,12 +44,13 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">SankeyPlotAtomic</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
+<span>  in_form <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"long"</span>, <span class="st">"lodes"</span>, <span class="st">"wide"</span>, <span class="st">"alluvia"</span>, <span class="st">"counts"</span><span class="op">)</span>,</span>
 <span>  <span class="va">x</span>,</span>
 <span>  x_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  stratum <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  stratum_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
-<span>  <span class="va">alluvium</span>,</span>
+<span>  alluvium <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alluvium_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  flow <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  nodes_color <span class="op">=</span> <span class="st">"grey30"</span>,</span>
@@ -95,13 +96,34 @@
 
 
 <dl><dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
-<dd><p>A data frame in either long (lodes) format.
-If your data is in wide (alluvia) format, you can use <a href="http://corybrunson.github.io/ggalluvial/reference/alluvial-data.html" class="external-link">ggalluvial::to_lodes_form</a> to convert it.</p></dd>
+<dd><p>A data frame in three possible formats:</p><ul><li><p>"long" or "lodes": A long format with columns for <code>x</code>, <code>stratum</code>, <code>alluvium</code>, and <code>y</code>.
+<code>x</code> (required, single columns or concatenated by <code>x_sep</code>) is the column name to plot on the x-axis,
+<code>stratum</code> (defaults to <code>links_fill_by</code>) is the column name
+to group the nodes for each <code>x</code>, <code>alluvium</code> (required) is the column name to define the links, and <code>y</code>
+is the frequency of each <code>x</code>, <code>stratum</code>, and <code>alluvium</code>.</p></li>
+<li><p>"wide" or "alluvia": A wide format with columns for <code>x</code>.
+<code>x</code> (required, multiple columns, <code>x_sep</code> won't be used) are the columns to plot on the x-axis,
+<code>stratum</code> and <code>alluvium</code> will be ignored.
+See <a href="http://corybrunson.github.io/ggalluvial/reference/alluvial-data.html" class="external-link">ggalluvial::to_lodes_form</a> for more details.</p></li>
+<li><p>"counts": A format with counts being provides under each <code>x</code>.
+<code>x</code> (required, multiple columns, <code>x_sep</code> won't be used) are the columns to plot on the x-axis.
+When the first element of <code>x</code> is ".", values of <code>links_fill_by</code> (required) will be added to the plot as the first column of nodes.
+It is useful to show how the links are flowed from the source to the targets.</p></li>
+<li><p>"auto" (default): Automatically determine the format based on the columns provided.
+When the length of <code>x</code> is greater than 1 and all <code>x</code> columns are numeric, "counts" format will be used.
+When the length of <code>x</code> is greater than 1 and <a href="http://corybrunson.github.io/ggalluvial/reference/alluvial-data.html" class="external-link">ggalluvial::is_alluvia_form</a> returns TRUE, "alluvia" format will be used.
+Otherwise, "lodes" format will be tried.</p></li>
+</ul></dd>
+
+
+<dt id="arg-in-form">in_form<a class="anchor" aria-label="anchor" href="#arg-in-form"></a></dt>
+<dd><p>A character string to specify the format of the data.
+Possible values are "auto", "long", "lodes", "wide", "alluvia", and "counts".</p></dd>
 
 
 <dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
 <dd><p>A character string of the column name to plot on the x-axis.
-Works as aes <code>x</code> in <a href="http://corybrunson.github.io/ggalluvial/reference/geom_alluvium.html" class="external-link">ggalluvial::geom_alluvium</a> or <a href="http://corybrunson.github.io/ggalluvial/reference/geom_flow.html" class="external-link">ggalluvial::geom_flow</a>.</p></dd>
+See <code>data</code> for more details.</p></dd>
 
 
 <dt id="arg-x-sep">x_sep<a class="anchor" aria-label="anchor" href="#arg-x-sep"></a></dt>
@@ -110,15 +132,12 @@ Works as aes <code>x</code> in <a href="http://corybrunson.github.io/ggalluvial/
 
 <dt id="arg-y">y<a class="anchor" aria-label="anchor" href="#arg-y"></a></dt>
 <dd><p>A character string of the column name to plot on the y-axis.
-Works as aes <code>y</code> in <a href="http://corybrunson.github.io/ggalluvial/reference/geom_alluvium.html" class="external-link">ggalluvial::geom_alluvium</a> or <a href="http://corybrunson.github.io/ggalluvial/reference/geom_flow.html" class="external-link">ggalluvial::geom_flow</a>.
-If not provided, the number of observations for each <code>x</code>, <code>stratum</code>, and <code>alluvium</code> will be calculated.</p></dd>
+When <code>in_form</code> is "counts", <code>y</code> will be ignored. Otherwise, it defaults to the count of each <code>x</code>, <code>stratum</code>, <code>alluvium</code> and <code>links_fill_by</code>.</p></dd>
 
 
 <dt id="arg-stratum">stratum<a class="anchor" aria-label="anchor" href="#arg-stratum"></a></dt>
 <dd><p>A character string of the column name to group the nodes for each <code>x</code>.
-Works as aes <code>stratum</code> in <a href="http://corybrunson.github.io/ggalluvial/reference/geom_alluvium.html" class="external-link">ggalluvial::geom_alluvium</a> or <a href="http://corybrunson.github.io/ggalluvial/reference/geom_flow.html" class="external-link">ggalluvial::geom_flow</a>.
-If not provided, <code>links_fill_by</code> will be used if provided, otherwise, <code>alluvium</code> will be used.
-That is, the nodes for each <code>x</code> will be the same as <code>alluvium</code>.</p></dd>
+See <code>data</code> for more details.</p></dd>
 
 
 <dt id="arg-stratum-sep">stratum_sep<a class="anchor" aria-label="anchor" href="#arg-stratum-sep"></a></dt>
@@ -127,7 +146,7 @@ That is, the nodes for each <code>x</code> will be the same as <code>alluvium</c
 
 <dt id="arg-alluvium">alluvium<a class="anchor" aria-label="anchor" href="#arg-alluvium"></a></dt>
 <dd><p>A character string of the column name to define the links.
-Works as aes <code>alluvium</code> in <a href="http://corybrunson.github.io/ggalluvial/reference/geom_alluvium.html" class="external-link">ggalluvial::geom_alluvium</a>.</p></dd>
+See <code>data</code> for more details.</p></dd>
 
 
 <dt id="arg-alluvium-sep">alluvium_sep<a class="anchor" aria-label="anchor" href="#arg-alluvium-sep"></a></dt>
@@ -144,9 +163,7 @@ Use a special value ".fill" to use the same color as the fill.</p></dd>
 
 
 <dt id="arg-links-fill-by">links_fill_by<a class="anchor" aria-label="anchor" href="#arg-links-fill-by"></a></dt>
-<dd><p>A character string of the column name to fill the links.
-Works as aes <code>fill</code> in <a href="http://corybrunson.github.io/ggalluvial/reference/geom_alluvium.html" class="external-link">ggalluvial::geom_alluvium</a> or <a href="http://corybrunson.github.io/ggalluvial/reference/geom_flow.html" class="external-link">ggalluvial::geom_flow</a>.
-If not provided, <code>alluvium</code> will be used.</p></dd>
+<dd><p>A character string of the column name to fill the links.</p></dd>
 
 
 <dt id="arg-links-fill-by-sep">links_fill_by_sep<a class="anchor" aria-label="anchor" href="#arg-links-fill-by-sep"></a></dt>
