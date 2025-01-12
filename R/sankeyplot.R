@@ -163,13 +163,14 @@ SankeyPlotAtomic <- function(
         if (!is.null(stratum)) warning("[SankeyPlot] 'stratum' is ignored in 'alluvia' format.")
         if (!is.null(alluvium)) warning("[SankeyPlot] 'alluvium' is ignored in 'alluvia' format.")
         links_fill_by <- check_columns(data, links_fill_by, force_factor = TRUE, allow_multi = TRUE,
-            concat_multi = TRUE, concat_sep = links_fill_by_sep) %||% alluvium
+            concat_multi = TRUE, concat_sep = links_fill_by_sep)
         if (is.null(y)) {
             data <- add_count(data, !!!syms(unique(c(x, links_fill_by, facet_by))), name = ".y")
             y <- ".y"
         }
         # make a copy of links_fill_by in case it's one of x or alluvium that gets transformed later
         if (!is.null(links_fill_by) && links_fill_by %in% x) {
+            is_flowcounts <- identical(links_fill_by, x[1])
             data <- ggalluvial::to_lodes_form(data, axes = x, diffuse = links_fill_by)
         } else {
             data <- ggalluvial::to_lodes_form(data, axes = x)
@@ -196,7 +197,21 @@ SankeyPlotAtomic <- function(
 
     nodes_colors <- palette_this(levels(data[[stratum]]), palette = nodes_palette, palcolor = nodes_palcolor)
     links_colors <- palette_this(levels(data[[links_fill_by]]), palette = links_palette, palcolor = links_palcolor)
-    links_guide = guide_legend(order = 1, override.aes = list(alpha = min(links_alpha + 0.2, 1), color = "transparent"))
+    if (is_flowcounts) {
+        if (identical(nodes_colors[names(links_colors)], links_colors)) {
+            links_guide <- "none"
+        } else if (identical(links_palette, nodes_palette) && identical(links_palcolor, nodes_palcolor)) {
+            links_guide = guide_legend(title = paste0(links_fill_by, " (links)"), order = 1,
+                override.aes = list(alpha = min(links_alpha + 0.2, 1), color = "transparent"))
+            warning(
+                "[SankeyPlot] Plotting the flow of the first column of nodes. Links guide is still showing because ",
+                "the first column of nodes have different colors as the links. It is probably because nodes_palette ",
+                "does not have enough colors. Please use a palette with more colors for both ",
+                "nodes_palette and links_palette.")
+        }
+    } else {
+        links_guide = guide_legend(order = 1, override.aes = list(alpha = min(links_alpha + 0.2, 1), color = "transparent"))
+    }
 
     just <- calc_just(x_text_angle)
     base_size <- theme_args$base_size %||% 12
@@ -288,11 +303,7 @@ SankeyPlotAtomic <- function(
         scale_fill_manual(
             name = links_name %||% links_fill_by,
             values = links_colors, breaks = levels(data[[links_fill_by]]),
-            guide = if (is_flowcounts && identical(links_palcolor, nodes_palcolor) && identical(links_palette, nodes_palette)) {
-                "none"
-            } else {
-                links_guide
-            }) +
+            guide = links_guide) +
         new_scale_fill()
 
     if (identical(nodes_color, ".fill")) {
