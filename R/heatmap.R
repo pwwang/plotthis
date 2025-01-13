@@ -1007,17 +1007,17 @@ HeatmapAtomic <- function(
         }
         hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
             labels <- ComplexHeatmap::pindex(hmargs$matrix, i, j)
-            labels <- labels[!is.na(labels)]
-            inds <- if (is.null(label_cutoff)) seq_along(labels) else labels >= label_cutoff
-            labels <- scales::number(labels[inds], accuracy = label_accuracy)
+            inds <- !is.na(labels) & (if (is.null(label_cutoff)) TRUE else labels >= label_cutoff)
+            inds[is.na(inds)] <- FALSE
+            labels[inds] <- scales::number(labels[inds], accuracy = label_accuracy)
             if (any(inds)) {
                 theta <- seq(pi / 8, 2 * pi, length.out = 16)
-                lapply(theta, function(i) {
-                    x_out <- x[inds] + unit(cos(i) * label_size / 30, "mm")
-                    y_out <- y[inds] + unit(sin(i) * label_size / 30, "mm")
-                    grid.text(labels, x = x_out, y = y_out, gp = gpar(fontsize = label_size, col = "white"))
+                lapply(theta, function(a) {
+                    x_out <- x[inds] + unit(cos(a) * label_size / 30, "mm")
+                    y_out <- y[inds] + unit(sin(a) * label_size / 30, "mm")
+                    grid.text(labels[inds], x = x_out, y = y_out, gp = gpar(fontsize = label_size, col = "white"))
                 })
-                grid.text(labels, x[inds], y[inds], gp = gpar(fontsize = label_size, col = "black"))
+                grid.text(labels[inds], x[inds], y[inds], gp = gpar(fontsize = label_size, col = "black"))
             }
             if (is.function(layer_fun_callback)) {
                 layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
