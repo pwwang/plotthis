@@ -96,24 +96,7 @@
 
 
 <dl><dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
-<dd><p>A data frame in three possible formats:</p><ul><li><p>"long" or "lodes": A long format with columns for <code>x</code>, <code>stratum</code>, <code>alluvium</code>, and <code>y</code>.
-<code>x</code> (required, single columns or concatenated by <code>x_sep</code>) is the column name to plot on the x-axis,
-<code>stratum</code> (defaults to <code>links_fill_by</code>) is the column name
-to group the nodes for each <code>x</code>, <code>alluvium</code> (required) is the column name to define the links, and <code>y</code>
-is the frequency of each <code>x</code>, <code>stratum</code>, and <code>alluvium</code>.</p></li>
-<li><p>"wide" or "alluvia": A wide format with columns for <code>x</code>.
-<code>x</code> (required, multiple columns, <code>x_sep</code> won't be used) are the columns to plot on the x-axis,
-<code>stratum</code> and <code>alluvium</code> will be ignored.
-See <a href="http://corybrunson.github.io/ggalluvial/reference/alluvial-data.html" class="external-link">ggalluvial::to_lodes_form</a> for more details.</p></li>
-<li><p>"counts": A format with counts being provides under each <code>x</code>.
-<code>x</code> (required, multiple columns, <code>x_sep</code> won't be used) are the columns to plot on the x-axis.
-When the first element of <code>x</code> is ".", values of <code>links_fill_by</code> (required) will be added to the plot as the first column of nodes.
-It is useful to show how the links are flowed from the source to the targets.</p></li>
-<li><p>"auto" (default): Automatically determine the format based on the columns provided.
-When the length of <code>x</code> is greater than 1 and all <code>x</code> columns are numeric, "counts" format will be used.
-When the length of <code>x</code> is greater than 1 and <a href="http://corybrunson.github.io/ggalluvial/reference/alluvial-data.html" class="external-link">ggalluvial::is_alluvia_form</a> returns TRUE, "alluvia" format will be used.
-Otherwise, "lodes" format will be tried.</p></li>
-</ul></dd>
+<dd><p>A data frame.</p></dd>
 
 
 <dt id="arg-in-form">in_form<a class="anchor" aria-label="anchor" href="#arg-in-form"></a></dt>
