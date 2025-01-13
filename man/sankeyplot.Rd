@@ -116,7 +116,26 @@ AlluvialPlot(
 )
 }
 \arguments{
-\item{data}{A data frame.}
+\item{data}{A data frame in following possible formats:
+\itemize{
+\item "long" or "lodes": A long format with columns for \code{x}, \code{stratum}, \code{alluvium}, and \code{y}.
+\code{x} (required, single columns or concatenated by \code{x_sep}) is the column name to plot on the x-axis,
+\code{stratum} (defaults to \code{links_fill_by}) is the column name
+to group the nodes for each \code{x}, \code{alluvium} (required) is the column name to define the links, and \code{y}
+is the frequency of each \code{x}, \code{stratum}, and \code{alluvium}.
+\item "wide" or "alluvia": A wide format with columns for \code{x}.
+\code{x} (required, multiple columns, \code{x_sep} won't be used) are the columns to plot on the x-axis,
+\code{stratum} and \code{alluvium} will be ignored.
+See \link[ggalluvial:alluvial-data]{ggalluvial::to_lodes_form} for more details.
+\item "counts": A format with counts being provides under each \code{x}.
+\code{x} (required, multiple columns, \code{x_sep} won't be used) are the columns to plot on the x-axis.
+When the first element of \code{x} is ".", values of \code{links_fill_by} (required) will be added to the plot as the first column of nodes.
+It is useful to show how the links are flowed from the source to the targets.
+\item "auto" (default): Automatically determine the format based on the columns provided.
+When the length of \code{x} is greater than 1 and all \code{x} columns are numeric, "counts" format will be used.
+When the length of \code{x} is greater than 1 and \link[ggalluvial:alluvial-data]{ggalluvial::is_alluvia_form} returns TRUE, "alluvia" format will be used.
+Otherwise, "lodes" format will be tried.
+}}
 
 \item{in_form}{A character string to specify the format of the data.
 Possible values are "auto", "long", "lodes", "wide", "alluvia", and "counts".}

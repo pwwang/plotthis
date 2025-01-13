@@ -2,24 +2,6 @@
 #'
 #' @description Plot a Sankey plot without splitting the data.
 #' @inheritParams common_args
-#' @param data A data frame in three possible formats:
-#' * "long" or "lodes": A long format with columns for `x`, `stratum`, `alluvium`, and `y`.
-#'   `x` (required, single columns or concatenated by `x_sep`) is the column name to plot on the x-axis,
-#'   `stratum` (defaults to `links_fill_by`) is the column name
-#'   to group the nodes for each `x`, `alluvium` (required) is the column name to define the links, and `y`
-#'   is the frequency of each `x`, `stratum`, and `alluvium`.
-#' * "wide" or "alluvia": A wide format with columns for `x`.
-#'   `x` (required, multiple columns, `x_sep` won't be used) are the columns to plot on the x-axis,
-#'   `stratum` and `alluvium` will be ignored.
-#'   See [ggalluvial::to_lodes_form] for more details.
-#' * "counts": A format with counts being provides under each `x`.
-#'  `x` (required, multiple columns, `x_sep` won't be used) are the columns to plot on the x-axis.
-#'  When the first element of `x` is ".", values of `links_fill_by` (required) will be added to the plot as the first column of nodes.
-#'  It is useful to show how the links are flowed from the source to the targets.
-#' * "auto" (default): Automatically determine the format based on the columns provided.
-#' When the length of `x` is greater than 1 and all `x` columns are numeric, "counts" format will be used.
-#' When the length of `x` is greater than 1 and [ggalluvial::is_alluvia_form] returns TRUE, "alluvia" format will be used.
-#' Otherwise, "lodes" format will be tried.
 #' @param in_form A character string to specify the format of the data.
 #' Possible values are "auto", "long", "lodes", "wide", "alluvia", and "counts".
 #' @param x A character string of the column name to plot on the x-axis.
@@ -197,20 +179,19 @@ SankeyPlotAtomic <- function(
 
     nodes_colors <- palette_this(levels(data[[stratum]]), palette = nodes_palette, palcolor = nodes_palcolor)
     links_colors <- palette_this(levels(data[[links_fill_by]]), palette = links_palette, palcolor = links_palcolor)
+    links_guide = guide_legend(order = 1, override.aes = list(alpha = min(links_alpha + 0.2, 1), color = "transparent"))
     if (is_flowcounts) {
         if (identical(nodes_colors[names(links_colors)], links_colors)) {
             links_guide <- "none"
         } else if (identical(links_palette, nodes_palette) && identical(links_palcolor, nodes_palcolor)) {
-            links_guide = guide_legend(title = paste0(links_fill_by, " (links)"), order = 1,
-                override.aes = list(alpha = min(links_alpha + 0.2, 1), color = "transparent"))
-            warning(
-                "[SankeyPlot] Plotting the flow of the first column of nodes. Links guide is still showing because ",
-                "the first column of nodes have different colors as the links. It is probably because nodes_palette ",
-                "does not have enough colors. Please use a palette with more colors for both ",
-                "nodes_palette and links_palette.")
+            links_guide <- "none"
+            # Plotting the flow of the first column of nodes. Links guide is still showing because
+            # the first column of nodes have different colors as the links. It is probably because nodes_palette
+            # does not have enough colors. Please use a palette with more colors for both
+            # nodes_palette and links_palette.
+            nodes_colors1 <- palette_this(levels(data[[links_fill_by]]), palette = nodes_palette, palcolor = nodes_palcolor)
+            nodes_colors <- c(nodes_colors1, nodes_colors[setdiff(names(nodes_colors), names(nodes_colors1))])
         }
-    } else {
-        links_guide = guide_legend(order = 1, override.aes = list(alpha = min(links_alpha + 0.2, 1), color = "transparent"))
     }
 
     just <- calc_just(x_text_angle)
@@ -370,6 +351,24 @@ SankeyPlotAtomic <- function(
 #'  `AlluvialPlot` is an alias of `SankeyPlot`.
 #' @inheritParams common_args
 #' @inheritParams SankeyPlotAtomic
+#' @param data A data frame in following possible formats:
+#' * "long" or "lodes": A long format with columns for `x`, `stratum`, `alluvium`, and `y`.
+#'   `x` (required, single columns or concatenated by `x_sep`) is the column name to plot on the x-axis,
+#'   `stratum` (defaults to `links_fill_by`) is the column name
+#'   to group the nodes for each `x`, `alluvium` (required) is the column name to define the links, and `y`
+#'   is the frequency of each `x`, `stratum`, and `alluvium`.
+#' * "wide" or "alluvia": A wide format with columns for `x`.
+#'   `x` (required, multiple columns, `x_sep` won't be used) are the columns to plot on the x-axis,
+#'   `stratum` and `alluvium` will be ignored.
+#'   See [ggalluvial::to_lodes_form] for more details.
+#' * "counts": A format with counts being provides under each `x`.
+#'  `x` (required, multiple columns, `x_sep` won't be used) are the columns to plot on the x-axis.
+#'  When the first element of `x` is ".", values of `links_fill_by` (required) will be added to the plot as the first column of nodes.
+#'  It is useful to show how the links are flowed from the source to the targets.
+#' * "auto" (default): Automatically determine the format based on the columns provided.
+#' When the length of `x` is greater than 1 and all `x` columns are numeric, "counts" format will be used.
+#' When the length of `x` is greater than 1 and [ggalluvial::is_alluvia_form] returns TRUE, "alluvia" format will be used.
+#' Otherwise, "lodes" format will be tried.
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
 #' @rdname sankeyplot
