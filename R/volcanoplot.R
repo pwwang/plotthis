@@ -6,6 +6,10 @@
 #'  If NULL, the points will be filled by the x and y cutoff value.
 #' @param color_name A character string to name the legend of color.
 #' @param flip_negatives A logical value to flip the y-axis for negative x values.
+#' @param trim A numeric vector of length 2 to trim the x-axis values.
+#' The values must be in the range from 0 to 1, which works as quantile to trim the x-axis values.
+#' For example, c(0.01, 0.99) will trim the 1% and 99% quantile of the x-axis values.
+#' If the values are less then 1% or greater than 99% quantile, the values will be set to the 1% or 99% quantile.
 #' @param x_cutoff A numeric value to set the x-axis cutoff.
 #'  Both negative and positive of this value will be used.
 #' @param y_cutoff A numeric value to set the y-axis cutoff.
@@ -41,13 +45,12 @@
 #' @importFrom dplyr %>% case_when mutate arrange row_number group_by ungroup desc filter
 VolcanoPlotAtomic <- function(
     data, x, y, ytrans = function(n) -log10(n), color_by = NULL, color_name = NULL,
-    flip_negatives = FALSE, x_cutoff = NULL, y_cutoff = 0.05,
+    flip_negatives = FALSE, x_cutoff = NULL, y_cutoff = 0.05, trim = c(0, 1),
     x_cutoff_name = NULL, y_cutoff_name = NULL, x_cutoff_color = "red2", y_cutoff_color = "blue2",
     x_cutoff_linetype = "dashed", y_cutoff_linetype = "dashed", x_cutoff_linewidth = 0.5, y_cutoff_linewidth = 0.5,
     pt_size = 2, pt_alpha = 0.5, nlabel = 5, labels = NULL, label_size = 3, label_fg = "black", label_bg = "white",
     label_bg_r = 0.1, highlight = NULL, highlight_color = "red", highlight_size = 2, highlight_alpha = 1,
-    highlight_stroke = 0.5,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
+    highlight_stroke = 0.5, facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical", seed = 8525,
@@ -58,6 +61,11 @@ VolcanoPlotAtomic <- function(
     } else {
         ggplot2::ggplot
     }
+    stopifnot(
+        "[VolcanoPlot] 'trim' must be a numeric vector of length 2 and both values must be in the range [0, 1]." =
+            length(trim) == 2 && all(trim >= 0 & trim <= 1)
+    )
+    trim <- sort(trim)
     x <- check_columns(data, x)
     y <- check_columns(data, y)
     color_by <- check_columns(data, color_by)
@@ -107,8 +115,8 @@ VolcanoPlotAtomic <- function(
     data$.show_label <- FALSE
 
 
-    x_upper <- quantile(data[[x]][is.finite(data[[x]])], c(0.99, 1))
-    x_lower <- quantile(data[[x]][is.finite(data[[x]])], c(0.01, 0))
+    x_upper <- quantile(data[[x]][is.finite(data[[x]])], c(trim[2], 1))
+    x_lower <- quantile(data[[x]][is.finite(data[[x]])], c(trim[1], 0))
     x_upper <- ifelse(x_upper[1] > 0, x_upper[1], x_upper[2])
     x_lower <- ifelse(x_lower[1] < 0, x_lower[1], x_lower[2])
     if (x_upper > 0 & x_lower < 0) {
@@ -373,7 +381,7 @@ VolcanoPlot <- function(
     x_cutoff_linetype = "dashed", y_cutoff_linetype = "dashed", x_cutoff_linewidth = 0.5, y_cutoff_linewidth = 0.5,
     pt_size = 2, pt_alpha = 0.5, nlabel = 5, labels = NULL, label_size = 3, label_fg = "black", label_bg = "white",
     label_bg_r = 0.1, highlight = NULL, highlight_color = "red", highlight_size = 2, highlight_alpha = 1,
-    highlight_stroke = 0.5,
+    highlight_stroke = 0.5, trim = c(0, 1),
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
@@ -406,7 +414,7 @@ VolcanoPlot <- function(
             }
             VolcanoPlotAtomic(datas[[nm]],
                 x = x, y = y, ytrans = ytrans, color_by = color_by, color_name = color_name,
-                flip_negatives = flip_negatives, x_cutoff = x_cutoff, y_cutoff = y_cutoff,
+                flip_negatives = flip_negatives, x_cutoff = x_cutoff, y_cutoff = y_cutoff, trim = trim,
                 x_cutoff_name = x_cutoff_name, y_cutoff_name = y_cutoff_name, x_cutoff_color = x_cutoff_color, y_cutoff_color = y_cutoff_color,
                 x_cutoff_linetype = x_cutoff_linetype, y_cutoff_linetype = y_cutoff_linetype, x_cutoff_linewidth = x_cutoff_linewidth, y_cutoff_linewidth = y_cutoff_linewidth,
                 pt_size = pt_size, pt_alpha = pt_alpha, nlabel = nlabel, labels = labels, label_size = label_size, label_fg = label_fg, label_bg = label_bg,

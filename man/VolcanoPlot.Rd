@@ -37,6 +37,7 @@ VolcanoPlot(
   highlight_size = 2,
   highlight_alpha = 1,
   highlight_stroke = 0.5,
+  trim = c(0, 1),
   facet_by = NULL,
   facet_scales = "fixed",
   facet_ncol = NULL,
@@ -132,6 +133,11 @@ The points will be ordered by the distance to the origin. Top \code{nlabel} poin
 \item{highlight_alpha}{A numeric value to set the highlight transparency.}
 
 \item{highlight_stroke}{A numeric value to set the highlight stroke size.}
+
+\item{trim}{A numeric vector of length 2 to trim the x-axis values.
+The values must be in the range from 0 to 1, which works as quantile to trim the x-axis values.
+For example, c(0.01, 0.99) will trim the 1\% and 99\% quantile of the x-axis values.
+If the values are less then 1\% or greater than 99\% quantile, the values will be set to the 1\% or 99\% quantile.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
