@@ -24,67 +24,67 @@ $ conda install pwwang::r-plotthis
 ## Gallery
 [`AreaPlot`][2] / [`TrendPlot`][3] / [`ROCCurve`][28]
 
-![area-trend](man/figures/area-trend.png)
+![](man/figures/area-trend.png)
 
 [`ClustreePlot`][4] / [`LinePlot`][5] / [`Network`][27]
 
-![clustree-line](man/figures/clustree-line.png)
+![](man/figures/clustree-line.png)
 
 [`Heatmap`][6]
 
-![heatmap](man/figures/heatmap.png)
+![](man/figures/heatmap.png)
 
 [CorPlot][24] / [CorPairsPlot][25]
 
-![cor-corpairs](man/figures/cor-corpairs.png)
+![](man/figures/cor-corpairs.png)
 
 [`PieChart`][7] / [`RingPlot`][8]
 
-![pie-ring](man/figures/pie-ring.png)
+![](man/figures/pie-ring.png)
 
 [`VolcanoPlot`][9] / [`WordCloudPlot`][10]
 
-![volcano-wordcloud](man/figures/volcano-wordcloud.png)
+![](man/figures/volcano-wordcloud.png)
 
 [`BarPlot`][11] / [`SplitBarPlot`][11]
 
-![bar-splitbar](man/figures/bar-splitbar.png)
+![](man/figures/bar-splitbar.png)
 
 [`BoxPlot`][12] / [`ViolinPlot`][12]
 
-![box-violin](man/figures/box-violin.png)
+![](man/figures/box-violin.png)
 
 [`ChordPlot`][13] / [`UpsetPlot`][14] / [`VennDiagram`][15]
 
-![chord-upset-venn](man/figures/chord-upset-venn.png)
+![](man/figures/chord-upset-venn.png)
 
 [`DensityPlot`][16] / [`Histogram`][16] / [`RidgePlot`][23]
 
-![density-histogram](man/figures/density-histogram.png)
+![](man/figures/density-histogram.png)
 
 [`DimPlot`][17] / [`FeatureDimPlot`][17]
 
-![dimplot](man/figures/dimplot.png)
+![](man/figures/dimplot.png)
 
 [`DotPlot`][18] / [`ScatterPlot`][18] / [`LollipopPlot`][18]
 
-![dot-scatter-lollipop](man/figures/dot-scatter-lollipop.png)
+![](man/figures/dot-scatter-lollipop.png)
 
 [`EnrichMap`][19] / [`EnrichNetwork`][19]
 
-![enrich](man/figures/enrich.png)
+![](man/figures/enrich.png)
 
 [`GSEASummaryPlot`][20] / [`GSEAPlot`][20]
 
-![gsea](man/figures/gsea.png)
+![](man/figures/gsea.png)
 
 [`RadarPlot`][21] / [`SpiderPlot`][21] / [`RarefactionPlot`][26]
 
-![radar-spider](man/figures/radar-spider.png)
+![](man/figures/radar-spider.png)
 
 [`SankeyPlot`][22] / [`AlluvialPlot`][22]
 
-![sankey-alluvial](man/figures/sankey-alluvial.png)
+![](man/figures/sankey-alluvial.png)
 
 
 [1]: https://zhanghao-njmu.github.io/SCP/index.html
