@@ -49,6 +49,7 @@
 <span>  ytrans <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log10</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span>,</span>
 <span>  color_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  color_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  xlim <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  flip_negatives <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  x_cutoff <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  y_cutoff <span class="op">=</span> <span class="fl">0.05</span>,</span>
@@ -75,6 +76,7 @@
 <span>  highlight_size <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  highlight_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  highlight_stroke <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  trim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  facet_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  facet_scales <span class="op">=</span> <span class="st">"fixed"</span>,</span>
 <span>  facet_ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -127,6 +129,10 @@ If NULL, the points will be filled by the x and y cutoff value.</p></dd>
 
 <dt id="arg-color-name">color_name<a class="anchor" aria-label="anchor" href="#arg-color-name"></a></dt>
 <dd><p>A character string to name the legend of color.</p></dd>
+
+
+<dt id="arg-xlim">xlim<a class="anchor" aria-label="anchor" href="#arg-xlim"></a></dt>
+<dd><p>A numeric vector of length 2 to set the x-axis limits.</p></dd>
 
 
 <dt id="arg-flip-negatives">flip_negatives<a class="anchor" aria-label="anchor" href="#arg-flip-negatives"></a></dt>
@@ -237,6 +243,13 @@ The points will be ordered by the distance to the origin. Top <code>nlabel</code
 
 <dt id="arg-highlight-stroke">highlight_stroke<a class="anchor" aria-label="anchor" href="#arg-highlight-stroke"></a></dt>
 <dd><p>A numeric value to set the highlight stroke size.</p></dd>
+
+
+<dt id="arg-trim">trim<a class="anchor" aria-label="anchor" href="#arg-trim"></a></dt>
+<dd><p>A numeric vector of length 2 to trim the x-axis values.
+The values must be in the range from 0 to 1, which works as quantile to trim the x-axis values.
+For example, c(0.01, 0.99) will trim the 1% and 99% quantile of the x-axis values.
+If the values are less then 1% or greater than 99% quantile, the values will be set to the 1% or 99% quantile.</p></dd>
 
 
 <dt id="arg-facet-by">facet_by<a class="anchor" aria-label="anchor" href="#arg-facet-by"></a></dt>
