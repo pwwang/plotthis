@@ -15,6 +15,7 @@ VolcanoPlotAtomic(
   x_cutoff = NULL,
   y_cutoff = 0.05,
   trim = c(0, 1),
+  xlim = NULL,
   x_cutoff_name = NULL,
   y_cutoff_name = NULL,
   x_cutoff_color = "red2",
@@ -83,6 +84,8 @@ So you should provide the original value.}
 The values must be in the range from 0 to 1, which works as quantile to trim the x-axis values.
 For example, c(0.01, 0.99) will trim the 1\% and 99\% quantile of the x-axis values.
 If the values are less then 1\% or greater than 99\% quantile, the values will be set to the 1\% or 99\% quantile.}
+
+\item{xlim}{A numeric vector of length 2 to set the x-axis limits.}
 
 \item{x_cutoff_name}{A character string to name the x-axis cutoff.
 If "none", the legend for the x-axis cutoff will not be shown.}

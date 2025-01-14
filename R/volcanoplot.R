@@ -10,6 +10,7 @@
 #' The values must be in the range from 0 to 1, which works as quantile to trim the x-axis values.
 #' For example, c(0.01, 0.99) will trim the 1% and 99% quantile of the x-axis values.
 #' If the values are less then 1% or greater than 99% quantile, the values will be set to the 1% or 99% quantile.
+#' @param xlim A numeric vector of length 2 to set the x-axis limits.
 #' @param x_cutoff A numeric value to set the x-axis cutoff.
 #'  Both negative and positive of this value will be used.
 #' @param y_cutoff A numeric value to set the y-axis cutoff.
@@ -45,7 +46,7 @@
 #' @importFrom dplyr %>% case_when mutate arrange row_number group_by ungroup desc filter
 VolcanoPlotAtomic <- function(
     data, x, y, ytrans = function(n) -log10(n), color_by = NULL, color_name = NULL,
-    flip_negatives = FALSE, x_cutoff = NULL, y_cutoff = 0.05, trim = c(0, 1),
+    flip_negatives = FALSE, x_cutoff = NULL, y_cutoff = 0.05, trim = c(0, 1), xlim = NULL,
     x_cutoff_name = NULL, y_cutoff_name = NULL, x_cutoff_color = "red2", y_cutoff_color = "blue2",
     x_cutoff_linetype = "dashed", y_cutoff_linetype = "dashed", x_cutoff_linewidth = 0.5, y_cutoff_linewidth = 0.5,
     pt_size = 2, pt_alpha = 0.5, nlabel = 5, labels = NULL, label_size = 3, label_fg = "black", label_bg = "white",
@@ -65,6 +66,7 @@ VolcanoPlotAtomic <- function(
         "[VolcanoPlot] 'trim' must be a numeric vector of length 2 and both values must be in the range [0, 1]." =
             length(trim) == 2 && all(trim >= 0 & trim <= 1)
     )
+    stopifnot("[VolcanoPlot] 'xlim' must be a numeric vector of length 2." = is.null(xlim) || length(xlim) == 2)
     trim <- sort(trim)
     x <- check_columns(data, x)
     y <- check_columns(data, y)
@@ -252,6 +254,9 @@ VolcanoPlotAtomic <- function(
             geom_hline(yintercept = 0, color = "black", linetype = 1) +
             scale_y_continuous(labels = abs)
     }
+    if (!is.null(xlim)) {
+        p <- p + ggplot2::xlim(xlim)
+    }
 
     p <- p +
         geom_vline(xintercept = 0, color = "grey80", linetype = 2) +
@@ -375,7 +380,7 @@ VolcanoPlotAtomic <- function(
 #'    palette = c(A = "Set1", B = "Dark2"))
 #' }
 VolcanoPlot <- function(
-    data, x, y, ytrans = function(n) -log10(n), color_by = NULL, color_name = NULL,
+    data, x, y, ytrans = function(n) -log10(n), color_by = NULL, color_name = NULL, xlim = NULL,
     flip_negatives = FALSE, x_cutoff = NULL, y_cutoff = 0.05, split_by = NULL, split_by_sep = "_",
     x_cutoff_name = NULL, y_cutoff_name = NULL, x_cutoff_color = "red2", y_cutoff_color = "blue2",
     x_cutoff_linetype = "dashed", y_cutoff_linetype = "dashed", x_cutoff_linewidth = 0.5, y_cutoff_linewidth = 0.5,
@@ -414,7 +419,7 @@ VolcanoPlot <- function(
             }
             VolcanoPlotAtomic(datas[[nm]],
                 x = x, y = y, ytrans = ytrans, color_by = color_by, color_name = color_name,
-                flip_negatives = flip_negatives, x_cutoff = x_cutoff, y_cutoff = y_cutoff, trim = trim,
+                flip_negatives = flip_negatives, x_cutoff = x_cutoff, y_cutoff = y_cutoff, trim = trim, xlim = xlim,
                 x_cutoff_name = x_cutoff_name, y_cutoff_name = y_cutoff_name, x_cutoff_color = x_cutoff_color, y_cutoff_color = y_cutoff_color,
                 x_cutoff_linetype = x_cutoff_linetype, y_cutoff_linetype = y_cutoff_linetype, x_cutoff_linewidth = x_cutoff_linewidth, y_cutoff_linewidth = y_cutoff_linewidth,
                 pt_size = pt_size, pt_alpha = pt_alpha, nlabel = nlabel, labels = labels, label_size = label_size, label_fg = label_fg, label_bg = label_bg,

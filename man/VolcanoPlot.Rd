@@ -11,6 +11,7 @@ VolcanoPlot(
   ytrans = function(n) -log10(n),
   color_by = NULL,
   color_name = NULL,
+  xlim = NULL,
   flip_negatives = FALSE,
   x_cutoff = NULL,
   y_cutoff = 0.05,
@@ -75,6 +76,8 @@ VolcanoPlot(
 If NULL, the points will be filled by the x and y cutoff value.}
 
 \item{color_name}{A character string to name the legend of color.}
+
+\item{xlim}{A numeric vector of length 2 to set the x-axis limits.}
 
 \item{flip_negatives}{A logical value to flip the y-axis for negative x values.}
 
