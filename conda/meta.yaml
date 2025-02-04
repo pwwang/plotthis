@@ -1,10 +1,10 @@
 package:
   name: r-plotthis
-  version: 0.5.0
+  version: 0.5.1
 
 source:
   git_url: https://github.com/pwwang/plotthis
-  git_rev: 0.5.0
+  git_rev: 0.5.1
 
 build:
   number: 1
