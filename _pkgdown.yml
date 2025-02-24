@@ -28,6 +28,7 @@ reference:
     - LinePlot
     - LollipopPlot
     - Network
+    - QQPlot
     - RidgePlot
     - PieChart
     - RadarPlot

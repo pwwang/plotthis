@@ -38,7 +38,7 @@ $ conda install pwwang::r-plotthis
 
 ![](man/figures/cor-corpairs.png)
 
-[`PieChart`][7] / [`RingPlot`][8]
+[`PieChart`][7] / [`RingPlot`][8] / [`QQPlot`][29]
 
 ![](man/figures/pie-ring.png)
 
@@ -115,3 +115,4 @@ $ conda install pwwang::r-plotthis
 [26]: https://pwwang.github.io/plotthis/reference/RarefactionPlot.html
 [27]: https://pwwang.github.io/plotthis/reference/Network.html
 [28]: https://pwwang.github.io/plotthis/reference/ROCCurve.html
+[29]: https://pwwang.github.io/plotthis/reference/QQPlot.html

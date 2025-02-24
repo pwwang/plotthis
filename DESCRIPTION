@@ -54,6 +54,7 @@ Suggests:
     ggforce,
     ggraph,
     ggridges,
+    qqplotr,
     hexbin,
     igraph,
     iNEXT,
