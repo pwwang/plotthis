@@ -243,6 +243,8 @@ data <- data.frame(D = D.ex, D.str = c("Healthy", "Ill")[D.ex + 1],
   gender = gender, M1 = M1, M2 = M2)
 
 ROCCurve(data, truth_by = "D", score_by = "M1")
+# will warn about the positive label
+ROCCurve(data, truth_by = "D.str", score_by = "M1")
 ROCCurve(data, truth_by = "D", score_by = "M1", increasing = FALSE)
 # Multiple ROC curves
 ROCCurve(data, truth_by = "D", score_by = c("M1", "M2"), group_name = "Method")

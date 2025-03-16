@@ -38,7 +38,17 @@ get_cutoffs_data <- function(
     )
 
     # Get sensitivity and specificity for given cutoff
-    get_se_sp <- function(df, cutoff) {
+    get_se_sp <- function(df, cutoff, cutoff_in = NULL) {
+        cutoff_in <- cutoff_in %||% cutoff
+        if (is.na(cutoff)) {
+            stop("[ROCCurve] Invalid cutoffs_at '", cutoff_in, "', which numerized as NA.")
+        }
+        min_score <- min(df[[score_by]], na.rm = TRUE)
+        max_score <- max(df[[score_by]], na.rm = TRUE)
+        if (cutoff > max_score || cutoff < min_score) {
+            stop("[ROCCurve] Invalid cutoffs_at '", cutoff_in, "', which is out of range of the score [", min_score, ", ", max_score, "].")
+        }
+
         if (increasing) {
             tp <- sum(df[[truth_by]] == 1 & df[[score_by]] >= cutoff)
             fp <- sum(df[[truth_by]] == 0 & df[[score_by]] >= cutoff)
@@ -60,9 +70,9 @@ get_cutoffs_data <- function(
     # for a given method
     get_cutoff <- function(df, cutoff, label) {
         if (!cutoff %in% cutoff_methods) {
-            cutoff <- as.numeric(cutoff)
-            se_sp <- get_se_sp(df, cutoff)
-            label <- label %||% scales::number(cutoff, accuracy = cutoffs_accuracy)
+            cutoff_num <- as.numeric(cutoff)
+            se_sp <- get_se_sp(df, cutoff_num, cutoff)
+            label <- label %||% scales::number(cutoff_num, accuracy = cutoffs_accuracy)
         } else {
             cutofff_info <- OptimalCutpoints::optimal.cutpoints(
                 X = score_by, status = truth_by, methods = cutoff, data = as.data.frame(df),
@@ -74,7 +84,7 @@ get_cutoffs_data <- function(
                 warning("No optimal cutoff found for ", cutoff, immediate. = TRUE)
                 NA
             })
-            se_sp <- get_se_sp(df, cutoff_num)
+            se_sp <- get_se_sp(df, cutoff_num, cutoff)
             label <- label %||% paste0(scales::number(cutoff_num, cutoffs_accuracy), " (by ", cutoff, ")")
         }
         c(se_sp, label = label)
@@ -196,6 +206,25 @@ ROCCurveAtomic <- function(data, truth_by, score_by, pos_label = NULL,
 
     if (!is.null(pos_label)) {
         data[[truth_by]] <- factor(data[[truth_by]], levels = c(setdiff(unique(data[[truth_by]]), pos_label), pos_label))
+        data[[truth_by]] <- as.numeric(data[[truth_by]]) - 1
+    } else if (is.factor(data[[truth_by]])) {
+        warning(
+            "'pos_label' is NULL, the last level of '",
+            truth_by,
+            "' (",
+            levels(data[[truth_by]])[length(levels(data[[truth_by]]))],
+            ") will be used as the positive label."
+        )
+        data[[truth_by]] <- as.numeric(data[[truth_by]]) - 1
+    } else if (!is.numeric(data[[truth_by]])) {
+        data[[truth_by]] <- factor(data[[truth_by]])
+        warning(
+            "'pos_label' is NULL, value '",
+            levels(data[[truth_by]])[length(levels(data[[truth_by]]))],
+            "' from '",
+            truth_by,
+            "' will be used as the positive label."
+        )
         data[[truth_by]] <- as.numeric(data[[truth_by]]) - 1
     }
 
@@ -368,6 +397,8 @@ ROCCurveAtomic <- function(data, truth_by, score_by, pos_label = NULL,
 #'   gender = gender, M1 = M1, M2 = M2)
 #'
 #' ROCCurve(data, truth_by = "D", score_by = "M1")
+#' # will warn about the positive label
+#' ROCCurve(data, truth_by = "D.str", score_by = "M1")
 #' ROCCurve(data, truth_by = "D", score_by = "M1", increasing = FALSE)
 #' # Multiple ROC curves
 #' ROCCurve(data, truth_by = "D", score_by = c("M1", "M2"), group_name = "Method")
