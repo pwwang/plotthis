@@ -380,32 +380,36 @@ If <code>combine</code> is <code>FALSE</code>, The AUC value of each plot can be
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">ROCCurve</span><span class="op">(</span><span class="va">data</span>, truth_by <span class="op">=</span> <span class="st">"D"</span>, score_by <span class="op">=</span> <span class="st">"M1"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="ROCCurve-1.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">ROCCurve</span><span class="op">(</span><span class="va">data</span>, truth_by <span class="op">=</span> <span class="st">"D"</span>, score_by <span class="op">=</span> <span class="st">"M1"</span>, increasing <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># will warn about the positive label</span></span></span>
+<span class="r-in"><span><span class="fu">ROCCurve</span><span class="op">(</span><span class="va">data</span>, truth_by <span class="op">=</span> <span class="st">"D.str"</span>, score_by <span class="op">=</span> <span class="st">"M1"</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>'pos_label' is NULL, value 'Ill' from 'D.str' will be used as the positive label.</span>
 <span class="r-plt img"><img src="ROCCurve-2.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">ROCCurve</span><span class="op">(</span><span class="va">data</span>, truth_by <span class="op">=</span> <span class="st">"D"</span>, score_by <span class="op">=</span> <span class="st">"M1"</span>, increasing <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="ROCCurve-3.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># Multiple ROC curves</span></span></span>
 <span class="r-in"><span><span class="fu">ROCCurve</span><span class="op">(</span><span class="va">data</span>, truth_by <span class="op">=</span> <span class="st">"D"</span>, score_by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"M1"</span>, <span class="st">"M2"</span><span class="op">)</span>, group_name <span class="op">=</span> <span class="st">"Method"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="ROCCurve-3.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">ROCCurve</span><span class="op">(</span><span class="va">data</span>, truth_by <span class="op">=</span> <span class="st">"D"</span>, score_by <span class="op">=</span> <span class="st">"M1"</span>, group_by <span class="op">=</span> <span class="st">"gender"</span>, show_auc <span class="op">=</span> <span class="st">"plot"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="ROCCurve-4.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">ROCCurve</span><span class="op">(</span><span class="va">data</span>, truth_by <span class="op">=</span> <span class="st">"D"</span>, score_by <span class="op">=</span> <span class="st">"M1"</span>, group_by <span class="op">=</span> <span class="st">"gender"</span>, show_auc <span class="op">=</span> <span class="st">"plot"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="ROCCurve-5.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># Reverse the x-axis and display the axes as percentages</span></span></span>
 <span class="r-in"><span><span class="fu">ROCCurve</span><span class="op">(</span><span class="va">data</span>, truth_by <span class="op">=</span> <span class="st">"D"</span>, score_by <span class="op">=</span> <span class="st">"M1"</span>, x_axis_reverse <span class="op">=</span> <span class="cn">TRUE</span>, percent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="ROCCurve-5.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="ROCCurve-6.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># Pass additional arguments to geom_roc and make the curve black</span></span></span>
 <span class="r-in"><span><span class="fu">ROCCurve</span><span class="op">(</span><span class="va">data</span>, truth_by <span class="op">=</span> <span class="st">"D"</span>, score_by <span class="op">=</span> <span class="st">"M1"</span>, n_cuts <span class="op">=</span> <span class="fl">10</span>, palcolor <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="ROCCurve-6.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="ROCCurve-7.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># Add confidence intervals</span></span></span>
 <span class="r-in"><span><span class="fu">ROCCurve</span><span class="op">(</span><span class="va">data</span>, truth_by <span class="op">=</span> <span class="st">"D"</span>, score_by <span class="op">=</span> <span class="st">"M1"</span>, ci <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sig.level <span class="op">=</span> <span class="fl">.01</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="ROCCurve-7.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="ROCCurve-8.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># Facet by a column</span></span></span>
 <span class="r-in"><span><span class="fu">ROCCurve</span><span class="op">(</span><span class="va">data</span>, truth_by <span class="op">=</span> <span class="st">"D"</span>, score_by <span class="op">=</span> <span class="st">"M1"</span>, facet_by <span class="op">=</span> <span class="st">"gender"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="ROCCurve-8.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="ROCCurve-9.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># Show cutoffs</span></span></span>
 <span class="r-in"><span><span class="fu">ROCCurve</span><span class="op">(</span><span class="va">data</span>, truth_by <span class="op">=</span> <span class="st">"D"</span>, score_by <span class="op">=</span> <span class="st">"M1"</span>, cutoffs_at <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="st">"ROC01"</span>, <span class="st">"SpEqualSe"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="ROCCurve-9.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="ROCCurve-10.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># Split by a column</span></span></span>
 <span class="r-in"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">ROCCurve</span><span class="op">(</span><span class="va">data</span>, truth_by <span class="op">=</span> <span class="st">"D"</span>, score_by <span class="op">=</span> <span class="st">"M1"</span>, split_by <span class="op">=</span> <span class="st">"gender"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">p</span></span></span>
-<span class="r-plt img"><img src="ROCCurve-10.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="ROCCurve-11.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># Retrieve the AUC values</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"auc"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   PANEL group ..group       AUC gender</span>
