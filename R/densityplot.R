@@ -337,6 +337,8 @@ RidgePlot <- function(
 
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
+    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
+    legend.position <- check_legend(legend.position, names(datas), "legend.position")
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -351,7 +353,7 @@ RidgePlot <- function(
                 flip = flip, alpha = alpha, theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, x_text_angle = x_text_angle, keep_empty = keep_empty,
                 reverse = reverse, facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow,
-                aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction, ...
+                aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]], ...
             )
         }
     )
@@ -405,6 +407,8 @@ DensityPlot <- function(
 
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
+    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
+    legend.position <- check_legend(legend.position, names(datas), "legend.position")
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -421,7 +425,7 @@ DensityPlot <- function(
                 palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha, theme = theme, theme_args = theme_args,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, expand = expand,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                legend.position = legend.position, legend.direction = legend.direction, ...
+                legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]], ...
             )
         }
     )
@@ -476,6 +480,8 @@ Histogram <- function(
 
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
+    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
+    legend.position <- check_legend(legend.position, names(datas), "legend.position")
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -494,7 +500,7 @@ Histogram <- function(
                 palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha, theme = theme, theme_args = theme_args,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                legend.position = legend.position, legend.direction = legend.direction, ...
+                legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]], ...
             )
         }
     )

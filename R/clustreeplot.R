@@ -195,6 +195,8 @@ ClustreePlot <- function(
 
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
+    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
+    legend.position <- check_legend(legend.position, names(datas), "legend.position")
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -207,7 +209,8 @@ ClustreePlot <- function(
             ClustreePlotAtomic(datas[[nm]],
                 prefix = prefix, flip = flip, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 edge_palette = edge_palette, edge_palcolor = edge_palcolor, expand = expand,
-                aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
+                aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]],
+                legend.direction = legend.direction[[nm]],
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
                 theme = theme, theme_args = theme_args, ...
             )

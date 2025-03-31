@@ -176,4 +176,7 @@ AreaPlot(data, x = "x", y = "y", group_by = "group",
          scale_y = TRUE)
 AreaPlot(data, x = "x", y = "y", split_by = "group")
 AreaPlot(data, x = "x", y = "y", split_by = "group", palette = c(F1 = "Blues", F2 = "Reds"))
+AreaPlot(data, x = "x", y = "y", group_by = "group", split_by = "split",
+    legend.direction = c(X = "horizontal", Y = "vertical"),
+    legend.position = c(X = "top", Y = "right"))
 }

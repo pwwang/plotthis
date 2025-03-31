@@ -604,6 +604,8 @@ EnrichMap <- function(
     }
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
+    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
+    legend.position <- check_legend(legend.position, names(datas), "legend.position")
 
     plots <- lapply(
         names(datas),
@@ -620,7 +622,7 @@ EnrichMap <- function(
                 cluster = cluster, show_keyword = show_keyword, nlabel = nlabel, character_width = character_width,
                 mark = mark, label = label, labelsize = labelsize, expand = expand,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
-                aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
+                aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, ...
             )
         }
@@ -675,6 +677,8 @@ EnrichNetwork <- function(
     }
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
+    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
+    legend.position <- check_legend(legend.position, names(datas), "legend.position")
 
     plots <- lapply(
         names(datas),
@@ -690,7 +694,7 @@ EnrichNetwork <- function(
                 top_term = top_term, metric = metric, character_width = character_width,
                 layout = layout, layoutadjust = layoutadjust, adjscale = adjscale, adjiter = adjiter, blendmode = blendmode,
                 labelsize = labelsize, theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
-                aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
+                aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, ...
             )
         }

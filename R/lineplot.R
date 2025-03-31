@@ -449,6 +449,8 @@ LinePlot <- function(
     }
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
+    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
+    legend.position <- check_legend(legend.position, names(datas), "legend.position")
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -471,7 +473,7 @@ LinePlot <- function(
                 line_type = line_type, line_width = line_width, line_alpha = line_alpha,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
-                legend.position = legend.position, legend.direction = legend.direction, facet_args = facet_args,
+                legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]], facet_args = facet_args,
                 facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...
             )

@@ -857,6 +857,8 @@ DimPlot <- function(
     }
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
+    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
+    legend.position <- check_legend(legend.position, names(datas), "legend.position")
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -885,7 +887,7 @@ DimPlot <- function(
                 lineages_whiskers = lineages_whiskers, lineages_whiskers_linewidth = lineages_whiskers_linewidth, lineages_whiskers_alpha = lineages_whiskers_alpha,
                 facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
-                theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
+                theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                 raster = raster, raster_dpi = raster_dpi,
                 hex = hex, hex_linewidth = hex_linewidth, hex_count = hex_count, hex_bins = hex_bins, hex_binwidth = hex_binwidth,
                 palette = palette[[nm]], palcolor = palcolor[[nm]], seed = seed, ...
@@ -1001,6 +1003,8 @@ FeatureDimPlot <- function(
         }
         palette <- check_palette(palette, names(datas))
         palcolor <- check_palcolor(palcolor, names(datas))
+        legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
+        legend.position <- check_legend(legend.position, names(datas), "legend.position")
 
         plots <- lapply(
             names(datas), function(nm) {
@@ -1030,7 +1034,7 @@ FeatureDimPlot <- function(
                     lineages_whiskers = lineages_whiskers, lineages_whiskers_linewidth = lineages_whiskers_linewidth, lineages_whiskers_alpha = lineages_whiskers_alpha,
                     facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
                     title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
-                    theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
+                    theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                     raster = raster, raster_dpi = raster_dpi,
                     hex = hex, hex_linewidth = hex_linewidth, hex_count = hex_count, hex_bins = hex_bins, hex_binwidth = hex_binwidth,
                     palette = palette[[nm]], palcolor = palcolor[[nm]], seed = seed, ...

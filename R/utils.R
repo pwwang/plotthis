@@ -561,3 +561,37 @@ check_palcolor <- function(palcolor, datas_name) {
     # because they can be NULL
     return(palcolor)
 }
+
+
+#' check_legend
+#' Check if the legend.position and legend.direction are valid
+#' @param legend The value legend.position or legend.direction
+#' @param datas_name names of the split data
+#' @keywords internal
+#' @importFrom ggplot2 waiver
+#' @return named list containing legend names
+check_legend <- function(legend, datas_name, which = c("legend.position", "legend.direction")) {
+    which <- match.arg(which)
+    legend <- as.list(legend)
+
+    if (inherits(legend, "waiver")) {
+        legend <- list(legend)
+    }
+
+    if (length(legend) == 1 && length(datas_name) > 1) {
+        legend <- rep(legend, length(datas_name))
+    }
+    if (length(legend) < length(datas_name)) {
+        stop("The length of ", which, " (", length(legend), ") is less than the number ",
+            "(", length(datas_name), ") of unique values in 'split_by'")
+    }
+    if (is.null(names(legend))) {
+        names(legend)[1:length(datas_name)] <- datas_name
+    } else if (length(setdiff(datas_name, names(legend))) > 0) {
+        stop("Values in 'split_by' (",
+            paste(setdiff(datas_name, names(legend)), collapse = ", "), ") ",
+            "have no corresponding ", which, ".")
+    }
+
+    return(legend)
+}

@@ -166,6 +166,8 @@ TrendPlot <- function(
     }
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
+    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
+    legend.position <- check_legend(legend.position, names(datas), "legend.position")
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -179,8 +181,8 @@ TrendPlot <- function(
                 x = x, y = y, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name, scale_y = scale_y,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, ...
+                x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]],
+                legend.direction = legend.direction[[nm]], title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, ...
             )
         }
     )
