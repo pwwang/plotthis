@@ -4,7 +4,17 @@
 \alias{combine_plots}
 \title{Combine plots into one}
 \usage{
-combine_plots(plots, combine, nrow, ncol, byrow, recalc_size = TRUE)
+combine_plots(
+  plots,
+  combine,
+  nrow,
+  ncol,
+  byrow,
+  axes,
+  axis_titles,
+  guides,
+  recalc_size = TRUE
+)
 }
 \arguments{
 \item{plots}{A list of plots}

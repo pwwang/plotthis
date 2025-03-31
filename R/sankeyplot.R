@@ -462,7 +462,8 @@ SankeyPlot <- function(
     legend.position = "right", legend.direction = "vertical", flip = FALSE, theme = "theme_this", theme_args = list(),
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...
+    seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
+    axes = NULL, axis_titles = axes, guides = NULL, ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
     theme <- process_theme(theme)
@@ -502,7 +503,8 @@ SankeyPlot <- function(
         }
     )
 
-    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
+    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+        axes = axes, axis_titles = axis_titles, guides = guides)
 }
 
 

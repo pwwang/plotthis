@@ -183,7 +183,8 @@ ChordPlot <- function(
     split_by = NULL, split_by_sep = "_", flip = FALSE, links_color = c("from", "to"),
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 0.5,
     labels_rot = FALSE, title = NULL, subtitle = NULL, seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...
+    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
+    axes = NULL, axis_titles = axes, guides = NULL, ...
 ) {
     validate_common_args(seed)
     theme <- process_theme(theme)
@@ -217,7 +218,8 @@ ChordPlot <- function(
         }
     )
 
-    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
+    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+        axes = axes, axis_titles = axis_titles, guides = guides)
 }
 
 #' @export

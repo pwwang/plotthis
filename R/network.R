@@ -488,7 +488,8 @@ Network <- function(
     arrow = ggplot2::arrow(type = "closed", length = ggplot2::unit(0.1, "inches")),
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, aspect.ratio = 1,
     theme = "theme_this", theme_args = list(), legend.position = "right", legend.direction = "vertical",
-    seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...
+    seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
+    axes = NULL, axis_titles = axes, guides = NULL, ...
 ) {
     validate_common_args(seed = seed)
     theme <- process_theme(theme)
@@ -564,5 +565,6 @@ Network <- function(
         )
     })
 
-    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
+    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+        axes = axes, axis_titles = axis_titles, guides = guides)
 }

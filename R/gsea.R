@@ -528,7 +528,8 @@ GSEAPlot <- function(
     line_width = 1.5, line_alpha = 1, line_color = "#6BB82D", n_coregenes = 10, genes_label = NULL,
     label_fg = "black", label_bg = "white", label_bg_r = 0.1, label_size = 4,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525, ...) {
+    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525,
+    axes = NULL, axis_titles = axes, guides = NULL, ...) {
     set.seed(seed)
     if (inherits(data, "gseaResult")) {
         data <- as.data.frame(data)
@@ -563,5 +564,6 @@ GSEAPlot <- function(
         )
     })
 
-    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
+    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+        axes = axes, axis_titles = axis_titles, guides = guides)
 }

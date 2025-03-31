@@ -59,6 +59,24 @@
 #' @param nrow A numeric value specifying the number of rows in the facet.
 #' @param ncol A numeric value specifying the number of columns in the facet.
 #' @param byrow A logical value indicating whether to fill the plots by row.
+#' @param axes A string specifying how axes should be treated. Passed to [`patchwork::wrap_plots()`].
+#'   Only relevant when `split_by` is used and `combine` is TRUE.
+#'   Options are:
+#'   * 'keep' will retain all axes in individual plots.
+#'   * 'collect' will remove duplicated axes when placed in the same run of rows or columns of the layout.
+#'   * 'collect_x' and 'collect_y' will remove duplicated x-axes in the columns or duplicated y-axes in the rows respectively.
+#' @param axis_titles A string specifying how axis titltes should be treated. Passed to [`patchwork::wrap_plots()`].
+#'   Only relevant when `split_by` is used and `combine` is TRUE.
+#'   Options are:
+#'   * 'keep' will retain all axis titles in individual plots.
+#'   * 'collect' will remove duplicated titles in one direction and merge titles in the opposite direction.
+#'   * 'collect_x' and 'collect_y' control this for x-axis titles and y-axis titles respectively.
+#' @param guides A string specifying how guides should be treated in the layout. Passed to [`patchwork::wrap_plots()`].
+#'   Only relevant when `split_by` is used and `combine` is TRUE.
+#'   Options are:
+#'   * 'collect' will collect guides below to the given nesting level, removing duplicates.
+#'   * 'keep' will stop collection at this level and let guides be placed alongside their plot.
+#'   * 'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.
 #' @param seed The random seed to use. Default is 8525.
 #' @param ... Additional arguments.
 #' @keywords internal

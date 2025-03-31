@@ -1529,7 +1529,7 @@ Heatmap <- function(
     row_annotation_type = "auto", row_annotation_params = list(), row_annotation_agg = NULL,
     add_reticle = FALSE, reticle_color = "grey",
     palette = "RdBu", palcolor = NULL, alpha = 1, legend.position = "right", legend.direction = "vertical",
-    seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...
+    seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, ...
 ) {
     validate_common_args(seed)
     if (is.null(split_by)) { split_rows_data <- FALSE }
@@ -1607,5 +1607,6 @@ Heatmap <- function(
         }
     )
 
-    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
+    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+        axes = axes, axis_titles = axis_titles, guides = guides)
 }

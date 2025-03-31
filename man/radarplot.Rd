@@ -43,6 +43,9 @@ RadarPlot(
   nrow = NULL,
   ncol = NULL,
   byrow = TRUE,
+  axes = NULL,
+  axis_titles = axes,
+  guides = NULL,
   ...
 )
 
@@ -84,6 +87,9 @@ SpiderPlot(
   nrow = NULL,
   ncol = NULL,
   byrow = TRUE,
+  axes = NULL,
+  axis_titles = axes,
+  guides = NULL,
   ...
 )
 }
@@ -182,6 +188,33 @@ This is useful when split_by is used and the title needs to be dynamic.}
 \item{ncol}{A numeric value specifying the number of columns in the facet.}
 
 \item{byrow}{A logical value indicating whether to fill the plots by row.}
+
+\item{axes}{A string specifying how axes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
+Only relevant when \code{split_by} is used and \code{combine} is TRUE.
+Options are:
+\itemize{
+\item 'keep' will retain all axes in individual plots.
+\item 'collect' will remove duplicated axes when placed in the same run of rows or columns of the layout.
+\item 'collect_x' and 'collect_y' will remove duplicated x-axes in the columns or duplicated y-axes in the rows respectively.
+}}
+
+\item{axis_titles}{A string specifying how axis titltes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
+Only relevant when \code{split_by} is used and \code{combine} is TRUE.
+Options are:
+\itemize{
+\item 'keep' will retain all axis titles in individual plots.
+\item 'collect' will remove duplicated titles in one direction and merge titles in the opposite direction.
+\item 'collect_x' and 'collect_y' control this for x-axis titles and y-axis titles respectively.
+}}
+
+\item{guides}{A string specifying how guides should be treated in the layout. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
+Only relevant when \code{split_by} is used and \code{combine} is TRUE.
+Options are:
+\itemize{
+\item 'collect' will collect guides below to the given nesting level, removing duplicates.
+\item 'keep' will stop collection at this level and let guides be placed alongside their plot.
+\item 'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.
+}}
 
 \item{...}{Additional arguments.}
 }

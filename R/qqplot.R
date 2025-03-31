@@ -251,6 +251,7 @@ QQPlot <- function(
     xlab = ifelse(type == "qq", "Theoretical Quantiles", "Probability Points"),
     ylab = ifelse(type == "qq", "Sample Quantiles", "Cumulative Probability"),
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525,
+    axes = NULL, axis_titles = axes, guides = NULL,
     ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
@@ -288,5 +289,6 @@ QQPlot <- function(
         }
     )
 
-    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
+    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+        axes = axes, axis_titles = axis_titles, guides = guides)
 }

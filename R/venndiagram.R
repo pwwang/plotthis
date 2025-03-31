@@ -309,7 +309,8 @@ VennDiagram <- function(
     palette = ifelse(fill_mode == "set", "Paired", "Spectral"), palcolor = NULL, alpha = 1,
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL,
     legend.position = "right", legend.direction = "vertical",
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525, ...
+    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525,
+    axes = NULL, axis_titles = axes, guides = NULL, ...
 ) {
     validate_common_args(seed)
     theme <- process_theme(theme)
@@ -350,5 +351,6 @@ VennDiagram <- function(
         }
     )
 
-    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
+    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+        axes = axes, axis_titles = axis_titles, guides = guides)
 }

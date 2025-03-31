@@ -450,6 +450,10 @@ BarPlotAtomic <- function(
 #'     facet_by = "facet", position = "dodge", facet_ncol = 1
 #' )
 #' BarPlot(data,
+#'     x = "x", y = "y", split_by = "group", facet_by = "facet",
+#'     position = "dodge", facet_ncol = 1, guides = 'collect'
+#' )
+#' BarPlot(data,
 #'     x = "x", y = "y", split_by = "group",
 #'     palette = list(G1 = "Reds", G2 = "Blues", G3 = "Greens", G4 = "Purp"),
 #'     facet_by = "facet", position = "dodge", facet_ncol = 1
@@ -475,7 +479,8 @@ BarPlot <- function(
     position = "auto", position_dodge_preserve = "total",
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
-    expand = waiver(), width = waiver(), combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525, ...) {
+    expand = waiver(), width = waiver(), combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525,
+    axes = NULL, axis_titles = axes, guides = NULL, ...) {
     validate_common_args(seed, facet_by = facet_by)
     theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
@@ -516,7 +521,8 @@ BarPlot <- function(
         }
     )
 
-    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
+    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+        axes = axes, axis_titles = axis_titles, guides = guides)
 }
 
 #' SplitBarPlotAtomic
@@ -741,7 +747,8 @@ SplitBarPlot <- function(
     aspect.ratio = 1, x_min = NULL, x_max = NULL,
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525, ...
+    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525,
+    axes = NULL, axis_titles = axes, guides = NULL, ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
     theme <- process_theme(theme)
@@ -782,7 +789,8 @@ SplitBarPlot <- function(
         }
     )
 
-    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
+    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+        axes = axes, axis_titles = axis_titles, guides = guides)
 }
 
 #' @rdname barplot

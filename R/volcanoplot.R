@@ -391,7 +391,8 @@ VolcanoPlot <- function(
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical", seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...
+    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
+    axes = NULL, axis_titles = axes, guides = NULL, ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
     theme <- process_theme(theme)
@@ -433,5 +434,6 @@ VolcanoPlot <- function(
         }
     )
 
-    combine_plots(plots, combine, nrow, ncol, byrow)
+    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+        axes = axes, axis_titles = axis_titles, guides = guides)
 }

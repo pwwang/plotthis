@@ -586,7 +586,8 @@ EnrichMap <- function(
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...
+    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
+    axes = NULL, axis_titles = axes, guides = NULL, ...
 ) {
     validate_common_args(seed)
     theme <- process_theme(theme)
@@ -625,7 +626,8 @@ EnrichMap <- function(
         }
     )
 
-    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
+    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+        axes = axes, axis_titles = axis_titles, guides = guides)
 }
 
 #' @rdname enrichmap1
@@ -655,7 +657,8 @@ EnrichNetwork <- function(
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...
+    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL,
+    ...
 ) {
     validate_common_args(seed)
     theme <- process_theme(theme)
@@ -693,5 +696,6 @@ EnrichNetwork <- function(
         }
     )
 
-    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
+    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+        axes = axes, axis_titles = axis_titles, guides = guides)
 }

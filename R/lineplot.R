@@ -428,7 +428,8 @@ LinePlot <- function(
     facet_by = NULL, facet_scales = "fixed",
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
     facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE, facet_args = list(),
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, seed = 8525, ...
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, seed = 8525,
+    axes = NULL, axis_titles = axes, guides = NULL, ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
     theme <- process_theme(theme)
@@ -477,5 +478,6 @@ LinePlot <- function(
         }
     )
 
-    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
+    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+        axes = axes, axis_titles = axis_titles, guides = guides)
 }

@@ -517,7 +517,8 @@ BoxViolinPlot <- function(
     sig_label = c("p.signif", "p.format"), sig_labelsize = 3.5,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...) {
+    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
+    axes = NULL, axis_titles = axes, guides = NULL, ...) {
     validate_common_args(seed)
     theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
@@ -567,7 +568,8 @@ BoxViolinPlot <- function(
         }
     )
 
-    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow)
+    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+        axes = axes, axis_titles = axis_titles, guides = guides)
 }
 
 #' Box / Violin Plot
@@ -633,7 +635,8 @@ BoxPlot <- function(
     sig_label = c("p.signif", "p.format"), sig_labelsize = 3.5,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...) {
+    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
+    axes = NULL, axis_titles = axes, guides = NULL, ...) {
     stat_name <- stat_name %||% paste0(y, " (", deparse(substitute(add_stat)), ")")
     BoxViolinPlot(
         data = data, x = x, x_sep = x_sep, y = y, base = "box", in_form = in_form,
@@ -653,7 +656,8 @@ BoxPlot <- function(
         multiplegroup_comparisons = multiplegroup_comparisons, multiple_method = multiple_method,
         sig_label = sig_label, sig_labelsize = sig_labelsize,
         facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow, ...
+        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+        axes = axes, axis_titles = axis_titles, guides = guides, ...
     )
 }
 
@@ -720,7 +724,8 @@ ViolinPlot <- function(
     sig_label = c("p.signif", "p.format"), sig_labelsize = 3.5,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, ...) {
+    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
+    axes = NULL, axis_titles = axes, guides = NULL, ...) {
     stat_name <- stat_name %||% paste0(y, " (", deparse(substitute(add_stat)), ")")
     BoxViolinPlot(
         data = data, x = x, x_sep = x_sep, y = y, base = "violin", in_form = in_form,
@@ -741,6 +746,7 @@ ViolinPlot <- function(
         multiplegroup_comparisons = multiplegroup_comparisons, multiple_method = multiple_method,
         sig_label = sig_label, sig_labelsize = sig_labelsize,
         facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow, ...
+        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+        axes = axes, axis_titles = axis_titles, guides = guides, ...
     )
 }
