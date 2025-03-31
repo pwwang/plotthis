@@ -118,7 +118,8 @@ AreaPlotAtomic <- function(
 #' data <- data.frame(
 #'     x = rep(c("A", "B", "C", "D"), 2),
 #'     y = c(1, 3, 6, 4, 2, 5, 7, 8),
-#'     group = rep(c("F1", "F2"), each = 4)
+#'     group = rep(c("F1", "F2"), each = 4),
+#'     split = rep(c("X", "Y"), 4)
 #' )
 #' AreaPlot(data, x = "x", y = "y", group_by = "group")
 #' AreaPlot(data, x = "x", y = "y", group_by = "group",
