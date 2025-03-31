@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">plotthis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -75,6 +75,9 @@
 <span>  nrow <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  byrow <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  axes <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  axis_titles <span class="op">=</span> <span class="va">axes</span>,</span>
+<span>  guides <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -227,6 +230,33 @@ This is useful when split_by is used and the title needs to be dynamic.</p></dd>
 
 <dt id="arg-byrow">byrow<a class="anchor" aria-label="anchor" href="#arg-byrow"></a></dt>
 <dd><p>A logical value indicating whether to fill the plots by row.</p></dd>
+
+
+<dt id="arg-axes">axes<a class="anchor" aria-label="anchor" href="#arg-axes"></a></dt>
+<dd><p>A string specifying how axes should be treated. Passed to <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">patchwork::wrap_plots()</a></code>.
+Only relevant when <code>split_by</code> is used and <code>combine</code> is TRUE.
+Options are:</p><ul><li><p>'keep' will retain all axes in individual plots.</p></li>
+<li><p>'collect' will remove duplicated axes when placed in the same run of rows or columns of the layout.</p></li>
+<li><p>'collect_x' and 'collect_y' will remove duplicated x-axes in the columns or duplicated y-axes in the rows respectively.</p></li>
+</ul></dd>
+
+
+<dt id="arg-axis-titles">axis_titles<a class="anchor" aria-label="anchor" href="#arg-axis-titles"></a></dt>
+<dd><p>A string specifying how axis titltes should be treated. Passed to <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">patchwork::wrap_plots()</a></code>.
+Only relevant when <code>split_by</code> is used and <code>combine</code> is TRUE.
+Options are:</p><ul><li><p>'keep' will retain all axis titles in individual plots.</p></li>
+<li><p>'collect' will remove duplicated titles in one direction and merge titles in the opposite direction.</p></li>
+<li><p>'collect_x' and 'collect_y' control this for x-axis titles and y-axis titles respectively.</p></li>
+</ul></dd>
+
+
+<dt id="arg-guides">guides<a class="anchor" aria-label="anchor" href="#arg-guides"></a></dt>
+<dd><p>A string specifying how guides should be treated in the layout. Passed to <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">patchwork::wrap_plots()</a></code>.
+Only relevant when <code>split_by</code> is used and <code>combine</code> is TRUE.
+Options are:</p><ul><li><p>'collect' will collect guides below to the given nesting level, removing duplicates.</p></li>
+<li><p>'keep' will stop collection at this level and let guides be placed alongside their plot.</p></li>
+<li><p>'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.</p></li>
+</ul></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
