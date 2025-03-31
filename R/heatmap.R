@@ -1388,11 +1388,21 @@ HeatmapAtomic <- function(
 
     p <- do.call(ComplexHeatmap::Heatmap, hmargs)
     if (isTRUE(return_grob)) {
+        if (identical(legend.position, "none")) {
+            p <- grid.grabExpr(ComplexHeatmap::draw(p, annotation_legend_list = legends,
+            show_annotation_legend = FALSE, column_title = title))
+        } else {
         p <- grid.grabExpr(ComplexHeatmap::draw(p, annotation_legend_list = legends,
             annotation_legend_side = legend.position, column_title = title))
+        }
+    } else {
+        if (identical(legend.position, "none")) {
+            p <- ComplexHeatmap::draw(p, annotation_legend_list = legends,
+                show_annotation_legend = FALSE, column_title = title)
     } else {
         p <- ComplexHeatmap::draw(p, annotation_legend_list = legends,
             annotation_legend_side = legend.position, column_title = title)
+        }
     }
 
     attr(p, "height") <- max(height, 4)
