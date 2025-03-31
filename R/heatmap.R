@@ -1546,7 +1546,10 @@ Heatmap <- function(
     }
 
     if (!is.null(split_by)) {
+        columns_by <- check_columns(data, columns_by, force_factor = TRUE, allow_multi = TRUE,
+            concat_multi = TRUE, concat_sep = columns_by_sep)
         datas <- split(data, data[[d_split_by]])
+
         if (isTRUE(split_rows_data) && !is.null(rows_data)) {
             rows_datas <- split(rows_data, rows_data[[d_split_by]])
             nms <- names(datas)
