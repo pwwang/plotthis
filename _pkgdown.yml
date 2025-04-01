@@ -27,6 +27,7 @@ reference:
     - Histogram
     - LinePlot
     - LollipopPlot
+    - ManhattanPlot
     - Network
     - QQPlot
     - RidgePlot
