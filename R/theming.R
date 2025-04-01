@@ -254,7 +254,11 @@ palette_this <- function(
     }
 
     if (isTRUE(reverse)) {
-        color <- rev(color)
+        if (!is.null(names(color))) {
+            color <- setNames(rev(color), names(color))
+        } else {
+            color <- rev(color)
+        }
     }
     if (!isTRUE(NA_keep)) {
         color <- color[names(color) != "NA"]
