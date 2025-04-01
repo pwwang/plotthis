@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   articles/all-palettes: all-palettes.html
   articles/basic-design: basic-design.html
-last_built: 2025-03-31T21:33Z
+last_built: 2025-04-01T21:38Z
 urls:
   reference: https://pwwang.github.io/plotthis/reference
   article: https://pwwang.github.io/plotthis/articles
