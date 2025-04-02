@@ -86,6 +86,10 @@ $ conda install pwwang::r-plotthis
 
 ![](man/figures/sankey-alluvial.png)
 
+[`ManhattanPlot`][30]
+
+![](man/figures/manh.png)
+
 
 [1]: https://zhanghao-njmu.github.io/SCP/index.html
 [2]: https://pwwang.github.io/plotthis/reference/AreaPlot.html
@@ -116,3 +120,4 @@ $ conda install pwwang::r-plotthis
 [27]: https://pwwang.github.io/plotthis/reference/Network.html
 [28]: https://pwwang.github.io/plotthis/reference/ROCCurve.html
 [29]: https://pwwang.github.io/plotthis/reference/QQPlot.html
+[30]: https://pwwang.github.io/plotthis/reference/ManhattanPlot.html
