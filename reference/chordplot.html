@@ -72,6 +72,7 @@ CircosPlot is an alias of ChordPlot."><meta property="og:image" content="https:/
 <span>  axes <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  axis_titles <span class="op">=</span> <span class="va">axes</span>,</span>
 <span>  guides <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  design <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -102,6 +103,7 @@ CircosPlot is an alias of ChordPlot."><meta property="og:image" content="https:/
 <span>  axes <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  axis_titles <span class="op">=</span> <span class="va">axes</span>,</span>
 <span>  guides <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  design <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -236,6 +238,12 @@ Options are:</p><ul><li><p>'collect' will collect guides below to the given nest
 <li><p>'keep' will stop collection at this level and let guides be placed alongside their plot.</p></li>
 <li><p>'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.</p></li>
 </ul></dd>
+
+
+<dt id="arg-design">design<a class="anchor" aria-label="anchor" href="#arg-design"></a></dt>
+<dd><p>Specification of the location of areas in the layout, passed to <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">patchwork::wrap_plots()</a></code>.
+Only relevant when <code>split_by</code> is used and <code>combine</code> is TRUE. When specified, <code>nrow</code>, <code>ncol</code>, and <code>byrow</code> are ignored.
+See <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">patchwork::wrap_plots()</a></code> for more details.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

@@ -139,6 +139,7 @@
 <span>  axes <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  axis_titles <span class="op">=</span> <span class="va">axes</span>,</span>
 <span>  guides <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  design <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -606,6 +607,12 @@ Options are:</p><ul><li><p>'collect' will collect guides below to the given nest
 </ul></dd>
 
 
+<dt id="arg-design">design<a class="anchor" aria-label="anchor" href="#arg-design"></a></dt>
+<dd><p>Specification of the location of areas in the layout, passed to <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">patchwork::wrap_plots()</a></code>.
+Only relevant when <code>split_by</code> is used and <code>combine</code> is TRUE. When specified, <code>nrow</code>, <code>ncol</code>, and <code>byrow</code> are ignored.
+See <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">patchwork::wrap_plots()</a></code> for more details.</p></dd>
+
+
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Additional arguments.</p></dd>
 
@@ -660,7 +667,9 @@ if <code>combine = TRUE</code>, otherwise, it returns a list of heatmaps.</p>
 <span class="r-plt img"><img src="Heatmap-3.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"p1"</span>, <span class="st">"p2"</span>, <span class="st">"p3"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="Heatmap-4.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, split_by <span class="op">=</span> <span class="st">"s"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, split_by <span class="op">=</span> <span class="st">"s"</span>,</span></span>
+<span class="r-in"><span>   upper_cutoff <span class="op">=</span> <span class="fl">2</span>, lower_cutoff <span class="op">=</span> <span class="op">-</span><span class="fl">2</span>, legend.position <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"right"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>   design <span class="op">=</span> <span class="st">"AAAAAA#BBBBBBB"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="Heatmap-5.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, columns_split_by <span class="op">=</span> <span class="st">"s"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="Heatmap-6.png" alt="" width="700" height="433"></span>
