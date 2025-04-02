@@ -65,10 +65,6 @@ BarPlotSingle <- function(
 
     x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
     y <- check_columns(data, y)
-    if (isTRUE(label)) {
-        label <- y
-    }
-    label <- check_columns(data, label)
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
     if (is.null(y)) {
         data <- data %>%
@@ -76,6 +72,10 @@ BarPlotSingle <- function(
             summarise(.y = n(), .groups = "drop")
         y <- ".y"
     }
+    if (isTRUE(label)) {
+        label <- y
+    }
+    label <- check_columns(data, label)
 
     if (keep_empty) {
         # fill y with 0 for empty x. 'drop' with scale_fill_* doesn't have color for empty x
