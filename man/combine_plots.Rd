@@ -7,12 +7,13 @@
 combine_plots(
   plots,
   combine,
-  nrow,
-  ncol,
-  byrow,
-  axes,
-  axis_titles,
-  guides,
+  nrow = NULL,
+  ncol = NULL,
+  byrow = NULL,
+  axes = NULL,
+  axis_titles = NULL,
+  guides = NULL,
+  design = NULL,
   recalc_size = TRUE
 )
 }

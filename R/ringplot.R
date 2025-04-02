@@ -153,7 +153,7 @@ RingPlot <- function(
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
-    seed = 8525, axes = NULL, axis_titles = axes, guides = NULL, ...
+    seed = 8525, axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
     theme <- process_theme(theme)
@@ -194,5 +194,5 @@ RingPlot <- function(
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides)
+        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
 }

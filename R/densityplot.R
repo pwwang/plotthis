@@ -319,7 +319,7 @@ RidgePlot <- function(
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = "none", legend.direction = "vertical",
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525,
-    axes = NULL, axis_titles = axes, guides = NULL, ...) {
+    axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...) {
 
     validate_common_args(seed, facet_by = facet_by)
     theme <- process_theme(theme)
@@ -359,7 +359,7 @@ RidgePlot <- function(
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides)
+        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
 }
 
 #' Density Plot / Histogram
@@ -391,7 +391,8 @@ DensityPlot <- function(
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(bottom = 0, left = 0, right = 0),
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     legend.position = ifelse(is.null(group_by), "none", "right"), legend.direction = "vertical", seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, ...) {
+    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
+    ...) {
     validate_common_args(seed, facet_by = facet_by)
     theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
@@ -431,7 +432,7 @@ DensityPlot <- function(
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides)
+        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
 }
 
 #' @rdname densityhistoplot
@@ -464,7 +465,8 @@ Histogram <- function(
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(bottom = 0, left = 0, right = 0),
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     legend.position = ifelse(is.null(group_by), "none", "right"), legend.direction = "vertical", seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, ...) {
+    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
+    ...) {
     validate_common_args(seed, facet_by = facet_by)
     theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
@@ -506,5 +508,5 @@ Histogram <- function(
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides)
+        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
 }

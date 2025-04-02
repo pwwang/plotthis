@@ -77,6 +77,9 @@
 #'   * 'collect' will collect guides below to the given nesting level, removing duplicates.
 #'   * 'keep' will stop collection at this level and let guides be placed alongside their plot.
 #'   * 'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.
+#' @param design Specification of the location of areas in the layout, passed to [`patchwork::wrap_plots()`].
+#'   Only relevant when `split_by` is used and `combine` is TRUE. When specified, `nrow`, `ncol`, and `byrow` are ignored.
+#'   See [`patchwork::wrap_plots()`] for more details.
 #' @param seed The random seed to use. Default is 8525.
 #' @param ... Additional arguments.
 #' @keywords internal

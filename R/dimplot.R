@@ -832,7 +832,8 @@ DimPlot <- function(
     raster = NULL, raster_dpi = c(512, 512),
     hex = FALSE, hex_linewidth = 0.5, hex_count = TRUE, hex_bins = 50, hex_binwidth = NULL,
     palette = "Paired", palcolor = NULL, seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, ...) {
+    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
+    ...) {
 
     validate_common_args(seed, facet_by = facet_by)
     theme <- process_theme(theme)
@@ -896,7 +897,7 @@ DimPlot <- function(
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides)
+        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
 }
 
 #' @export
@@ -949,7 +950,8 @@ FeatureDimPlot <- function(
     raster = NULL, raster_dpi = c(512, 512),
     hex = FALSE, hex_linewidth = 0.5, hex_count = FALSE, hex_bins = 50, hex_binwidth = NULL,
     palette = "Spectral", palcolor = NULL, seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, ...) {
+    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
+    ...) {
 
     validate_common_args(seed, facet_by = facet_by)
 
@@ -1044,5 +1046,5 @@ FeatureDimPlot <- function(
     }
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides)
+        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
 }

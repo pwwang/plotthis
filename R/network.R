@@ -489,7 +489,7 @@ Network <- function(
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, aspect.ratio = 1,
     theme = "theme_this", theme_args = list(), legend.position = "right", legend.direction = "vertical",
     seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
-    axes = NULL, axis_titles = axes, guides = NULL, ...
+    axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...
 ) {
     validate_common_args(seed = seed)
     theme <- process_theme(theme)
@@ -566,5 +566,5 @@ Network <- function(
     })
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides)
+        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
 }

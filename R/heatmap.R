@@ -1459,7 +1459,9 @@ HeatmapAtomic <- function(
 #' # Multiple columns_by, each as a split
 #' Heatmap(data, rows = rows, columns_by = c("c", "s"), columns_by_sep = "/")
 #' Heatmap(data, rows = rows, columns_by = c("p1", "p2", "p3"))
-#' Heatmap(data, rows = rows, columns_by = "c", split_by = "s")
+#' Heatmap(data, rows = rows, columns_by = "c", split_by = "s",
+#'    upper_cutoff = 2, lower_cutoff = -2, legend.position = c("none", "right"),
+#'    design = "AAAAAA#BBBBBBB")
 #' Heatmap(data, rows = rows, columns_by = "c", columns_split_by = "s")
 #' Heatmap(data, rows = rows, columns_by = "c", columns_split_by = "s",
 #'         rows_data = rows_data, rows_split_by = "rs")
@@ -1539,7 +1541,8 @@ Heatmap <- function(
     row_annotation_type = "auto", row_annotation_params = list(), row_annotation_agg = NULL,
     add_reticle = FALSE, reticle_color = "grey",
     palette = "RdBu", palcolor = NULL, alpha = 1, legend.position = "right", legend.direction = "vertical",
-    seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, ...
+    seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
+    ...
 ) {
     validate_common_args(seed)
     if (is.null(split_by)) { split_rows_data <- FALSE }
@@ -1623,5 +1626,5 @@ Heatmap <- function(
     )
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides)
+        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
 }

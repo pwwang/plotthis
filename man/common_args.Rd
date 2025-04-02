@@ -116,6 +116,10 @@ Options are:
 \item 'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.
 }}
 
+\item{design}{Specification of the location of areas in the layout, passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
+Only relevant when \code{split_by} is used and \code{combine} is TRUE. When specified, \code{nrow}, \code{ncol}, and \code{byrow} are ignored.
+See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details.}
+
 \item{seed}{The random seed to use. Default is 8525.}
 
 \item{...}{Additional arguments.}

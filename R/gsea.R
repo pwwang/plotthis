@@ -529,7 +529,7 @@ GSEAPlot <- function(
     label_fg = "black", label_bg = "white", label_bg_r = 0.1, label_size = 4,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525,
-    axes = NULL, axis_titles = axes, guides = NULL, ...) {
+    axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...) {
     set.seed(seed)
     if (inherits(data, "gseaResult")) {
         data <- as.data.frame(data)
@@ -565,5 +565,5 @@ GSEAPlot <- function(
     })
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides)
+        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
 }

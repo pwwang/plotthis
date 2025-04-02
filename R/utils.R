@@ -255,7 +255,16 @@ facet_plot <- function(plot, facet_by, facet_scales, nrow, ncol, byrow,
 #' @importFrom patchwork wrap_plots
 #' @importFrom rlang %||%
 #' @importFrom ggplot2 wrap_dims
-combine_plots <- function(plots, combine, nrow, ncol, byrow, axes, axis_titles, guides, recalc_size = TRUE) {
+combine_plots <- function(
+    plots, combine,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = NULL,
+    axes = NULL,
+    axis_titles = NULL,
+    guides = NULL,
+    design = NULL,
+    recalc_size = TRUE) {
     if (isFALSE(combine)) {
         return(plots)
     }
@@ -264,7 +273,17 @@ combine_plots <- function(plots, combine, nrow, ncol, byrow, axes, axis_titles, 
         d <- wrap_dims(length(plots), nrow, ncol)
         nrow <- d[1]
         ncol <- d[2]
-        p <- combine_plots(plots, TRUE, nrow, ncol, byrow, axes, axis_titles, guides, recalc_size = FALSE)
+        p <- combine_plots(
+            plots, TRUE,
+            nrow = nrow,
+            ncol = ncol,
+            byrow = byrow,
+            axes = axes,
+            axis_titles = axis_titles,
+            guides = guides,
+            design = design,
+            recalc_size = FALSE
+        )
         attr(p, "height") <- nrow * max(sapply(plots, function(x) attr(x, "height")))
         attr(p, "width") <- ncol * max(sapply(plots, function(x) attr(x, "width")))
         return(p)
@@ -274,8 +293,16 @@ combine_plots <- function(plots, combine, nrow, ncol, byrow, axes, axis_titles, 
         return(plots[[1]])
     }
 
-    wrap_plots(plots, nrow = nrow, ncol = ncol, byrow = byrow, axes = axes,
-        axis_titles = axis_titles, guides = guides)
+    wrap_plots(
+        plots,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }
 
 

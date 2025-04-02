@@ -101,6 +101,7 @@ Heatmap(
   axes = NULL,
   axis_titles = axes,
   guides = NULL,
+  design = NULL,
   ...
 )
 }
@@ -386,6 +387,10 @@ Options are:
 \item 'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.
 }}
 
+\item{design}{Specification of the location of areas in the layout, passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
+Only relevant when \code{split_by} is used and \code{combine} is TRUE. When specified, \code{nrow}, \code{ncol}, and \code{byrow} are ignored.
+See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details.}
+
 \item{...}{Additional arguments.}
 }
 \value{
@@ -430,7 +435,9 @@ Heatmap(data, rows = list(RG1 = c("F1", "F2", "F3"), RG2 = c("F4", "F5", "F6")),
 # Multiple columns_by, each as a split
 Heatmap(data, rows = rows, columns_by = c("c", "s"), columns_by_sep = "/")
 Heatmap(data, rows = rows, columns_by = c("p1", "p2", "p3"))
-Heatmap(data, rows = rows, columns_by = "c", split_by = "s")
+Heatmap(data, rows = rows, columns_by = "c", split_by = "s",
+   upper_cutoff = 2, lower_cutoff = -2, legend.position = c("none", "right"),
+   design = "AAAAAA#BBBBBBB")
 Heatmap(data, rows = rows, columns_by = "c", columns_split_by = "s")
 Heatmap(data, rows = rows, columns_by = "c", columns_split_by = "s",
         rows_data = rows_data, rows_split_by = "rs")

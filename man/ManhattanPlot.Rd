@@ -57,6 +57,7 @@ ManhattanPlot(
   axis_titles = axes,
   guides = NULL,
   facet_by = NULL,
+  design = NULL,
   ...
 )
 }
@@ -214,6 +215,10 @@ Options are:
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
 and combine them into one using \code{patchwork::wrap_plots}}
+
+\item{design}{Specification of the location of areas in the layout, passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
+Only relevant when \code{split_by} is used and \code{combine} is TRUE. When specified, \code{nrow}, \code{ncol}, and \code{byrow} are ignored.
+See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details.}
 
 \item{...}{Additional arguments.}
 }
