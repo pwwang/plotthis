@@ -18,6 +18,12 @@ BarPlotGrouped(
   theme_args = list(),
   palette = "Paired",
   palcolor = NULL,
+  label = NULL,
+  label_nudge = 0,
+  label_fg = "black",
+  label_size = 4,
+  label_bg = "white",
+  label_bg_r = 0.1,
   add_bg = FALSE,
   bg_palette = "stripe",
   bg_palcolor = NULL,
@@ -84,6 +90,19 @@ A named list or vector can be used to specify the palettes for different \code{s
 \item{palcolor}{A character string specifying the color to use in the palette.
 A named list can be used to specify the colors for different \code{split_by} values.
 If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).}
+
+\item{label}{A column name for the values to be displayed on the top of the bars.
+If TRUE, the y values will be displayed.}
+
+\item{label_nudge}{A numeric value to nudge the labels (the distance between the label and the top of the bar).}
+
+\item{label_fg}{A character string indicating the color of the label.}
+
+\item{label_size}{A numeric value indicating the size of the label.}
+
+\item{label_bg}{A character string indicating the background color of the label.}
+
+\item{label_bg_r}{A numeric value indicating the radius of the background.}
 
 \item{add_bg}{A logical value indicating whether to add a background to the plot.}
 
