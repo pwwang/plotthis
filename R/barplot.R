@@ -494,6 +494,7 @@ BarPlotAtomic <- function(
 #' @export
 #' @importFrom ggplot2 waiver
 #' @examples
+#' \donttest{
 #' data <- data.frame(
 #'     x = c("A", "B", "C", "D", "E", "F", "G", "H"),
 #'     y = c(10, 8, 16, 4, 6, 12, 14, 2),
@@ -531,6 +532,7 @@ BarPlotAtomic <- function(
 #' BarPlot(data, x = "group", ylab = "count")
 #' # flip the plot
 #' BarPlot(data, x = "group", flip = TRUE, ylab = "count")
+#' }
 BarPlot <- function(
     data, x, x_sep = "_", y = NULL, flip = FALSE, fill_by_x_if_no_group = TRUE, line_name = NULL, label_nudge = 0,
     label = NULL, label_fg = "black", label_size = 4, label_bg = "white", label_bg_r = 0.1,

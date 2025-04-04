@@ -405,6 +405,7 @@ A ggplot object or wrap_plots object or a list of ggplot objects
 }
 }
 \examples{
+\donttest{
 data <- data.frame(
     x = c("A", "B", "C", "D", "E", "F", "G", "H"),
     y = c(10, 8, 16, 4, 6, 12, 14, 2),
@@ -442,6 +443,7 @@ BarPlot(data,
 BarPlot(data, x = "group", ylab = "count")
 # flip the plot
 BarPlot(data, x = "group", flip = TRUE, ylab = "count")
+}
 data <- data.frame(
     word = c("apple", "banana", "cherry", "date", "elderberry",
              "It is a very long term with a lot of words"),
