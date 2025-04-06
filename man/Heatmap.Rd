@@ -429,6 +429,7 @@ rows_data <- data.frame(
    rv = rnorm(60, 0.5)
 )
 
+if (requireNamespace("cluster", quietly = TRUE)) {
 Heatmap(data, rows = rows, columns_by = "c")
 Heatmap(data, rows = list(RG1 = c("F1", "F2", "F3"), RG2 = c("F4", "F5", "F6")),
    columns_by = "c")
@@ -493,6 +494,7 @@ Heatmap(data, rows = rows, columns_by = "c", rows_data = rows_data,
   show_row_names = TRUE, show_column_names = TRUE, flip = TRUE)
 Heatmap(data, rows = rows, columns_by = "c", split_by = "p",
         palette = list(X = "Reds", Y = "Blues", Z = "Purp"))
+}
 }
 }
 \seealso{

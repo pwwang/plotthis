@@ -52,9 +52,9 @@ jobs:
           cache-version: 2
           extra-packages: |
             any::devtools, any::pkgdown, any::circlize, any::ggalluvial, any::ggVennDiagram,
-            any::ggupset, any::ggpubr, any::ggforce, any::scattermore, any::ComplexHeatmap,
+            any::ggupset, any::ggpubr, any::ggforce, any::scattermore, any::ComplexHeatmap, any::cluster,
             any::clustree, any::ggwordcloud, any::ggraph, any::igraph, any::hexbin, any::ggridges,
-            any::zoo, any::gridtext, any::concaveman, any::iNEXT, any::alluvial
+            any::zoo, any::gridtext, any::concaveman, any::iNEXT, any::alluvial, any::ggmanh
 
       - uses: r-lib/actions/check-r-package@v2
 

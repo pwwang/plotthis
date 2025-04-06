@@ -262,6 +262,7 @@ simdata <- data.frame(
 )
 simdata$chromosome <- factor(simdata$chromosome, c(1:22, "X"))
 
+if (requireNamespace("ggmanh", quietly = TRUE)) {
 options(repr.plot.width=10, repr.plot.height=5)
 ManhattanPlot(
    simdata, pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
@@ -350,5 +351,6 @@ ManhattanPlot(simdata, title = "Highlight Points",
     pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
     highlight = "color == 'Significant'", highlight_color = "black",
     pt_color = "lightblue", pt_alpha = 0.2, pt_size = 0.1)
+}
 }
 }
