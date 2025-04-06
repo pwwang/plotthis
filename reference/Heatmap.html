@@ -657,65 +657,45 @@ if <code>combine = TRUE</code>, otherwise, it returns a list of heatmaps.</p>
 <span class="r-in"><span>   rv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">60</span>, <span class="fl">0.5</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"cluster"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>RG1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"F1"</span>, <span class="st">"F2"</span>, <span class="st">"F3"</span><span class="op">)</span>, RG2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"F4"</span>, <span class="st">"F5"</span>, <span class="st">"F6"</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>   columns_by <span class="op">=</span> <span class="st">"c"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-2.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># Multiple columns_by, each as a split</span></span></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"c"</span>, <span class="st">"s"</span><span class="op">)</span>, columns_by_sep <span class="op">=</span> <span class="st">"/"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-3.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"p1"</span>, <span class="st">"p2"</span>, <span class="st">"p3"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-4.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, split_by <span class="op">=</span> <span class="st">"s"</span>,</span></span>
 <span class="r-in"><span>   upper_cutoff <span class="op">=</span> <span class="fl">2</span>, lower_cutoff <span class="op">=</span> <span class="op">-</span><span class="fl">2</span>, legend.position <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"right"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>   design <span class="op">=</span> <span class="st">"AAAAAA#BBBBBBB"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-5.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, columns_split_by <span class="op">=</span> <span class="st">"s"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-6.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, columns_split_by <span class="op">=</span> <span class="st">"s"</span>,</span></span>
 <span class="r-in"><span>        rows_data <span class="op">=</span> <span class="va">rows_data</span>, rows_split_by <span class="op">=</span> <span class="st">"rs"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-7.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, columns_split_by <span class="op">=</span> <span class="st">"s"</span>,</span></span>
 <span class="r-in"><span>        rows_data <span class="op">=</span> <span class="va">rows_data</span>, rows_split_by <span class="op">=</span> <span class="st">"rs"</span>, flip <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-8.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, cell_type <span class="op">=</span> <span class="st">"bars"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-9.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, cell_type <span class="op">=</span> <span class="st">"bars"</span>,</span></span>
 <span class="r-in"><span>        bars_sample <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-10.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, cell_type <span class="op">=</span> <span class="st">"label"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-11.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, cell_type <span class="op">=</span> <span class="st">"label"</span>,</span></span>
 <span class="r-in"><span>        label_cutoff <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-12.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, cell_type <span class="op">=</span> <span class="st">"dot"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-13.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, cell_type <span class="op">=</span> <span class="st">"dot"</span>,</span></span>
 <span class="r-in"><span>        dot_size <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-14.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, cell_type <span class="op">=</span> <span class="st">"dot"</span>,</span></span>
 <span class="r-in"><span>        dot_size <span class="op">=</span> <span class="va">mean</span>, row_name_annotation <span class="op">=</span> <span class="cn">FALSE</span>, column_name_annotation <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
 <span class="r-in"><span>        row_names_side <span class="op">=</span> <span class="st">"left"</span>, cluster_rows <span class="op">=</span> <span class="cn">FALSE</span>, cluster_columns <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-15.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, cell_type <span class="op">=</span> <span class="st">"dot"</span>,</span></span>
 <span class="r-in"><span>        dot_size <span class="op">=</span> <span class="va">mean</span>, add_bg <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-16.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, cell_type <span class="op">=</span> <span class="st">"dot"</span>,</span></span>
 <span class="r-in"><span>        dot_size <span class="op">=</span> <span class="va">mean</span>, add_reticle <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-17.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, cluster_rows <span class="op">=</span> <span class="cn">FALSE</span>, cluster_columns <span class="op">=</span> <span class="cn">FALSE</span>, columns_by <span class="op">=</span> <span class="st">"p"</span>,</span></span>
 <span class="r-in"><span>   rows <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"p1"</span>, <span class="st">"p2"</span>, <span class="st">"p3"</span><span class="op">)</span>, name <span class="op">=</span> <span class="st">"Category"</span>, pie_group_by <span class="op">=</span> <span class="st">"c"</span>,</span></span>
 <span class="r-in"><span>   cell_type <span class="op">=</span> <span class="st">"pie"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-18.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, cluster_rows <span class="op">=</span> <span class="cn">FALSE</span>, cluster_columns <span class="op">=</span> <span class="cn">FALSE</span>, columns_by <span class="op">=</span> <span class="st">"p"</span>,</span></span>
 <span class="r-in"><span>   rows <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"p1"</span>, <span class="st">"p2"</span>, <span class="st">"p3"</span><span class="op">)</span>, name <span class="op">=</span> <span class="st">"Category"</span>, pie_group_by <span class="op">=</span> <span class="st">"c"</span>,</span></span>
 <span class="r-in"><span>   cell_type <span class="op">=</span> <span class="st">"pie"</span>, pie_size <span class="op">=</span> <span class="va">sqrt</span>, add_bg <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-19.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, cell_type <span class="op">=</span> <span class="st">"violin"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-20.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, cell_type <span class="op">=</span> <span class="st">"boxplot"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-21.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, rows_data <span class="op">=</span> <span class="va">rows_data</span>,</span></span>
 <span class="r-in"><span>  column_annotation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>p1 <span class="op">=</span> <span class="st">"p"</span>, p2 <span class="op">=</span> <span class="st">"p"</span>, F1 <span class="op">=</span> <span class="st">"F1"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  column_annotation_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>p1 <span class="op">=</span> <span class="st">"ring"</span>, p2 <span class="op">=</span> <span class="st">"bar"</span>, F1 <span class="op">=</span> <span class="st">"violin"</span><span class="op">)</span>,</span></span>
@@ -728,62 +708,6 @@ if <code>combine = TRUE</code>, otherwise, it returns a list of heatmaps.</p>
 <span class="r-in"><span>  row_annotation_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rp <span class="op">=</span> <span class="st">"pie"</span>, rv <span class="op">=</span> <span class="st">"density"</span>, rows1 <span class="op">=</span> <span class="st">"simple"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  row_annotation_params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fu">grid</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">12</span>, <span class="st">"mm"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  show_row_names <span class="op">=</span> <span class="cn">TRUE</span>, show_column_names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Assuming 'row_annotation_agg["rows1"] = dplyr::first' for the simple column annotation</span>
-<span class="r-plt img"><img src="Heatmap-22.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, rows_data <span class="op">=</span> <span class="va">rows_data</span>,</span></span>
 <span class="r-in"><span>  column_annotation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>p1 <span class="op">=</span> <span class="st">"p"</span>, p2 <span class="op">=</span> <span class="st">"p"</span>, F1 <span class="op">=</span> <span class="st">"F1"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  column_annotation_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>p1 <span class="op">=</span> <span class="st">"ring"</span>, p2 <span class="op">=</span> <span class="st">"bar"</span>, F1 <span class="op">=</span> <span class="st">"violin"</span><span class="op">)</span>,</span></span>
@@ -796,6 +720,9 @@ if <code>combine = TRUE</code>, otherwise, it returns a list of heatmaps.</p>
 <span class="r-in"><span>  row_annotation_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rp <span class="op">=</span> <span class="st">"pie"</span>, rv <span class="op">=</span> <span class="st">"density"</span>, rows1 <span class="op">=</span> <span class="st">"simple"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  row_annotation_params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fu">grid</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">12</span>, <span class="st">"mm"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  show_row_names <span class="op">=</span> <span class="cn">TRUE</span>, show_column_names <span class="op">=</span> <span class="cn">TRUE</span>, flip <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, split_by <span class="op">=</span> <span class="st">"p"</span>,</span></span>
+<span class="r-in"><span>        palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>X <span class="op">=</span> <span class="st">"Reds"</span>, Y <span class="op">=</span> <span class="st">"Blues"</span>, Z <span class="op">=</span> <span class="st">"Purp"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
@@ -851,10 +778,62 @@ if <code>combine = TRUE</code>, otherwise, it returns a list of heatmaps.</p>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Assuming 'row_annotation_agg["rows1"] = dplyr::first' for the simple column annotation</span>
-<span class="r-plt img"><img src="Heatmap-23.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows <span class="op">=</span> <span class="va">rows</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>, split_by <span class="op">=</span> <span class="st">"p"</span>,</span></span>
-<span class="r-in"><span>        palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>X <span class="op">=</span> <span class="st">"Reds"</span>, Y <span class="op">=</span> <span class="st">"Blues"</span>, Z <span class="op">=</span> <span class="st">"Purp"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="Heatmap-24.png" alt="" width="700" height="433"></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Assuming 'row_annotation_agg["rows1"] = dplyr::first' for the simple column annotation</span>
+<span class="r-plt img"><img src="Heatmap-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
