@@ -117,10 +117,13 @@ gggrob <- function(p, void = TRUE, nolegend = TRUE) {
     glevels <- levels(x[[group_by]])
     colors <- palette_this(glevels, palette = palette, palcolor = palcolor)
     if (!is.null(split_by)) {
+        x <- x %>% unite("..split", split_by, group_by, remove = FALSE)
         # We need to use show the original group_by in the legend
         # but here we have united the split_by and group_by
-        x <- x %>% unite("..split", split_by, group_by, remove = FALSE)
-        plots <- .plotting(data = x, column = column, group_by = "..split", palette = palette, palcolor = as.list(colors))
+        x <- x %>% mutate(..palcolors = colors[as.numeric(x[[group_by]])])
+        palcolors <- x$..palcolors
+        names(palcolors) <- x$..split
+        plots <- .plotting(data = x, column = column, group_by = "..split", palette = palette, palcolor = as.list(palcolors))
         plots <- lapply(plots, gggrob)
     } else {
         plots <- .plotting(data = x, column = column, group_by = group_by, palette = palette, palcolor = as.list(colors))
@@ -141,6 +144,9 @@ gggrob <- function(p, void = TRUE, nolegend = TRUE) {
 
     anno <- ComplexHeatmap::AnnotationFunction(
         fun = function(index, k, n) {
+            if (identical(which, "row")) {
+                index <- rev(index)
+            }
             grobs <- grobs[index]
             total <- length(index)
             # draw border
