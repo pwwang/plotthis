@@ -261,43 +261,56 @@ simdata <- data.frame(
   "cohort" = sample(c("A", "B"), size = nsim, replace = TRUE)
 )
 simdata$chromosome <- factor(simdata$chromosome, c(1:22, "X"))
+options(repr.plot.width=10, repr.plot.height=5)
 
 if (requireNamespace("ggmanh", quietly = TRUE)) {
-options(repr.plot.width=10, repr.plot.height=5)
 ManhattanPlot(
    simdata, pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
    title = "Simulated P.Values", ylab = "P")
+}
 
+if (requireNamespace("ggmanh", quietly = TRUE)) {
 # split_by
 ManhattanPlot(
    simdata, pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
    title = "Simulated P.Values", ylab = "P", split_by = "cohort", ncol = 1)
+}
 
+if (requireNamespace("ggmanh", quietly = TRUE)) {
 # Customized p-value transformation and significance threshold line colors
 ManhattanPlot(
    simdata, pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
    title = "Simulated -Log2 P.Values", ylab = "-log2(P)", pval_transform = "-log2",
    signif_color = c("red", "blue"))
+}
 
+if (requireNamespace("ggmanh", quietly = TRUE)) {
 # Use a different palette and don't show significance threshold labels
 ManhattanPlot(
    simdata, pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
    palette = "Set1", signif_label = FALSE)
+}
 
+if (requireNamespace("ggmanh", quietly = TRUE)) {
 # Reverse the palette and show significance threshold labels on the right
 ManhattanPlot(
    simdata, pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
    palette = "Set1", palreverse = TRUE, signif_label_pos = "right")
+}
 
+if (requireNamespace("ggmanh", quietly = TRUE)) {
 # Use chromosomes to show a single selected chromosome
 ManhattanPlot(
    simdata, pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
    title = "Simulated P.Values", chromosomes = 5)
+}
 
+if (requireNamespace("ggmanh", quietly = TRUE)) {
 # Subset and reorder chromosomes
 ManhattanPlot(
    simdata, pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
    title = "Simulated P.Values", chromosomes = c(20, 4, 6))
+}
 
 tmpdata <- data.frame(
   "chromosome" = c(rep(5, 10), rep(21, 5)),
@@ -310,15 +323,19 @@ tmpdata <- data.frame(
 simdata <- rbind(simdata, tmpdata)
 simdata$chromosome <- factor(simdata$chromosome, c(1:22, "X"))
 
+if (requireNamespace("ggmanh", quietly = TRUE)) {
 # Don't rescale the plot (y-axis)
 ManhattanPlot(
     simdata, pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
     title = "Simulated P.Values - Significant", rescale = FALSE)
+}
 
+if (requireNamespace("ggmanh", quietly = TRUE)) {
 # Rescale the plot (y-axis) and put the breaking point in the middle of the y-axis
 ManhattanPlot(
     simdata, pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
     title = "Simulated P.Values - Significant", rescale = TRUE, signif_rel_pos = 0.5)
+}
 
 sig <- simdata$P.value < 5e-07
 
@@ -328,24 +345,31 @@ simdata$label2 <- ""
 i <- (simdata$chromosome == 5) & (simdata$P.value < 5e-8)
 simdata$label2[i] <- paste("Chromosome 5 label", 1:sum(i))
 
+if (requireNamespace("ggmanh", quietly = TRUE)) {
 # Label the points with labels
 ManhattanPlot(simdata, label_by = "label", pval_by = "P.value", chr_by = "chromosome",
     pos_by = "position", title = "Simulated P.Values with labels", label_size = 4)
+}
 
+if (requireNamespace("ggmanh", quietly = TRUE)) {
 # Label the points with labels and use a different color for the labels
 ManhattanPlot(simdata, label_by = "label2", pval_by = "P.value", chr_by = "chromosome",
     pos_by = "position", title = "Simulated P.Values with labels",
     label_size = 3, label_fg = "black")
+}
 
 simdata$color <- "Not Significant"
 simdata$color[simdata$P.value <= 5e-8] <- "Significant"
 
+if (requireNamespace("ggmanh", quietly = TRUE)) {
 # Highlight points with shapes
 ManhattanPlot(simdata, title = "Highlight Points with shapes",
     pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
     highlight = "color == 'Significant'", highlight_color = NULL, highlight_shape = 6,
     highlight_size = 5, pt_alpha = 0.2, pt_size = 1)
+}
 
+if (requireNamespace("ggmanh", quietly = TRUE)) {
 # Highlight points with colors
 ManhattanPlot(simdata, title = "Highlight Points",
     pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
