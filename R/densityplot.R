@@ -55,7 +55,7 @@ DensityHistoPlotAtomic <- function(
         group_by <- ".group"
         data[[group_by]] <- factor("")
     }
-    if (is.null(bins) && is.null(binwidth)) {
+    if (is.null(bins) && is.null(binwidth) && type == "histogram") {
         bins <- 30
         message("Using `bins = 30`. Pick better value with `binwidth`.")
     }
