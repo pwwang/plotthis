@@ -6,7 +6,7 @@
 \usage{
 HeatmapAtomic(
   data,
-  rows,
+  rows = NULL,
   columns_by,
   rows_name = "rows",
   rows_split_name = "rows_split",
@@ -101,7 +101,13 @@ The data should be in a long form where each row represents a instance in the he
 The \code{rows} should be multiple columns if you want to plot as rows, which you can refer as "features".}
 
 \item{rows}{A character string/vector of the column name(s) to plot for the rows
-Multiple columns in the data frame can be used as the rows.}
+Multiple columns in the data frame can be used as the rows. It can be:
+\itemize{
+\item A vector of column names: The columns will be used as the rows.
+\item A list of column names: The names will be used as row_split_by.
+\item A formula: \code{~ col1 + col2 + ...} The columns will be excluded from the data frame and used as the rows.
+\item NULL (default): The column names other than \code{columns_by}, \code{rows_split_by}, \code{columns_split_by} and \code{pie_group_by} will be used as the rows.
+}}
 
 \item{columns_by}{A character string of the column name to plot for the columns
 A character/factor column is expected.

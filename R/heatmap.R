@@ -487,7 +487,11 @@ layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
 #'  The data should be in a long form where each row represents a instance in the heatmap.
 #'  The `rows` should be multiple columns if you want to plot as rows, which you can refer as "features".
 #' @param rows A character string/vector of the column name(s) to plot for the rows
-#'  Multiple columns in the data frame can be used as the rows.
+#'  Multiple columns in the data frame can be used as the rows. It can be:
+#'  * A vector of column names: The columns will be used as the rows.
+#'  * A list of column names: The names will be used as row_split_by.
+#'  * A formula: `~ col1 + col2 + ...` The columns will be excluded from the data frame and used as the rows.
+#'  * NULL (default): The column names other than `columns_by`, `rows_split_by`, `columns_split_by` and `pie_group_by` will be used as the rows.
 #' @param rows_name A character string specifying the name of rows, which will be shown in the
 #'  row group annotation and the legend of it.
 #' @param columns_by A character string of the column name to plot for the columns
@@ -639,7 +643,7 @@ layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
 #' @return A drawn HeatmapList object if `return_grob = FALSE`. Otherwise, a grob/gTree object.
 #' @keywords internal
 HeatmapAtomic <- function(
-    data, rows, columns_by, rows_name = "rows", rows_split_name = "rows_split", columns_name = "columns", name = "value",
+    data, rows = NULL, columns_by, rows_name = "rows", rows_split_name = "rows_split", columns_name = "columns", name = "value",
     border = TRUE, rows_palette = "Paired", rows_palcolor = NULL, pie_group_by = NULL, pie_group_by_sep = "_",
     pie_palette = "Spectral", pie_palcolor = NULL, pie_size = NULL, pie_name = NULL, pie_size_name = "size", pie_values = "count",
     columns_by_sep = "_", columns_split_by = NULL, columns_split_name = NULL, columns_palette = "Paired", columns_palcolor = NULL,
@@ -684,6 +688,10 @@ HeatmapAtomic <- function(
             rows_data <- rd
         }
         rows_split_by <- rows_split_name
+    } else if (is.null(rows)) {
+        rows <- setdiff(colnames(data), c(columns_by, rows_split_by, columns_split_by, pie_group_by))
+    } else if (inherits(rows, "formula")) {
+        rows <- setdiff(colnames(data), all.vars(rows))
     }
 
     rows <- check_columns(data, rows, allow_multi = TRUE)
@@ -1575,7 +1583,7 @@ HeatmapAtomic <- function(
 #' }
 #' }
 Heatmap <- function(
-    data, rows, columns_by, rows_name = "rows", columns_name = "columns", split_by = NULL, split_by_sep = "_", split_rows_data = FALSE,
+    data, rows = NULL, columns_by, rows_name = "rows", columns_name = "columns", split_by = NULL, split_by_sep = "_", split_rows_data = FALSE,
     name = "value", border = TRUE, rows_palette = "Paired", rows_palcolor = NULL, title = NULL,
     pie_group_by = NULL, pie_group_by_sep = "_", pie_palette = "Spectral", pie_palcolor = NULL, pie_size = NULL,
     pie_name = NULL, pie_size_name = "size", pie_values = "count", legend_items = NULL, legend_discrete = FALSE,
