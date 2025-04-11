@@ -44,7 +44,7 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">HeatmapAtomic</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
-<span>  <span class="va">rows</span>,</span>
+<span>  rows <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">columns_by</span>,</span>
 <span>  rows_name <span class="op">=</span> <span class="st">"rows"</span>,</span>
 <span>  rows_split_name <span class="op">=</span> <span class="st">"rows_split"</span>,</span>
@@ -146,7 +146,11 @@ The <code>rows</code> should be multiple columns if you want to plot as rows, wh
 
 <dt id="arg-rows">rows<a class="anchor" aria-label="anchor" href="#arg-rows"></a></dt>
 <dd><p>A character string/vector of the column name(s) to plot for the rows
-Multiple columns in the data frame can be used as the rows.</p></dd>
+Multiple columns in the data frame can be used as the rows. It can be:</p><ul><li><p>A vector of column names: The columns will be used as the rows.</p></li>
+<li><p>A list of column names: The names will be used as row_split_by.</p></li>
+<li><p>A formula: <code>~ col1 + col2 + ...</code> The columns will be excluded from the data frame and used as the rows.</p></li>
+<li><p>NULL (default): The column names other than <code>columns_by</code>, <code>rows_split_by</code>, <code>columns_split_by</code> and <code>pie_group_by</code> will be used as the rows.</p></li>
+</ul></dd>
 
 
 <dt id="arg-columns-by">columns_by<a class="anchor" aria-label="anchor" href="#arg-columns-by"></a></dt>
