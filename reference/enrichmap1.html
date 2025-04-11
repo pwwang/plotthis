@@ -378,7 +378,8 @@ When starting inferrence, the minimum value to try will be unique genes in <code
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">enrich_example</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">enrich_example</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">EnrichMap</span><span class="op">(</span><span class="va">enrich_example</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="enrichmap1-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">EnrichMap</span><span class="op">(</span><span class="va">enrich_example</span>, label <span class="op">=</span> <span class="st">"feature"</span><span class="op">)</span></span></span>
@@ -394,8 +395,11 @@ When starting inferrence, the minimum value to try will be unique genes in <code
 <span class="r-in"><span><span class="fu">EnrichMap</span><span class="op">(</span><span class="va">enrich_multidb_example</span>, split_by <span class="op">=</span> <span class="st">"Database"</span>,</span></span>
 <span class="r-in"><span>          palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>DB1 <span class="op">=</span> <span class="st">"Paired"</span>, DB2 <span class="op">=</span> <span class="st">"Set1"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="enrichmap1-6.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
+<span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="fu">EnrichNetwork</span><span class="op">(</span><span class="va">enrich_example</span>, top_term <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="enrichmap1-7.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
