@@ -69,6 +69,7 @@ BoxPlot(
   multiple_method = "kruskal.test",
   sig_label = c("p.signif", "p.format"),
   sig_labelsize = 3.5,
+  hide_ns = FALSE,
   facet_by = NULL,
   facet_scales = "fixed",
   facet_ncol = NULL,
@@ -157,6 +158,7 @@ ViolinPlot(
   multiple_method = "kruskal.test",
   sig_label = c("p.signif", "p.format"),
   sig_labelsize = 3.5,
+  hide_ns = FALSE,
   facet_by = NULL,
   facet_scales = "fixed",
   facet_ncol = NULL,
@@ -313,6 +315,8 @@ If \code{TRUE}, it will perform pairwise comparisons for all pairs.}
 \item{sig_label}{A character string to specify the label of the significance test.}
 
 \item{sig_labelsize}{A numeric value to specify the size of the significance test label.}
+
+\item{hide_ns}{A logical value to hide the non-significant comparisons.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots

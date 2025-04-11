@@ -64,6 +64,7 @@
 #' @param multiple_method A character string to specify the multiple group comparison method.
 #' @param sig_label A character string to specify the label of the significance test.
 #' @param sig_labelsize A numeric value to specify the size of the significance test label.
+#' @param hide_ns A logical value to hide the non-significant comparisons.
 #' @return A ggplot object
 #' @keywords internal
 #' @importFrom utils combn
@@ -92,7 +93,7 @@ BoxViolinPlotAtomic <- function(
     highlight = NULL, highlight_color = "red2", highlight_size = 1, highlight_alpha = 1,
     comparisons = NULL, ref_group = NULL, pairwise_method = "wilcox.test",
     multiplegroup_comparisons = FALSE, multiple_method = "kruskal.test",
-    sig_label = c("p.signif", "p.format"), sig_labelsize = 3.5,
+    sig_label = c("p.signif", "p.format"), sig_labelsize = 3.5, hide_ns = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525, ...) {
     set.seed(seed)
@@ -275,44 +276,59 @@ BoxViolinPlotAtomic <- function(
             } else {
                 method <- pairwise_method
             }
-            p <- p + ggpubr::stat_compare_means(
+            p <- p + ggpubr::geom_pwc(
                 data = data[data[[x]] %in% group_use, , drop = FALSE],
-                mapping = aes(x = !!sym(x), y = !!sym(y), group = !!sym(".compares_group")),
+                mapping = aes(group = !!sym(".compares_group")),
                 label = sig_label,
-                label.y = y_max_use,
-                size = sig_labelsize,
+                label.size = sig_labelsize,
+                y.position = y_max_use,
                 step.increase = 0.1,
                 tip.length = 0.03,
                 vjust = 1,
-                method = method
+                ref.group = ref_group,
+                method = method,
+                hide.ns = hide_ns
             )
 
             y_max_use <- layer_scales(p)$y$range$range[2]
         } else {
-            p <- p + ggpubr::stat_compare_means(
-                mapping = aes(x = !!sym(x), y = !!sym(y), group = !!sym(".compares_group")),
+            comparisons <- lapply(
+                comparisons,
+                function(el) {
+                    if (!is.numeric(el)) {
+                        which(levels(data[[x]]) %in% el)
+                    } else {
+                        el
+                    }
+                }
+            )
+            p <- p + ggpubr::geom_pwc(
+                mapping = aes(group = !!sym(".compares_group")),
                 label = sig_label,
-                label.y = y_max_use,
-                size = sig_labelsize,
+                label.size = sig_labelsize,
+                y.position = y_max_use,
                 step.increase = 0.1,
                 tip.length = 0.03,
                 vjust = 0,
-                comparisons = comparisons,
+                # comparisons = comparisons,
                 ref.group = ref_group,
-                method = pairwise_method
+                method = pairwise_method,
+                method.args = list(comparisons = comparisons),
+                hide.ns = hide_ns
             )
             y_max_use <- layer_scales(p)$y$range$range[1] + (layer_scales(p)$y$range$range[2] - layer_scales(p)$y$range$range[1]) * 1.15
         }
     }
     if (isTRUE(multiplegroup_comparisons)) {
         p <- p + ggpubr::stat_compare_means(
-            mapping = aes(x = !!sym(x), y = !!sym(y), group = !!sym(".compares_group")),
+            mapping = aes(group = !!sym(".compares_group")),
             method = multiple_method,
             label = sig_label,
             label.y = y_max_use,
             size = sig_labelsize,
             vjust = 1.2,
-            hjust = 0
+            hjust = 0,
+            ref.group = ref_group
         )
         y_max_use <- layer_scales(p)$y$range$range[1] + (layer_scales(p)$y$range$range[2] - layer_scales(p)$y$range$range[1]) * 1.15
     }
@@ -514,7 +530,7 @@ BoxViolinPlot <- function(
     highlight = NULL, highlight_color = "red2", highlight_size = 1, highlight_alpha = 1,
     comparisons = NULL, ref_group = NULL, pairwise_method = "wilcox.test",
     multiplegroup_comparisons = FALSE, multiple_method = "kruskal.test",
-    sig_label = c("p.signif", "p.format"), sig_labelsize = 3.5,
+    sig_label = c("p.signif", "p.format"), sig_labelsize = 3.5, hide_ns = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
@@ -563,7 +579,7 @@ BoxViolinPlot <- function(
                 highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha,
                 comparisons = comparisons, ref_group = ref_group, pairwise_method = pairwise_method,
                 multiplegroup_comparisons = multiplegroup_comparisons, multiple_method = multiple_method,
-                sig_label = sig_label, sig_labelsize = sig_labelsize,
+                sig_label = sig_label, sig_labelsize = sig_labelsize, hide_ns = hide_ns,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, ...
             )
@@ -634,7 +650,7 @@ BoxPlot <- function(
     highlight = NULL, highlight_color = "red2", highlight_size = 1, highlight_alpha = 1,
     comparisons = NULL, ref_group = NULL, pairwise_method = "wilcox.test",
     multiplegroup_comparisons = FALSE, multiple_method = "kruskal.test",
-    sig_label = c("p.signif", "p.format"), sig_labelsize = 3.5,
+    sig_label = c("p.signif", "p.format"), sig_labelsize = 3.5, hide_ns = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
@@ -656,7 +672,7 @@ BoxPlot <- function(
         highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha,
         comparisons = comparisons, ref_group = ref_group, pairwise_method = pairwise_method,
         multiplegroup_comparisons = multiplegroup_comparisons, multiple_method = multiple_method,
-        sig_label = sig_label, sig_labelsize = sig_labelsize,
+        sig_label = sig_label, sig_labelsize = sig_labelsize, hide_ns = hide_ns,
         facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
         title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
         axes = axes, axis_titles = axis_titles, guides = guides, ...
@@ -723,7 +739,7 @@ ViolinPlot <- function(
     highlight = NULL, highlight_color = "red2", highlight_size = 1, highlight_alpha = 1,
     comparisons = NULL, ref_group = NULL, pairwise_method = "wilcox.test",
     multiplegroup_comparisons = FALSE, multiple_method = "kruskal.test",
-    sig_label = c("p.signif", "p.format"), sig_labelsize = 3.5,
+    sig_label = c("p.signif", "p.format"), sig_labelsize = 3.5, hide_ns = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
@@ -746,7 +762,7 @@ ViolinPlot <- function(
         highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha,
         comparisons = comparisons, ref_group = ref_group, pairwise_method = pairwise_method,
         multiplegroup_comparisons = multiplegroup_comparisons, multiple_method = multiple_method,
-        sig_label = sig_label, sig_labelsize = sig_labelsize,
+        sig_label = sig_label, sig_labelsize = sig_labelsize, hide_ns = hide_ns,
         facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
         title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
         axes = axes, axis_titles = axis_titles, guides = guides, ...
