@@ -263,6 +263,7 @@ When starting inferrence, the minimum value to try will be unique genes in \code
 }
 }
 \examples{
+\donttest{
 data(enrich_example)
 EnrichMap(enrich_example)
 EnrichMap(enrich_example, label = "feature")
@@ -273,5 +274,8 @@ data(enrich_multidb_example)
 EnrichMap(enrich_multidb_example, split_by = "Database")
 EnrichMap(enrich_multidb_example, split_by = "Database",
           palette = list(DB1 = "Paired", DB2 = "Set1"))
+}
+\donttest{
 EnrichNetwork(enrich_example, top_term = 5)
+}
 }

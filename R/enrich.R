@@ -568,6 +568,7 @@ PrepareEnrichrResult <- function(data, n_input = NULL) {
 #'  You can plot them in a single plot using the `split_by` argument (e.g. `split_by = "Database"`).
 #' @export
 #' @examples
+#' \donttest{
 #' data(enrich_example)
 #' EnrichMap(enrich_example)
 #' EnrichMap(enrich_example, label = "feature")
@@ -578,6 +579,7 @@ PrepareEnrichrResult <- function(data, n_input = NULL) {
 #' EnrichMap(enrich_multidb_example, split_by = "Database")
 #' EnrichMap(enrich_multidb_example, split_by = "Database",
 #'           palette = list(DB1 = "Paired", DB2 = "Set1"))
+#' }
 EnrichMap <- function(
     data, split_by = NULL, split_by_sep = "_",
     top_term = 10, metric = "p.adjust", layout = "fr", minchar = 2,
@@ -651,7 +653,9 @@ EnrichMap <- function(
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
 #' @examples
+#' \donttest{
 #' EnrichNetwork(enrich_example, top_term = 5)
+#' }
 EnrichNetwork <- function(
     data, split_by = NULL, split_by_sep = "_",
     top_term = 10, metric = "p.adjust", character_width = 50,
