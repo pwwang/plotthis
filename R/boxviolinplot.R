@@ -63,11 +63,16 @@
 #' @param multiplegroup_comparisons A logical value to perform multiple group comparisons.
 #' @param multiple_method A character string to specify the multiple group comparison method.
 #' @param sig_label A character string to specify the label of the significance test.
+#' You can use "p.format" to show the p-value or "p.signif" to show the significance level.
+#' You can also use arbitrary text, with `"{p.format}"` as placeholder for the p-value and/or
+#' `"{p.signif}"` as placeholder for the significance level.
+#' This only works for pairwise comparisons, not for multiple group comparisons.
 #' @param sig_labelsize A numeric value to specify the size of the significance test label.
 #' @param hide_ns A logical value to hide the non-significant comparisons.
 #' @return A ggplot object
 #' @keywords internal
 #' @importFrom utils combn
+#' @importFrom glue glue_data
 #' @importFrom stats median quantile
 #' @importFrom rlang sym syms parse_expr
 #' @importFrom dplyr mutate ungroup first
@@ -93,7 +98,7 @@ BoxViolinPlotAtomic <- function(
     highlight = NULL, highlight_color = "red2", highlight_size = 1, highlight_alpha = 1,
     comparisons = NULL, ref_group = NULL, pairwise_method = "wilcox.test",
     multiplegroup_comparisons = FALSE, multiple_method = "kruskal.test",
-    sig_label = c("p.signif", "p.format"), sig_labelsize = 3.5, hide_ns = FALSE,
+    sig_label = "p.format", sig_labelsize = 3.5, hide_ns = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525, ...) {
     set.seed(seed)
@@ -121,9 +126,6 @@ BoxViolinPlotAtomic <- function(
         comparisons <- combn(levels(data[[x]]), 2, simplify = FALSE)
     }
     if (isTRUE(multiplegroup_comparisons) || length(comparisons) > 0) {
-        # if (!requireNamespace("ggpubr", quietly = TRUE)) {
-        #     stop("ggpubr is required to perform comparisons.")
-        # }
         if (!is.list(comparisons) && !isTRUE(comparisons)) {
             comparisons <- list(comparisons)
         }
@@ -131,8 +133,14 @@ BoxViolinPlotAtomic <- function(
         if (any(ncomp) > 2) {
             stop("'comparisons' must be a list in which all elements must be vectors of length 2")
         }
-        sig_label <- match.arg(sig_label)
-        data <- data %>% unite(".compares_group", !!!syms(unique(c(x, group_by, facet_by))), sep = "_", remove = FALSE)
+        # sig_label <- match.arg(sig_label)
+        if (sig_label %in% c("p.format", "p.signif")) {
+            sig_label <- paste0("{", sig_label, "}")
+        }
+        if (isTRUE(multiplegroup_comparisons)) {
+            # stat_compare_means doesn't support facet_by
+            data <- data %>% unite(".compares_group", !!!syms(unique(c(x, group_by))), sep = "_", remove = FALSE)
+        }
     }
     sort_x <- match.arg(sort_x)
     if (sort_x != "none" && !is.null(facet_by)) {
@@ -230,7 +238,7 @@ BoxViolinPlotAtomic <- function(
             # See https://github.com/tidyverse/ggplot2/issues/2801
             # There is a fix but not yet released
             position = position_dodge(width = 0.9), scale = "width", trim = TRUE,
-            alpha = alpha, width = 0.8,
+            alpha = alpha, width = 0.8
         )
     }
     if (fill_mode == "dodge") {
@@ -272,26 +280,33 @@ BoxViolinPlotAtomic <- function(
             group_use <- names(which(rowSums(table(data[[x]], data[[group_by]]) >= 2) >= 2))
             if (any(rowSums(table(data[[x]], data[[group_by]]) >= 2) >= 3)) {
                 message("Detected more than 2 groups. Use multiple_method for comparison")
-                method <- multiple_method
+                # method <- multiple_method
+                multiplegroup_comparisons <- TRUE
             } else {
                 method <- pairwise_method
-            }
-            p <- p + ggpubr::geom_pwc(
-                data = data[data[[x]] %in% group_use, , drop = FALSE],
-                mapping = aes(group = !!sym(".compares_group")),
-                label = sig_label,
-                label.size = sig_labelsize,
-                y.position = y_max_use,
-                step.increase = 0.1,
-                tip.length = 0.03,
-                vjust = 1,
-                ref.group = ref_group,
-                method = method,
-                hide.ns = hide_ns
-            )
 
-            y_max_use <- layer_scales(p)$y$range$range[2]
-        } else {
+                p <- p + ggpubr::geom_pwc(
+                    data = data[data[[x]] %in% group_use, , drop = FALSE],
+                    mapping = aes(
+                        label = glue_data(
+                            list(p.format = after_stat(!!sym("p.format")), p.signif = after_stat(!!sym("p.signif"))),
+                            sig_label
+                        )
+                    ),
+                    label.size = sig_labelsize,
+                    y.position = y_max_use,
+                    step.increase = 0.1,
+                    tip.length = 0.03,
+                    vjust = 0,
+                    ref.group = ref_group,
+                    method = method,
+                    hide.ns = hide_ns
+                )
+
+                y_max_use <- layer_scales(p)$y$range$range[2]
+            }
+        } else if (!isTRUE(multiplegroup_comparisons)) {
+            # Convert comparisons to indices
             comparisons <- lapply(
                 comparisons,
                 function(el) {
@@ -303,8 +318,12 @@ BoxViolinPlotAtomic <- function(
                 }
             )
             p <- p + ggpubr::geom_pwc(
-                mapping = aes(group = !!sym(".compares_group")),
-                label = sig_label,
+                mapping = aes(
+                    label = glue_data(
+                        list(p.format = after_stat(!!sym("p.format")), p.signif = after_stat(!!sym("p.signif"))),
+                        sig_label
+                    )
+                ),
                 label.size = sig_labelsize,
                 y.position = y_max_use,
                 step.increase = 0.1,
@@ -319,16 +338,20 @@ BoxViolinPlotAtomic <- function(
             y_max_use <- layer_scales(p)$y$range$range[1] + (layer_scales(p)$y$range$range[2] - layer_scales(p)$y$range$range[1]) * 1.15
         }
     }
+
     if (isTRUE(multiplegroup_comparisons)) {
         p <- p + ggpubr::stat_compare_means(
-            mapping = aes(group = !!sym(".compares_group")),
+            mapping = aes(
+                x = !!sym(x),
+                y = !!sym(y),
+                group = !!sym(".compares_group")
+            ),
+            inherit.aes = FALSE,
             method = multiple_method,
-            label = sig_label,
             label.y = y_max_use,
             size = sig_labelsize,
             vjust = 1.2,
-            hjust = 0,
-            ref.group = ref_group
+            hjust = 0
         )
         y_max_use <- layer_scales(p)$y$range$range[1] + (layer_scales(p)$y$range$range[2] - layer_scales(p)$y$range$range[1]) * 1.15
     }
@@ -530,7 +553,7 @@ BoxViolinPlot <- function(
     highlight = NULL, highlight_color = "red2", highlight_size = 1, highlight_alpha = 1,
     comparisons = NULL, ref_group = NULL, pairwise_method = "wilcox.test",
     multiplegroup_comparisons = FALSE, multiple_method = "kruskal.test",
-    sig_label = c("p.signif", "p.format"), sig_labelsize = 3.5, hide_ns = FALSE,
+    sig_label = "p.format", sig_labelsize = 3.5, hide_ns = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
@@ -605,8 +628,8 @@ BoxViolinPlot <- function(
 #' \donttest{
 #' set.seed(8525)
 #' data <- data.frame(
-#'     x = rep(LETTERS[1:8], 40),
-#'     y = rnorm(320),
+#'     x = rep(LETTERS[1:8], each = 40),
+#'     y = c(rnorm(160), rnorm(160, mean = 1)),
 #'     group1 = sample(c("g1", "g2"), 320, replace = TRUE),
 #'     group2 = sample(c("h1", "h2", "h3", "h4"), 320, replace = TRUE)
 #' )
@@ -650,7 +673,7 @@ BoxPlot <- function(
     highlight = NULL, highlight_color = "red2", highlight_size = 1, highlight_alpha = 1,
     comparisons = NULL, ref_group = NULL, pairwise_method = "wilcox.test",
     multiplegroup_comparisons = FALSE, multiple_method = "kruskal.test",
-    sig_label = c("p.signif", "p.format"), sig_labelsize = 3.5, hide_ns = FALSE,
+    sig_label = "p.format", sig_labelsize = 3.5, hide_ns = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
@@ -700,15 +723,15 @@ BoxPlot <- function(
 #'     alpha = 0.8, highlight_size = 1.5, pt_size = 1, add_box = TRUE)
 #' ViolinPlot(data,
 #'     x = "x", y = "y", group_by = "group1",
-#'     comparisons = TRUE
+#'     comparisons = TRUE, sig_label = "p = {p.format}"
 #' )
 #' ViolinPlot(data,
-#'     x = "x", y = "y", sig_label = "p.format",
-#'     facet_by = "group2", comparisons = list(c("A", "B"))
+#'     x = "x", y = "y", sig_label = "p.format", hide_ns = TRUE,
+#'     facet_by = "group2", comparisons = list(c("D", "E"))
 #' )
 #' ViolinPlot(data,
 #'     x = "x", y = "y", fill_mode = "mean",
-#'     facet_by = "group2", palette = "Blues"
+#'     facet_by = "group2", palette = "Blues", multiplegroup_comparisons = TRUE
 #' )
 #' ViolinPlot(data,
 #'     x = "x", y = "y", fill_mode = "mean",
@@ -739,7 +762,7 @@ ViolinPlot <- function(
     highlight = NULL, highlight_color = "red2", highlight_size = 1, highlight_alpha = 1,
     comparisons = NULL, ref_group = NULL, pairwise_method = "wilcox.test",
     multiplegroup_comparisons = FALSE, multiple_method = "kruskal.test",
-    sig_label = c("p.signif", "p.format"), sig_labelsize = 3.5, hide_ns = FALSE,
+    sig_label = "p.format", sig_labelsize = 3.5, hide_ns = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,

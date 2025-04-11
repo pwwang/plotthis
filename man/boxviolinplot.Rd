@@ -67,7 +67,7 @@ BoxPlot(
   pairwise_method = "wilcox.test",
   multiplegroup_comparisons = FALSE,
   multiple_method = "kruskal.test",
-  sig_label = c("p.signif", "p.format"),
+  sig_label = "p.format",
   sig_labelsize = 3.5,
   hide_ns = FALSE,
   facet_by = NULL,
@@ -156,7 +156,7 @@ ViolinPlot(
   pairwise_method = "wilcox.test",
   multiplegroup_comparisons = FALSE,
   multiple_method = "kruskal.test",
-  sig_label = c("p.signif", "p.format"),
+  sig_label = "p.format",
   sig_labelsize = 3.5,
   hide_ns = FALSE,
   facet_by = NULL,
@@ -312,7 +312,11 @@ If \code{TRUE}, it will perform pairwise comparisons for all pairs.}
 
 \item{multiple_method}{A character string to specify the multiple group comparison method.}
 
-\item{sig_label}{A character string to specify the label of the significance test.}
+\item{sig_label}{A character string to specify the label of the significance test.
+You can use "p.format" to show the p-value or "p.signif" to show the significance level.
+You can also use arbitrary text, with \code{"{p.format}"} as placeholder for the p-value and/or
+\code{"{p.signif}"} as placeholder for the significance level.
+This only works for pairwise comparisons, not for multiple group comparisons.}
 
 \item{sig_labelsize}{A numeric value to specify the size of the significance test label.}
 
@@ -403,8 +407,8 @@ Box plot or violin plot with optional jitter points, trend line, statistical tes
 \donttest{
 set.seed(8525)
 data <- data.frame(
-    x = rep(LETTERS[1:8], 40),
-    y = rnorm(320),
+    x = rep(LETTERS[1:8], each = 40),
+    y = c(rnorm(160), rnorm(160, mean = 1)),
     group1 = sample(c("g1", "g2"), 320, replace = TRUE),
     group2 = sample(c("h1", "h2", "h3", "h4"), 320, replace = TRUE)
 )
@@ -447,15 +451,15 @@ ViolinPlot(data, x = "x", y = "y", add_point = TRUE, highlight = 'group1 == "g1"
     alpha = 0.8, highlight_size = 1.5, pt_size = 1, add_box = TRUE)
 ViolinPlot(data,
     x = "x", y = "y", group_by = "group1",
-    comparisons = TRUE
+    comparisons = TRUE, sig_label = "p = {p.format}"
 )
 ViolinPlot(data,
-    x = "x", y = "y", sig_label = "p.format",
-    facet_by = "group2", comparisons = list(c("A", "B"))
+    x = "x", y = "y", sig_label = "p.format", hide_ns = TRUE,
+    facet_by = "group2", comparisons = list(c("D", "E"))
 )
 ViolinPlot(data,
     x = "x", y = "y", fill_mode = "mean",
-    facet_by = "group2", palette = "Blues"
+    facet_by = "group2", palette = "Blues", multiplegroup_comparisons = TRUE
 )
 ViolinPlot(data,
     x = "x", y = "y", fill_mode = "mean",

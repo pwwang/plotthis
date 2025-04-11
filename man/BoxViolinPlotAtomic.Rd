@@ -71,7 +71,7 @@ BoxViolinPlotAtomic(
   pairwise_method = "wilcox.test",
   multiplegroup_comparisons = FALSE,
   multiple_method = "kruskal.test",
-  sig_label = c("p.signif", "p.format"),
+  sig_label = "p.format",
   sig_labelsize = 3.5,
   hide_ns = FALSE,
   facet_by = NULL,
@@ -229,7 +229,11 @@ If \code{TRUE}, it will perform pairwise comparisons for all pairs.}
 
 \item{multiple_method}{A character string to specify the multiple group comparison method.}
 
-\item{sig_label}{A character string to specify the label of the significance test.}
+\item{sig_label}{A character string to specify the label of the significance test.
+You can use "p.format" to show the p-value or "p.signif" to show the significance level.
+You can also use arbitrary text, with \code{"{p.format}"} as placeholder for the p-value and/or
+\code{"{p.signif}"} as placeholder for the significance level.
+This only works for pairwise comparisons, not for multiple group comparisons.}
 
 \item{sig_labelsize}{A numeric value to specify the size of the significance test label.}
 
