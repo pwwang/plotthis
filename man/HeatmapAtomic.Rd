@@ -59,8 +59,7 @@ HeatmapAtomic(
   bars_sample = 100,
   flip = FALSE,
   label_size = 10,
-  label_cutoff = NULL,
-  label_accuracy = 0.01,
+  label = identity,
   layer_fun_callback = NULL,
   cell_type = c("tile", "bars", "label", "dot", "violin", "boxplot", "pie"),
   cell_agg = mean,
@@ -242,9 +241,9 @@ The default is "bottom".}
 
 \item{label_size}{A numeric value specifying the size of the labels when \code{cell_type = "label"}.}
 
-\item{label_cutoff}{A numeric value specifying the cutoff to show the labels when \code{cell_type = "label"}.}
-
-\item{label_accuracy}{A numeric value specifying the accuracy of the labels when \code{cell_type = "label"}.}
+\item{label}{A function to calculate the labels for the heatmap cells.
+It takes the aggregated values as the argument and returns the labels to be shown in the heatmap.
+No labels will be shown for the NA the returned values.}
 
 \item{layer_fun_callback}{A function to add additional layers to the heatmap.
 The function should have the following arguments: \code{j}, \code{i}, \code{x}, \code{y}, \code{w}, \code{h}, \code{fill}, \code{sr} and \code{sc}.

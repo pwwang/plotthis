@@ -569,8 +569,9 @@ layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
 #' @param pie_name A character string specifying the name of the legend for the pie chart.
 #' @param pie_size_name A character string specifying the name of the legend for the pie size.
 #' @param label_size A numeric value specifying the size of the labels when `cell_type = "label"`.
-#' @param label_cutoff A numeric value specifying the cutoff to show the labels when `cell_type = "label"`.
-#' @param label_accuracy A numeric value specifying the accuracy of the labels when `cell_type = "label"`.
+#' @param label A function to calculate the labels for the heatmap cells.
+#' It takes the aggregated values as the argument and returns the labels to be shown in the heatmap.
+#' No labels will be shown for the NA the returned values.
 #' @param layer_fun_callback A function to add additional layers to the heatmap.
 #'  The function should have the following arguments: `j`, `i`, `x`, `y`, `w`, `h`, `fill`, `sr` and `sc`.
 #'  Please also refer to the `layer_fun` argument in `ComplexHeatmap::Heatmap`.
@@ -656,7 +657,7 @@ HeatmapAtomic <- function(
     show_row_names = !row_name_annotation, show_column_names = !column_name_annotation,
     column_title = character(0), row_title = character(0), na_col = "grey85", title = NULL,
     row_names_side = "right", column_names_side = "bottom", bars_sample = 100, flip = FALSE,
-    label_size = 10, label_cutoff = NULL, label_accuracy = 0.01, layer_fun_callback = NULL,
+    label_size = 10, label = identity, layer_fun_callback = NULL,
     cell_type = c("tile", "bars", "label", "dot", "violin", "boxplot", "pie"), cell_agg = mean,
     add_bg = FALSE, bg_alpha = 0.5, violin_fill = NULL, boxplot_fill = NULL, dot_size = 8, dot_size_name = "size",
     column_annotation = NULL, column_annotation_side = "top", column_annotation_palette = "Paired", column_annotation_palcolor = NULL,
@@ -1023,9 +1024,10 @@ HeatmapAtomic <- function(
         }
         hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
             labels <- ComplexHeatmap::pindex(hmargs$matrix, i, j)
-            inds <- !is.na(labels) & (if (is.null(label_cutoff)) TRUE else labels >= label_cutoff)
-            inds[is.na(inds)] <- FALSE
-            labels[inds] <- scales::number(labels[inds], accuracy = label_accuracy)
+            if (is.function(label)) {
+                labels <- label(labels)
+            }
+            inds <- !is.na(labels)
             if (any(inds)) {
                 theta <- seq(pi / 8, 2 * pi, length.out = 16)
                 lapply(theta, function(a) {
@@ -1511,7 +1513,7 @@ HeatmapAtomic <- function(
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
 #' Heatmap(data, rows = rows, columns_by = "c", cell_type = "label",
-#'         label_cutoff = 0)
+#'         label = function(x) ifelse(x <= 0, NA, scales::number(x, accuracy = 0.01)))
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
 #' Heatmap(data, rows = rows, columns_by = "c", cell_type = "dot")
@@ -1596,7 +1598,7 @@ Heatmap <- function(
     cluster_columns = TRUE, cluster_rows = TRUE, show_row_names = !row_name_annotation, show_column_names = !column_name_annotation,
     column_title = character(0), row_title = character(0), na_col = "grey85",
     row_names_side = "right", column_names_side = "bottom", bars_sample = 100, flip = FALSE,
-    label_size = 10, label_cutoff = NULL, label_accuracy = 0.01, layer_fun_callback = NULL,
+    label_size = 10, label = identity, layer_fun_callback = NULL,
     cell_type = c("tile", "bars", "label", "dot", "violin", "boxplot", "pie"), cell_agg = mean,
     add_bg = FALSE, bg_alpha = 0.5, violin_fill = NULL, boxplot_fill = NULL, dot_size = 8, dot_size_name = "size",
     column_annotation = NULL, column_annotation_side = "top", column_annotation_palette = "Paired", column_annotation_palcolor = NULL,
@@ -1675,7 +1677,7 @@ Heatmap <- function(
                 cluster_columns = cluster_columns, cluster_rows = cluster_rows, show_row_names = show_row_names, show_column_names = show_column_names,
                 column_title = column_title, row_title = row_title, na_col = na_col, return_grob = TRUE, title = title,
                 row_names_side = row_names_side, column_names_side = column_names_side, bars_sample = bars_sample, flip = flip,
-                label_size = label_size, label_cutoff = label_cutoff, label_accuracy = label_accuracy, layer_fun_callback = layer_fun_callback,
+                label_size = label_size, label = label, layer_fun_callback = layer_fun_callback,
                 cell_type = cell_type, cell_agg = cell_agg, add_bg = add_bg, bg_alpha = bg_alpha, violin_fill = violin_fill, boxplot_fill = boxplot_fill,
                 dot_size = dot_size, dot_size_name = dot_size_name, column_annotation = column_annotation, column_annotation_side = column_annotation_side,
                 column_annotation_palette = column_annotation_palette, column_annotation_palcolor = column_annotation_palcolor,
