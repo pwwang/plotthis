@@ -97,8 +97,7 @@
 <span>  bars_sample <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  flip <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  label_size <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  label_cutoff <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  label_accuracy <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  label <span class="op">=</span> <span class="va">identity</span>,</span>
 <span>  layer_fun_callback <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cell_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tile"</span>, <span class="st">"bars"</span>, <span class="st">"label"</span>, <span class="st">"dot"</span>, <span class="st">"violin"</span>, <span class="st">"boxplot"</span>, <span class="st">"pie"</span><span class="op">)</span>,</span>
 <span>  cell_agg <span class="op">=</span> <span class="va">mean</span>,</span>
@@ -380,12 +379,10 @@ The default is "bottom".</p></dd>
 <dd><p>A numeric value specifying the size of the labels when <code>cell_type = "label"</code>.</p></dd>
 
 
-<dt id="arg-label-cutoff">label_cutoff<a class="anchor" aria-label="anchor" href="#arg-label-cutoff"></a></dt>
-<dd><p>A numeric value specifying the cutoff to show the labels when <code>cell_type = "label"</code>.</p></dd>
-
-
-<dt id="arg-label-accuracy">label_accuracy<a class="anchor" aria-label="anchor" href="#arg-label-accuracy"></a></dt>
-<dd><p>A numeric value specifying the accuracy of the labels when <code>cell_type = "label"</code>.</p></dd>
+<dt id="arg-label">label<a class="anchor" aria-label="anchor" href="#arg-label"></a></dt>
+<dd><p>A function to calculate the labels for the heatmap cells.
+It takes the aggregated values as the argument and returns the labels to be shown in the heatmap.
+No labels will be shown for the NA the returned values.</p></dd>
 
 
 <dt id="arg-layer-fun-callback">layer_fun_callback<a class="anchor" aria-label="anchor" href="#arg-layer-fun-callback"></a></dt>
