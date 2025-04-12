@@ -489,6 +489,7 @@ EnrichNetworkAtomic <- function(
 #'
 #' @rdname enrichmap1
 #' @param data A data frame containing the result by Enrichr.
+#' @param dbname A character string specifying the name of the database column.
 #' @param n_input An integer specifying the number of input genes.
 #' Enrichr result doesn't ship with the number of input genes.
 #' You can either provide the number directly or we will infer it. See details.
@@ -512,7 +513,15 @@ EnrichNetworkAtomic <- function(
 #' * `BgRatio = B / D` (from ClusterProfiler)
 #' `C (n_input)`, if not provided, will be inferred when `D` for all terms are equal.
 #' When starting inferrence, the minimum value to try will be unique genes in `data$Genes`/`data$geneID`.
-PrepareEnrichrResult <- function(data, n_input = NULL) {
+PrepareEnrichrResult <- function(data, dbname = "Database", n_input = NULL) {
+    if (inherits(data, "list")) {
+        data <- lapply(names(data), function(x) {
+            df <- PrepareEnrichrResult(data[[x]])
+            df[[dbname]] <- x
+            df
+        })
+        return(do.call(rbind, data))
+    }
     # Calculate GeneRatio and BgRatio
     A_B <- strsplit(data$Overlap, "/", fixed = TRUE)
     A <- as.numeric(sapply(A_B, `[`, 1))

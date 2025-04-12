@@ -6,7 +6,7 @@
 \alias{EnrichNetwork}
 \title{Enrichment Map/Network}
 \usage{
-PrepareEnrichrResult(data, n_input = NULL)
+PrepareEnrichrResult(data, dbname = "Database", n_input = NULL)
 
 EnrichMap(
   data,
@@ -101,6 +101,8 @@ qvalue, geneID and Count.
 If you have enrichment results from multiple databases, you can combine them into one data frame and add a column (e.g. Database)
 to indicate the database.
 You can plot them in a single plot using the \code{split_by} argument (e.g. \code{split_by = "Database"}).}
+
+\item{dbname}{A character string specifying the name of the database column.}
 
 \item{n_input}{An integer specifying the number of input genes.
 Enrichr result doesn't ship with the number of input genes.
