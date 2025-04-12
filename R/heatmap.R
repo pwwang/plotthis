@@ -1511,7 +1511,8 @@ HeatmapAtomic <- function(
 #'         bars_sample = 3)
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
-#' Heatmap(data, rows = rows, columns_by = "c", cell_type = "label")
+#' Heatmap(data, rows = rows, columns_by = "c", cell_type = "label",
+#'         label = function(x) scales::number(x, accuracy = 0.01))
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
 #' Heatmap(data, rows = rows, columns_by = "c", cell_type = "label",
