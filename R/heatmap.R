@@ -747,7 +747,9 @@ HeatmapAtomic <- function(
     }
     ## Initialize the heatmap arguments
     hmargs <- list(
-        name = name, border = border, na_col = na_col,
+        # name = name,   # error when name has irregular characters (e.g. "-")
+        heatmap_legend_param = list(title = name),
+        border = border, na_col = na_col,
         cluster_columns = cluster_columns, cluster_rows = cluster_rows,
         cluster_column_slices = FALSE, cluster_row_slices = FALSE, show_heatmap_legend = FALSE,
         show_row_names = show_row_names, show_column_names = show_column_names,
