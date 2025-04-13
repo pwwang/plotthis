@@ -137,11 +137,8 @@ BoxViolinPlotAtomic <- function(
         if (sig_label %in% c("p.format", "p.signif")) {
             sig_label <- paste0("{", sig_label, "}")
         }
-        if (isTRUE(multiplegroup_comparisons)) {
-            # stat_compare_means doesn't support facet_by
-            data <- data %>% unite(".compares_group", !!!syms(unique(c(x, group_by))), sep = "_", remove = FALSE)
-        }
     }
+
     sort_x <- match.arg(sort_x)
     if (sort_x != "none" && !is.null(facet_by)) {
         stop("Cannot sort x-axis when facet_by is provided.")
@@ -340,18 +337,24 @@ BoxViolinPlotAtomic <- function(
     }
 
     if (isTRUE(multiplegroup_comparisons)) {
+        if (!sig_label %in% c("{p.format}", "{p.signif}")) {
+            stop("[Box/ViolinPlot] 'sig_label' must be 'p.format' or 'p.signif' when 'multiplegroup_comparisons' is TRUE.")
+        } else {
+            sig_label <- substr(sig_label, 2, nchar(sig_label) - 1)
+        }
         p <- p + ggpubr::stat_compare_means(
-            mapping = aes(
-                x = !!sym(x),
-                y = !!sym(y),
-                group = !!sym(".compares_group")
-            ),
+            mapping = if (!is.null(group_by)) {
+                aes(x = !!sym(x), y = !!sym(y), group = !!sym(group_by))
+            } else {
+                aes(x = !!sym(x), y = !!sym(y))
+            },
             inherit.aes = FALSE,
             method = multiple_method,
             label.y = y_max_use,
             size = sig_labelsize,
-            vjust = 1.2,
-            hjust = 0
+            label = sig_label,
+            vjust = -0.5,
+            hjust = ifelse(is.null(group_by), 0, 0.5)
         )
         y_max_use <- layer_scales(p)$y$range$range[1] + (layer_scales(p)$y$range$range[2] - layer_scales(p)$y$range$range[1]) * 1.15
     }
