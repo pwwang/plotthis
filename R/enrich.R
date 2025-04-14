@@ -150,7 +150,11 @@ EnrichMapAtomic <- function(
     nodes <- data
     edges <- as.data.frame(t(combn(nodes$ID, 2)))
     colnames(edges) <- c("from", "to")
-    edges$weight <- mapply(function(x, y) length(intersect(data[x, "geneID"], data[y, "geneID"])), edges$from, edges$to)
+    edges$weight <- mapply(
+        function(x, y) length(intersect(unlist(data[x, "geneID"]), unlist(data[y, "geneID"]))),
+        edges$from,
+        edges$to
+    )
     edges <- edges[edges$weight > 0, , drop = FALSE]
     nodes <- nodes[c("ID", setdiff(colnames(nodes), "ID"))]
     graph <- igraph::graph_from_data_frame(d = edges, vertices = nodes, directed = FALSE)
