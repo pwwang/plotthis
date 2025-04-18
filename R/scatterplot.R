@@ -117,7 +117,9 @@ ScatterPlotAtomic <- function(
                 n.breaks = 5,
                 colors = palette_this(data[[color_by]], palette = palette, palcolor = palcolor, reverse = color_reverse, alpha = alpha),
                 na.value = "grey80",
-                guide = if (isTRUE(color_legend)) {
+                guide = if (isTRUE(border_color) || isFALSE(color_legend)) {
+                    # legend for border color will be added later
+                    # so we don't need to show the legend for fill color
                     guide_none()
                 } else {
                     guide_colorbar(
@@ -130,7 +132,7 @@ ScatterPlotAtomic <- function(
                     n.breaks = 5,
                     colors = palette_this(palette = palette, palcolor = palcolor, reverse = color_reverse),
                     na.value = "grey80",
-                    guide = if (isTRUE(color_legend)) {
+                    guide = if (isTRUE(border_color) && isTRUE(color_legend)) {
                         guide_colorbar(
                             title = color_name %||% color_by,
                             frame.colour = "black", ticks.colour = "black", title.hjust = 0, order = 2)
@@ -143,21 +145,21 @@ ScatterPlotAtomic <- function(
             p <- p + scale_fill_manual(
                 values = palette_this(levels(data[[color_by]]), palette = palette, palcolor = palcolor, alpha = alpha),
                 na.value = "grey80",
-                guide = if (isTRUE(color_legend)) {
+                guide = if (isTRUE(border_color) || isFALSE(color_legend)) {
+                    guide_none()
+                } else {
                     guide_legend(
                         title = color_name %||% color_by,
                         override.aes = list(size = 4, alpha = 1),
                         order = 3
                     )
-                } else {
-                    guide_none()
                 }
             )
             if (isTRUE(border_color)) {
                 p <- p + scale_color_manual(
                     values = palette_this(levels(data[[color_by]]), palette = palette, palcolor = palcolor),
                     na.value = "black",
-                    guide = if (isTRUE(color_legend)) {
+                    guide = if (isTRUE(border_color) && isTRUE(color_legend)) {
                         guide_legend(title = color_name %||% color_by, order = 3)
                     } else {
                         guide_none()
@@ -171,12 +173,12 @@ ScatterPlotAtomic <- function(
                 n.breaks = 5,
                 colors = palette_this(data[[color_by]], palette = palette, palcolor = palcolor, reverse = color_reverse, alpha = alpha),
                 na.value = "grey80",
-                guide = if (isFALSE(color_legend)) {
-                    guide_none()
-                } else {
+                guide = if (isTRUE(color_legend)) {
                     guide_colorbar(
                         title = color_name %||% color_by,
                         frame.colour = "black", ticks.colour = "black", title.hjust = 0, order = 2)
+                } else {
+                    guide_none()
                 }
             )
         } else {  # factor/character
