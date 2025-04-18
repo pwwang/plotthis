@@ -578,6 +578,10 @@ check_palcolor <- function(palcolor, datas_name) {
     # as.list() will turn c("red", "blue") into list("red", "blue")
     # but we need list(c("red", "blue"))
     if (!is.list(palcolor)) { palcolor <- list(palcolor) }
+    if (identical(datas_name, "...") && !identical(names(palcolor), "...")) {
+        palcolor <- list(palcolor)
+        names(palcolor) <- datas_name
+    }
     if (length(palcolor) == 1 && length(datas_name) > 1) {
         palcolor <- rep(palcolor, length(datas_name))
     }
