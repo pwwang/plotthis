@@ -169,12 +169,34 @@ palette_this <- function(
     if (all(palcolor == "")) {
         palcolor <- palette_list[[palette]]
     }
+    # print(palcolor)
+    # return()
     if (is.null(palcolor) || length(palcolor) == 0) {
         palcolor <- palette_list[[palette]]
     }
     if (!is.null(names(palcolor))) {
-        if (all(x %in% names(palcolor))) {
-            palcolor <- palcolor[intersect(names(palcolor), x)]
+        mypal <- palcolor[intersect(names(palcolor), x)]
+        # palcolor partially matches x
+        if (length(mypal) < length(x) && length(mypal) > 0) {
+            palcolor <- palette_this(
+                x = x,
+                n = n,
+                palette = palette,
+                palcolor = NULL,
+                type = type,
+                keep_names = TRUE,
+                alpha = 1,
+                matched = matched,
+                reverse = reverse,
+                NA_keep = NA_keep,
+                NA_color = NA_color,
+                transparent = transparent
+            )
+            palcolor[names(mypal)] <- mypal
+            # already reversed, specified palcolor won't be reversed
+            reverse = FALSE
+        } else if (length(mypal) == length(x)) {
+            palcolor <- mypal
         }
     }
     pal_n <- length(palcolor)

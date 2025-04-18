@@ -141,6 +141,7 @@ A ggplot object or wrap_plots object or a list of ggplot objects
 A plot visualizing Clusterings at Different Resolutions
 }
 \examples{
+\donttest{
 set.seed(8525)
 N = 100
 data <- data.frame(
@@ -159,4 +160,5 @@ ClustreePlot(data, prefix = "p", flip = TRUE)
 ClustreePlot(data, prefix = "p", split_by = "split")
 ClustreePlot(data, prefix = "p", split_by = "split",
              palette = c("1" = "Set1", "2" = "Paired"))
+}
 }

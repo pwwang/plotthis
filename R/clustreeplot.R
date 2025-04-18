@@ -153,6 +153,7 @@ ClustreePlotAtomic <- function(
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
 #' @examples
+#' \donttest{
 #' set.seed(8525)
 #' N = 100
 #' data <- data.frame(
@@ -171,6 +172,7 @@ ClustreePlotAtomic <- function(
 #' ClustreePlot(data, prefix = "p", split_by = "split")
 #' ClustreePlot(data, prefix = "p", split_by = "split",
 #'              palette = c("1" = "Set1", "2" = "Paired"))
+#' }
 ClustreePlot <- function(
     data, prefix, flip = FALSE, split_by = NULL, split_by_sep = "_",
     palette = "Paired", palcolor = NULL, edge_palette = "Spectral", edge_palcolor = NULL,
