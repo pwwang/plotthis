@@ -32,6 +32,8 @@
 #' You can also use quantile notation like "q5" to specify the 5th percentile.
 #' @param y_trans A character string to specify the transformation of the y-axis.
 #' @param y_nbreaks A numeric value to specify the number of breaks in the y-axis.
+#' @param step_increase A numeric value to specify the step increase in fraction of total height for every
+#' additional comparison of the significance labels.
 #' @param add_box A logical value to add box plot to the plot.
 #' @param box_color A character string to specify the color of the box plot.
 #' @param box_width A numeric value to specify the width of the box plot.
@@ -88,7 +90,7 @@ BoxViolinPlotAtomic <- function(
     data, x, x_sep = "_", y = NULL, base = c("box", "violin"), in_form = c("long", "wide"),
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
     flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
+    x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
@@ -294,7 +296,7 @@ BoxViolinPlotAtomic <- function(
                     ),
                     label.size = sig_labelsize,
                     y.position = y_max_use,
-                    step.increase = 0.1,
+                    step.increase = step_increase,
                     tip.length = 0.03,
                     vjust = 0,
                     ref.group = ref_group,
@@ -325,7 +327,7 @@ BoxViolinPlotAtomic <- function(
                 ),
                 label.size = sig_labelsize,
                 y.position = y_max_use,
-                step.increase = 0.1,
+                step.increase = step_increase,
                 tip.length = 0.03,
                 vjust = 0,
                 # comparisons = comparisons,
@@ -548,7 +550,7 @@ BoxViolinPlot <- function(
     split_by = NULL, split_by_sep = "_",
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
     flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
+    x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
@@ -598,7 +600,7 @@ BoxViolinPlot <- function(
             BoxViolinPlotAtomic(datas[[nm]],
                 x = x, x_sep = x_sep, y = y, base = base, in_form = in_form,
                 sort_x = sort_x, flip = flip, keep_empty = keep_empty, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
-                x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse,
+                x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse, step_increase = step_increase,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                 add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha,
@@ -669,7 +671,7 @@ BoxPlot <- function(
     split_by = NULL, split_by_sep = "_",
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
     flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
+    x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
@@ -692,7 +694,7 @@ BoxPlot <- function(
         data = data, x = x, x_sep = x_sep, y = y, base = "box", in_form = in_form,
         split_by = split_by, split_by_sep = split_by_sep,
         sort_x = sort_x, flip = flip, keep_empty = keep_empty, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
-        x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse,
+        x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse, step_increase = step_increase,
         theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
         aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
         add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha,
@@ -757,7 +759,7 @@ ViolinPlot <- function(
     split_by = NULL, split_by_sep = "_",
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
     flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
+    x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
@@ -781,7 +783,7 @@ ViolinPlot <- function(
         data = data, x = x, x_sep = x_sep, y = y, base = "violin", in_form = in_form,
         split_by = split_by, split_by_sep = split_by_sep,
         sort_x = sort_x, flip = flip, keep_empty = keep_empty, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
-        x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse,
+        x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse, step_increase = step_increase,
         theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
         aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
         add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha,

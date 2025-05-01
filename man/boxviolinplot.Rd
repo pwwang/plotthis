@@ -21,6 +21,7 @@ BoxPlot(
   group_by_sep = "_",
   group_name = NULL,
   x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
+  step_increase = 0.1,
   fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
   fill_reverse = FALSE,
   theme = "theme_this",
@@ -106,6 +107,7 @@ ViolinPlot(
   group_by_sep = "_",
   group_name = NULL,
   x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
+  step_increase = 0.1,
   fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
   fill_reverse = FALSE,
   theme = "theme_this",
@@ -211,6 +213,9 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 \item{group_name}{A character string to name the legend of dodge.}
 
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
+
+\item{step_increase}{A numeric value to specify the step increase in fraction of total height for every
+additional comparison of the significance labels.}
 
 \item{fill_mode}{A character string to specify the fill mode. Either "dodge", "x", "mean", "median".}
 
