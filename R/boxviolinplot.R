@@ -25,7 +25,11 @@
 #' @param jitter_height A numeric value to specify the height of the jitter.
 #' @param stack A logical value whether to stack the facetted plot by 'facet_by'.
 #' @param y_max A numeric value or a character string to specify the maximum value of the y-axis.
+#' You can also use quantile notation like "q95" to specify the 95th percentile.
+#' When comparisons are set and a numeric y_max is provided, it will be used to set the y-axis limit, including
+#' the significance labels.
 #' @param y_min A numeric value or a character string to specify the minimum value of the y-axis.
+#' You can also use quantile notation like "q5" to specify the 5th percentile.
 #' @param y_trans A character string to specify the transformation of the y-axis.
 #' @param y_nbreaks A numeric value to specify the number of breaks in the y-axis.
 #' @param add_box A logical value to add box plot to the plot.
@@ -149,13 +153,11 @@ BoxViolinPlotAtomic <- function(
         ungroup()
 
     values <- data[[y]][is.finite(data[[y]])]
-    if (is.null(y_max)) {
-        y_max_use <- max(values, na.rm = TRUE)
-    } else if (is.character(y_max)) {
+    if (is.character(y_max)) {
         q_max <- as.numeric(sub("(^q)(\\d+)", "\\2", y_max)) / 100
         y_max_use <- quantile(values, q_max, na.rm = TRUE)
     } else {
-        y_max_use <- y_max
+        y_max_use <- max(values, na.rm = TRUE)
     }
     if (is.null(y_min)) {
         y_min_use <- min(values, na.rm = TRUE)
@@ -357,6 +359,10 @@ BoxViolinPlotAtomic <- function(
             hjust = ifelse(is.null(group_by), 0, 0.5)
         )
         y_max_use <- layer_scales(p)$y$range$range[1] + (layer_scales(p)$y$range$range[2] - layer_scales(p)$y$range$range[1]) * 1.15
+    }
+
+    if (!is.null(y_max)) {
+        y_max_use <- max(y_max_use, y_max)
     }
 
     if (isTRUE(add_point)) {

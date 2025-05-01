@@ -251,9 +251,13 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{stack}{A logical value whether to stack the facetted plot by 'facet_by'.}
 
-\item{y_max}{A numeric value or a character string to specify the maximum value of the y-axis.}
+\item{y_max}{A numeric value or a character string to specify the maximum value of the y-axis.
+You can also use quantile notation like "q95" to specify the 95th percentile.
+When comparisons are set and a numeric y_max is provided, it will be used to set the y-axis limit, including
+the significance labels.}
 
-\item{y_min}{A numeric value or a character string to specify the minimum value of the y-axis.}
+\item{y_min}{A numeric value or a character string to specify the minimum value of the y-axis.
+You can also use quantile notation like "q5" to specify the 5th percentile.}
 
 \item{add_trend}{A logical value to add trend line to the plot.}
 
