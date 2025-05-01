@@ -13,6 +13,7 @@ BoxPlot(
   in_form = c("long", "wide"),
   split_by = NULL,
   split_by_sep = "_",
+  symnum_args = NULL,
   sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc",
     "median"),
   flip = FALSE,
@@ -99,6 +100,7 @@ ViolinPlot(
   in_form = c("long", "wide"),
   split_by = NULL,
   split_by_sep = "_",
+  symnum_args = NULL,
   sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc",
     "median"),
   flip = FALSE,
@@ -196,6 +198,17 @@ When \code{in_form} is "wide", \code{x} columns will not be concatenated.}
 \item{split_by}{The column(s) to split data by and plot separately.}
 
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
+
+\item{symnum_args}{A list of arguments to pass to the function \code{symnum} for symbolic number coding of p-values.
+For example, \code{symnum_args <- list(cutpoints = c(0, 0.0001, 0.001, 0.01, 0.05, Inf), symbols = c("****", "***", "**", "*", "ns"))}.
+In other words, we use the following convention for symbols indicating statistical significance:
+\itemize{
+\item \code{ns}: p > 0.05
+\item \code{*}: p <= 0.05
+\item \verb{**}: p <= 0.01
+\item \verb{***}: p <= 0.001
+\item \verb{****}: p <= 0.0001
+}}
 
 \item{sort_x}{A character string to specify the sorting of x-axis. Either "none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median".}
 
@@ -322,10 +335,17 @@ If \code{TRUE}, it will perform pairwise comparisons for all pairs.}
 \item{multiple_method}{A character string to specify the multiple group comparison method.}
 
 \item{sig_label}{A character string to specify the label of the significance test.
-You can use "p.format" to show the p-value or "p.signif" to show the significance level.
-You can also use arbitrary text, with \code{"{p.format}"} as placeholder for the p-value and/or
-\code{"{p.signif}"} as placeholder for the significance level.
-This only works for pairwise comparisons, not for multiple group comparisons.}
+For multiple group comparisons (\code{multiplegroup_comparisons = TRUE}), it must be either "p.format" or "p.signif".
+For pairwise comparisons, it can be:
+\itemize{
+\item the column containing the label (e.g.: label = "p" or label = "p.adj"), where p is the p-value.
+Other possible values are "p.signif", "p.adj.signif", "p.format", "p.adj.format".
+\item an expression that can be formatted by the glue() package.
+For example, when specifying \code{label = "Wilcoxon, p = {p}"}, the expression \code{{p}} will be replaced by its value.
+\item a combination of plotmath expressions and glue expressions.
+You may want some of the statistical parameter in italic; for example: \code{label = "Wilcoxon, p= {p}"}
+See https://rpkgs.datanovia.com/ggpubr/reference/geom_pwc.html for more details.
+}}
 
 \item{sig_labelsize}{A numeric value to specify the size of the significance test label.}
 
@@ -460,7 +480,7 @@ ViolinPlot(data, x = "x", y = "y", add_point = TRUE, highlight = 'group1 == "g1"
     alpha = 0.8, highlight_size = 1.5, pt_size = 1, add_box = TRUE)
 ViolinPlot(data,
     x = "x", y = "y", group_by = "group1",
-    comparisons = TRUE, sig_label = "p = {p.format}"
+    comparisons = TRUE, sig_label = "p = {p}"
 )
 ViolinPlot(data,
     x = "x", y = "y", sig_label = "p.format", hide_ns = TRUE,
