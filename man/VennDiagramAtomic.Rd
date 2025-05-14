@@ -6,7 +6,7 @@
 \usage{
 VennDiagramAtomic(
   data,
-  in_form = NULL,
+  in_form = "auto",
   group_by = NULL,
   group_by_sep = "_",
   id_by = NULL,
@@ -38,7 +38,7 @@ Possible values are "long", "wide", "list", "venn" or NULL.
 "wide" indicates the data is in wide format.
 "list" indicates the data is a list.
 "venn" indicates the data is a VennPlotData object.
-NULL indicates the function will detect the datatype of the input data.
+"auto" indicates the function will detect the datatype of the input data.
 
 A long format data would look like:
 \preformatted{
