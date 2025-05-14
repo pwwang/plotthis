@@ -28,20 +28,12 @@ gsea_running_score <- function(genes, gene_ranks, exponent = 1, hits_only = TRUE
     }
 }
 
-#' GSEA plots
+#' Prepare fgsea result for plotting
 #'
-#' @description
-#'  * `GSEASummaryPlot` is used to plot a summary of the results of a GSEA analysis.
-#'  * `GSEAPlot` is used to plot the results of a GSEA analysis.
-#'  * `PrepareFGSEA` is used to prepare the result of GSEA from the `fgsea` package for plotting.
-#'
-#' @rdname gsea
 #' @param data A data frame of fgsea results
-#' @param gene_ranks A numeric vector of gene ranks with names
-#' @param gene_sets A list of gene sets, typically from a record of a GMT file
 #' @return A data frame with the desired columns for plotting and the gene ranks and gene sets as attributes
-#' @export
-PrepareFGSEAResult <- function(data, gene_ranks, gene_sets) {
+#' @keywords internal
+prepare_fgsea_result <- function(data) {
     data$ID <- data$pathway
     data$Description <- data$pathway
     data$pathway <- NULL
@@ -52,18 +44,27 @@ PrepareFGSEAResult <- function(data, gene_ranks, gene_sets) {
     data$core_enrichment <- sapply(data$leadingEdge, paste0, collapse = "/")
     data$leadingEdge <- NULL
 
-    attr(data, "gene_ranks") <- gene_ranks
-    attr(data, "gene_sets") <- gene_sets
     data
 }
 
-#' @rdname gsea
+#' GSEA plots
 #'
+#' @description
+#'  * `GSEASummaryPlot` is used to plot a summary of the results of a GSEA analysis.
+#'  * `GSEAPlot` is used to plot the results of a GSEA analysis.
+#'
+#' @rdname gsea
 #' @inheritParams common_args
 #' @param data A data frame of GSEA results
 #'  For example, from `DOSE::gseDO()`.
 #'  Required columns are `ID`, `Description`, `NES`, `p.adjust`, `pvalue`.
 #'  The `ID` column is used to match the gene sets.
+#' @param in_form The format of the input data
+#'  * `fgsea`: The input data is from the `fgsea` package.
+#'  * `dose`: The input data is from the `DOSE` package.
+#'  * `auto`: Automatically detect the format of the input data.
+#'  When "leadingEdge" is in the input data, it will be treated as "fgsea"; otherwise,
+#'  if "core_enrichment" is in the input data, it will be treated as "dose".
 #' @param gene_ranks A numeric vector of gene ranks with genes as names
 #'  The gene ranks are used to plot the gene sets.
 #'  If `gene_ranks` is a character vector starting with `@`, the gene ranks will be taken from the attribute of `data`.
@@ -94,14 +95,15 @@ PrepareFGSEAResult <- function(data, gene_ranks, gene_sets) {
 #' GSEASummaryPlot(gsea_example, cutoff = 0.01)
 #' }
 GSEASummaryPlot <- function(
-    data, gene_ranks = "@gene_ranks", gene_sets = "@gene_sets", top_term = 10, metric = "p.adjust",
-    cutoff = 0.05, character_width = 50, line_plot_size = 0.25, metric_name = paste0("-log10(", metric, ")"),
-    nonsig_name = "Non-significant", linewidth = 0.2, line_by = c("prerank", "running_score"),
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
+    data, in_form = c("auto", "dose", "fgsea"), gene_ranks = "@gene_ranks", gene_sets = "@gene_sets", top_term = 10,
+    metric = "p.adjust", cutoff = 0.05, character_width = 50, line_plot_size = 0.25,
+    metric_name = paste0("-log10(", metric, ")"), nonsig_name = "Non-significant", linewidth = 0.2,
+    line_by = c("prerank", "running_score"), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     alpha = 0.6, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL,
     seed = 8525, ...) {
     set.seed(seed)
+    in_form <- match.arg(in_form)
     theme <- process_theme(theme)
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
@@ -112,6 +114,7 @@ GSEASummaryPlot <- function(
     if (inherits(data, "gseaResult")) {
         data <- as.data.frame(data)
     }
+
     if (is.character(gene_ranks) && length(gene_ranks) == 1 && startsWith(gene_ranks, "@")) {
         gene_ranks <- attr(data, substring(gene_ranks, 2))
     }
@@ -136,6 +139,18 @@ GSEASummaryPlot <- function(
         stop("'gene_sets' must be a list")
     }
 
+    if (in_form == "auto") {
+        if ("leadingEdge" %in% colnames(data)) {
+            in_form <- "fgsea"
+        } else if ("core_enrichment" %in% colnames(data)) {
+            in_form <- "dose"
+        } else {
+            stop("Cannot detect the input format. Please set 'in_form' to 'fgsea' or 'dose'.")
+        }
+    }
+    if (in_form == "fgsea") {
+        data <- prepare_fgsea_result(data)
+    }
     if (!is.null(top_term)) {
         data <- slice_min(data, !!sym(metric), n = top_term, with_ties = FALSE)
     }
@@ -524,13 +539,14 @@ GSEAPlotAtomic <- function(
 #' GSEAPlot(gsea_example, gene_sets = attr(gsea_example, "gene_sets")[1:4])
 #' }
 GSEAPlot <- function(
-    data, gene_ranks = "@gene_ranks", gene_sets = "@gene_sets", sample_coregenes = FALSE,
-    line_width = 1.5, line_alpha = 1, line_color = "#6BB82D", n_coregenes = 10, genes_label = NULL,
-    label_fg = "black", label_bg = "white", label_bg_r = 0.1, label_size = 4,
+    data, in_form = c("auto", "dose", "fgsea"), gene_ranks = "@gene_ranks", gene_sets = "@gene_sets",
+    sample_coregenes = FALSE, line_width = 1.5, line_alpha = 1, line_color = "#6BB82D", n_coregenes = 10,
+    genes_label = NULL, label_fg = "black", label_bg = "white", label_bg_r = 0.1, label_size = 4,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525,
     axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...) {
     set.seed(seed)
+    in_form <- match.arg(in_form)
     if (inherits(data, "gseaResult")) {
         data <- as.data.frame(data)
     }
@@ -548,6 +564,18 @@ GSEAPlot <- function(
     if (is.null(gene_sets)) { stop("'gene_sets' must be provided") }
     if (!is.list(gene_sets)) { stop("'gene_sets' must be a list") }
 
+    if (in_form == "auto") {
+        if ("leadingEdge" %in% colnames(data)) {
+            in_form <- "fgsea"
+        } else if ("core_enrichment" %in% colnames(data)) {
+            in_form <- "dose"
+        } else {
+            stop("Cannot detect the input format. Please set 'in_form' to 'fgsea' or 'dose'.")
+        }
+    }
+    if (in_form == "fgsea") {
+        data <- prepare_fgsea_result(data)
+    }
     gsnames <- intersect(as.character(data$ID), names(gene_sets))
     gene_sets <- gene_sets[gsnames]
     data <- data[as.character(data$ID) %in% gsnames, , drop = FALSE]

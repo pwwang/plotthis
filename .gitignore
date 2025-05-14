@@ -4,3 +4,5 @@ CRAN-SUBMISSION
 cran-comments.md
 *.Rcheck/
 plotthis_*.tar.gz
+brain.rds
+brain.qs2

@@ -15,3 +15,5 @@
 ^test\.ipynb$
 ^.+\.Rcheck/.+$
 ^.+\.tar\.gz$
+^brain\.rds$
+^brain\.qs2$
