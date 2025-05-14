@@ -95,8 +95,8 @@ prepare_fgsea_result <- function(data) {
 #' GSEASummaryPlot(gsea_example, cutoff = 0.01)
 #' }
 GSEASummaryPlot <- function(
-    data, in_form = c("auto", "dose", "fgsea"), gene_ranks = "@gene_ranks", gene_sets = "@gene_sets", top_term = 10,
-    metric = "p.adjust", cutoff = 0.05, character_width = 50, line_plot_size = 0.25,
+    data, in_form = c("auto", "dose", "fgsea"), gene_ranks = "@gene_ranks", gene_sets = "@gene_sets",
+    top_term = 10, metric = "p.adjust", cutoff = 0.05, character_width = 50, line_plot_size = 0.25,
     metric_name = paste0("-log10(", metric, ")"), nonsig_name = "Non-significant", linewidth = 0.2,
     line_by = c("prerank", "running_score"), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     alpha = 0.6, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
@@ -154,6 +154,9 @@ GSEASummaryPlot <- function(
     if (!is.null(top_term)) {
         data <- slice_min(data, !!sym(metric), n = top_term, with_ties = FALSE)
     }
+    data$ID <- factor(data$ID, levels = rev(unique(data$ID)))
+    data <- data[order(data$ID), , drop = FALSE]
+
     if (!is.null(cutoff)) {
         # data <- data[data[[metric]] < cutoff, , drop = FALSE]
         data$.signif <- data[[metric]] < cutoff
@@ -163,7 +166,7 @@ GSEASummaryPlot <- function(
     data$metric <- -log10(data[[metric]])
     check_columns(data, "Description", force_factor = TRUE)
     data$Description <- droplevels(data$Description)
-    data <- data[order(data$Description), , drop = FALSE]
+    # data <- data[order(data$Description), , drop = FALSE]
     data$Description <- str_wrap(data$Description, width = character_width)
     data$Description <- factor(data$Description, levels = unique(data$Description))
     data$y <- as.integer(data$Description)
@@ -197,7 +200,7 @@ GSEASummaryPlot <- function(
         } else {
             color <- "grey80"
         }
-        hits <- intersect(gene_sets[[data$ID[i]]], names(gene_ranks))
+        hits <- intersect(gene_sets[[as.character(data$ID[i])]], names(gene_ranks))
         if (line_by == "running_score") {
             scores <- gsea_running_score(hits, gene_ranks)
         } else {
