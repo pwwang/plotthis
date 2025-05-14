@@ -6,6 +6,7 @@
 \usage{
 EnrichMapAtomic(
   data,
+  in_form = "clusterProfiler",
   top_term = 100,
   metric = "p.adjust",
   layout = "fr",

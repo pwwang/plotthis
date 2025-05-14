@@ -104,7 +104,7 @@ adjust_network_layout <- function(graph, layout, width, height = 2, scale = 100,
 #' @importFrom ggplot2 geom_segment geom_point labs scale_size guides scale_linewidth scale_fill_manual scale_x_continuous
 #' @importFrom ggplot2 scale_y_continuous
 EnrichMapAtomic <- function(
-    data, top_term = 100, metric = "p.adjust", layout = "fr", minchar = 2,
+    data, in_form = "clusterProfiler", top_term = 100, metric = "p.adjust", layout = "fr", minchar = 2,
     cluster = "fast_greedy", show_keyword = FALSE, nlabel = 4, character_width = 50,
     words_excluded = plotthis::words_excluded,
     mark = "ellipse", label = c("term", "feature"), labelsize = 5, expand = c(0.4, 0.4),
@@ -126,6 +126,10 @@ EnrichMapAtomic <- function(
     if (inherits(data, "enrichResult")) {
         data <- as.data.frame(data)
     }
+    if (in_form == "enrichr") {
+        data <- prepare_enrichr_result(data)
+    }
+
     # Check the columns
     check_columns(data, "Description", force_factor = TRUE)
     check_columns(data, "GeneRatio")
@@ -485,23 +489,18 @@ EnrichNetworkAtomic <- function(
     p
 }
 
-#' Enrichment Map/Network
+#' Process the enrichment results from Enrichr
 #'
-#' `PrepareEnrichrResult` is a function to process the enrichment results from Enrichr.
-#' `EnrichMap` is a function to plot the enrichment map.
-#' `EnrichNetwork` is a function to plot the enrichment network.
-#'
-#' @rdname enrichmap1
 #' @param data A data frame containing the result by Enrichr.
 #' @param dbname A character string specifying the name of the database column.
 #' @param n_input An integer specifying the number of input genes.
 #' Enrichr result doesn't ship with the number of input genes.
 #' You can either provide the number directly or we will infer it. See details.
 #' @return A data frame that can be used in `EnrichMap`.
-#' @export
+#' @keywords internal
 #' @details
 #' In order to use the `EnrichMap` and `EnrichNetwork` functions and other visualization functions in `plotthis`,
-#' the enrichment results from Enrichr need to be processed by the `PrepareEnrichrResult` function.
+#' the enrichment results from Enrichr need to be processed by the `prepare_enrichr_result` function.
 #' The following columns are renamed:
 #' * `Term` -> `Description`
 #' * `Genes` -> `geneID` (separated replaced by `/`)
@@ -517,10 +516,10 @@ EnrichNetworkAtomic <- function(
 #' * `BgRatio = B / D` (from ClusterProfiler)
 #' `C (n_input)`, if not provided, will be inferred when `D` for all terms are equal.
 #' When starting inferrence, the minimum value to try will be unique genes in `data$Genes`/`data$geneID`.
-PrepareEnrichrResult <- function(data, dbname = "Database", n_input = NULL) {
+prepare_enrichr_result <- function(data, dbname = "Database", n_input = NULL) {
     if (inherits(data, "list")) {
         data <- lapply(names(data), function(x) {
-            df <- PrepareEnrichrResult(data[[x]])
+            df <- prepare_enrichr_result(data[[x]])
             df[[dbname]] <- x
             df
         })
@@ -563,6 +562,11 @@ PrepareEnrichrResult <- function(data, dbname = "Database", n_input = NULL) {
     data
 }
 
+#' Enrichment Map/Network
+#'
+#' `EnrichMap` is a function to plot the enrichment map.
+#' `EnrichNetwork` is a function to plot the enrichment network.
+#'
 #' @rdname enrichmap1
 #' @inheritParams common_args
 #' @inheritParams EnrichMapAtomic
@@ -579,6 +583,9 @@ PrepareEnrichrResult <- function(data, dbname = "Database", n_input = NULL) {
 #'  If you have enrichment results from multiple databases, you can combine them into one data frame and add a column (e.g. Database)
 #'  to indicate the database.
 #'  You can plot them in a single plot using the `split_by` argument (e.g. `split_by = "Database"`).
+#' @param in_form A character string specifying the input format.
+#' Either "auto", "clusterProfiler", "clusterprofiler" or "enrichr".
+#' The default is "auto", which will try to infer the input format.
 #' @export
 #' @examples
 #' \donttest{
@@ -594,8 +601,8 @@ PrepareEnrichrResult <- function(data, dbname = "Database", n_input = NULL) {
 #'           palette = list(DB1 = "Paired", DB2 = "Set1"))
 #' }
 EnrichMap <- function(
-    data, split_by = NULL, split_by_sep = "_",
-    top_term = 10, metric = "p.adjust", layout = "fr", minchar = 2,
+    data, in_form = c("auto", "clusterProfiler", "clusterprofiler", "enrichr"), split_by = NULL,
+    split_by_sep = "_", top_term = 10, metric = "p.adjust", layout = "fr", minchar = 2,
     cluster = "fast_greedy", show_keyword = FALSE, nlabel = 4, character_width = 50,
     mark = "ellipse", label = c("term", "feature"), labelsize = 5, expand = c(0.4, 0.4),
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
@@ -606,6 +613,21 @@ EnrichMap <- function(
 ) {
     validate_common_args(seed)
     theme <- process_theme(theme)
+    in_form <- match.arg(in_form)
+    in_form <- tolower(in_form)
+    if (in_form == "auto") {
+        if (all(c("pvalue", "p.adjust", "qvalue") %in% colnames(data))) {
+            in_form <- "clusterProfiler"
+        } else if (all(c("P.value", "Adjusted.P.value") %in% colnames(data))) {
+            in_form <- "enrichr"
+        } else {
+            stop("Cannot infer the input format. Please provide it manually.")
+        }
+    }
+    if (in_form == "enrichr") {
+        data <- prepare_enrichr_result(data)
+    }
+
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE,
         concat_multi = TRUE, concat_sep = split_by_sep)
 
@@ -663,6 +685,9 @@ EnrichMap <- function(
 #'  If you have enrichment results from multiple databases, you can combine them into one data frame and add a column (e.g. Database)
 #'  to indicate the database.
 #'  You can plot them in a single plot using the `split_by` argument (e.g. `split_by = "Database"`).
+#' @param in_form A character string specifying the input format.
+#' Either "auto", "clusterProfiler", "clusterprofiler" or "enrichr".
+#' The default is "auto", which will try to infer the input format.
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
 #' @examples
@@ -670,8 +695,8 @@ EnrichMap <- function(
 #' EnrichNetwork(enrich_example, top_term = 5)
 #' }
 EnrichNetwork <- function(
-    data, split_by = NULL, split_by_sep = "_",
-    top_term = 10, metric = "p.adjust", character_width = 50,
+    data, in_form = c("auto", "clusterProfiler", "clusterprofiler", "enrichr"),
+    split_by = NULL, split_by_sep = "_", top_term = 10, metric = "p.adjust", character_width = 50,
     layout = "fr", layoutadjust = TRUE, adjscale = 60, adjiter = 100, blendmode = "blend", labelsize = 5,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
@@ -681,6 +706,21 @@ EnrichNetwork <- function(
 ) {
     validate_common_args(seed)
     theme <- process_theme(theme)
+    in_form <- match.arg(in_form)
+    in_form <- tolower(in_form)
+    if (in_form == "auto") {
+        if (all(c("pvalue", "p.adjust", "qvalue") %in% colnames(data))) {
+            in_form <- "clusterProfiler"
+        } else if (all(c("P.value", "Adjusted.P.value") %in% colnames(data))) {
+            in_form <- "enrichr"
+        } else {
+            stop("Cannot infer the input format. Please provide it manually.")
+        }
+    }
+    if (in_form == "enrichr") {
+        data <- prepare_enrichr_result(data)
+    }
+
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE,
         concat_multi = TRUE, concat_sep = split_by_sep)
 
