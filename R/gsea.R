@@ -100,7 +100,7 @@ prepare_fgsea_result <- function(data) {
 GSEASummaryPlot <- function(
     data, in_form = c("auto", "dose", "fgsea"), gene_ranks = "@gene_ranks", gene_sets = "@gene_sets",
     top_term = 10, metric = "p.adjust", cutoff = 0.05, character_width = 50, line_plot_size = 0.25,
-    metric_name = metric, nonsig_name = "Non-significant", linewidth = 0.2,
+    metric_name = metric, nonsig_name = "Insignificant", linewidth = 0.2,
     line_by = c("prerank", "running_score"), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     alpha = 0.6, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL,
@@ -179,7 +179,7 @@ GSEASummaryPlot <- function(
     } else {
         p <- ggplot(data, aes(x = !!sym("NES"), y = !!sym("y"), fill = "")) +
             guides(fill = guide_legend(
-                title = nonsig_name %||% "Non-significant",
+                title = nonsig_name %||% "Insignificant",
                 override.aes = list(color = "grey80", shape = 15, size = 4),
                 order = 2
             ))
@@ -252,12 +252,17 @@ GSEASummaryPlot <- function(
         line_plot_list +
         scale_color_gradientn(
             name = metric_name,
-            colors = colors,
+            colors = if (length(colors) == 0) "grey80" else colors,
             breaks = pretty_breaks(n = 4),
             labels = function(x) scientific(10^(-x), digits = 2),
-            guide = guide_colorbar(
-                frame.colour = "black", ticks.colour = "black", title.hjust = 0, order = 1
-            )
+            guide = if (length(colors) == 0) {
+                # in case all terms are not significant
+                "none"
+            } else {
+                guide_colorbar(
+                    frame.colour = "black", ticks.colour = "black", title.hjust = 0, order = 1
+                )
+            }
         ) +
         scale_y_continuous(breaks = seq_len(nrow(data)), labels = data$Description) +
         scale_x_continuous(expand = c(0.05, x_range * line_plot_size / 2)) +

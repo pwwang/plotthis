@@ -16,7 +16,7 @@ GSEASummaryPlot(
   character_width = 50,
   line_plot_size = 0.25,
   metric_name = metric,
-  nonsig_name = "Non-significant",
+  nonsig_name = "Insignificant",
   linewidth = 0.2,
   line_by = c("prerank", "running_score"),
   title = NULL,
