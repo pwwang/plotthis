@@ -15,7 +15,7 @@ GSEASummaryPlot(
   cutoff = 0.05,
   character_width = 50,
   line_plot_size = 0.25,
-  metric_name = paste0("-log10(", metric, ")"),
+  metric_name = metric,
   nonsig_name = "Non-significant",
   linewidth = 0.2,
   line_by = c("prerank", "running_score"),
@@ -93,7 +93,9 @@ If you only want to plot a subset of gene sets, you can subset the \code{gene_se
 
 \item{top_term}{An integer to select the top terms}
 
-\item{metric}{The metric to use for the significance of the terms}
+\item{metric}{The metric to use for the significance of the terms
+Typically the column name of p values or adjusted p values.
+It is also used to select the top terms.}
 
 \item{cutoff}{The cutoff for the significance of the terms
 The terms will not be filtered with this cutoff; they are only filtered by the \code{top_term} ranked by the \code{metric}.
