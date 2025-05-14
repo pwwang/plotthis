@@ -84,7 +84,7 @@
 #' @importFrom utils getFromNamespace
 #' @importFrom dplyr %>% rename relocate
 #' @importFrom ggplot2 aes geom_curve geom_point scale_x_continuous scale_y_continuous
-#' @importFrom ggplot2 scale_size_continuous scale_linetype_discrete guide_colorbar guide_legend
+#' @importFrom ggplot2 scale_size_continuous scale_linetype_discrete guide_legend
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom ggnewscale new_scale_color
 NetworkAtomic <- function(
