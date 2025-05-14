@@ -40,6 +40,7 @@ GSEAPlot(
   in_form = c("auto", "dose", "fgsea"),
   gene_ranks = "@gene_ranks",
   gene_sets = "@gene_sets",
+  gs = NULL,
   sample_coregenes = FALSE,
   line_width = 1.5,
   line_alpha = 1,
@@ -152,6 +153,9 @@ If some values are missing, the values from the palette will be used (palcolor w
 \item{seed}{The random seed to use. Default is 8525.}
 
 \item{...}{Additional arguments.}
+
+\item{gs}{The names of the gene sets to plot
+If \code{NULL}, all gene sets in \code{gene_sets} will be plotted.}
 
 \item{sample_coregenes}{A logical value to sample the core genes from the core_enrichment; if \code{FALSE}, the first \code{n_coregenes} will be used}
 

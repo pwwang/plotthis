@@ -541,10 +541,12 @@ GSEAPlotAtomic <- function(
 #' @inheritParams common_args
 #' @inheritParams GSEAPlotAtomic
 #' @param gene_sets A list of gene sets, typically from a record of a GMT file
-#'  The names of the list should match the `ID` column of `data`.
-#'  If `gene_sets` is a character vector starting with `@`, the gene sets will be taken from the attribute of `data`.
-#'  The GSEA plots will be plotted for each gene set. So, the number of plots will be the number of gene sets.
-#'  If you only want to plot a subset of gene sets, you can subset the `gene_sets` before passing it to this function.
+#' The names of the list should match the `ID` column of `data`.
+#' If `gene_sets` is a character vector starting with `@`, the gene sets will be taken from the attribute of `data`.
+#' The GSEA plots will be plotted for each gene set. So, the number of plots will be the number of gene sets.
+#' If you only want to plot a subset of gene sets, you can subset the `gene_sets` before passing it to this function.
+#' @param gs The names of the gene sets to plot
+#' If `NULL`, all gene sets in `gene_sets` will be plotted.
 #' @export
 #' @examples
 #' \donttest{
@@ -553,9 +555,9 @@ GSEAPlotAtomic <- function(
 #' }
 GSEAPlot <- function(
     data, in_form = c("auto", "dose", "fgsea"), gene_ranks = "@gene_ranks", gene_sets = "@gene_sets",
-    sample_coregenes = FALSE, line_width = 1.5, line_alpha = 1, line_color = "#6BB82D", n_coregenes = 10,
-    genes_label = NULL, label_fg = "black", label_bg = "white", label_bg_r = 0.1, label_size = 4,
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
+    gs = NULL, sample_coregenes = FALSE, line_width = 1.5, line_alpha = 1, line_color = "#6BB82D",
+    n_coregenes = 10, genes_label = NULL, label_fg = "black", label_bg = "white",
+    label_bg_r = 0.1, label_size = 4, title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525,
     axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...) {
     set.seed(seed)
@@ -593,11 +595,12 @@ GSEAPlot <- function(
     gene_sets <- gene_sets[gsnames]
     data <- data[as.character(data$ID) %in% gsnames, , drop = FALSE]
     theme <- process_theme(theme)
+    gs <- gs %||% names(gene_sets)
 
-    plots <- lapply(names(gene_sets), function(gs) {
+    plots <- lapply(gs, function(g) {
         GSEAPlotAtomic(
             data,
-            gene_ranks = gene_ranks, gs = gs, genes = gene_sets[[gs]],
+            gene_ranks = gene_ranks, gs = g, genes = gene_sets[[g]],
             sample_coregenes = sample_coregenes, line_width = line_width, line_alpha = line_alpha,
             line_color = line_color, n_coregenes = n_coregenes, genes_label = genes_label,
             label_fg = label_fg, label_bg = label_bg, label_bg_r = label_bg_r, label_size = label_size,
