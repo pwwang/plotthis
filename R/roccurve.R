@@ -74,12 +74,12 @@ get_cutoffs_data <- function(
             se_sp <- get_se_sp(df, cutoff_num, cutoff)
             label <- label %||% scales::number(cutoff_num, accuracy = cutoffs_accuracy)
         } else {
-            cutofff_info <- OptimalCutpoints::optimal.cutpoints(
+            cutoff_info <- OptimalCutpoints::optimal.cutpoints(
                 X = score_by, status = truth_by, methods = cutoff, data = as.data.frame(df),
                 direction = ifelse(increasing, ">", "<"), tag.healthy = 0
             )
             cutoff_num <- tryCatch({
-                cutofff_info[[cutoff]][[1]]$optimal.cutoff$cutoff
+                cutoff_info[[cutoff]][[1]]$optimal.cutoff$cutoff[1]
             }, error = function(e) {
                 warning("No optimal cutoff found for ", cutoff, immediate. = TRUE)
                 NA
