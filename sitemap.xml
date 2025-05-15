@@ -55,7 +55,9 @@
 <url><loc>https://pwwang.github.io/plotthis/reference/SplitBarPlotAtomic.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/TrendPlot.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/TrendPlotAtomic.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/UpsetPlot.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/UpsetPlotAtomic.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/VennDiagram.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/VennDiagramAtomic.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/VolcanoPlot.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/VolcanoPlotAtomic.html</loc></url>
@@ -99,6 +101,10 @@
 <url><loc>https://pwwang.github.io/plotthis/reference/norm_expansion.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/palette_list.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/palette_this.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/prepare_enrichr_result.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/prepare_fgsea_result.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/prepare_upset_data.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/prepare_venn_data.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/process_theme.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/radarplot.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/rgba_to_rgb.html</loc></url>
@@ -106,9 +112,7 @@
 <url><loc>https://pwwang.github.io/plotthis/reference/show_palettes.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/theme_blank.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/theme_this.html</loc></url>
-<url><loc>https://pwwang.github.io/plotthis/reference/upsetplot1.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/validate_common_args.html</loc></url>
-<url><loc>https://pwwang.github.io/plotthis/reference/venndiagram1.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/words_excluded.html</loc></url>
 </urlset>
 
