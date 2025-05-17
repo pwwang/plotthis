@@ -303,7 +303,7 @@ VennDiagramAtomic <- function(
 #' VennDiagram(data, palette = "material-indigo", alpha = 0.6)
 #' }
 VennDiagram <- function(
-    data, in_form = "auto", split_by = NULL, split_by_sep = "_",
+    data, in_form = c("auto", "long", "wide", "list", "venn"), split_by = NULL, split_by_sep = "_",
     group_by = NULL, group_by_sep = "_", id_by = NULL, label = "count", label_fg = "black",
     label_size = NULL, label_bg = "white", label_bg_r = 0.1, fill_mode = "count", fill_name = NULL,
     palette = ifelse(fill_mode == "set", "Paired", "Spectral"), palcolor = NULL, alpha = 1,

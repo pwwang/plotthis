@@ -6,7 +6,7 @@
 \usage{
 VennDiagram(
   data,
-  in_form = "auto",
+  in_form = c("auto", "long", "wide", "list", "venn"),
   split_by = NULL,
   split_by_sep = "_",
   group_by = NULL,
