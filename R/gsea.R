@@ -106,7 +106,7 @@ GSEASummaryPlot <- function(
     metric_name = metric, nonsig_name = "Insignificant", linewidth = 0.2,
     line_by = c("prerank", "running_score"), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     alpha = 0.6, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    theme = "theme_this", theme_args = list(), palette = "material-indigo", palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL,
     seed = 8525, ...) {
     set.seed(seed)
     in_form <- match.arg(in_form)

@@ -29,7 +29,7 @@ GSEASummaryPlot(
   legend.direction = "vertical",
   theme = "theme_this",
   theme_args = list(),
-  palette = "material-indigo",
+  palette = "Spectral",
   palcolor = NULL,
   seed = 8525,
   ...
