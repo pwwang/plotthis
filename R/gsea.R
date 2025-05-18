@@ -41,6 +41,9 @@ prepare_fgsea_result <- function(data) {
     data$pval <- NULL
     data$p.adjust <- data$padj
     data$padj <- NULL
+    if (is.character(data$leadingEdge)) {
+        data$leadingEdge <- strsplit(data$leadingEdge, ",")
+    }
     data$core_enrichment <- sapply(data$leadingEdge, paste0, collapse = "/")
     data$leadingEdge <- NULL
 
@@ -433,7 +436,11 @@ GSEAPlotAtomic <- function(
         df_gene <- df[df$position == 1 & df$genes %in% genes_label_tmp, , drop = FALSE]
         gene_drop <- genes_label_tmp[!genes_label_tmp %in% df_gene$genes]
         if (length(gene_drop) > 0) {
-            warning("Gene ", paste(gene_drop, collapse = ","), " is not in the geneset ", data$ID, ": ", data$Description, immediate. = TRUE)
+            if (identical(data$ID, data$Description)) {
+                warning("Gene ", paste(gene_drop, collapse = ","), " is not in the geneset ", data$ID, immediate. = TRUE)
+            } else {
+                warning("Gene ", paste(gene_drop, collapse = ","), " is not in the geneset ", data$ID, ": ", data$Description, immediate. = TRUE)
+            }
         }
         x_nudge <- diff(range(df$x)) * 0.05
         y_nudge <- diff(range(df$runningScore)) * 0.05
