@@ -106,7 +106,7 @@ GSEASummaryPlot <- function(
     metric_name = metric, nonsig_name = "Insignificant", linewidth = 0.2,
     line_by = c("prerank", "running_score"), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     alpha = 0.6, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = "material-indigo", palcolor = NULL,
     seed = 8525, ...) {
     set.seed(seed)
     in_form <- match.arg(in_form)
@@ -176,6 +176,7 @@ GSEASummaryPlot <- function(
     data$Description <- str_wrap(data$Description, width = character_width)
     data$Description <- factor(data$Description, levels = unique(data$Description))
     data$y <- as.integer(data$Description)
+    sig_metrics <- data$metric[data$.signif]
 
     if (all(data$.signif)) {
         p <- ggplot(data, aes(x = !!sym("NES"), y = !!sym("y")))
@@ -192,17 +193,16 @@ GSEASummaryPlot <- function(
     x_range <- diff(layer_scales(p)$x$range$range)
     y_range <- diff(layer_scales(p)$y$range$range)
     colors <- palette_this(
-        data$metric[data$.signif],
+        sig_metrics,
         n = sum(data$.signif), palette = palette, palcolor = palcolor,
-        alpha = alpha, type = "continuous"
+        alpha = alpha, type = "continuous", transparent = FALSE
     )
     line_plot_list <- list()
 
-    ci <- 1
     for (i in seq_len(nrow(data))) {
         if (isTRUE(data$.signif[i])) {
-            color <- colors[ci]
-            ci <- ci + 1
+            # since the values are continuous, number of colors is not equal to number of points
+            color <- colors[ceiling(data$metric[i] * length(colors) / max(sig_metrics))]
         } else {
             color <- "grey80"
         }
@@ -251,22 +251,22 @@ GSEASummaryPlot <- function(
         p <- p + geom_vline(xintercept = 0, linetype = 2, color = "grey80")
     }
 
-    p <- p +
-        line_plot_list +
-        scale_color_gradientn(
+    p <- p + line_plot_list
+    if (length(colors) == 0) {
+        # in case all terms are not significant
+        p <- p + scale_color_gradientn(colors = "grey80", guide = "none")
+    } else {
+        p <- p + scale_color_gradientn(
             name = metric_name,
-            colors = if (length(colors) == 0) "grey80" else colors,
+            colors = colors,
             breaks = pretty_breaks(n = 4),
             labels = function(x) scientific(10^(-x), digits = 2),
-            guide = if (length(colors) == 0) {
-                # in case all terms are not significant
-                "none"
-            } else {
-                guide_colorbar(
-                    frame.colour = "black", ticks.colour = "black", title.hjust = 0, order = 1
-                )
-            }
-        ) +
+            guide = guide_colorbar(
+                frame.colour = "black", ticks.colour = "black", title.hjust = 0, order = 1
+            )
+        )
+    }
+    p <- p +
         scale_y_continuous(breaks = seq_len(nrow(data)), labels = data$Description) +
         scale_x_continuous(expand = c(0.05, x_range * line_plot_size / 2)) +
         labs(title = title, subtitle = subtitle, x = xlab %||% "NES", y = ylab %||% "") +
