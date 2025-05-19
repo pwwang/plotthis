@@ -614,6 +614,7 @@ GSEAPlot <- function(
             title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, ...
         )
     })
+    names(plots) <- gs
 
     combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
         axes = axes, axis_titles = axis_titles, guides = guides, design = design)
