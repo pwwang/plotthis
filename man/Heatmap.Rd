@@ -411,141 +411,175 @@ Heatmap is a popular way to visualize data in matrix format. It is widely used i
 \donttest{
 set.seed(8525)
 data <- data.frame(
-   F1 = rnorm(100, 0.1),
-   F2 = rnorm(100, 0.2),
-   F3 = rnorm(100),
-   F4 = rnorm(100, 0.3),
-   F5 = rnorm(100, -0.1),
-   F6 = rnorm(100, -0.2),
-   c = sample(letters[1:8], 100, replace = TRUE),
-   s = sample(LETTERS[1:2], 100, replace = TRUE),
-   p = sample(c("X", "Y", "Z"), 100, replace = TRUE),
-   a = sample(1:5, 100, replace = TRUE),
-   p1 = c(sample(c(1, NA), 100, replace = TRUE)),
-   p2 = c(sample(c(1, NA), 100, replace = TRUE)),
-   p3 = c(sample(c(1, NA), 100, replace = TRUE))
+    F1 = rnorm(100, 0.1),
+    F2 = rnorm(100, 0.2),
+    F3 = rnorm(100),
+    F4 = rnorm(100, 0.3),
+    F5 = rnorm(100, -0.1),
+    F6 = rnorm(100, -0.2),
+    c = sample(letters[1:8], 100, replace = TRUE),
+    s = sample(LETTERS[1:2], 100, replace = TRUE),
+    p = sample(c("X", "Y", "Z"), 100, replace = TRUE),
+    a = sample(1:5, 100, replace = TRUE),
+    p1 = c(sample(c(1, NA), 100, replace = TRUE)),
+    p2 = c(sample(c(1, NA), 100, replace = TRUE)),
+    p3 = c(sample(c(1, NA), 100, replace = TRUE))
 )
 rows <- c("F1", "F2", "F3", "F4", "F5", "F6")
 rows_data <- data.frame(
-   rows = rep(c("F1", "F2", "F3", "F4", "F5", "F6"), each = 10),
-   rows1 = rep(c("F1", "F2", "F3", "F4", "F5", "F6"), each = 10),
-   rs = rep(letters[1:2], each = 30),
-   rp = sample(c("X", "Y", "Z"), 60, replace = TRUE),
-   rv = rnorm(60, 0.5)
+    rows = rep(c("F1", "F2", "F3", "F4", "F5", "F6"), each = 10),
+    rows1 = rep(c("F1", "F2", "F3", "F4", "F5", "F6"), each = 10),
+    rs = rep(letters[1:2], each = 30),
+    rp = sample(c("X", "Y", "Z"), 60, replace = TRUE),
+    rv = rnorm(60, 0.5)
 )
 
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = rows, columns_by = "c")
+    Heatmap(data, rows = rows, columns_by = "c")
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = list(RG1 = c("F1", "F2", "F3"), RG2 = c("F4", "F5", "F6")),
-   columns_by = "c")
+    Heatmap(data,
+        rows = list(RG1 = c("F1", "F2", "F3"), RG2 = c("F4", "F5", "F6")),
+        columns_by = "c"
+    )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-# Multiple columns_by, each as a split
-Heatmap(data, rows = rows, columns_by = c("c", "s"), columns_by_sep = "/")
+    # Multiple columns_by, each as a split
+    Heatmap(data, rows = rows, columns_by = c("c", "s"), columns_by_sep = "/")
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = rows, columns_by = c("p1", "p2", "p3"))
+    Heatmap(data, rows = rows, columns_by = c("p1", "p2", "p3"))
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = rows, columns_by = "c", split_by = "s",
-   upper_cutoff = 2, lower_cutoff = -2, legend.position = c("none", "right"),
-   design = "AAAAAA#BBBBBBB")
+    Heatmap(data,
+        rows = rows, columns_by = "c", split_by = "s",
+        upper_cutoff = 2, lower_cutoff = -2, legend.position = c("none", "right"),
+        design = "AAAAAA#BBBBBBB"
+    )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = rows, columns_by = "c", columns_split_by = "s")
+    Heatmap(data, rows = rows, columns_by = "c", columns_split_by = "s")
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = rows, columns_by = "c", columns_split_by = "s",
-        rows_data = rows_data, rows_split_by = "rs")
+    Heatmap(data,
+        rows = rows, columns_by = "c", columns_split_by = "s",
+        rows_data = rows_data, rows_split_by = "rs"
+    )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = rows, columns_by = "c", columns_split_by = "s",
-        rows_data = rows_data, rows_split_by = "rs", flip = TRUE)
+    Heatmap(data,
+        rows = rows, columns_by = "c", columns_split_by = "s",
+        rows_data = rows_data, rows_split_by = "rs", flip = TRUE
+    )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = rows, columns_by = "c", cell_type = "bars")
+    Heatmap(data, rows = rows, columns_by = "c", cell_type = "bars")
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = rows, columns_by = "c", cell_type = "bars",
-        bars_sample = 3)
+    Heatmap(data,
+        rows = rows, columns_by = "c", cell_type = "bars",
+        bars_sample = 3
+    )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = rows, columns_by = "c", cell_type = "label",
-        label = function(x) scales::number(x, accuracy = 0.01))
+    Heatmap(data,
+        rows = rows, columns_by = "c", cell_type = "label",
+        label = function(x) scales::number(x, accuracy = 0.01)
+    )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = rows, columns_by = "c", cell_type = "label",
-        label = function(x) ifelse(x <= 0, NA, scales::number(x, accuracy = 0.01)))
+    Heatmap(data,
+        rows = rows, columns_by = "c", cell_type = "label",
+        label = function(x) ifelse(x <= 0, NA, scales::number(x, accuracy = 0.01))
+    )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = rows, columns_by = "c", cell_type = "dot")
+    Heatmap(data, rows = rows, columns_by = "c", cell_type = "dot")
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = rows, columns_by = "c", cell_type = "dot",
-        dot_size = mean)
+    Heatmap(data,
+        rows = rows, columns_by = "c", cell_type = "dot",
+        dot_size = mean
+    )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = rows, columns_by = "c", cell_type = "dot",
+    Heatmap(data,
+        rows = rows, columns_by = "c", cell_type = "dot",
         dot_size = mean, row_name_annotation = FALSE, column_name_annotation = FALSE,
-        row_names_side = "left", cluster_rows = FALSE, cluster_columns = FALSE)
+        row_names_side = "left", cluster_rows = FALSE, cluster_columns = FALSE
+    )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = rows, columns_by = "c", cell_type = "dot",
-        dot_size = mean, add_bg = TRUE)
+    Heatmap(data,
+        rows = rows, columns_by = "c", cell_type = "dot",
+        dot_size = mean, add_bg = TRUE
+    )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = rows, columns_by = "c", cell_type = "dot",
-        dot_size = mean, add_reticle = TRUE)
+    Heatmap(data,
+        rows = rows, columns_by = "c", cell_type = "dot",
+        dot_size = mean, add_reticle = TRUE
+    )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, cluster_rows = FALSE, cluster_columns = FALSE, columns_by = "p",
-   rows = c("p1", "p2", "p3"), name = "Category", pie_group_by = "c",
-   cell_type = "pie")
+    Heatmap(data,
+        cluster_rows = FALSE, cluster_columns = FALSE, columns_by = "p",
+        rows = c("p1", "p2", "p3"), name = "Category", pie_group_by = "c",
+        cell_type = "pie"
+    )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, cluster_rows = FALSE, cluster_columns = FALSE, columns_by = "p",
-   rows = c("p1", "p2", "p3"), name = "Category", pie_group_by = "c",
-   cell_type = "pie", pie_size = sqrt, add_bg = TRUE)
+    Heatmap(data,
+        cluster_rows = FALSE, cluster_columns = FALSE, columns_by = "p",
+        rows = c("p1", "p2", "p3"), name = "Category", pie_group_by = "c",
+        cell_type = "pie", pie_size = sqrt, add_bg = TRUE
+    )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = rows, columns_by = "c", cell_type = "violin")
+    Heatmap(data, rows = rows, columns_by = "c", cell_type = "violin")
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = rows, columns_by = "c", cell_type = "boxplot")
+    Heatmap(data, rows = rows, columns_by = "c", cell_type = "boxplot")
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = rows, columns_by = "c", rows_data = rows_data,
-  column_annotation = list(p1 = "p", p2 = "p", F1 = "F1"),
-  column_annotation_type = list(p1 = "ring", p2 = "bar", F1 = "violin"),
-  column_annotation_params = list(
-     p1 = list(height = grid::unit(10, "mm"), show_legend = FALSE),
-     F1 = list(height = grid::unit(18, "mm"))),
-  rows_split_by = "rs",
-  row_annotation = c("rp", "rv", "rows1"),
-  row_annotation_side = "right",
-  row_annotation_type = list(rp = "pie", rv = "density", rows1 = "simple"),
-  row_annotation_params = list(rp = list(width = grid::unit(12, "mm"))),
-  show_row_names = TRUE, show_column_names = TRUE)
+    Heatmap(data,
+        rows = rows, columns_by = "c", rows_data = rows_data,
+        column_annotation = list(p1 = "p", p2 = "p", F1 = "F1"),
+        column_annotation_type = list(p1 = "ring", p2 = "bar", F1 = "violin"),
+        column_annotation_params = list(
+            p1 = list(height = grid::unit(10, "mm"), show_legend = FALSE),
+            F1 = list(height = grid::unit(18, "mm"))
+        ),
+        rows_split_by = "rs",
+        row_annotation = c("rp", "rv", "rows1"),
+        row_annotation_side = "right",
+        row_annotation_type = list(rp = "pie", rv = "density", rows1 = "simple"),
+        row_annotation_params = list(rp = list(width = grid::unit(12, "mm"))),
+        show_row_names = TRUE, show_column_names = TRUE
+    )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = rows, columns_by = "c", rows_data = rows_data,
-  column_annotation = list(p1 = "p", p2 = "p", F1 = "F1"),
-  column_annotation_type = list(p1 = "ring", p2 = "bar", F1 = "violin"),
-  column_annotation_params = list(
-     p1 = list(height = grid::unit(10, "mm"), show_legend = FALSE),
-     F1 = list(height = grid::unit(18, "mm"))),
-  rows_split_by = "rs",
-  row_annotation = c("rp", "rv", "rows1"),
-  row_annotation_side = "right",
-  row_annotation_type = list(rp = "pie", rv = "density", rows1 = "simple"),
-  row_annotation_params = list(rp = list(width = grid::unit(12, "mm"))),
-  show_row_names = TRUE, show_column_names = TRUE, flip = TRUE)
+    Heatmap(data,
+        rows = rows, columns_by = "c", rows_data = rows_data,
+        column_annotation = list(p1 = "p", p2 = "p", F1 = "F1"),
+        column_annotation_type = list(p1 = "ring", p2 = "bar", F1 = "violin"),
+        column_annotation_params = list(
+            p1 = list(height = grid::unit(10, "mm"), show_legend = FALSE),
+            F1 = list(height = grid::unit(18, "mm"))
+        ),
+        rows_split_by = "rs",
+        row_annotation = c("rp", "rv", "rows1"),
+        row_annotation_side = "right",
+        row_annotation_type = list(rp = "pie", rv = "density", rows1 = "simple"),
+        row_annotation_params = list(rp = list(width = grid::unit(12, "mm"))),
+        show_row_names = TRUE, show_column_names = TRUE, flip = TRUE
+    )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-Heatmap(data, rows = rows, columns_by = "c", split_by = "p",
-        palette = list(X = "Reds", Y = "Blues", Z = "Purp"))
+    Heatmap(data,
+        rows = rows, columns_by = "c", split_by = "p",
+        palette = list(X = "Reds", Y = "Blues", Z = "Purp")
+    )
 }
 }
 }
