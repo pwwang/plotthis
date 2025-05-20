@@ -775,6 +775,7 @@ HeatmapAtomic <- function(
         column_title = column_title, row_title = row_title,
         ...
     )
+    hmargs$row_names_max_width <- hmargs$row_names_max_width %||% ComplexHeatmap::max_text_width(rows)
 
     legends <- list()
     if (cell_type == "pie") {
