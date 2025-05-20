@@ -337,7 +337,9 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
-\item{...}{Additional arguments.}
+\item{...}{Other arguments passed to \code{\link[ComplexHeatmap:Heatmap]{ComplexHeatmap::Heatmap()}}
+When \code{row_names_max_width} is passed, a unit is expected. But you can also pass a numeric values,
+with a default unit "inches", or a string like "5inches" to specify the number and unit directly.}
 }
 \value{
 A drawn HeatmapList object if \code{return_grob = FALSE}. Otherwise, a grob/gTree object.

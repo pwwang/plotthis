@@ -652,11 +652,15 @@ layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
 #' @param alpha A numeric value between 0 and 1 specifying the transparency of the heatmap cells.
 #' @param return_grob A logical value indicating whether to return the grob object of the heatmap.
 #'  This is useful when merging multiple heatmaps using patchwork.
+#' @param ... Other arguments passed to [ComplexHeatmap::Heatmap()]
+#' When `row_names_max_width` is passed, a unit is expected. But you can also pass a numeric values,
+#' with a default unit "inches", or a string like "5inches" to specify the number and unit directly.
 #' @importFrom circlize colorRamp2
 #' @importFrom dplyr group_by across ungroup %>% all_of summarise first slice_sample everything
 #' @importFrom tidyr pivot_longer
 #' @importFrom ggplot2 ggplotGrob theme_void
-#' @importFrom grid grid.rect grid.text grid.lines grid.points viewport gpar unit grid.draw grid.grabExpr
+#' @importFrom grid grid.rect grid.text grid.lines grid.points viewport gpar unit grid.draw
+#' @importFrom grid convertUnit grid.grabExpr
 #' @return A drawn HeatmapList object if `return_grob = FALSE`. Otherwise, a grob/gTree object.
 #' @keywords internal
 HeatmapAtomic <- function(
@@ -775,7 +779,29 @@ HeatmapAtomic <- function(
         column_title = column_title, row_title = row_title,
         ...
     )
-    hmargs$row_names_max_width <- hmargs$row_names_max_width %||% ComplexHeatmap::max_text_width(rows)
+    if (!is.null(hmargs$row_names_max_width)) {
+        if (is.character(hmargs$row_names_max_width)) {
+            if (grepl("^[0-9]+(\\.[0-9]+)?$", hmargs$row_names_max_width)) {
+                hmargs$row_names_max_width <- unit(as.numeric(hmargs$row_names_max_width), "inches")
+            }
+            stopifnot(
+                "'row_names_max_width' should be in a format of '2inches' or '2cm' if given as a string." =
+                grepl("^[0-9]+(\\.[0-9]+\\s*)?(npc|cm|centimetre|centimeter|in|inch|inches|mm|points|picas|bigpts|cicero|scalepts|lines|char|native|snpc|strwidth|strheight|grobwidth|grobheight|null)$", hmargs$row_names_max_width)
+            )
+
+            # convert to grid::unit
+            hmargs$row_names_max_width <- unit(
+                as.numeric(gsub("[^0-9.]", "", hmargs$row_names_max_width)),
+                gsub("[0-9.]", "", hmargs$row_names_max_width)
+            )
+        } else if (is.numeric(hmargs$row_names_max_width)) {
+            hmargs$row_names_max_width <- unit(hmargs$row_names_max_width, "inches")
+        }
+    } else if (flip) {
+        hmargs$row_names_max_width <- ComplexHeatmap::max_text_width(levels(data[[columns_by]]))
+    } else {
+        hmargs$row_names_max_width <- ComplexHeatmap::max_text_width(rows)
+    }
 
     legends <- list()
     if (cell_type == "pie") {
@@ -1085,11 +1111,8 @@ HeatmapAtomic <- function(
 
     ## Set up the top annotations
     top_annos <- list(
-        border = TRUE, col = list(), annotation_name_side = ifelse(
-            isTRUE(flip),
-            ifelse(row_names_side == "left", "top", "bottom"),
-            row_names_side
-        ),
+        border = TRUE, col = list(),
+        annotation_name_side = ifelse(flip, column_names_side, row_names_side),
         show_annotation_name = list(), show_legend = FALSE
     )
     ncol_annos <- sum(cluster_columns, show_column_names) * 4
@@ -1220,11 +1243,7 @@ HeatmapAtomic <- function(
     if (column_annotation_side == "top") {
         top_annos <- c(top_annos, column_annos)
     } else {
-        column_annos$annotation_name_side <- ifelse(
-            isTRUE(flip),
-            ifelse(row_names_side == "left", "top", "bottom"),
-            row_names_side
-        )
+        column_annos$annotation_name_side <- ifelse(flip, column_names_side, row_names_side)
         if (isTRUE(flip)) {
             hmargs$right_annotation <- do.call(ComplexHeatmap::rowAnnotation, column_annos)
         } else {
@@ -1246,11 +1265,8 @@ HeatmapAtomic <- function(
 
     ## Set up the left annotations
     left_annos <- list(
-        border = TRUE, col = list(), annotation_name_side = ifelse(
-            isTRUE(flip),
-            ifelse(column_names_side == "top", "left", "right"),
-            column_names_side
-        ),
+        border = TRUE, col = list(),
+        annotation_name_side = ifelse(flip, row_names_side, column_names_side),
         show_annotation_name = list(), show_legend = FALSE
     )
     nrow_annos <- sum(cluster_rows, show_row_names) * 4
@@ -1411,11 +1427,7 @@ HeatmapAtomic <- function(
     if (row_annotation_side == "left") {
         left_annos <- c(left_annos, row_annos)
     } else {
-        row_annos$annotation_name_side <- ifelse(
-            isTRUE(flip),
-            ifelse(column_names_side == "top", "left", "right"),
-            column_names_side
-        )
+        row_annos$annotation_name_side <- ifelse(flip, row_names_side, column_names_side)
         if (isTRUE(flip)) {
             hmargs$bottom_annotation <- do.call(ComplexHeatmap::HeatmapAnnotation, row_annos)
         } else {
@@ -1433,13 +1445,16 @@ HeatmapAtomic <- function(
     rm(left_annos)
 
     ## Set up the heatmap
+    rownames_width <- convertUnit(hmargs$row_names_max_width, "inches", valueOnly = TRUE) * 0.5 - 0.2
+    rownames_width <- max(rownames_width, 0)
     if (isTRUE(flip)) {
         hmargs$matrix <- as.matrix(hmargs$matrix)
-        width <- nrows * 0.25 + ncol_annos * 0.5
+        width <- nrows * 0.25 + ncol_annos * 0.5 + rownames_width
+        # How about column name length (nchars)?
         height <- ncols * 0.25 + nrow_annos * 0.5
     } else {
         hmargs$matrix <- t(as.matrix(hmargs$matrix))
-        width <- ncols * 0.25 + nrow_annos * 0.5
+        width <- ncols * 0.25 + nrow_annos * 0.5 + rownames_width
         height <- nrows * 0.25 + ncol_annos * 0.5
     }
     if (cell_type == "pie") {
