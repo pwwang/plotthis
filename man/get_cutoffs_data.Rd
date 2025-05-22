@@ -11,7 +11,7 @@ get_cutoffs_data(
   cat_by,
   cutoffs_at = NULL,
   cutoffs_labels = NULL,
-  cutoffs_accuracy = 0.01,
+  cutoffs_accuracy = 0.001,
   n_cuts = 0,
   increasing = TRUE
 )

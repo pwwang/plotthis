@@ -20,7 +20,7 @@ ROCCurve(
   n_cuts = 0,
   cutoffs_at = NULL,
   cutoffs_labels = NULL,
-  cutoffs_accuracy = 0.01,
+  cutoffs_accuracy = 0.001,
   cutoffs_pt_size = 5,
   cutoffs_pt_shape = 4,
   cutoffs_pt_stroke = 1,
@@ -299,4 +299,6 @@ p <- ROCCurve(data, truth_by = "D", score_by = "M1", split_by = "gender")
 p
 # Retrieve the AUC values
 attr(p, "auc")
+# Retrieve the cutoffs
+attr(p, "cutoffs")
 }

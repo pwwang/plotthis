@@ -15,7 +15,7 @@
 #' @keywords internal
 get_cutoffs_data <- function(
     data, truth_by, score_by, cat_by, cutoffs_at = NULL, cutoffs_labels = NULL,
-    cutoffs_accuracy = 0.01, n_cuts = 0, increasing = TRUE
+    cutoffs_accuracy = 0.001, n_cuts = 0, increasing = TRUE
 ) {
     if (is.null(cutoffs_at) && n_cuts == 0) {
         return(NULL)
@@ -73,26 +73,44 @@ get_cutoffs_data <- function(
             cutoff_num <- as.numeric(cutoff)
             se_sp <- get_se_sp(df, cutoff_num, cutoff)
             label <- label %||% scales::number(cutoff_num, accuracy = cutoffs_accuracy)
+            return(list(c(se_sp, label = label)))
         } else {
             cutoff_info <- OptimalCutpoints::optimal.cutpoints(
                 X = score_by, status = truth_by, methods = cutoff, data = as.data.frame(df),
                 direction = ifelse(increasing, ">", "<"), tag.healthy = 0
             )
-            cutoff_num <- tryCatch({
-                cutoff_info[[cutoff]][[1]]$optimal.cutoff$cutoff[1]
+            n_cutoff_num <- tryCatch({
+                length(cutoff_info[[cutoff]][[1]]$optimal.cutoff$cutoff)
             }, error = function(e) {
                 warning("No optimal cutoff found for ", cutoff, immediate. = TRUE)
-                NA
+                0
             })
-            se_sp <- get_se_sp(df, cutoff_num, cutoff)
-            label <- label %||% paste0(scales::number(cutoff_num, cutoffs_accuracy), " (by ", cutoff, ")")
+            if (n_cutoff_num == 0) {
+                se_sp <- get_se_sp(df, NA, cutoff)
+                label <- label %||% paste0("No optimal cutoff found for ", cutoff)
+                return(list(c(se_sp, label = label)))
+            } else {
+                out <- lapply(seq_len(n_cutoff_num), function(i) {
+                    cutoff_num <- cutoff_info[[cutoff]][[1]]$optimal.cutoff$cutoff[i]
+                    se_sp <- get_se_sp(df, cutoff_num, cutoff)
+                    label <- cutoffs_labels[i] %||% paste0(scales::number(cutoff_num, cutoffs_accuracy), " (by ", cutoff, ")")
+                    c(se_sp, label = label)
+                })
+                return(out)
+            }
         }
-        c(se_sp, label = label)
     }
     splits <- split(data, data[[cat_by]])
     do.call(rbind, lapply(names(splits), function(ns) {
         df <- do.call(rbind, lapply(seq_along(cutoffs_at), function(i) {
-            get_cutoff(splits[[ifelse(identical(ns, ""), 1, ns)]], cutoffs_at[i], if (is.null(cutoffs_labels)) NULL else cutoffs_labels[i])
+            co <- get_cutoff(
+                splits[[ifelse(identical(ns, ""), 1, ns)]],
+                cutoffs_at[i],
+                if (is.null(cutoffs_labels)) NULL else cutoffs_labels[i]
+            )
+            co <- t(as.data.frame(co))
+            rownames(co) <- NULL
+            co
         }))
         df <- as.data.frame(df)
         df[[cat_by]] <- ns
@@ -286,6 +304,8 @@ ROCCurveAtomic <- function(data, truth_by, score_by, pos_label = NULL,
             bg.color = cutoffs_label_bg, bg.r = cutoffs_label_bg_r, min.segment.length = 10
         )
     }
+    cutoffs_df$specificity <- 1 - cutoffs_df$x
+    cutoffs_df$sensitivity <- cutoffs_df$y
 
     if (!is.null(ci)) {
         p <- p + do.call(plotROC::geom_rocci, ci)
@@ -367,6 +387,7 @@ ROCCurveAtomic <- function(data, truth_by, score_by, pos_label = NULL,
     }
 
     attr(p, "auc") <- auc
+    attr(p, "cutoffs") <- cutoffs_df
     attr(p, "height") <- height
     attr(p, "width") <- width
 
@@ -418,10 +439,12 @@ ROCCurveAtomic <- function(data, truth_by, score_by, pos_label = NULL,
 #' p
 #' # Retrieve the AUC values
 #' attr(p, "auc")
+#' # Retrieve the cutoffs
+#' attr(p, "cutoffs")
 ROCCurve <- function(data, truth_by, score_by, pos_label = NULL, split_by = NULL, split_by_sep = "_",
     group_by = NULL, group_by_sep = "_", group_name = NULL,
     x_axis_reverse = FALSE, percent = FALSE, ci = NULL, n_cuts = 0,
-    cutoffs_at = NULL, cutoffs_labels = NULL, cutoffs_accuracy = 0.01, cutoffs_pt_size = 5, cutoffs_pt_shape = 4,
+    cutoffs_at = NULL, cutoffs_labels = NULL, cutoffs_accuracy = 0.001, cutoffs_pt_size = 5, cutoffs_pt_shape = 4,
     cutoffs_pt_stroke = 1, cutoffs_labal_fg = "black", cutoffs_label_size = 4, cutoffs_label_bg = "white", cutoffs_label_bg_r = 0.1,
     show_auc = c("auto", "none", "legend", "plot"), auc_accuracy = 0.01, auc_size = 4,
     theme = "theme_this", theme_args = list(),  palette = "Spectral", palcolor = NULL, alpha = 1,
@@ -481,6 +504,13 @@ ROCCurve <- function(data, truth_by, score_by, pos_label = NULL, split_by = NULL
     } else {
         attr(p, "auc") <- do.call(rbind, lapply(seq_along(plots), function(i) {
             df <- attr(plots[[i]], "auc")
+            if (!is.null(split_by)) {
+                df[[split_by]] <- names(datas)[i]
+            }
+            df
+        }))
+        attr(p, "cutoffs") <- do.call(rbind, lapply(seq_along(plots), function(i) {
+            df <- attr(plots[[i]], "cutoffs")
             if (!is.null(split_by)) {
                 df[[split_by]] <- names(datas)[i]
             }
