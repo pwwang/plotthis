@@ -58,7 +58,7 @@
 <span>  n_cuts <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  cutoffs_at <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cutoffs_labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  cutoffs_accuracy <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  cutoffs_accuracy <span class="op">=</span> <span class="fl">0.001</span>,</span>
 <span>  cutoffs_pt_size <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  cutoffs_pt_shape <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  cutoffs_pt_stroke <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -452,6 +452,11 @@ If <code>combine</code> is <code>FALSE</code>, The AUC value of each plot can be
 <span class="r-out co"><span class="r-pr">#&gt;</span>   PANEL group ..group       AUC gender</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1     1     1         0.8779167 Female</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2     1     1         0.9039616   Male</span>
+<span class="r-in"><span><span class="co"># Retrieve the cutoffs</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"cutoffs"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      specificity gender  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] numeric,0   "Female"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] numeric,0   "Male"  </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
