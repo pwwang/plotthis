@@ -256,7 +256,7 @@ facet_plot <- function(plot, facet_by, facet_scales, nrow, ncol, byrow,
 #' @importFrom rlang %||%
 #' @importFrom ggplot2 wrap_dims
 combine_plots <- function(
-    plots, combine,
+    plots, combine = TRUE,
     nrow = NULL,
     ncol = NULL,
     byrow = NULL,
@@ -284,8 +284,11 @@ combine_plots <- function(
             design = design,
             recalc_size = FALSE
         )
-        attr(p, "height") <- nrow * max(sapply(plots, function(x) attr(x, "height")))
-        attr(p, "width") <- ncol * max(sapply(plots, function(x) attr(x, "width")))
+        # Allow to work with external plots
+        tryCatch({
+            attr(p, "height") <- nrow * max(sapply(plots, function(x) attr(x, "height")))
+            attr(p, "width") <- ncol * max(sapply(plots, function(x) attr(x, "width")))
+        }, error = function(e) {})
         return(p)
     }
     # When it's gTree, also run wrap_plots to convert it to a patchwork object

@@ -6,7 +6,7 @@
 \usage{
 combine_plots(
   plots,
-  combine,
+  combine = TRUE,
   nrow = NULL,
   ncol = NULL,
   byrow = NULL,
