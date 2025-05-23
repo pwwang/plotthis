@@ -139,8 +139,8 @@ DimPlotAtomic <- function(
         theme_args[["xlab"]] <- xlab
         theme_args[["ylab"]] <- ylab
     }
-    if (isTRUE(label_repel) && !isTRUE(label)) {
-        message("Forcing label to be TRUE when label_repel is TRUE.")
+    if ((isTRUE(label_repel) || isTRUE(label_insitu)) && !isTRUE(label)) {
+        message("Forcing label to be TRUE when label_repel or label_insitu is TRUE.")
         label <- TRUE
     }
 
