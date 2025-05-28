@@ -150,9 +150,8 @@ If it is a function, the function should take \code{count} as the argument and r
 Other options are "value" and a function.
 \itemize{
 \item "count": Count the number of instances in \code{pie_group_by}.
-\item "value": Use the values in the columns specified by \code{rows} as the values.
-If there are multiple values for a single group in \code{pie_group_by}, a function should be provided to aggregate the values.
-If not, the sum of the values will be used and a warning will be shown.
+\item "sum": Use the values in the columns specified by \code{rows} as the values.
+The sum of the values will be used.
 \item A function: The function should take a vector of values as the argument and return a single value, for each
 group in \code{pie_group_by}.
 }}

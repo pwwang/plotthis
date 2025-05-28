@@ -575,9 +575,8 @@ layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
 #' @param pie_values How to calculate the values for the pie chart. Default is "count".
 #'  Other options are "value" and a function.
 #'  * "count": Count the number of instances in `pie_group_by`.
-#'  * "value": Use the values in the columns specified by `rows` as the values.
-#'    If there are multiple values for a single group in `pie_group_by`, a function should be provided to aggregate the values.
-#'    If not, the sum of the values will be used and a warning will be shown.
+#'  * "sum": Use the values in the columns specified by `rows` as the values.
+#'    The sum of the values will be used.
 #'  * A function: The function should take a vector of values as the argument and return a single value, for each
 #'    group in `pie_group_by`.
 #' @param pie_size A numeric value or a function specifying the size of the pie chart.
@@ -879,14 +878,19 @@ HeatmapAtomic <- function(
                 function(.x, .g) {
                     if (identical(pie_values, "count")) {
                         list(table(.g[!is.na(.x)]))
+                    } else if (identical(pie_values, "sum")) {
+                        .d <- sapply(split(.x[!is.na(.x)], .g[!is.na(.x)]), sum)
+                        if (any(.d[!is.na(.d)] < 0)) {
+                            .d <- (.d - min(.d, na.rm = TRUE)) / (max(.d, na.rm = TRUE) - min(.d, na.rm = TRUE))
+                        }
+                        list(as.table(.d))
                     } else {
                         .d <- lapply(split(.x[!is.na(.x)], .g[!is.na(.x)]), function(.v) {
                             if (length(.v) > 1) {
                                 if (is.function(pie_values)) {
                                     pie_values(.v)
                                 } else {
-                                    warning("Multiple values in a group in 'pie_group_by'. Using the sum of the values.")
-                                    sum(.v)
+                                    stop("Please provide a function for 'pie_values' to aggregate the values in 'rows'.")
                                 }
                             } else {
                                 .v
