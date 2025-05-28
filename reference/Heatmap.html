@@ -249,9 +249,8 @@ If it is a function, the function should take <code>count</code> as the argument
 <dt id="arg-pie-values">pie_values<a class="anchor" aria-label="anchor" href="#arg-pie-values"></a></dt>
 <dd><p>How to calculate the values for the pie chart. Default is "count".
 Other options are "value" and a function.</p><ul><li><p>"count": Count the number of instances in <code>pie_group_by</code>.</p></li>
-<li><p>"value": Use the values in the columns specified by <code>rows</code> as the values.
-If there are multiple values for a single group in <code>pie_group_by</code>, a function should be provided to aggregate the values.
-If not, the sum of the values will be used and a warning will be shown.</p></li>
+<li><p>"sum": Use the values in the columns specified by <code>rows</code> as the values.
+The sum of the values will be used.</p></li>
 <li><p>A function: The function should take a vector of values as the argument and return a single value, for each
 group in <code>pie_group_by</code>.</p></li>
 </ul></dd>
@@ -843,7 +842,7 @@ if <code>combine = TRUE</code>, otherwise, it returns a list of heatmaps.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>
