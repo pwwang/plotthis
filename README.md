@@ -90,6 +90,10 @@ $ conda install pwwang::r-plotthis
 
 ![](man/figures/manh.png)
 
+[`SpatialImagePlot`][31] / [`SpatialMasksPlot`][31] / [`SpatialShapesPlot`][31] / [`SpatialPointsPlot`][31]
+
+![](man/figures/spatial.png)
+
 
 [1]: https://zhanghao-njmu.github.io/SCP/index.html
 [2]: https://pwwang.github.io/plotthis/reference/AreaPlot.html
@@ -121,3 +125,4 @@ $ conda install pwwang::r-plotthis
 [28]: https://pwwang.github.io/plotthis/reference/ROCCurve.html
 [29]: https://pwwang.github.io/plotthis/reference/QQPlot.html
 [30]: https://pwwang.github.io/plotthis/reference/ManhattanPlot.html
+[31]: https://pwwang.github.io/plotthis/reference/spatialplots.html

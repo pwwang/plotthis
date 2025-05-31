@@ -38,6 +38,10 @@ reference:
     - ROCCurve
     - SankeyPlot
     - ScatterPlot
+    - SpatialImagePlot
+    - SpatialMasksPlot
+    - SpatialShapesPlot
+    - SpatialPointsPlot
     - SpiderPlot
     - SplitBarPlot
     - TrendPlot

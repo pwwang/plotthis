@@ -1,10 +1,10 @@
 package:
   name: r-plotthis
-  version: 0.6.1
+  version: 0.7.0
 
 source:
   git_url: https://github.com/pwwang/plotthis
-  git_rev: 0.6.1
+  git_rev: 0.7.0
 
 build:
   number: 1
@@ -48,6 +48,8 @@ requirements:
     - r-concaveman
     - r-inext
     - r-alluvial
+    - r-sf
+    - r-terra
 
   run:
     - r-base
@@ -84,6 +86,8 @@ requirements:
     - r-concaveman
     - r-inext
     - r-alluvial
+    - r-sf
+    - r-terra
 
 test:
   commands:
