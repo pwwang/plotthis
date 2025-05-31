@@ -130,6 +130,66 @@ theme_blank <- function(add_coord = TRUE, xlen_npc = 0.15, ylen_npc = 0.15, xlab
     }
 }
 
+#' Box theme
+#'
+#' This function creates a theme with all elements blank except for axis lines
+#' like a box around the plot.
+#'
+#' @param xlen_npc The length of the x-axis arrow in "npc".
+#' @param ylen_npc The length of the y-axis arrow in "npc".
+#' @param xlab x-axis label.
+#' @param ylab y-axis label.
+#' @param lab_size Label size.
+#' @param ... Arguments passed to the \code{\link[ggplot2]{theme}}.
+#' @return A ggplot2 theme.
+#' @examples
+#' library(ggplot2)
+#' p <- ggplot(mtcars, aes(x = wt, y = mpg, colour = factor(cyl))) +
+#'     geom_point()
+#' p + theme_box()
+#' @importFrom methods formalArgs
+#' @importFrom ggplot2 theme element_blank margin annotation_custom coord_cartesian
+#' @importFrom grid grobTree gList linesGrob textGrob arrow gpar
+#' @export
+theme_box <- function(xlen_npc = 0.15, ylen_npc = 0.15, xlab = "", ylab = "", lab_size = 12, ...) {
+    args1 <- list(
+        panel.border = element_rect(fill = "transparent", colour = "black", linewidth = 1),
+        panel.grid = element_blank(),
+        axis.title = element_blank(),
+        axis.line = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        legend.background = element_blank(),
+        legend.box.margin = margin(0, 0, 0, 0),
+        legend.margin = margin(0, 0, 0, 0),
+        legend.key.size = unit(10, "pt"),
+        plot.margin = margin(lab_size + 2, lab_size + 2, lab_size + 2, lab_size + 2, unit = "points")
+    )
+    args2 <- as.list(match.call())[-1]
+    call.envir <- parent.frame(1)
+    args2 <- lapply(args2, function(arg) {
+        if (is.symbol(arg)) {
+            eval(arg, envir = call.envir)
+        } else if (is.call(arg)) {
+            eval(arg, envir = call.envir)
+        } else {
+            arg
+        }
+    })
+    for (n in names(args2)) {
+        args1[[n]] <- args2[[n]]
+    }
+    args <- args1[names(args1) %in% formalArgs(theme)]
+    out <- do.call(
+        what = theme,
+        args = args
+    )
+
+    return(list(
+        list(theme_this() + out)
+    ))
+}
+
 #' Color palettes collected in plotthis.
 #'
 #' @param x A vector of character/factor or numeric values. If missing, numeric values 1:n will be used as x.
