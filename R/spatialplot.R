@@ -85,6 +85,9 @@ flip_y_spatvector <- function(data) {
 #' @param ext A numeric vector of length 4 specifying the extent as `c(xmin, xmax, ymin, ymax)`. Default is NULL.
 #' @param flip_y Whether to flip the y-axis direction. Default is TRUE.
 #' This is useful for visualizing spatial data with the origin at the top left corner.
+#' @param palette A character string specifying the color palette to use.
+#' For `SpatialImagePlot`, if the data has 3 channels (RGB), it will be used as a color identity and
+#' this argument will be ignored.
 #' @param palette_reverse Whether to reverse the color palette. Default is FALSE.
 #' @param fill_by A character string or vector specifying the column(s) to fill the shapes in `SpatialShapesPlot`.
 #' @param fill_name A character string for the fill legend title.
@@ -200,7 +203,7 @@ flip_y_spatvector <- function(data) {
 #'   SpatialImagePlot(r, return_layer = TRUE, alpha = 0.2, ext = ext) +
 #'   SpatialShapesPlot(polygons, return_layer = TRUE, ext = ext, fill_by = "white") +
 #'   SpatialPointsPlot(points, return_layer = TRUE, ext = ext, color_by = "feat1") +
-#'   theme_this() +
+#'   theme_box() +
 #'   ggplot2::coord_sf(expand = 0) +
 #'   ggplot2::scale_y_continuous(labels = function(x) -x)
 #'
@@ -210,7 +213,7 @@ SpatialImagePlot <- function(
     ext = NULL, raster = NULL, raster_dpi = NULL, flip_y = TRUE,
     palette = "turbo", palcolor = NULL, palette_reverse = FALSE,
     alpha = 1, fill_name = NULL, return_layer = FALSE,
-    theme = "theme_this", theme_args = list(),
+    theme = "theme_box", theme_args = list(),
     legend.position = ifelse(return_layer, "none", "right"), legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     ...
@@ -255,23 +258,44 @@ SpatialImagePlot <- function(
         data <- flip_y_spatraster(data)
     }
 
+    if (dim(data)[3] == 3) {
+        names(data) <- c("red", "green", "blue")
+        data <- terra::as.data.frame(data, xy = TRUE)
+        data$red <- scales::rescale(data$red, to = c(0, 255))
+        data$green <- scales::rescale(data$green, to = c(0, 255))
+        data$blue <- scales::rescale(data$blue, to = c(0, 255))
+        data$value <- rgb(data$red, data$green, data$blue, maxColorValue = 255)
+        colnames(data)[1:2] <- c("x", "y")
+        fill_identity <- TRUE
+    } else {
+        data <- terra::as.data.frame(data, xy = TRUE)
+        colnames(data) <- c("x", "y", "value")
+        fill_identity <- FALSE
+    }
+
     layer <- list(
         ggplot2::geom_raster(
-            data = stats::setNames(terra::as.data.frame(data, xy = TRUE), c("x", "y", "value")),
+            data = data,
             aes(x = !!sym("x"), y = !!sym("y"), fill = !!sym("value")),
             alpha = alpha
-        ),
-        scale_fill_gradientn(
-            name = fill_name %||% names(data)[1],
-            n.breaks = 4,
-            colors = palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor),
-            guide = if (identical(legend.position, "none")) "none" else guide_colorbar(
-                frame.colour = "black", ticks.colour = "black", title.hjust = 0,
-                alpha = alpha
-            ),
-            na.value = "transparent"
         )
     )
+    if (fill_identity) {
+        layer <- c(layer, list(ggplot2::scale_fill_identity(guide = "none")))
+    } else {
+        layer <- c(layer, list(
+            scale_fill_gradientn(
+                name = fill_name %||% names(data)[1],
+                n.breaks = 4,
+                colors = palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor),
+                guide = if (identical(legend.position, "none")) "none" else guide_colorbar(
+                    frame.colour = "black", ticks.colour = "black", title.hjust = 0,
+                    alpha = alpha
+                ),
+                na.value = "transparent"
+            )
+        ))
+    }
     # If we add another layer, we need the ggnewscale::new_scale_fill() to avoid conflicts
     attr(layer, "scales") <- "fill"
 
@@ -348,7 +372,7 @@ SpatialMasksPlot <- function(
     border_size = 0.5, border_alpha = 1,
     palette = "turbo", palcolor = NULL, palette_reverse = FALSE,
     alpha = 1, fill_name = NULL, return_layer = FALSE,
-    theme = "theme_this", theme_args = list(),
+    theme = "theme_box", theme_args = list(),
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     ...
@@ -404,7 +428,7 @@ SpatialMasksPlot <- function(
 
     layer <- c(
         layer,
-        scale_fill_gradientn(
+        list(scale_fill_gradientn(
             name = fill_name %||% names(data)[1],
             n.breaks = 4,
             colors = palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor),
@@ -412,7 +436,7 @@ SpatialMasksPlot <- function(
                 frame.colour = "black", ticks.colour = "black", title.hjust = 0
             ),
             na.value = "transparent"
-        )
+        ))
     )
     # If we add another layer, we need the ggnewscale::new_scale_fill() to avoid conflicts
     attr(layer, "scales") <- "fill"
@@ -492,7 +516,7 @@ SpatialShapesPlot <- function(
     alpha = 1, fill_name = NULL,
     facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
     return_layer = FALSE,
-    theme = "theme_this", theme_args = list(),
+    theme = "theme_box", theme_args = list(),
     legend.position = ifelse(return_layer, "none", "right"), legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     ...
@@ -782,7 +806,7 @@ SpatialPointsPlot <- function(
     raster = NULL, raster_dpi = c(512, 512),
     hex = FALSE, hex_linewidth = 0.5, hex_count = FALSE, hex_bins = 50, hex_binwidth = NULL,
     facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
-    return_layer = FALSE, theme = "theme_this", theme_args = list(),
+    return_layer = FALSE, theme = "theme_box", theme_args = list(),
     legend.position = ifelse(return_layer, "none", "right"), legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     ...

@@ -19,7 +19,7 @@ SpatialImagePlot(
   alpha = 1,
   fill_name = NULL,
   return_layer = FALSE,
-  theme = "theme_this",
+  theme = "theme_box",
   theme_args = list(),
   legend.position = ifelse(return_layer, "none", "right"),
   legend.direction = "vertical",
@@ -45,7 +45,7 @@ SpatialMasksPlot(
   alpha = 1,
   fill_name = NULL,
   return_layer = FALSE,
-  theme = "theme_this",
+  theme = "theme_box",
   theme_args = list(),
   legend.position = "right",
   legend.direction = "vertical",
@@ -75,7 +75,7 @@ SpatialShapesPlot(
   facet_ncol = NULL,
   facet_byrow = TRUE,
   return_layer = FALSE,
-  theme = "theme_this",
+  theme = "theme_box",
   theme_args = list(),
   legend.position = ifelse(return_layer, "none", "right"),
   legend.direction = "vertical",
@@ -118,7 +118,7 @@ SpatialPointsPlot(
   facet_ncol = NULL,
   facet_byrow = TRUE,
   return_layer = FALSE,
-  theme = "theme_this",
+  theme = "theme_box",
   theme_args = list(),
   legend.position = ifelse(return_layer, "none", "right"),
   legend.direction = "vertical",
@@ -142,8 +142,9 @@ SpatialPointsPlot(
 \item{flip_y}{Whether to flip the y-axis direction. Default is TRUE.
 This is useful for visualizing spatial data with the origin at the top left corner.}
 
-\item{palette}{A character string specifying the palette to use.
-A named list or vector can be used to specify the palettes for different \code{split_by} values.}
+\item{palette}{A character string specifying the color palette to use.
+For \code{SpatialImagePlot}, if the data has 3 channels (RGB), it will be used as a color identity and
+this argument will be ignored.}
 
 \item{palcolor}{A character string specifying the color to use in the palette.
 A named list can be used to specify the colors for different \code{split_by} values.
@@ -325,7 +326,7 @@ ggplot2::ggplot() +
   SpatialImagePlot(r, return_layer = TRUE, alpha = 0.2, ext = ext) +
   SpatialShapesPlot(polygons, return_layer = TRUE, ext = ext, fill_by = "white") +
   SpatialPointsPlot(points, return_layer = TRUE, ext = ext, color_by = "feat1") +
-  theme_this() +
+  theme_box() +
   ggplot2::coord_sf(expand = 0) +
   ggplot2::scale_y_continuous(labels = function(x) -x)
 
