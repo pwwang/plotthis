@@ -19,7 +19,7 @@ BugReports:
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Depends:
-    R (>= 4.0.0)
+    R (>= 4.2.0)
 Imports:
     circlize,
     ggplot2,
