@@ -90,6 +90,7 @@
 <url><loc>https://pwwang.github.io/plotthis/reference/enrich_multidb_example.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/enrichmap1.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/facet_plot.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/flip_y_spat.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/get_cutoffs_data.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/gggrob.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/gsea.html</loc></url>
@@ -110,6 +111,7 @@
 <url><loc>https://pwwang.github.io/plotthis/reference/rgba_to_rgb.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/sankeyplot.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/show_palettes.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/spatialplots.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/theme_blank.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/theme_this.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/validate_common_args.html</loc></url>
