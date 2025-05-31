@@ -57,6 +57,7 @@ reference:
     - palette_this
     - theme_this
     - theme_blank
+    - theme_box
     - show_palettes
     - element_textbox
   - title: Data
