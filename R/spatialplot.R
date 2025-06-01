@@ -107,6 +107,18 @@ flip_y_spatvector <- function(data) {
 #' @param hex_count Whether to count the hex.
 #' @param hex_bins A numeric value of the hex bins. Default is 50.
 #' @param hex_binwidth A numeric value of the hex bin width. Default is NULL.
+#' @param label Whether to show the labels of groups. Default is FALSE.
+#' @param label_size A numeric value of the label size. Default is 4.
+#' @param label_fg A character string of the label foreground color. Default is "white".
+#' @param label_bg A character string of the label background color. Default is "black".
+#' @param label_bg_r A numeric value of the background ratio of the labels. Default is 0.1.
+#' @param label_repel Whether to repel the labels. Default is FALSE.
+#' @param label_repulsion A numeric value of the label repulsion. Default is 20.
+#' @param label_pt_size A numeric value of the label point size. Default is 1.
+#' @param label_pt_color A character string of the label point color. Default is "black".
+#' @param label_segment_color A character string of the label segment color. Default is "black".
+#' @param label_insitu Whether to place the raw labels (group names) in the center of the points with the corresponding group.
+#' Default is FALSE, which uses numbers instead of raw labels.
 #' @param return_layer Whether to return the layer or the plot. Default is FALSE.
 #' @importFrom rlang %||%
 #' @importFrom ggplot2 scale_fill_gradientn aes guide_colorbar element_blank
@@ -196,6 +208,7 @@ flip_y_spatvector <- function(data) {
 #' SpatialPointsPlot(points, raster = TRUE, raster_dpi = 30, color_by = "feat1")
 #' SpatialPointsPlot(points, color_by = c("feat1", "feat2"), size_by = "size")
 #' SpatialPointsPlot(points, color_by = "feat1", hex = TRUE)
+#' SpatialPointsPlot(points, color_by = "gene", label = TRUE)
 #'
 #' # --- Use the `return_layer` argument to get the ggplot layer
 #' ext = c(0, 40, 0, 50)
@@ -1172,6 +1185,61 @@ SpatialPointsPlot <- function(
                 guide = if (identical(legend.position, "none")) "none" else "legend"
             )
         ))
+    }
+
+    # Force label to be TRUE when label_repel or label_insitu is TRUE (similar to DimPlot)
+    if ((isTRUE(label_repel) || isTRUE(label_insitu)) && !isTRUE(label)) {
+        message("Forcing label to be TRUE when label_repel or label_insitu is TRUE.")
+        label <- TRUE
+    }
+
+    # Adding the labels (similar to DimPlot)
+    if (isTRUE(label)) {
+        if (is.null(color_by) || !color_by_is_column) {
+            stop("Adding labels requires 'color_by' to be specified as a categorical column.")
+        }
+        if (is.numeric(data[[color_by]])) {
+            stop("Adding labels is not supported for numeric 'color_by' values. Use categorical data.")
+        }
+        if (isTRUE(hex)) {
+            stop("Adding labels is not supported for hex plots.")
+        }
+
+        if (!is.null(facet_by)) {
+            label_df <- aggregate(data[, c(x, y)], by = list(data[[color_by]], data[[facet_by]]), FUN = median)
+            colnames(label_df)[1:2] <- c(".label", facet_by)
+        } else {
+            label_df <- aggregate(data[, c(x, y)], by = list(data[[color_by]]), FUN = median)
+            colnames(label_df)[1] <- ".label"
+        }
+        label_df <- label_df[!is.na(label_df[, ".label"]), , drop = FALSE]
+
+        if (!isTRUE(label_insitu)) {
+            label_df[, ".label"] <- seq_len(nrow(label_df))
+        }
+
+        if (isTRUE(label_repel)) {
+            layer <- c(layer, list(
+                geom_point(
+                    data = label_df, mapping = aes(x = !!sym(x), y = !!sym(y)),
+                    color = label_pt_color, size = label_pt_size
+                ),
+                ggrepel::geom_text_repel(
+                    data = label_df, aes(x = !!sym(x), y = !!sym(y), label = !!sym(".label")),
+                    point.size = label_pt_size, max.overlaps = 100, force = label_repulsion,
+                    color = label_fg, bg.color = label_bg, bg.r = label_bg_r, size = label_size, inherit.aes = FALSE
+                )
+            ))
+        } else {
+            layer <- c(layer, list(
+                ggrepel::geom_text_repel(
+                    data = label_df, aes(x = !!sym(x), y = !!sym(y), label = !!sym(".label")),
+                    fontface = "bold", min.segment.length = 0, segment.color = label_segment_color,
+                    point.size = NA, max.overlaps = 100, force = 0,
+                    color = label_fg, bg.color = label_bg, bg.r = label_bg_r, size = label_size, inherit.aes = FALSE
+                )
+            ))
+        }
     }
 
     # Set scale attribute for layer conflicts
