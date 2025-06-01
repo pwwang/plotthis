@@ -647,7 +647,7 @@ SpatialShapesPlot <- function(
     # Only add color if not mapped and needed
     if (!("colour" %in% names(aes_mapping))) {
         if (border_aes == "fixed_color") {
-            geom_params$color <- border_color
+            geom_params$color <- adjcolors(border_color, border_alpha)
         } else if (border_aes == "none") {
             geom_params$color <- NA
         }
@@ -698,7 +698,7 @@ SpatialShapesPlot <- function(
             layer <- c(layer, list(
                 scale_color_gradientn(
                     n.breaks = 4,
-                    colors = palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor),
+                    colors = palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor, alpha = border_alpha),
                     guide = if (identical(legend.position, "none")) "none" else guide_colorbar(
                         frame.colour = "black", ticks.colour = "black", title.hjust = 0
                     ),
@@ -1035,7 +1035,7 @@ SpatialPointsPlot <- function(
                 scattermore::geom_scattermore(
                     data = data,
                     mapping = aes(x = !!sym(x), y = !!sym(y)),
-                    color = if (border_aes == "fixed_color") border_color else "black",
+                    color = if (border_aes == "fixed_color") adjcolors(border_color, border_alpha) else "black",
                     alpha = alpha,
                     pixels = raster_dpi
                 ),
@@ -1074,7 +1074,7 @@ SpatialPointsPlot <- function(
         # Only add color parameter when not mapped
         if (!("colour" %in% names(aes_mapping))) {
             if (has_border && border_aes == "fixed_color") {
-                geom_params$color <- border_color
+                geom_params$color <- adjcolors(border_color, border_alpha)
             } else if (has_border && border_aes == "none") {
                 geom_params$color <- NA
             } else if (!has_border && !color_by_is_column && !is.null(color_by) && is.character(color_by)) {
@@ -1128,11 +1128,17 @@ SpatialPointsPlot <- function(
         }
         if ("color" %in% scales_used) {
             if (is.numeric(data[[color_by]])) {
+                if (has_border && border_aes == "same_as_fill") {
+                    colors <- palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor,
+                        alpha = border_alpha, transparent = FALSE)
+                } else {
+                    colors <- palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor)
+                }
                 layer <- c(layer, list(
                     scale_color_gradientn(
                         name = color_name %||% color_by,
                         n.breaks = 4,
-                        colors = palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor),
+                        colors = colors,
                         guide = if (identical(legend.position, "none") || "fill" %in% scales_used) "none" else guide_colorbar(
                             frame.colour = "black", ticks.colour = "black", title.hjust = 0
                         ),
@@ -1140,10 +1146,17 @@ SpatialPointsPlot <- function(
                     )
                 ))
             } else {
+                if (has_border && border_aes == "same_as_fill") {
+                    # Use same colors as fill
+                    colors <- palette_this(levels(data[[color_by]]), palette = palette, reverse = palette_reverse, palcolor = palcolor,
+                        alpha = border_alpha, transparent = FALSE)
+                } else {
+                    colors <- palette_this(levels(data[[color_by]]), palette = palette, reverse = palette_reverse, palcolor = palcolor)
+                }
                 layer <- c(layer, list(
                     ggplot2::scale_color_manual(
                         name = color_name %||% color_by,
-                        values = palette_this(levels(data[[color_by]]), palette = palette, reverse = palette_reverse, palcolor = palcolor),
+                        values = colors,
                         guide = if (identical(legend.position, "none") || "fill" %in% scales_used) "none" else "legend",
                         na.value = "transparent"
                     )
