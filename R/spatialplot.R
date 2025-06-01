@@ -119,6 +119,11 @@ flip_y_spatvector <- function(data) {
 #' @param label_segment_color A character string of the label segment color. Default is "black".
 #' @param label_insitu Whether to place the raw labels (group names) in the center of the points with the corresponding group.
 #' Default is FALSE, which uses numbers instead of raw labels.
+#' @param highlight A character vector of the row names to highlight. Default is NULL.
+#' @param highlight_alpha A numeric value of the highlight transparency. Default is 1.
+#' @param highlight_size A numeric value of the highlight size. Default is 1.
+#' @param highlight_color A character string of the highlight color. Default is "black".
+#' @param highlight_stroke A numeric value of the highlight stroke. Default is 0.8.
 #' @param return_layer Whether to return the layer or the plot. Default is FALSE.
 #' @importFrom rlang %||%
 #' @importFrom ggplot2 scale_fill_gradientn aes guide_colorbar element_blank
@@ -209,6 +214,8 @@ flip_y_spatvector <- function(data) {
 #' SpatialPointsPlot(points, color_by = c("feat1", "feat2"), size_by = "size")
 #' SpatialPointsPlot(points, color_by = "feat1", hex = TRUE)
 #' SpatialPointsPlot(points, color_by = "gene", label = TRUE)
+#' SpatialPointsPlot(points, color_by = "gene", highlight = 1:20,
+#'   highlight_color = "red2", highlight_stroke = 0.8)
 #'
 #' # --- Use the `return_layer` argument to get the ggplot layer
 #' ext = c(0, 40, 0, 50)
@@ -818,6 +825,10 @@ SpatialPointsPlot <- function(
     border_color = "black", border_size = 0.5, border_alpha = 1,
     raster = NULL, raster_dpi = c(512, 512),
     hex = FALSE, hex_linewidth = 0.5, hex_count = FALSE, hex_bins = 50, hex_binwidth = NULL,
+    label = FALSE, label_size = 4, label_fg = "white", label_bg = "black", label_bg_r = 0.1,
+    label_repel = FALSE, label_repulsion = 20, label_pt_size = 1, label_pt_color = "black",
+    label_segment_color = "black", label_insitu = FALSE,
+    highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
     facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
     return_layer = FALSE, theme = "theme_box", theme_args = list(),
     legend.position = ifelse(return_layer, "none", "right"), legend.direction = "vertical",
@@ -1185,6 +1196,55 @@ SpatialPointsPlot <- function(
                 guide = if (identical(legend.position, "none")) "none" else "legend"
             )
         ))
+    }
+
+    # Adding the highlight (similar to DimPlot)
+    if (!isFALSE(highlight) && !is.null(highlight)) {
+        if (isTRUE(hex)) {
+            stop("Highlight is not supported for hex plot.")
+        }
+        if (isTRUE(highlight)) {
+            hi_df <- data
+        } else if (length(highlight) == 1 && is.character(highlight)) {
+            hi_df <- eval(parse(text = paste0('dplyr::filter(data, ', highlight, ')')))
+        } else {
+            all_inst <- rownames(data) %||% 1:nrow(data)
+            if (!any(highlight %in% all_inst)) {
+                stop("No highlight items found in the data (rownames).")
+            }
+            if (!all(highlight %in% all_inst)) {
+                warning("Not all highlight items found in the data (rownames).", immediate. = TRUE)
+            }
+            hi_df <- data[intersect(highlight, all_inst), , drop = FALSE]
+            rm(all_inst)
+        }
+        if (nrow(hi_df) > 0) {
+            if (isTRUE(raster)) {
+                layer <- c(layer, list(
+                    scattermore::geom_scattermore(
+                        data = hi_df, aes(x = !!sym(x), y = !!sym(y)), color = highlight_color,
+                        pointsize = floor(highlight_size) + highlight_stroke, alpha = highlight_alpha, pixels = raster_dpi
+                    ),
+                    scattermore::geom_scattermore(
+                        data = hi_df, aes(x = !!sym(x), y = !!sym(y), color = !!sym(color_by)),
+                        pointsize = floor(highlight_size), alpha = highlight_alpha, pixels = raster_dpi
+                    )
+                ))
+                scales_used <- c(scales_used, "color")
+            } else {
+                layer <- c(layer, list(
+                    geom_point(
+                        data = hi_df, aes(x = !!sym(x), y = !!sym(y)), color = highlight_color,
+                        size = highlight_size + highlight_stroke, alpha = highlight_alpha
+                    ),
+                    geom_point(
+                        data = hi_df, aes(x = !!sym(x), y = !!sym(y), color = !!sym(color_by)),
+                        size = highlight_size, alpha = highlight_alpha
+                    )
+                ))
+                scales_used <- c(scales_used, "color")
+            }
+        }
     }
 
     # Force label to be TRUE when label_repel or label_insitu is TRUE (similar to DimPlot)

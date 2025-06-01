@@ -113,6 +113,22 @@ SpatialPointsPlot(
   hex_count = FALSE,
   hex_bins = 50,
   hex_binwidth = NULL,
+  label = FALSE,
+  label_size = 4,
+  label_fg = "white",
+  label_bg = "black",
+  label_bg_r = 0.1,
+  label_repel = FALSE,
+  label_repulsion = 20,
+  label_pt_size = 1,
+  label_pt_color = "black",
+  label_segment_color = "black",
+  label_insitu = FALSE,
+  highlight = NULL,
+  highlight_alpha = 1,
+  highlight_size = 1,
+  highlight_color = "black",
+  highlight_stroke = 0.8,
   facet_scales = "fixed",
   facet_nrow = NULL,
   facet_ncol = NULL,
@@ -226,6 +242,39 @@ When facet_by is a single column and facet_wrap is used.}
 \item{hex_bins}{A numeric value of the hex bins. Default is 50.}
 
 \item{hex_binwidth}{A numeric value of the hex bin width. Default is NULL.}
+
+\item{label}{Whether to show the labels of groups. Default is FALSE.}
+
+\item{label_size}{A numeric value of the label size. Default is 4.}
+
+\item{label_fg}{A character string of the label foreground color. Default is "white".}
+
+\item{label_bg}{A character string of the label background color. Default is "black".}
+
+\item{label_bg_r}{A numeric value of the background ratio of the labels. Default is 0.1.}
+
+\item{label_repel}{Whether to repel the labels. Default is FALSE.}
+
+\item{label_repulsion}{A numeric value of the label repulsion. Default is 20.}
+
+\item{label_pt_size}{A numeric value of the label point size. Default is 1.}
+
+\item{label_pt_color}{A character string of the label point color. Default is "black".}
+
+\item{label_segment_color}{A character string of the label segment color. Default is "black".}
+
+\item{label_insitu}{Whether to place the raw labels (group names) in the center of the points with the corresponding group.
+Default is FALSE, which uses numbers instead of raw labels.}
+
+\item{highlight}{A character vector of the row names to highlight. Default is NULL.}
+
+\item{highlight_alpha}{A numeric value of the highlight transparency. Default is 1.}
+
+\item{highlight_size}{A numeric value of the highlight size. Default is 1.}
+
+\item{highlight_color}{A character string of the highlight color. Default is "black".}
+
+\item{highlight_stroke}{A numeric value of the highlight stroke. Default is 0.8.}
 }
 \description{
 \itemize{
@@ -319,6 +368,9 @@ SpatialPointsPlot(points, color_by = "gene", size_by = "size", shape = 22,
 SpatialPointsPlot(points, raster = TRUE, raster_dpi = 30, color_by = "feat1")
 SpatialPointsPlot(points, color_by = c("feat1", "feat2"), size_by = "size")
 SpatialPointsPlot(points, color_by = "feat1", hex = TRUE)
+SpatialPointsPlot(points, color_by = "gene", label = TRUE)
+SpatialPointsPlot(points, color_by = "gene", highlight = 1:20,
+  highlight_color = "red2", highlight_stroke = 0.8)
 
 # --- Use the `return_layer` argument to get the ggplot layer
 ext = c(0, 40, 0, 50)
