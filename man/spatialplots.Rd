@@ -95,6 +95,7 @@ SpatialPointsPlot(
   flip_y = TRUE,
   color_by = NULL,
   size_by = NULL,
+  size = NULL,
   fill_by = NULL,
   palette = NULL,
   palcolor = NULL,
@@ -226,6 +227,8 @@ When facet_by is a single column and facet_wrap is used.}
 \item{color_by}{A character string specifying the column to color the points in \code{SpatialPointsPlot}.}
 
 \item{size_by}{A character string specifying the column to size the points in \code{SpatialPointsPlot}.}
+
+\item{size}{Alias of \code{size_by} when size is a numeric value.}
 
 \item{color_name}{A character string for the color legend title in \code{SpatialPointsPlot}.}
 

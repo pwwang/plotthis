@@ -193,6 +193,7 @@ flip_y_spatvector <- function(data) {
 #' @param color_by A character string specifying the column to color the points in `SpatialPointsPlot`.
 #' @param color_name A character string for the color legend title in `SpatialPointsPlot`.
 #' @param size_by A character string specifying the column to size the points in `SpatialPointsPlot`.
+#' @param size Alias of `size_by` when size is a numeric value.
 #' @param size_name A character string for the size legend title in `SpatialPointsPlot`.
 #' @param shape A numeric value or character string specifying the shape of the points in `SpatialPointsPlot`.
 #' @param add_border Whether to add a border around the masks in `SpatialMasksPlot`. Default is TRUE.
@@ -757,7 +758,7 @@ SpatialShapesPlot <- function(
 #' @export
 SpatialPointsPlot <- function(
     data, x = NULL, y = NULL,
-    ext = NULL, flip_y = TRUE, color_by = NULL, size_by = NULL, fill_by = NULL,
+    ext = NULL, flip_y = TRUE, color_by = NULL, size_by = NULL, size = NULL, fill_by = NULL,
     palette = NULL, palcolor = NULL, palette_reverse = FALSE,
     alpha = 1, color_name = NULL, size_name = NULL, shape = 16,
     border_color = "black", border_size = 0.5, border_alpha = 1,
@@ -779,6 +780,9 @@ SpatialPointsPlot <- function(
     } else {
         ggplot2::ggplot
     }
+    stopifnot("'size_by' and 'size' should not be both specified" = is.null(size_by) || is.null(size))
+    stopifnot("'size' must be a single numeric value" = is.null(size) || (is.numeric(size) && length(size) == 1))
+    size_by <- size_by %||% size
 
     stopifnot("'data' must be a data.frame" = is.data.frame(data))
     if (!is.null(fill_by) && !is.null(color_by) && fill_by != color_by) {
