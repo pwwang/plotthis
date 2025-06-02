@@ -71,6 +71,105 @@ flip_y_spatvector <- function(data) {
     return(data_flipped)
 }
 
+#' Wrap spatial plot if plotted independently
+#'
+#' This function is used to wrap spatial plots if they are plotted independently
+#' with return_layer = FALSE.
+#'
+#' @param layers A list of ggplot layers to be wrapped.
+#' @param ext A numeric vector of length 4 specifying the extent as `c(xmin, xmax, ymin, ymax)`. Default is NULL.
+#' @param flip_y Whether to flip the y-axis direction. Default is TRUE.
+#' @param legend.position The position of the legend. Default is "right".
+#' @param legend.direction The direction of the legend. Default is "vertical".
+#' @param title The title of the plot. Default is NULL.
+#' @param subtitle The subtitle of the plot. Default is NULL.
+#' @param xlab The x-axis label. Default is NULL.
+#' @param ylab The y-axis label. Default is NULL.
+#' @param theme The theme to be used for the plot. Default is "theme_box".
+#' @param theme_args A list of arguments to be passed to the theme function. Default is an empty list.
+#' @return A ggplot object with the specified layers.
+#' @importFrom ggplot2 coord_sf labs scale_y_continuous
+#' @keywords internal
+.wrap_spatial_layers <- function(
+    layers, ext = NULL, flip_y = TRUE,
+    legend.position = "right", legend.direction = "vertical",
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
+    theme = "theme_box", theme_args = list()
+) {
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
+
+    xlim <- ylim <- NULL
+    # Set default width and height based on extent proportions
+    if (!is.null(ext)) {
+        ext_width <- ext[2] - ext[1]
+        ext_height <- ext[4] - ext[3]
+        aspect_ratio <- ext_width / ext_height
+
+        # Base height of 6, adjust width proportionally
+        base_height <- 6
+        base_width <- base_height * aspect_ratio
+
+        # Ensure reasonable bounds
+        if (base_width > 12) {
+            base_width <- 12
+            base_height <- base_width / aspect_ratio
+        } else if (base_width < 3) {
+            base_width <- 3
+            base_height <- base_width / aspect_ratio
+        }
+
+        xlim <- c(ext[1], ext[2])
+        if (flip_y) {
+            ylim <- c(-ext[4], -ext[3])  # Flip y-axis
+        } else {
+            ylim <- c(ext[3], ext[4])
+        }
+
+    } else {
+        # Default dimensions when no extent specified
+        base_height <- 6
+        base_width <- 6
+    }
+
+    # Adjust for legend position (similar to DimPlot)
+    if (!identical(legend.position, "none")) {
+        if (legend.position %in% c("right", "left")) {
+            base_width <- base_width + 1
+        } else if (legend.direction == "horizontal") {
+            base_height <- base_height + 1
+        } else {
+            base_width <- base_width + 2
+        }
+    }
+    p <- ggplot() +
+        layers +
+        coord_sf(expand = 0, xlim = xlim, ylim = ylim) +
+        labs(
+            title = title,
+            subtitle = subtitle,
+            x = xlab,
+            y = ylab
+        ) +
+        do.call(process_theme(theme), theme_args) +
+        ggplot2::theme(
+            legend.position = legend.position,
+            legend.direction = legend.direction
+        )
+
+    if (flip_y) {
+        p <- p + scale_y_continuous(labels = function(x) -x)
+    }
+
+    attr(p, "height") <- base_height
+    attr(p, "width") <- base_width
+
+    return(p)
+}
+
 #' Plots for spatial elements
 #'
 #' * `SpatialImagePlot`: Plot a SpatRaster object as an image.
@@ -124,7 +223,7 @@ flip_y_spatvector <- function(data) {
 #' @param highlight_size A numeric value of the highlight size. Default is 1.
 #' @param highlight_color A character string of the highlight color. Default is "black".
 #' @param highlight_stroke A numeric value of the highlight stroke. Default is 0.8.
-#' @param return_layer Whether to return the layer or the plot. Default is FALSE.
+#' @param return_layer Whether to return the layers or the plot. Default is FALSE.
 #' @importFrom rlang %||%
 #' @importFrom ggplot2 scale_fill_gradientn aes guide_colorbar element_blank
 #' @importFrom ggplot2 geom_sf ylim labs coord_sf geom_hex stat_summary_hex
@@ -217,7 +316,7 @@ flip_y_spatvector <- function(data) {
 #' SpatialPointsPlot(points, color_by = "gene", highlight = 1:20,
 #'   highlight_color = "red2", highlight_stroke = 0.8)
 #'
-#' # --- Use the `return_layer` argument to get the ggplot layer
+#' # --- Use the `return_layer` argument to get the ggplot layers
 #' ext = c(0, 40, 0, 50)
 #' ggplot2::ggplot() +
 #'   SpatialImagePlot(r, return_layer = TRUE, alpha = 0.2, ext = ext) +
@@ -239,12 +338,6 @@ SpatialImagePlot <- function(
     ...
 ) {
     set.seed(seed)
-    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
-        gglogger::ggplot
-    } else {
-        ggplot2::ggplot
-    }
-
     stopifnot("'data' must be a SpatRaster object" = inherits(data, "SpatRaster"))
 
     if (!is.null(ext)) {
@@ -293,7 +386,7 @@ SpatialImagePlot <- function(
         fill_identity <- FALSE
     }
 
-    layer <- list(
+    layers <- list(
         ggplot2::geom_raster(
             data = data,
             aes(x = !!sym("x"), y = !!sym("y"), fill = !!sym("value")),
@@ -301,9 +394,9 @@ SpatialImagePlot <- function(
         )
     )
     if (fill_identity) {
-        layer <- c(layer, list(ggplot2::scale_fill_identity(guide = "none")))
+        layers <- c(layers, list(ggplot2::scale_fill_identity(guide = "none")))
     } else {
-        layer <- c(layer, list(
+        layers <- c(layers, list(
             scale_fill_gradientn(
                 name = fill_name %||% names(data)[1],
                 n.breaks = 4,
@@ -316,71 +409,19 @@ SpatialImagePlot <- function(
             )
         ))
     }
-    # If we add another layer, we need the ggnewscale::new_scale_fill() to avoid conflicts
-    attr(layer, "scales") <- "fill"
+    # If we add another layers, we need the ggnewscale::new_scale_fill() to avoid conflicts
+    attr(layers, "scales") <- "fill"
 
     if (return_layer) {
-        return(layer)
+        return(layers)
     }
 
-    p <- ggplot() +
-        layer +
-        coord_sf(expand = 0) +
-        labs(
-            title = title,
-            subtitle = subtitle,
-            x = xlab,
-            y = ylab
-        ) +
-        do.call(process_theme(theme), theme_args) +
-        ggplot2::theme(
-            legend.position = legend.position,
-            legend.direction = legend.direction
-        )
-
-    if (flip_y) {
-        p <- p + scale_y_continuous(labels = function(x) -x)
-    }
-
-    # Set default width and height based on extent proportions
-    if (!is.null(ext)) {
-        ext_width <- ext[2] - ext[1]
-        ext_height <- ext[4] - ext[3]
-        aspect_ratio <- ext_width / ext_height
-
-        # Base height of 6, adjust width proportionally
-        base_height <- 6
-        base_width <- base_height * aspect_ratio
-
-        # Ensure reasonable bounds
-        if (base_width > 12) {
-            base_width <- 12
-            base_height <- base_width / aspect_ratio
-        } else if (base_width < 3) {
-            base_width <- 3
-            base_height <- base_width / aspect_ratio
-        }
-    } else {
-        # Default dimensions when no extent specified
-        base_height <- 6
-        base_width <- 6
-    }
-
-    # Adjust for legend position (similar to DimPlot)
-    if (!identical(legend.position, "none")) {
-        if (legend.position %in% c("right", "left")) {
-            base_width <- base_width + 1
-        } else if (legend.direction == "horizontal") {
-            base_height <- base_height + 1
-        } else {
-            base_width <- base_width + 2
-        }
-    }
-
-    attr(p, "height") <- base_height
-    attr(p, "width") <- base_width
-
-    return(p)
+    .wrap_spatial_layers(layers,
+        ext = ext, flip_y = flip_y,
+        legend.position = legend.position, legend.direction = legend.direction,
+        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
+        theme = theme, theme_args = theme_args
+    )
 }
 
 #' @rdname spatialplots
@@ -422,7 +463,7 @@ SpatialMasksPlot <- function(
     # Set background (0 values) to NA for transparency
     data[data == 0] <- NA
 
-    layer <- list(
+    layers <- list(
         # Convert to data frame for proper transparency handling
         ggplot2::geom_raster(
             data = stats::setNames(terra::as.data.frame(data, xy = TRUE), c("x", "y", "value")),
@@ -434,8 +475,8 @@ SpatialMasksPlot <- function(
     if (add_border) {
         # Convert mask values to polygons for cleaner visualization
         polys <- terra::as.polygons(data, dissolve = TRUE)
-        layer <- c(
-            layer,
+        layers <- c(
+            layers,
             list(ggplot2::geom_sf(
                 data = sf::st_as_sf(polys),
                 fill = NA,
@@ -446,8 +487,8 @@ SpatialMasksPlot <- function(
         )
     }
 
-    layer <- c(
-        layer,
+    layers <- c(
+        layers,
         list(scale_fill_gradientn(
             name = fill_name %||% names(data)[1],
             n.breaks = 4,
@@ -458,71 +499,19 @@ SpatialMasksPlot <- function(
             na.value = "transparent"
         ))
     )
-    # If we add another layer, we need the ggnewscale::new_scale_fill() to avoid conflicts
-    attr(layer, "scales") <- "fill"
+    # If we add another layers, we need the ggnewscale::new_scale_fill() to avoid conflicts
+    attr(layers, "scales") <- "fill"
 
     if (return_layer) {
-        return(layer)
+        return(layers)
     }
 
-    p <- ggplot() +
-        layer +
-        coord_sf(expand = 0) +
-        labs(
-            title = title,
-            subtitle = subtitle,
-            x = xlab,
-            y = ylab
-        ) +
-        do.call(process_theme(theme), theme_args) +
-        ggplot2::theme(
-            legend.position = legend.position,
-            legend.direction = legend.direction
-        )
-
-    if (flip_y) {
-        p <- p + scale_y_continuous(labels = function(x) -x)
-    }
-
-    # Set default width and height based on extent proportions
-    if (!is.null(ext)) {
-        ext_width <- ext[2] - ext[1]
-        ext_height <- ext[4] - ext[3]
-        aspect_ratio <- ext_width / ext_height
-
-        # Base height of 6, adjust width proportionally
-        base_height <- 6
-        base_width <- base_height * aspect_ratio
-
-        # Ensure reasonable bounds
-        if (base_width > 12) {
-            base_width <- 12
-            base_height <- base_width / aspect_ratio
-        } else if (base_width < 3) {
-            base_width <- 3
-            base_height <- base_width / aspect_ratio
-        }
-    } else {
-        # Default dimensions when no extent specified
-        base_height <- 6
-        base_width <- 6
-    }
-
-    # Adjust for legend position (similar to DimPlot)
-    if (!identical(legend.position, "none")) {
-        if (legend.position %in% c("right", "left")) {
-            base_width <- base_width + 1
-        } else if (legend.direction == "horizontal") {
-            base_height <- base_height + 1
-        } else {
-            base_width <- base_width + 2
-        }
-    }
-
-    attr(p, "height") <- base_height
-    attr(p, "width") <- base_width
-
-    return(p)
+    .wrap_spatial_layers(layers,
+        ext = ext, flip_y = flip_y,
+        legend.position = legend.position, legend.direction = legend.direction,
+        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
+        theme = theme, theme_args = theme_args
+    )
 }
 
 #' @rdname spatialplots
@@ -681,13 +670,13 @@ SpatialShapesPlot <- function(
     }
 
     geom_layer <- do.call(ggplot2::geom_sf, geom_params)
-    layer <- list(geom_layer)
+    layers <- list(geom_layer)
 
     # Add appropriate scales
     if (fill_by_is_column) {
         if (is.numeric(data_sf[[fill_by]])) {
             # Numeric data - use gradient scale
-            layer <- c(layer, list(
+            layers <- c(layers, list(
                 scale_fill_gradientn(
                     name = fill_name %||% fill_by,
                     n.breaks = 4,
@@ -700,7 +689,7 @@ SpatialShapesPlot <- function(
             ))
         } else {
             # Categorical data - use manual/discrete scale
-            layer <- c(layer, list(
+            layers <- c(layers, list(
                 ggplot2::scale_fill_manual(
                     name = fill_name %||% fill_by,
                     values = palette_this(levels(data_sf[[fill_by]]), palette = palette, reverse = palette_reverse, palcolor = palcolor),
@@ -715,7 +704,7 @@ SpatialShapesPlot <- function(
     if (border_aes == "same_as_fill") {
         if (is.numeric(data_sf[[fill_by]])) {
             # Numeric data - use gradient scale
-            layer <- c(layer, list(
+            layers <- c(layers, list(
                 scale_color_gradientn(
                     n.breaks = 4,
                     colors = palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor, alpha = border_alpha),
@@ -727,7 +716,7 @@ SpatialShapesPlot <- function(
             ))
         } else {
             # Categorical data - use manual/discrete scale
-            layer <- c(layer, list(
+            layers <- c(layers, list(
                 ggplot2::scale_color_manual(
                     values = palette_this(levels(data_sf[[fill_by]]), palette = palette, reverse = palette_reverse, palcolor = palcolor),
                     guide = "none",  # Always hide guide for border color
@@ -737,81 +726,30 @@ SpatialShapesPlot <- function(
         }
     }
 
-    # Set scale attribute for layer conflicts
-    attr(layer, "scales") <- c(
+    # Set scale attribute for layers conflicts
+    attr(layers, "scales") <- c(
         if (!is.null(fill_by)) "fill",
         if (border_aes == "same_as_fill") "color"
     )
 
     if (return_layer) {
-        return(layer)
+        return(layers)
     }
 
-    p <- ggplot() +
-        layer +
-        coord_sf(expand = 0) +
-        labs(
-            title = title,
-            subtitle = subtitle,
-            x = xlab,
-            y = ylab
-        ) +
-        do.call(process_theme(theme), theme_args) +
-        ggplot2::theme(
-            legend.position = legend.position,
-            legend.direction = legend.direction
-        )
+    p <- .wrap_spatial_layers(layers,
+        ext = ext, flip_y = flip_y,
+        legend.position = legend.position, legend.direction = legend.direction,
+        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
+        theme = theme, theme_args = theme_args
+    )
 
-    if (flip_y) {
-        p <- p + scale_y_continuous(labels = function(x) -x)
-    }
-
-    # Set default width and height based on extent proportions (before faceting)
-    if (!is.null(ext)) {
-        ext_width <- ext[2] - ext[1]
-        ext_height <- ext[4] - ext[3]
-        aspect_ratio <- ext_width / ext_height
-
-        # Base height of 6, adjust width proportionally
-        base_height <- 6
-        base_width <- base_height * aspect_ratio
-
-        # Ensure reasonable bounds
-        if (base_width > 12) {
-            base_width <- 12
-            base_height <- base_width / aspect_ratio
-        } else if (base_width < 3) {
-            base_width <- 3
-            base_height <- base_width / aspect_ratio
-        }
-    } else {
-        # Default dimensions when no extent specified
-        base_height <- 6
-        base_width <- 6
-    }
-
-    # Adjust for legend position (similar to DimPlot)
-    if (!identical(legend.position, "none")) {
-        if (legend.position %in% c("right", "left")) {
-            base_width <- base_width + 1
-        } else if (legend.direction == "horizontal") {
-            base_height <- base_height + 1
-        } else {
-            base_width <- base_width + 2
-        }
-    }
-
-    attr(p, "height") <- base_height
-    attr(p, "width") <- base_width
-
-    # Use facet_plot instead of raw ggplot2::facet_wrap
     if (!is.null(facet_by)) {
         p <- facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
                        legend.position = legend.position,
                        legend.direction = legend.direction)
     }
 
-    return(p)
+    p
 }
 
 #' @rdname spatialplots
@@ -992,7 +930,7 @@ SpatialPointsPlot <- function(
         border_aes <- "none"
     }
 
-    # Create geom layer with raster and hex support
+    # Create geom layers with raster and hex support
     if (isTRUE(hex)) {
         # Hex functionality - only for numeric color_by
         if (is.null(color_by)) {
@@ -1119,16 +1057,16 @@ SpatialPointsPlot <- function(
     }
 
     if (inherits(geom_layer, c("gg", "Layer"))) {
-        layer <- list(geom_layer)
+        layers <- list(geom_layer)
     } else {
-        layer <- geom_layer
+        layers <- geom_layer
     }
 
     # Add appropriate scales
     if (color_by_is_column && !is.null(color_by)) {
         if ("fill" %in% scales_used) {
             if (is.numeric(data[[color_by]])) {
-                layer <- c(layer, list(
+                layers <- c(layers, list(
                     scale_fill_gradientn(
                         name = color_name %||% color_by,
                         n.breaks = 4,
@@ -1140,7 +1078,7 @@ SpatialPointsPlot <- function(
                     )
                 ))
             } else {
-                layer <- c(layer, list(
+                layers <- c(layers, list(
                     ggplot2::scale_fill_manual(
                         name = color_name %||% color_by,
                         values = palette_this(levels(data[[color_by]]), palette = palette, reverse = palette_reverse, palcolor = palcolor),
@@ -1158,7 +1096,7 @@ SpatialPointsPlot <- function(
                 } else {
                     colors <- palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor)
                 }
-                layer <- c(layer, list(
+                layers <- c(layers, list(
                     scale_color_gradientn(
                         name = color_name %||% color_by,
                         n.breaks = 4,
@@ -1177,7 +1115,7 @@ SpatialPointsPlot <- function(
                 } else {
                     colors <- palette_this(levels(data[[color_by]]), palette = palette, reverse = palette_reverse, palcolor = palcolor)
                 }
-                layer <- c(layer, list(
+                layers <- c(layers, list(
                     ggplot2::scale_color_manual(
                         name = color_name %||% color_by,
                         values = colors,
@@ -1190,7 +1128,7 @@ SpatialPointsPlot <- function(
     }
 
     if ("size" %in% scales_used) {
-        layer <- c(layer, list(
+        layers <- c(layers, list(
             ggplot2::scale_size_continuous(
                 name = size_name %||% size_by,
                 guide = if (identical(legend.position, "none")) "none" else "legend"
@@ -1220,7 +1158,7 @@ SpatialPointsPlot <- function(
         }
         if (nrow(hi_df) > 0) {
             if (isTRUE(raster)) {
-                layer <- c(layer, list(
+                layers <- c(layers, list(
                     scattermore::geom_scattermore(
                         data = hi_df, aes(x = !!sym(x), y = !!sym(y)), color = highlight_color,
                         pointsize = floor(highlight_size) + highlight_stroke, alpha = highlight_alpha, pixels = raster_dpi
@@ -1232,7 +1170,7 @@ SpatialPointsPlot <- function(
                 ))
                 scales_used <- c(scales_used, "color")
             } else {
-                layer <- c(layer, list(
+                layers <- c(layers, list(
                     geom_point(
                         data = hi_df, aes(x = !!sym(x), y = !!sym(y)), color = highlight_color,
                         size = highlight_size + highlight_stroke, alpha = highlight_alpha
@@ -1279,7 +1217,7 @@ SpatialPointsPlot <- function(
         }
 
         if (isTRUE(label_repel)) {
-            layer <- c(layer, list(
+            layers <- c(layers, list(
                 geom_point(
                     data = label_df, mapping = aes(x = !!sym(x), y = !!sym(y)),
                     color = label_pt_color, size = label_pt_size
@@ -1291,7 +1229,7 @@ SpatialPointsPlot <- function(
                 )
             ))
         } else {
-            layer <- c(layer, list(
+            layers <- c(layers, list(
                 ggrepel::geom_text_repel(
                     data = label_df, aes(x = !!sym(x), y = !!sym(y), label = !!sym(".label")),
                     fontface = "bold", min.segment.length = 0, segment.color = label_segment_color,
@@ -1302,76 +1240,25 @@ SpatialPointsPlot <- function(
         }
     }
 
-    # Set scale attribute for layer conflicts
-    attr(layer, "scales") <- unique(scales_used)
+    # Set scale attribute for layers conflicts
+    attr(layers, "scales") <- unique(scales_used)
 
     if (return_layer) {
-        return(layer)
+        return(layers)
     }
 
-    p <- ggplot() +
-        layer +
-        coord_sf(expand = 0) +
-        labs(
-            title = title,
-            subtitle = subtitle,
-            x = xlab,
-            y = ylab
-        ) +
-        do.call(process_theme(theme), theme_args) +
-        ggplot2::theme(
-            legend.position = legend.position,
-            legend.direction = legend.direction
-        )
+    p <- .wrap_spatial_layers(layers,
+        ext = ext, flip_y = flip_y,
+        legend.position = legend.position, legend.direction = legend.direction,
+        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
+        theme = theme, theme_args = theme_args
+    )
 
-    if (flip_y) {
-        p <- p + scale_y_continuous(labels = function(x) -x)
-    }
-
-    # Set default width and height based on extent proportions (before faceting)
-    if (!is.null(ext)) {
-        ext_width <- ext[2] - ext[1]
-        ext_height <- ext[4] - ext[3]
-        aspect_ratio <- ext_width / ext_height
-
-        # Base height of 6, adjust width proportionally
-        base_height <- 6
-        base_width <- base_height * aspect_ratio
-
-        # Ensure reasonable bounds
-        if (base_width > 12) {
-            base_width <- 12
-            base_height <- base_width / aspect_ratio
-        } else if (base_width < 3) {
-            base_width <- 3
-            base_height <- base_width / aspect_ratio
-        }
-    } else {
-        # Default dimensions when no extent specified
-        base_height <- 6
-        base_width <- 6
-    }
-
-    # Adjust for legend position (similar to DimPlot)
-    if (!identical(legend.position, "none")) {
-        if (legend.position %in% c("right", "left")) {
-            base_width <- base_width + 1
-        } else if (legend.direction == "horizontal") {
-            base_height <- base_height + 1
-        } else {
-            base_width <- base_width + 2
-        }
-    }
-
-    attr(p, "height") <- base_height
-    attr(p, "width") <- base_width
-
-    # Use facet_plot instead of raw ggplot2::facet_wrap
     if (!is.null(facet_by)) {
         p <- facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
                        legend.position = legend.position,
                        legend.direction = legend.direction)
     }
 
-    return(p)
+    p
 }

@@ -172,7 +172,7 @@ If some values are missing, the values from the palette will be used (palcolor w
 
 \item{fill_name}{A character string for the fill legend title.}
 
-\item{return_layer}{Whether to return the layer or the plot. Default is FALSE.}
+\item{return_layer}{Whether to return the layers or the plot. Default is FALSE.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -372,7 +372,7 @@ SpatialPointsPlot(points, color_by = "gene", label = TRUE)
 SpatialPointsPlot(points, color_by = "gene", highlight = 1:20,
   highlight_color = "red2", highlight_stroke = 0.8)
 
-# --- Use the `return_layer` argument to get the ggplot layer
+# --- Use the `return_layer` argument to get the ggplot layers
 ext = c(0, 40, 0, 50)
 ggplot2::ggplot() +
   SpatialImagePlot(r, return_layer = TRUE, alpha = 0.2, ext = ext) +
