@@ -225,7 +225,7 @@ flip_y_spatvector <- function(data) {
 #' @param highlight_color A character string of the highlight color. Default is "black".
 #' @param highlight_stroke A numeric value of the highlight stroke. Default is 0.8.
 #' @param return_layer Whether to return the layers or the plot. Default is FALSE.
-#' @importFrom rlang %||%
+#' @importFrom rlang %||% sym parse_exprs
 #' @importFrom ggplot2 scale_fill_gradientn aes guide_colorbar element_blank
 #' @importFrom ggplot2 geom_sf ylim labs coord_sf geom_hex stat_summary_hex
 #' @export
@@ -1148,7 +1148,7 @@ SpatialPointsPlot <- function(
         if (isTRUE(highlight)) {
             hi_df <- data
         } else if (length(highlight) == 1 && is.character(highlight)) {
-            hi_df <- eval(parse(text = paste0('dplyr::filter(data, ', highlight, ')')))
+            hi_df <- dplyr::filter(data, !!!parse_exprs(highlight))
         } else {
             all_inst <- rownames(data) %||% 1:nrow(data)
             if (!any(highlight %in% all_inst)) {
