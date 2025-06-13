@@ -12,7 +12,7 @@
 ^pkgdown$
 ^vignettes\/.*
 ^vignettes$
-^test\.ipynb$
+^test.*\.ipynb$
 ^.+\.Rcheck/.+$
 ^.+\.tar\.gz$
 ^brain\.rds$

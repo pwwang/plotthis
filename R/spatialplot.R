@@ -1,15 +1,17 @@
-#' @title Flip values on the y-axis direction, and negate the Y-Coordinates of SpatRaster and SpatVector Objects
+#' @title Flip values on the y-axis direction, and negate the Y-Coordinates of SpatRaster, SpatVector Object and data.frame
 #'
 #' @description
 #' These internal functions flip the y-coordinates of `SpatRaster` and `SpatVector` objects from the `terra` package.
 #' For rasters, the function vertically flips the raster and adjusts its extent accordingly.
-#' For vectors, the function negates the y-coordinates of all geometries, supporting both point and polygon/line types.
+#' For vectors, the function negates the y-coordinates of all geometries.
+#' For data frames, it negates the values in the specified y column.
 #'
-#' @param data A `SpatRaster` or `SpatVector` object from the `terra` package.
+#' @param data A `SpatRaster` or `SpatVector` object from the `terra` package, or a data.frame with x and y columns.
 #'
 #' @return
-#' For `flip_y_spatraster`, a `SpatRaster` object with flipped y-coordinates and adjusted extent.
-#' For `flip_y_spatvector`, a `SpatVector` object with y-coordinates negated.
+#' For `SpatRaster` input, a `SpatRaster` object with flipped y-coordinates and adjusted extent.
+#' For `SpatVector` input, a `SpatVector` object with y-coordinates negated.
+#' For `data.frame` input, a data frame with the specified y column negated.
 #'
 #' @details
 #' These functions are intended for internal use to facilitate coordinate transformations.
@@ -20,12 +22,14 @@
 #' This way, we can remove the negative sign from the y-axis labels to mimick the behavior of `scale_y_reverse()`.#'
 #'
 #' @keywords internal
-#' @rdname flip_y_spat
-flip_y_spatraster <- function(data) {
-    if (!inherits(data, "SpatRaster")) {
-        stop("'data' must be a SpatRaster object")
-    }
+#' @rdname dot_flip_y
+.flip_y <- function(data, ...) {
+    UseMethod(".flip_y", data)
+}
 
+#' @keywords internal
+#' @rdname dot_flip_y
+.flip_y.SpatRaster <- function(data, ...) {
     # Flip the raster vertically
     out <- terra::flip(data, direction = "vertical")
 
@@ -46,29 +50,45 @@ flip_y_spatraster <- function(data) {
 }
 
 #' @keywords internal
-#' @rdname flip_y_spat
-flip_y_spatvector <- function(data) {
-    if (!inherits(data, "SpatVector")) {
-        stop("'data' must be a SpatVector object")
-    }
-
-    # Get the extent of the original data
-    ext_orig <- terra::ext(data)
-
+#' @rdname dot_flip_y
+.flip_y.SpatVector <- function(data, ...) {
     # Manual coordinate transformation approach (more reliable)
     # Get all geometries and transform coordinates
-    # Expecting polygons
-    geom_type <- terra::geomtype(data)
-
-    # For polygons/lines, use terra geometric operations
-    # Get all coordinates and apply the same transformation as raster
     coords_list <- terra::geom(data)
     coords_list[, "y"] <- -coords_list[, "y"]
 
     # Recreate the SpatVector with flipped coordinates
-    data_flipped <- terra::vect(coords_list, type = geom_type, atts = terra::values(data))
+    data_flipped <- terra::vect(coords_list, type = terra::geomtype(data), atts = terra::values(data))
 
     return(data_flipped)
+}
+
+#' @keywords internal
+#' @rdname dot_flip_y
+.flip_y.data.frame <- function(data, y = "y", ...) {
+    data[[y]] <- -data[[y]]
+    return(data)
+}
+
+#' Prepare the extent for spatial plots
+#'
+#' @param ext A numeric vector of length 4 specifying the extent as `c(xmin, xmax, ymin, ymax)`,
+#' or a `SpatExtent` object from the `terra` package.
+#' @return A `SpatExtent` object if `ext` is a numeric vector, or the original `SpatExtent` if it is already one.
+#' NULL is returned if `ext` is NULL.
+#' @keywords internal
+.prepare_extent <- function(ext) {
+    if (is.null(ext)) {
+        return(NULL)
+    }
+    if (is.numeric(ext) && length(ext) == 4) {
+        # Convert numeric vector to SpatExtent
+        ext <- terra::ext(ext[1], ext[2], ext[3], ext[4])
+    }
+    if (!inherits(ext, "SpatExtent")) {
+        stop("'ext' must be a numeric vector of length 4 or a SpatExtent object.")
+    }
+    return(ext)
 }
 
 #' Wrap spatial plot if plotted independently
@@ -161,7 +181,7 @@ flip_y_spatvector <- function(data) {
         )
 
     if (flip_y) {
-        p <- p + scale_y_continuous(labels = function(x) -x)
+        p <- p + scale_y_continuous(labels = function(x) sub("-", "\u2212", as.character(-x)))
     }
 
     attr(p, "height") <- base_height
@@ -172,31 +192,37 @@ flip_y_spatvector <- function(data) {
 
 #' Plots for spatial elements
 #'
-#' * `SpatialImagePlot`: Plot a SpatRaster object as an image.
-#' * `SpatialMasksPlot`: Plot a SpatRaster object as masks.
-#' * `SpatialShapesPlot`: Plot a SpatVector object as shapes.
-#' * `SpatialPointsPlot`: Plot a data.frame of points with spatial coordinates.
+#' * `SpatImagePlot`: Plot a SpatRaster object as an image.
+#' * `SpatMasksPlot`: Plot a SpatRaster object as masks.
+#' * `SpatShapesPlot`: Plot a SpatVector object as shapes.
+#' * `SpatPointsPlot`: Plot a data.frame of points with spatial coordinates.
 #'
 #' @rdname spatialplots
 #' @concept spatial
 #' @inheritParams common_args
-#' @param data A `SpatRaster` or `SpatVector` object from the `terra` package, or a data.frame for `SpatialPointsPlot`.
-#' @param ext A numeric vector of length 4 specifying the extent as `c(xmin, xmax, ymin, ymax)`. Default is NULL.
+#' @param data A `SpatRaster` or `SpatVector` object from the `terra` package,
+#' or a data.frame for `SpatShapesPlot` or `SpatPointsPlot`.
+#' @param x A character string specifying the x-axis column name for `SpatPointsPlot` or `SpatShapesPlot` when `data` is a data.frame.
+#' If `data` is a `SpatRaster` or `SpatVector`, this argument is ignored.
+#' @param y A character string specifying the y-axis column name for `SpatPointsPlot` or `SpatShapesPlot` when `data` is a data.frame.
+#' If `data` is a `SpatRaster` or `SpatVector`, this argument is ignored.
+#' @param group A character string specifying the grouping column for `SpatShapesPlot` when `data` is a data.frame.
+#' @param ext A `terra`'s `SpatExtent` object or a numeric vector of length 4 specifying the extent as `c(xmin, xmax, ymin, ymax)`. Default is NULL.
 #' @param flip_y Whether to flip the y-axis direction. Default is TRUE.
 #' This is useful for visualizing spatial data with the origin at the top left corner.
 #' @param palette A character string specifying the color palette to use.
-#' For `SpatialImagePlot`, if the data has 3 channels (RGB), it will be used as a color identity and
+#' For `SpatImagePlot`, if the data has 3 channels (RGB), it will be used as a color identity and
 #' this argument will be ignored.
 #' @param palette_reverse Whether to reverse the color palette. Default is FALSE.
-#' @param fill_by A character string or vector specifying the column(s) to fill the shapes in `SpatialShapesPlot`.
+#' @param fill_by A character string or vector specifying the column(s) to fill the shapes in `SpatShapesPlot`.
 #' @param fill_name A character string for the fill legend title.
-#' @param color_by A character string specifying the column to color the points in `SpatialPointsPlot`.
-#' @param color_name A character string for the color legend title in `SpatialPointsPlot`.
-#' @param size_by A character string specifying the column to size the points in `SpatialPointsPlot`.
+#' @param color_by A character string specifying the column to color the points in `SpatPointsPlot`.
+#' @param color_name A character string for the color legend title in `SpatPointsPlot`.
+#' @param size_by A character string specifying the column to size the points in `SpatPointsPlot`.
 #' @param size Alias of `size_by` when size is a numeric value.
-#' @param size_name A character string for the size legend title in `SpatialPointsPlot`.
-#' @param shape A numeric value or character string specifying the shape of the points in `SpatialPointsPlot`.
-#' @param add_border Whether to add a border around the masks in `SpatialMasksPlot`. Default is TRUE.
+#' @param size_name A character string for the size legend title in `SpatPointsPlot`.
+#' @param shape A numeric value or character string specifying the shape of the points in `SpatPointsPlot`.
+#' @param add_border Whether to add a border around the masks in `SpatMasksPlot`. Default is TRUE.
 #' @param border_color A character string of the border color. Default is "black".
 #' @param border_size A numeric value of the border width. Default is 0.5.
 #' @param border_alpha A numeric value of the border transparency. Default is 1.
@@ -232,31 +258,31 @@ flip_y_spatvector <- function(data) {
 #' @examples
 #' \donttest{
 #' set.seed(8525)
-#' # --- SpatialImagePlot ---
+#' # --- SpatImagePlot ---
 #' # Generate a sample SpatRaster
 #' r <- terra::rast(
 #'     nrows = 50, ncols = 40, vals = runif(2000),
 #'     xmin = 0, xmax = 40, ymin = 0, ymax = 50,
 #'     crs = ""
 #' )
-#' SpatialImagePlot(r)
-#' SpatialImagePlot(r, raster = TRUE, raster_dpi = 20)
-#' SpatialImagePlot(r, alpha = 0.5, theme = "theme_blank",
+#' SpatImagePlot(r)
+#' SpatImagePlot(r, raster = TRUE, raster_dpi = 20)
+#' SpatImagePlot(r, alpha = 0.5, theme = "theme_blank",
 #'     theme_args = list(add_coord = FALSE), fill_name = "value")
-#' SpatialImagePlot(r, ext = c(0, 10, 0, 10), flip_y = FALSE, palette = "viridis")
+#' SpatImagePlot(r, ext = c(0, 10, 0, 10), flip_y = FALSE, palette = "viridis")
 #'
-#' # --- SpatialMasksPlot ---
+#' # --- SpatMasksPlot ---
 #' m <- terra::rast(
 #'    nrows = 50, ncols = 40,
 #'    vals = sample(c(1:5, NA), 2000, replace = TRUE, prob = c(rep(0.04, 5), 0.8)),
 #'    xmin = 0, xmax = 40, ymin = 0, ymax = 50,
 #'    crs = ""
 #' )
-#' SpatialMasksPlot(m, border_color = "red")
-#' SpatialMasksPlot(m, ext = c(0, 15, 0, 20), add_border = FALSE,
+#' SpatMasksPlot(m, border_color = "red")
+#' SpatMasksPlot(m, ext = c(0, 15, 0, 20), add_border = FALSE,
 #'     palette_reverse = TRUE, fill_name = "value")
 #'
-#' # --- SpatialShapesPlot ---
+#' # --- SpatShapesPlot ---
 #' polygons <- data.frame(
 #'    id = paste0("poly_", 1:10),
 #'    cat = sample(LETTERS[1:3], 10, replace = TRUE),
@@ -278,16 +304,16 @@ flip_y_spatvector <- function(data) {
 #'
 #' polygons <- terra::vect(polygons, crs = "EPSG:4326", geom = "geometry")
 #'
-#' SpatialShapesPlot(polygons)
-#' SpatialShapesPlot(polygons, ext = c(0, 20, 0, 20))
-#' SpatialShapesPlot(polygons, border_color = "red", border_size = 2)
-#' SpatialShapesPlot(polygons, fill_by = "cat", fill_name = "category")
+#' SpatShapesPlot(polygons)
+#' SpatShapesPlot(polygons, ext = c(0, 20, 0, 20))
+#' SpatShapesPlot(polygons, border_color = "red", border_size = 2)
+#' SpatShapesPlot(polygons, fill_by = "cat", fill_name = "category")
 #' # Let border color be determined by fill
-#' SpatialShapesPlot(polygons, fill_by = "cat", alpha = 0.6, border_color = TRUE)
-#' SpatialShapesPlot(polygons, fill_by = "feat1")
-#' SpatialShapesPlot(polygons, fill_by = c("feat1", "feat2"), palette = "RdYlBu")
+#' SpatShapesPlot(polygons, fill_by = "cat", alpha = 0.6, border_color = TRUE)
+#' SpatShapesPlot(polygons, fill_by = "feat1")
+#' SpatShapesPlot(polygons, fill_by = c("feat1", "feat2"), palette = "RdYlBu")
 #'
-#' # --- SpatialPointsPlot ---
+#' # --- SpatPointsPlot ---
 #' # create some random points in the above polygons
 #' points <- data.frame(
 #'   id = paste0("point_", 1:30),
@@ -307,47 +333,45 @@ flip_y_spatvector <- function(data) {
 #'   )
 #' )
 #'
-#' SpatialPointsPlot(points)
-#' SpatialPointsPlot(points, color_by = "gene", size_by = "size", shape = 22,
+#' SpatPointsPlot(points)
+#' SpatPointsPlot(points, color_by = "gene", size_by = "size", shape = 22,
 #'   border_size = 1)
-#' SpatialPointsPlot(points, raster = TRUE, raster_dpi = 30, color_by = "feat1")
-#' SpatialPointsPlot(points, color_by = c("feat1", "feat2"), size_by = "size")
-#' SpatialPointsPlot(points, color_by = "feat1", hex = TRUE)
-#' SpatialPointsPlot(points, color_by = "gene", label = TRUE)
-#' SpatialPointsPlot(points, color_by = "gene", highlight = 1:20,
+#' SpatPointsPlot(points, raster = TRUE, raster_dpi = 30, color_by = "feat1")
+#' SpatPointsPlot(points, color_by = c("feat1", "feat2"), size_by = "size")
+#' SpatPointsPlot(points, color_by = "feat1", hex = TRUE)
+#' SpatPointsPlot(points, color_by = "gene", label = TRUE)
+#' SpatPointsPlot(points, color_by = "gene", highlight = 1:20,
 #'   highlight_color = "red2", highlight_stroke = 0.8)
 #'
 #' # --- Use the `return_layer` argument to get the ggplot layers
 #' ext = c(0, 40, 0, 50)
 #' ggplot2::ggplot() +
-#'   SpatialImagePlot(r, return_layer = TRUE, alpha = 0.2, ext = ext) +
-#'   SpatialShapesPlot(polygons, return_layer = TRUE, ext = ext, fill_by = "white") +
-#'   SpatialPointsPlot(points, return_layer = TRUE, ext = ext, color_by = "feat1") +
+#'   SpatImagePlot(r, return_layer = TRUE, alpha = 0.2, ext = ext) +
+#'   SpatShapesPlot(polygons, return_layer = TRUE, ext = ext, fill_by = "white") +
+#'   SpatPointsPlot(points, return_layer = TRUE, ext = ext, color_by = "feat1") +
 #'   theme_box() +
 #'   ggplot2::coord_sf(expand = 0) +
 #'   ggplot2::scale_y_continuous(labels = function(x) -x)
 #'
 #' }
-SpatialImagePlot <- function(
+SpatImagePlot <- function(
     data,
     ext = NULL, raster = NULL, raster_dpi = NULL, flip_y = TRUE,
     palette = "turbo", palcolor = NULL, palette_reverse = FALSE,
     alpha = 1, fill_name = NULL, return_layer = FALSE,
     theme = "theme_box", theme_args = list(),
     legend.position = ifelse(return_layer, "none", "right"), legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
-    ...
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525
 ) {
     set.seed(seed)
     stopifnot("'data' must be a SpatRaster object" = inherits(data, "SpatRaster"))
 
+    ext <- .prepare_extent(ext)
     if (!is.null(ext)) {
-        if (is.numeric(ext) && length(ext) == 4) {
-            # Convert to terra extent
-            ext <- terra::ext(ext[1], ext[2], ext[3], ext[4])
-        }
-        stopifnot("'ext' must be a valid extent or 4 numeric values" = inherits(ext, "SpatExtent"))
         data <- terra::crop(data, ext)
+        if (terra::ncell(data) == 0) {
+            stop("[SpatImagePlot] No data in the specified extent. Please check your extent.")
+        }
     }
 
     raster <- raster %||% (terra::ncell(data) > 1e6)
@@ -368,9 +392,7 @@ SpatialImagePlot <- function(
         data <- terra::aggregate(data, fact = agg_factors, fun = "mean")
     }
 
-    if (flip_y) {
-        data <- flip_y_spatraster(data)
-    }
+    if (flip_y) { data <- .flip_y(data) }
 
     if (dim(data)[3] == 3) {
         names(data) <- c("red", "green", "blue")
@@ -428,7 +450,7 @@ SpatialImagePlot <- function(
 #' @rdname spatialplots
 #' @concept spatial
 #' @export
-SpatialMasksPlot <- function(
+SpatMasksPlot <- function(
     data,
     ext = NULL, flip_y = TRUE, add_border = TRUE, border_color = "black",
     border_size = 0.5, border_alpha = 1,
@@ -436,8 +458,7 @@ SpatialMasksPlot <- function(
     alpha = 1, fill_name = NULL, return_layer = FALSE,
     theme = "theme_box", theme_args = list(),
     legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
-    ...
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525
 ) {
     set.seed(seed)
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
@@ -448,18 +469,15 @@ SpatialMasksPlot <- function(
 
     stopifnot("'data' must be a SpatRaster object" = inherits(data, "SpatRaster"))
 
+    ext <- .prepare_extent(ext)
     if (!is.null(ext)) {
-        if (is.numeric(ext) && length(ext) == 4) {
-            # Convert to terra extent
-            ext <- terra::ext(ext[1], ext[2], ext[3], ext[4])
-        }
-        stopifnot("'ext' must be a valid extent or 4 numeric values" = inherits(ext, "SpatExtent"))
         data <- terra::crop(data, ext)
+        if (terra::ncell(data) == 0) {
+            stop("[SpatMasksPlot] No data in the specified extent. Please check your extent.")
+        }
     }
 
-    if (flip_y) {
-        data <- flip_y_spatraster(data)
-    }
+    if (flip_y) { data <- .flip_y(data) }
 
     # Set background (0 values) to NA for transparency
     data[data == 0] <- NA
@@ -518,7 +536,14 @@ SpatialMasksPlot <- function(
 #' @rdname spatialplots
 #' @concept spatial
 #' @export
-SpatialShapesPlot <- function(
+SpatShapesPlot <- function(data, ...) {
+    UseMethod("SpatShapesPlot", data)
+}
+
+#' @rdname spatialplots
+#' @concept spatial
+#' @export
+SpatShapesPlot.SpatVector <- function(
     data,
     ext = NULL, flip_y = TRUE,
     fill_by = NULL, border_color = "black", border_size = 0.5, border_alpha = 1,
@@ -538,20 +563,15 @@ SpatialShapesPlot <- function(
         ggplot2::ggplot
     }
 
-    stopifnot("'data' must be a SpatVector object" = inherits(data, "SpatVector"))
-
+    ext <- .prepare_extent(ext)
     if (!is.null(ext)) {
-        if (is.numeric(ext) && length(ext) == 4) {
-            # Convert to terra extent
-            ext <- terra::ext(ext[1], ext[2], ext[3], ext[4])
-        }
-        stopifnot("'ext' must be a valid extent or 4 numeric values" = inherits(ext, "SpatExtent"))
         data <- terra::crop(data, ext)
+        if (terra::nrow(data) == 0 || terra::ncol(data) == 0) {
+            stop("[SpatShapesPlot] No data in the specified extent. Please check your extent.")
+        }
     }
 
-    if (flip_y) {
-        data <- flip_y_spatvector(data)
-    }
+    if (flip_y) { data <- .flip_y(data) }
 
     # Convert to sf object for ggplot
     data_sf <- sf::st_as_sf(data)
@@ -756,7 +776,240 @@ SpatialShapesPlot <- function(
 #' @rdname spatialplots
 #' @concept spatial
 #' @export
-SpatialPointsPlot <- function(
+SpatShapesPlot.data.frame <- function(
+    data, x, y, group,
+    ext = NULL, flip_y = TRUE,
+    fill_by = "grey90", border_color = "black", border_size = 0.5, border_alpha = 1,
+    palette = NULL, palcolor = NULL, palette_reverse = FALSE,
+    alpha = 1, fill_name = NULL,
+    facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
+    return_layer = FALSE,
+    theme = "theme_box", theme_args = list(),
+    legend.position = ifelse(return_layer, "none", "right"), legend.direction = "vertical",
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
+    ...
+) {
+    set.seed(seed)
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
+
+    x <- check_columns(data, x)
+    y <- check_columns(data, y)
+    group <- check_columns(data, group, force_factor = TRUE)
+
+    ext <- .prepare_extent(ext)
+    if (!is.null(ext)) {
+        data <- data[data[[x]] >= ext[1] & data[[x]] <= ext[2] & data[[y]] >= ext[3] & data[[y]] <= ext[4], , drop = FALSE]
+        if (nrow(data) == 0) {
+            stop("[SpatShapesPlot] No data in the specified extent. Please check your extent.")
+        }
+    }
+
+    if (flip_y) { data <- .flip_y(data) }
+
+    # Handle multiple fill_by columns for faceting
+    if (!is.null(fill_by) && length(fill_by) > 1) {
+        # Check that all fill_by columns exist and are numeric
+        missing_cols <- fill_by[!fill_by %in% names(data)]
+        if (length(missing_cols) > 0) {
+            stop("[SpatShapesPlot] Columns not found in data: ", paste(missing_cols, collapse = ", "))
+        }
+
+        non_numeric_cols <- fill_by[!sapply(fill_by, function(col) is.numeric(data[[col]]))]
+        if (length(non_numeric_cols) > 0) {
+            stop("[SpatShapesPlot] Multiple fill_by columns must be numeric. Non-numeric columns: ", paste(non_numeric_cols, collapse = ", "))
+        }
+
+        # Reshape data for faceting: convert to long format
+        data_long <- data
+        # Create a list to store the reshaped data
+        facet_data_list <- list()
+
+        for (col in fill_by) {
+            temp_data <- data
+            temp_data$.fill <- temp_data[[col]]
+            temp_data$.facet_var <- col
+            facet_data_list[[col]] <- temp_data
+        }
+
+        # Combine all facet data
+        data <- do.call(rbind, facet_data_list)
+
+        # Convert .facet_var to factor with levels in original fill_by order
+        data$.facet_var <- factor(data$.facet_var, levels = fill_by)
+
+        # Set fill_by to the new column name
+        fill_by <- ".fill"
+        facet_by <- ".facet_var"
+
+    } else {
+        # Single column case
+        if (!is.null(fill_by) && is.character(fill_by) && length(fill_by) == 1) {
+            if (fill_by %in% names(data)) {
+                # It's a column name
+                fill_by <- check_columns(
+                    data, fill_by,
+                    force_factor = !is.numeric(data[[fill_by]])
+                )
+            } else {
+                # It's a fixed color - don't treat as column
+                fill_by <- fill_by
+            }
+        }
+        facet_by <- NULL
+    }
+
+    # Set default palette based on data type
+    if (is.null(palette) && !is.null(fill_by) && fill_by %in% names(data)) {
+        if (is.numeric(data[[fill_by]])) {
+            palette <- "turbo"
+        } else {
+            palette <- "Paired"
+        }
+    }
+    palette <- palette %||% "turbo"  # fallback default
+
+    # Determine geometry type for appropriate geom
+    # Assuming polygons
+    # geom_type <- unique(sf::st_geometry_type(data))
+
+    # Build aesthetic mappings
+    aes_mapping <- aes(x = !!sym(x), y = !!sym(y), group = !!sym(group))
+    fill_by_is_column <- !is.null(fill_by) && is.character(fill_by) && length(fill_by) == 1 && fill_by %in% names(data)
+
+    if (fill_by_is_column) {
+        aes_mapping$fill <- sym(fill_by)
+    }
+
+    # Handle border_color mapping
+    border_aes <- "none"
+    if (isTRUE(border_color) && fill_by_is_column) {
+        # Use same variable for both fill and color
+        aes_mapping$colour <- sym(fill_by)
+        border_aes <- "same_as_fill"
+    } else if (is.character(border_color) && length(border_color) == 1) {
+        # Single color string - will be applied as fixed color
+        border_aes <- "fixed_color"
+    } else if (isFALSE(border_color)) {
+        # No border
+        border_aes <- "none"
+    }
+
+    # POLYGON, MULTIPOLYGON, or other
+    # Build geom parameters conditionally
+    geom_params <- list(
+        data = data,
+        mapping = aes_mapping,
+        alpha = alpha,
+        linewidth = border_size
+    )
+
+    # Only add color if not mapped and needed
+    if (!("colour" %in% names(aes_mapping))) {
+        if (border_aes == "fixed_color") {
+            geom_params$color <- adjcolors(border_color, border_alpha)
+        } else if (border_aes == "none") {
+            geom_params$color <- NA
+        }
+    }
+
+    # Only add fill if not mapped and needed
+    if (!("fill" %in% names(aes_mapping))) {
+        if (!fill_by_is_column && !is.null(fill_by)) {
+            geom_params$fill <- fill_by
+        }
+    }
+
+    geom_layer <- do.call(ggplot2::geom_polygon, geom_params)
+    layers <- list(geom_layer)
+
+    # Add appropriate scales
+    if (fill_by_is_column) {
+        if (is.numeric(data[[fill_by]])) {
+            # Numeric data - use gradient scale
+            layers <- c(layers, list(
+                scale_fill_gradientn(
+                    name = fill_name %||% fill_by,
+                    n.breaks = 4,
+                    colors = palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor),
+                    guide = if (identical(legend.position, "none")) "none" else guide_colorbar(
+                        frame.colour = "black", ticks.colour = "black", title.hjust = 0
+                    ),
+                    na.value = "transparent"
+                )
+            ))
+        } else {
+            # Categorical data - use manual/discrete scale
+            layers <- c(layers, list(
+                ggplot2::scale_fill_manual(
+                    name = fill_name %||% fill_by,
+                    values = palette_this(levels(data[[fill_by]]), palette = palette, reverse = palette_reverse, palcolor = palcolor),
+                    guide = if (identical(legend.position, "none")) "none" else "legend",
+                    na.value = "transparent"
+                )
+            ))
+        }
+    }
+
+    # Add color scale only when border_color = TRUE (same as fill)
+    if (border_aes == "same_as_fill") {
+        if (is.numeric(data[[fill_by]])) {
+            # Numeric data - use gradient scale
+            layers <- c(layers, list(
+                scale_color_gradientn(
+                    n.breaks = 4,
+                    colors = palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor, alpha = border_alpha),
+                    guide = if (identical(legend.position, "none")) "none" else guide_colorbar(
+                        frame.colour = "black", ticks.colour = "black", title.hjust = 0
+                    ),
+                    na.value = "transparent"
+                )
+            ))
+        } else {
+            # Categorical data - use manual/discrete scale
+            layers <- c(layers, list(
+                ggplot2::scale_color_manual(
+                    values = palette_this(levels(data[[fill_by]]), palette = palette, reverse = palette_reverse, palcolor = palcolor),
+                    guide = "none",  # Always hide guide for border color
+                    na.value = "transparent"
+                )
+            ))
+        }
+    }
+
+    # Set scale attribute for layers conflicts
+    attr(layers, "scales") <- c(
+        if (!is.null(fill_by)) "fill",
+        if (border_aes == "same_as_fill") "color"
+    )
+
+    if (return_layer) {
+        return(layers)
+    }
+
+    p <- .wrap_spatial_layers(layers,
+        ext = ext, flip_y = flip_y,
+        legend.position = legend.position, legend.direction = legend.direction,
+        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
+        theme = theme, theme_args = theme_args
+    )
+
+    if (!is.null(facet_by)) {
+        p <- facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
+                       legend.position = legend.position,
+                       legend.direction = legend.direction)
+    }
+
+    p
+}
+
+#' @rdname spatialplots
+#' @concept spatial
+#' @export
+SpatPointsPlot <- function(
     data, x = NULL, y = NULL,
     ext = NULL, flip_y = TRUE, color_by = NULL, size_by = NULL, size = NULL, fill_by = NULL,
     palette = NULL, palcolor = NULL, palette_reverse = FALSE,
@@ -813,23 +1066,18 @@ SpatialPointsPlot <- function(
     raster <- raster %||% (nrow(data) > 1e5)
 
     # Apply extent cropping if specified
+    ext <- .prepare_extent(ext)
     if (!is.null(ext)) {
-        if (is.numeric(ext) && length(ext) == 4) {
-            # Convert to named extent: c(xmin, xmax, ymin, ymax)
-            ext_vals <- ext
-        } else {
-            stop("'ext' must be 4 numeric values: c(xmin, xmax, ymin, ymax)")
-        }
-
         data <- data[
-            data[[x]] >= ext_vals[1] & data[[x]] <= ext_vals[2] &
-            data[[y]] >= ext_vals[3] & data[[y]] <= ext_vals[4], , drop = FALSE]
+            data[[x]] >= ext[1] & data[[x]] <= ext[2] &
+            data[[y]] >= ext[3] & data[[y]] <= ext[4], , drop = FALSE]
+        if (nrow(data) == 0) {
+            stop("[SpatPointsPlot] No data in the specified extent. Please check your extent.")
+        }
     }
 
     # Apply y-axis flipping
-    if (flip_y) {
-        data[[y]] <- -data[[y]]
-    }
+    if (flip_y) { data <- .flip_y(data, y = y) }
 
     # Handle multiple color_by columns for faceting
     if (!is.null(color_by) && length(color_by) > 1) {
@@ -982,7 +1230,7 @@ SpatialPointsPlot <- function(
         }
     } else if (isTRUE(raster)) {
         if (raster_is_null && raster && !identical(raster_dpi, c(512, 512))) {
-            message("[SpatialPointsPlot] 'raster' is enabled. Point size (size_by) is ignore, try 'raster_dpi' to control resolution.")
+            message("[SpatPointsPlot] 'raster' is enabled. Point size (size_by) is ignore, try 'raster_dpi' to control resolution.")
         }
         # Use scattermore for rasterized plotting
         if (!color_by_is_column) {
