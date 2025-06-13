@@ -90,7 +90,7 @@ $ conda install pwwang::r-plotthis
 
 ![](man/figures/manh.png)
 
-[`SpatialImagePlot`][31] / [`SpatialMasksPlot`][31] / [`SpatialShapesPlot`][31] / [`SpatialPointsPlot`][31]
+[`SpatImagePlot`][31] / [`SpatMasksPlot`][31] / [`SpatShapesPlot`][31] / [`SpatPointsPlot`][31]
 
 ![](man/figures/spatial.png)
 
