@@ -72,6 +72,11 @@ SpatShapesPlot(data, ...)
   palette_reverse = FALSE,
   alpha = 1,
   fill_name = NULL,
+  highlight = NULL,
+  highlight_alpha = 1,
+  highlight_size = 1,
+  highlight_color = "black",
+  highlight_stroke = 0.8,
   facet_scales = "fixed",
   facet_nrow = NULL,
   facet_ncol = NULL,
@@ -105,6 +110,11 @@ SpatShapesPlot(data, ...)
   palette_reverse = FALSE,
   alpha = 1,
   fill_name = NULL,
+  highlight = NULL,
+  highlight_alpha = 1,
+  highlight_size = 1,
+  highlight_color = "black",
+  highlight_stroke = 0.8,
   facet_scales = "fixed",
   facet_nrow = NULL,
   facet_ncol = NULL,
@@ -245,6 +255,16 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{fill_by}{A character string or vector specifying the column(s) to fill the shapes in \code{SpatShapesPlot}.}
 
+\item{highlight}{A character vector of the row names to highlight. Default is NULL.}
+
+\item{highlight_alpha}{A numeric value of the highlight transparency. Default is 1.}
+
+\item{highlight_size}{A numeric value of the highlight size. Default is 1.}
+
+\item{highlight_color}{A character string of the highlight color. Default is "black".}
+
+\item{highlight_stroke}{A numeric value of the highlight stroke. Default is 0.8.}
+
 \item{facet_scales}{Whether to scale the axes of facets. Default is "fixed"
 Other options are "free", "free_x", "free_y". See \code{ggplot2::facet_wrap}}
 
@@ -308,16 +328,6 @@ If \code{data} is a \code{SpatRaster} or \code{SpatVector}, this argument is ign
 
 \item{label_insitu}{Whether to place the raw labels (group names) in the center of the points with the corresponding group.
 Default is FALSE, which uses numbers instead of raw labels.}
-
-\item{highlight}{A character vector of the row names to highlight. Default is NULL.}
-
-\item{highlight_alpha}{A numeric value of the highlight transparency. Default is 1.}
-
-\item{highlight_size}{A numeric value of the highlight size. Default is 1.}
-
-\item{highlight_color}{A character string of the highlight color. Default is "black".}
-
-\item{highlight_stroke}{A numeric value of the highlight stroke. Default is 0.8.}
 }
 \description{
 \itemize{
@@ -378,6 +388,7 @@ polygons <- terra::vect(polygons, crs = "EPSG:4326", geom = "geometry")
 
 SpatShapesPlot(polygons)
 SpatShapesPlot(polygons, ext = c(0, 20, 0, 20))
+SpatShapesPlot(polygons, highlight = 'cat == "A"', highlight_color = "red2")
 SpatShapesPlot(polygons, border_color = "red", border_size = 2)
 SpatShapesPlot(polygons, fill_by = "cat", fill_name = "category")
 # Let border color be determined by fill

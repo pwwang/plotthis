@@ -306,6 +306,7 @@
 #'
 #' SpatShapesPlot(polygons)
 #' SpatShapesPlot(polygons, ext = c(0, 20, 0, 20))
+#' SpatShapesPlot(polygons, highlight = 'cat == "A"', highlight_color = "red2")
 #' SpatShapesPlot(polygons, border_color = "red", border_size = 2)
 #' SpatShapesPlot(polygons, fill_by = "cat", fill_name = "category")
 #' # Let border color be determined by fill
@@ -549,6 +550,7 @@ SpatShapesPlot.SpatVector <- function(
     fill_by = NULL, border_color = "black", border_size = 0.5, border_alpha = 1,
     palette = NULL, palcolor = NULL, palette_reverse = FALSE,
     alpha = 1, fill_name = NULL,
+    highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
     facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
     return_layer = FALSE,
     theme = "theme_box", theme_args = list(),
@@ -748,10 +750,45 @@ SpatShapesPlot.SpatVector <- function(
     }
 
     # Set scale attribute for layers conflicts
-    attr(layers, "scales") <- c(
+    scales_used <- c(
         if (!is.null(fill_by)) "fill",
         if (border_aes == "same_as_fill") "color"
     )
+
+    # Adding the highlight
+    if (!isFALSE(highlight) && !is.null(highlight)) {
+        if (isTRUE(highlight)) {
+            hi_sf <- data_sf
+        } else if (length(highlight) == 1 && is.character(highlight)) {
+            hi_sf <- dplyr::filter(data_sf, !!!parse_exprs(highlight))
+        } else {
+            all_inst <- rownames(data_sf) %||% 1:nrow(data_sf)
+            if (!any(highlight %in% all_inst)) {
+                stop("No highlight items found in the data (rownames).")
+            }
+            if (!all(highlight %in% all_inst)) {
+                warning("Not all highlight items found in the data (rownames).", immediate. = TRUE)
+            }
+            hi_sf <- data_sf[intersect(highlight, all_inst), , drop = FALSE]
+            rm(all_inst)
+        }
+        if (nrow(hi_sf) > 0) {
+            # Add highlight border
+            layers <- c(layers, list(
+                ggplot2::geom_sf(
+                    data = hi_sf,
+                    fill = NA,
+                    color = highlight_color,
+                    linewidth = border_size + highlight_stroke,
+                    alpha = highlight_alpha
+                )
+            ))
+            scales_used <- c(scales_used, "color")
+        }
+    }
+
+    # Set scale attribute for layers conflicts
+    attr(layers, "scales") <- unique(scales_used)
 
     if (return_layer) {
         return(layers)
@@ -782,6 +819,7 @@ SpatShapesPlot.data.frame <- function(
     fill_by = "grey90", border_color = "black", border_size = 0.5, border_alpha = 1,
     palette = NULL, palcolor = NULL, palette_reverse = FALSE,
     alpha = 1, fill_name = NULL,
+    highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
     facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
     return_layer = FALSE,
     theme = "theme_box", theme_args = list(),
@@ -981,10 +1019,46 @@ SpatShapesPlot.data.frame <- function(
     }
 
     # Set scale attribute for layers conflicts
-    attr(layers, "scales") <- c(
+    scales_used <- c(
         if (!is.null(fill_by)) "fill",
         if (border_aes == "same_as_fill") "color"
     )
+
+    # Adding the highlight
+    if (!isFALSE(highlight) && !is.null(highlight)) {
+        if (isTRUE(highlight)) {
+            hi_data <- data
+        } else if (length(highlight) == 1 && is.character(highlight)) {
+            hi_data <- dplyr::filter(data, !!!parse_exprs(highlight))
+        } else {
+            all_inst <- rownames(data) %||% 1:nrow(data)
+            if (!any(highlight %in% all_inst)) {
+                stop("No highlight items found in the data (rownames).")
+            }
+            if (!all(highlight %in% all_inst)) {
+                warning("Not all highlight items found in the data (rownames).", immediate. = TRUE)
+            }
+            hi_data <- data[intersect(highlight, all_inst), , drop = FALSE]
+            rm(all_inst)
+        }
+        if (nrow(hi_data) > 0) {
+            # Add highlight border
+            layers <- c(layers, list(
+                ggplot2::geom_polygon(
+                    data = hi_data,
+                    mapping = aes(x = !!sym(x), y = !!sym(y), group = !!sym(group)),
+                    fill = NA,
+                    color = highlight_color,
+                    linewidth = border_size + highlight_stroke,
+                    alpha = highlight_alpha
+                )
+            ))
+            scales_used <- c(scales_used, "color")
+        }
+    }
+
+    # Set scale attribute for layers conflicts
+    attr(layers, "scales") <- unique(scales_used)
 
     if (return_layer) {
         return(layers)
