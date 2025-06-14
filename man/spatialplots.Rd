@@ -175,6 +175,10 @@ SpatPointsPlot(
   highlight_size = 1,
   highlight_color = "black",
   highlight_stroke = 0.8,
+  graph = NULL,
+  edge_size = c(0.05, 0.5),
+  edge_alpha = 0.1,
+  edge_color = "grey40",
   facet_scales = "fixed",
   facet_nrow = NULL,
   facet_ncol = NULL,
@@ -328,6 +332,15 @@ If \code{data} is a \code{SpatRaster} or \code{SpatVector}, this argument is ign
 
 \item{label_insitu}{Whether to place the raw labels (group names) in the center of the points with the corresponding group.
 Default is FALSE, which uses numbers instead of raw labels.}
+
+\item{graph}{A character string of column names or the indexes in the data for the graph data. Default is NULL.
+If "@graph" is provided, the graph data will be extracted from the data attribute 'graph'.}
+
+\item{edge_size}{A numeric vector of the edge size range. Default is c(0.05, 0.5).}
+
+\item{edge_alpha}{A numeric value of the edge transparency. Default is 0.1.}
+
+\item{edge_color}{A character string of the edge color. Default is "grey40".}
 }
 \description{
 \itemize{
@@ -425,6 +438,23 @@ SpatPointsPlot(points, color_by = "feat1", hex = TRUE)
 SpatPointsPlot(points, color_by = "gene", label = TRUE)
 SpatPointsPlot(points, color_by = "gene", highlight = 1:20,
   highlight_color = "red2", highlight_stroke = 0.8)
+
+# --- Graph/Network functionality ---
+# Create a simple adjacency matrix for demonstration
+set.seed(8525)
+graph_mat <- matrix(0, nrow = 30, ncol = 30)
+# Add some random connections with weights
+for(i in 1:30) {
+  neighbors <- sample(setdiff(1:30, i), size = sample(2:5, 1))
+  graph_mat[i, neighbors] <- runif(length(neighbors), 0.1, 1)
+}
+rownames(graph_mat) <- colnames(graph_mat) <- rownames(points)
+attr(points, "graph") <- graph_mat
+
+SpatPointsPlot(points, color_by = "gene", graph = "@graph",
+  edge_color = "grey60", edge_alpha = 0.3)
+SpatPointsPlot(points, color_by = "feat1", graph = graph_mat,
+  edge_size = c(0.1, 1), edge_alpha = 0.5)
 
 # --- Use the `return_layer` argument to get the ggplot layers
 ext = c(0, 40, 0, 50)

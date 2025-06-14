@@ -250,10 +250,16 @@
 #' @param highlight_size A numeric value of the highlight size. Default is 1.
 #' @param highlight_color A character string of the highlight color. Default is "black".
 #' @param highlight_stroke A numeric value of the highlight stroke. Default is 0.8.
+#' @param graph A character string of column names or the indexes in the data for the graph data. Default is NULL.
+#'   If "@graph" is provided, the graph data will be extracted from the data attribute 'graph'.
+#' @param edge_size A numeric vector of the edge size range. Default is c(0.05, 0.5).
+#' @param edge_alpha A numeric value of the edge transparency. Default is 0.1.
+#' @param edge_color A character string of the edge color. Default is "grey40".
 #' @param return_layer Whether to return the layers or the plot. Default is FALSE.
 #' @importFrom rlang %||% sym parse_exprs
 #' @importFrom ggplot2 scale_fill_gradientn aes guide_colorbar element_blank
 #' @importFrom ggplot2 geom_sf ylim labs coord_sf geom_hex stat_summary_hex
+#' @importFrom ggplot2 geom_segment scale_linewidth_continuous
 #' @export
 #' @examples
 #' \donttest{
@@ -343,6 +349,23 @@
 #' SpatPointsPlot(points, color_by = "gene", label = TRUE)
 #' SpatPointsPlot(points, color_by = "gene", highlight = 1:20,
 #'   highlight_color = "red2", highlight_stroke = 0.8)
+#'
+#' # --- Graph/Network functionality ---
+#' # Create a simple adjacency matrix for demonstration
+#' set.seed(8525)
+#' graph_mat <- matrix(0, nrow = 30, ncol = 30)
+#' # Add some random connections with weights
+#' for(i in 1:30) {
+#'   neighbors <- sample(setdiff(1:30, i), size = sample(2:5, 1))
+#'   graph_mat[i, neighbors] <- runif(length(neighbors), 0.1, 1)
+#' }
+#' rownames(graph_mat) <- colnames(graph_mat) <- rownames(points)
+#' attr(points, "graph") <- graph_mat
+#'
+#' SpatPointsPlot(points, color_by = "gene", graph = "@graph",
+#'   edge_color = "grey60", edge_alpha = 0.3)
+#' SpatPointsPlot(points, color_by = "feat1", graph = graph_mat,
+#'   edge_size = c(0.1, 1), edge_alpha = 0.5)
 #'
 #' # --- Use the `return_layer` argument to get the ggplot layers
 #' ext = c(0, 40, 0, 50)
@@ -1095,6 +1118,7 @@ SpatPointsPlot <- function(
     label_repel = FALSE, label_repulsion = 20, label_pt_size = 1, label_pt_color = "black",
     label_segment_color = "black", label_insitu = FALSE,
     highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
+    graph = NULL, edge_size = c(0.05, 0.5), edge_alpha = 0.1, edge_color = "grey40",
     facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
     return_layer = FALSE, theme = "theme_box", theme_args = list(),
     legend.position = ifelse(return_layer, "none", "right"), legend.direction = "vertical",
@@ -1257,6 +1281,71 @@ SpatPointsPlot <- function(
     }
 
     # Create geom layers with raster and hex support
+    layers <- list()
+
+    ## Adding the graph/network
+    if (!is.null(graph)) {
+        if (is.character(graph) && length(graph) == 1 && startsWith(graph, "@")) {
+            graph <- substring(graph, 2)
+            net_mat <- attr(data, graph)
+        } else if (is.matrix(graph) || is.data.frame(graph)) {
+            net_mat <- graph
+        } else if (is.numeric(graph)) {
+            graph <- colnames(data)[graph]
+            net_mat <- data[graph]
+        } else if (is.character(graph)) {
+            net_mat <- data[graph]
+        } else {
+            stop("The 'graph' should be a matrix, data.frame, indexes, or column names.")
+        }
+
+        if (!is.matrix(net_mat)) {
+            net_mat <- as.matrix(net_mat)
+        }
+
+        if (!is.null(rownames(net_mat)) && !is.null(colnames(net_mat))) {
+            net_mat <- net_mat[rownames(data), rownames(data)]
+        } else if (nrow(net_mat) != ncol(net_mat)) {
+            stop("[SpatPointsPlot] The graph matrix should be square (same number of rows and columns).")
+        } else if (nrow(net_mat) != nrow(data)) {
+            stop("[SpatPointsPlot] The graph matrix should have the same number of rows as the input data.")
+        }
+        net_mat[net_mat == 0] <- NA
+        net_mat[upper.tri(net_mat)] <- NA
+
+        handle_single_facet_value <- function(mat) {
+            net_df <- reshape2::melt(mat, na.rm = TRUE, stringsAsFactors = FALSE)
+            net_df$value <- as.numeric(net_df$value)
+            net_df$Var1 <- as.character(net_df$Var1)
+            net_df$Var2 <- as.character(net_df$Var2)
+            net_df$x <- data[net_df$Var1, x]
+            net_df$y <- data[net_df$Var1, y]
+            net_df$xend <- data[net_df$Var2, x]
+            net_df$yend <- data[net_df$Var2, y]
+            return(net_df)
+        }
+
+        if (!is.null(facet_by)) {
+            net_df <- do.call(rbind, lapply(split(data, data[, facet_by]), function(d) {
+                d <- handle_single_facet_value(net_mat[rownames(d), rownames(d)])
+                d[, facet_by] <- d[1, facet_by]
+                d
+            }))
+        } else {
+            net_df <- handle_single_facet_value(net_mat)
+        }
+
+        layers <- c(layers, list(
+            ggplot2::geom_segment(
+                data = net_df, mapping = aes(x = !!sym("x"), y = !!sym("y"), xend = !!sym("xend"),
+                    yend = !!sym("yend"), linewidth = !!sym("value")),
+                color = edge_color, alpha = edge_alpha, show.legend = FALSE
+            ),
+            ggplot2::scale_linewidth_continuous(range = edge_size)
+        ))
+    }
+
+    # Create the main point layers
     if (isTRUE(hex)) {
         # Hex functionality - only for numeric color_by
         if (is.null(color_by)) {
@@ -1383,9 +1472,9 @@ SpatPointsPlot <- function(
     }
 
     if (inherits(geom_layer, c("gg", "Layer"))) {
-        layers <- list(geom_layer)
+        layers <- c(layers, list(geom_layer))
     } else {
-        layers <- geom_layer
+        layers <- c(layers, geom_layer)
     }
 
     # Add appropriate scales
