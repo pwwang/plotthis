@@ -229,6 +229,11 @@ SpatPointsPlot: Plot a data.frame of points with spatial coordinates.
 <span>  highlight_color <span class="op">=</span> <span class="st">"black"</span>,</span>
 <span>  highlight_stroke <span class="op">=</span> <span class="fl">0.8</span>,</span>
 <span>  graph <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  graph_x <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  graph_y <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  graph_xend <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  graph_yend <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  graph_value <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  edge_size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.05</span>, <span class="fl">0.5</span><span class="op">)</span>,</span>
 <span>  edge_alpha <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  edge_color <span class="op">=</span> <span class="st">"grey40"</span>,</span>
@@ -512,7 +517,30 @@ Default is FALSE, which uses numbers instead of raw labels.</p></dd>
 
 <dt id="arg-graph">graph<a class="anchor" aria-label="anchor" href="#arg-graph"></a></dt>
 <dd><p>A character string of column names or the indexes in the data for the graph data. Default is NULL.
-If "@graph" is provided, the graph data will be extracted from the data attribute 'graph'.</p></dd>
+If "@graph" is provided, the graph data will be extracted from the data attribute 'graph'.
+The graph data should be an adjacency matrix (numeric matrix) with row and column names matching the point IDs.
+Or a data.frame with x, xend, y, yend and value columns. If so,
+<code>graph_x</code>, <code>graph_y</code>, <code>graph_xend</code>, <code>graph_yend</code>, and <code>graph_value</code> arguments can be used to specify the column names.</p></dd>
+
+
+<dt id="arg-graph-x">graph_x<a class="anchor" aria-label="anchor" href="#arg-graph-x"></a></dt>
+<dd><p>A character string of the x column name for the graph data.</p></dd>
+
+
+<dt id="arg-graph-y">graph_y<a class="anchor" aria-label="anchor" href="#arg-graph-y"></a></dt>
+<dd><p>A character string of the y column name for the graph data.</p></dd>
+
+
+<dt id="arg-graph-xend">graph_xend<a class="anchor" aria-label="anchor" href="#arg-graph-xend"></a></dt>
+<dd><p>A character string of the xend column name for the graph data.</p></dd>
+
+
+<dt id="arg-graph-yend">graph_yend<a class="anchor" aria-label="anchor" href="#arg-graph-yend"></a></dt>
+<dd><p>A character string of the yend column name for the graph data.</p></dd>
+
+
+<dt id="arg-graph-value">graph_value<a class="anchor" aria-label="anchor" href="#arg-graph-value"></a></dt>
+<dd><p>A character string of the value column name for the graph data.</p></dd>
 
 
 <dt id="arg-edge-size">edge_size<a class="anchor" aria-label="anchor" href="#arg-edge-size"></a></dt>
