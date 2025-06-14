@@ -586,8 +586,7 @@ SpatShapesPlot.SpatVector <- function(
     return_layer = FALSE,
     theme = "theme_box", theme_args = list(),
     legend.position = ifelse(return_layer, "none", "right"), legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
-    ...
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525
 ) {
     set.seed(seed)
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
@@ -855,8 +854,7 @@ SpatShapesPlot.data.frame <- function(
     return_layer = FALSE,
     theme = "theme_box", theme_args = list(),
     legend.position = ifelse(return_layer, "none", "right"), legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
-    ...
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525
 ) {
     set.seed(seed)
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
@@ -1131,8 +1129,7 @@ SpatPointsPlot <- function(
     facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
     return_layer = FALSE, theme = "theme_box", theme_args = list(),
     legend.position = ifelse(return_layer, "none", "right"), legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
-    ...
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525
 ) {
     set.seed(seed)
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
@@ -1170,7 +1167,7 @@ SpatPointsPlot <- function(
         raster_dpi <- rep(raster_dpi, 2)
     }
     raster_is_null <- is.null(raster)
-    raster <- raster %||% (nrow(data) > 1e5)
+    raster <- raster %||% (nrow(data) > 1e6)
 
     # Apply extent cropping if specified
     ext <- .prepare_extent(ext)
@@ -1263,7 +1260,7 @@ SpatPointsPlot <- function(
     # Handle aesthetic mapping based on shape type
     if (has_border) {
         # For border shapes (21-25), color_by maps to fill when it's a column
-        if (color_by_is_column && !is.null(color_by) && color_by %in% names(data)) {
+        if (color_by_is_column && !is.null(color_by) && color_by %in% names(data) && !isTRUE(raster)) {
             aes_mapping$fill <- sym(color_by)
             scales_used <- c(scales_used, "fill")
 
@@ -1417,8 +1414,8 @@ SpatPointsPlot <- function(
             }
         }
     } else if (isTRUE(raster)) {
-        if (raster_is_null && raster && !identical(raster_dpi, c(512, 512))) {
-            message("[SpatPointsPlot] 'raster' is enabled. Point size (size_by) is ignore, try 'raster_dpi' to control resolution.")
+        if (raster_is_null && !identical(raster_dpi, c(512, 512))) {
+            message("[SpatPointsPlot] 'raster' is enabled. Point size (size_by) is ignored, try 'raster_dpi' to control resolution.")
         }
         # Use scattermore for rasterized plotting
         if (!color_by_is_column) {

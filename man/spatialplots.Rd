@@ -90,8 +90,7 @@ SpatShapesPlot(data, ...)
   subtitle = NULL,
   xlab = NULL,
   ylab = NULL,
-  seed = 8525,
-  ...
+  seed = 8525
 )
 
 \method{SpatShapesPlot}{data.frame}(
@@ -128,8 +127,7 @@ SpatShapesPlot(data, ...)
   subtitle = NULL,
   xlab = NULL,
   ylab = NULL,
-  seed = 8525,
-  ...
+  seed = 8525
 )
 
 SpatPointsPlot(
@@ -197,8 +195,7 @@ SpatPointsPlot(
   subtitle = NULL,
   xlab = NULL,
   ylab = NULL,
-  seed = 8525,
-  ...
+  seed = 8525
 )
 }
 \arguments{
