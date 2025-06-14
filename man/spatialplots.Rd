@@ -176,6 +176,11 @@ SpatPointsPlot(
   highlight_color = "black",
   highlight_stroke = 0.8,
   graph = NULL,
+  graph_x = NULL,
+  graph_y = NULL,
+  graph_xend = NULL,
+  graph_yend = NULL,
+  graph_value = NULL,
   edge_size = c(0.05, 0.5),
   edge_alpha = 0.1,
   edge_color = "grey40",
@@ -334,7 +339,20 @@ If \code{data} is a \code{SpatRaster} or \code{SpatVector}, this argument is ign
 Default is FALSE, which uses numbers instead of raw labels.}
 
 \item{graph}{A character string of column names or the indexes in the data for the graph data. Default is NULL.
-If "@graph" is provided, the graph data will be extracted from the data attribute 'graph'.}
+If "@graph" is provided, the graph data will be extracted from the data attribute 'graph'.
+The graph data should be an adjacency matrix (numeric matrix) with row and column names matching the point IDs.
+Or a data.frame with x, xend, y, yend and value columns. If so,
+\code{graph_x}, \code{graph_y}, \code{graph_xend}, \code{graph_yend}, and \code{graph_value} arguments can be used to specify the column names.}
+
+\item{graph_x}{A character string of the x column name for the graph data.}
+
+\item{graph_y}{A character string of the y column name for the graph data.}
+
+\item{graph_xend}{A character string of the xend column name for the graph data.}
+
+\item{graph_yend}{A character string of the yend column name for the graph data.}
+
+\item{graph_value}{A character string of the value column name for the graph data.}
 
 \item{edge_size}{A numeric vector of the edge size range. Default is c(0.05, 0.5).}
 
