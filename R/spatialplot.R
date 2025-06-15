@@ -1168,6 +1168,9 @@ SpatPointsPlot <- function(
     }
     raster_is_null <- is.null(raster)
     raster <- raster %||% (nrow(data) > 1e6)
+    if (isTRUE(raster) && raster_is_null) {
+        warning("[SpatPointsPlot] Rasterization is enabled by default for large datasets (nrow > 1e6). Set 'raster = FALSE' to disable.")
+    }
 
     # Apply extent cropping if specified
     ext <- .prepare_extent(ext)
