@@ -568,7 +568,17 @@ SpatMasksPlot <- function(
 #' @rdname spatialplots
 #' @concept spatial
 #' @export
-SpatShapesPlot <- function(data, ...) {
+SpatShapesPlot <- function(data, x = NULL, y = NULL, group = NULL,
+    ext = NULL, flip_y = TRUE,
+    fill_by = NULL, border_color = "black", border_size = 0.5, border_alpha = 1,
+    palette = NULL, palcolor = NULL, palette_reverse = FALSE,
+    alpha = 1, fill_name = NULL,
+    highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
+    facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
+    return_layer = FALSE,
+    theme = "theme_box", theme_args = list(),
+    legend.position = ifelse(return_layer, "none", "right"), legend.direction = "vertical",
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525) {
     UseMethod("SpatShapesPlot", data)
 }
 
@@ -576,7 +586,7 @@ SpatShapesPlot <- function(data, ...) {
 #' @concept spatial
 #' @export
 SpatShapesPlot.SpatVector <- function(
-    data,
+    data, x = NULL, y = NULL, group = NULL,
     ext = NULL, flip_y = TRUE,
     fill_by = NULL, border_color = "black", border_size = 0.5, border_alpha = 1,
     palette = NULL, palcolor = NULL, palette_reverse = FALSE,

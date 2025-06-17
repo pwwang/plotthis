@@ -57,10 +57,48 @@ SpatMasksPlot(
   seed = 8525
 )
 
-SpatShapesPlot(data, ...)
+SpatShapesPlot(
+  data,
+  x = NULL,
+  y = NULL,
+  group = NULL,
+  ext = NULL,
+  flip_y = TRUE,
+  fill_by = NULL,
+  border_color = "black",
+  border_size = 0.5,
+  border_alpha = 1,
+  palette = NULL,
+  palcolor = NULL,
+  palette_reverse = FALSE,
+  alpha = 1,
+  fill_name = NULL,
+  highlight = NULL,
+  highlight_alpha = 1,
+  highlight_size = 1,
+  highlight_color = "black",
+  highlight_stroke = 0.8,
+  facet_scales = "fixed",
+  facet_nrow = NULL,
+  facet_ncol = NULL,
+  facet_byrow = TRUE,
+  return_layer = FALSE,
+  theme = "theme_box",
+  theme_args = list(),
+  legend.position = ifelse(return_layer, "none", "right"),
+  legend.direction = "vertical",
+  title = NULL,
+  subtitle = NULL,
+  xlab = NULL,
+  ylab = NULL,
+  seed = 8525
+)
 
 \method{SpatShapesPlot}{SpatVector}(
   data,
+  x = NULL,
+  y = NULL,
+  group = NULL,
   ext = NULL,
   flip_y = TRUE,
   fill_by = NULL,
@@ -257,7 +295,13 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{border_alpha}{A numeric value of the border transparency. Default is 1.}
 
-\item{...}{Additional arguments.}
+\item{x}{A character string specifying the x-axis column name for \code{SpatPointsPlot} or \code{SpatShapesPlot} when \code{data} is a data.frame.
+If \code{data} is a \code{SpatRaster} or \code{SpatVector}, this argument is ignored.}
+
+\item{y}{A character string specifying the y-axis column name for \code{SpatPointsPlot} or \code{SpatShapesPlot} when \code{data} is a data.frame.
+If \code{data} is a \code{SpatRaster} or \code{SpatVector}, this argument is ignored.}
+
+\item{group}{A character string specifying the grouping column for \code{SpatShapesPlot} when \code{data} is a data.frame.}
 
 \item{fill_by}{A character string or vector specifying the column(s) to fill the shapes in \code{SpatShapesPlot}.}
 
@@ -281,14 +325,6 @@ When facet_by is a single column and facet_wrap is used.}
 When facet_by is a single column and facet_wrap is used.}
 
 \item{facet_byrow}{A logical value indicating whether to fill the plots by row. Default is TRUE.}
-
-\item{x}{A character string specifying the x-axis column name for \code{SpatPointsPlot} or \code{SpatShapesPlot} when \code{data} is a data.frame.
-If \code{data} is a \code{SpatRaster} or \code{SpatVector}, this argument is ignored.}
-
-\item{y}{A character string specifying the y-axis column name for \code{SpatPointsPlot} or \code{SpatShapesPlot} when \code{data} is a data.frame.
-If \code{data} is a \code{SpatRaster} or \code{SpatVector}, this argument is ignored.}
-
-\item{group}{A character string specifying the grouping column for \code{SpatShapesPlot} when \code{data} is a data.frame.}
 
 \item{color_by}{A character string specifying the column to color the points in \code{SpatPointsPlot}.}
 
