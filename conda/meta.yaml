@@ -14,6 +14,7 @@ build:
 
 requirements:
   host:
+    # Imports
     - r-base
     - r-circlize
     - r-ggplot2
@@ -26,13 +27,18 @@ requirements:
     - r-reshape2
     - r-stringr
     - r-scales
+    - r-gridtext
     - r-patchwork
     - r-ggrepel
-    - pwwang::r-gglogger
     - r-ggnewscale
     - r-cowplot
+    - r-zoo
+    # Suggests
+    - r-alluvial
     - bioconda::bioconductor-complexheatmap
+    - r-cluster  # implictly required by bioconductor-complexheatmap
     - r-clustree
+    - pwwang::r-gglogger
     - r-ggwordcloud
     - r-ggalluvial
     - r-ggvenndiagram
@@ -41,17 +47,20 @@ requirements:
     - r-ggforce
     - r-ggraph
     - r-ggridges
+    - bioconda::bioconductor-ggmanh
+    - r-qqplotr
     - r-hexbin
     - r-igraph
-    - r-scattermore
-    - r-zoo
-    - r-concaveman
     - r-inext
-    - r-alluvial
+    - r-scattermore
     - r-sf
     - r-terra
+    - r-concaveman
+    - r-plotroc
+    - r-optimalcutpoints
 
   run:
+    # Imports
     - r-base
     - r-circlize
     - r-ggplot2
@@ -64,13 +73,18 @@ requirements:
     - r-reshape2
     - r-stringr
     - r-scales
+    - r-gridtext
     - r-patchwork
     - r-ggrepel
-    - pwwang::r-gglogger
     - r-ggnewscale
     - r-cowplot
+    - r-zoo
+    # Suggests
+    - r-alluvial
     - bioconda::bioconductor-complexheatmap
+    - r-cluster  # implictly required by bioconductor-complexheatmap
     - r-clustree
+    - pwwang::r-gglogger
     - r-ggwordcloud
     - r-ggalluvial
     - r-ggvenndiagram
@@ -79,15 +93,17 @@ requirements:
     - r-ggforce
     - r-ggraph
     - r-ggridges
+    - bioconda::bioconductor-ggmanh
+    - r-qqplotr
     - r-hexbin
     - r-igraph
-    - r-scattermore
-    - r-zoo
-    - r-concaveman
     - r-inext
-    - r-alluvial
+    - r-scattermore
     - r-sf
     - r-terra
+    - r-concaveman
+    - r-plotroc
+    - r-optimalcutpoints
 
 test:
   commands:
