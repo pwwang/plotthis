@@ -246,6 +246,23 @@
 #' @param label_segment_color A character string of the label segment color. Default is "black".
 #' @param label_insitu Whether to place the raw labels (group names) in the center of the points with the corresponding group.
 #' Default is FALSE, which uses numbers instead of raw labels.
+#' @param label_pos A character string or a function specifying the position of the labels.
+#' * "mean": Place labels at the mean position of the points in each group.
+#'   Same as `function(x) mean(x, na.rm = TRUE)`.
+#' * "center": Place labels at the center of the points in each group.
+#'   Same as `function(x) mean(range(x, na.rm = TRUE))`.
+#' * "median": Place labels at the median position of the points in each group.
+#'   Same as `function(x) median(x, na.rm = TRUE)`.
+#' * "first": Place labels at the first point in each group.
+#'   Same as `function(x) x[1]`.
+#' * "last": Place labels at the last point in each group.
+#'   Same as `function(x) x[length(x)]`.
+#' * "random": Place labels at a random point in each group.
+#'   Same as `function(x) sample(x, 1)`.
+#' * "min": Place labels at the minimum position (both x and y) of the points in each group.
+#'   Same as `function(x) min(x, na.rm = TRUE)`.
+#' * "max": Place labels at the maximum position (both x and y) of the points in each group.
+#'   Same as `function(x) max(x, na.rm = TRUE)`.
 #' @param highlight A character vector of the row names to highlight. Default is NULL.
 #' @param highlight_alpha A numeric value of the highlight transparency. Default is 1.
 #' @param highlight_size A numeric value of the highlight size. Default is 1.
@@ -1136,6 +1153,7 @@ SpatPointsPlot <- function(
     label = FALSE, label_size = 4, label_fg = "white", label_bg = "black", label_bg_r = 0.1,
     label_repel = FALSE, label_repulsion = 20, label_pt_size = 1, label_pt_color = "black",
     label_segment_color = "black", label_insitu = FALSE,
+    label_pos = c("median", "mean", "max", "min", "first", "last", "center", "random"),
     highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
     graph = NULL, graph_x = NULL, graph_y = NULL, graph_xend = NULL, graph_yend = NULL, graph_value = NULL,
     edge_size = c(0.05, 0.5), edge_alpha = 0.1, edge_color = "grey40",
@@ -1670,11 +1688,34 @@ SpatPointsPlot <- function(
             stop("Adding labels is not supported for hex plots.")
         }
 
+        if (is.character(label_pos)) {
+            label_pos <- match.arg(label_pos)
+            if (label_pos == "median") {
+                label_pos <- function(x) median(x, na.rm = TRUE)
+            } else if (label_pos == "mean") {
+                label_pos <- function(x) mean(x, na.rm = TRUE)
+            } else if (label_pos == "first") {
+                label_pos <- function(x) x[1]
+            } else if (label_pos == "last") {
+                label_pos <- function(x) x[length(x)]
+            } else if (label_pos == "random") {
+                label_pos <- function(x) sample(x, 1)
+            } else if (label_pos == "center") {
+                label_pos <- function(x) mean(range(x, na.rm = TRUE))
+            } else if (label_pos == "min") {
+                label_pos <- function(x) min(x, na.rm = TRUE)
+            } else if (label_pos == "max") {
+                label_pos <- function(x) max(x, na.rm = TRUE)
+            } else {
+                stop("Invalid label position specified. Use 'median', 'mean', 'first', 'last', 'random', or 'center'.")
+            }
+        }
+
         if (!is.null(facet_by)) {
-            label_df <- aggregate(data[, c(x, y)], by = list(data[[color_by]], data[[facet_by]]), FUN = median)
+            label_df <- aggregate(data[, c(x, y)], by = list(data[[color_by]], data[[facet_by]]), FUN = label_pos)
             colnames(label_df)[1:2] <- c(".label", facet_by)
         } else {
-            label_df <- aggregate(data[, c(x, y)], by = list(data[[color_by]]), FUN = median)
+            label_df <- aggregate(data[, c(x, y)], by = list(data[[color_by]]), FUN = label_pos)
             colnames(label_df)[1] <- ".label"
         }
         label_df <- label_df[!is.na(label_df[, ".label"]), , drop = FALSE]
