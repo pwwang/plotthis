@@ -252,6 +252,9 @@ DimPlotAtomic <- function(
         if (is.character(graph) && length(graph) == 1 && startsWith(graph, "@")) {
             graph <- substring(graph, 2)
             net_mat <- attr(data, graph)
+            if (is.null(net_mat)) {
+                stop(paste0("[DimPlot] The graph '", graph, "' is not found in the data attributes."))
+            }
         } else if (inherits(graph, "Graph")) {  # SeuratObject Graph
             net_mat <- as.matrix(graph)
         } else if (is.matrix(graph) || is.data.frame(graph)) {
@@ -262,7 +265,7 @@ DimPlotAtomic <- function(
         } else if (is.character(graph)) {
             net_mat <- data[graph]
         } else {
-            stop("The 'graph' should be a matrix, data.frame, Graph object, indexes, or column names.")
+            stop("[DimPlot] The 'graph' should be a matrix, data.frame, Graph object, indexes, or column names.")
         }
 
         if (!is.matrix(net_mat)) {
