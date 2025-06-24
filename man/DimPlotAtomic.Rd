@@ -67,6 +67,30 @@ DimPlotAtomic(
   lineages_whiskers = FALSE,
   lineages_whiskers_linewidth = 0.5,
   lineages_whiskers_alpha = 0.5,
+  velocity = NULL,
+  velocity_plot_type = c("raw", "grid", "stream"),
+  velocity_n_neighbors = NULL,
+  velocity_density = 1,
+  velocity_smooth = 0.5,
+  velocity_scale = 1,
+  velocity_min_mass = 1,
+  velocity_cutoff_perc = 5,
+  velocity_group_palette = "Set2",
+  velocity_group_palcolor = NULL,
+  arrow_angle = 20,
+  arrow_color = "black",
+  streamline_l = 5,
+  streamline_minl = 1,
+  streamline_res = 1,
+  streamline_n = 15,
+  arrow_alpha = 1,
+  streamline_width = c(0, 0.8),
+  streamline_alpha = 1,
+  streamline_color = NULL,
+  streamline_palette = "RdYlBu",
+  streamline_palcolor = NULL,
+  streamline_bg_color = "white",
+  streamline_bg_stroke = 0.5,
   facet_by = NULL,
   facet_scales = "fixed",
   facet_nrow = NULL,
@@ -212,6 +236,57 @@ If "@graph" is provided, the graph data will be extracted from the data attribut
 \item{lineages_whiskers_linewidth}{A numeric value of the lineages whiskers line width. Default is 0.5.}
 
 \item{lineages_whiskers_alpha}{A numeric value of the lineages whiskers transparency. Default is 0.5.}
+
+\item{velocity}{A character (integer) vector of the column names (indexes) to pull from data for velocity. Default is NULL.
+If NULL, the velocity will not be plotted.}
+
+\item{velocity_plot_type}{A character string of the velocity plot type. Default is "raw".
+One of "raw", "grid", or "stream".}
+
+\item{velocity_n_neighbors}{A numeric value of the number of neighbors to use for velocity. Default is NULL.}
+
+\item{velocity_density}{A numeric value of the velocity density. Default is 1.}
+
+\item{velocity_smooth}{A numeric value of the velocity smooth. Default is 0.5.}
+
+\item{velocity_scale}{A numeric value of the velocity scale. Default is 1.}
+
+\item{velocity_min_mass}{A numeric value of the minimum mass for velocity. Default is 1.}
+
+\item{velocity_cutoff_perc}{A numeric value of the velocity cutoff percentage. Default is 5.}
+
+\item{velocity_group_palette}{A character string of the velocity group palette. Default is "Set2".}
+
+\item{velocity_group_palcolor}{A character vector of the velocity group palette colors. Default is NULL.}
+
+\item{arrow_angle}{An optional numeric value specifying the angle of the arrowheads in degrees for velocity arrows. Default is 20.}
+
+\item{arrow_color}{A character string specifying the color of the velocity arrowheads. Default is "black".}
+
+\item{streamline_l}{An optional numeric value specifying the length of the velocity streamlines. Default is 5.}
+
+\item{streamline_minl}{An optional numeric value specifying the minimum length of the velocity streamlines. Default is 1.}
+
+\item{streamline_res}{An optional numeric value specifying the resolution of the velocity streamlines. Default is 1.}
+
+\item{streamline_n}{An optional numeric value specifying the number of velocity streamlines to draw. Default is 15.}
+
+\item{arrow_alpha}{A numeric value specifying the transparency of the velocity arrows. Default is 1 (fully opaque).
+Only works for \code{plot_type = "raw"} and \code{plot_type = "grid"}. For \code{plot_type = "stream"}, use \code{streamline_alpha} instead.}
+
+\item{streamline_width}{A numeric vector of length 2 specifying the width of the velocity streamlines. Default is c(0, 0.8).}
+
+\item{streamline_alpha}{A numeric value specifying the transparency of the velocity streamlines. Default is 1 (fully opaque).}
+
+\item{streamline_color}{A character string specifying the color of the velocity streamlines.}
+
+\item{streamline_palette}{A character string specifying the color palette to use for the velocity streamlines. Default is "RdYlBu".}
+
+\item{streamline_palcolor}{An optional character vector specifying the colors to use for the velocity streamlines. If NULL, the colors will be generated from the streamline_palette.}
+
+\item{streamline_bg_color}{A character string specifying the background color of the velocity streamlines. Default is "white".}
+
+\item{streamline_bg_stroke}{A numeric value specifying the background stroke width of the velocity streamlines. Default is 0.5.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots

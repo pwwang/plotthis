@@ -62,7 +62,7 @@ $ conda install pwwang::r-plotthis
 
 ![](man/figures/density-histogram.png)
 
-[`DimPlot`][17] / [`FeatureDimPlot`][17]
+[`DimPlot`][17] / [`FeatureDimPlot`][17] / [`VelocityPlot`][32]
 
 ![](man/figures/dimplot.png)
 
@@ -126,3 +126,4 @@ $ conda install pwwang::r-plotthis
 [29]: https://pwwang.github.io/plotthis/reference/QQPlot.html
 [30]: https://pwwang.github.io/plotthis/reference/ManhattanPlot.html
 [31]: https://pwwang.github.io/plotthis/reference/spatialplots.html
+[32]: https://pwwang.github.io/plotthis/reference/VelocityPlot.html

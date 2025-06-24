@@ -45,6 +45,7 @@ reference:
     - SpiderPlot
     - SplitBarPlot
     - TrendPlot
+    - VelocityPlot
     - VolcanoPlot
     - WaterfallPlot
     - WordCloudPlot

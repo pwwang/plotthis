@@ -34,6 +34,7 @@ requirements:
     - r-cowplot
     - r-zoo
     # Suggests
+    - r-matrix
     - r-alluvial
     - bioconda::bioconductor-complexheatmap
     - r-cluster  # implictly required by bioconductor-complexheatmap
@@ -58,6 +59,8 @@ requirements:
     - r-concaveman
     - r-plotroc
     - r-optimalcutpoints
+    - r-proxyc
+    - r-metr
 
   run:
     # Imports
@@ -80,6 +83,7 @@ requirements:
     - r-cowplot
     - r-zoo
     # Suggests
+    - r-matrix
     - r-alluvial
     - bioconda::bioconductor-complexheatmap
     - r-cluster  # implictly required by bioconductor-complexheatmap
@@ -104,6 +108,8 @@ requirements:
     - r-concaveman
     - r-plotroc
     - r-optimalcutpoints
+    - r-proxyc
+    - r-metr
 
 test:
   commands:
