@@ -178,6 +178,10 @@ SpatPointsPlot(
   size_by = NULL,
   size = NULL,
   fill_by = NULL,
+  lower_quantile = 0,
+  upper_quantile = 0.99,
+  lower_cutoff = NULL,
+  upper_cutoff = NULL,
   palette = NULL,
   palcolor = NULL,
   palette_reverse = FALSE,
@@ -332,6 +336,8 @@ When facet_by is a single column and facet_wrap is used.}
 
 \item{size}{Alias of \code{size_by} when size is a numeric value.}
 
+\item{lower_quantile, upper_quantile, lower_cutoff, upper_cutoff}{Vector of minimum and maximum cutoff values or quantile values for each numeric value.}
+
 \item{color_name}{A character string for the color legend title in \code{SpatPointsPlot}.}
 
 \item{size_name}{A character string for the size legend title in \code{SpatPointsPlot}.}
@@ -485,6 +491,7 @@ SpatPointsPlot(points, color_by = "gene", size_by = "size", shape = 22,
   border_size = 1)
 SpatPointsPlot(points, raster = TRUE, raster_dpi = 30, color_by = "feat1")
 SpatPointsPlot(points, color_by = c("feat1", "feat2"), size_by = "size")
+SpatPointsPlot(points, color_by = "feat1", upper_cutoff = 50)
 SpatPointsPlot(points, color_by = "feat1", hex = TRUE)
 SpatPointsPlot(points, color_by = "gene", label = TRUE)
 SpatPointsPlot(points, color_by = "gene", highlight = 1:20,

@@ -221,6 +221,7 @@
 #' @param size_by A character string specifying the column to size the points in `SpatPointsPlot`.
 #' @param size Alias of `size_by` when size is a numeric value.
 #' @param size_name A character string for the size legend title in `SpatPointsPlot`.
+#' @param lower_quantile,upper_quantile,lower_cutoff,upper_cutoff Vector of minimum and maximum cutoff values or quantile values for each numeric value.
 #' @param shape A numeric value or character string specifying the shape of the points in `SpatPointsPlot`.
 #' @param add_border Whether to add a border around the masks in `SpatMasksPlot`. Default is TRUE.
 #' @param border_color A character string of the border color. Default is "black".
@@ -353,6 +354,7 @@
 #'   border_size = 1)
 #' SpatPointsPlot(points, raster = TRUE, raster_dpi = 30, color_by = "feat1")
 #' SpatPointsPlot(points, color_by = c("feat1", "feat2"), size_by = "size")
+#' SpatPointsPlot(points, color_by = "feat1", upper_cutoff = 50)
 #' SpatPointsPlot(points, color_by = "feat1", hex = TRUE)
 #' SpatPointsPlot(points, color_by = "gene", label = TRUE)
 #' SpatPointsPlot(points, color_by = "gene", highlight = 1:20,
@@ -1125,6 +1127,7 @@ SpatShapesPlot.data.frame <- function(
 SpatPointsPlot <- function(
     data, x = NULL, y = NULL,
     ext = NULL, flip_y = TRUE, color_by = NULL, size_by = NULL, size = NULL, fill_by = NULL,
+    lower_quantile = 0, upper_quantile = 0.99, lower_cutoff = NULL, upper_cutoff = NULL,
     palette = NULL, palcolor = NULL, palette_reverse = FALSE,
     alpha = 1, color_name = NULL, size_name = NULL, shape = 16,
     border_color = "black", border_size = 0.5, border_alpha = 1,
@@ -1241,6 +1244,20 @@ SpatPointsPlot <- function(
             }
         }
         facet_by <- NULL
+    }
+
+    if (!is.null(color_by) && color_by %in% names(data) && is.numeric(data[[color_by]])) {
+        lower_cutoff <- lower_cutoff %||% quantile(data[[color_by]][is.finite(data[[color_by]])], lower_quantile, na.rm = TRUE)
+        upper_cutoff <- upper_cutoff %||% quantile(data[[color_by]][is.finite(data[[color_by]])], upper_quantile, na.rm = TRUE)
+        if (upper_cutoff == lower_cutoff) {
+            if (upper_cutoff == 0) {
+                upper_cutoff <- 1e-3
+            } else {
+                upper_cutoff <- upper_cutoff + upper_cutoff * 1e-3
+            }
+        }
+        data[[color_by]][data[[color_by]] < lower_cutoff] <- lower_cutoff
+        data[[color_by]][data[[color_by]] > upper_cutoff] <- upper_cutoff
     }
 
     # Set default palette based on data type
