@@ -263,6 +263,7 @@ SpatPointsPlot: Plot a data.frame of points with spatial coordinates.
 <span>  label_pt_color <span class="op">=</span> <span class="st">"black"</span>,</span>
 <span>  label_segment_color <span class="op">=</span> <span class="st">"black"</span>,</span>
 <span>  label_insitu <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  label_pos <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"median"</span>, <span class="st">"mean"</span>, <span class="st">"max"</span>, <span class="st">"min"</span>, <span class="st">"first"</span>, <span class="st">"last"</span>, <span class="st">"center"</span>, <span class="st">"random"</span><span class="op">)</span>,</span>
 <span>  highlight <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  highlight_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  highlight_size <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -552,6 +553,26 @@ When facet_by is a single column and facet_wrap is used.</p></dd>
 <dt id="arg-label-insitu">label_insitu<a class="anchor" aria-label="anchor" href="#arg-label-insitu"></a></dt>
 <dd><p>Whether to place the raw labels (group names) in the center of the points with the corresponding group.
 Default is FALSE, which uses numbers instead of raw labels.</p></dd>
+
+
+<dt id="arg-label-pos">label_pos<a class="anchor" aria-label="anchor" href="#arg-label-pos"></a></dt>
+<dd><p>A character string or a function specifying the position of the labels.</p><ul><li><p>"mean": Place labels at the mean position of the points in each group.
+Same as <code>function(x) mean(x, na.rm = TRUE)</code>.</p></li>
+<li><p>"center": Place labels at the center of the points in each group.
+Same as <code>function(x) mean(range(x, na.rm = TRUE))</code>.</p></li>
+<li><p>"median": Place labels at the median position of the points in each group.
+Same as <code>function(x) median(x, na.rm = TRUE)</code>.</p></li>
+<li><p>"first": Place labels at the first point in each group.
+Same as <code>function(x) x[1]</code>.</p></li>
+<li><p>"last": Place labels at the last point in each group.
+Same as <code>function(x) x[length(x)]</code>.</p></li>
+<li><p>"random": Place labels at a random point in each group.
+Same as <code>function(x) sample(x, 1)</code>.</p></li>
+<li><p>"min": Place labels at the minimum position (both x and y) of the points in each group.
+Same as <code>function(x) min(x, na.rm = TRUE)</code>.</p></li>
+<li><p>"max": Place labels at the maximum position (both x and y) of the points in each group.
+Same as <code>function(x) max(x, na.rm = TRUE)</code>.</p></li>
+</ul></dd>
 
 
 <dt id="arg-graph">graph<a class="anchor" aria-label="anchor" href="#arg-graph"></a></dt>
