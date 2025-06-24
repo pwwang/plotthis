@@ -122,8 +122,10 @@
 #' @return A ggplot object representing the cell velocity plot or a ggplot layer if `return_layer` is TRUE.
 #' @importFrom rlang %||% sym
 #' @importFrom ggplot2 geom_segment scale_color_gradientn scale_size after_stat
+#' @export
+#' @seealso [DimPlot()] [FeatureDimPlot()]
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(dim_example)
 #' VelocityPlot(dim_example[, 1:2], dim_example[, 3:4])
 #' VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], group_by = dim_example$clusters)

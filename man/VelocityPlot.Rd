@@ -137,11 +137,14 @@ A ggplot object representing the cell velocity plot or a ggplot layer if \code{r
 The plot shows the velocity vectors of the cells in a specified reduction space.
 }
 \examples{
-\dontrun{
+\donttest{
 data(dim_example)
 VelocityPlot(dim_example[, 1:2], dim_example[, 3:4])
 VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], group_by = dim_example$clusters)
 VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], plot_type = "grid")
 VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], plot_type = "stream")
 }
+}
+\seealso{
+\code{\link[=DimPlot]{DimPlot()}} \code{\link[=FeatureDimPlot]{FeatureDimPlot()}}
 }

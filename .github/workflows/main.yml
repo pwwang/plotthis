@@ -55,7 +55,7 @@ jobs:
             any::ggupset, any::ggpubr, any::ggforce, any::scattermore, any::ComplexHeatmap, any::cluster,
             any::clustree, any::ggwordcloud, any::ggraph, any::igraph, any::hexbin, any::ggridges,
             any::zoo, any::gridtext, any::concaveman, any::iNEXT, any::alluvial, any::ggmanh,
-            any::sf, any::terra
+            any::sf, any::terra, any::Matrix, any::proxyC, any::metR
 
       - uses: r-lib/actions/check-r-package@v2
 

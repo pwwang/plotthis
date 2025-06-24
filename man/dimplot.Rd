@@ -574,5 +574,5 @@ FeatureDimPlot(dim_example, features = c("stochasticbasis_1", "stochasticbasis_2
 }
 }
 \seealso{
-\code{\link{FeatureDimPlot}} \code{\link{VelocityPlot}}
+\code{\link{VelocityPlot}}
 }

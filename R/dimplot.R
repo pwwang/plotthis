@@ -806,7 +806,7 @@ DimPlotAtomic <- function(
 #' @inheritParams DimPlotAtomic
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
-#' @seealso \code{\link{FeatureDimPlot}} \code{\link{VelocityPlot}}
+#' @seealso \code{\link{VelocityPlot}}
 #' @examples
 #' \donttest{
 #' data(dim_example)
