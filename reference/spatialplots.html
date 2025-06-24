@@ -231,6 +231,10 @@ SpatPointsPlot: Plot a data.frame of points with spatial coordinates.
 <span>  size_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  size <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fill_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  lower_quantile <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  upper_quantile <span class="op">=</span> <span class="fl">0.99</span>,</span>
+<span>  lower_cutoff <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  upper_cutoff <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  palette_reverse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -469,6 +473,10 @@ When facet_by is a single column and facet_wrap is used.</p></dd>
 <dd><p>Alias of <code>size_by</code> when size is a numeric value.</p></dd>
 
 
+<dt id="arg-lower-quantile-upper-quantile-lower-cutoff-upper-cutoff">lower_quantile, upper_quantile, lower_cutoff, upper_cutoff<a class="anchor" aria-label="anchor" href="#arg-lower-quantile-upper-quantile-lower-cutoff-upper-cutoff"></a></dt>
+<dd><p>Vector of minimum and maximum cutoff values or quantile values for each numeric value.</p></dd>
+
+
 <dt id="arg-color-name">color_name<a class="anchor" aria-label="anchor" href="#arg-color-name"></a></dt>
 <dd><p>A character string for the color legend title in <code>SpatPointsPlot</code>.</p></dd>
 
@@ -692,13 +700,15 @@ Or a data.frame with x, xend, y, yend and value columns. If so,
 <span class="r-plt img"><img src="spatialplots-17.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">SpatPointsPlot</span><span class="op">(</span><span class="va">points</span>, color_by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"feat1"</span>, <span class="st">"feat2"</span><span class="op">)</span>, size_by <span class="op">=</span> <span class="st">"size"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="spatialplots-18.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">SpatPointsPlot</span><span class="op">(</span><span class="va">points</span>, color_by <span class="op">=</span> <span class="st">"feat1"</span>, hex <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">SpatPointsPlot</span><span class="op">(</span><span class="va">points</span>, color_by <span class="op">=</span> <span class="st">"feat1"</span>, upper_cutoff <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="spatialplots-19.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">SpatPointsPlot</span><span class="op">(</span><span class="va">points</span>, color_by <span class="op">=</span> <span class="st">"gene"</span>, label <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">SpatPointsPlot</span><span class="op">(</span><span class="va">points</span>, color_by <span class="op">=</span> <span class="st">"feat1"</span>, hex <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="spatialplots-20.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">SpatPointsPlot</span><span class="op">(</span><span class="va">points</span>, color_by <span class="op">=</span> <span class="st">"gene"</span>, label <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="spatialplots-21.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">SpatPointsPlot</span><span class="op">(</span><span class="va">points</span>, color_by <span class="op">=</span> <span class="st">"gene"</span>, highlight <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">20</span>,</span></span>
 <span class="r-in"><span>  highlight_color <span class="op">=</span> <span class="st">"red2"</span>, highlight_stroke <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="spatialplots-21.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="spatialplots-22.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># --- Graph/Network functionality ---</span></span></span>
 <span class="r-in"><span><span class="co"># Create a simple adjacency matrix for demonstration</span></span></span>
@@ -714,10 +724,10 @@ Or a data.frame with x, xend, y, yend and value columns. If so,
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">SpatPointsPlot</span><span class="op">(</span><span class="va">points</span>, color_by <span class="op">=</span> <span class="st">"gene"</span>, graph <span class="op">=</span> <span class="st">"@graph"</span>,</span></span>
 <span class="r-in"><span>  edge_color <span class="op">=</span> <span class="st">"grey60"</span>, edge_alpha <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="spatialplots-22.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="spatialplots-23.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">SpatPointsPlot</span><span class="op">(</span><span class="va">points</span>, color_by <span class="op">=</span> <span class="st">"feat1"</span>, graph <span class="op">=</span> <span class="va">graph_mat</span>,</span></span>
 <span class="r-in"><span>  edge_size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">1</span><span class="op">)</span>, edge_alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="spatialplots-23.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="spatialplots-24.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># --- Use the `return_layer` argument to get the ggplot layers</span></span></span>
 <span class="r-in"><span><span class="va">ext</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">40</span>, <span class="fl">0</span>, <span class="fl">50</span><span class="op">)</span></span></span>
@@ -728,7 +738,7 @@ Or a data.frame with x, xend, y, yend and value columns. If so,
 <span class="r-in"><span>  <span class="fu"><a href="theme_box.html">theme_box</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span></span>
 <span class="r-in"><span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">coord_sf</a></span><span class="op">(</span>expand <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">+</span></span></span>
 <span class="r-in"><span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">-</span><span class="va">x</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="spatialplots-24.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="spatialplots-25.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
