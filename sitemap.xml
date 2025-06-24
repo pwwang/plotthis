@@ -57,6 +57,7 @@
 <url><loc>https://pwwang.github.io/plotthis/reference/TrendPlotAtomic.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/UpsetPlot.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/UpsetPlotAtomic.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/VelocityPlot.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/VennDiagram.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/VennDiagramAtomic.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/VolcanoPlot.html</loc></url>
@@ -82,8 +83,10 @@
 <url><loc>https://pwwang.github.io/plotthis/reference/densityhistoplot.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/detect_upset_datatype.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/detect_venn_datatype.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/dim_example.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/dimplot.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/dot-anno_ggcat.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/dot-compute_velocity_on_grid.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/dot-prepare_extent.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/dot-wrap_spatial_layers.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/dot_flip_y.html</loc></url>

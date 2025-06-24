@@ -105,6 +105,30 @@
 <span>  lineages_whiskers <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  lineages_whiskers_linewidth <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  lineages_whiskers_alpha <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  velocity <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  velocity_plot_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"raw"</span>, <span class="st">"grid"</span>, <span class="st">"stream"</span><span class="op">)</span>,</span>
+<span>  velocity_n_neighbors <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  velocity_density <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  velocity_smooth <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  velocity_scale <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  velocity_min_mass <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  velocity_cutoff_perc <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  velocity_group_palette <span class="op">=</span> <span class="st">"Set2"</span>,</span>
+<span>  velocity_group_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  arrow_angle <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>  arrow_color <span class="op">=</span> <span class="st">"black"</span>,</span>
+<span>  streamline_l <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  streamline_minl <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  streamline_res <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  streamline_n <span class="op">=</span> <span class="fl">15</span>,</span>
+<span>  arrow_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  streamline_width <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.8</span><span class="op">)</span>,</span>
+<span>  streamline_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  streamline_color <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  streamline_palette <span class="op">=</span> <span class="st">"RdYlBu"</span>,</span>
+<span>  streamline_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  streamline_bg_color <span class="op">=</span> <span class="st">"white"</span>,</span>
+<span>  streamline_bg_stroke <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  facet_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  facet_scales <span class="op">=</span> <span class="st">"fixed"</span>,</span>
 <span>  facet_nrow <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -369,6 +393,105 @@ If "@graph" is provided, the graph data will be extracted from the data attribut
 
 <dt id="arg-lineages-whiskers-alpha">lineages_whiskers_alpha<a class="anchor" aria-label="anchor" href="#arg-lineages-whiskers-alpha"></a></dt>
 <dd><p>A numeric value of the lineages whiskers transparency. Default is 0.5.</p></dd>
+
+
+<dt id="arg-velocity">velocity<a class="anchor" aria-label="anchor" href="#arg-velocity"></a></dt>
+<dd><p>A character (integer) vector of the column names (indexes) to pull from data for velocity. Default is NULL.
+If NULL, the velocity will not be plotted.</p></dd>
+
+
+<dt id="arg-velocity-plot-type">velocity_plot_type<a class="anchor" aria-label="anchor" href="#arg-velocity-plot-type"></a></dt>
+<dd><p>A character string of the velocity plot type. Default is "raw".
+One of "raw", "grid", or "stream".</p></dd>
+
+
+<dt id="arg-velocity-n-neighbors">velocity_n_neighbors<a class="anchor" aria-label="anchor" href="#arg-velocity-n-neighbors"></a></dt>
+<dd><p>A numeric value of the number of neighbors to use for velocity. Default is NULL.</p></dd>
+
+
+<dt id="arg-velocity-density">velocity_density<a class="anchor" aria-label="anchor" href="#arg-velocity-density"></a></dt>
+<dd><p>A numeric value of the velocity density. Default is 1.</p></dd>
+
+
+<dt id="arg-velocity-smooth">velocity_smooth<a class="anchor" aria-label="anchor" href="#arg-velocity-smooth"></a></dt>
+<dd><p>A numeric value of the velocity smooth. Default is 0.5.</p></dd>
+
+
+<dt id="arg-velocity-scale">velocity_scale<a class="anchor" aria-label="anchor" href="#arg-velocity-scale"></a></dt>
+<dd><p>A numeric value of the velocity scale. Default is 1.</p></dd>
+
+
+<dt id="arg-velocity-min-mass">velocity_min_mass<a class="anchor" aria-label="anchor" href="#arg-velocity-min-mass"></a></dt>
+<dd><p>A numeric value of the minimum mass for velocity. Default is 1.</p></dd>
+
+
+<dt id="arg-velocity-cutoff-perc">velocity_cutoff_perc<a class="anchor" aria-label="anchor" href="#arg-velocity-cutoff-perc"></a></dt>
+<dd><p>A numeric value of the velocity cutoff percentage. Default is 5.</p></dd>
+
+
+<dt id="arg-velocity-group-palette">velocity_group_palette<a class="anchor" aria-label="anchor" href="#arg-velocity-group-palette"></a></dt>
+<dd><p>A character string of the velocity group palette. Default is "Set2".</p></dd>
+
+
+<dt id="arg-velocity-group-palcolor">velocity_group_palcolor<a class="anchor" aria-label="anchor" href="#arg-velocity-group-palcolor"></a></dt>
+<dd><p>A character vector of the velocity group palette colors. Default is NULL.</p></dd>
+
+
+<dt id="arg-arrow-angle">arrow_angle<a class="anchor" aria-label="anchor" href="#arg-arrow-angle"></a></dt>
+<dd><p>An optional numeric value specifying the angle of the arrowheads in degrees for velocity arrows. Default is 20.</p></dd>
+
+
+<dt id="arg-arrow-color">arrow_color<a class="anchor" aria-label="anchor" href="#arg-arrow-color"></a></dt>
+<dd><p>A character string specifying the color of the velocity arrowheads. Default is "black".</p></dd>
+
+
+<dt id="arg-streamline-l">streamline_l<a class="anchor" aria-label="anchor" href="#arg-streamline-l"></a></dt>
+<dd><p>An optional numeric value specifying the length of the velocity streamlines. Default is 5.</p></dd>
+
+
+<dt id="arg-streamline-minl">streamline_minl<a class="anchor" aria-label="anchor" href="#arg-streamline-minl"></a></dt>
+<dd><p>An optional numeric value specifying the minimum length of the velocity streamlines. Default is 1.</p></dd>
+
+
+<dt id="arg-streamline-res">streamline_res<a class="anchor" aria-label="anchor" href="#arg-streamline-res"></a></dt>
+<dd><p>An optional numeric value specifying the resolution of the velocity streamlines. Default is 1.</p></dd>
+
+
+<dt id="arg-streamline-n">streamline_n<a class="anchor" aria-label="anchor" href="#arg-streamline-n"></a></dt>
+<dd><p>An optional numeric value specifying the number of velocity streamlines to draw. Default is 15.</p></dd>
+
+
+<dt id="arg-arrow-alpha">arrow_alpha<a class="anchor" aria-label="anchor" href="#arg-arrow-alpha"></a></dt>
+<dd><p>A numeric value specifying the transparency of the velocity arrows. Default is 1 (fully opaque).
+Only works for <code>plot_type = "raw"</code> and <code>plot_type = "grid"</code>. For <code>plot_type = "stream"</code>, use <code>streamline_alpha</code> instead.</p></dd>
+
+
+<dt id="arg-streamline-width">streamline_width<a class="anchor" aria-label="anchor" href="#arg-streamline-width"></a></dt>
+<dd><p>A numeric vector of length 2 specifying the width of the velocity streamlines. Default is c(0, 0.8).</p></dd>
+
+
+<dt id="arg-streamline-alpha">streamline_alpha<a class="anchor" aria-label="anchor" href="#arg-streamline-alpha"></a></dt>
+<dd><p>A numeric value specifying the transparency of the velocity streamlines. Default is 1 (fully opaque).</p></dd>
+
+
+<dt id="arg-streamline-color">streamline_color<a class="anchor" aria-label="anchor" href="#arg-streamline-color"></a></dt>
+<dd><p>A character string specifying the color of the velocity streamlines.</p></dd>
+
+
+<dt id="arg-streamline-palette">streamline_palette<a class="anchor" aria-label="anchor" href="#arg-streamline-palette"></a></dt>
+<dd><p>A character string specifying the color palette to use for the velocity streamlines. Default is "RdYlBu".</p></dd>
+
+
+<dt id="arg-streamline-palcolor">streamline_palcolor<a class="anchor" aria-label="anchor" href="#arg-streamline-palcolor"></a></dt>
+<dd><p>An optional character vector specifying the colors to use for the velocity streamlines. If NULL, the colors will be generated from the streamline_palette.</p></dd>
+
+
+<dt id="arg-streamline-bg-color">streamline_bg_color<a class="anchor" aria-label="anchor" href="#arg-streamline-bg-color"></a></dt>
+<dd><p>A character string specifying the background color of the velocity streamlines. Default is "white".</p></dd>
+
+
+<dt id="arg-streamline-bg-stroke">streamline_bg_stroke<a class="anchor" aria-label="anchor" href="#arg-streamline-bg-stroke"></a></dt>
+<dd><p>A numeric value specifying the background stroke width of the velocity streamlines. Default is 0.5.</p></dd>
 
 
 <dt id="arg-facet-by">facet_by<a class="anchor" aria-label="anchor" href="#arg-facet-by"></a></dt>
