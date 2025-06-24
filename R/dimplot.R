@@ -455,7 +455,7 @@ DimPlotAtomic <- function(
         } else if (length(highlight) == 1 && is.character(highlight)) {
             hi_df <- eval(parse(text = paste0('filter(data, ', highlight, ')')))
         } else {
-            all_inst <- rownames(data) %||% 1:nrow(data)
+            all_inst <- if (is.numeric(highlight)) 1:nrow(data) else rownames(data)
             if (!any(highlight %in% all_inst)) {
                 stop("No highlight items found in the data (rownames).")
             }
