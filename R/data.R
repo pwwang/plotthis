@@ -229,7 +229,7 @@ NULL
 #' @name words_excluded
 NULL
 
-#' A example of clusterProfiler enrichment result
+#' An example of clusterProfiler enrichment result
 #' @concept data
 #' @examples
 #' \dontrun{
@@ -243,7 +243,7 @@ NULL
 #' @name enrich_example
 NULL
 
-#' A example of clusterProfiler enrichment result with multiple databases
+#' An example of clusterProfiler enrichment result with multiple databases
 #' @concept data
 #' @examples
 #' \dontrun{
@@ -260,7 +260,7 @@ NULL
 #' @name enrich_multidb_example
 NULL
 
-#' A example of GSEA result from fgsea package
+#' An example of GSEA result from fgsea package
 #' @concept data
 #' @examples
 #' \dontrun{
@@ -282,4 +282,21 @@ NULL
 #' }
 #' }
 #' @name gsea_example
+NULL
+
+#' An example data for dimensionality reduction plot
+#'
+#' @description
+#' This dataset is generated from the scvelo (scv.datasets.pancreas()) with
+#' the scvelo run on the dataset.
+#' Then the cell embeddings and velocity embeddings are extracted (200 downsampled), which are the first
+#' 4 columns of the data frame.
+#' The fifth column is the group identifier (clusters), and the sixth column is a fake
+#' grouping variable used to visualize stats, facetting, etc.
+#' An attribute "graph" is added to the data frame, which is a square matrix of the
+#' cell-cell distances, which is used for the graph (network) on dimensionality reduction
+#' plots.
+#'
+#' @concept data
+#' @name dim_example
 NULL

@@ -2,9 +2,9 @@
 % Please edit documentation in R/data.R
 \name{enrich_multidb_example}
 \alias{enrich_multidb_example}
-\title{A example of clusterProfiler enrichment result with multiple databases}
+\title{An example of clusterProfiler enrichment result with multiple databases}
 \description{
-A example of clusterProfiler enrichment result with multiple databases
+An example of clusterProfiler enrichment result with multiple databases
 }
 \examples{
 \dontrun{

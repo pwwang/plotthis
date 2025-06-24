@@ -68,3 +68,4 @@ reference:
     - gsea_example
     - palette_list
     - words_excluded
+    - dim_example

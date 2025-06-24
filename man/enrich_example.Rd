@@ -2,9 +2,9 @@
 % Please edit documentation in R/data.R
 \name{enrich_example}
 \alias{enrich_example}
-\title{A example of clusterProfiler enrichment result}
+\title{An example of clusterProfiler enrichment result}
 \description{
-A example of clusterProfiler enrichment result
+An example of clusterProfiler enrichment result
 }
 \examples{
 \dontrun{

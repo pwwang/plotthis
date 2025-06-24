@@ -2,9 +2,9 @@
 % Please edit documentation in R/data.R
 \name{gsea_example}
 \alias{gsea_example}
-\title{A example of GSEA result from fgsea package}
+\title{An example of GSEA result from fgsea package}
 \description{
-A example of GSEA result from fgsea package
+An example of GSEA result from fgsea package
 }
 \examples{
 \dontrun{
