@@ -1547,6 +1547,11 @@ SpatPointsPlot <- function(
         layers <- c(layers, geom_layer)
     }
 
+    # because the points could be very small, we need to set a larger point size for the legend
+    # to make it visible.
+    # should we make this configurable?
+    legend_point_size <- 2.5
+
     # Add appropriate scales
     if (color_by_is_column && !is.null(color_by)) {
         if ("fill" %in% scales_used) {
@@ -1567,7 +1572,9 @@ SpatPointsPlot <- function(
                     ggplot2::scale_fill_manual(
                         name = color_name %||% color_by,
                         values = palette_this(levels(data[[color_by]]), palette = palette, reverse = palette_reverse, palcolor = palcolor),
-                        guide = if (identical(legend.position, "none")) "none" else "legend",
+                        guide = if (identical(legend.position, "none")) "none" else ggplot2::guide_legend(
+                            override.aes = list(size = legend_point_size)
+                        ),
                         na.value = "transparent"
                     )
                 ))
@@ -1604,7 +1611,9 @@ SpatPointsPlot <- function(
                     ggplot2::scale_color_manual(
                         name = color_name %||% color_by,
                         values = colors,
-                        guide = if (identical(legend.position, "none") || "fill" %in% scales_used) "none" else "legend",
+                        guide = if (identical(legend.position, "none") || "fill" %in% scales_used) "none" else ggplot2::guide_legend(
+                            override.aes = list(size = legend_point_size)
+                        ),
                         na.value = "transparent"
                     )
                 ))
