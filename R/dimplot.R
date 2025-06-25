@@ -60,6 +60,7 @@
 #' @param lineages_whiskers_linewidth A numeric value of the lineages whiskers line width. Default is 0.5.
 #' @param lineages_whiskers_alpha A numeric value of the lineages whiskers transparency. Default is 0.5.
 #' @param velocity A character (integer) vector of the column names (indexes) to pull from data for velocity. Default is NULL.
+#' It can also be a data frame or matrix of the velocity embedding itself.
 #' If NULL, the velocity will not be plotted.
 #' @param velocity_plot_type A character string of the velocity plot type. Default is "raw".
 #' One of "raw", "grid", or "stream".
@@ -641,8 +642,14 @@ DimPlotAtomic <- function(
         }
         velocity_plot_type <- match.arg(velocity_plot_type)
 
+        if (is.data.frame(velocity) || is.matrix(velocity)) {
+            v_embedding <- velocity
+        } else {
+            v_embedding <- data[, velocity, drop = FALSE]
+        }
+
         velocity_layers <- VelocityPlot(
-            embedding = data[, dims, drop = FALSE], v_embedding = data[, velocity, drop = FALSE],
+            embedding = data[, dims, drop = FALSE], v_embedding = v_embedding,
             plot_type = velocity_plot_type, group_by = if (velocity_plot_type == "raw") data[[group_by]] else NULL,
             group_name = group_by, group_palette = velocity_group_palette, group_palcolor = velocity_group_palcolor,
             n_neighbors = velocity_n_neighbors, density = velocity_density,
