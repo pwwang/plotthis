@@ -276,7 +276,7 @@ DimPlotAtomic <- function(
             }
         } else if (inherits(graph, "Graph")) {  # SeuratObject Graph
             net_mat <- as.matrix(graph)
-        } else if (is.matrix(graph) || is.data.frame(graph)) {
+        } else if (is.matrix(graph) || is.data.frame(graph) || inherits(graph, "dgCMatrix")) {
             net_mat <- graph
         } else if (is.numeric(graph)) {
             graph <- colnames(data)[graph]
