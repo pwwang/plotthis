@@ -515,7 +515,7 @@ DimPlotAtomic <- function(
             guide = guide_legend(
                 title.hjust = 0,
                 order = 1,
-                override.aes = list(size = 4, alpha = 1)
+                override.aes = list(size = 3, alpha = 1)
             )
         )
         if (has_fill) {

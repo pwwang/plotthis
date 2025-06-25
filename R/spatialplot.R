@@ -1550,7 +1550,7 @@ SpatPointsPlot <- function(
     # because the points could be very small, we need to set a larger point size for the legend
     # to make it visible.
     # should we make this configurable?
-    legend_point_size <- 2.5
+    legend_point_size <- 3
 
     # Add appropriate scales
     if (color_by_is_column && !is.null(color_by)) {
