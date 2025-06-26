@@ -31,6 +31,7 @@ DimPlotAtomic(
   label_pt_size = 1,
   label_pt_color = "black",
   label_segment_color = "black",
+  order = c("as-is", "reverse", "high-top", "low-top", "random"),
   highlight = NULL,
   highlight_alpha = 1,
   highlight_size = 1,
@@ -166,6 +167,22 @@ A character/factor column is expected. If multiple columns are provided, the col
 
 \item{label_segment_color}{A character string of the label segment color. Default is "black".}
 
+\item{order}{A character string to determine the order of the points in the plot.
+\itemize{
+\item "as-is": no order, the order of the points in the data will be used
+" "reverse": reverse the order of the points in the data.
+\item "high-top": points with high values on top
+\item "low-top": points with low values on top
+\item "random": random order
+This works on \code{features} as they are numeric values.
+When this works on \code{group_by}, the ordering and coloring will not be changed in the legend. This is
+only affecting the order of drawing of the points in the plot.
+For \code{high-top} and \code{low-top} on \code{group_by}, the levels will be sorted based on levels of the factor.
+So \code{high-top} will put the points with the last levels on top, and \code{low-top} will put the points with the first levels on top.
+The order of points within the same level will not be changed anyway.
+If you need precise control over the order of \code{group_by}, set the levels of the factor before plotting.
+}}
+
 \item{highlight}{A character vector of the row names to highlight. Default is NULL.}
 
 \item{highlight_alpha}{A numeric value of the highlight transparency. Default is 1.}
@@ -238,6 +255,7 @@ If "@graph" is provided, the graph data will be extracted from the data attribut
 \item{lineages_whiskers_alpha}{A numeric value of the lineages whiskers transparency. Default is 0.5.}
 
 \item{velocity}{A character (integer) vector of the column names (indexes) to pull from data for velocity. Default is NULL.
+It can also be a data frame or matrix of the velocity embedding itself.
 If NULL, the velocity will not be plotted.}
 
 \item{velocity_plot_type}{A character string of the velocity plot type. Default is "raw".

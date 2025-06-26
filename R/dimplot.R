@@ -13,6 +13,21 @@
 #' @param bg_color A character string of the background or NA points. Default is "grey80".
 #' @param label_insitu Whether to place the raw labels (group names) in the center of the points with the corresponding group. Default is FALSE, which using numbers instead of raw labels.
 #' @param show_stat Whether to show the number of points in the subtitle. Default is TRUE.
+#' @param order A character string to determine the order of the points in the plot.
+#' * "as-is": no order, the order of the points in the data will be used
+#' * "reverse": reverse the order of the points in the data.
+#' * "high-top": points with high values on top
+#' * "low-top": points with low values on top
+#' * "random": random order
+#'
+#' This works on `features` as they are numeric values.
+#' When this works on `group_by`, the ordering and coloring will not be changed in the legend. This is
+#' only affecting the order of drawing of the points in the plot.
+#' For `high-top` and `low-top` on `group_by`, the levels will be sorted based on levels of the factor.
+#' So `high-top` will put the points with the last levels on top, and `low-top` will put the points with the first levels on top.
+#' The order of points within the same level will not be changed anyway.
+#' If you need precise control over the order of `group_by`, set the levels of the factor before plotting.
+#' See <https://github.com/pwwang/scplotter/issues/29#issuecomment-3009694130> for examples.
 #' @param label Whether to show the labels of groups. Default is FALSE.
 #' @param label_size A numeric value of the label size. Default is 4.
 #' @param label_fg A character string of the label foreground color. Default is "white".
@@ -97,7 +112,7 @@ DimPlotAtomic <- function(
     label_insitu = FALSE, show_stat = !identical(theme, "theme_blank"),
     label = FALSE, label_size = 4, label_fg = "white", label_bg = "black", label_bg_r = 0.1,
     label_repel = FALSE, label_repulsion = 20, label_pt_size = 1, label_pt_color = "black",
-    label_segment_color = "black",
+    label_segment_color = "black", order = c("as-is", "reverse", "high-top", "low-top", "random"),
     highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
     add_mark = FALSE, mark_type = c("hull", "ellipse", "rect", "circle"), mark_expand = unit(3, "mm"),
     mark_alpha = 0.1, mark_linetype = 1,
@@ -127,6 +142,7 @@ DimPlotAtomic <- function(
     } else {
         ggplot2::ggplot
     }
+    order <- match.arg(order)
     ## Setting up the parameters
     if (is.numeric(dims)) {
         dims <- colnames(data)[dims]
@@ -235,6 +251,15 @@ DimPlotAtomic <- function(
         data[[features]][data[[features]] < min(feat_colors_value, na.rm = TRUE)] <- min(feat_colors_value, na.rm = TRUE)
     }
     colorby <- ifelse(is.null(features), group_by, features)
+    if (order == "reverse") {
+        data <- data[nrow(data):1, , drop = FALSE]
+    } else if (order == "high-top") {
+        data <- dplyr::arrange(data, !!sym(colorby))
+    } else if (order == "low-top") {
+        data <- dplyr::arrange(data, dplyr::desc(!!sym(colorby)))
+    } else if (order == "random") {
+        data <- data[sample(nrow(data)), , drop = FALSE]
+    }
 
     # Do we have fill scale?
     has_fill <- FALSE
@@ -867,7 +892,7 @@ DimPlot <- function(
     label_insitu = FALSE, show_stat = !identical(theme, "theme_blank"),
     label = FALSE, label_size = 4, label_fg = "white", label_bg = "black", label_bg_r = 0.1,
     label_repel = FALSE, label_repulsion = 20, label_pt_size = 1, label_pt_color = "black",
-    label_segment_color = "black",
+    label_segment_color = "black", order = c("as-is", "reverse", "high-top", "low-top", "random"),
     highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
     add_mark = FALSE, mark_type = c("hull", "ellipse", "rect", "circle"), mark_expand = unit(3, "mm"),
     mark_alpha = 0.1, mark_linetype = 1,
@@ -936,7 +961,7 @@ DimPlot <- function(
                 label_insitu = label_insitu, show_stat = show_stat,
                 label = label, label_size = label_size, label_fg = label_fg, label_bg = label_bg, label_bg_r = label_bg_r,
                 label_repel = label_repel, label_repulsion = label_repulsion, label_pt_size = label_pt_size, label_pt_color = label_pt_color,
-                label_segment_color = label_segment_color,
+                label_segment_color = label_segment_color, order = order,
                 highlight = highlight, highlight_alpha = highlight_alpha, highlight_size = highlight_size, highlight_color = highlight_color, highlight_stroke = highlight_stroke,
                 add_mark = add_mark, mark_type = mark_type, mark_expand = mark_expand, mark_alpha = mark_alpha, mark_linetype = mark_linetype,
                 stat_by = stat_by, stat_plot_type = stat_plot_type, stat_plot_size = stat_plot_size, stat_args = stat_args,
@@ -1006,7 +1031,7 @@ FeatureDimPlot <- function(
     label_insitu = FALSE, show_stat = !identical(theme, "theme_blank"), color_name = "",
     label = FALSE, label_size = 4, label_fg = "white", label_bg = "black", label_bg_r = 0.1,
     label_repel = FALSE, label_repulsion = 20, label_pt_size = 1, label_pt_color = "black",
-    label_segment_color = "black",
+    label_segment_color = "black", order = c("as-is", "reverse", "high-top", "low-top", "random"),
     highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
     add_mark = FALSE, mark_type = c("hull", "ellipse", "rect", "circle"), mark_expand = unit(3, "mm"),
     mark_alpha = 0.1, mark_linetype = 1,
@@ -1044,7 +1069,7 @@ FeatureDimPlot <- function(
                 label_insitu = label_insitu, show_stat = show_stat, features = feature, bg_cutoff = bg_cutoff,
                 label = label, label_size = label_size, label_fg = label_fg, label_bg = label_bg, label_bg_r = label_bg_r,
                 label_repel = label_repel, label_repulsion = label_repulsion, label_pt_size = label_pt_size, label_pt_color = label_pt_color,
-                label_segment_color = label_segment_color,
+                label_segment_color = label_segment_color, order = order,
                 highlight = highlight, highlight_alpha = highlight_alpha, highlight_size = highlight_size, highlight_color = highlight_color, highlight_stroke = highlight_stroke,
                 add_mark = add_mark, mark_type = mark_type, mark_expand = mark_expand, mark_alpha = mark_alpha, mark_linetype = mark_linetype,
                 stat_by = stat_by, stat_plot_type = stat_plot_type, stat_plot_size = stat_plot_size, stat_args = stat_args,
@@ -1111,7 +1136,7 @@ FeatureDimPlot <- function(
                     label_insitu = label_insitu, show_stat = show_stat, bg_cutoff = bg_cutoff,
                     label = label, label_size = label_size, label_fg = label_fg, label_bg = label_bg, label_bg_r = label_bg_r,
                     label_repel = label_repel, label_repulsion = label_repulsion, label_pt_size = label_pt_size, label_pt_color = label_pt_color,
-                    label_segment_color = label_segment_color,
+                    label_segment_color = label_segment_color, order = order,
                     highlight = highlight, highlight_alpha = highlight_alpha, highlight_size = highlight_size, highlight_color = highlight_color, highlight_stroke = highlight_stroke,
                     add_mark = add_mark, mark_type = mark_type, mark_expand = mark_expand, mark_alpha = mark_alpha, mark_linetype = mark_linetype,
                     stat_by = stat_by, stat_plot_type = stat_plot_type, stat_plot_size = stat_plot_size, stat_args = stat_args,
