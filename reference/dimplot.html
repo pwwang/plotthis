@@ -67,6 +67,7 @@ FeatureDimPlot is used to plot the feature numeric values on the dimension reduc
 <span>  label_pt_size <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  label_pt_color <span class="op">=</span> <span class="st">"black"</span>,</span>
 <span>  label_segment_color <span class="op">=</span> <span class="st">"black"</span>,</span>
+<span>  order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"as-is"</span>, <span class="st">"reverse"</span>, <span class="st">"high-top"</span>, <span class="st">"low-top"</span>, <span class="st">"random"</span><span class="op">)</span>,</span>
 <span>  highlight <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  highlight_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  highlight_size <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -188,6 +189,7 @@ FeatureDimPlot is used to plot the feature numeric values on the dimension reduc
 <span>  label_pt_size <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  label_pt_color <span class="op">=</span> <span class="st">"black"</span>,</span>
 <span>  label_segment_color <span class="op">=</span> <span class="st">"black"</span>,</span>
+<span>  order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"as-is"</span>, <span class="st">"reverse"</span>, <span class="st">"high-top"</span>, <span class="st">"low-top"</span>, <span class="st">"random"</span><span class="op">)</span>,</span>
 <span>  highlight <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  highlight_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  highlight_size <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -372,6 +374,22 @@ If TRUE, we will split the data by the <code>features</code>. Each feature will 
 
 <dt id="arg-label-segment-color">label_segment_color<a class="anchor" aria-label="anchor" href="#arg-label-segment-color"></a></dt>
 <dd><p>A character string of the label segment color. Default is "black".</p></dd>
+
+
+<dt id="arg-order">order<a class="anchor" aria-label="anchor" href="#arg-order"></a></dt>
+<dd><p>A character string to determine the order of the points in the plot.</p><ul><li><p>"as-is": no order, the order of the points in the data will be used
+" "reverse": reverse the order of the points in the data.</p></li>
+<li><p>"high-top": points with high values on top</p></li>
+<li><p>"low-top": points with low values on top</p></li>
+<li><p>"random": random order
+This works on <code>features</code> as they are numeric values.
+When this works on <code>group_by</code>, the ordering and coloring will not be changed in the legend. This is
+only affecting the order of drawing of the points in the plot.
+For <code>high-top</code> and <code>low-top</code> on <code>group_by</code>, the levels will be sorted based on levels of the factor.
+So <code>high-top</code> will put the points with the last levels on top, and <code>low-top</code> will put the points with the first levels on top.
+The order of points within the same level will not be changed anyway.
+If you need precise control over the order of <code>group_by</code>, set the levels of the factor before plotting.</p></li>
+</ul></dd>
 
 
 <dt id="arg-highlight">highlight<a class="anchor" aria-label="anchor" href="#arg-highlight"></a></dt>
