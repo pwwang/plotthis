@@ -203,7 +203,8 @@ You can also use quantile notation like "q5" to specify the 5th percentile.}
 
 \item{add_trend}{A logical value to add trend line to the plot.}
 
-\item{trend_color}{A character string to specify the color of the trend line.}
+\item{trend_color}{A character string to specify the color of the trend line.
+This won't work when \code{group_by} is specified, the trend line will be colored by the \code{group_by} variable.#'}
 
 \item{trend_linewidth}{A numeric value to specify the width of the trend line.}
 

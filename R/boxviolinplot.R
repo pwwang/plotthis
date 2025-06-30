@@ -48,6 +48,7 @@
 #' @param box_ptsize A numeric value to specify the size of the box plot points in the middle.
 #' @param add_trend A logical value to add trend line to the plot.
 #' @param trend_color A character string to specify the color of the trend line.
+#' This won't work when `group_by` is specified, the trend line will be colored by the `group_by` variable.#'
 #' @param trend_linewidth A numeric value to specify the width of the trend line.
 #' @param trend_ptsize A numeric value to specify the size of the trend line points.
 #' @param add_stat A character string to add statistical test to the plot.
@@ -407,7 +408,7 @@ BoxViolinPlotAtomic <- function(
                 } else {
                     aes(y = !!sym(".y_median"), group = 1)
                 },
-                position = position_dodge(width = 0.9), color = "black", linewidth = trend_linewidth
+                position = position_dodge(width = 0.9), color = trend_color, linewidth = trend_linewidth
             )
         }
 
