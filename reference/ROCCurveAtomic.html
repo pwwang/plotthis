@@ -135,7 +135,7 @@ When <code>score_by</code> contains multiple columns, <code>group_by</code> shou
 
 
 <dt id="arg-ci">ci<a class="anchor" aria-label="anchor" href="#arg-ci"></a></dt>
-<dd><p>A list of arguments to pass to <code><a href="https://rdrr.io/pkg/plotROC/man/geom_rocci.html" class="external-link">plotROC::geom_rocci()</a></code> to add confidence intervals.
+<dd><p>A list of arguments to pass to <code><a href="https://sachsmc.github.io/plotROC/reference/geom_rocci.html" class="external-link">plotROC::geom_rocci()</a></code> to add confidence intervals.
 When NULL, no confidence intervals are added.</p></dd>
 
 
@@ -147,7 +147,7 @@ It will be the quantiles of the predicted scores.</p></dd>
 <dt id="arg-cutoffs-at">cutoffs_at<a class="anchor" aria-label="anchor" href="#arg-cutoffs-at"></a></dt>
 <dd><p>Vector of user supplied cutoffs to plot as points. If non-NULL,
 it will override the values of n_cuts and plot the observed cutoffs closest to the user-supplied ones.
-Both <code>cutoffs_at</code> and <code>cutoffs.labels</code> will be passed to <code><a href="https://rdrr.io/pkg/plotROC/man/geom_roc.html" class="external-link">plotROC::geom_roc()</a></code>.
+Both <code>cutoffs_at</code> and <code>cutoffs.labels</code> will be passed to <code><a href="https://sachsmc.github.io/plotROC/reference/geom_roc.html" class="external-link">plotROC::geom_roc()</a></code>.
 Other than numeric values, the following special values are allowed. These values are the methods of
 <code><a href="https://rdrr.io/pkg/OptimalCutpoints/man/optimal.cutpoints.html" class="external-link">OptimalCutpoints::optimal.cutpoints()</a></code>, they are literally:</p><ul><li><p>"CB" (cost-benefit method);</p></li>
 <li><p>"MCT" (minimizes Misclassification Cost Term);</p></li>
