@@ -293,10 +293,12 @@ If TRUE, we will split the data by the \code{features}. Each feature will be plo
 \item{order}{A character string to determine the order of the points in the plot.
 \itemize{
 \item "as-is": no order, the order of the points in the data will be used
-" "reverse": reverse the order of the points in the data.
+\item "reverse": reverse the order of the points in the data.
 \item "high-top": points with high values on top
 \item "low-top": points with low values on top
 \item "random": random order
+}
+
 This works on \code{features} as they are numeric values.
 When this works on \code{group_by}, the ordering and coloring will not be changed in the legend. This is
 only affecting the order of drawing of the points in the plot.
@@ -304,7 +306,7 @@ For \code{high-top} and \code{low-top} on \code{group_by}, the levels will be so
 So \code{high-top} will put the points with the last levels on top, and \code{low-top} will put the points with the first levels on top.
 The order of points within the same level will not be changed anyway.
 If you need precise control over the order of \code{group_by}, set the levels of the factor before plotting.
-}}
+See \url{https://github.com/pwwang/scplotter/issues/29#issuecomment-3009694130} for examples.}
 
 \item{highlight}{A character vector of the row names to highlight. Default is NULL.}
 
