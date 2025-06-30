@@ -28,6 +28,7 @@ VolcanoPlotAtomic(
   pt_alpha = 0.5,
   nlabel = 5,
   labels = NULL,
+  label_by = NULL,
   label_size = 3,
   label_fg = "black",
   label_bg = "white",

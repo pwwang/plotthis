@@ -49,7 +49,7 @@ VolcanoPlotAtomic <- function(
     flip_negatives = FALSE, x_cutoff = NULL, y_cutoff = 0.05, trim = c(0, 1), xlim = NULL,
     x_cutoff_name = NULL, y_cutoff_name = NULL, x_cutoff_color = "red2", y_cutoff_color = "blue2",
     x_cutoff_linetype = "dashed", y_cutoff_linetype = "dashed", x_cutoff_linewidth = 0.5, y_cutoff_linewidth = 0.5,
-    pt_size = 2, pt_alpha = 0.5, nlabel = 5, labels = NULL, label_size = 3, label_fg = "black", label_bg = "white",
+    pt_size = 2, pt_alpha = 0.5, nlabel = 5, labels = NULL, label_by = NULL, label_size = 3, label_fg = "black", label_bg = "white",
     label_bg_r = 0.1, highlight = NULL, highlight_color = "red", highlight_size = 2, highlight_alpha = 1,
     highlight_stroke = 0.5, facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL,
@@ -72,6 +72,7 @@ VolcanoPlotAtomic <- function(
     y <- check_columns(data, y)
     color_by <- check_columns(data, color_by)
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
+    label_by <- check_columns(data, label_by)
 
     data[[y]] <- ytrans(data[[y]])
     x_cutoff <- x_cutoff %||% 0
@@ -113,7 +114,7 @@ VolcanoPlotAtomic <- function(
     if (flip_negatives) {
         data[data[[x]] < 0, y] <- -data[data[[x]] < 0, y]
     }
-    data$.label <- rownames(data)
+    data$.label <- if (is.null(label_by)) rownames(data) else data[[label_by]]
     data$.show_label <- FALSE
 
 
@@ -149,7 +150,7 @@ VolcanoPlotAtomic <- function(
     }
     data <- data %>% mutate(.show_label = !!sym(".show_label") & !!sym(".category") != "insig") %>%
         as.data.frame()
-    rownames(data) <- data$.label
+    # rownames(data) <- data$.label
 
     # x_nudge is not an aesthetic, we can't specify it separately for negative and positive values
     # so we plot the points in two layers
@@ -362,21 +363,24 @@ VolcanoPlotAtomic <- function(
 #'      0.194, 0.194, 0.194, 0.194, 0.213, -0.235, -0.292),
 #'   group = sample(LETTERS[1:2], 104, replace = TRUE)
 #' )
-#' rownames(data) <- data$gene
+#' # If set, it will be used as labels if label_by is not set.
+#' # rownames(data) <- data$gene
 #'
 #' VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", color_by = "pct_diff",
 #'    y_cutoff_name = "-log10(0.05)")
+#' VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", color_by = "pct_diff",
+#'    y_cutoff_name = "-log10(0.05)", label_by = "gene")
 #' VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
-#'    flip_negatives = TRUE)
+#'    flip_negatives = TRUE, label_by = "gene")
 #' VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
-#'    flip_negatives = TRUE, facet_by = "group")
+#'    flip_negatives = TRUE, facet_by = "group", label_by = "gene")
 #' VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
-#'    flip_negatives = TRUE, split_by = "group")
+#'    flip_negatives = TRUE, split_by = "group", label_by = "gene")
 #' VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
 #'    highlight = c("ANXA2", "TMEM40", "PF4", "GNG11", "CLU", "CD9", "FGFBP2",
-#'    "TNFRSF1B", "IFI6"))
+#'    "TNFRSF1B", "IFI6"), label_by = "gene")
 #' VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", color_by = "pct_diff",
-#'    y_cutoff_name = "-log10(0.05)", split_by = "group",
+#'    y_cutoff_name = "-log10(0.05)", split_by = "group", label_by = "gene",
 #'    palette = c(A = "Set1", B = "Dark2"))
 #' }
 VolcanoPlot <- function(

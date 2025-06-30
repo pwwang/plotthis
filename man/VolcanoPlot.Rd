@@ -294,21 +294,24 @@ data <- data.frame(
      0.194, 0.194, 0.194, 0.194, 0.213, -0.235, -0.292),
   group = sample(LETTERS[1:2], 104, replace = TRUE)
 )
-rownames(data) <- data$gene
+# If set, it will be used as labels if label_by is not set.
+# rownames(data) <- data$gene
 
 VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", color_by = "pct_diff",
    y_cutoff_name = "-log10(0.05)")
+VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", color_by = "pct_diff",
+   y_cutoff_name = "-log10(0.05)", label_by = "gene")
 VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
-   flip_negatives = TRUE)
+   flip_negatives = TRUE, label_by = "gene")
 VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
-   flip_negatives = TRUE, facet_by = "group")
+   flip_negatives = TRUE, facet_by = "group", label_by = "gene")
 VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
-   flip_negatives = TRUE, split_by = "group")
+   flip_negatives = TRUE, split_by = "group", label_by = "gene")
 VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
    highlight = c("ANXA2", "TMEM40", "PF4", "GNG11", "CLU", "CD9", "FGFBP2",
-   "TNFRSF1B", "IFI6"))
+   "TNFRSF1B", "IFI6"), label_by = "gene")
 VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", color_by = "pct_diff",
-   y_cutoff_name = "-log10(0.05)", split_by = "group",
+   y_cutoff_name = "-log10(0.05)", split_by = "group", label_by = "gene",
    palette = c(A = "Set1", B = "Dark2"))
 }
 }
