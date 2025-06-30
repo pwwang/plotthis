@@ -6,7 +6,7 @@ source:
   path: ..
 
 build:
-  number: 2
+  number: 3
   rpaths:
     - lib/R/lib/
     - lib/
@@ -47,7 +47,7 @@ requirements:
     - r-ggforce
     - r-ggraph
     - r-ggridges
-    - bioconda::bioconductor-ggmanh
+    - pwwang::bioconductor-ggmanh
     - r-qqplotr
     - r-hexbin
     - r-igraph
@@ -96,7 +96,7 @@ requirements:
     - r-ggforce
     - r-ggraph
     - r-ggridges
-    - bioconda::bioconductor-ggmanh
+    - pwwang::bioconductor-ggmanh
     - r-qqplotr
     - r-hexbin
     - r-igraph
