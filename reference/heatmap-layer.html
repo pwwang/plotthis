@@ -48,15 +48,13 @@
 <span></span>
 <span><span class="fu">layer_reticle</span><span class="op">(</span><span class="va">j</span>, <span class="va">i</span>, <span class="va">x</span>, <span class="va">y</span>, <span class="va">w</span>, <span class="va">h</span>, <span class="va">fill</span>, <span class="va">color</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">layer_dot</span><span class="op">(</span><span class="va">j</span>, <span class="va">i</span>, <span class="va">x</span>, <span class="va">y</span>, <span class="va">w</span>, <span class="va">h</span>, <span class="va">fill</span>, <span class="va">hmdf</span>, <span class="va">dot_size</span>, <span class="va">alpha</span><span class="op">)</span></span>
+<span><span class="fu">layer_dot</span><span class="op">(</span><span class="va">j</span>, <span class="va">i</span>, <span class="va">x</span>, <span class="va">y</span>, <span class="va">w</span>, <span class="va">h</span>, <span class="va">fill</span>, <span class="va">data</span>, <span class="va">dot_size</span>, <span class="va">alpha</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">layer_bars</span><span class="op">(</span><span class="va">j</span>, <span class="va">i</span>, <span class="va">x</span>, <span class="va">y</span>, <span class="va">w</span>, <span class="va">h</span>, <span class="va">fill</span>, <span class="va">col_fun</span>, <span class="va">hmdf</span>, <span class="va">alpha</span><span class="op">)</span></span>
+<span><span class="fu">layer_bars</span><span class="op">(</span><span class="va">j</span>, <span class="va">i</span>, <span class="va">x</span>, <span class="va">y</span>, <span class="va">w</span>, <span class="va">h</span>, <span class="va">fill</span>, <span class="va">flip</span>, <span class="va">col_fun</span>, <span class="va">data</span>, <span class="va">alpha</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">layer_pie</span><span class="op">(</span><span class="va">j</span>, <span class="va">i</span>, <span class="va">x</span>, <span class="va">y</span>, <span class="va">w</span>, <span class="va">h</span>, <span class="va">fill</span>, <span class="va">palette</span>, <span class="va">palcolor</span>, <span class="va">hmdf</span>, <span class="va">pie_size</span><span class="op">)</span></span>
+<span><span class="fu">layer_pie</span><span class="op">(</span><span class="va">j</span>, <span class="va">i</span>, <span class="va">x</span>, <span class="va">y</span>, <span class="va">w</span>, <span class="va">h</span>, <span class="va">fill</span>, <span class="va">palette</span>, <span class="va">palcolor</span>, <span class="va">data</span>, <span class="va">pie_size</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">layer_violin</span><span class="op">(</span><span class="va">j</span>, <span class="va">i</span>, <span class="va">x</span>, <span class="va">y</span>, <span class="va">w</span>, <span class="va">h</span>, <span class="va">fill</span>, <span class="va">hmdf</span>, <span class="va">violin_fill</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">layer_boxplot</span><span class="op">(</span><span class="va">j</span>, <span class="va">i</span>, <span class="va">x</span>, <span class="va">y</span>, <span class="va">w</span>, <span class="va">h</span>, <span class="va">fill</span>, <span class="va">hmdf</span>, <span class="va">boxplot_fill</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">layer_boxviolin</span><span class="op">(</span><span class="va">j</span>, <span class="va">i</span>, <span class="va">x</span>, <span class="va">y</span>, <span class="va">w</span>, <span class="va">h</span>, <span class="va">fill</span>, <span class="va">flip</span>, <span class="va">data</span>, <span class="va">colors</span>, <span class="va">fn</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -99,7 +97,7 @@
 <dd><p>A character vector specifying the color of the reticle</p></dd>
 
 
-<dt id="arg-hmdf">hmdf<a class="anchor" aria-label="anchor" href="#arg-hmdf"></a></dt>
+<dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
 <dd><p>A dataframe used to create the annotation. Different from the data used to
 create the heatmap itself, which is aggregated data. This dataframe is the original data,
 where each cell could have multiple values.</p></dd>
@@ -114,13 +112,8 @@ from the values in the cell</p></dd>
 <dd><p>A function to calculate the color of the bars</p></dd>
 
 
-<dt id="arg-violin-fill">violin_fill<a class="anchor" aria-label="anchor" href="#arg-violin-fill"></a></dt>
+<dt id="arg-colors">colors<a class="anchor" aria-label="anchor" href="#arg-colors"></a></dt>
 <dd><p>A character vector specifying the fill color of the violin plot.
-If not provided, the fill color of row/column annotation will be used</p></dd>
-
-
-<dt id="arg-boxplot-fill">boxplot_fill<a class="anchor" aria-label="anchor" href="#arg-boxplot-fill"></a></dt>
-<dd><p>A character vector specifying the fill color of the boxplot.
 If not provided, the fill color of row/column annotation will be used</p></dd>
 
 </dl></div>
