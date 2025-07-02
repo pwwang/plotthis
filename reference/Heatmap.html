@@ -738,33 +738,27 @@ with a default unit "inches", or a string like "5inches" to specify the number a
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-plt img"><img src="Heatmap-9.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"cluster"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span>    <span class="co"># cell_type = "bars" (default is "tile")</span></span></span>
-<span class="r-in"><span>    <span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, values_by <span class="op">=</span> <span class="st">"value"</span>, rows_by <span class="op">=</span> <span class="st">"r"</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>,</span></span>
-<span class="r-in"><span>        cell_type <span class="op">=</span> <span class="st">"bars"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-plt img"><img src="Heatmap-10.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"cluster"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>    <span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, values_by <span class="op">=</span> <span class="st">"value"</span>, rows_by <span class="op">=</span> <span class="st">"r"</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>,</span></span>
 <span class="r-in"><span>        cell_type <span class="op">=</span> <span class="st">"dot"</span>, dot_size <span class="op">=</span> <span class="va">length</span>, dot_size_name <span class="op">=</span> <span class="st">"data points"</span>,</span></span>
 <span class="r-in"><span>        add_bg <span class="op">=</span> <span class="cn">TRUE</span>, add_reticle <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-plt img"><img src="Heatmap-11.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="Heatmap-10.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"cluster"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>    <span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, values_by <span class="op">=</span> <span class="st">"value"</span>, rows_by <span class="op">=</span> <span class="st">"r"</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>,</span></span>
 <span class="r-in"><span>        cell_type <span class="op">=</span> <span class="st">"pie"</span>, pie_group_by <span class="op">=</span> <span class="st">"q"</span>, pie_size <span class="op">=</span> <span class="va">sqrt</span>,</span></span>
 <span class="r-in"><span>        add_bg <span class="op">=</span> <span class="cn">TRUE</span>, add_reticle <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-plt img"><img src="Heatmap-12.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="Heatmap-11.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"cluster"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>    <span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, values_by <span class="op">=</span> <span class="st">"value"</span>, rows_by <span class="op">=</span> <span class="st">"r"</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>,</span></span>
 <span class="r-in"><span>        cell_type <span class="op">=</span> <span class="st">"violin"</span>, add_bg <span class="op">=</span> <span class="cn">TRUE</span>, add_reticle <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-plt img"><img src="Heatmap-13.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="Heatmap-12.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"cluster"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>    <span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, values_by <span class="op">=</span> <span class="st">"value"</span>, rows_by <span class="op">=</span> <span class="st">"r"</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>,</span></span>
 <span class="r-in"><span>        cell_type <span class="op">=</span> <span class="st">"boxplot"</span>, add_bg <span class="op">=</span> <span class="cn">TRUE</span>, add_reticle <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-plt img"><img src="Heatmap-14.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="Heatmap-13.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"cluster"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>    <span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>,</span></span>
 <span class="r-in"><span>        values_by <span class="op">=</span> <span class="st">"value"</span>, rows_by <span class="op">=</span> <span class="st">"r"</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>,</span></span>
@@ -782,24 +776,24 @@ with a default unit "inches", or a string like "5inches" to specify the number a
 <span class="r-in"><span>    <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>[Heatmap] Assuming 'row_annotation_agg["a"] = dplyr::first' for the simple annotation</span>
-<span class="r-plt img"><img src="Heatmap-15.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="Heatmap-14.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"cluster"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>    <span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>,</span></span>
 <span class="r-in"><span>        values_by <span class="op">=</span> <span class="st">"value"</span>, rows_by <span class="op">=</span> <span class="st">"r"</span>, columns_by <span class="op">=</span> <span class="st">"c"</span>,</span></span>
 <span class="r-in"><span>        split_by <span class="op">=</span> <span class="st">"p"</span>, palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Reds"</span>, y <span class="op">=</span> <span class="st">"Blues"</span><span class="op">)</span></span></span>
 <span class="r-in"><span>    <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-plt img"><img src="Heatmap-16.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="Heatmap-15.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"cluster"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>    <span class="co"># implies in_form = "wide-rows"</span></span></span>
 <span class="r-in"><span>    <span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows_by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"p1"</span>, <span class="st">"p2"</span><span class="op">)</span>, columns_by <span class="op">=</span> <span class="st">"c"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-plt img"><img src="Heatmap-17.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="Heatmap-16.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"cluster"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>    <span class="co"># implies wide-columns</span></span></span>
 <span class="r-in"><span>    <span class="fu">Heatmap</span><span class="op">(</span><span class="va">data</span>, rows_by <span class="op">=</span> <span class="st">"r"</span>, columns_by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"p1"</span>, <span class="st">"p2"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-plt img"><img src="Heatmap-18.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="Heatmap-17.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
