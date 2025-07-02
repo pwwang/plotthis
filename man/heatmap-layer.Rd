@@ -7,8 +7,7 @@
 \alias{layer_dot}
 \alias{layer_bars}
 \alias{layer_pie}
-\alias{layer_violin}
-\alias{layer_boxplot}
+\alias{layer_boxviolin}
 \title{Heatmap layer functions used to draw on the heatmap cells}
 \usage{
 layer_white_bg(j, i, x, y, w, h, fill)
@@ -17,15 +16,13 @@ layer_bg(j, i, x, y, w, h, fill, alpha)
 
 layer_reticle(j, i, x, y, w, h, fill, color)
 
-layer_dot(j, i, x, y, w, h, fill, hmdf, dot_size, alpha)
+layer_dot(j, i, x, y, w, h, fill, data, dot_size, alpha)
 
-layer_bars(j, i, x, y, w, h, fill, col_fun, hmdf, alpha)
+layer_bars(j, i, x, y, w, h, fill, flip, col_fun, data, alpha)
 
-layer_pie(j, i, x, y, w, h, fill, palette, palcolor, hmdf, pie_size)
+layer_pie(j, i, x, y, w, h, fill, palette, palcolor, data, pie_size)
 
-layer_violin(j, i, x, y, w, h, fill, hmdf, violin_fill)
-
-layer_boxplot(j, i, x, y, w, h, fill, hmdf, boxplot_fill)
+layer_boxviolin(j, i, x, y, w, h, fill, flip, data, colors, fn)
 }
 \arguments{
 \item{j}{An integer specifying the column index}
@@ -46,7 +43,7 @@ layer_boxplot(j, i, x, y, w, h, fill, hmdf, boxplot_fill)
 
 \item{color}{A character vector specifying the color of the reticle}
 
-\item{hmdf}{A dataframe used to create the annotation. Different from the data used to
+\item{data}{A dataframe used to create the annotation. Different from the data used to
 create the heatmap itself, which is aggregated data. This dataframe is the original data,
 where each cell could have multiple values.}
 
@@ -55,10 +52,7 @@ from the values in the cell}
 
 \item{col_fun}{A function to calculate the color of the bars}
 
-\item{violin_fill}{A character vector specifying the fill color of the violin plot.
-If not provided, the fill color of row/column annotation will be used}
-
-\item{boxplot_fill}{A character vector specifying the fill color of the boxplot.
+\item{colors}{A character vector specifying the fill color of the violin plot.
 If not provided, the fill color of row/column annotation will be used}
 }
 \description{

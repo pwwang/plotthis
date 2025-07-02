@@ -2,73 +2,65 @@
 % Please edit documentation in R/heatmap.R
 \name{HeatmapAtomic}
 \alias{HeatmapAtomic}
-\title{Atomic heatmap}
+\title{Atomic heatmap without split}
 \usage{
 HeatmapAtomic(
   data,
-  rows = NULL,
-  columns_by,
-  rows_name = "rows",
-  rows_split_name = "rows_split",
-  columns_name = "columns",
-  name = "value",
-  border = TRUE,
+  values_by,
+  rows_by = NULL,
+  rows_split_by = NULL,
+  columns_by = NULL,
+  columns_split_by = NULL,
+  palette = "RdBu",
+  palcolor = NULL,
   rows_palette = "Paired",
   rows_palcolor = NULL,
-  pie_group_by = NULL,
-  pie_group_by_sep = "_",
-  pie_palette = "Spectral",
-  pie_palcolor = NULL,
-  pie_size = NULL,
-  pie_name = NULL,
-  pie_size_name = "size",
-  pie_values = "count",
-  columns_by_sep = "_",
-  columns_split_by = NULL,
-  columns_split_name = NULL,
+  rows_split_palette = "simspec",
+  rows_split_palcolor = NULL,
   columns_palette = "Paired",
   columns_palcolor = NULL,
-  columns_split_by_sep = "_",
   columns_split_palette = "simspec",
   columns_split_palcolor = NULL,
+  pie_size_name = "size",
+  pie_size = NULL,
+  pie_values = "length",
+  pie_group_by = NULL,
+  pie_palette = "Spectral",
+  pie_palcolor = NULL,
+  bars_sample = 100,
+  label = identity,
+  label_size = 10,
+  violin_fill = NULL,
+  boxplot_fill = NULL,
+  dot_size = 8,
+  dot_size_name = "size",
+  legend_items = NULL,
+  legend_discrete = FALSE,
+  legend.position = "right",
+  legend.direction = "vertical",
   lower_quantile = 0,
   upper_quantile = 0.99,
   lower_cutoff = NULL,
   upper_cutoff = NULL,
-  rows_data = NULL,
-  rows_split_by = NULL,
-  rows_split_by_sep = "_",
-  rows_split_palette = "simspec",
-  rows_split_palcolor = NULL,
+  add_bg = FALSE,
+  bg_alpha = 0.5,
+  add_reticle = FALSE,
+  reticle_color = "grey",
   column_name_annotation = TRUE,
   column_name_legend = isFALSE(show_column_names) && !identical(legend.position, "none"),
   row_name_annotation = TRUE,
   row_name_legend = isFALSE(show_row_names) && !identical(legend.position, "none"),
   cluster_columns = TRUE,
   cluster_rows = TRUE,
-  legend_items = NULL,
-  legend_discrete = FALSE,
   show_row_names = !row_name_annotation,
   show_column_names = !column_name_annotation,
+  border = TRUE,
+  title = NULL,
   column_title = character(0),
   row_title = character(0),
   na_col = "grey85",
-  title = NULL,
   row_names_side = "right",
   column_names_side = "bottom",
-  bars_sample = 100,
-  flip = FALSE,
-  label_size = 10,
-  label = identity,
-  layer_fun_callback = NULL,
-  cell_type = c("tile", "bars", "label", "dot", "violin", "boxplot", "pie"),
-  cell_agg = mean,
-  add_bg = FALSE,
-  bg_alpha = 0.5,
-  violin_fill = NULL,
-  boxplot_fill = NULL,
-  dot_size = 8,
-  dot_size_name = "size",
   column_annotation = NULL,
   column_annotation_side = "top",
   column_annotation_palette = "Paired",
@@ -83,114 +75,119 @@ HeatmapAtomic(
   row_annotation_type = "auto",
   row_annotation_params = list(),
   row_annotation_agg = NULL,
-  add_reticle = FALSE,
-  reticle_color = "grey",
-  return_grob = FALSE,
-  palette = "RdBu",
-  palcolor = NULL,
+  flip = FALSE,
   alpha = 1,
-  legend.position = "right",
-  legend.direction = "vertical",
+  seed = 8525,
+  return_grob = FALSE,
+  layer_fun_callback = NULL,
+  cell_type = "tile",
+  cell_agg = NULL,
   ...
 )
 }
 \arguments{
 \item{data}{A data frame used to create the heatmap.
-The data should be in a long form where each row represents a instance in the heatmap.
-The \code{rows} should be multiple columns if you want to plot as rows, which you can refer as "features".}
+The data should be in a long form where each row represents a instance in the heatmap.}
 
-\item{rows}{A character string/vector of the column name(s) to plot for the rows
-Multiple columns in the data frame can be used as the rows. It can be:
-\itemize{
-\item A vector of column names: The columns will be used as the rows.
-\item A list of column names: The names will be used as row_split_by.
-\item A formula: \code{~ col1 + col2 + ...} The columns will be excluded from the data frame and used as the rows.
-\item NULL (default): The column names other than \code{columns_by}, \code{rows_split_by}, \code{columns_split_by} and \code{pie_group_by} will be used as the rows.
-}}
+\item{values_by}{A character of column name in \code{data} that contains the values to be plotted.
+This is required when \code{in_form} is \code{"long"}. For other formats, the values are pivoted into a column named by \code{values_by}.}
 
-\item{columns_by}{A character string of the column name to plot for the columns
-A character/factor column is expected.
-Multiple columns are also supported. If so, \code{NA}s can be used to exclude rows in that group.
-If there is a single value in each group (other than \code{NA}), the group name, rather than the value,
-will be shown in the column group annotation.}
+\item{rows_by}{A vector of column names in \code{data} that contains the row information.
+This is used to create the rows of the heatmap.
+When \code{in_form} is \code{"long"} or \code{"wide-columns"}, this is requied, and multiple columns can be specified,
+which will be concatenated by \code{rows_by_sep} into a single column.}
 
-\item{rows_name}{A character string specifying the name of rows, which will be shown in the
-row group annotation and the legend of it.}
+\item{rows_split_by}{A character of column name in \code{data} that contains the split information for rows.}
 
-\item{columns_name}{A character string specifying the name of columns, which will be shown in the
-column group annotation and the legend of it.
-Only used when \code{columns_by} has multiple columns.}
+\item{columns_by}{A vector of column names in \code{data} that contains the column information.
+This is used to create the columns of the heatmap.
+When \code{in_form} is \code{"long"} or \code{"wide-rows"}, this is required, and multiple columns can be specified,
+which will be concatenated by \code{columns_by_sep} into a single column.}
 
-\item{name}{A character string specifying the name of the main legend of the heatmap}
+\item{columns_split_by}{A character of column name in \code{data} that contains the split information for columns.}
 
-\item{border}{A logical value indicating whether to draw the border of the heatmap.
-If TRUE, the borders of the slices will be also drawn.}
+\item{palette}{A character string specifying the palette of the heatmap cells.}
+
+\item{palcolor}{A character vector of colors to override the palette of the heatmap cells.}
 
 \item{rows_palette}{A character string specifying the palette of the row group annotation.
 The default is "Paired".}
 
 \item{rows_palcolor}{A character vector of colors to override the palette of the row group annotation.}
 
-\item{pie_group_by}{A character string of the column name to group the data for the pie chart.}
+\item{rows_split_palette}{A character string specifying the palette of the row split annotation.
+The default is "simspec".}
 
-\item{pie_group_by_sep}{A character string to concatenate the columns in \code{pie_group_by} if there are multiple columns.}
-
-\item{pie_palette}{A character string specifying the palette of the pie chart.}
-
-\item{pie_palcolor}{A character vector of colors to override the palette of the pie chart.}
-
-\item{pie_size}{A numeric value or a function specifying the size of the pie chart.
-If it is a function, the function should take \code{count} as the argument and return the size.}
-
-\item{pie_name}{A character string specifying the name of the legend for the pie chart.}
-
-\item{pie_size_name}{A character string specifying the name of the legend for the pie size.}
-
-\item{pie_values}{How to calculate the values for the pie chart. Default is "count".
-Other options are "value" and a function.
-\itemize{
-\item "count": Count the number of instances in \code{pie_group_by}.
-\item "sum": Use the values in the columns specified by \code{rows} as the values.
-The sum of the values will be used.
-\item A function: The function should take a vector of values as the argument and return a single value, for each
-group in \code{pie_group_by}.
-}}
-
-\item{columns_by_sep}{A character string to concatenate the columns in \code{columns_by} if there are multiple columns.}
-
-\item{columns_split_by}{A character string of the column name to split the heatmap columns into slices.
-A character/factor column or multiple columns are expected.}
-
-\item{columns_split_name}{A character string specifying the name of the column split annotation.}
+\item{rows_split_palcolor}{A character vector of colors to override the palette of the row split annotation.}
 
 \item{columns_palette}{A character string specifying the palette of the column group annotation.
 The default is "Paired".}
 
 \item{columns_palcolor}{A character vector of colors to override the palette of the column group annotation.}
 
-\item{columns_split_by_sep}{A character string to concatenate the columns in \code{columns_split_by} if there are multiple columns.}
-
 \item{columns_split_palette}{A character string specifying the palette of the column split annotation.
 The default is "simspec".}
 
 \item{columns_split_palcolor}{A character vector of colors to override the palette of the column split annotation.}
 
+\item{pie_size_name}{A character string specifying the name of the legend for the pie size.}
+
+\item{pie_size}{A numeric value or a function specifying the size of the pie chart.
+If it is a function, the function should take \code{count} as the argument and return the size.}
+
+\item{pie_values}{A function or character that can be converted to a function by \code{\link[=match.arg]{match.arg()}}
+to calculate the values for the pie chart. Default is "length".
+The function should take a vector of values as the argument and return a single value, for each
+group in \code{pie_group_by}.}
+
+\item{pie_group_by}{A character of column name in \code{data} that contains the group information for pie charts.
+This is used to create pie charts in the heatmap when \code{cell_type} is \code{"pie"}.}
+
+\item{pie_palette}{A character string specifying the palette of the pie chart.}
+
+\item{pie_palcolor}{A character vector of colors to override the palette of the pie chart.}
+
+\item{bars_sample}{An integer specifying the number of samples to draw the bars.}
+
+\item{label}{A function to calculate the labels for the heatmap cells.
+It takes the aggregated values as the argument and returns the labels to be shown in the heatmap.
+No labels will be shown for the NA the returned values.}
+
+\item{label_size}{A numeric value specifying the size of the labels when \code{cell_type = "label"}.}
+
+\item{violin_fill}{A character vector of colors to override the fill color of the violin plot.
+If NULL, the fill color will be the same as the annotion.}
+
+\item{boxplot_fill}{A character vector of colors to override the fill color of the boxplot.
+If NULL, the fill color will be the same as the annotion.}
+
+\item{dot_size}{A numeric value specifying the size of the dot or a function to calculate the size
+from the values in the cell.}
+
+\item{dot_size_name}{A character string specifying the name of the legend for the dot size.}
+
+\item{legend_items}{A numeric vector with names to specifiy the items in the main legend.
+The names will be working as the labels of the legend items.}
+
+\item{legend_discrete}{A logical value indicating whether the main legend is discrete.}
+
+\item{legend.position}{A character string specifying the position of the legend.
+if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
+
+\item{legend.direction}{A character string specifying the direction of the legend.}
+
 \item{lower_quantile, upper_quantile, lower_cutoff, upper_cutoff}{Vector of minimum and maximum cutoff values or quantile values for each feature.
 It's applied to aggregated values when aggregated values are used (e.g. plot_type tile, label, etc).
 It's applied to raw values when raw values are used (e.g. plot_type bars, etc).}
 
-\item{rows_data}{A character string of the column name to use as the data for the row group annotation.
-If it starts with "@", it will be treated as an attribute of the data.}
+\item{add_bg}{A logical value indicating whether to add a background to the heatmap.
+Does not work with \code{cell_type = "bars"} or \code{cell_type = "tile"}.}
 
-\item{rows_split_by}{A character string of the column name to split the heatmap rows into slices.
-A character/factor column or multiple columns are expected.}
+\item{bg_alpha}{A numeric value between 0 and 1 specifying the transparency of the background.}
 
-\item{rows_split_by_sep}{A character string to concatenate the columns in \code{rows_split_by} if there are multiple columns.}
+\item{add_reticle}{A logical value indicating whether to add a reticle to the heatmap.}
 
-\item{rows_split_palette}{A character string specifying the palette of the row split annotation.
-The default is "simspec".}
-
-\item{rows_split_palcolor}{A character vector of colors to override the palette of the row split annotation.}
+\item{reticle_color}{A character string specifying the color of the reticle.}
 
 \item{column_name_annotation}{A logical value indicating whether to add the column annotation for the column names.
 which is a simple annotaion indicating the column names.}
@@ -208,16 +205,16 @@ If TRUE and columns_split_by is provided, the clustering will only be applied to
 \item{cluster_rows}{A logical value indicating whether to cluster the rows.
 If TRUE and rows_split_by is provided, the clustering will only be applied to the rows within the same split.}
 
-\item{legend_items}{A numeric vector with names to specifiy the items in the main legend.
-The names will be working as the labels of the legend items.}
-
-\item{legend_discrete}{A logical value indicating whether the main legend is discrete.}
-
 \item{show_row_names}{A logical value indicating whether to show the row names.
 If TRUE, the legend of the row group annotation will be hidden.}
 
 \item{show_column_names}{A logical value indicating whether to show the column names.
 If TRUE, the legend of the column group annotation will be hidden.}
+
+\item{border}{A logical value indicating whether to draw the border of the heatmap.
+If TRUE, the borders of the slices will be also drawn.}
+
+\item{title}{The global (column) title of the heatmap}
 
 \item{column_title}{A character string/vector of the column name(s) to use as the title of the column group annotation.}
 
@@ -226,51 +223,11 @@ If TRUE, the legend of the column group annotation will be hidden.}
 \item{na_col}{A character string specifying the color for missing values.
 The default is "grey85".}
 
-\item{title}{The global (column) title of the heatmap}
-
 \item{row_names_side}{A character string specifying the side of the row names.
 The default is "right".}
 
 \item{column_names_side}{A character string specifying the side of the column names.
 The default is "bottom".}
-
-\item{bars_sample}{An integer specifying the number of samples to draw the bars.}
-
-\item{flip}{A logical value indicating whether to flip the heatmap.}
-
-\item{label_size}{A numeric value specifying the size of the labels when \code{cell_type = "label"}.}
-
-\item{label}{A function to calculate the labels for the heatmap cells.
-It takes the aggregated values as the argument and returns the labels to be shown in the heatmap.
-No labels will be shown for the NA the returned values.}
-
-\item{layer_fun_callback}{A function to add additional layers to the heatmap.
-The function should have the following arguments: \code{j}, \code{i}, \code{x}, \code{y}, \code{w}, \code{h}, \code{fill}, \code{sr} and \code{sc}.
-Please also refer to the \code{layer_fun} argument in \code{ComplexHeatmap::Heatmap}.}
-
-\item{cell_type}{A character string specifying the type of the heatmap cells.
-The default is values. Other options are "bars", "label", "dot", "violin", "boxplot".
-Note that for pie chart, the values under columns specified by \code{rows} will not be used directly. Instead, the values
-will just be counted in different \code{pie_group_by} groups. \code{NA} values will not be counted.}
-
-\item{cell_agg}{A function to aggregate the values in the cell, for the cell type "tile" and "label".
-The default is \code{mean}.}
-
-\item{add_bg}{A logical value indicating whether to add a background to the heatmap.
-Does not work with \code{cell_type = "bars"} or \code{cell_type = "tile"}.}
-
-\item{bg_alpha}{A numeric value between 0 and 1 specifying the transparency of the background.}
-
-\item{violin_fill}{A character vector of colors to override the fill color of the violin plot.
-If NULL, the fill color will be the same as the annotion.}
-
-\item{boxplot_fill}{A character vector of colors to override the fill color of the boxplot.
-If NULL, the fill color will be the same as the annotion.}
-
-\item{dot_size}{A numeric value specifying the size of the dot or a function to calculate the size
-from the values in the cell.}
-
-\item{dot_size_name}{A character string specifying the name of the legend for the dot size.}
 
 \item{column_annotation}{A character string/vector of the column name(s) to use as the column annotation.
 Or a list with the keys as the names of the annotation and the values as the column names.}
@@ -318,23 +275,26 @@ Could be a list with the keys as the names of the annotation and the values as t
 
 \item{row_annotation_agg}{A function to aggregate the values in the row annotation.}
 
-\item{add_reticle}{A logical value indicating whether to add a reticle to the heatmap.}
+\item{flip}{A logical value indicating whether to flip the heatmap.}
 
-\item{reticle_color}{A character string specifying the color of the reticle.}
+\item{alpha}{A numeric value between 0 and 1 specifying the transparency of the heatmap cells.}
+
+\item{seed}{The random seed to use. Default is 8525.}
 
 \item{return_grob}{A logical value indicating whether to return the grob object of the heatmap.
 This is useful when merging multiple heatmaps using patchwork.}
 
-\item{palette}{A character string specifying the palette of the heatmap cells.}
+\item{layer_fun_callback}{A function to add additional layers to the heatmap.
+The function should have the following arguments: \code{j}, \code{i}, \code{x}, \code{y}, \code{w}, \code{h}, \code{fill}, \code{sr} and \code{sc}.
+Please also refer to the \code{layer_fun} argument in \code{ComplexHeatmap::Heatmap}.}
 
-\item{palcolor}{A character vector of colors to override the palette of the heatmap cells.}
+\item{cell_type}{A character string specifying the type of the heatmap cells.
+The default is values. Other options are "bars", "label", "dot", "violin", "boxplot".
+Note that for pie chart, the values under columns specified by \code{rows} will not be used directly. Instead, the values
+will just be counted in different \code{pie_group_by} groups. \code{NA} values will not be counted.}
 
-\item{alpha}{A numeric value between 0 and 1 specifying the transparency of the heatmap cells.}
-
-\item{legend.position}{A character string specifying the position of the legend.
-if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
-
-\item{legend.direction}{A character string specifying the direction of the legend.}
+\item{cell_agg}{A function to aggregate the values in the cell, for the cell type "tile" and "label".
+The default is \code{mean}.}
 
 \item{...}{Other arguments passed to \code{\link[ComplexHeatmap:Heatmap]{ComplexHeatmap::Heatmap()}}
 When \code{row_names_max_width} is passed, a unit is expected. But you can also pass a numeric values,
@@ -344,6 +304,6 @@ with a default unit "inches", or a string like "5inches" to specify the number a
 A drawn HeatmapList object if \code{return_grob = FALSE}. Otherwise, a grob/gTree object.
 }
 \description{
-Atomic heatmap
+Atomic heatmap without split
 }
 \keyword{internal}

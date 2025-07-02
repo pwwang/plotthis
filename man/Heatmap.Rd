@@ -6,45 +6,61 @@
 \usage{
 Heatmap(
   data,
-  rows = NULL,
-  columns_by,
-  rows_name = "rows",
-  columns_name = "columns",
+  values_by = NULL,
+  in_form = c("auto", "matrix", "wide-columns", "wide-rows", "long"),
   split_by = NULL,
   split_by_sep = "_",
-  split_rows_data = FALSE,
-  name = "value",
-  border = TRUE,
+  rows_by = NULL,
+  rows_by_sep = "_",
+  rows_split_by = NULL,
+  rows_split_by_sep = "_",
+  columns_by = NULL,
+  columns_by_sep = "_",
+  columns_split_by = NULL,
+  columns_split_by_sep = "_",
+  rows_data = NULL,
+  columns_data = NULL,
+  columns_name = NULL,
+  columns_split_name = NULL,
+  rows_name = NULL,
+  rows_split_name = NULL,
+  palette = "RdBu",
+  palcolor = NULL,
   rows_palette = "Paired",
   rows_palcolor = NULL,
-  title = NULL,
+  rows_split_palette = "simspec",
+  rows_split_palcolor = NULL,
+  columns_palette = "Paired",
+  columns_palcolor = NULL,
+  columns_split_palette = "simspec",
+  columns_split_palcolor = NULL,
+  pie_size_name = "size",
+  pie_size = NULL,
+  pie_values = "length",
+  pie_name = NULL,
   pie_group_by = NULL,
   pie_group_by_sep = "_",
   pie_palette = "Spectral",
   pie_palcolor = NULL,
-  pie_size = NULL,
-  pie_name = NULL,
-  pie_size_name = "size",
-  pie_values = "count",
+  bars_sample = 100,
+  label = identity,
+  label_size = 10,
+  violin_fill = NULL,
+  boxplot_fill = NULL,
+  dot_size = 8,
+  dot_size_name = "size",
   legend_items = NULL,
   legend_discrete = FALSE,
+  legend.position = "right",
+  legend.direction = "vertical",
   lower_quantile = 0,
   upper_quantile = 0.99,
   lower_cutoff = NULL,
   upper_cutoff = NULL,
-  columns_by_sep = "_",
-  columns_split_by = NULL,
-  columns_split_name = NULL,
-  columns_palette = "Paired",
-  columns_palcolor = NULL,
-  columns_split_by_sep = "_",
-  columns_split_palette = "simspec",
-  columns_split_palcolor = NULL,
-  rows_data = NULL,
-  rows_split_by = NULL,
-  rows_split_by_sep = "_",
-  rows_split_palette = "simspec",
-  rows_split_palcolor = NULL,
+  add_bg = FALSE,
+  bg_alpha = 0.5,
+  add_reticle = FALSE,
+  reticle_color = "grey",
   column_name_annotation = TRUE,
   column_name_legend = isFALSE(show_column_names) && !identical(legend.position, "none"),
   row_name_annotation = TRUE,
@@ -53,24 +69,13 @@ Heatmap(
   cluster_rows = TRUE,
   show_row_names = !row_name_annotation,
   show_column_names = !column_name_annotation,
+  border = TRUE,
+  title = NULL,
   column_title = character(0),
   row_title = character(0),
   na_col = "grey85",
   row_names_side = "right",
   column_names_side = "bottom",
-  bars_sample = 100,
-  flip = FALSE,
-  label_size = 10,
-  label = identity,
-  layer_fun_callback = NULL,
-  cell_type = c("tile", "bars", "label", "dot", "violin", "boxplot", "pie"),
-  cell_agg = mean,
-  add_bg = FALSE,
-  bg_alpha = 0.5,
-  violin_fill = NULL,
-  boxplot_fill = NULL,
-  dot_size = 8,
-  dot_size_name = "size",
   column_annotation = NULL,
   column_annotation_side = "top",
   column_annotation_palette = "Paired",
@@ -85,14 +90,12 @@ Heatmap(
   row_annotation_type = "auto",
   row_annotation_params = list(),
   row_annotation_agg = NULL,
-  add_reticle = FALSE,
-  reticle_color = "grey",
-  palette = "RdBu",
-  palcolor = NULL,
+  flip = FALSE,
   alpha = 1,
-  legend.position = "right",
-  legend.direction = "vertical",
   seed = 8525,
+  layer_fun_callback = NULL,
+  cell_type = c("tile", "bars", "label", "dot", "violin", "boxplot", "pie"),
+  cell_agg = NULL,
   combine = TRUE,
   nrow = NULL,
   ncol = NULL,
@@ -105,117 +108,157 @@ Heatmap(
 )
 }
 \arguments{
-\item{data}{A data frame used to create the heatmap.
-The data should be in a long form where each row represents a instance in the heatmap.
-The \code{rows} should be multiple columns if you want to plot as rows, which you can refer as "features".}
-
-\item{rows}{A character string/vector of the column name(s) to plot for the rows
-Multiple columns in the data frame can be used as the rows. It can be:
+\item{data}{A data frame or matrix containing the data to be plotted.
+Based on the \code{in_form}, the data can have the following formats:
 \itemize{
-\item A vector of column names: The columns will be used as the rows.
-\item A list of column names: The names will be used as row_split_by.
-\item A formula: \code{~ col1 + col2 + ...} The columns will be excluded from the data frame and used as the rows.
-\item NULL (default): The column names other than \code{columns_by}, \code{rows_split_by}, \code{columns_split_by} and \code{pie_group_by} will be used as the rows.
+\item \code{matrix}: A matrix with rows and columns directly representing the heatmap.
+\item \code{long}: A data frame in long format with columns for values, rows, and columns.
+\item \code{wide-rows}: A data frame in wide format with columns for heatmap rows and values,
+and a single column for heatmap columns.
+\item \code{wide-columns}: A data frame in wide format with columns for heatmap columns and values,
+and a single column for heatmap rows.
+\item \code{auto}: Automatically inferred from the data format.
+When \code{data} is a matrix, \code{in_form} is set to \code{"matrix"}. When \code{columns_by} has more than one column,
+\code{in_form} is set to \code{"wide-columns"}. When \code{rows_by} has more than one column,
+\code{in_form} is set to \code{"wide-rows"}. Otherwise, it is set to \code{"long"}.
 }}
 
-\item{columns_by}{A character string of the column name to plot for the columns
-A character/factor column is expected.
-Multiple columns are also supported. If so, \code{NA}s can be used to exclude rows in that group.
-If there is a single value in each group (other than \code{NA}), the group name, rather than the value,
-will be shown in the column group annotation.}
+\item{values_by}{A character of column name in \code{data} that contains the values to be plotted.
+This is required when \code{in_form} is \code{"long"}. For other formats, the values are pivoted into a column named by \code{values_by}.}
 
-\item{rows_name}{A character string specifying the name of rows, which will be shown in the
-row group annotation and the legend of it.}
+\item{in_form}{The format of the data. Can be one of \code{"matrix"}, \code{"long"}, \code{"wide-rows"}, \code{"wide-columns"}, or \code{"auto"}.
+Defaults to \code{"auto"}.}
 
-\item{columns_name}{A character string specifying the name of columns, which will be shown in the
-column group annotation and the legend of it.
-Only used when \code{columns_by} has multiple columns.}
+\item{split_by}{A character of column name in \code{data} that contains the split information to split into multiple heatmaps.
+This is used to create a list of heatmaps, one for each level of the split.
+Defaults to \code{NULL}, meaning no split.}
 
-\item{split_by}{The column(s) to split data by and plot separately.}
+\item{split_by_sep}{A character string to concat multiple columns in \code{split_by}.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
+\item{rows_by}{A vector of column names in \code{data} that contains the row information.
+This is used to create the rows of the heatmap.
+When \code{in_form} is \code{"long"} or \code{"wide-columns"}, this is requied, and multiple columns can be specified,
+which will be concatenated by \code{rows_by_sep} into a single column.}
 
-\item{split_rows_data}{A logical value indicating whether to split the rows data as well using 'split_by' and 'split_by_sep'.}
+\item{rows_by_sep}{A character string to concat multiple columns in \code{rows_by}.}
 
-\item{name}{A character string specifying the name of the main legend of the heatmap}
+\item{rows_split_by}{A character of column name in \code{data} that contains the split information for rows.}
 
-\item{border}{A logical value indicating whether to draw the border of the heatmap.
-If TRUE, the borders of the slices will be also drawn.}
+\item{rows_split_by_sep}{A character string to concat multiple columns in \code{rows_split_by}.}
+
+\item{columns_by}{A vector of column names in \code{data} that contains the column information.
+This is used to create the columns of the heatmap.
+When \code{in_form} is \code{"long"} or \code{"wide-rows"}, this is required, and multiple columns can be specified,
+which will be concatenated by \code{columns_by_sep} into a single column.}
+
+\item{columns_by_sep}{A character string to concat multiple columns in \code{columns_by}.}
+
+\item{columns_split_by}{A character of column name in \code{data} that contains the split information for columns.}
+
+\item{columns_split_by_sep}{A character string to concat multiple columns in \code{columns_split_by}.}
+
+\item{rows_data}{A data frame containing additional data for rows, which can be used to add annotations to the heatmap.
+It will be joined to the main data by \code{rows_by} and \code{split_by} if \code{split_by} exists in \code{rows_data}.
+This is useful for adding additional information to the rows of the heatmap.}
+
+\item{columns_data}{A data frame containing additional data for columns, which can be used to add annotations to the heatmap.
+It will be joined to the main data by \code{columns_by} and \code{split_by} if \code{split_by} exists in \code{columns_data}.
+This is useful for adding additional information to the columns of the heatmap.}
+
+\item{columns_name}{A character string to rename the column created by \code{columns_by}, which will be reflected in the name of the annotation or legend.}
+
+\item{columns_split_name}{A character string to rename the column created by \code{columns_split_by}, which will be reflected in the name of the annotation or legend.}
+
+\item{rows_name}{A character string to rename the column created by \code{rows_by}, which will be reflected in the name of the annotation or legend.}
+
+\item{rows_split_name}{A character string to rename the column created by \code{rows_split_by}, which will be reflected in the name of the annotation or legend.}
+
+\item{palette}{A character string specifying the palette of the heatmap cells.}
+
+\item{palcolor}{A character vector of colors to override the palette of the heatmap cells.}
 
 \item{rows_palette}{A character string specifying the palette of the row group annotation.
 The default is "Paired".}
 
 \item{rows_palcolor}{A character vector of colors to override the palette of the row group annotation.}
 
-\item{title}{A character string specifying the title of the plot.
-A function can be used to generate the title based on the default title.
-This is useful when split_by is used and the title needs to be dynamic.}
+\item{rows_split_palette}{A character string specifying the palette of the row split annotation.
+The default is "simspec".}
 
-\item{pie_group_by}{A character string of the column name to group the data for the pie chart.}
-
-\item{pie_group_by_sep}{A character string to concatenate the columns in \code{pie_group_by} if there are multiple columns.}
-
-\item{pie_palette}{A character string specifying the palette of the pie chart.}
-
-\item{pie_palcolor}{A character vector of colors to override the palette of the pie chart.}
-
-\item{pie_size}{A numeric value or a function specifying the size of the pie chart.
-If it is a function, the function should take \code{count} as the argument and return the size.}
-
-\item{pie_name}{A character string specifying the name of the legend for the pie chart.}
-
-\item{pie_size_name}{A character string specifying the name of the legend for the pie size.}
-
-\item{pie_values}{How to calculate the values for the pie chart. Default is "count".
-Other options are "value" and a function.
-\itemize{
-\item "count": Count the number of instances in \code{pie_group_by}.
-\item "sum": Use the values in the columns specified by \code{rows} as the values.
-The sum of the values will be used.
-\item A function: The function should take a vector of values as the argument and return a single value, for each
-group in \code{pie_group_by}.
-}}
-
-\item{legend_items}{A numeric vector with names to specifiy the items in the main legend.
-The names will be working as the labels of the legend items.}
-
-\item{legend_discrete}{A logical value indicating whether the main legend is discrete.}
-
-\item{lower_quantile, upper_quantile, lower_cutoff, upper_cutoff}{Vector of minimum and maximum cutoff values or quantile values for each feature.
-It's applied to aggregated values when aggregated values are used (e.g. plot_type tile, label, etc).
-It's applied to raw values when raw values are used (e.g. plot_type bars, etc).}
-
-\item{columns_by_sep}{A character string to concatenate the columns in \code{columns_by} if there are multiple columns.}
-
-\item{columns_split_by}{A character string of the column name to split the heatmap columns into slices.
-A character/factor column or multiple columns are expected.}
-
-\item{columns_split_name}{A character string specifying the name of the column split annotation.}
+\item{rows_split_palcolor}{A character vector of colors to override the palette of the row split annotation.}
 
 \item{columns_palette}{A character string specifying the palette of the column group annotation.
 The default is "Paired".}
 
 \item{columns_palcolor}{A character vector of colors to override the palette of the column group annotation.}
 
-\item{columns_split_by_sep}{A character string to concatenate the columns in \code{columns_split_by} if there are multiple columns.}
-
 \item{columns_split_palette}{A character string specifying the palette of the column split annotation.
 The default is "simspec".}
 
 \item{columns_split_palcolor}{A character vector of colors to override the palette of the column split annotation.}
 
-\item{rows_data}{A character string of the column name to use as the data for the row group annotation.
-If it starts with "@", it will be treated as an attribute of the data.}
+\item{pie_size_name}{A character string specifying the name of the legend for the pie size.}
 
-\item{rows_split_by}{A character string of the column name to split the heatmap rows into slices.
-A character/factor column or multiple columns are expected.}
+\item{pie_size}{A numeric value or a function specifying the size of the pie chart.
+If it is a function, the function should take \code{count} as the argument and return the size.}
 
-\item{rows_split_by_sep}{A character string to concatenate the columns in \code{rows_split_by} if there are multiple columns.}
+\item{pie_values}{A function or character that can be converted to a function by \code{\link[=match.arg]{match.arg()}}
+to calculate the values for the pie chart. Default is "length".
+The function should take a vector of values as the argument and return a single value, for each
+group in \code{pie_group_by}.}
 
-\item{rows_split_palette}{A character string specifying the palette of the row split annotation.
-The default is "simspec".}
+\item{pie_name}{A character string to rename the column created by \code{pie_group_by}, which will be reflected in the name of the annotation or legend.}
 
-\item{rows_split_palcolor}{A character vector of colors to override the palette of the row split annotation.}
+\item{pie_group_by}{A character of column name in \code{data} that contains the group information for pie charts.
+This is used to create pie charts in the heatmap when \code{cell_type} is \code{"pie"}.}
+
+\item{pie_group_by_sep}{A character string to concat multiple columns in \code{pie_group_by}.}
+
+\item{pie_palette}{A character string specifying the palette of the pie chart.}
+
+\item{pie_palcolor}{A character vector of colors to override the palette of the pie chart.}
+
+\item{bars_sample}{An integer specifying the number of samples to draw the bars.}
+
+\item{label}{A function to calculate the labels for the heatmap cells.
+It takes the aggregated values as the argument and returns the labels to be shown in the heatmap.
+No labels will be shown for the NA the returned values.}
+
+\item{label_size}{A numeric value specifying the size of the labels when \code{cell_type = "label"}.}
+
+\item{violin_fill}{A character vector of colors to override the fill color of the violin plot.
+If NULL, the fill color will be the same as the annotion.}
+
+\item{boxplot_fill}{A character vector of colors to override the fill color of the boxplot.
+If NULL, the fill color will be the same as the annotion.}
+
+\item{dot_size}{A numeric value specifying the size of the dot or a function to calculate the size
+from the values in the cell.}
+
+\item{dot_size_name}{A character string specifying the name of the legend for the dot size.}
+
+\item{legend_items}{A numeric vector with names to specifiy the items in the main legend.
+The names will be working as the labels of the legend items.}
+
+\item{legend_discrete}{A logical value indicating whether the main legend is discrete.}
+
+\item{legend.position}{A character string specifying the position of the legend.
+if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
+
+\item{legend.direction}{A character string specifying the direction of the legend.}
+
+\item{lower_quantile, upper_quantile, lower_cutoff, upper_cutoff}{Vector of minimum and maximum cutoff values or quantile values for each feature.
+It's applied to aggregated values when aggregated values are used (e.g. plot_type tile, label, etc).
+It's applied to raw values when raw values are used (e.g. plot_type bars, etc).}
+
+\item{add_bg}{A logical value indicating whether to add a background to the heatmap.
+Does not work with \code{cell_type = "bars"} or \code{cell_type = "tile"}.}
+
+\item{bg_alpha}{A numeric value between 0 and 1 specifying the transparency of the background.}
+
+\item{add_reticle}{A logical value indicating whether to add a reticle to the heatmap.}
+
+\item{reticle_color}{A character string specifying the color of the reticle.}
 
 \item{column_name_annotation}{A logical value indicating whether to add the column annotation for the column names.
 which is a simple annotaion indicating the column names.}
@@ -239,6 +282,11 @@ If TRUE, the legend of the row group annotation will be hidden.}
 \item{show_column_names}{A logical value indicating whether to show the column names.
 If TRUE, the legend of the column group annotation will be hidden.}
 
+\item{border}{A logical value indicating whether to draw the border of the heatmap.
+If TRUE, the borders of the slices will be also drawn.}
+
+\item{title}{The global (column) title of the heatmap}
+
 \item{column_title}{A character string/vector of the column name(s) to use as the title of the column group annotation.}
 
 \item{row_title}{A character string/vector of the column name(s) to use as the title of the row group annotation.}
@@ -251,44 +299,6 @@ The default is "right".}
 
 \item{column_names_side}{A character string specifying the side of the column names.
 The default is "bottom".}
-
-\item{bars_sample}{An integer specifying the number of samples to draw the bars.}
-
-\item{flip}{A logical value indicating whether to flip the heatmap.}
-
-\item{label_size}{A numeric value specifying the size of the labels when \code{cell_type = "label"}.}
-
-\item{label}{A function to calculate the labels for the heatmap cells.
-It takes the aggregated values as the argument and returns the labels to be shown in the heatmap.
-No labels will be shown for the NA the returned values.}
-
-\item{layer_fun_callback}{A function to add additional layers to the heatmap.
-The function should have the following arguments: \code{j}, \code{i}, \code{x}, \code{y}, \code{w}, \code{h}, \code{fill}, \code{sr} and \code{sc}.
-Please also refer to the \code{layer_fun} argument in \code{ComplexHeatmap::Heatmap}.}
-
-\item{cell_type}{A character string specifying the type of the heatmap cells.
-The default is values. Other options are "bars", "label", "dot", "violin", "boxplot".
-Note that for pie chart, the values under columns specified by \code{rows} will not be used directly. Instead, the values
-will just be counted in different \code{pie_group_by} groups. \code{NA} values will not be counted.}
-
-\item{cell_agg}{A function to aggregate the values in the cell, for the cell type "tile" and "label".
-The default is \code{mean}.}
-
-\item{add_bg}{A logical value indicating whether to add a background to the heatmap.
-Does not work with \code{cell_type = "bars"} or \code{cell_type = "tile"}.}
-
-\item{bg_alpha}{A numeric value between 0 and 1 specifying the transparency of the background.}
-
-\item{violin_fill}{A character vector of colors to override the fill color of the violin plot.
-If NULL, the fill color will be the same as the annotion.}
-
-\item{boxplot_fill}{A character vector of colors to override the fill color of the boxplot.
-If NULL, the fill color will be the same as the annotion.}
-
-\item{dot_size}{A numeric value specifying the size of the dot or a function to calculate the size
-from the values in the cell.}
-
-\item{dot_size_name}{A character string specifying the name of the legend for the dot size.}
 
 \item{column_annotation}{A character string/vector of the column name(s) to use as the column annotation.
 Or a list with the keys as the names of the annotation and the values as the column names.}
@@ -336,25 +346,23 @@ Could be a list with the keys as the names of the annotation and the values as t
 
 \item{row_annotation_agg}{A function to aggregate the values in the row annotation.}
 
-\item{add_reticle}{A logical value indicating whether to add a reticle to the heatmap.}
+\item{flip}{A logical value indicating whether to flip the heatmap.}
 
-\item{reticle_color}{A character string specifying the color of the reticle.}
-
-\item{palette}{A character string specifying the palette to use.
-A named list or vector can be used to specify the palettes for different \code{split_by} values.}
-
-\item{palcolor}{A character string specifying the color to use in the palette.
-A named list can be used to specify the colors for different \code{split_by} values.
-If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).}
-
-\item{alpha}{A numeric value specifying the transparency of the plot.}
-
-\item{legend.position}{A character string specifying the position of the legend.
-if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
-
-\item{legend.direction}{A character string specifying the direction of the legend.}
+\item{alpha}{A numeric value between 0 and 1 specifying the transparency of the heatmap cells.}
 
 \item{seed}{The random seed to use. Default is 8525.}
+
+\item{layer_fun_callback}{A function to add additional layers to the heatmap.
+The function should have the following arguments: \code{j}, \code{i}, \code{x}, \code{y}, \code{w}, \code{h}, \code{fill}, \code{sr} and \code{sc}.
+Please also refer to the \code{layer_fun} argument in \code{ComplexHeatmap::Heatmap}.}
+
+\item{cell_type}{A character string specifying the type of the heatmap cells.
+The default is values. Other options are "bars", "label", "dot", "violin", "boxplot".
+Note that for pie chart, the values under columns specified by \code{rows} will not be used directly. Instead, the values
+will just be counted in different \code{pie_group_by} groups. \code{NA} values will not be counted.}
+
+\item{cell_agg}{A function to aggregate the values in the cell, for the cell type "tile" and "label".
+The default is \code{mean}.}
 
 \item{combine}{Whether to combine the plots into one when facet is FALSE. Default is TRUE.}
 
@@ -395,13 +403,9 @@ Options are:
 Only relevant when \code{split_by} is used and \code{combine} is TRUE. When specified, \code{nrow}, \code{ncol}, and \code{byrow} are ignored.
 See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details.}
 
-\item{...}{Additional arguments.}
-}
-\value{
-The heatmap(s).
-When \code{split_by} is not provided, the function returns a single heatmap (\link[ComplexHeatmap:Heatmap]{ComplexHeatmap::Heatmap}-class object).
-When \code{split_by} is provided, the function returns a combined plot of multiple heatmaps wrapped by \link[patchwork:wrap_plots]{patchwork::wrap_plots}
-if \code{combine = TRUE}, otherwise, it returns a list of heatmaps.
+\item{...}{Other arguments passed to \code{\link[ComplexHeatmap:Heatmap]{ComplexHeatmap::Heatmap()}}
+When \code{row_names_max_width} is passed, a unit is expected. But you can also pass a numeric values,
+with a default unit "inches", or a string like "5inches" to specify the number and unit directly.}
 }
 \description{
 Heatmap is a popular way to visualize data in matrix format. It is widely used in biology to visualize gene expression data in microarray and RNA-seq data. The heatmap is a matrix where rows represent the samples and columns represent the features. The color of each cell represents the value of the feature in the sample. The color can be continuous or discrete. The heatmap can be split by the columns or rows to show the subgroups in the data. The heatmap can also be annotated by the columns or rows to show the additional information of the samples or features.
@@ -409,176 +413,136 @@ Heatmap is a popular way to visualize data in matrix format. It is widely used i
 \examples{
 \donttest{
 set.seed(8525)
-data <- data.frame(
-    F1 = rnorm(100, 0.1),
-    F2 = rnorm(100, 0.2),
-    F3 = rnorm(100),
-    F4 = rnorm(100, 0.3),
-    F5 = rnorm(100, -0.1),
-    F6 = rnorm(100, -0.2),
-    c = sample(letters[1:8], 100, replace = TRUE),
-    s = sample(LETTERS[1:2], 100, replace = TRUE),
-    p = sample(c("X", "Y", "Z"), 100, replace = TRUE),
-    a = sample(1:5, 100, replace = TRUE),
-    p1 = c(sample(c(1, NA), 100, replace = TRUE)),
-    p2 = c(sample(c(1, NA), 100, replace = TRUE)),
-    p3 = c(sample(c(1, NA), 100, replace = TRUE))
-)
-rows <- c("F1", "F2", "F3", "F4", "F5", "F6")
-rows_data <- data.frame(
-    rows = rep(c("F1", "F2", "F3", "F4", "F5", "F6"), each = 10),
-    rows1 = rep(c("F1", "F2", "F3", "F4", "F5", "F6"), each = 10),
-    rs = rep(letters[1:2], each = 30),
-    rp = sample(c("X", "Y", "Z"), 60, replace = TRUE),
-    rv = rnorm(60, 0.5)
-)
 
+matrix_data <- matrix(rnorm(60), nrow = 6, ncol = 10)
+rownames(matrix_data) <- paste0("R", 1:6)
+colnames(matrix_data) <- paste0("C", 1:10)
 if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data, rows = rows, columns_by = "c")
+    Heatmap(matrix_data)
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data,
-        rows = list(RG1 = c("F1", "F2", "F3"), RG2 = c("F4", "F5", "F6")),
-        columns_by = "c"
+    # use a different color palette
+    # change the main legend title
+    # show row names (legend will be hidden)
+    # show column names
+    # change the row name annotation name and side
+    # change the column name annotation name
+    Heatmap(matrix_data, palette = "viridis", values_by = "z-score",
+       show_row_names = TRUE, show_column_names = TRUE,
+       rows_name = "Features", row_names_side = "left",
+       columns_name = "Samples")
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # flip the heatmap
+    Heatmap(matrix_data, palette = "viridis", values_by = "z-score",
+       show_row_names = TRUE, show_column_names = TRUE,
+       rows_name = "Features", row_names_side = "left",
+       columns_name = "Samples", flip = TRUE)
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # add annotations to the heatmap
+    rows_data <- data.frame(
+       rows = paste0("R", 1:6),
+       group = sample(c("X", "Y", "Z"), 6, replace = TRUE)
+    )
+    Heatmap(matrix_data, rows_data = rows_data,
+        row_annotation = list(Group = "group"),
+        row_annotation_type = list(Group = "simple"),
+        row_annotation_palette = list(Group = "Spectral")
     )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-    # Multiple columns_by, each as a split
-    Heatmap(data, rows = rows, columns_by = c("c", "s"), columns_by_sep = "/")
+    Heatmap(matrix_data, rows_data = rows_data,
+        rows_split_by = "group"
+    )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data, rows = rows, columns_by = c("p1", "p2", "p3"))
+    # add labels to the heatmap
+    Heatmap(matrix_data, rows_data = rows_data,
+        rows_split_by = "group", cell_type = "label",
+        label = function(x) ifelse(
+            x > 0, scales::number(x, accuracy = 0.01), NA
+        )
+    )
+}
+
+# Use long form data
+N <- 500
+data <- data.frame(
+    value = rnorm(N),
+    c = sample(letters[1:8], N, replace = TRUE),
+    r = sample(LETTERS[1:5], N, replace = TRUE),
+    p = sample(c("x", "y"), N, replace = TRUE),
+    q = sample(c("X", "Y", "Z"), N, replace = TRUE),
+    a = as.character(sample(1:5, N, replace = TRUE)),
+    p1 = runif(N),
+    p2 = runif(N)
+)
+
+if (requireNamespace("cluster", quietly = TRUE)) {
+    Heatmap(data, rows_by = "r", columns_by = "c", values_by = "value",
+        rows_split_by = "p", columns_split_by = "q", show_column_names = TRUE)
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
+    # split into multiple heatmaps
     Heatmap(data,
-        rows = rows, columns_by = "c", split_by = "s",
+        values_by = "value", columns_by = "c", rows_by = "r", split_by = "p",
         upper_cutoff = 2, lower_cutoff = -2, legend.position = c("none", "right"),
         design = "AAAAAA#BBBBBBB"
     )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data, rows = rows, columns_by = "c", columns_split_by = "s")
+    # cell_type = "bars" (default is "tile")
+    Heatmap(data, values_by = "value", rows_by = "r", columns_by = "c",
+        cell_type = "bars")
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    Heatmap(data, values_by = "value", rows_by = "r", columns_by = "c",
+        cell_type = "dot", dot_size = length, dot_size_name = "data points",
+        add_bg = TRUE, add_reticle = TRUE)
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    Heatmap(data, values_by = "value", rows_by = "r", columns_by = "c",
+        cell_type = "pie", pie_group_by = "q", pie_size = sqrt,
+        add_bg = TRUE, add_reticle = TRUE)
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    Heatmap(data, values_by = "value", rows_by = "r", columns_by = "c",
+        cell_type = "violin", add_bg = TRUE, add_reticle = TRUE)
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    Heatmap(data, values_by = "value", rows_by = "r", columns_by = "c",
+        cell_type = "boxplot", add_bg = TRUE, add_reticle = TRUE)
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
     Heatmap(data,
-        rows = rows, columns_by = "c", columns_split_by = "s",
-        rows_data = rows_data, rows_split_by = "rs"
-    )
-}
-if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data,
-        rows = rows, columns_by = "c", columns_split_by = "s",
-        rows_data = rows_data, rows_split_by = "rs", flip = TRUE
-    )
-}
-if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data, rows = rows, columns_by = "c", cell_type = "bars")
-}
-if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data,
-        rows = rows, columns_by = "c", cell_type = "bars",
-        bars_sample = 3
-    )
-}
-if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data,
-        rows = rows, columns_by = "c", cell_type = "label",
-        label = function(x) scales::number(x, accuracy = 0.01)
-    )
-}
-if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data,
-        rows = rows, columns_by = "c", cell_type = "label",
-        label = function(x) ifelse(x <= 0, NA, scales::number(x, accuracy = 0.01))
-    )
-}
-if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data, rows = rows, columns_by = "c", cell_type = "dot")
-}
-if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data,
-        rows = rows, columns_by = "c", cell_type = "dot",
-        dot_size = mean
-    )
-}
-if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data,
-        rows = rows, columns_by = "c", cell_type = "dot",
-        dot_size = mean, row_name_annotation = FALSE, column_name_annotation = FALSE,
-        row_names_side = "left", cluster_rows = FALSE, cluster_columns = FALSE
-    )
-}
-if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data,
-        rows = rows, columns_by = "c", cell_type = "dot",
-        dot_size = mean, add_bg = TRUE
-    )
-}
-if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data,
-        rows = rows, columns_by = "c", cell_type = "dot",
-        dot_size = mean, add_reticle = TRUE
-    )
-}
-if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data,
-        cluster_rows = FALSE, cluster_columns = FALSE, columns_by = "p",
-        rows = c("p1", "p2", "p3"), name = "Category", pie_group_by = "c",
-        cell_type = "pie"
-    )
-}
-if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data,
-        cluster_rows = FALSE, cluster_columns = FALSE, columns_by = "p",
-        rows = c("p1", "p2", "p3"), name = "Category", pie_group_by = "c",
-        cell_type = "pie", pie_size = sqrt, add_bg = TRUE
-    )
-}
-if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data, rows = rows, columns_by = "c", cell_type = "violin")
-}
-if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data, rows = rows, columns_by = "c", cell_type = "boxplot")
-}
-if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data,
-        rows = rows, columns_by = "c", rows_data = rows_data,
-        column_annotation = list(p1 = "p", p2 = "p", F1 = "F1"),
-        column_annotation_type = list(p1 = "ring", p2 = "bar", F1 = "violin"),
+        values_by = "value", rows_by = "r", columns_by = "c",
+        column_annotation = list(r1 = "p", r2 = "q", r3 = "p1"),
+        column_annotation_type = list(r1 = "ring", r2 = "bar", r3 = "violin"),
         column_annotation_params = list(
-            p1 = list(height = grid::unit(10, "mm"), show_legend = FALSE),
-            F1 = list(height = grid::unit(18, "mm"))
+            r1 = list(height = grid::unit(10, "mm"), show_legend = FALSE),
+            r3 = list(height = grid::unit(18, "mm"))
         ),
-        rows_split_by = "rs",
-        row_annotation = c("rp", "rv", "rows1"),
+        row_annotation = c("q", "p2", "a"),
         row_annotation_side = "right",
-        row_annotation_type = list(rp = "pie", rv = "density", rows1 = "simple"),
-        row_annotation_params = list(rp = list(width = grid::unit(12, "mm"))),
+        row_annotation_type = list(q = "pie", p2 = "density", a = "simple"),
+        row_annotation_params = list(q = list(width = grid::unit(12, "mm"))),
         show_row_names = TRUE, show_column_names = TRUE
     )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
     Heatmap(data,
-        rows = rows, columns_by = "c", rows_data = rows_data,
-        column_annotation = list(p1 = "p", p2 = "p", F1 = "F1"),
-        column_annotation_type = list(p1 = "ring", p2 = "bar", F1 = "violin"),
-        column_annotation_params = list(
-            p1 = list(height = grid::unit(10, "mm"), show_legend = FALSE),
-            F1 = list(height = grid::unit(18, "mm"))
-        ),
-        rows_split_by = "rs",
-        row_annotation = c("rp", "rv", "rows1"),
-        row_annotation_side = "right",
-        row_annotation_type = list(rp = "pie", rv = "density", rows1 = "simple"),
-        row_annotation_params = list(rp = list(width = grid::unit(12, "mm"))),
-        show_row_names = TRUE, show_column_names = TRUE, flip = TRUE
+        values_by = "value", rows_by = "r", columns_by = "c",
+        split_by = "p", palette = list(x = "Reds", y = "Blues")
     )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data,
-        rows = rows, columns_by = "c", split_by = "p",
-        palette = list(X = "Reds", Y = "Blues", Z = "Purp")
-    )
+    # implies in_form = "wide-rows"
+    Heatmap(data, rows_by = c("p1", "p2"), columns_by = "c")
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # implies wide-columns
+    Heatmap(data, rows_by = "r", columns_by = c("p1", "p2"))
 }
 }
 }

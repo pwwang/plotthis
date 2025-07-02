@@ -1,3 +1,300 @@
+#' Process/normalize data passed to [Heatmap()]
+#'
+#' This function is used to process the data passed to [Heatmap()].
+#' @param data A data frame or matrix containing the data to be plotted.
+#' Based on the `in_form`, the data can have the following formats:
+#' * `matrix`: A matrix with rows and columns directly representing the heatmap.
+#' * `long`: A data frame in long format with columns for values, rows, and columns.
+#' * `wide-rows`: A data frame in wide format with columns for heatmap rows and values,
+#'    and a single column for heatmap columns.
+#' * `wide-columns`: A data frame in wide format with columns for heatmap columns and values,
+#'    and a single column for heatmap rows.
+#' * `auto`: Automatically inferred from the data format.
+#'    When `data` is a matrix, `in_form` is set to `"matrix"`. When `columns_by` has more than one column,
+#'    `in_form` is set to `"wide-columns"`. When `rows_by` has more than one column,
+#'    `in_form` is set to `"wide-rows"`. Otherwise, it is set to `"long"`.
+#' @param in_form The format of the data. Can be one of `"matrix"`, `"long"`, `"wide-rows"`, `"wide-columns"`, or `"auto"`.
+#' Defaults to `"auto"`.
+#' @param values_by A character of column name in `data` that contains the values to be plotted.
+#' This is required when `in_form` is `"long"`. For other formats, the values are pivoted into a column named by `values_by`.
+#' @param split_by A character of column name in `data` that contains the split information to split into multiple heatmaps.
+#' This is used to create a list of heatmaps, one for each level of the split.
+#' Defaults to `NULL`, meaning no split.
+#' @param split_by_sep A character string to concat multiple columns in `split_by`.
+#' @param rows_by A vector of column names in `data` that contains the row information.
+#' This is used to create the rows of the heatmap.
+#' When `in_form` is `"long"` or `"wide-columns"`, this is requied, and multiple columns can be specified,
+#' which will be concatenated by `rows_by_sep` into a single column.
+#' @param rows_by_sep A character string to concat multiple columns in `rows_by`.
+#' @param rows_name A character string to rename the column created by `rows_by`, which will be reflected in the name of the annotation or legend.
+#' @param rows_split_by A character of column name in `data` that contains the split information for rows.
+#' @param rows_split_by_sep A character string to concat multiple columns in `rows_split_by`.
+#' @param rows_split_name A character string to rename the column created by `rows_split_by`, which will be reflected in the name of the annotation or legend.
+#' @param columns_by A vector of column names in `data` that contains the column information.
+#' This is used to create the columns of the heatmap.
+#' When `in_form` is `"long"` or `"wide-rows"`, this is required, and multiple columns can be specified,
+#' which will be concatenated by `columns_by_sep` into a single column.
+#' @param columns_by_sep A character string to concat multiple columns in `columns_by`.
+#' @param columns_name A character string to rename the column created by `columns_by`, which will be reflected in the name of the annotation or legend.
+#' @param columns_split_by A character of column name in `data` that contains the split information for columns.
+#' @param columns_split_by_sep A character string to concat multiple columns in `columns_split_by`.
+#' @param columns_split_name A character string to rename the column created by `columns_split_by`, which will be reflected in the name of the annotation or legend.
+#' @param pie_group_by A character of column name in `data` that contains the group information for pie charts.
+#' This is used to create pie charts in the heatmap when `cell_type` is `"pie"`.
+#' @param pie_group_by_sep A character string to concat multiple columns in `pie_group_by`.
+#' @param pie_name A character string to rename the column created by `pie_group_by`, which will be reflected in the name of the annotation or legend.
+#' @param rows_data A data frame containing additional data for rows, which can be used to add annotations to the heatmap.
+#' It will be joined to the main data by `rows_by` and `split_by` if `split_by` exists in `rows_data`.
+#' This is useful for adding additional information to the rows of the heatmap.
+#' @param columns_data A data frame containing additional data for columns, which can be used to add annotations to the heatmap.
+#' It will be joined to the main data by `columns_by` and `split_by` if `split_by` exists in `columns_data`.
+#' This is useful for adding additional information to the columns of the heatmap.
+#' @return A list containing the processed data and metadata:
+#' * `data`: A list of data frames, one for each level of `split_by`. If no `split_by` is provided, the name will be `"..."`.
+#'    Each data frame is in the long format.
+#' * `values_by`: The name of the column containing the values to be plotted.
+#' * `rows_by`: The name of the column containing the row information.
+#' * `rows_split_by`: The name of the column containing the row split information.
+#' * `columns_by`: The name of the column containing the column information.
+#' * `columns_split_by`: The name of the column containing the column split information.
+#' * `pie_group_by`: The name of the column containing the pie group information.
+#' @importFrom rlang sym %||%
+#' @keywords internal
+process_heatmap_data <- function(
+    data, in_form, values_by,
+    split_by, split_by_sep,
+    rows_by, rows_by_sep, rows_name,
+    rows_split_by, rows_split_by_sep, rows_split_name,
+    columns_by, columns_by_sep, columns_name,
+    columns_split_by, columns_split_by_sep, columns_split_name,
+    pie_group_by, pie_group_by_sep, pie_name,
+    rows_data, columns_data
+) {
+    # Infer in_form
+    if (in_form == "auto") {
+        if (is.matrix(data)) {
+            in_form <- "matrix"
+        } else if (length(rows_by) > 1) {
+            in_form <- "wide-rows"
+        } else if (length(columns_by) > 1) {
+            in_form <- "wide-columns"
+        } else {
+            in_form <- "long"
+        }
+    }
+
+    if (in_form == "matrix") {
+        stopifnot("[Heatmap] 'split_by' is not supported when 'in_form = \"matrix\"'." = is.null(split_by))
+        stopifnot("[Heatmap] 'rows_by' is not supported when 'in_form = \"matrix\"'." = is.null(rows_by))
+        stopifnot("[Heatmap] 'columns_by' is not supported when 'in_form = \"matrix\"'." = is.null(columns_by))
+        stopifnot("[Heatmap] 'pie_group_by' is not supported when 'in_form = \"matrix\"'." = is.null(pie_group_by))
+
+        rows_name <- rows_name %||% "rows"
+        data <- as.data.frame(data)
+        columns_by <- colnames(data)
+        data[rows_name] <- rownames(data)
+        rows_by <- rows_name
+
+        in_form <- "wide-columns"
+    }
+
+    # pie_group_by should be always in the main data
+    pie_group_by <- check_columns(
+        data, pie_group_by,
+        force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = pie_group_by_sep
+    )
+
+    split_by <- check_columns(
+        data, split_by,
+        force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep
+    )
+
+    if (in_form == "long") {
+        # values_by
+        values_by <- check_columns(data, values_by)
+        stopifnot("[Heatmap] 'values_by' must be specified when 'in_form = \"long\"'." = !is.null(values_by))
+
+        # rows_by/rows_split_by
+        rows_by <- check_columns(
+            data, rows_by,
+            force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = rows_by_sep
+        )
+        stopifnot("[Heatmap] 'rows_by' must be specified when 'in_form = \"long\"'." = !is.null(rows_by))
+        rows_split_by <- check_columns(
+            data, rows_split_by,
+            force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = rows_split_by_sep
+        )
+
+        # columns_by/columns_split_by
+        columns_by <- check_columns(
+            data, columns_by,
+            force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = columns_by_sep
+        )
+        stopifnot("[Heatmap] 'columns_by' must be specified when 'in_form = \"long\"'." = !is.null(columns_by))
+        columns_split_by <- check_columns(
+            data, columns_split_by,
+            force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = columns_split_by_sep
+        )
+
+        # join rows_data/columns_data
+        if (!is.null(rows_data)) {
+            join_by <- if (is.null(split_by) || !split_by %in% colnames(rows_data)) {
+                rows_by
+            } else {
+                c(rows_by, split_by)
+            }
+            data <- dplyr::left_join(data, rows_data, by = join_by, suffix = c("", ".x"))
+        }
+        if (!is.null(columns_data)) {
+            join_by <- if (is.null(split_by) || !split_by %in% colnames(columns_data)) {
+                columns_by
+            } else {
+                c(columns_by, split_by)
+            }
+            data <- dplyr::left_join(data, columns_data, by = join_by, suffix = c("", ".y"))
+        }
+
+        # rename
+        if (!is.null(rows_name)) {
+            data <- dplyr::rename(data, !!sym(rows_name) := rows_by)
+            rows_by <- rows_name
+        }
+        if (!is.null(columns_name)) {
+            data <- dplyr::rename(data, !!sym(columns_name) := columns_by)
+            columns_by <- columns_name
+        }
+    } else if (in_form == "wide-rows") {
+        # columns_split_by columns_by pie_group_by rows1 rows2 ...
+        # csb1             cb1        pgb1         0.1   0.2   ...
+        # csb2             cb2        pgb2         0.3   0.4   ...
+        #                    ... ...
+        # rows_by
+        rows_by <- rows_by %||% setdiff(colnames(data), c(columns_by, columns_split_by, pie_group_by))
+        rows_name <- rows_name %||% ifelse("rows" %in% colnames(data), "rows.1", "rows")
+        values_by <- values_by %||% ifelse("value" %in% colnames(data), "value.1", "value")
+        data <- tidyr::pivot_longer(data, cols = rows_by, names_to = rows_name, values_to = values_by)
+        data[[rows_name]] <- factor(data[[rows_name]], levels = rows_by)
+        data <- data[order(data[[rows_name]]), , drop = FALSE]
+        rows_by <- rows_name
+
+        # columns_by/columns_split_by
+        columns_by <- check_columns(
+            data, columns_by,
+            force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = columns_by_sep
+        )
+        stopifnot("[Heatmap] 'columns_by' must be specified when 'in_form = \"wide-rows\"'." = !is.null(columns_by))
+
+        # rows_data/columns_data
+        if (!is.null(rows_data)) {
+            join_by <- if (is.null(split_by) || !split_by %in% colnames(rows_data)) {
+                rows_by
+            } else {
+                c(rows_by, split_by)
+            }
+            data <- dplyr::left_join(data, rows_data, by = join_by, suffix = c("", ".x"))
+        }
+        row_split_by <- check_columns(
+            data, rows_split_by,
+            force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = rows_split_by_sep
+        )
+        if (!is.null(columns_data)) {
+            join_by <- if (is.null(split_by) || !split_by %in% colnames(columns_data)) {
+                columns_by
+            } else {
+                c(columns_by, split_by)
+            }
+            data <- dplyr::left_join(data, columns_data, by = join_by, suffix = c("", ".y"))
+        }
+        columns_split_by <- check_columns(
+            data, columns_split_by,
+            force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = columns_split_by_sep
+        )
+
+        if (!is.null(columns_name)) {
+            data <- dplyr::rename(data, !!sym(columns_name) := columns_by)
+            columns_by <- columns_name
+        }
+    } else {  # wide-columns
+        # rows_split_by rows_by pie_group_by columns1 columns2 ...
+        # rsb1          cb1        pgb1         0.1   0.2   ...
+        # rsb2          cb2        pgb2         0.3   0.4   ...
+        #                    ... ...
+        # rows_by/rows_split_by
+        rows_by <- check_columns(
+            data, rows_by,
+            force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = rows_by_sep
+        )
+        stopifnot("[Heatmap] 'rows_by' must be specified when 'in_form = \"wide-columns\"'." = !is.null(rows_by))
+
+        # columns_by
+        columns_by <- columns_by %||% setdiff(colnames(data), c(rows_by, rows_split_by, pie_group_by))
+        columns_name <- columns_name %||% ifelse("columns" %in% colnames(data), "columns.1", "columns")
+        values_by <- values_by %||% ifelse("value" %in% colnames(data), "value.1", "value")
+        data <- tidyr::pivot_longer(data, cols = columns_by, names_to = columns_name, values_to = values_by)
+        data[[columns_name]] <- factor(data[[columns_name]], levels = columns_by)
+        data <- data[order(data[[columns_name]]), , drop = FALSE]
+        columns_by <- columns_name
+
+        # rows_data/columns_data
+        if (!is.null(rows_data)) {
+            join_by <- if (is.null(split_by) || !split_by %in% colnames(rows_data)) {
+                rows_by
+            } else {
+                c(rows_by, split_by)
+            }
+            data <- dplyr::left_join(data, rows_data, by = join_by, suffix = c("", ".x"))
+        }
+        rows_split_by <- check_columns(
+            data, rows_split_by,
+            force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = rows_split_by_sep
+        )
+        if (!is.null(columns_data)) {
+            join_by <- if (is.null(split_by) || !split_by %in% colnames(columns_data)) {
+                columns_by
+            } else {
+                c(columns_by, split_by)
+            }
+            data <- dplyr::left_join(data, columns_data, by = join_by, suffix = c("", ".y"))
+        }
+        columns_split_by <- check_columns(
+            data, columns_split_by,
+            force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = columns_split_by_sep
+        )
+
+        if (!is.null(rows_name)) {
+            data <- dplyr::rename(data, !!sym(rows_name) := rows_by)
+            rows_by <- rows_name
+        }
+    }
+
+    if (!is.null(rows_split_name) && !is.null(rows_split_by)) {
+        data <- dplyr::rename(data, !!sym(rows_split_name) := rows_split_by)
+        rows_split_by <- rows_split_name
+    }
+    if (!is.null(columns_split_name) && !is.null(columns_split_by)) {
+        data <- dplyr::rename(data, !!sym(columns_split_name) := columns_split_by)
+        columns_split_by <- columns_split_name
+    }
+    if (!is.null(pie_name) && !is.null(pie_group_by)) {
+        data <- dplyr::rename(data, !!sym(pie_name) := pie_group_by)
+        pie_group_by <- pie_name
+    }
+
+    list(
+        data = if (is.null(split_by)) {
+            stats::setNames(list(data), "...")
+        } else {
+            split(select(data, -!!sym(split_by)), data[[split_by]])
+        },
+        values_by = values_by,
+        rows_by = rows_by,
+        rows_split_by = rows_split_by,
+        columns_by = columns_by,
+        columns_split_by = columns_split_by,
+        pie_group_by = pie_group_by
+    )
+}
+
 #' Get the grid.draw-able ggplot grob
 #' The output from ggplotGrob can not be directly used in grid.draw, the position can not be set.
 #' This function extracts the gTree from the ggplot grob.
@@ -43,9 +340,7 @@ gggrob <- function(p, void = TRUE, nolegend = TRUE) {
 #' @importFrom tidyr unite
 .anno_ggcat <- function(x, split_by = NULL, group_by, column, title, which = "row", palette,
                         palcolor = NULL, border = TRUE, legend.direction, show_legend = TRUE, .plotting, ...) {
-    if (!is.factor(x[[column]])) {
-        x[[column]] <- factor(x[[column]], levels = unique(x[[column]]))
-    }
+    column <- check_columns(x, column, force_factor = TRUE)
     clevels <- levels(x[[column]])
 
     if (!is.null(split_by)) {
@@ -69,6 +364,9 @@ gggrob <- function(p, void = TRUE, nolegend = TRUE) {
     }
     anno <- ComplexHeatmap::AnnotationFunction(
         fun = function(index, k, n) {
+            if (which == "row") {
+                index <- rev(index)
+            }
             grobs <- grobs[index]
             total <- length(index)
             # draw border
@@ -385,15 +683,15 @@ layer_reticle <- function(j, i, x, y, w, h, fill, color) {
 }
 
 #' @rdname heatmap-layer
-#' @param hmdf A dataframe used to create the annotation. Different from the data used to
+#' @param data A dataframe used to create the annotation. Different from the data used to
 #'  create the heatmap itself, which is aggregated data. This dataframe is the original data,
 #'  where each cell could have multiple values.
 #' @param dot_size A numeric value specifying the size of the dot or a function to calculate the size
 #'  from the values in the cell
 #' @keywords internal
-layer_dot <- function(j, i, x, y, w, h, fill, hmdf, dot_size, alpha) {
+layer_dot <- function(j, i, x, y, w, h, fill, data, dot_size, alpha) {
     if (is.function(dot_size)) {
-        s <- ComplexHeatmap::pindex(hmdf, i, j)
+        s <- unlist(data[paste(i, j, sep = "-")])
         s <- scales::rescale(s, to = c(0.2, 1))
         grid.points(x, y,
             pch = 21, size = unit(10, "mm") * s,
@@ -401,7 +699,7 @@ layer_dot <- function(j, i, x, y, w, h, fill, hmdf, dot_size, alpha) {
         )
     } else {
         grid.points(x, y,
-            pch = 21, size = unit(dot_size, "mm"),
+            pch = 21, size = unit(unlist(dot_size), "mm"),
             gp = gpar(col = "black", lwd = 1, fill = adjcolors(fill, alpha))
         )
     }
@@ -410,44 +708,45 @@ layer_dot <- function(j, i, x, y, w, h, fill, hmdf, dot_size, alpha) {
 #' @rdname heatmap-layer
 #' @param col_fun A function to calculate the color of the bars
 #' @keywords internal
-layer_bars <- function(j, i, x, y, w, h, fill, col_fun, hmdf, alpha) {
+layer_bars <- function(j, i, x, y, w, h, fill, flip, col_fun, data, alpha) {
     # colors be like [1,1.9]: '#A6CEE3' (1.9,2.8]: '#1F78B4' (2.8,3.7]: '#B2DF8A'
-    bdata <- ComplexHeatmap::pindex(hmdf, i, j)
-    if (!is.null(names(bdata))) { # flip = TRUE
-        bdata <- unlist(bdata, recursive = FALSE)
+    indices <- paste(i, j, sep = "-")
+    data <- data[indices]
+    ns <- lengths(data)
+    if (flip) {
+        # rep(w / ns, ns) can't keep the unit
+        bw <- rep(w, lengths(data))
+        bh <- rep(sapply(seq_along(h), function(m) h[m] / ns[m]), ns)
+        by <- unlist(lapply(seq_along(y), function(m) {
+            y[m] - h[m] / 2 + seq_along(data[[m]]) * h[m] / length(data[[m]])
+        })) - bh / 2
+        bx <- rep(x, lengths(data))
+    } else {
+        # rep(w / ns, ns) can't keep the unit
+        bw <- rep(sapply(seq_along(w), function(m) w[m] / ns[m]), ns)
+        bh <- rep(h, lengths(data))
+        bx <- unlist(lapply(seq_along(x), function(m) {
+            x[m] - w[m] / 2 + seq_along(data[[m]]) * w[m] / length(data[[m]])
+        })) - bw / 2
+        by <- rep(y, lengths(data))
     }
-    ns <- lengths(bdata)
-    # rep(w / ns, ns) can't keep the unit
-    bw <- rep(sapply(seq_along(w), function(m) w[m] / ns[m]), ns)
-    bx <- unlist(lapply(seq_along(x), function(m) {
-        x[m] - w[m] / 2 + seq_along(bdata[[m]]) * w[m] / length(bdata[[m]])
-    })) - bw / 2
-    by <- rep(y, lengths(bdata))
-    bh <- rep(h, lengths(bdata))
-    bf <- unlist(lapply(bdata, col_fun))
+    bf <- unlist(lapply(data, col_fun))
     grid.rect(x = bx, y = by, width = bw, height = bh, gp = gpar(fill = bf, col = "transparent"))
 }
 
 #' @rdname heatmap-layer
 #' @keywords internal
-layer_pie <- function(j, i, x, y, w, h, fill, palette, palcolor, hmdf, pie_size) {
-    pdata <- ComplexHeatmap::pindex(hmdf, i, j) # not j, i
-    if (!is.null(names(pdata))) { # flip = TRUE
-        pdata <- unlist(pdata, recursive = FALSE)
-    }
-    pies <- lapply(pdata, function(pd) {
-        # [1] "table"
-        # X Y Z
-        # 9 2 4
-        pd <- as.data.frame(pd)
-        p <- PieChart(pd, x = "Var1", y = "Freq", label = NULL, palette = palette, palcolor = palcolor)
+layer_pie <- function(j, i, x, y, w, h, fill, palette, palcolor, data, pie_size) {
+    indices <- paste(i, j, sep = "-")
+    pies <- lapply(indices, function(idx) {
+        p <- PieChart(data[[idx]], x = "Var", y = "Freq", label = NULL, palette = palette, palcolor = palcolor)
         ggplotGrob(p + theme_void() + theme(legend.position = "none"))
     })
 
     if (!is.function(pie_size)) {
         pie_sizes <- rep(pie_size %||% 1, length(pies))
     } else {
-        pie_sizes <- sapply(pdata, function(pd) pie_size(sum(pd)))
+        pie_sizes <- sapply(data, function(d) pie_size(sum(d$Freq, na.rm = TRUE)))
         pie_sizes <- scales::rescale(pie_sizes, to = c(0.2, 1))
     }
 
@@ -459,66 +758,29 @@ layer_pie <- function(j, i, x, y, w, h, fill, palette, palcolor, hmdf, pie_size)
 
 
 #' @rdname heatmap-layer
-#' @param violin_fill A character vector specifying the fill color of the violin plot.
+#' @param colors A character vector specifying the fill color of the violin plot.
 #'  If not provided, the fill color of row/column annotation will be used
 #' @keywords internal
-layer_violin <- function(j, i, x, y, w, h, fill, hmdf, violin_fill) {
-    vlndata <- ComplexHeatmap::pindex(hmdf, i, j)
-    if (!is.null(names(vlndata))) { # flip = TRUE
-        vlndata <- unlist(vlndata, recursive = FALSE)
-    }
+layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
+    vlndata <- data[paste(i, j, sep = "-")]
     vlnplots <- lapply(seq_along(vlndata), function(m) {
-        p <- ViolinPlot(data.frame(x = 1, y = vlndata[[m]]), x = "x", y = "y", palcolor = violin_fill %||% fill[m])
+        p <- fn(data.frame(x = 1, y = vlndata[[m]]), x = "x", y = "y", palcolor = colors %||% fill[m], flip = flip)
         ggplotGrob(p + theme_void() + theme(legend.position = "none"))
     })
     for (m in seq_along(vlnplots)) {
-        vlnplots[[m]]$grobs[[5]]$vp <- viewport(x = x[m], y = y[m], width = w[m], height = h[m] * 0.95)
+        wm <- if (flip) w[m] * 0.95 else w[m]
+        hm <- if (flip) h[m] * 0.95 else h[m]
+        vlnplots[[m]]$grobs[[5]]$vp <- viewport(x = x[m], y = y[m], width = wm, height = hm)
         grid.draw(vlnplots[[m]]$grobs[[5]])
     }
 }
 
-#' @rdname heatmap-layer
-#' @param boxplot_fill A character vector specifying the fill color of the boxplot.
-#'  If not provided, the fill color of row/column annotation will be used
-#' @keywords internal
-layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
-    bpdata <- ComplexHeatmap::pindex(hmdf, i, j)
-    if (!is.null(names(bpdata))) { # flip = TRUE
-        bpdata <- unlist(bpdata, recursive = FALSE)
-    }
-    bpplots <- lapply(seq_along(bpdata), function(m) {
-        p <- BoxPlot(data.frame(x = 1, y = bpdata[[m]]), x = "x", y = "y", palcolor = boxplot_fill %||% fill[m])
-        ggplotGrob(p + theme_void() + theme(legend.position = "none"))
-    })
-    for (m in seq_along(bpplots)) {
-        bpplots[[m]]$grobs[[5]]$vp <- viewport(x = x[m], y = y[m], width = w[m], height = h[m] * 0.95)
-        grid.draw(bpplots[[m]]$grobs[[5]])
-    }
-}
-
-#' Atomic heatmap
+#' Atomic heatmap without split
 #'
+#' @inheritParams process_heatmap_data
 #' @inheritParams common_args
 #' @param data A data frame used to create the heatmap.
 #'  The data should be in a long form where each row represents a instance in the heatmap.
-#'  The `rows` should be multiple columns if you want to plot as rows, which you can refer as "features".
-#' @param rows A character string/vector of the column name(s) to plot for the rows
-#'  Multiple columns in the data frame can be used as the rows. It can be:
-#'  * A vector of column names: The columns will be used as the rows.
-#'  * A list of column names: The names will be used as row_split_by.
-#'  * A formula: `~ col1 + col2 + ...` The columns will be excluded from the data frame and used as the rows.
-#'  * NULL (default): The column names other than `columns_by`, `rows_split_by`, `columns_split_by` and `pie_group_by` will be used as the rows.
-#' @param rows_name A character string specifying the name of rows, which will be shown in the
-#'  row group annotation and the legend of it.
-#' @param columns_by A character string of the column name to plot for the columns
-#'  A character/factor column is expected.
-#'  Multiple columns are also supported. If so, `NA`s can be used to exclude rows in that group.
-#'  If there is a single value in each group (other than `NA`), the group name, rather than the value,
-#'  will be shown in the column group annotation.
-#' @param columns_name A character string specifying the name of columns, which will be shown in the
-#'  column group annotation and the legend of it.
-#'  Only used when `columns_by` has multiple columns.
-#' @param name A character string specifying the name of the main legend of the heatmap
 #' @param border A logical value indicating whether to draw the border of the heatmap.
 #'  If TRUE, the borders of the slices will be also drawn.
 #' @param title The global (column) title of the heatmap
@@ -528,22 +790,12 @@ layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
 #' @param rows_palette A character string specifying the palette of the row group annotation.
 #'  The default is "Paired".
 #' @param rows_palcolor A character vector of colors to override the palette of the row group annotation.
-#' @param columns_by_sep A character string to concatenate the columns in `columns_by` if there are multiple columns.
-#' @param columns_split_by A character string of the column name to split the heatmap columns into slices.
-#'  A character/factor column or multiple columns are expected.
-#' @param columns_split_name A character string specifying the name of the column split annotation.
 #' @param columns_palette A character string specifying the palette of the column group annotation.
 #'  The default is "Paired".
 #' @param columns_palcolor A character vector of colors to override the palette of the column group annotation.
-#' @param columns_split_by_sep A character string to concatenate the columns in `columns_split_by` if there are multiple columns.
 #' @param columns_split_palette A character string specifying the palette of the column split annotation.
 #'  The default is "simspec".
 #' @param columns_split_palcolor A character vector of colors to override the palette of the column split annotation.
-#' @param rows_data A character string of the column name to use as the data for the row group annotation.
-#'  If it starts with "@", it will be treated as an attribute of the data.
-#' @param rows_split_by A character string of the column name to split the heatmap rows into slices.
-#'  A character/factor column or multiple columns are expected.
-#' @param rows_split_by_sep A character string to concatenate the columns in `rows_split_by` if there are multiple columns.
 #' @param rows_split_palette A character string specifying the palette of the row split annotation.
 #'  The default is "simspec".
 #' @param rows_split_palcolor A character vector of colors to override the palette of the row split annotation.
@@ -568,20 +820,14 @@ layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
 #'  The default is "bottom".
 #' @param bars_sample An integer specifying the number of samples to draw the bars.
 #' @param flip A logical value indicating whether to flip the heatmap.
-#' @param pie_group_by A character string of the column name to group the data for the pie chart.
-#' @param pie_group_by_sep A character string to concatenate the columns in `pie_group_by` if there are multiple columns.
 #' @param pie_palette A character string specifying the palette of the pie chart.
 #' @param pie_palcolor A character vector of colors to override the palette of the pie chart.
-#' @param pie_values How to calculate the values for the pie chart. Default is "count".
-#'  Other options are "value" and a function.
-#'  * "count": Count the number of instances in `pie_group_by`.
-#'  * "sum": Use the values in the columns specified by `rows` as the values.
-#'    The sum of the values will be used.
-#'  * A function: The function should take a vector of values as the argument and return a single value, for each
-#'    group in `pie_group_by`.
+#' @param pie_values A function or character that can be converted to a function by [match.arg()]
+#' to calculate the values for the pie chart. Default is "length".
+#' The function should take a vector of values as the argument and return a single value, for each
+#' group in `pie_group_by`.
 #' @param pie_size A numeric value or a function specifying the size of the pie chart.
 #'  If it is a function, the function should take `count` as the argument and return the size.
-#' @param pie_name A character string specifying the name of the legend for the pie chart.
 #' @param pie_size_name A character string specifying the name of the legend for the pie size.
 #' @param label_size A numeric value specifying the size of the labels when `cell_type = "label"`.
 #' @param label A function to calculate the labels for the heatmap cells.
@@ -655,121 +901,87 @@ layer_boxplot <- function(j, i, x, y, w, h, fill, hmdf, boxplot_fill) {
 #' When `row_names_max_width` is passed, a unit is expected. But you can also pass a numeric values,
 #' with a default unit "inches", or a string like "5inches" to specify the number and unit directly.
 #' @importFrom circlize colorRamp2
-#' @importFrom dplyr group_by across ungroup %>% all_of summarise first slice_sample everything
-#' @importFrom tidyr pivot_longer
+#' @importFrom dplyr group_by across ungroup %>% all_of summarise first slice_sample everything group_map
+#' @importFrom tidyr pivot_longer pivot_wider unite expand_grid
 #' @importFrom ggplot2 ggplotGrob theme_void
 #' @importFrom grid grid.rect grid.text grid.lines grid.points viewport gpar unit grid.draw
 #' @importFrom grid convertUnit grid.grabExpr
 #' @return A drawn HeatmapList object if `return_grob = FALSE`. Otherwise, a grob/gTree object.
 #' @keywords internal
 HeatmapAtomic <- function(
-    data, rows = NULL, columns_by, rows_name = "rows", rows_split_name = "rows_split", columns_name = "columns", name = "value",
-    border = TRUE, rows_palette = "Paired", rows_palcolor = NULL, pie_group_by = NULL, pie_group_by_sep = "_",
-    pie_palette = "Spectral", pie_palcolor = NULL, pie_size = NULL, pie_name = NULL, pie_size_name = "size", pie_values = "count",
-    columns_by_sep = "_", columns_split_by = NULL, columns_split_name = NULL, columns_palette = "Paired", columns_palcolor = NULL,
-    columns_split_by_sep = "_", columns_split_palette = "simspec", columns_split_palcolor = NULL,
+    data, values_by,
+    # data definition
+    rows_by = NULL, rows_split_by = NULL,
+    columns_by = NULL, columns_split_by = NULL,
+    # palettes
+    palette = "RdBu", palcolor = NULL,
+    rows_palette = "Paired", rows_palcolor = NULL, rows_split_palette = "simspec", rows_split_palcolor = NULL,
+    columns_palette = "Paired", columns_palcolor = NULL, columns_split_palette = "simspec", columns_split_palcolor = NULL,
+    # cell_type: pies
+    pie_size_name = "size", pie_size = NULL, pie_values = "length",
+    pie_group_by = NULL, pie_palette = "Spectral", pie_palcolor = NULL,
+    # cell_type: bars
+    bars_sample = 100,
+    # cell_type: label
+    label = identity, label_size = 10,
+    # cell_type: violin
+    violin_fill = NULL,
+    # cell_type: boxplot
+    boxplot_fill = NULL,
+    # cell_type: dot
+    dot_size = 8, dot_size_name = "size",
+    # legend
+    legend_items = NULL, legend_discrete = FALSE,
+    legend.position = "right", legend.direction = "vertical",
+    # values
     lower_quantile = 0, upper_quantile = 0.99, lower_cutoff = NULL, upper_cutoff = NULL,
-    rows_data = NULL, rows_split_by = NULL, rows_split_by_sep = "_", rows_split_palette = "simspec", rows_split_palcolor = NULL,
+    # bg
+    add_bg = FALSE, bg_alpha = 0.5,
+    # reticle
+    add_reticle = FALSE, reticle_color = "grey",
+    # passed to ComplexHeatmap::Heatmap
     column_name_annotation = TRUE, column_name_legend = isFALSE(show_column_names) && !identical(legend.position, "none"),
     row_name_annotation = TRUE, row_name_legend = isFALSE(show_row_names) && !identical(legend.position, "none"),
-    cluster_columns = TRUE, cluster_rows = TRUE, legend_items = NULL, legend_discrete = FALSE,
-    show_row_names = !row_name_annotation, show_column_names = !column_name_annotation,
-    column_title = character(0), row_title = character(0), na_col = "grey85", title = NULL,
-    row_names_side = "right", column_names_side = "bottom", bars_sample = 100, flip = FALSE,
-    label_size = 10, label = identity, layer_fun_callback = NULL,
-    cell_type = c("tile", "bars", "label", "dot", "violin", "boxplot", "pie"), cell_agg = mean,
-    add_bg = FALSE, bg_alpha = 0.5, violin_fill = NULL, boxplot_fill = NULL, dot_size = 8, dot_size_name = "size",
+    cluster_columns = TRUE, cluster_rows = TRUE, show_row_names = !row_name_annotation, show_column_names = !column_name_annotation,
+    border = TRUE, title = NULL, column_title = character(0), row_title = character(0), na_col = "grey85",
+    row_names_side = "right", column_names_side = "bottom",
     column_annotation = NULL, column_annotation_side = "top", column_annotation_palette = "Paired", column_annotation_palcolor = NULL,
     column_annotation_type = "auto", column_annotation_params = list(), column_annotation_agg = NULL,
     row_annotation = NULL, row_annotation_side = "left", row_annotation_palette = "Paired", row_annotation_palcolor = NULL,
     row_annotation_type = "auto", row_annotation_params = list(), row_annotation_agg = NULL,
-    add_reticle = FALSE, reticle_color = "grey", return_grob = FALSE,
-    palette = "RdBu", palcolor = NULL, alpha = 1, legend.position = "right", legend.direction = "vertical",
-    ...) {
-    if (is.character(rows_data) && length(rows_data) == 1 && startsWith(rows_data, "@")) {
-        rows_data <- attr(data, substring(rows_data, 2))
-    }
-    if (is.list(rows)) {
-        if (!is.null(rows_split_by)) {
-            stop("When a list is provided for 'rows', 'rows_split_by' should not be provided. The rows will be split by the names of the list.")
-        }
-        if (is.null(names(rows))) {
-            stop("When a list is provided for 'rows', the names of the list should be provided.")
-        }
-        rs <- lapply(names(rows), function(rn) rep(rn, length(rows[[rn]])))
-        rows <- unname(unlist(rows))
-        rd <- data.frame(.rows = rows, rows_split = unlist(rs))
-        colnames(rd)[2] <- rows_split_name
-        if (!is.null(rows_data)) {
-            # Add the names of the list to the rows_data, with rows_split_name
-            colnames(rows_data)[1] <- ".rows"
-            rows_data <- merge(rows_data, rd, by = ".rows", all.x = TRUE)
-        } else {
-            rows_data <- rd
-        }
-        rows_split_by <- rows_split_name
-    } else if (is.null(rows)) {
-        rows <- setdiff(colnames(data), c(columns_by, rows_split_by, columns_split_by, pie_group_by))
-    } else if (inherits(rows, "formula")) {
-        rows <- setdiff(colnames(data), all.vars(rows))
-    }
+    # misc
+    flip = FALSE, alpha = 1, seed = 8525, return_grob = FALSE,
+    # cell customization
+    layer_fun_callback = NULL, cell_type = "tile", cell_agg = NULL,
+    ...
+) {
+    # Data was validated in `plotthis::Heatmap()`
 
-    rows <- check_columns(data, rows, allow_multi = TRUE)
-    columns_by <- check_columns(data, columns_by, force_factor = TRUE, allow_multi = TRUE)
-    pie_group_by <- check_columns(data, pie_group_by,
-        force_factor = TRUE, allow_multi = TRUE,
-        concat_multi = TRUE, concat_sep = pie_group_by_sep
-    )
-    for (column_by in columns_by) {
-        data[[column_by]] <- droplevels(data[[column_by]])
-    }
-
-    if (length(columns_by) > 1) {
-        if (!is.null(columns_split_by)) {
-            stop("Cannot use 'columns_split_by' with multiple columns in 'columns_by'. The heatmap columns will be split by the multiple 'columns_by'.")
-        }
-        pval_col <- paste(columns_by, collapse = columns_by_sep)
-        data <- data %>% pivot_longer(columns_by, names_to = columns_name, values_to = pval_col)
-        data <- data[!is.na(data[[pval_col]]), , drop = FALSE]
-        data[[columns_name]] <- factor(data[[columns_name]], levels = columns_by)
-
-        df_splits <- data %>% distinct(!!sym(columns_name), !!sym(pval_col))
-        if (all(table(df_splits[[columns_name]]) == 1)) {
-            columns_split_by <- NULL
-            columns_by <- columns_name
-        } else {
-            columns_split_by <- columns_name
-            columns_by <- pval_col
-        }
-    }
-
-    columns_split_by <- check_columns(data, columns_split_by,
-        force_factor = TRUE, allow_multi = TRUE,
-        concat_multi = TRUE, concat_sep = columns_split_by_sep
-    )
-    if (!is.null(columns_split_by)) {
-        data <- data[order(data[[columns_split_by]], data[[columns_by]]), , drop = FALSE]
-    } else {
-        data <- data[order(data[[columns_by]]), , drop = FALSE]
-    }
-
-    cell_type <- match.arg(cell_type)
+    # Convert to the format that ComplexHeatmap::Heatmap can understand
     if (isFALSE(column_title)) column_title <- NULL
     if (isFALSE(row_title)) row_title <- NULL
     if (isTRUE(column_title)) column_title <- character(0)
     if (isTRUE(row_title)) row_title <- character(0)
 
-    # limits <- limits %||% quantile(data[, rows], c(0.01, 0.99), na.rm = TRUE)
     get_col_fun <- function(lower, upper, a = alpha) {
+        # If the lower and upper cutoff are the same, we need to adjust the upper cutoff
+        if (upper == lower) {
+            if (upper == 0) {
+                upper <- 1e-3
+            } else {
+                upper <- upper + upper * 1e-3
+            }
+        }
         colorRamp2(
             seq(lower, upper, length = 100),
             palette_this(palette = palette, palcolor = palcolor, alpha = a, transparent = FALSE)
         )
     }
-    ## Initialize the heatmap arguments
+
+    # Initialize the heatmap arguments
     hmargs <- list(
         # name = name,   # error when name has irregular characters (e.g. "-")
-        heatmap_legend_param = list(title = name),
+        heatmap_legend_param = list(title = values_by),
         border = border, na_col = na_col,
         cluster_columns = cluster_columns, cluster_rows = cluster_rows,
         cluster_column_slices = FALSE, cluster_row_slices = FALSE, show_heatmap_legend = FALSE,
@@ -778,13 +990,15 @@ HeatmapAtomic <- function(
         column_title = column_title, row_title = row_title,
         ...
     )
+
+    # Set the row_names_max_width based on the length of the row names
     if (!is.null(hmargs$row_names_max_width)) {
         if (is.character(hmargs$row_names_max_width)) {
             if (grepl("^[0-9]+(\\.[0-9]+)?$", hmargs$row_names_max_width)) {
                 hmargs$row_names_max_width <- unit(as.numeric(hmargs$row_names_max_width), "inches")
             }
             stopifnot(
-                "'row_names_max_width' should be in a format of '2inches' or '2cm' if given as a string." =
+                "[Heatmap] 'row_names_max_width' should be in a format of '2inches' or '2cm' if given as a string." =
                 grepl("^[0-9]+(\\.[0-9]+\\s*)?(npc|cm|centimetre|centimeter|in|inch|inches|mm|points|picas|bigpts|cicero|scalepts|lines|char|native|snpc|strwidth|strheight|grobwidth|grobheight|null)$", hmargs$row_names_max_width)
             )
 
@@ -799,114 +1013,134 @@ HeatmapAtomic <- function(
     } else if (flip) {
         hmargs$row_names_max_width <- ComplexHeatmap::max_text_width(levels(data[[columns_by]]))
     } else {
-        hmargs$row_names_max_width <- ComplexHeatmap::max_text_width(rows)
+        hmargs$row_names_max_width <- ComplexHeatmap::max_text_width(levels(data[[rows_by]]))
     }
 
+    # Collect the legends
     legends <- list()
-    if (cell_type == "pie") {
-        cell_agg <- function(x) sum(!is.na(x))
-    }
+
+    # Set the default cell aggregation function for pie chart (will be plotted as the background)
+    cell_agg <- cell_agg %||% (
+        if (cell_type == "pie") {
+            function(x) sum(x, na.rm = TRUE)
+        } else {
+            function(x) mean(x, na.rm = TRUE)
+        }
+    )
+    if (is.character(cell_agg)) cell_agg <- match.fun(cell_agg)
+
+    # Extract the matrix for the heatmap (aggregated values, for e.g. tile, label, pie background, etc)
+    # We also need it for bars, because ComplexHeatmap::Heatmap need the matrix to plot anyway
+    # rows_split_by  rows_by  columns_split_by1::columns_by1 columns_split_by2::columns_by2 ...
+    # rows_split_by1 rows_by1 0.1                            0.2                            ...
+    # rows_split_by2 rows_by2 0.3                            0.4                            ...
+    # ...
+    # Make sure the rows/columns are in order
+    data <- arrange(data, !!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by, pie_group_by))))
     hmargs$matrix <- data %>%
-        group_by(!!!syms(unique(c(columns_by, columns_split_by)))) %>%
-        summarise(across(all_of(rows), ~ cell_agg(.x))) %>%
-        ungroup() %>%
+        group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
+        summarise(.value = cell_agg(!!sym(values_by)), .groups = "drop") %>%
+        unite(".columns", !!!syms(unique(c(columns_split_by, columns_by))), sep = " // ") %>%
+        unite(".rows", !!!syms(unique(c(rows_split_by, rows_by))), sep = " // ") %>%
+        pivot_wider(
+            names_from = ".columns",
+            values_from = ".value",
+            values_fill = NA_real_
+        ) %>%
         as.data.frame()
 
-    if (!is.null(columns_split_by)) {
-        hmargs$matrix <- hmargs$matrix[order(hmargs$matrix[[columns_split_by]], hmargs$matrix[[columns_by]]), , drop = FALSE]
-    } else {
-        hmargs$matrix <- hmargs$matrix[order(hmargs$matrix[[columns_by]]), , drop = FALSE]
+    rownames(hmargs$matrix) <- hmargs$matrix$.rows
+    hmargs$matrix$.rows <- NULL
+    hmargs$matrix <- as.matrix(hmargs$matrix)
+    if (flip) {
+        hmargs$matrix <- t(hmargs$matrix)
     }
 
-    if (cell_type != "bars") { # where aggregated values are used
-        values <- as.matrix(hmargs$matrix[, rows])
-        lower_cutoff <- lower_cutoff %||% quantile(values[is.finite(values)], lower_quantile, na.rm = TRUE)
-        upper_cutoff <- upper_cutoff %||% quantile(values[is.finite(values)], upper_quantile, na.rm = TRUE)
-    } else { # where multiple values are used
-        values <- as.matrix(data[, rows])
-        lower_cutoff <- lower_cutoff %||% quantile(values[is.finite(values)], lower_quantile, na.rm = TRUE)
-        upper_cutoff <- upper_cutoff %||% quantile(values[is.finite(values)], upper_quantile, na.rm = TRUE)
-        values[values < lower_cutoff] <- lower_cutoff
-        values[values > upper_cutoff] <- upper_cutoff
-        data[, rows] <- values
+    if (!is.null(rows_split_by)) {
+        row_split_labels <- strsplit(rownames(hmargs$matrix), " // ", fixed = TRUE)
+        hmargs$row_split <- sapply(row_split_labels, `[`, 1)
+        hmargs$row_labels <- sapply(row_split_labels, `[`, 2)
+    } else {
+        hmargs$row_labels <- rownames(hmargs$matrix)
     }
-    if (upper_cutoff == lower_cutoff) {
-        if (upper_cutoff == 0) {
-            upper_cutoff <- 1e-3
-        } else {
-            upper_cutoff <- upper_cutoff + upper_cutoff * 1e-3
-        }
+
+    if (!is.null(columns_split_by)) {
+        column_split_labels <- strsplit(colnames(hmargs$matrix), " // ", fixed = TRUE)
+        hmargs$column_split <- sapply(column_split_labels, `[`, 1)
+        hmargs$column_labels <- sapply(column_split_labels, `[`, 2)
+    } else {
+        hmargs$column_labels <- colnames(hmargs$matrix)
     }
+
+    if (cell_type == "bars") { # where multiple values are used, operating on data
+        lower_cutoff <- lower_cutoff %||% quantile(data[[values_by]][is.finite(data[[values_by]])], lower_quantile, na.rm = TRUE)
+        upper_cutoff <- upper_cutoff %||% quantile(data[[values_by]][is.finite(data[[values_by]])], upper_quantile, na.rm = TRUE)
+        data[[values_by]][data[[values_by]] < lower_cutoff] <- lower_cutoff
+        data[[values_by]][data[[values_by]] > upper_cutoff] <- upper_cutoff
+    } else { # where aggregated values are used
+        lower_cutoff <- lower_cutoff %||% quantile(hmargs$matrix[is.finite(hmargs$matrix)], lower_quantile, na.rm = TRUE)
+        upper_cutoff <- upper_cutoff %||% quantile(hmargs$matrix[is.finite(hmargs$matrix)], upper_quantile, na.rm = TRUE)
+    }
+
+    # Set the color function for the heatmap cells
     hmargs$col <- get_col_fun(lower_cutoff, upper_cutoff)
 
+    # Indices for data in layer_fun
+    indices <- if (flip) {
+        # 1-1, 2-1, 1-2, 2-2, ...
+        expand.grid(1:nrow(hmargs$matrix), 1:ncol(hmargs$matrix))
+    } else {
+        # 1-1, 1-2, 2-1, 2-2, ...
+        expand_grid(1:nrow(hmargs$matrix), 1:ncol(hmargs$matrix))
+    }
+    indices <- paste(indices[[1]], indices[[2]], sep = "-")
+
+    # Compose the main legend
     get_main_legend <- function(allow_discreate = TRUE) {
         if (identical(legend.position, "none")) {
             return(NULL)
         }
         if (!allow_discreate && isTRUE(legend_discrete)) {
-            stop("'legend_discrete = TRUE' is not allowed.")
+            stop("[Heatmap] 'legend_discrete = TRUE' is not allowed.")
         }
 
         if (isTRUE(legend_discrete)) {
             if (is.null(legend_items)) {
-                lgd_items <- sort(unique(as.vector(as.matrix(hmargs$matrix[, unlist(rows)]))), decreasing = TRUE)
+                lgd_items <- sort(unique(as.vector(hmargs$matrix)), decreasing = TRUE)
                 names(lgd_items) <- as.character(lgd_items)
             } else {
                 lgd_items <- unlist(legend_items)
             }
             ComplexHeatmap::Legend(
-                title = name, at = lgd_items, labels = names(lgd_items),
+                title = values_by, at = lgd_items, labels = names(lgd_items),
                 legend_gp = grid::gpar(fill = hmargs$col(lgd_items)), border = TRUE, direction = legend.direction
             )
         } else {
-            ComplexHeatmap::Legend(title = name, col_fun = hmargs$col, border = TRUE, direction = legend.direction)
+            ComplexHeatmap::Legend(title = values_by, col_fun = hmargs$col, border = TRUE, direction = legend.direction)
         }
     }
 
     nrow_multiplier <- ncol_multiplier <- 1
     if (cell_type == "pie") {
         if (is.null(pie_group_by)) {
-            stop("Please provide 'pie_group_by' to use 'cell_type = 'pie'.")
+            stop("[Heatmap] Please provide 'pie_group_by' to use 'cell_type = 'pie'.")
+        }
+        pie_values <- pie_values %||% "length"
+        if (is.character(pie_values)) {
+            pie_values <- match.fun(pie_values)
         }
 
         pie_group_levels <- levels(data[[pie_group_by]])
-        hmdf <- data %>%
-            select(!!!syms(unique(c(columns_by, columns_split_by, pie_group_by, rows)))) %>%
-            group_by(!!!syms(unique(c(columns_by, columns_split_by)))) %>%
-            summarise(across(
-                all_of(rows),
-                function(.x, .g) {
-                    if (identical(pie_values, "count")) {
-                        list(table(.g[!is.na(.x)]))
-                    } else if (identical(pie_values, "sum")) {
-                        .d <- sapply(split(.x[!is.na(.x)], .g[!is.na(.x)]), sum)
-                        if (any(.d[!is.na(.d)] < 0)) {
-                            .d <- (.d - min(.d, na.rm = TRUE)) / (max(.d, na.rm = TRUE) - min(.d, na.rm = TRUE))
-                        }
-                        list(as.table(.d))
-                    } else {
-                        .d <- lapply(split(.x[!is.na(.x)], .g[!is.na(.x)]), function(.v) {
-                            if (length(.v) > 1) {
-                                if (is.function(pie_values)) {
-                                    pie_values(.v)
-                                } else {
-                                    stop("Please provide a function for 'pie_values' to aggregate the values in 'rows'.")
-                                }
-                            } else {
-                                .v
-                            }
-                        })
-                        list(as.table(unlist(.d)))
-                    }
-                },
-                !!sym(pie_group_by)
-            ), .groups = "drop")
-        # match the dimensions of the heatmap matrix
-        if (!is.null(columns_split_by)) hmdf[[columns_split_by]] <- NULL
-        if (!is.null(columns_by)) hmdf[[columns_by]] <- NULL
-        if (!flip) hmdf <- t(hmdf)
+        pie_data <- data %>%
+            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by, pie_group_by)))) %>%
+            summarise(.value = pie_values(!!sym(values_by)), .groups = "drop") %>%
+            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
+            group_map(
+                ~ data.frame(Var = .x[[pie_group_by]], Freq = .x$.value)
+            )
+        names(pie_data) <- indices
 
-        pie_colors <- palette_this(levels(data[[pie_group_by]]), palette = pie_palette, palcolor = pie_palcolor)
+        pie_colors <- palette_this(pie_group_levels, palette = pie_palette, palcolor = pie_palcolor)
         hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
             layer_white_bg(j, i, x, y, w, h, fill)
             if (isTRUE(add_bg)) {
@@ -915,15 +1149,19 @@ HeatmapAtomic <- function(
             if (isTRUE(add_reticle)) {
                 layer_reticle(j, i, x, y, w, h, fill, color = reticle_color)
             }
-            layer_pie(j, i, x, y, w, h, fill, palette = pie_palette, palcolor = pie_palcolor, hmdf, pie_size)
+            layer_pie(
+                j, i, x, y, w, h, fill,
+                palette = pie_palette, palcolor = pie_palcolor, data = pie_data, pie_size = pie_size
+            )
             if (is.function(layer_fun_callback)) {
                 layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
             }
         }
 
         if (!identical(legend.position, "none") && is.function(pie_size)) {
-            pie_size_min <- min(hmargs$matrix[, rows], na.rm = TRUE)
-            pie_size_max <- max(hmargs$matrix[, rows], na.rm = TRUE)
+            pie_sizes <- sapply(pie_data, function(d) pie_size(sum(d$Freq, na.rm = TRUE)))
+            pie_size_min <- min(pie_sizes, na.rm = TRUE)
+            pie_size_max <- max(pie_sizes, na.rm = TRUE)
             legends$.pie_size <- ComplexHeatmap::Legend(
                 title = pie_size_name,
                 labels = scales::number((seq(pie_size_min, pie_size_max, length.out = ifelse(pie_size_max > pie_size_min, 4, 1)))),
@@ -943,57 +1181,52 @@ HeatmapAtomic <- function(
         }
         if (!identical(legend.position, "none")) {
             legends$.pie <- ComplexHeatmap::Legend(
-                title = pie_name %||% pie_group_by, direction = legend.direction,
-                border = TRUE, labels = levels(data[[pie_group_by]]), legend_gp = gpar(fill = pie_colors)
+                title = pie_group_by, direction = legend.direction,
+                border = TRUE, labels = pie_group_levels, legend_gp = gpar(fill = pie_colors)
             )
         }
         nrow_multiplier <- ifelse(flip, 6, 4)
-        ncol_multilier <- ifelse(flip, 4, 6)
-    } else if (cell_type == "bars") {
+        ncol_multiplier <- ifelse(flip, 4, 6)
+    }
+    else if (cell_type == "bars") {
         if (isTRUE(add_bg)) {
-            stop("Cannot use 'add_bg' with 'cell_type = 'bars'.")
+            stop("[Heatmap] Cannot use 'add_bg' with 'cell_type = 'bars'.")
         }
         if (isTRUE(add_reticle)) {
-            stop("Cannot use 'add_reticle' with 'cell_type = 'bars'.")
+            stop("[Heatmap] Cannot use 'add_reticle' with 'cell_type = 'bars'.")
         }
 
-        hmdf <- data %>%
-            select(!!!syms(unique(c(columns_by, columns_split_by, rows)))) %>%
-            group_by(!!!syms(unique(c(columns_by, columns_split_by)))) %>%
-            slice_sample(n = bars_sample) %>%
-            summarise(across(all_of(rows), ~ list(.x)), .groups = "drop")
+        bars_data <- data %>%
+            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
+            group_map(~ .x[[values_by]])
 
-        if (!is.null(columns_split_by)) hmdf[[columns_split_by]] <- NULL
-        if (!is.null(columns_by)) hmdf[[columns_by]] <- NULL
-        if (!flip) hmdf <- t(hmdf)
+        names(bars_data) <- indices
+
         # plot bars in each cell
         hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
             layer_white_bg(j, i, x, y, w, h, fill)
-            layer_bars(j, i, x, y, w, h, fill, col_fun = hmargs$col, hmdf = hmdf, alpha = alpha)
+            layer_bars(
+                j, i, x, y, w, h, fill, flip = flip,
+                col_fun = hmargs$col, data = bars_data, alpha = alpha
+            )
             if (is.function(layer_fun_callback)) {
                 layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
             }
         }
+        # Override the main legend
         legends$.heatmap <- get_main_legend(FALSE)
         nrow_multiplier <- 0.5
-    } else if (cell_type == "dot") {
-        if (is.function(dot_size)) {
-            hmdf <- data %>%
-                group_by(!!!syms(unique(c(columns_by, columns_split_by)))) %>%
-                summarise(across(all_of(rows), ~ dot_size(.x)), .groups = "drop")
-        } else {
-            hmdf <- data %>%
-                group_by(!!!syms(unique(c(columns_by, columns_split_by)))) %>%
-                summarise(across(all_of(rows), ~dot_size), .groups = "drop")
-        }
-        if (!is.null(columns_by)) hmdf[[columns_by]] <- NULL
-        if (!is.null(columns_split_by)) hmdf[[columns_split_by]] <- NULL
-        hmdf <- as.matrix(hmdf)
-        if (!flip) hmdf <- t(hmdf)
+    }
+    else if (cell_type == "dot") {
+        dot_data <- data %>%
+            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
+            group_map(~ if (is.function(dot_size)) dot_size(.x[[values_by]]) else dot_size)
+
+        names(dot_data) <- indices
 
         if (!identical(legend.position, "none") && is.function(dot_size)) {
-            dot_size_min <- min(hmdf, na.rm = TRUE)
-            dot_size_max <- max(hmdf, na.rm = TRUE)
+            dot_size_min <- min(unlist(dot_data), na.rm = TRUE)
+            dot_size_max <- max(unlist(dot_data), na.rm = TRUE)
             legends$.dot_size <- ComplexHeatmap::Legend(
                 title = dot_size_name,
                 labels = scales::number((seq(dot_size_min, dot_size_max, length.out = ifelse(dot_size_max > dot_size_min, 4, 1)))),
@@ -1016,20 +1249,25 @@ HeatmapAtomic <- function(
             if (isTRUE(add_reticle)) {
                 layer_reticle(j, i, x, y, w, h, fill, color = reticle_color)
             }
-            layer_dot(j, i, x, y, w, h, fill, hmdf = hmdf, dot_size = dot_size, alpha = alpha)
+            layer_dot(
+                j, i, x, y, w, h, fill,
+                data = dot_data, dot_size = dot_size, alpha = alpha
+            )
             if (is.function(layer_fun_callback)) {
                 layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
             }
         }
+        # Override the main legend
         legends$.heatmap <- get_main_legend()
-    } else if (cell_type %in% c("violin", "boxplot")) {
+    }
+    else if (cell_type %in% c("violin", "boxplot")) {
         # df with multiple values in each cell
-        hmdf <- data %>%
-            group_by(!!!syms(unique(c(columns_by, columns_split_by)))) %>%
-            summarise(across(all_of(rows), ~ list(.x)), .groups = "drop")
-        if (!is.null(columns_by)) hmdf[[columns_by]] <- NULL
-        if (!is.null(columns_split_by)) hmdf[[columns_split_by]] <- NULL
-        if (!flip) hmdf <- t(hmdf)
+        vdata <- data %>%
+            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
+            group_map(~ .x[[values_by]])
+
+        names(vdata) <- indices
+        vcolors <- if (cell_type == "violin") violin_fill else boxplot_fill
 
         hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
             layer_white_bg(j, i, x, y, w, h, fill)
@@ -1037,52 +1275,54 @@ HeatmapAtomic <- function(
                 layer_bg(j, i, x, y, w, h, fill, alpha = bg_alpha)
             }
             if (isTRUE(add_reticle)) {
-                layer_reticle(j, i, x, y, w, h, fill)
+                layer_reticle(j, i, x, y, w, h, fill, color = reticle_color)
             }
-            if (cell_type == "violin") {
-                layer_violin(j, i, x, y, w, h, fill, hmdf, violin_fill = violin_fill)
-            } else {
-                layer_boxplot(j, i, x, y, w, h, fill, hmdf, boxplot_fill = boxplot_fill)
-            }
+            layer_fn <- if (cell_type == "violin") ViolinPlot else BoxPlot
+            layer_boxviolin(
+                j, i, x, y, w, h, fill,
+                flip = flip, data = vdata, colors = vcolors, fn = layer_fn
+            )
             if (is.function(layer_fun_callback)) {
                 layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
             }
         }
         if (!identical(legend.position, "none")) {
             if (!is.null(legend_items)) {
-                stop("Cannot use 'legend_items' with 'cell_type = 'violin' or 'boxplot'.")
+                stop("[Heatmap] Cannot use 'legend_items' with 'cell_type = 'violin' or 'boxplot'.")
             }
             if (isTRUE(legend_discrete)) {
-                stop("Cannot use 'legend_discrete = TRUE' with 'cell_type = 'violin' or 'boxplot'.")
+                stop("[Heatmap] Cannot use 'legend_discrete = TRUE' with 'cell_type = 'violin' or 'boxplot'.")
             }
-            if ((cell_type == "violin" && is.null(violin_fill)) || (cell_type == "boxplot" && is.null(boxplot_fill))) {
+            if (is.null(vcolors)) {
                 legends$.heatmap <- ComplexHeatmap::Legend(
-                    title = name, col_fun = hmargs$col, border = TRUE,
+                    title = values_by, col_fun = hmargs$col, border = TRUE,
                     direction = legend.direction
                 )
             } else if (isTRUE(add_bg)) {
                 legends$.heatmap <- ComplexHeatmap::Legend(
-                    title = name, col_fun = get_col_fun(lower_cutoff, upper_cutoff, bg_alpha),
+                    title = values_by, col_fun = get_col_fun(lower_cutoff, upper_cutoff, bg_alpha),
                     border = TRUE, direction = legend.direction
                 )
             }
         }
-    } else if (cell_type == "tile") {
+    }
+    else if (cell_type == "tile") {
         if (isTRUE(add_bg)) {
-            stop("Cannot use 'add_bg' with 'cell_type = 'tile'.")
+            stop("[Heatmap] Cannot use 'add_bg' with 'cell_type = 'tile'.")
         }
         if (isTRUE(add_reticle)) {
-            stop("Cannot use 'add_reticle' with 'cell_type = 'tile'.")
+            stop("[Heatmap] Cannot use 'add_reticle' with 'cell_type = 'tile'.")
         }
         hmargs$rect_gp <- gpar(col = "grey80", lwd = 0.1)
         hmargs$layer_fun <- layer_fun_callback
         legends$.heatmap <- get_main_legend()
-    } else if (cell_type == "label") {
+    }
+    else if (cell_type == "label") {
         if (isTRUE(add_bg)) {
-            stop("Cannot use 'add_bg' with 'cell_type = 'tile'.")
+            stop("[Heatmap] Cannot use 'add_bg' with 'cell_type = 'tile'.")
         }
         if (isTRUE(add_reticle)) {
-            stop("Cannot use 'add_reticle' with 'cell_type = 'tile'.")
+            stop("[Heatmap] Cannot use 'add_reticle' with 'cell_type = 'tile'.")
         }
         hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
             labels <- ComplexHeatmap::pindex(hmargs$matrix, i, j)
@@ -1111,150 +1351,183 @@ HeatmapAtomic <- function(
         ncols <- ncols * nlevels(data[[columns_split_by]])
     }
     ncols <- ncols * ncol_multiplier
-    nrows <- length(rows) * nrow_multiplier
+    nrows <- nlevels(data[[rows_by]])
+    if (!is.null(rows_split_by)) {
+        nrows <- nrows * nlevels(data[[rows_split_by]])
+    }
+    nrows <- nrows * nrow_multiplier
 
     ## Set up the top annotations
-    top_annos <- list(
-        border = TRUE, col = list(),
-        annotation_name_side = ifelse(flip, column_names_side, row_names_side),
-        show_annotation_name = list(), show_legend = FALSE
-    )
-    ncol_annos <- sum(cluster_columns, show_column_names) * 4
-    if (!is.null(columns_split_by)) {
-        columns_split_name <- columns_split_name %||% columns_split_by
-        ncol_annos <- ncol_annos + 1
-        top_annos[[columns_split_name]] <- hmargs$matrix[[columns_split_by]]
-        top_annos$col[[columns_split_name]] <- palette_this(
-            levels(hmargs$matrix[[columns_split_by]]),
-            palette = columns_split_palette, palcolor = columns_split_palcolor
+    setup_name_annos <- function(
+        names_side, anno_title,
+        split_by, splits, split_palette, split_palcolor,
+        by, by_name_annotation, by_labels, by_palette, by_palcolor, by_name_legend
+    ) {
+        annos <- list(
+            border = TRUE, col = list(),
+            annotation_name_side = names_side,
+            show_annotation_name = list(), show_legend = FALSE
         )
-        top_annos$show_annotation_name[[columns_split_name]] <- TRUE
-        # top_annos$show_legend <- c(top_annos$show_legend, is.null(column_title))
-        if (is.null(column_title) && !identical(legend.position, "none")) {
-            legends$.column_split <- ComplexHeatmap::Legend(
-                title = columns_split_name,
-                labels = levels(hmargs$matrix[[columns_split_by]]),
-                legend_gp = gpar(fill = top_annos$col[[columns_split_name]]),
-                border = TRUE, nrow = if (legend.direction == "horizontal") 1 else NULL
+
+        if (!is.null(split_by)) {
+            annos[[split_by]] <- splits
+            annos$col[[split_by]] <- palette_this(
+                unique(splits), palette = split_palette, palcolor = split_palcolor
             )
-        }
-        if (isTRUE(flip)) {
-            hmargs$row_split <- hmargs$matrix[[columns_split_by]]
-        } else {
-            hmargs$column_split <- hmargs$matrix[[columns_split_by]]
-        }
-    }
-    if (!is.null(columns_by)) {
-        if (isTRUE(flip)) {
-            hmargs$row_labels <- hmargs$matrix[[columns_by]]
-        } else {
-            hmargs$column_labels <- hmargs$matrix[[columns_by]]
-        }
-        if (column_name_annotation) {
-            ncol_annos <- ncol_annos + 1
-            top_annos[[columns_by]] <- hmargs$matrix[[columns_by]]
-            top_annos$col[[columns_by]] <- palette_this(
-                unique(hmargs$matrix[[columns_by]]),
-                palette = columns_palette, palcolor = columns_palcolor
-            )
-            top_annos$show_annotation_name[[columns_by]] <- TRUE
-            # top_annos$show_legend <- c(top_annos$show_legend, isFALSE(show_column_names))
-            if (isTRUE(column_name_legend)) {
-                legends$.columns_by <- ComplexHeatmap::Legend(
-                    title = columns_by,
-                    labels = levels(hmargs$matrix[[columns_by]]),
-                    legend_gp = gpar(fill = top_annos$col[[columns_by]]),
+            annos$show_annotation_name[[split_by]] <- TRUE
+            if (!isTRUE(anno_title) && !identical(legend.position, "none")) {
+                legends[[paste0("name.", split_by)]] <<- ComplexHeatmap::Legend(
+                    title = split_by,
+                    labels = unique(splits),
+                    legend_gp = gpar(fill = annos$col[[split_by]]),
                     border = TRUE, nrow = if (legend.direction == "horizontal") 1 else NULL
                 )
             }
         }
-    }
 
-    ## Set up the column annotations
-    column_annos <- list()
-    if (!is.list(column_annotation)) {
-        column_annotation <- as.list(column_annotation)
-        names(column_annotation) <- unlist(column_annotation)
-    }
-    if (is.character(column_annotation_type) && identical(column_annotation_type, "auto")) {
-        column_annotation_type <- as.list(rep("auto", length(column_annotation)))
-        names(column_annotation_type) <- names(column_annotation)
-    }
-    if (is.character(column_annotation_palette) && length(column_annotation_palette) == 1) {
-        column_annotation_palette <- as.list(rep(column_annotation_palette, length(column_annotation)))
-        names(column_annotation_palette) <- names(column_annotation)
-    }
-    if (!is.list(column_annotation_palcolor)) {
-        column_annotation_palcolor <- list(column_annotation_palcolor)
-        column_annotation_palcolor <- rep(column_annotation_palcolor, length(column_annotation))
-        names(column_annotation_palcolor) <- names(column_annotation)
-    }
-    column_annotation_agg <- column_annotation_agg %||% list()
-    column_annotation_params <- column_annotation_params %||% list()
-    for (caname in names(column_annotation)) {
-        annocol <- column_annotation[[caname]]
-        annoagg <- column_annotation_agg[[caname]]
-        annotype <- column_annotation_type[[caname]]
-        param <- column_annotation_params[[caname]] %||% list()
-        annodata <- param$x %||% data # TODO: order in param$x
-        annocol <- check_columns(annodata, annocol)
-        if (annotype == "auto") {
-            all_ones <- annodata %>%
-                group_by(!!!syms(unique(c(columns_split_by, columns_by)))) %>%
-                summarise(n = n(), .groups = "drop") %>%
-                pull(n)
-            all_ones <- all(all_ones == 1)
-            if (is.character(annodata[[annocol]]) || is.factor(annodata[[annocol]]) || is.logical(annodata[[annocol]])) {
-                annotype <- ifelse(all_ones, "pie", "simple")
-            } else if (is.numeric(annodata[[annocol]])) {
-                annotype <- ifelse(all_ones, "points", "violin")
-            } else {
-                stop("Don't know how to handle column annotation type for column: ", annocol)
+        if (!is.null(by) && by_name_annotation) {
+            annos[[by]] <- by_labels
+            annos$col[[by]] <- palette_this(
+                unique(by_labels), palette = by_palette, palcolor = by_palcolor
+            )
+            annos$show_annotation_name[[by]] <- TRUE
+
+            if (isTRUE(by_name_legend)) {
+                legends[[paste0("name.", by)]] <<- ComplexHeatmap::Legend(
+                    title = by,
+                    labels = unique(by_labels),
+                    legend_gp = gpar(fill = annos$col[[by]]),
+                    border = TRUE, nrow = if (legend.direction == "horizontal") 1 else NULL
+                )
             }
         }
-        if (annotype %in% c("simple", "points", "lines") && is.null(annoagg)) {
-            warning("Assuming 'column_annotation_agg[\"", caname, "\"] = dplyr::first' for the simple column annotation")
-            annoagg <- dplyr::first
-        }
-        if (is.null(annoagg)) {
-            annodata <- annodata %>% select(!!!syms(unique(c(columns_split_by, columns_by, annocol))))
-        } else {
-            annodata <- annodata %>%
-                group_by(!!!syms(unique(c(columns_split_by, columns_by)))) %>%
-                summarise(!!sym(annocol) := annoagg(!!sym(annocol)), .groups = "drop")
-        }
-        param$x <- annodata
-        param$split_by <- columns_split_by
-        param$group_by <- columns_by
-        param$column <- annocol
-        param$title <- caname
-        param$which <- ifelse(isTRUE(flip), "row", "column")
-        param$palette <- column_annotation_palette[[caname]] %||% "Paired"
-        param$palcolor <- column_annotation_palcolor[[caname]]
-        param$legend.direction <- legend.direction
-        if (legend.position == "none") {
-            param$show_legend <- FALSE
-        }
-        if (!exists(paste0("anno_", annotype))) {
-            stop("Unsupported annotation type: ", annotype)
-        }
-        anno <- do.call(paste0("anno_", annotype), param)
-        column_annos[[caname]] <- anno$anno
-        legends[[paste0("column.", caname)]] <- anno$legend
-        ncol_annos <- ncol_annos + 1
+
+        return(annos)
     }
 
+    setup_annos <- function(
+        which, names_side,
+        annotation, annotation_type,
+        annotation_palette, annotation_palcolor,
+        annotation_agg, annotation_params,
+        split_by, by
+    ) {
+        annos <- list()
+        if (!is.list(annotation)) {
+            annotation <- as.list(annotation)
+            names(annotation) <- unlist(annotation)
+        }
+        if (is.character(annotation_type) && identical(annotation_type, "auto")) {
+            annotation_type <- as.list(rep("auto", length(annotation)))
+            names(annotation_type) <- names(annotation)
+        }
+        if (is.character(annotation_palette) && length(annotation_palette) == 1) {
+            annotation_palette <- as.list(rep(annotation_palette, length(annotation)))
+            names(annotation_palette) <- names(annotation)
+        }
+        if (!is.list(annotation_palcolor)) {
+            annotation_palcolor <- list(annotation_palcolor)
+            annotation_palcolor <- rep(annotation_palcolor, length(annotation))
+            names(annotation_palcolor) <- names(annotation)
+        }
+        annotation_agg <- annotation_agg %||% list()
+        annotation_params <- annotation_params %||% list()
+        for (aname in names(annotation)) {
+            annocol <- annotation[[aname]]
+            annoagg <- annotation_agg[[aname]]
+            annotype <- annotation_type[[aname]] %||% "auto"
+            param <- annotation_params[[aname]] %||% list()
+            annodata <- param$x %||% data # TODO: order in param$x
+            annocol <- check_columns(annodata, annocol)
+            if (annotype == "auto") {
+                all_ones <- annodata %>%
+                    group_by(!!!syms(unique(c(split_by, by)))) %>%
+                    summarise(n = n(), .groups = "drop") %>%
+                    pull("n")
+                all_ones <- all(all_ones == 1)
+                if (is.character(annodata[[annocol]]) || is.factor(annodata[[annocol]]) || is.logical(annodata[[annocol]])) {
+                    annotype <- ifelse(all_ones, "pie", "simple")
+                } else if (is.numeric(annodata[[annocol]])) {
+                    annotype <- ifelse(all_ones, "points", "violin")
+                } else {
+                    stop("[Heatmap] Don't know how to handle ", which, " annotation type for column: ", annocol)
+                }
+            }
+            if (annotype %in% c("simple", "points", "lines") && is.null(annoagg)) {
+                warning("[Heatmap] Assuming '", which, "_annotation_agg[\"", aname, "\"] = dplyr::first' for the simple annotation")
+                annoagg <- dplyr::first
+            }
+            if (is.null(annoagg)) {
+                annodata <- annodata %>% select(!!!syms(unique(c(split_by, by, annocol))))
+            } else {
+                annodata <- annodata %>%
+                    group_by(!!!syms(unique(c(split_by, by)))) %>%
+                    summarise(!!sym(annocol) := annoagg(!!sym(annocol)), .groups = "drop")
+            }
+            param$x <- annodata
+            param$split_by <- split_by
+            param$group_by <- by
+            param$column <- annocol
+            param$title <- aname
+            param$which <- ifelse(flip, setdiff(c("column", "row"), which), which)
+            param$palette <- annotation_palette[[aname]] %||% "Paired"
+            param$palcolor <- annotation_palcolor[[aname]]
+            param$legend.direction <- legend.direction
+            # swap width and height if flip is TRUE
+            if (flip) {
+                pheight <- param$height
+                param$height <- param$width
+                param$width <- pheight
+            }
+            if (legend.position == "none") {
+                param$show_legend <- FALSE
+            }
+            if (!exists(paste0("anno_", annotype))) {
+                stop("[Heatmap] Unsupported annotation type: ", annotype)
+            }
+            anno <- do.call(paste0("anno_", annotype), param)
+            annos[[aname]] <- anno$anno
+            legends[[paste0(which, ".", aname)]] <<- anno$legend
+        }
+
+        if (length(annos) > 0) {
+            annos$annotation_name_side <- names_side
+        }
+
+        return(annos)
+    }
+
+    ncol_annos <- sum(cluster_columns, show_column_names) * 4
+    ncol_annos <- ncol_annos +
+        ifelse(is.null(columns_split_by), 0, 1) +
+        ifelse(is.null(columns_by) || !column_name_annotation, 0, 1)
+    top_annos <- setup_name_annos(
+        names_side = ifelse(flip, column_names_side, row_names_side), anno_title = column_title,
+        split_by = columns_split_by, splits = if (flip) hmargs$row_split else hmargs$column_split,
+        split_palette = columns_split_palette, split_palcolor = columns_split_palcolor,
+        by = columns_by, by_name_annotation = column_name_annotation,
+        by_labels = if (flip) hmargs$row_labels else hmargs$column_labels, by_palette = columns_palette,
+        by_palcolor = columns_palcolor, by_name_legend = column_name_legend
+    )
+    column_annos <- setup_annos(
+        which = "column", names_side = ifelse(flip, column_names_side, row_names_side),
+        annotation = column_annotation, annotation_type = column_annotation_type,
+        annotation_palette = column_annotation_palette, annotation_palcolor = column_annotation_palcolor,
+        annotation_agg = column_annotation_agg, annotation_params = column_annotation_params,
+        split_by = columns_split_by, by = columns_by
+    )
+
     if (column_annotation_side == "top") {
+        column_annos$annotation_name_side <- NULL
         top_annos <- c(top_annos, column_annos)
-    } else {
-        column_annos$annotation_name_side <- ifelse(flip, column_names_side, row_names_side)
+    } else if (length(column_annos) > 0) {
         if (isTRUE(flip)) {
             hmargs$right_annotation <- do.call(ComplexHeatmap::rowAnnotation, column_annos)
         } else {
             hmargs$bottom_annotation <- do.call(ComplexHeatmap::HeatmapAnnotation, column_annos)
         }
+        rm(column_annos)
     }
-    rm(column_annos)
     if (length(top_annos$show_annotation_name) > 0) {
         if (isTRUE(flip)) {
             hmargs$left_annotation <- do.call(ComplexHeatmap::rowAnnotation, top_annos)
@@ -1264,181 +1537,37 @@ HeatmapAtomic <- function(
     }
     rm(top_annos)
 
-    if (!is.null(columns_by)) hmargs$matrix[[columns_by]] <- NULL
-    if (!is.null(columns_split_by)) hmargs$matrix[[columns_split_by]] <- NULL
-
-    ## Set up the left annotations
-    left_annos <- list(
-        border = TRUE, col = list(),
-        annotation_name_side = ifelse(flip, row_names_side, column_names_side),
-        show_annotation_name = list(), show_legend = FALSE
-    )
     nrow_annos <- sum(cluster_rows, show_row_names) * 4
-    if (!is.null(rows_split_by)) {
-        if (is.null(rows_data)) {
-            stop("'rows_data' must be provided for 'rows_split_by.'")
-        }
-        if (length(setdiff(rows, rows_data[, 1])) > 0) {
-            stop("The first column of 'rows_data' must contain all the unique values of 'rows'.")
-        }
-        # select the rows from rows_data
-        rows_data <- rows_data[rows_data[, 1] %in% rows, , drop = FALSE]
-        nrow_annos <- nrow_annos + 1
-        rows_by <- colnames(rows_data)[1]
-        rows_split_by <- check_columns(rows_data, rows_split_by,
-            force_factor = TRUE, allow_multi = TRUE,
-            concat_multi = TRUE, concat_sep = rows_split_by_sep
-        )
-        rows_by <- check_columns(rows_data, rows_by, force_factor = TRUE)
-        # align rows_data with rows
-        if (!is.null(rows_split_by)) {
-            rows_data <- rows_data[order(rows_data[[rows_split_by]], rows_data[[rows_by]]), , drop = FALSE]
-        } else {
-            rows_data <- rows_data[order(rows_data[[rows_by]]), , drop = FALSE]
-        }
-
-        left_annos[[rows_split_by]] <- rows_data %>%
-            distinct(!!sym(rows_by), .keep_all = TRUE) %>%
-            pull(!!sym(rows_split_by))
-
-        left_annos$col[[rows_split_by]] <- palette_this(
-            levels(rows_data[[rows_split_by]]),
-            palette = rows_split_palette, palcolor = rows_split_palcolor
-        )
-        left_annos$show_annotation_name[[rows_split_by]] <- TRUE
-        if (isTRUE(flip)) {
-            hmargs$column_split <- left_annos[[rows_split_by]]
-        } else {
-            hmargs$row_split <- left_annos[[rows_split_by]]
-        }
-
-        if (is.null(row_title) && !identical(legend.position, "none")) {
-            legends$.rows_split <- ComplexHeatmap::Legend(
-                title = rows_split_by,
-                labels = levels(rows_data[[rows_split_by]]),
-                legend_gp = gpar(fill = left_annos$col[[rows_split_by]]),
-                border = TRUE, nrow = if (legend.direction == "horizontal") 1 else NULL
-            )
-        }
-    }
-
-    if (row_name_annotation) {
-        left_annos[[rows_name]] <- colnames(hmargs$matrix)
-        left_annos$col[[rows_name]] <- palette_this(
-            colnames(hmargs$matrix),
-            palette = rows_palette, palcolor = rows_palcolor
-        )
-        nrow_annos <- nrow_annos + 1
-        left_annos$show_annotation_name[[rows_name]] <- TRUE
-        # left_annos$show_legend <- c(left_annos$show_legend, isFALSE(show_row_names))
-        if (isTRUE(row_name_legend)) {
-            legends$.rows <- ComplexHeatmap::Legend(
-                title = rows_name,
-                labels = colnames(hmargs$matrix),
-                legend_gp = gpar(fill = left_annos$col[[rows_name]]),
-                border = TRUE, nrow = if (legend.direction == "horizontal") 1 else NULL
-            )
-        }
-    }
-
-    ## Set up the row annotations
-    row_annos <- list()
-    if (!is.list(row_annotation)) {
-        row_annotation <- as.list(row_annotation)
-        names(row_annotation) <- unlist(row_annotation)
-    }
-    if (is.character(row_annotation_type) && identical(row_annotation_type, "auto")) {
-        row_annotation_type <- as.list(rep("auto", length(row_annotation)))
-        names(row_annotation_type) <- names(row_annotation)
-    }
-    if (is.character(row_annotation_palette) && length(row_annotation_palette) == 1) {
-        row_annotation_palette <- as.list(rep(row_annotation_palette, length(row_annotation)))
-        names(row_annotation_palette) <- names(row_annotation)
-    }
-    if (!is.list(row_annotation_palcolor)) {
-        row_annotation_palcolor <- list(row_annotation_palcolor)
-        row_annotation_palcolor <- rep(row_annotation_palcolor, length(row_annotation))
-        names(row_annotation_palcolor) <- names(row_annotation)
-    }
-    row_annotation_agg <- row_annotation_agg %||% list()
-    row_annotation_params <- row_annotation_params %||% list()
-    for (raname in names(row_annotation)) {
-        annocol <- row_annotation[[raname]]
-        annoagg <- row_annotation_agg[[raname]]
-        annotype <- row_annotation_type[[raname]]
-        param <- row_annotation_params[[raname]] %||% list()
-        if (identical(param$x, "data")) {
-            param$x <- data %>%
-                select(!!!syms(unique(c(rows_split_by, rows_by, rows)))) %>%
-                pivot_longer(cols = -c(rows_split_by, rows_by), names_to = ".rows", values_to = annocol) %>%
-                select(!!sym(".rows"), everything())
-            rows_by <- ".rows"
-        } else if (identical(param$x, "rows_data") || is.null(param$x)) {
-            param$x <- rows_data
-            rows_by <- colnames(rows_data)[1]
-        } else {
-            rows_by <- colnames(param$x)[1]
-        }
-        param$x[[1]] <- factor(param$x[[1]], levels = rows)
-        param$x <- param$x[order(param$x[[1]]), , drop = FALSE]
-
-        annocol <- check_columns(param$x, annocol)
-        if (annotype == "auto") {
-            all_ones <- param$x %>%
-                group_by(!!!syms(unique(c(rows_split_by, rows_by)))) %>%
-                summarise(n = n(), .groups = "drop") %>%
-                pull(n)
-            all_ones <- all(all_ones == 1)
-            if (is.character(param$x[[annocol]]) || is.factor(param$x[[annocol]]) || is.logical(param$x[[annocol]])) {
-                annotype <- ifelse(all_ones, "pie", "simple")
-            } else if (is.numeric(param$x[[annocol]])) {
-                annotype <- ifelse(all_ones, "points", "violin")
-            } else {
-                stop("Don't know how to handle row annotation type for column: ", annocol)
-            }
-        }
-        if (annotype %in% c("simple", "points", "lines") && is.null(annoagg)) {
-            warning("Assuming 'row_annotation_agg[\"", raname, "\"] = dplyr::first' for the simple column annotation")
-            annoagg <- dplyr::first
-        }
-        if (is.null(annoagg)) {
-            param$x <- param$x %>% select(!!!syms(unique(c(rows_split_by, rows_by, annocol))))
-        } else {
-            param$x <- param$x %>%
-                group_by(!!!syms(unique(c(rows_split_by, rows_by)))) %>%
-                summarise(!!sym(annocol) := annoagg(!!sym(annocol)), .groups = "drop")
-        }
-        param$split_by <- rows_split_by
-        param$group_by <- rows_by
-        param$column <- annocol
-        param$title <- raname
-        param$which <- ifelse(isTRUE(flip), "column", "row")
-        param$palette <- row_annotation_palette[[raname]] %||% "Paired"
-        param$palcolor <- row_annotation_palcolor[[raname]]
-        param$legend.direction <- legend.direction
-        if (legend.position == "none") {
-            param$show_legend <- FALSE
-        }
-        if (!exists(paste0("anno_", annotype))) {
-            stop("Unsupported annotation type: ", annotype)
-        }
-        anno <- do.call(paste0("anno_", annotype), param)
-        row_annos[[raname]] <- anno$anno
-        legends[[paste0("row", raname)]] <- anno$legend
-        nrow_annos <- nrow_annos + 1
-    }
+    nrow_annos <- nrow_annos +
+        ifelse(is.null(rows_split_by), 0, 1) +
+        ifelse(is.null(rows_by) || !row_name_annotation, 0, 1)
+    left_annos <- setup_name_annos(
+        names_side = ifelse(flip, row_names_side, column_names_side), anno_title = row_title,
+        split_by = rows_split_by, splits = if (flip) hmargs$column_split else hmargs$row_split,
+        split_palette = rows_split_palette, split_palcolor = rows_split_palcolor,
+        by = rows_by, by_name_annotation = row_name_annotation,
+        by_labels = if (flip) hmargs$column_labels else hmargs$row_labels,
+        by_palette = rows_palette, by_palcolor = rows_palcolor, by_name_legend = row_name_legend
+    )
+    row_annos <- setup_annos(
+        which = "row", names_side = ifelse(flip, row_names_side, column_names_side),
+        annotation = row_annotation, annotation_type = row_annotation_type,
+        annotation_palette = row_annotation_palette, annotation_palcolor = row_annotation_palcolor,
+        annotation_agg = row_annotation_agg, annotation_params = row_annotation_params,
+        split_by = rows_split_by, by = rows_by
+    )
 
     if (row_annotation_side == "left") {
+        row_annos$annotation_name_side <- NULL
         left_annos <- c(left_annos, row_annos)
-    } else {
-        row_annos$annotation_name_side <- ifelse(flip, row_names_side, column_names_side)
+    } else if (length(row_annos) > 0) {
         if (isTRUE(flip)) {
             hmargs$bottom_annotation <- do.call(ComplexHeatmap::HeatmapAnnotation, row_annos)
         } else {
             hmargs$right_annotation <- do.call(ComplexHeatmap::rowAnnotation, row_annos)
         }
+        rm(row_annos)
     }
-    rm(row_annos)
     if (length(left_annos$show_annotation_name) > 0) {
         if (isTRUE(flip)) {
             hmargs$top_annotation <- do.call(ComplexHeatmap::HeatmapAnnotation, left_annos)
@@ -1452,12 +1581,10 @@ HeatmapAtomic <- function(
     rownames_width <- convertUnit(hmargs$row_names_max_width, "inches", valueOnly = TRUE) * 0.5 - 0.2
     rownames_width <- max(rownames_width, 0)
     if (isTRUE(flip)) {
-        hmargs$matrix <- as.matrix(hmargs$matrix)
         width <- nrows * 0.25 + ncol_annos * 0.5 + rownames_width
         # How about column name length (nchars)?
         height <- ncols * 0.25 + nrow_annos * 0.5
     } else {
-        hmargs$matrix <- t(as.matrix(hmargs$matrix))
         width <- ncols * 0.25 + nrow_annos * 0.5 + rownames_width
         height <- nrows * 0.25 + ncol_annos * 0.5
     }
@@ -1514,299 +1641,288 @@ HeatmapAtomic <- function(
 #' Heatmap
 #'
 #' @description Heatmap is a popular way to visualize data in matrix format. It is widely used in biology to visualize gene expression data in microarray and RNA-seq data. The heatmap is a matrix where rows represent the samples and columns represent the features. The color of each cell represents the value of the feature in the sample. The color can be continuous or discrete. The heatmap can be split by the columns or rows to show the subgroups in the data. The heatmap can also be annotated by the columns or rows to show the additional information of the samples or features.
-#' @inheritParams common_args
+#' @inheritParams process_heatmap_data
 #' @inheritParams HeatmapAtomic
-#' @param data A data frame used to create the heatmap.
-#'  The data should be in a long form where each row represents a instance in the heatmap.
-#'  The `rows` should be multiple columns if you want to plot as rows, which you can refer as "features".
-#' @param split_rows_data A logical value indicating whether to split the rows data as well using 'split_by' and 'split_by_sep'.
-#' @return The heatmap(s).
-#'  When `split_by` is not provided, the function returns a single heatmap ([ComplexHeatmap::Heatmap]-class object).
-#'  When `split_by` is provided, the function returns a combined plot of multiple heatmaps wrapped by [patchwork::wrap_plots]
-#'  if `combine = TRUE`, otherwise, it returns a list of heatmaps.
+#' @inheritParams common_args
 #' @export
 #' @importFrom patchwork wrap_plots
 #' @seealso \code{\link{anno_simple}}, \code{\link{anno_points}}, \code{\link{anno_lines}}, \code{\link{anno_pie}}, \code{\link{anno_violin}}, \code{\link{anno_boxplot}}, \code{\link{anno_density}}
 #' @examples
 #' \donttest{
 #' set.seed(8525)
-#' data <- data.frame(
-#'     F1 = rnorm(100, 0.1),
-#'     F2 = rnorm(100, 0.2),
-#'     F3 = rnorm(100),
-#'     F4 = rnorm(100, 0.3),
-#'     F5 = rnorm(100, -0.1),
-#'     F6 = rnorm(100, -0.2),
-#'     c = sample(letters[1:8], 100, replace = TRUE),
-#'     s = sample(LETTERS[1:2], 100, replace = TRUE),
-#'     p = sample(c("X", "Y", "Z"), 100, replace = TRUE),
-#'     a = sample(1:5, 100, replace = TRUE),
-#'     p1 = c(sample(c(1, NA), 100, replace = TRUE)),
-#'     p2 = c(sample(c(1, NA), 100, replace = TRUE)),
-#'     p3 = c(sample(c(1, NA), 100, replace = TRUE))
-#' )
-#' rows <- c("F1", "F2", "F3", "F4", "F5", "F6")
-#' rows_data <- data.frame(
-#'     rows = rep(c("F1", "F2", "F3", "F4", "F5", "F6"), each = 10),
-#'     rows1 = rep(c("F1", "F2", "F3", "F4", "F5", "F6"), each = 10),
-#'     rs = rep(letters[1:2], each = 30),
-#'     rp = sample(c("X", "Y", "Z"), 60, replace = TRUE),
-#'     rv = rnorm(60, 0.5)
-#' )
 #'
+#' matrix_data <- matrix(rnorm(60), nrow = 6, ncol = 10)
+#' rownames(matrix_data) <- paste0("R", 1:6)
+#' colnames(matrix_data) <- paste0("C", 1:10)
 #' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data, rows = rows, columns_by = "c")
+#'     Heatmap(matrix_data)
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data,
-#'         rows = list(RG1 = c("F1", "F2", "F3"), RG2 = c("F4", "F5", "F6")),
-#'         columns_by = "c"
+#'     # use a different color palette
+#'     # change the main legend title
+#'     # show row names (legend will be hidden)
+#'     # show column names
+#'     # change the row name annotation name and side
+#'     # change the column name annotation name
+#'     Heatmap(matrix_data, palette = "viridis", values_by = "z-score",
+#'        show_row_names = TRUE, show_column_names = TRUE,
+#'        rows_name = "Features", row_names_side = "left",
+#'        columns_name = "Samples")
+#' }
+#' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     # flip the heatmap
+#'     Heatmap(matrix_data, palette = "viridis", values_by = "z-score",
+#'        show_row_names = TRUE, show_column_names = TRUE,
+#'        rows_name = "Features", row_names_side = "left",
+#'        columns_name = "Samples", flip = TRUE)
+#' }
+#' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     # add annotations to the heatmap
+#'     rows_data <- data.frame(
+#'        rows = paste0("R", 1:6),
+#'        group = sample(c("X", "Y", "Z"), 6, replace = TRUE)
+#'     )
+#'     Heatmap(matrix_data, rows_data = rows_data,
+#'         row_annotation = list(Group = "group"),
+#'         row_annotation_type = list(Group = "simple"),
+#'         row_annotation_palette = list(Group = "Spectral")
 #'     )
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     # Multiple columns_by, each as a split
-#'     Heatmap(data, rows = rows, columns_by = c("c", "s"), columns_by_sep = "/")
+#'     Heatmap(matrix_data, rows_data = rows_data,
+#'         rows_split_by = "group"
+#'     )
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data, rows = rows, columns_by = c("p1", "p2", "p3"))
+#'     # add labels to the heatmap
+#'     Heatmap(matrix_data, rows_data = rows_data,
+#'         rows_split_by = "group", cell_type = "label",
+#'         label = function(x) ifelse(
+#'             x > 0, scales::number(x, accuracy = 0.01), NA
+#'         )
+#'     )
+#' }
+#'
+#' # Use long form data
+#' N <- 500
+#' data <- data.frame(
+#'     value = rnorm(N),
+#'     c = sample(letters[1:8], N, replace = TRUE),
+#'     r = sample(LETTERS[1:5], N, replace = TRUE),
+#'     p = sample(c("x", "y"), N, replace = TRUE),
+#'     q = sample(c("X", "Y", "Z"), N, replace = TRUE),
+#'     a = as.character(sample(1:5, N, replace = TRUE)),
+#'     p1 = runif(N),
+#'     p2 = runif(N)
+#' )
+#'
+#' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     Heatmap(data, rows_by = "r", columns_by = "c", values_by = "value",
+#'         rows_split_by = "p", columns_split_by = "q", show_column_names = TRUE)
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     # split into multiple heatmaps
 #'     Heatmap(data,
-#'         rows = rows, columns_by = "c", split_by = "s",
+#'         values_by = "value", columns_by = "c", rows_by = "r", split_by = "p",
 #'         upper_cutoff = 2, lower_cutoff = -2, legend.position = c("none", "right"),
 #'         design = "AAAAAA#BBBBBBB"
 #'     )
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data, rows = rows, columns_by = "c", columns_split_by = "s")
+#'     # cell_type = "bars" (default is "tile")
+#'     Heatmap(data, values_by = "value", rows_by = "r", columns_by = "c",
+#'         cell_type = "bars")
+#' }
+#' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     Heatmap(data, values_by = "value", rows_by = "r", columns_by = "c",
+#'         cell_type = "dot", dot_size = length, dot_size_name = "data points",
+#'         add_bg = TRUE, add_reticle = TRUE)
+#' }
+#' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     Heatmap(data, values_by = "value", rows_by = "r", columns_by = "c",
+#'         cell_type = "pie", pie_group_by = "q", pie_size = sqrt,
+#'         add_bg = TRUE, add_reticle = TRUE)
+#' }
+#' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     Heatmap(data, values_by = "value", rows_by = "r", columns_by = "c",
+#'         cell_type = "violin", add_bg = TRUE, add_reticle = TRUE)
+#' }
+#' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     Heatmap(data, values_by = "value", rows_by = "r", columns_by = "c",
+#'         cell_type = "boxplot", add_bg = TRUE, add_reticle = TRUE)
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
 #'     Heatmap(data,
-#'         rows = rows, columns_by = "c", columns_split_by = "s",
-#'         rows_data = rows_data, rows_split_by = "rs"
-#'     )
-#' }
-#' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data,
-#'         rows = rows, columns_by = "c", columns_split_by = "s",
-#'         rows_data = rows_data, rows_split_by = "rs", flip = TRUE
-#'     )
-#' }
-#' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data, rows = rows, columns_by = "c", cell_type = "bars")
-#' }
-#' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data,
-#'         rows = rows, columns_by = "c", cell_type = "bars",
-#'         bars_sample = 3
-#'     )
-#' }
-#' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data,
-#'         rows = rows, columns_by = "c", cell_type = "label",
-#'         label = function(x) scales::number(x, accuracy = 0.01)
-#'     )
-#' }
-#' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data,
-#'         rows = rows, columns_by = "c", cell_type = "label",
-#'         label = function(x) ifelse(x <= 0, NA, scales::number(x, accuracy = 0.01))
-#'     )
-#' }
-#' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data, rows = rows, columns_by = "c", cell_type = "dot")
-#' }
-#' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data,
-#'         rows = rows, columns_by = "c", cell_type = "dot",
-#'         dot_size = mean
-#'     )
-#' }
-#' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data,
-#'         rows = rows, columns_by = "c", cell_type = "dot",
-#'         dot_size = mean, row_name_annotation = FALSE, column_name_annotation = FALSE,
-#'         row_names_side = "left", cluster_rows = FALSE, cluster_columns = FALSE
-#'     )
-#' }
-#' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data,
-#'         rows = rows, columns_by = "c", cell_type = "dot",
-#'         dot_size = mean, add_bg = TRUE
-#'     )
-#' }
-#' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data,
-#'         rows = rows, columns_by = "c", cell_type = "dot",
-#'         dot_size = mean, add_reticle = TRUE
-#'     )
-#' }
-#' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data,
-#'         cluster_rows = FALSE, cluster_columns = FALSE, columns_by = "p",
-#'         rows = c("p1", "p2", "p3"), name = "Category", pie_group_by = "c",
-#'         cell_type = "pie"
-#'     )
-#' }
-#' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data,
-#'         cluster_rows = FALSE, cluster_columns = FALSE, columns_by = "p",
-#'         rows = c("p1", "p2", "p3"), name = "Category", pie_group_by = "c",
-#'         cell_type = "pie", pie_size = sqrt, add_bg = TRUE
-#'     )
-#' }
-#' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data, rows = rows, columns_by = "c", cell_type = "violin")
-#' }
-#' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data, rows = rows, columns_by = "c", cell_type = "boxplot")
-#' }
-#' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data,
-#'         rows = rows, columns_by = "c", rows_data = rows_data,
-#'         column_annotation = list(p1 = "p", p2 = "p", F1 = "F1"),
-#'         column_annotation_type = list(p1 = "ring", p2 = "bar", F1 = "violin"),
+#'         values_by = "value", rows_by = "r", columns_by = "c",
+#'         column_annotation = list(r1 = "p", r2 = "q", r3 = "p1"),
+#'         column_annotation_type = list(r1 = "ring", r2 = "bar", r3 = "violin"),
 #'         column_annotation_params = list(
-#'             p1 = list(height = grid::unit(10, "mm"), show_legend = FALSE),
-#'             F1 = list(height = grid::unit(18, "mm"))
+#'             r1 = list(height = grid::unit(10, "mm"), show_legend = FALSE),
+#'             r3 = list(height = grid::unit(18, "mm"))
 #'         ),
-#'         rows_split_by = "rs",
-#'         row_annotation = c("rp", "rv", "rows1"),
+#'         row_annotation = c("q", "p2", "a"),
 #'         row_annotation_side = "right",
-#'         row_annotation_type = list(rp = "pie", rv = "density", rows1 = "simple"),
-#'         row_annotation_params = list(rp = list(width = grid::unit(12, "mm"))),
+#'         row_annotation_type = list(q = "pie", p2 = "density", a = "simple"),
+#'         row_annotation_params = list(q = list(width = grid::unit(12, "mm"))),
 #'         show_row_names = TRUE, show_column_names = TRUE
 #'     )
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
 #'     Heatmap(data,
-#'         rows = rows, columns_by = "c", rows_data = rows_data,
-#'         column_annotation = list(p1 = "p", p2 = "p", F1 = "F1"),
-#'         column_annotation_type = list(p1 = "ring", p2 = "bar", F1 = "violin"),
-#'         column_annotation_params = list(
-#'             p1 = list(height = grid::unit(10, "mm"), show_legend = FALSE),
-#'             F1 = list(height = grid::unit(18, "mm"))
-#'         ),
-#'         rows_split_by = "rs",
-#'         row_annotation = c("rp", "rv", "rows1"),
-#'         row_annotation_side = "right",
-#'         row_annotation_type = list(rp = "pie", rv = "density", rows1 = "simple"),
-#'         row_annotation_params = list(rp = list(width = grid::unit(12, "mm"))),
-#'         show_row_names = TRUE, show_column_names = TRUE, flip = TRUE
+#'         values_by = "value", rows_by = "r", columns_by = "c",
+#'         split_by = "p", palette = list(x = "Reds", y = "Blues")
 #'     )
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data,
-#'         rows = rows, columns_by = "c", split_by = "p",
-#'         palette = list(X = "Reds", Y = "Blues", Z = "Purp")
-#'     )
+#'     # implies in_form = "wide-rows"
+#'     Heatmap(data, rows_by = c("p1", "p2"), columns_by = "c")
+#' }
+#' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     # implies wide-columns
+#'     Heatmap(data, rows_by = "r", columns_by = c("p1", "p2"))
 #' }
 #' }
 Heatmap <- function(
-    data, rows = NULL, columns_by, rows_name = "rows", columns_name = "columns", split_by = NULL, split_by_sep = "_", split_rows_data = FALSE,
-    name = "value", border = TRUE, rows_palette = "Paired", rows_palcolor = NULL, title = NULL,
-    pie_group_by = NULL, pie_group_by_sep = "_", pie_palette = "Spectral", pie_palcolor = NULL, pie_size = NULL,
-    pie_name = NULL, pie_size_name = "size", pie_values = "count", legend_items = NULL, legend_discrete = FALSE,
+    data, values_by = NULL,
+    # data definition
+    in_form = c("auto", "matrix", "wide-columns", "wide-rows", "long"),
+    split_by = NULL, split_by_sep = "_",
+    rows_by = NULL, rows_by_sep = "_", rows_split_by = NULL, rows_split_by_sep = "_",
+    columns_by = NULL, columns_by_sep = "_", columns_split_by = NULL, columns_split_by_sep = "_",
+    rows_data = NULL, columns_data = NULL,
+    # names
+    columns_name = NULL, columns_split_name = NULL,
+    rows_name = NULL, rows_split_name = NULL,
+    # palettes
+    palette = "RdBu", palcolor = NULL,
+    rows_palette = "Paired", rows_palcolor = NULL, rows_split_palette = "simspec", rows_split_palcolor = NULL,
+    columns_palette = "Paired", columns_palcolor = NULL, columns_split_palette = "simspec", columns_split_palcolor = NULL,
+    # cell_type: pies
+    pie_size_name = "size", pie_size = NULL, pie_values = "length", pie_name = NULL,
+    pie_group_by = NULL, pie_group_by_sep = "_", pie_palette = "Spectral", pie_palcolor = NULL,
+    # cell_type: bars
+    bars_sample = 100,
+    # cell_type: label
+    label = identity, label_size = 10,
+    # cell_type: violin
+    violin_fill = NULL,
+    # cell_type: boxplot
+    boxplot_fill = NULL,
+    # cell_type: dot
+    dot_size = 8, dot_size_name = "size",
+    # legend
+    legend_items = NULL, legend_discrete = FALSE,
+    legend.position = "right", legend.direction = "vertical",
+    # values
     lower_quantile = 0, upper_quantile = 0.99, lower_cutoff = NULL, upper_cutoff = NULL,
-    columns_by_sep = "_", columns_split_by = NULL, columns_split_name = NULL, columns_palette = "Paired", columns_palcolor = NULL,
-    columns_split_by_sep = "_", columns_split_palette = "simspec", columns_split_palcolor = NULL,
-    rows_data = NULL, rows_split_by = NULL, rows_split_by_sep = "_", rows_split_palette = "simspec", rows_split_palcolor = NULL,
+    # bg
+    add_bg = FALSE, bg_alpha = 0.5,
+    # reticle
+    add_reticle = FALSE, reticle_color = "grey",
+    # passed to ComplexHeatmap::Heatmap
     column_name_annotation = TRUE, column_name_legend = isFALSE(show_column_names) && !identical(legend.position, "none"),
     row_name_annotation = TRUE, row_name_legend = isFALSE(show_row_names) && !identical(legend.position, "none"),
     cluster_columns = TRUE, cluster_rows = TRUE, show_row_names = !row_name_annotation, show_column_names = !column_name_annotation,
-    column_title = character(0), row_title = character(0), na_col = "grey85",
-    row_names_side = "right", column_names_side = "bottom", bars_sample = 100, flip = FALSE,
-    label_size = 10, label = identity, layer_fun_callback = NULL,
-    cell_type = c("tile", "bars", "label", "dot", "violin", "boxplot", "pie"), cell_agg = mean,
-    add_bg = FALSE, bg_alpha = 0.5, violin_fill = NULL, boxplot_fill = NULL, dot_size = 8, dot_size_name = "size",
+    border = TRUE, title = NULL, column_title = character(0), row_title = character(0), na_col = "grey85",
+    row_names_side = "right", column_names_side = "bottom",
     column_annotation = NULL, column_annotation_side = "top", column_annotation_palette = "Paired", column_annotation_palcolor = NULL,
     column_annotation_type = "auto", column_annotation_params = list(), column_annotation_agg = NULL,
     row_annotation = NULL, row_annotation_side = "left", row_annotation_palette = "Paired", row_annotation_palcolor = NULL,
     row_annotation_type = "auto", row_annotation_params = list(), row_annotation_agg = NULL,
-    add_reticle = FALSE, reticle_color = "grey",
-    palette = "RdBu", palcolor = NULL, alpha = 1, legend.position = "right", legend.direction = "vertical",
-    seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
-    ...) {
+    # misc
+    flip = FALSE, alpha = 1, seed = 8525,
+    # cell customization
+    layer_fun_callback = NULL, cell_type = c("tile", "bars", "label", "dot", "violin", "boxplot", "pie"), cell_agg = NULL,
+    # subplots
+    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
+    ...
+) {
     validate_common_args(seed)
-    if (is.null(split_by)) {
-        split_rows_data <- FALSE
-    }
+    in_form <- match.arg(in_form)
+    cell_type <- match.arg(cell_type)
 
-    d_split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
-    if (isTRUE(split_rows_data) && !is.null(rows_data)) {
-        if (is.character(rows_data) && length(rows_data) == 1 && startsWith(rows_data, "@")) {
-            rows_data <- attr(data, substring(rows_data, 2))
-        }
-        r_split_by <- check_columns(rows_data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = rows_split_by_sep)
-        if (!identical(d_split_by, r_split_by)) {
-            stop("The 'split_by' for 'data' and 'rows_data' must be the same.")
-        }
-    }
+    hmdata <- process_heatmap_data(
+        data, in_form = in_form, values_by = values_by,
+        split_by = split_by, split_by_sep = split_by_sep,
+        rows_by = rows_by, rows_by_sep = rows_by_sep, rows_name = rows_name,
+        rows_split_by = rows_split_by, rows_split_by_sep = rows_split_by_sep, rows_split_name = rows_split_name,
+        columns_by = columns_by, columns_by_sep = columns_by_sep, columns_name = columns_name,
+        columns_split_by = columns_split_by, columns_split_by_sep = columns_split_by_sep, columns_split_name = columns_split_name,
+        pie_group_by = pie_group_by, pie_group_by_sep = pie_group_by_sep, pie_name = pie_name,
+        rows_data = rows_data, columns_data = columns_data
+    )
 
-    if (!is.null(split_by)) {
-        columns_by <- check_columns(data, columns_by,
-            force_factor = TRUE, allow_multi = TRUE,
-            concat_multi = TRUE, concat_sep = columns_by_sep
-        )
-        datas <- split(data, data[[d_split_by]])
-
-        if (isTRUE(split_rows_data) && !is.null(rows_data)) {
-            rows_datas <- split(rows_data, rows_data[[d_split_by]])
-            nms <- names(datas)
-            datas <- lapply(nms, function(nm) {
-                dat <- datas[[nm]]
-                attr(dat, "rows_data") <- rows_datas[[nm]]
-                dat
-            })
-            names(datas) <- nms
-        } else {
-            # keep the order of levels
-            datas <- datas[levels(data[[d_split_by]])]
-        }
-    } else {
-        datas <- list(data)
-        names(datas) <- "..."
-    }
-    palette <- check_palette(palette, names(datas))
-    palcolor <- check_palcolor(palcolor, names(datas))
-    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
-    legend.position <- check_legend(legend.position, names(datas), "legend.position")
-
-    if (isTRUE(split_rows_data) && !is.null(rows_data)) {
-        rows_data <- "@rows_data"
-    }
+    palette <- check_palette(palette, names(hmdata$data))
+    palcolor <- check_palcolor(palcolor, names(hmdata$data))
+    rows_palette <- check_palette(rows_palette, names(hmdata$data))
+    rows_palcolor <- check_palcolor(rows_palcolor, names(hmdata$data))
+    rows_split_palette <- check_palette(rows_split_palette, names(hmdata$data))
+    rows_split_palcolor <- check_palcolor(rows_split_palcolor, names(hmdata$data))
+    columns_palette <- check_palette(columns_palette, names(hmdata$data))
+    columns_palcolor <- check_palcolor(columns_palcolor, names(hmdata$data))
+    columns_split_palette <- check_palette(columns_split_palette, names(hmdata$data))
+    columns_split_palcolor <- check_palcolor(columns_split_palcolor, names(hmdata$data))
+    pie_palette <- check_palette(pie_palette, names(hmdata$data))
+    pie_palcolor <- check_palcolor(pie_palcolor, names(hmdata$data))
+    legend.direction <- check_legend(legend.direction, names(hmdata$data), "legend.direction")
+    legend.position <- check_legend(legend.position, names(hmdata$data), "legend.position")
 
     plots <- lapply(
-        names(datas), function(nm) {
-            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+        names(hmdata$data), function(nm) {
+            default_title <- if (length(hmdata$data) == 1 && identical(nm, "...")) NULL else nm
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
                 title <- title %||% default_title
             }
 
-            HeatmapAtomic(datas[[nm]],
-                rows = rows, columns_by = columns_by, rows_name = rows_name, columns_name = columns_name, name = name, border = border, rows_palette = rows_palette, rows_palcolor = rows_palcolor,
-                lower_quantile = lower_quantile, upper_quantile = upper_quantile, lower_cutoff = lower_cutoff, upper_cutoff = upper_cutoff,
-                pie_group_by = pie_group_by, pie_group_by_sep = pie_group_by_sep, pie_palette = pie_palette, pie_palcolor = pie_palcolor,
-                pie_size = pie_size, pie_name = pie_name, pie_size_name = pie_size_name, pie_values = pie_values, legend_items = legend_items, legend_discrete = legend_discrete,
-                columns_by_sep = columns_by_sep, columns_split_by = columns_split_by, columns_split_name = columns_split_name, columns_palette = columns_palette,
-                columns_palcolor = columns_palcolor, columns_split_by_sep = columns_split_by_sep, columns_split_palette = columns_split_palette,
-                columns_split_palcolor = columns_split_palcolor, column_name_legend = column_name_legend, row_name_legend = row_name_legend,
-                rows_data = rows_data, rows_split_by = rows_split_by, rows_split_by_sep = rows_split_by_sep, rows_split_palette = rows_split_palette, rows_split_palcolor = rows_split_palcolor,
-                column_name_annotation = column_name_annotation, row_name_annotation = row_name_annotation,
+            HeatmapAtomic(
+                data = hmdata$data[[nm]], values_by = hmdata$values_by,
+                rows_by = hmdata$rows_by, rows_split_by = hmdata$rows_split_by,
+                columns_by = hmdata$columns_by, columns_split_by = hmdata$columns_split_by,
+
+                palette = palette[[nm]], palcolor = palcolor[[nm]],
+                rows_palette = rows_palette[[nm]], rows_palcolor = rows_palcolor[[nm]],
+                rows_split_palette = rows_split_palette[[nm]], rows_split_palcolor = rows_split_palcolor[[nm]],
+                columns_palette = columns_palette[[nm]], columns_palcolor = columns_palcolor[[nm]],
+                columns_split_palette = columns_split_palette[[nm]], columns_split_palcolor = columns_split_palcolor[[nm]],
+
+                pie_size_name = pie_size_name, pie_size = pie_size, pie_values = pie_values,
+                pie_group_by = hmdata$pie_group_by, pie_palette = pie_palette[[nm]], pie_palcolor = pie_palcolor[[nm]],
+
+                bars_sample = bars_sample,
+                label = label, label_size = label_size,
+                violin_fill = violin_fill,
+                boxplot_fill = boxplot_fill,
+                dot_size = dot_size, dot_size_name = dot_size_name,
+
+                legend_items = legend_items, legend_discrete = legend_discrete,
+                legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
+
+                lower_quantile = lower_quantile, upper_quantile = upper_quantile,
+                lower_cutoff = lower_cutoff, upper_cutoff = upper_cutoff,
+
+                add_bg = add_bg, bg_alpha = bg_alpha,
+
+                add_reticle = add_reticle, reticle_color = reticle_color,
+
+                column_name_annotation = column_name_annotation, column_name_legend = column_name_legend,
+                row_name_annotation = row_name_annotation, row_name_legend = row_name_legend,
                 cluster_columns = cluster_columns, cluster_rows = cluster_rows, show_row_names = show_row_names, show_column_names = show_column_names,
-                column_title = column_title, row_title = row_title, na_col = na_col, return_grob = TRUE, title = title,
-                row_names_side = row_names_side, column_names_side = column_names_side, bars_sample = bars_sample, flip = flip,
-                label_size = label_size, label = label, layer_fun_callback = layer_fun_callback,
-                cell_type = cell_type, cell_agg = cell_agg, add_bg = add_bg, bg_alpha = bg_alpha, violin_fill = violin_fill, boxplot_fill = boxplot_fill,
-                dot_size = dot_size, dot_size_name = dot_size_name, column_annotation = column_annotation, column_annotation_side = column_annotation_side,
+                border = border, title = title, column_title = column_title, row_title = row_title, na_col = na_col,
+                row_names_side = row_names_side, column_names_side = column_names_side,
+                column_annotation = column_annotation, column_annotation_side = column_annotation_side,
                 column_annotation_palette = column_annotation_palette, column_annotation_palcolor = column_annotation_palcolor,
-                column_annotation_type = column_annotation_type, column_annotation_params = column_annotation_params, column_annotation_agg = column_annotation_agg,
-                row_annotation = row_annotation, row_annotation_side = row_annotation_side, row_annotation_palette = row_annotation_palette,
-                row_annotation_palcolor = row_annotation_palcolor, row_annotation_type = row_annotation_type, row_annotation_params = row_annotation_params,
-                row_annotation_agg = row_annotation_agg, add_reticle = add_reticle, reticle_color = reticle_color,
-                palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
+                column_annotation_type = column_annotation_type, column_annotation_params = column_annotation_params,
+                column_annotation_agg = column_annotation_agg,
+                row_annotation = row_annotation, row_annotation_side = row_annotation_side,
+                row_annotation_palette = row_annotation_palette, row_annotation_palcolor = row_annotation_palcolor,
+                row_annotation_type = row_annotation_type, row_annotation_params = row_annotation_params,
+                row_annotation_agg = row_annotation_agg,
+
+                flip = flip, alpha = alpha, seed = seed, return_grob = TRUE,
+                layer_fun_callback = layer_fun_callback, cell_type = cell_type, cell_agg = cell_agg,
+
                 ...
             )
         }
