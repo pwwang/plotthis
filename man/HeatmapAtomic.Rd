@@ -7,6 +7,7 @@
 HeatmapAtomic(
   data,
   values_by,
+  values_fill = NA,
   rows_by = NULL,
   rows_split_by = NULL,
   columns_by = NULL,
@@ -91,6 +92,9 @@ The data should be in a long form where each row represents a instance in the he
 
 \item{values_by}{A character of column name in \code{data} that contains the values to be plotted.
 This is required when \code{in_form} is \code{"long"}. For other formats, the values are pivoted into a column named by \code{values_by}.}
+
+\item{values_fill}{A value to fill in the missing values in the heatmap.
+When there is missing value in the data, the cluster_rows and cluster_columns will fail.}
 
 \item{rows_by}{A vector of column names in \code{data} that contains the row information.
 This is used to create the rows of the heatmap.

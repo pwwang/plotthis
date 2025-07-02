@@ -781,6 +781,8 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
 #' @inheritParams common_args
 #' @param data A data frame used to create the heatmap.
 #'  The data should be in a long form where each row represents a instance in the heatmap.
+#' @param values_fill A value to fill in the missing values in the heatmap.
+#' When there is missing value in the data, the cluster_rows and cluster_columns will fail.
 #' @param border A logical value indicating whether to draw the border of the heatmap.
 #'  If TRUE, the borders of the slices will be also drawn.
 #' @param title The global (column) title of the heatmap
@@ -909,7 +911,7 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
 #' @return A drawn HeatmapList object if `return_grob = FALSE`. Otherwise, a grob/gTree object.
 #' @keywords internal
 HeatmapAtomic <- function(
-    data, values_by,
+    data, values_by, values_fill = NA,
     # data definition
     rows_by = NULL, rows_split_by = NULL,
     columns_by = NULL, columns_split_by = NULL,
@@ -1045,7 +1047,7 @@ HeatmapAtomic <- function(
         pivot_wider(
             names_from = ".columns",
             values_from = ".value",
-            values_fill = NA_real_
+            values_fill = values_fill
         ) %>%
         as.data.frame()
 
@@ -1783,7 +1785,7 @@ HeatmapAtomic <- function(
 #' }
 #' }
 Heatmap <- function(
-    data, values_by = NULL,
+    data, values_by = NULL, values_fill = NA,
     # data definition
     in_form = c("auto", "matrix", "wide-columns", "wide-rows", "long"),
     split_by = NULL, split_by_sep = "_",
@@ -1877,7 +1879,7 @@ Heatmap <- function(
             }
 
             HeatmapAtomic(
-                data = hmdata$data[[nm]], values_by = hmdata$values_by,
+                data = hmdata$data[[nm]], values_by = hmdata$values_by, values_fill = values_fill,
                 rows_by = hmdata$rows_by, rows_split_by = hmdata$rows_split_by,
                 columns_by = hmdata$columns_by, columns_split_by = hmdata$columns_split_by,
 

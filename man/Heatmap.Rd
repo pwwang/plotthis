@@ -7,6 +7,7 @@
 Heatmap(
   data,
   values_by = NULL,
+  values_fill = NA,
   in_form = c("auto", "matrix", "wide-columns", "wide-rows", "long"),
   split_by = NULL,
   split_by_sep = "_",
@@ -125,6 +126,9 @@ When \code{data} is a matrix, \code{in_form} is set to \code{"matrix"}. When \co
 
 \item{values_by}{A character of column name in \code{data} that contains the values to be plotted.
 This is required when \code{in_form} is \code{"long"}. For other formats, the values are pivoted into a column named by \code{values_by}.}
+
+\item{values_fill}{A value to fill in the missing values in the heatmap.
+When there is missing value in the data, the cluster_rows and cluster_columns will fail.}
 
 \item{in_form}{The format of the data. Can be one of \code{"matrix"}, \code{"long"}, \code{"wide-rows"}, \code{"wide-columns"}, or \code{"auto"}.
 Defaults to \code{"auto"}.}
