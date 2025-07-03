@@ -102,9 +102,9 @@
 <span>  add_reticle <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  reticle_color <span class="op">=</span> <span class="st">"grey"</span>,</span>
 <span>  column_name_annotation <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  column_name_legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Logic.html" class="external-link">isFALSE</a></span><span class="op">(</span><span class="va">show_column_names</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">legend.position</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
+<span>  column_name_legend <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  row_name_annotation <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  row_name_legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Logic.html" class="external-link">isFALSE</a></span><span class="op">(</span><span class="va">show_row_names</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">legend.position</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
+<span>  row_name_legend <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cluster_columns <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  cluster_rows <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  show_row_names <span class="op">=</span> <span class="op">!</span><span class="va">row_name_annotation</span>,</span>
@@ -563,7 +563,10 @@ Could be a list with the keys as the names of the annotation and the values as t
 
 
 <dt id="arg-flip">flip<a class="anchor" aria-label="anchor" href="#arg-flip"></a></dt>
-<dd><p>A logical value indicating whether to flip the heatmap.</p></dd>
+<dd><p>A logical value indicating whether to flip the heatmap.
+The idea is that, you can simply set <code>flip = TRUE</code> to flip the heatmap.
+You don't need to swap the arguments related to rows and columns, except those you specify via <code>...</code>
+that are passed to <code><a href="https://rdrr.io/pkg/ComplexHeatmap/man/Heatmap.html" class="external-link">ComplexHeatmap::Heatmap()</a></code> directly.</p></dd>
 
 
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
