@@ -46,6 +46,7 @@
 <span>  <span class="va">data</span>,</span>
 <span>  values_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  values_fill <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  in_form <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"matrix"</span>, <span class="st">"wide-columns"</span>, <span class="st">"wide-rows"</span>, <span class="st">"long"</span><span class="op">)</span>,</span>
 <span>  split_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  split_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
@@ -174,6 +175,10 @@ This is required when <code>in_form</code> is <code>"long"</code>. For other for
 <dt id="arg-values-fill">values_fill<a class="anchor" aria-label="anchor" href="#arg-values-fill"></a></dt>
 <dd><p>A value to fill in the missing values in the heatmap.
 When there is missing value in the data, the cluster_rows and cluster_columns will fail.</p></dd>
+
+
+<dt id="arg-name">name<a class="anchor" aria-label="anchor" href="#arg-name"></a></dt>
+<dd><p>A character string to name the heatmap (will be used to rename <code>values_by</code>).</p></dd>
 
 
 <dt id="arg-in-form">in_form<a class="anchor" aria-label="anchor" href="#arg-in-form"></a></dt>

@@ -46,6 +46,7 @@
 <span>  <span class="va">data</span>,</span>
 <span>  <span class="va">in_form</span>,</span>
 <span>  <span class="va">values_by</span>,</span>
+<span>  <span class="va">name</span>,</span>
 <span>  <span class="va">split_by</span>,</span>
 <span>  <span class="va">split_by_sep</span>,</span>
 <span>  <span class="va">rows_by</span>,</span>
@@ -95,6 +96,10 @@ Defaults to <code>"auto"</code>.</p></dd>
 <dt id="arg-values-by">values_by<a class="anchor" aria-label="anchor" href="#arg-values-by"></a></dt>
 <dd><p>A character of column name in <code>data</code> that contains the values to be plotted.
 This is required when <code>in_form</code> is <code>"long"</code>. For other formats, the values are pivoted into a column named by <code>values_by</code>.</p></dd>
+
+
+<dt id="arg-name">name<a class="anchor" aria-label="anchor" href="#arg-name"></a></dt>
+<dd><p>A character string to name the heatmap (will be used to rename <code>values_by</code>).</p></dd>
 
 
 <dt id="arg-split-by">split_by<a class="anchor" aria-label="anchor" href="#arg-split-by"></a></dt>
