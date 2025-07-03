@@ -1,3 +1,64 @@
+#' Join the meta data to the main data frame for heatmap
+#'
+#' @param data A data frame containing the main data for the heatmap.
+#' @param meta_data A data frame containing the meta data to be joined.
+#' @param by A character string specifying the column name in `meta_data` to join on.
+#' Either `rows_by` or `columns_by` should be specified in `data`.
+#' @param cr_split_by A character string specifying the column name in `data` to join on.
+#' Either `rows_split_by` or `columns_split_by` should be specified in `data`.
+#' @param split_by A character string specifying the column name in `data` to join on.
+#' Used to split the data into multiple heatmaps.
+#' @param which A character string specifying whether to join on rows or columns.
+#' Can be either `"row"` or `"column"`.
+#' @importFrom dplyr left_join
+#' @return A data frame with the meta data joined to the main data.
+#' @keywords internal
+join_heatmap_meta <- function(data, meta_data, by, cr_split_by, split_by, which) {
+    if (!by %in% colnames(meta_data)) {
+        stop(sprintf("[Heatmap] '%ss_by' (%s) must be a column in '%ss_data'.", which, by, which))
+    }
+
+    join_by <- by
+    if (!is.null(cr_split_by) && cr_split_by %in% colnames(data) &&
+        cr_split_by %in% colnames(meta_data)) {
+        # if split_by is in both data and meta_data, we join by both
+        join_by <- c(by, cr_split_by)
+    }
+    if (!is.null(split_by) && split_by %in% colnames(data) &&
+        split_by %in% colnames(meta_data)) {
+        # if split_by is in both data and meta_data, we join by both
+        join_by <- c(join_by, split_by)
+    }
+
+    out <- dplyr::left_join(data, meta_data, by = join_by, suffix = c("", paste0(".", which)))
+    # factor lost when joining, so we need to restore the levels
+    out[[by]] <- factor(out[[by]], levels = levels(data[[by]]))
+    if (!is.null(cr_split_by) && cr_split_by %in% join_by) {
+        if (is.factor(data[[cr_split_by]])) {
+            out[[cr_split_by]] <- factor(out[[cr_split_by]], levels = levels(data[[cr_split_by]]))
+        } else if (is.factor(meta_data[[cr_split_by]])) {
+            # if the split_by is a factor in meta_data, we need to restore the levels
+            out[[cr_split_by]] <- factor(out[[cr_split_by]], levels = levels(meta_data[[cr_split_by]]))
+        } else {
+            # if the split_by is not a factor, we convert it to a factor
+            out[[cr_split_by]] <- factor(out[[cr_split_by]], levels = unique(out[[cr_split_by]]))
+        }
+    }
+    if (!is.null(split_by) && split_by %in% join_by) {
+        if (is.factor(data[[split_by]])) {
+            out[[split_by]] <- factor(out[[split_by]], levels = levels(data[[split_by]]))
+        } else if (is.factor(meta_data[[split_by]])) {
+            # if the split_by is a factor in meta_data, we need to restore the levels
+            out[[split_by]] <- factor(out[[split_by]], levels = levels(meta_data[[split_by]]))
+        } else {
+            # if the split_by is not a factor, we convert it to a factor
+            out[[split_by]] <- factor(out[[split_by]], levels = unique(out[[split_by]]))
+        }
+    }
+
+    out
+}
+
 #' Process/normalize data passed to [Heatmap()]
 #'
 #' This function is used to process the data passed to [Heatmap()].
@@ -134,6 +195,7 @@ process_heatmap_data <- function(
             force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = rows_by_sep
         )
         stopifnot("[Heatmap] 'rows_by' must be specified when 'in_form = \"long\"'." = !is.null(rows_by))
+        data[[rows_by]] <- droplevels(data[[rows_by]])
 
         # columns_by/columns_split_by
         columns_by <- check_columns(
@@ -141,32 +203,36 @@ process_heatmap_data <- function(
             force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = columns_by_sep
         )
         stopifnot("[Heatmap] 'columns_by' must be specified when 'in_form = \"long\"'." = !is.null(columns_by))
+        data[[columns_by]] <- droplevels(data[[columns_by]])
 
         # join rows_data/columns_data
         if (!is.null(rows_data)) {
-            join_by <- if (is.null(split_by) || !split_by %in% colnames(rows_data)) {
-                rows_by
-            } else {
-                c(rows_by, split_by)
-            }
-            data <- dplyr::left_join(data, rows_data, by = join_by, suffix = c("", ".x"))
+            data <- join_heatmap_meta(
+                data, rows_data, by = rows_by, cr_split_by = rows_split_by,
+                split_by = split_by, which = "row"
+            )
         }
         rows_split_by <- check_columns(
             data, rows_split_by,
             force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = rows_split_by_sep
         )
+        if (!is.null(rows_split_by)) {
+            data[[rows_split_by]] <- droplevels(data[[rows_split_by]])
+        }
+
         if (!is.null(columns_data)) {
-            join_by <- if (is.null(split_by) || !split_by %in% colnames(columns_data)) {
-                columns_by
-            } else {
-                c(columns_by, split_by)
-            }
-            data <- dplyr::left_join(data, columns_data, by = join_by, suffix = c("", ".y"))
+            data <- join_heatmap_meta(
+                data, columns_data, by = columns_by, cr_split_by = columns_split_by,
+                split_by = split_by, which = "column"
+            )
         }
         columns_split_by <- check_columns(
             data, columns_split_by,
             force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = columns_split_by_sep
         )
+        if (!is.null(columns_split_by)) {
+            data[[columns_split_by]] <- droplevels(data[[columns_split_by]])
+        }
 
         # rename
         if (!is.null(rows_name)) {
@@ -197,32 +263,35 @@ process_heatmap_data <- function(
             force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = columns_by_sep
         )
         stopifnot("[Heatmap] 'columns_by' must be specified when 'in_form = \"wide-rows\"'." = !is.null(columns_by))
+        data[[columns_by]] <- droplevels(data[[columns_by]])
 
         # rows_data/columns_data
         if (!is.null(rows_data)) {
-            join_by <- if (is.null(split_by) || !split_by %in% colnames(rows_data)) {
-                rows_by
-            } else {
-                c(rows_by, split_by)
-            }
-            data <- dplyr::left_join(data, rows_data, by = join_by, suffix = c("", ".x"))
+            data <- join_heatmap_meta(
+                data, rows_data, by = rows_by, cr_split_by = rows_split_by,
+                split_by = split_by, which = "row"
+            )
         }
         row_split_by <- check_columns(
             data, rows_split_by,
             force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = rows_split_by_sep
         )
+        if (!is.null(row_split_by)) {
+            data[[row_split_by]] <- droplevels(data[[row_split_by]])
+        }
         if (!is.null(columns_data)) {
-            join_by <- if (is.null(split_by) || !split_by %in% colnames(columns_data)) {
-                columns_by
-            } else {
-                c(columns_by, split_by)
-            }
-            data <- dplyr::left_join(data, columns_data, by = join_by, suffix = c("", ".y"))
+            data <- join_heatmap_meta(
+                data, columns_data, by = columns_by, cr_split_by = columns_split_by,
+                split_by = split_by, which = "column"
+            )
         }
         columns_split_by <- check_columns(
             data, columns_split_by,
             force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = columns_split_by_sep
         )
+        if (!is.null(columns_split_by)) {
+            data[[columns_split_by]] <- droplevels(data[[columns_split_by]])
+        }
 
         if (!is.null(columns_name)) {
             data <- dplyr::rename(data, !!sym(columns_name) := columns_by)
@@ -251,32 +320,31 @@ process_heatmap_data <- function(
 
         # rows_data/columns_data
         if (!is.null(rows_data)) {
-            if (!rows_by %in% colnames(rows_data)) {
-                stop(sprintf("[Heatmap] 'rows_by' (%s) must be a column in 'rows_data'.", rows_by))
-            }
-            join_by <- if (is.null(split_by) || !split_by %in% colnames(rows_data)) {
-                rows_by
-            } else {
-                c(rows_by, split_by)
-            }
-            data <- dplyr::left_join(data, rows_data, by = join_by, suffix = c("", ".x"))
+            data <- join_heatmap_meta(
+                data, rows_data, by = rows_by, cr_split_by = rows_split_by,
+                split_by = split_by, which = "row"
+            )
         }
         rows_split_by <- check_columns(
             data, rows_split_by,
             force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = rows_split_by_sep
         )
+        if (!is.null(rows_split_by)) {
+            data[[rows_split_by]] <- droplevels(data[[rows_split_by]])
+        }
         if (!is.null(columns_data)) {
-            join_by <- if (is.null(split_by) || !split_by %in% colnames(columns_data)) {
-                columns_by
-            } else {
-                c(columns_by, split_by)
-            }
-            data <- dplyr::left_join(data, columns_data, by = join_by, suffix = c("", ".y"))
+            data <- join_heatmap_meta(
+                data, columns_data, by = columns_by, cr_split_by = columns_split_by,
+                split_by = split_by, which = "column"
+            )
         }
         columns_split_by <- check_columns(
             data, columns_split_by,
             force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = columns_split_by_sep
         )
+        if (!is.null(columns_split_by)) {
+            data[[columns_split_by]] <- droplevels(data[[columns_split_by]])
+        }
 
         if (!is.null(rows_name)) {
             data <- dplyr::rename(data, !!sym(rows_name) := rows_by)
@@ -1059,13 +1127,7 @@ HeatmapAtomic <- function(
     legends <- list()
 
     # Set the default cell aggregation function for pie chart (will be plotted as the background)
-    cell_agg <- cell_agg %||% (
-        if (cell_type == "pie") {
-            function(x) sum(x, na.rm = TRUE)
-        } else {
-            function(x) mean(x, na.rm = TRUE)
-        }
-    )
+    cell_agg <- cell_agg %||% ifelse(cell_type == "pie", "nansum", "nanmean")
     if (is.character(cell_agg)) {
         if (startsWith(cell_agg, "nan")) {
             fn <- match.fun(substring(cell_agg, 4))
@@ -1084,7 +1146,7 @@ HeatmapAtomic <- function(
     # Make sure the rows/columns are in order
     data <- arrange(data, !!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by, pie_group_by))))
     hmargs$matrix <- data %>%
-        group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by))), .drop = FALSE) %>%
+        group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
         summarise(.value = cell_agg(!!sym(values_by)), .groups = "drop") %>%
         unite(".columns", !!!syms(unique(c(columns_split_by, columns_by))), sep = " // ") %>%
         unite(".rows", !!!syms(unique(c(rows_split_by, rows_by))), sep = " // ") %>%
@@ -1103,20 +1165,28 @@ HeatmapAtomic <- function(
         hmargs$matrix <- t(hmargs$matrix)
     }
 
-    if (!is.null(if (flip) columns_split_by else rows_split_by)) {
+    r_split_by <- if (flip) columns_split_by else rows_split_by
+    c_split_by <- if (flip) rows_split_by else columns_split_by
+    r_by <- if (flip) columns_by else rows_by
+    c_by <- if (flip) rows_by else columns_by
+    r_split_levels <- if (!is.null(r_split_by)) levels(data[[r_split_by]])
+    c_split_levels <- if (!is.null(c_split_by)) levels(data[[c_split_by]])
+    r_levels <- if (!is.null(r_by)) levels(data[[r_by]])
+    c_levels <- if (!is.null(c_by)) levels(data[[c_by]])
+    if (!is.null(r_split_by)) {
         row_split_labels <- strsplit(rownames(hmargs$matrix), " // ", fixed = TRUE)
-        hmargs$row_split <- sapply(row_split_labels, `[`, 1)
-        hmargs$row_labels <- sapply(row_split_labels, `[`, 2)
+        hmargs$row_split <- factor(sapply(row_split_labels, `[`, 1), levels = r_split_levels)
+        hmargs$row_labels <- factor(sapply(row_split_labels, `[`, 2), levels = r_levels)
     } else {
-        hmargs$row_labels <- rownames(hmargs$matrix)
+        hmargs$row_labels <- factor(rownames(hmargs$matrix), levels = r_levels)
     }
 
-    if (!is.null(if (flip) rows_split_by else columns_split_by)) {
+    if (!is.null(c_split_by)) {
         column_split_labels <- strsplit(colnames(hmargs$matrix), " // ", fixed = TRUE)
-        hmargs$column_split <- sapply(column_split_labels, `[`, 1)
-        hmargs$column_labels <- sapply(column_split_labels, `[`, 2)
+        hmargs$column_split <- factor(sapply(column_split_labels, `[`, 1), levels = c_split_levels)
+        hmargs$column_labels <- factor(sapply(column_split_labels, `[`, 2), levels = c_levels)
     } else {
-        hmargs$column_labels <- colnames(hmargs$matrix)
+        hmargs$column_labels <- factor(colnames(hmargs$matrix), levels = c_levels)
     }
 
     if (cell_type == "bars") { # where multiple values are used, operating on data
@@ -1184,9 +1254,9 @@ HeatmapAtomic <- function(
 
         pie_group_levels <- levels(data[[pie_group_by]])
         pie_data <- data %>%
-            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by, pie_group_by))), .drop = FALSE) %>%
+            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by, pie_group_by)))) %>%
             summarise(.value = pie_values(!!sym(values_by)), .groups = "drop") %>%
-            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by))), .drop = FALSE) %>%
+            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
             group_map(
                 ~ data.frame(Var = .x[[pie_group_by]], Freq = .x$.value)
             )
@@ -1257,7 +1327,7 @@ HeatmapAtomic <- function(
         }
 
         bars_data <- data %>%
-            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by))), .drop = FALSE) %>%
+            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
             group_map(~ .x[[values_by]])
 
         names(bars_data) <- indices
@@ -1287,7 +1357,7 @@ HeatmapAtomic <- function(
             }
         }
         dot_data <- data %>%
-            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by))), .drop = FALSE) %>%
+            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
             group_map(~ if (is.function(dot_size)) dot_size(.x[[values_by]]) else dot_size)
 
         names(dot_data) <- indices
@@ -1331,7 +1401,7 @@ HeatmapAtomic <- function(
     else if (cell_type %in% c("violin", "boxplot")) {
         # df with multiple values in each cell
         vdata <- data %>%
-            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by))), .drop = FALSE) %>%
+            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
             group_map(~ .x[[values_by]])
 
         names(vdata) <- indices
@@ -1531,7 +1601,7 @@ HeatmapAtomic <- function(
                 annodata <- annodata %>% select(!!!syms(unique(c(split_by, by, annocol))))
             } else {
                 annodata <- annodata %>%
-                    group_by(!!!syms(unique(c(split_by, by))), .drop = FALSE) %>%
+                    group_by(!!!syms(unique(c(split_by, by)))) %>%
                     summarise(!!sym(annocol) := annoagg(!!sym(annocol)), .groups = "drop")
             }
             param$x <- annodata
