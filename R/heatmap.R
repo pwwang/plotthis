@@ -1168,7 +1168,7 @@ HeatmapAtomic <- function(
         pie_data <- data %>%
             group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by, pie_group_by))), .drop = FALSE) %>%
             summarise(.value = pie_values(!!sym(values_by)), .groups = "drop") %>%
-            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
+            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by))), .drop = FALSE) %>%
             group_map(
                 ~ data.frame(Var = .x[[pie_group_by]], Freq = .x$.value)
             )
@@ -1511,7 +1511,7 @@ HeatmapAtomic <- function(
                 annodata <- annodata %>% select(!!!syms(unique(c(split_by, by, annocol))))
             } else {
                 annodata <- annodata %>%
-                    group_by(!!!syms(unique(c(split_by, by)))) %>%
+                    group_by(!!!syms(unique(c(split_by, by))), .drop = FALSE) %>%
                     summarise(!!sym(annocol) := annoagg(!!sym(annocol)), .groups = "drop")
             }
             param$x <- annodata
