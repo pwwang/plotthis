@@ -71,6 +71,9 @@ process_heatmap_data <- function(
     pie_group_by, pie_group_by_sep, pie_name,
     rows_data, columns_data
 ) {
+    if (identical(rows_by, columns_by)) {
+        stop("[Heatmap] 'rows_by' and 'columns_by' can not be the same.")
+    }
     # Infer in_form
     if (in_form == "auto") {
         if (is.matrix(data)) {
@@ -81,6 +84,15 @@ process_heatmap_data <- function(
             in_form <- "wide-columns"
         } else {
             in_form <- "long"
+        }
+    }
+
+    if (identical(rows_name %||% rows_by, columns_name %||% columns_by)) {
+        if (!is.null(columns_name)) {
+            # consider flip and names_side?
+            columns_name <- paste0(columns_name, " ")
+        } else {
+            rows_name <- paste0(" ", rows_name)
         }
     }
 
