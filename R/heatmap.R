@@ -87,14 +87,6 @@ process_heatmap_data <- function(
         }
     }
 
-    if (identical(rows_name %||% rows_by, columns_name %||% columns_by)) {
-        if (!is.null(columns_name)) {
-            # consider flip and names_side?
-            columns_name <- paste0(columns_name, " ")
-        } else {
-            rows_name <- paste0(" ", rows_name)
-        }
-    }
 
     if (in_form == "matrix") {
         stopifnot("[Heatmap] 'split_by' is not supported when 'in_form = \"matrix\"'." = is.null(split_by))
@@ -109,6 +101,15 @@ process_heatmap_data <- function(
         rows_by <- rows_name
 
         in_form <- "wide-columns"
+    }
+
+    if (identical(rows_name %||% rows_by, columns_name %||% columns_by)) {
+        if (!is.null(columns_name)) {
+            # consider flip and names_side?
+            columns_name <- paste0(columns_name, " ")
+        } else {
+            rows_name <- paste0(" ", rows_name)
+        }
     }
 
     # pie_group_by should be always in the main data
@@ -250,6 +251,9 @@ process_heatmap_data <- function(
 
         # rows_data/columns_data
         if (!is.null(rows_data)) {
+            if (!rows_by %in% colnames(rows_data)) {
+                stop(sprintf("[Heatmap] 'rows_by' (%s) must be a column in 'rows_data'.", rows_by))
+            }
             join_by <- if (is.null(split_by) || !split_by %in% colnames(rows_data)) {
                 rows_by
             } else {
