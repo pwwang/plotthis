@@ -8,6 +8,7 @@ process_heatmap_data(
   data,
   in_form,
   values_by,
+  name,
   split_by,
   split_by_sep,
   rows_by,
@@ -50,6 +51,8 @@ Defaults to \code{"auto"}.}
 
 \item{values_by}{A character of column name in \code{data} that contains the values to be plotted.
 This is required when \code{in_form} is \code{"long"}. For other formats, the values are pivoted into a column named by \code{values_by}.}
+
+\item{name}{A character string to name the heatmap (will be used to rename \code{values_by}).}
 
 \item{split_by}{A character of column name in \code{data} that contains the split information to split into multiple heatmaps.
 This is used to create a list of heatmaps, one for each level of the split.

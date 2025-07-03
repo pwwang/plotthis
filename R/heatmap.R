@@ -17,6 +17,7 @@
 #' Defaults to `"auto"`.
 #' @param values_by A character of column name in `data` that contains the values to be plotted.
 #' This is required when `in_form` is `"long"`. For other formats, the values are pivoted into a column named by `values_by`.
+#' @param name A character string to name the heatmap (will be used to rename `values_by`).
 #' @param split_by A character of column name in `data` that contains the split information to split into multiple heatmaps.
 #' This is used to create a list of heatmaps, one for each level of the split.
 #' Defaults to `NULL`, meaning no split.
@@ -61,7 +62,7 @@
 #' @importFrom rlang sym %||%
 #' @keywords internal
 process_heatmap_data <- function(
-    data, in_form, values_by,
+    data, in_form, values_by, name,
     split_by, split_by_sep,
     rows_by, rows_by_sep, rows_name,
     rows_split_by, rows_split_by_sep, rows_split_name,
@@ -278,6 +279,10 @@ process_heatmap_data <- function(
     if (!is.null(pie_name) && !is.null(pie_group_by)) {
         data <- dplyr::rename(data, !!sym(pie_name) := pie_group_by)
         pie_group_by <- pie_name
+    }
+    if (!is.null(name)) {
+        data <- dplyr::rename(data, !!sym(name) := !!sym(values_by))
+        values_by <- name
     }
 
     list(
@@ -1838,7 +1843,7 @@ HeatmapAtomic <- function(
 #' }
 #' }
 Heatmap <- function(
-    data, values_by = NULL, values_fill = NA,
+    data, values_by = NULL, values_fill = NA, name = NULL,
     # data definition
     in_form = c("auto", "matrix", "wide-columns", "wide-rows", "long"),
     split_by = NULL, split_by_sep = "_",
@@ -1897,7 +1902,7 @@ Heatmap <- function(
     cell_type <- match.arg(cell_type)
 
     hmdata <- process_heatmap_data(
-        data, in_form = in_form, values_by = values_by,
+        data, in_form = in_form, values_by = values_by, name = name,
         split_by = split_by, split_by_sep = split_by_sep,
         rows_by = rows_by, rows_by_sep = rows_by_sep, rows_name = rows_name,
         rows_split_by = rows_split_by, rows_split_by_sep = rows_split_by_sep, rows_split_name = rows_split_name,
