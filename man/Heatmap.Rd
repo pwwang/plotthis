@@ -64,9 +64,9 @@ Heatmap(
   add_reticle = FALSE,
   reticle_color = "grey",
   column_name_annotation = TRUE,
-  column_name_legend = isFALSE(show_column_names) && !identical(legend.position, "none"),
+  column_name_legend = NULL,
   row_name_annotation = TRUE,
-  row_name_legend = isFALSE(show_row_names) && !identical(legend.position, "none"),
+  row_name_legend = NULL,
   cluster_columns = TRUE,
   cluster_rows = TRUE,
   show_row_names = !row_name_annotation,
@@ -354,7 +354,10 @@ Could be a list with the keys as the names of the annotation and the values as t
 
 \item{row_annotation_agg}{A function to aggregate the values in the row annotation.}
 
-\item{flip}{A logical value indicating whether to flip the heatmap.}
+\item{flip}{A logical value indicating whether to flip the heatmap.
+The idea is that, you can simply set \code{flip = TRUE} to flip the heatmap.
+You don't need to swap the arguments related to rows and columns, except those you specify via \code{...}
+that are passed to \code{ComplexHeatmap::Heatmap()} directly.}
 
 \item{alpha}{A numeric value between 0 and 1 specifying the transparency of the heatmap cells.}
 

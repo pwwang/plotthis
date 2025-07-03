@@ -133,10 +133,6 @@ process_heatmap_data <- function(
             force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = rows_by_sep
         )
         stopifnot("[Heatmap] 'rows_by' must be specified when 'in_form = \"long\"'." = !is.null(rows_by))
-        rows_split_by <- check_columns(
-            data, rows_split_by,
-            force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = rows_split_by_sep
-        )
 
         # columns_by/columns_split_by
         columns_by <- check_columns(
@@ -144,10 +140,6 @@ process_heatmap_data <- function(
             force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = columns_by_sep
         )
         stopifnot("[Heatmap] 'columns_by' must be specified when 'in_form = \"long\"'." = !is.null(columns_by))
-        columns_split_by <- check_columns(
-            data, columns_split_by,
-            force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = columns_split_by_sep
-        )
 
         # join rows_data/columns_data
         if (!is.null(rows_data)) {
@@ -158,6 +150,10 @@ process_heatmap_data <- function(
             }
             data <- dplyr::left_join(data, rows_data, by = join_by, suffix = c("", ".x"))
         }
+        rows_split_by <- check_columns(
+            data, rows_split_by,
+            force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = rows_split_by_sep
+        )
         if (!is.null(columns_data)) {
             join_by <- if (is.null(split_by) || !split_by %in% colnames(columns_data)) {
                 columns_by
@@ -166,6 +162,10 @@ process_heatmap_data <- function(
             }
             data <- dplyr::left_join(data, columns_data, by = join_by, suffix = c("", ".y"))
         }
+        columns_split_by <- check_columns(
+            data, columns_split_by,
+            force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = columns_split_by_sep
+        )
 
         # rename
         if (!is.null(rows_name)) {
@@ -840,6 +840,9 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
 #'  The default is "bottom".
 #' @param bars_sample An integer specifying the number of samples to draw the bars.
 #' @param flip A logical value indicating whether to flip the heatmap.
+#' The idea is that, you can simply set `flip = TRUE` to flip the heatmap.
+#' You don't need to swap the arguments related to rows and columns, except those you specify via `...`
+#' that are passed to `ComplexHeatmap::Heatmap()` directly.
 #' @param pie_palette A character string specifying the palette of the pie chart.
 #' @param pie_palcolor A character vector of colors to override the palette of the pie chart.
 #' @param pie_values A function or character that can be converted to a function by [match.arg()]
@@ -961,8 +964,8 @@ HeatmapAtomic <- function(
     # reticle
     add_reticle = FALSE, reticle_color = "grey",
     # passed to ComplexHeatmap::Heatmap
-    column_name_annotation = TRUE, column_name_legend = isFALSE(show_column_names) && !identical(legend.position, "none"),
-    row_name_annotation = TRUE, row_name_legend = isFALSE(show_row_names) && !identical(legend.position, "none"),
+    column_name_annotation = TRUE, column_name_legend = NULL,
+    row_name_annotation = TRUE, row_name_legend = NULL,
     cluster_columns = TRUE, cluster_rows = TRUE, show_row_names = !row_name_annotation, show_column_names = !column_name_annotation,
     border = TRUE, title = NULL, column_title = character(0), row_title = character(0), na_col = "grey85",
     row_names_side = "right", column_names_side = "bottom",
@@ -999,15 +1002,26 @@ HeatmapAtomic <- function(
         )
     }
 
+    flip_side <- function(side) {
+        match.arg(side, c("left", "right", "top", "bottom"))
+        if (side == "left") return("top")
+        if (side == "right") return("bottom")
+        if (side == "top") return("left")
+        if (side == "bottom") return("right")
+    }
+
     # Initialize the heatmap arguments
     hmargs <- list(
         # name = name,   # error when name has irregular characters (e.g. "-")
         heatmap_legend_param = list(title = values_by),
         border = border, na_col = na_col,
-        cluster_columns = cluster_columns, cluster_rows = cluster_rows,
+        cluster_columns = if (flip) cluster_rows else cluster_columns,
+        cluster_rows = if (flip) cluster_columns else cluster_rows,
         cluster_column_slices = FALSE, cluster_row_slices = FALSE, show_heatmap_legend = FALSE,
-        show_row_names = show_row_names, show_column_names = show_column_names,
-        row_names_side = row_names_side, column_names_side = column_names_side,
+        show_row_names = if (flip) show_column_names else show_row_names,
+        show_column_names = if (flip) show_row_names else show_column_names,
+        row_names_side = if (flip) flip_side(column_names_side) else row_names_side,
+        column_names_side = if (flip) flip_side(row_names_side) else column_names_side,
         column_title = column_title, row_title = row_title,
         ...
     )
@@ -1085,7 +1099,7 @@ HeatmapAtomic <- function(
         hmargs$matrix <- t(hmargs$matrix)
     }
 
-    if (!is.null(rows_split_by)) {
+    if (!is.null(if (flip) columns_split_by else rows_split_by)) {
         row_split_labels <- strsplit(rownames(hmargs$matrix), " // ", fixed = TRUE)
         hmargs$row_split <- sapply(row_split_labels, `[`, 1)
         hmargs$row_labels <- sapply(row_split_labels, `[`, 2)
@@ -1093,7 +1107,7 @@ HeatmapAtomic <- function(
         hmargs$row_labels <- rownames(hmargs$matrix)
     }
 
-    if (!is.null(columns_split_by)) {
+    if (!is.null(if (flip) rows_split_by else columns_split_by)) {
         column_split_labels <- strsplit(colnames(hmargs$matrix), " // ", fixed = TRUE)
         hmargs$column_split <- sapply(column_split_labels, `[`, 1)
         hmargs$column_labels <- sapply(column_split_labels, `[`, 2)
@@ -1227,8 +1241,8 @@ HeatmapAtomic <- function(
                 border = TRUE, labels = pie_group_levels, legend_gp = gpar(fill = pie_colors)
             )
         }
-        nrow_multiplier <- ifelse(flip, 6, 4)
-        ncol_multiplier <- ifelse(flip, 4, 6)
+        nrow_multiplier <- 4
+        ncol_multiplier <- 6
     }
     else if (cell_type == "bars") {
         if (isTRUE(add_bg)) {
@@ -1396,20 +1410,22 @@ HeatmapAtomic <- function(
         legends$.heatmap <- get_main_legend()
     }
 
-    ncols <- nlevels(data[[columns_by]])
+    .ncols <- nlevels(data[[columns_by]])
     if (!is.null(columns_split_by)) {
-        ncols <- ncols * nlevels(data[[columns_split_by]])
+        .ncols <- .ncols * nlevels(data[[columns_split_by]])
     }
-    ncols <- ncols * ncol_multiplier
-    nrows <- nlevels(data[[rows_by]])
+    .ncols <- .ncols * ncol_multiplier
+    .nrows <- nlevels(data[[rows_by]])
     if (!is.null(rows_split_by)) {
-        nrows <- nrows * nlevels(data[[rows_split_by]])
+        .nrows <- .nrows * nlevels(data[[rows_split_by]])
     }
-    nrows <- nrows * nrow_multiplier
+    .nrows <- .nrows * nrow_multiplier
+    nrows <- ifelse(flip, .ncols, .nrows)
+    ncols <- ifelse(flip, .nrows, .ncols)
 
     ## Set up the top annotations
     setup_name_annos <- function(
-        names_side, anno_title,
+        names_side, anno_title, show_names,
         split_by, splits, split_palette, split_palcolor,
         by, by_name_annotation, by_labels, by_palette, by_palcolor, by_name_legend
     ) {
@@ -1425,7 +1441,7 @@ HeatmapAtomic <- function(
                 unique(splits), palette = split_palette, palcolor = split_palcolor
             )
             annos$show_annotation_name[[split_by]] <- TRUE
-            if (!isTRUE(anno_title) && !identical(legend.position, "none")) {
+            if (is.null(anno_title) && !identical(legend.position, "none")) {
                 legends[[paste0("name.", split_by)]] <<- ComplexHeatmap::Legend(
                     title = split_by,
                     labels = unique(splits),
@@ -1441,8 +1457,8 @@ HeatmapAtomic <- function(
                 unique(by_labels), palette = by_palette, palcolor = by_palcolor
             )
             annos$show_annotation_name[[by]] <- TRUE
-
-            if (isTRUE(by_name_legend)) {
+            if (!identical(legend.position, "none") &&
+                (isTRUE(by_name_legend) || (is.null(by_name_legend) && !show_names))) {
                 legends[[paste0("name.", by)]] <<- ComplexHeatmap::Legend(
                     title = by,
                     labels = unique(by_labels),
@@ -1553,6 +1569,7 @@ HeatmapAtomic <- function(
         ifelse(is.null(columns_by) || !column_name_annotation, 0, 1)
     top_annos <- setup_name_annos(
         names_side = ifelse(flip, column_names_side, row_names_side), anno_title = column_title,
+        show_names = show_column_names,
         split_by = columns_split_by, splits = if (flip) hmargs$row_split else hmargs$column_split,
         split_palette = columns_split_palette, split_palcolor = columns_split_palcolor,
         by = columns_by, by_name_annotation = column_name_annotation,
@@ -1593,6 +1610,7 @@ HeatmapAtomic <- function(
         ifelse(is.null(rows_by) || !row_name_annotation, 0, 1)
     left_annos <- setup_name_annos(
         names_side = ifelse(flip, row_names_side, column_names_side), anno_title = row_title,
+        show_names = show_row_names,
         split_by = rows_split_by, splits = if (flip) hmargs$column_split else hmargs$row_split,
         split_palette = rows_split_palette, split_palcolor = rows_split_palcolor,
         by = rows_by, by_name_annotation = row_name_annotation,
@@ -1892,8 +1910,8 @@ Heatmap <- function(
     # reticle
     add_reticle = FALSE, reticle_color = "grey",
     # passed to ComplexHeatmap::Heatmap
-    column_name_annotation = TRUE, column_name_legend = isFALSE(show_column_names) && !identical(legend.position, "none"),
-    row_name_annotation = TRUE, row_name_legend = isFALSE(show_row_names) && !identical(legend.position, "none"),
+    column_name_annotation = TRUE, column_name_legend = NULL,
+    row_name_annotation = TRUE, row_name_legend = NULL,
     cluster_columns = TRUE, cluster_rows = TRUE, show_row_names = !row_name_annotation, show_column_names = !column_name_annotation,
     border = TRUE, title = NULL, column_title = character(0), row_title = character(0), na_col = "grey85",
     row_names_side = "right", column_names_side = "bottom",
