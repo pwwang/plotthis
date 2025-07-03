@@ -473,7 +473,7 @@ BoxViolinPlotAtomic <- function(
         facet_nrow <- facet_nrow %||% 1
         strip_position <- "top"
         p <- p + ggplot2::theme(
-            strip.text.x = element_text(angle = 90),
+            # strip.text.x = element_text(angle = 90),
             panel.grid.major.x = element_line(color = "grey", linetype = 2),
             panel.spacing.x = unit(-1, "pt")
         )
@@ -502,7 +502,7 @@ BoxViolinPlotAtomic <- function(
         strip_position <- "right"
         p <- p + ggplot2::theme(
             panel.spacing.y = unit(-1, "pt"),
-            strip.text.y = element_text(angle = 0),
+            strip.text.y = element_text(angle = 0, hjust = 0),
             panel.grid.major.y = element_line(color = "grey", linetype = 2),
         )
         if (!facet_free) {
