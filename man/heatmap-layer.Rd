@@ -48,7 +48,7 @@ create the heatmap itself, which is aggregated data. This dataframe is the origi
 where each cell could have multiple values.}
 
 \item{dot_size}{A numeric value specifying the size of the dot or a function to calculate the size
-from the values in the cell}
+from the values in the cell or a function to calculate the size from the values in the cell.}
 
 \item{col_fun}{A function to calculate the color of the bars}
 

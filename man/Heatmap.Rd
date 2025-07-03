@@ -237,9 +237,10 @@ If NULL, the fill color will be the same as the annotion.}
 If NULL, the fill color will be the same as the annotion.}
 
 \item{dot_size}{A numeric value specifying the size of the dot or a function to calculate the size
-from the values in the cell.}
+from the values in the cell or a function to calculate the size from the values in the cell.}
 
-\item{dot_size_name}{A character string specifying the name of the legend for the dot size.}
+\item{dot_size_name}{A character string specifying the name of the legend for the dot size.
+If NULL, the dot size legend will not be shown.}
 
 \item{legend_items}{A numeric vector with names to specifiy the items in the main legend.
 The names will be working as the labels of the legend items.}
@@ -468,6 +469,28 @@ if (requireNamespace("cluster", quietly = TRUE)) {
             x > 0, scales::number(x, accuracy = 0.01), NA
         )
     )
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # quickly simulate a GO board
+    go <- matrix(sample(c(0, 1, NA), 81, replace = TRUE), ncol = 9)
+
+    Heatmap(
+        go,
+        # Do not cluster rows and columns and hide the annotations
+        cluster_rows = FALSE, cluster_columns = FALSE,
+        row_name_annotation = FALSE, column_name_annotation = FALSE,
+        show_row_names = FALSE, show_column_names = FALSE,
+        # Set the legend items
+        values_by = "Players", legend_discrete = TRUE,
+        legend_items = c("Player 1" = 0, "Player 2" = 1),
+        # Set the pawns
+        cell_type = "dot", dot_size = function(x) ifelse(is.na(x), 0, 1),
+        dot_size_name = NULL,  # hide the dot size legend
+        palcolor = c("white", "black"),
+        # Set the board
+        add_reticle = TRUE,
+        # Set the size of the board
+        width = ggplot2::unit(105, "mm"), height = ggplot2::unit(105, "mm"))
 }
 
 # Use long form data

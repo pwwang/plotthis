@@ -166,9 +166,10 @@ If NULL, the fill color will be the same as the annotion.}
 If NULL, the fill color will be the same as the annotion.}
 
 \item{dot_size}{A numeric value specifying the size of the dot or a function to calculate the size
-from the values in the cell.}
+from the values in the cell or a function to calculate the size from the values in the cell.}
 
-\item{dot_size_name}{A character string specifying the name of the legend for the dot size.}
+\item{dot_size_name}{A character string specifying the name of the legend for the dot size.
+If NULL, the dot size legend will not be shown.}
 
 \item{legend_items}{A numeric vector with names to specifiy the items in the main legend.
 The names will be working as the labels of the legend items.}

@@ -687,12 +687,12 @@ layer_reticle <- function(j, i, x, y, w, h, fill, color) {
 #'  create the heatmap itself, which is aggregated data. This dataframe is the original data,
 #'  where each cell could have multiple values.
 #' @param dot_size A numeric value specifying the size of the dot or a function to calculate the size
-#'  from the values in the cell
+#'  from the values in the cell or a function to calculate the size from the values in the cell.
 #' @keywords internal
 layer_dot <- function(j, i, x, y, w, h, fill, data, dot_size, alpha) {
     if (is.function(dot_size)) {
         s <- unlist(data[paste(i, j, sep = "-")])
-        s <- scales::rescale(s, to = c(0.2, 1))
+        s <- scales::rescale(s, to = c(0.1, 1))
         grid.points(x, y,
             pch = 21, size = unit(10, "mm") * s,
             gp = gpar(col = "black", lwd = 1, fill = adjcolors(fill, alpha))
@@ -738,6 +738,7 @@ layer_bars <- function(j, i, x, y, w, h, fill, flip, col_fun, data, alpha) {
 #' @keywords internal
 layer_pie <- function(j, i, x, y, w, h, fill, palette, palcolor, data, pie_size) {
     indices <- paste(i, j, sep = "-")
+    data <- data[indices]
     pies <- lapply(indices, function(idx) {
         p <- PieChart(data[[idx]], x = "Var", y = "Freq", label = NULL, palette = palette, palcolor = palcolor)
         ggplotGrob(p + theme_void() + theme(legend.position = "none"))
@@ -852,8 +853,9 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
 #' @param boxplot_fill A character vector of colors to override the fill color of the boxplot.
 #'  If NULL, the fill color will be the same as the annotion.
 #' @param dot_size A numeric value specifying the size of the dot or a function to calculate the size
-#'  from the values in the cell.
+#'  from the values in the cell or a function to calculate the size from the values in the cell.
 #' @param dot_size_name A character string specifying the name of the legend for the dot size.
+#' If NULL, the dot size legend will not be shown.
 #' @param column_name_annotation A logical value indicating whether to add the column annotation for the column names.
 #'  which is a simple annotaion indicating the column names.
 #' @param column_name_legend A logical value indicating whether to show the legend of the column name annotation.
@@ -1029,7 +1031,14 @@ HeatmapAtomic <- function(
             function(x) mean(x, na.rm = TRUE)
         }
     )
-    if (is.character(cell_agg)) cell_agg <- match.fun(cell_agg)
+    if (is.character(cell_agg)) {
+        if (startsWith(cell_agg, "nan")) {
+            fn <- match.fun(substring(cell_agg, 4))
+            cell_agg <- function(x) fn(x[is.finite(x)])
+        } else {
+            cell_agg <- match.fun(cell_agg)
+        }
+    }
 
     # Extract the matrix for the heatmap (aggregated values, for e.g. tile, label, pie background, etc)
     # We also need it for bars, because ComplexHeatmap::Heatmap need the matrix to plot anyway
@@ -1040,7 +1049,7 @@ HeatmapAtomic <- function(
     # Make sure the rows/columns are in order
     data <- arrange(data, !!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by, pie_group_by))))
     hmargs$matrix <- data %>%
-        group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
+        group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by))), .drop = FALSE) %>%
         summarise(.value = cell_agg(!!sym(values_by)), .groups = "drop") %>%
         unite(".columns", !!!syms(unique(c(columns_split_by, columns_by))), sep = " // ") %>%
         unite(".rows", !!!syms(unique(c(rows_split_by, rows_by))), sep = " // ") %>%
@@ -1054,6 +1063,7 @@ HeatmapAtomic <- function(
     rownames(hmargs$matrix) <- hmargs$matrix$.rows
     hmargs$matrix$.rows <- NULL
     hmargs$matrix <- as.matrix(hmargs$matrix)
+    hmargs$matrix[is.na(hmargs$matrix)] <- values_fill
     if (flip) {
         hmargs$matrix <- t(hmargs$matrix)
     }
@@ -1129,12 +1139,17 @@ HeatmapAtomic <- function(
         }
         pie_values <- pie_values %||% "length"
         if (is.character(pie_values)) {
-            pie_values <- match.fun(pie_values)
+            if (startsWith(pie_values, "nan")) {
+                fn <- match.fun(substring(pie_values, 4))
+                pie_values <- function(x) fn(x[is.finite(x)])
+            } else {
+                pie_values <- match.fun(pie_values)
+            }
         }
 
         pie_group_levels <- levels(data[[pie_group_by]])
         pie_data <- data %>%
-            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by, pie_group_by)))) %>%
+            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by, pie_group_by))), .drop = FALSE) %>%
             summarise(.value = pie_values(!!sym(values_by)), .groups = "drop") %>%
             group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
             group_map(
@@ -1143,6 +1158,14 @@ HeatmapAtomic <- function(
         names(pie_data) <- indices
 
         pie_colors <- palette_this(pie_group_levels, palette = pie_palette, palcolor = pie_palcolor)
+        if (is.character((pie_size))) {
+            if (startsWith(pie_size, "nan")) {
+                fn <- match.fun(substring(pie_size, 4))
+                pie_size <- function(x) fn(x[is.finite(x)])
+            } else {
+                pie_size <- match.fun(pie_size)
+            }
+        }
         hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
             layer_white_bg(j, i, x, y, w, h, fill)
             if (isTRUE(add_bg)) {
@@ -1199,7 +1222,7 @@ HeatmapAtomic <- function(
         }
 
         bars_data <- data %>%
-            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
+            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by))), .drop = FALSE) %>%
             group_map(~ .x[[values_by]])
 
         names(bars_data) <- indices
@@ -1220,13 +1243,21 @@ HeatmapAtomic <- function(
         nrow_multiplier <- 0.5
     }
     else if (cell_type == "dot") {
+        if (is.character(dot_size)) {
+            if (startsWith(dot_size, "nan")) {
+                fn <- match.fun(substring(dot_size, 4))
+                dot_size <- function(x) fn(x[is.finite(x)])
+            } else {
+                dot_size <- match.fun(dot_size)
+            }
+        }
         dot_data <- data %>%
-            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
+            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by))), .drop = FALSE) %>%
             group_map(~ if (is.function(dot_size)) dot_size(.x[[values_by]]) else dot_size)
 
         names(dot_data) <- indices
 
-        if (!identical(legend.position, "none") && is.function(dot_size)) {
+        if (!identical(legend.position, "none") && is.function(dot_size) && !is.null(dot_size_name)) {
             dot_size_min <- min(unlist(dot_data), na.rm = TRUE)
             dot_size_max <- max(unlist(dot_data), na.rm = TRUE)
             legends$.dot_size <- ComplexHeatmap::Legend(
@@ -1265,7 +1296,7 @@ HeatmapAtomic <- function(
     else if (cell_type %in% c("violin", "boxplot")) {
         # df with multiple values in each cell
         vdata <- data %>%
-            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
+            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by))), .drop = FALSE) %>%
             group_map(~ .x[[values_by]])
 
         names(vdata) <- indices
@@ -1703,6 +1734,28 @@ HeatmapAtomic <- function(
 #'             x > 0, scales::number(x, accuracy = 0.01), NA
 #'         )
 #'     )
+#' }
+#' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     # quickly simulate a GO board
+#'     go <- matrix(sample(c(0, 1, NA), 81, replace = TRUE), ncol = 9)
+#'
+#'     Heatmap(
+#'         go,
+#'         # Do not cluster rows and columns and hide the annotations
+#'         cluster_rows = FALSE, cluster_columns = FALSE,
+#'         row_name_annotation = FALSE, column_name_annotation = FALSE,
+#'         show_row_names = FALSE, show_column_names = FALSE,
+#'         # Set the legend items
+#'         values_by = "Players", legend_discrete = TRUE,
+#'         legend_items = c("Player 1" = 0, "Player 2" = 1),
+#'         # Set the pawns
+#'         cell_type = "dot", dot_size = function(x) ifelse(is.na(x), 0, 1),
+#'         dot_size_name = NULL,  # hide the dot size legend
+#'         palcolor = c("white", "black"),
+#'         # Set the board
+#'         add_reticle = TRUE,
+#'         # Set the size of the board
+#'         width = ggplot2::unit(105, "mm"), height = ggplot2::unit(105, "mm"))
 #' }
 #'
 #' # Use long form data
