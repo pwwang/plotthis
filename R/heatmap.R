@@ -71,7 +71,7 @@ process_heatmap_data <- function(
     pie_group_by, pie_group_by_sep, pie_name,
     rows_data, columns_data
 ) {
-    if (identical(rows_by, columns_by)) {
+    if (identical(rows_by, columns_by) && !is.null(rows_by)) {
         stop("[Heatmap] 'rows_by' and 'columns_by' can not be the same.")
     }
     # Infer in_form
