@@ -498,6 +498,12 @@ if (requireNamespace("cluster", quietly = TRUE)) {
         # Set the size of the board
         width = ggplot2::unit(105, "mm"), height = ggplot2::unit(105, "mm"))
 }
+if (requireNamespace("cluster", quietly = TRUE)) {
+   # Make the row/column name annotation thinner
+   Heatmap(matrix_data,
+       column_annotation = list(simple_anno_size = ggplot2::unit(2, "mm")),
+       row_annotation = list(simple_anno_size = ggplot2::unit(2, "mm")))
+}
 
 # Use long form data
 N <- 500

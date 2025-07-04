@@ -1573,6 +1573,10 @@ HeatmapAtomic <- function(
         annotation_agg <- annotation_agg %||% list()
         annotation_params <- annotation_params %||% list()
         for (aname in names(annotation)) {
+            if (aname %in% formalArgs(ComplexHeatmap::HeatmapAnnotation)) {
+                annos[[aname]] <- annotation[[aname]]
+                next
+            }
             annocol <- annotation[[aname]]
             annoagg <- annotation_agg[[aname]]
             annotype <- annotation_type[[aname]] %||% "auto"
@@ -1865,6 +1869,12 @@ HeatmapAtomic <- function(
 #'         add_reticle = TRUE,
 #'         # Set the size of the board
 #'         width = ggplot2::unit(105, "mm"), height = ggplot2::unit(105, "mm"))
+#' }
+#' if (requireNamespace("cluster", quietly = TRUE)) {
+#'    # Make the row/column name annotation thinner
+#'    Heatmap(matrix_data,
+#'        column_annotation = list(simple_anno_size = ggplot2::unit(2, "mm")),
+#'        row_annotation = list(simple_anno_size = ggplot2::unit(2, "mm")))
 #' }
 #'
 #' # Use long form data
