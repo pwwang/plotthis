@@ -1753,6 +1753,7 @@ HeatmapAtomic <- function(
     }
 
     p <- do.call(ComplexHeatmap::Heatmap, hmargs)
+    mat <- p@matrix
     if (isTRUE(return_grob)) {
         if (identical(legend.position, "none")) {
             p <- grid.grabExpr(ComplexHeatmap::draw(p,
@@ -1781,6 +1782,7 @@ HeatmapAtomic <- function(
 
     attr(p, "height") <- max(height, 4)
     attr(p, "width") <- max(width, 4)
+    attr(p, "data") <- mat
     p
 }
 
@@ -2102,8 +2104,12 @@ Heatmap <- function(
         }
     )
 
-    combine_plots(plots,
+    p <- combine_plots(plots,
         combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
         axes = axes, axis_titles = axis_titles, guides = guides, design = design
     )
+    if (length(plots) == 1) {
+        attr(p, "data") <- attr(plots[[1]], "data")
+    }
+    p
 }
