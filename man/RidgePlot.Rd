@@ -14,8 +14,13 @@ RidgePlot(
   group_by_sep = "_",
   group_name = NULL,
   scale = NULL,
+  add_vline = NULL,
+  vline_type = "solid",
+  vline_color = TRUE,
+  vline_width = 0.5,
+  vline_alpha = 1,
   flip = FALSE,
-  alpha = 1,
+  alpha = 0.8,
   theme = "theme_this",
   theme_args = list(),
   palette = "Paired",
@@ -68,6 +73,19 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 
 \item{scale}{A numeric value to scale the ridges.
 See also \code{\link[ggridges]{geom_density_ridges}}.}
+
+\item{add_vline}{A numeric vector or a named list of numeric values to add vertical lines to the plot.
+If a named list is provided, the names should match the levels of 'group_by'.
+If \code{TRUE}, the vertical lines will be added at the mean of each group.}
+
+\item{vline_type}{The type of line to draw for the vertical line.}
+
+\item{vline_color}{The color of the vertical line.
+If \code{TRUE}, the vertical lines will be colored according to the group colors.}
+
+\item{vline_width}{The width of the vertical line.}
+
+\item{vline_alpha}{The alpha value of the vertical line.}
 
 \item{flip}{A logical value. If TRUE, the plot will be flipped.}
 
@@ -182,8 +200,12 @@ data <- data.frame(
    x = c(rnorm(250, -1), rnorm(250, 1)),
    group = rep(LETTERS[1:5], each = 100)
 )
+RidgePlot(data, x = "x")  # fallback to a density plot
+RidgePlot(data, x = "x", add_vline = 0, vline_color = "black")
 RidgePlot(data, x = "x", group_by = "group")
 RidgePlot(data, x = "x", group_by = "group", reverse = TRUE)
+RidgePlot(data, x = "x", group_by = "group",
+   add_vline = TRUE, vline_color = TRUE, alpha = 0.7)
 
 # wide form
 data_wide <- data.frame(

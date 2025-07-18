@@ -188,11 +188,20 @@ DensityHistoPlotAtomic <- function(
 #' @param reverse A logical value. If TRUE, reverse the order of the groups on the y-axis.
 #' @param scale A numeric value to scale the ridges.
 #'  See also \code{\link[ggridges]{geom_density_ridges}}.
+#' @param add_vline A numeric vector or a named list of numeric values to add vertical lines to the plot.
+#' If a named list is provided, the names should match the levels of 'group_by'.
+#' If `TRUE`, the vertical lines will be added at the mean of each group.
+#' @param vline_type The type of line to draw for the vertical line.
+#' @param vline_color The color of the vertical line.
+#' If `TRUE`, the vertical lines will be colored according to the group colors.
+#' @param vline_width The width of the vertical line.
+#' @param vline_alpha The alpha value of the vertical line.
 #' @param ... Additional arguments.
 #' @keywords internal
 RidgePlotAtomic <- function(
     data, x = NULL, in_form = c("long", "wide"), group_by = NULL, group_by_sep = "_", group_name = NULL,
-    flip = FALSE, alpha = 1, scale = NULL, theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
+    add_vline = NULL, vline_type = "solid", vline_color = TRUE, vline_width = 0.5, vline_alpha = 1,
+    flip = FALSE, alpha = 0.8, scale = NULL, theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, x_text_angle = 90, keep_empty = FALSE, reverse = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = "none", legend.direction = "vertical", ...) {
@@ -203,25 +212,57 @@ RidgePlotAtomic <- function(
     }
     in_form <- match.arg(in_form)
     if (in_form == "wide") {
-        data <- data %>% pivot_longer(cols = group_by, names_to = ".group_by", values_to = ".x")
+        data <- data %>% pivot_longer(cols = group_by, names_to = ".group", values_to = ".x")
         x <- ".x"
-        group_by <- ".group_by"
+        group_by <- ".group"
     }
     x <- check_columns(data, x)
     group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
+    if (is.null(group_by)) {
+        group_by <- ".group"
+        data[[group_by]] <- factor(" ")
+    }
     if (isTRUE(reverse)) {
         data[[group_by]] <- factor(data[[group_by]], levels = rev(levels(data[[group_by]])))
     }
 
+    colors <- palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(group_by), fill = !!sym(group_by)))
+
     if (!is.null(scale)) {
         p <- p + ggridges::geom_density_ridges(alpha = alpha, scale = scale)
     } else {
         # Let the geom_density_ridges function to calculate the scale
         p <- p + ggridges::geom_density_ridges(alpha = alpha)
     }
+    if (!is.null(add_vline) && !isFALSE(add_vline)) {
+        if (isTRUE(add_vline)) {
+            # calculate the mean of each group
+            add_vline <- tapply(data[[x]], data[[group_by]], mean, na.rm = TRUE)
+        }
+        if (isTRUE(vline_color)) {
+            if (!is.list(add_vline)) {
+                add_vline <- as.list(add_vline)
+                if (reverse) {
+                    names(add_vline) <- rev(levels(data[[group_by]]))[1:length(add_vline)]
+                } else {
+                    names(add_vline) <- levels(data[[group_by]])[1:length(add_vline)]
+                }
+            }
+            add_vline <- add_vline[intersect(levels(data[[group_by]]), names(add_vline))]
+            vline_color <- sapply(
+                colors[names(add_vline)],
+                function(cl) blend_colors(c(cl, cl, cl), mode = "multiply")
+            )
+            add_vline <- unlist(add_vline, use.names = FALSE)
+        }
+        p <- p + geom_vline(
+            xintercept = add_vline, linetype = vline_type, linewidth = vline_width,
+            color = vline_color, alpha = vline_alpha
+        )
+    }
     p <- p +
-        scale_fill_manual(values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)) +
+        scale_fill_manual(values = colors) +
         scale_y_discrete(drop = !keep_empty, expand = c(0, 0)) +
         scale_x_continuous(expand = c(0, 0)) +
         labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% group_by)
@@ -295,8 +336,12 @@ RidgePlotAtomic <- function(
 #'    x = c(rnorm(250, -1), rnorm(250, 1)),
 #'    group = rep(LETTERS[1:5], each = 100)
 #' )
+#' RidgePlot(data, x = "x")  # fallback to a density plot
+#' RidgePlot(data, x = "x", add_vline = 0, vline_color = "black")
 #' RidgePlot(data, x = "x", group_by = "group")
 #' RidgePlot(data, x = "x", group_by = "group", reverse = TRUE)
+#' RidgePlot(data, x = "x", group_by = "group",
+#'    add_vline = TRUE, vline_color = TRUE, alpha = 0.7)
 #'
 #' # wide form
 #' data_wide <- data.frame(
@@ -314,7 +359,8 @@ RidgePlotAtomic <- function(
 RidgePlot <- function(
     data, x = NULL, in_form = c("long", "wide"), split_by = NULL, split_by_sep = "_",
     group_by = NULL, group_by_sep = "_", group_name = NULL, scale = NULL,
-    flip = FALSE, alpha = 1, theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
+    add_vline = NULL, vline_type = "solid", vline_color = TRUE, vline_width = 0.5, vline_alpha = 1,
+    flip = FALSE, alpha = 0.8, theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, x_text_angle = 90, keep_empty = FALSE, reverse = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = "none", legend.direction = "vertical",
@@ -350,6 +396,7 @@ RidgePlot <- function(
             }
             RidgePlotAtomic(datas[[nm]],
                 x = x, in_form = in_form, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name, scale = scale,
+                add_vline = add_vline, vline_type = vline_type, vline_color = vline_color, vline_width = vline_width, vline_alpha = vline_alpha,
                 flip = flip, alpha = alpha, theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, x_text_angle = x_text_angle, keep_empty = keep_empty,
                 reverse = reverse, facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow,

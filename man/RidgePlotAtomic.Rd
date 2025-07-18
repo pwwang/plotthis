@@ -11,8 +11,13 @@ RidgePlotAtomic(
   group_by = NULL,
   group_by_sep = "_",
   group_name = NULL,
+  add_vline = NULL,
+  vline_type = "solid",
+  vline_color = TRUE,
+  vline_width = 0.5,
+  vline_alpha = 1,
   flip = FALSE,
-  alpha = 1,
+  alpha = 0.8,
   scale = NULL,
   theme = "theme_this",
   theme_args = list(),
@@ -56,6 +61,19 @@ These groups will be shown on the y-axis.}
 If 'data' is in the wide form, the columns will not be concatenated.}
 
 \item{group_name}{A character string to name the legend of 'group_by', if 'legend.position' is not "none".}
+
+\item{add_vline}{A numeric vector or a named list of numeric values to add vertical lines to the plot.
+If a named list is provided, the names should match the levels of 'group_by'.
+If \code{TRUE}, the vertical lines will be added at the mean of each group.}
+
+\item{vline_type}{The type of line to draw for the vertical line.}
+
+\item{vline_color}{The color of the vertical line.
+If \code{TRUE}, the vertical lines will be colored according to the group colors.}
+
+\item{vline_width}{The width of the vertical line.}
+
+\item{vline_alpha}{The alpha value of the vertical line.}
 
 \item{flip}{A logical value. If TRUE, the plot will be flipped.}
 
