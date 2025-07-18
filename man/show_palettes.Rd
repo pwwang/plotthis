@@ -49,5 +49,5 @@ show_palettes(
 \seealso{
 \code{\link{palette_list}}
 
-\href{../articles/all-available-palettes.html}{All available palettes}
+\href{../articles/all-palettes.html}{All available palettes}
 }
