@@ -20,6 +20,7 @@
 #' @param hline_type The type of line to draw for the horizontal line.
 #' @param hline_width The width of the horizontal line.
 #' @param hline_color The color of the horizontal line.
+#' When `group_by` is provided, this can be TRUE to use the same color as the lines.
 #' @param hline_alpha The alpha value of the horizontal line.
 #' @param add_errorbars A logical value indicating whether to add error bars to the plot.
 #' @param errorbar_color The color to use for the error bars.
@@ -277,14 +278,23 @@ LinePlotGrouped <- function(
         p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by)
     }
 
+    colors <- palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
     if (!is.null(add_hline) && !isFALSE(add_hline)) {
+        if (isTRUE(hline_color)) {
+            if (!is.list(add_hline)) {
+                add_hline <- stats::setNames(as.list(add_hline), levels(data[[group_by]])[1:length(add_hline)])
+            }
+            add_hline <- add_hline[intersect(levels(data[[group_by]]), names(add_hline))]
+            hline_color <- colors[names(add_hline)]
+
+            add_hline <- unlist(add_hline, use.names = FALSE)
+        }
         p <- p + geom_hline(
             yintercept = add_hline, linetype = hline_type, linewidth = hline_width,
             color = hline_color, alpha = hline_alpha
         )
     }
 
-    colors <- palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
     p <- p + geom_line(
         aes(color = !!sym(group_by), group = !!sym(group_by)),
         alpha = line_alpha, linetype = line_type, linewidth = line_width) +

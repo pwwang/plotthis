@@ -147,7 +147,8 @@ If FALSE, no horizontal line will be added.}
 
 \item{hline_width}{The width of the horizontal line.}
 
-\item{hline_color}{The color of the horizontal line.}
+\item{hline_color}{The color of the horizontal line.
+When \code{group_by} is provided, this can be TRUE to use the same color as the lines.}
 
 \item{hline_alpha}{The alpha value of the horizontal line.}
 
