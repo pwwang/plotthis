@@ -15,6 +15,12 @@
 #' @param bg_palette The palette to use for the background.
 #' @param bg_palcolor The color to use for the background.
 #' @param bg_alpha The alpha value of the background.
+#' @param add_hline A numeric value indicating the y-intercept of a horizontal line to add to the plot.
+#'  If FALSE, no horizontal line will be added.
+#' @param hline_type The type of line to draw for the horizontal line.
+#' @param hline_width The width of the horizontal line.
+#' @param hline_color The color of the horizontal line.
+#' @param hline_alpha The alpha value of the horizontal line.
 #' @param add_errorbars A logical value indicating whether to add error bars to the plot.
 #' @param errorbar_color The color to use for the error bars.
 #'   If "line", the error bars will be colored the same as the lines.
@@ -43,6 +49,7 @@ LinePlotSingle <- function(
     errorbar_color = "grey30", errorbar_linewidth = .75, errorbar_min = NULL, errorbar_max = NULL, errorbar_sd = NULL,
     highlight = NULL, highlight_size = pt_size - 0.75, highlight_color = "red2", highlight_alpha = 0.8,
     pt_alpha = 1, pt_size = 5,
+    add_hline = FALSE, hline_type = "solid", hline_width = 0.5, hline_color = "black", hline_alpha = 1,
     line_type = "solid", line_width = 1, line_alpha = .8,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     x_text_angle = 0, aspect.ratio = 1,
@@ -104,6 +111,14 @@ LinePlotSingle <- function(
     if (isTRUE(add_bg)) {
         p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by)
     }
+
+    if (!is.null(add_hline) && !isFALSE(add_hline)) {
+        p <- p + geom_hline(
+            yintercept = add_hline, linetype = hline_type, linewidth = hline_width,
+            color = hline_color, alpha = hline_alpha
+        )
+    }
+
     colors <- palette_this(levels(data[[x]]), palette = palette, palcolor = palcolor)
     if (isTRUE(color_line_by_x)) {
         p <- p + geom_line(
@@ -115,6 +130,7 @@ LinePlotSingle <- function(
             aes(group = 1), color = colors[[1]],
             alpha = line_alpha, linetype = line_type, linewidth = line_width)
     }
+
     if (isTRUE(add_errorbars)) {
         if (errorbar_color == "line" && isTRUE(color_line_by_x)) {
             p <- p + geom_errorbar(
@@ -130,6 +146,7 @@ LinePlotSingle <- function(
                 alpha = errorbar_alpha, width = errorbar_width, linewidth = errorbar_linewidth)
         }
     }
+
     if (isTRUE(fill_point_by_x)) {
         p <- p + geom_point(
             aes(fill = !!sym(x)),
@@ -196,6 +213,7 @@ LinePlotGrouped <- function(
     errorbar_color = "grey30", errorbar_linewidth = .75, errorbar_min = NULL, errorbar_max = NULL, errorbar_sd = NULL,
     highlight = NULL, highlight_size = pt_size - 0.75, highlight_color = "red2", highlight_alpha = 0.8,
     pt_alpha = 1, pt_size = 5,
+    add_hline = FALSE, hline_type = "solid", hline_width = 0.5, hline_color = "black", hline_alpha = 1,
     line_type = "solid", line_width = 1, line_alpha = .8,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     x_text_angle = 0, aspect.ratio = 1,
@@ -258,11 +276,20 @@ LinePlotGrouped <- function(
     if (isTRUE(add_bg)) {
         p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by)
     }
+
+    if (!is.null(add_hline) && !isFALSE(add_hline)) {
+        p <- p + geom_hline(
+            yintercept = add_hline, linetype = hline_type, linewidth = hline_width,
+            color = hline_color, alpha = hline_alpha
+        )
+    }
+
     colors <- palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
     p <- p + geom_line(
         aes(color = !!sym(group_by), group = !!sym(group_by)),
         alpha = line_alpha, linetype = line_type, linewidth = line_width) +
         scale_color_manual(name = group_by, values = colors, guide = "legend", drop = !keep_empty)
+
     if (isTRUE(add_errorbars)) {
         if (errorbar_color == "line") {
             p <- p + geom_errorbar(
@@ -274,6 +301,7 @@ LinePlotGrouped <- function(
                 alpha = errorbar_alpha, width = errorbar_width, linewidth = errorbar_linewidth)
         }
     }
+
     p <- p + geom_point(
         aes(fill = !!sym(group_by)),
         color = "grey20", alpha = pt_alpha, size = pt_size, shape = 21) +
@@ -336,6 +364,7 @@ LinePlotAtomic <- function(
     errorbar_color = "grey30", errorbar_linewidth = .75, errorbar_min = NULL, errorbar_max = NULL, errorbar_sd = NULL,
     highlight = NULL, highlight_size = pt_size - 0.75, highlight_color = "red2", highlight_alpha = 0.8,
     pt_alpha = 1, pt_size = 5,
+    add_hline = FALSE, hline_type = "solid", hline_width = 0.5, hline_color = "black", hline_alpha = 1,
     line_type = "solid", line_width = 1, line_alpha = .8,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     x_text_angle = 0, aspect.ratio = 1,
@@ -354,6 +383,8 @@ LinePlotAtomic <- function(
             errorbar_min = errorbar_min, errorbar_max = errorbar_max, errorbar_sd = errorbar_sd,
             highlight = highlight, highlight_size = highlight_size, highlight_color = highlight_color,
             highlight_alpha = highlight_alpha, pt_alpha = pt_alpha, pt_size = pt_size,
+            add_hline = add_hline, hline_type = hline_type, hline_width = hline_width,
+            hline_color = hline_color, hline_alpha = hline_alpha,
             line_type = line_type, line_width = line_width, line_alpha = line_alpha,
             theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
             x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
@@ -369,6 +400,8 @@ LinePlotAtomic <- function(
             errorbar_min = errorbar_min, errorbar_max = errorbar_max, errorbar_sd = errorbar_sd,
             highlight = highlight, highlight_size = highlight_size, highlight_color = highlight_color,
             highlight_alpha = highlight_alpha, pt_alpha = pt_alpha, pt_size = pt_size,
+            add_hline = add_hline, hline_type = hline_type, hline_width = hline_width,
+            hline_color = hline_color, hline_alpha = hline_alpha,
             line_type = line_type, line_width = line_width, line_alpha = line_alpha,
             theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
             x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
@@ -407,6 +440,8 @@ LinePlotAtomic <- function(
 #' LinePlot(data, x = "x", y = "y", highlight = "group == 'G1'",
 #'    fill_point_by_x_if_no_group = FALSE, color_line_by_x_if_no_group = FALSE)
 #' LinePlot(data, x = "x", y = "y", group_by = "group")
+#' LinePlot(data, x = "x", y = "y", group_by = "group",
+#'    add_hline = 10, hline_color = "red")
 #' LinePlot(data, x = "x", y = "y", group_by = "group", add_bg = TRUE,
 #'    highlight = "y > 10")
 #' LinePlot(data, x = "x", y = "y", group_by = "group", facet_by = "facet")
@@ -422,6 +457,7 @@ LinePlot <- function(
     highlight = NULL, highlight_size = pt_size - 0.75, highlight_color = "red2", highlight_alpha = 0.8,
     pt_alpha = 1, pt_size = 5,
     line_type = "solid", line_width = 1, line_alpha = .8,
+    add_hline = FALSE, hline_type = "solid", hline_width = 0.5, hline_color = "black", hline_alpha = 1,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     x_text_angle = 0, aspect.ratio = 1,
     legend.position = "right", legend.direction = "vertical",
@@ -471,6 +507,8 @@ LinePlot <- function(
                 highlight = highlight, highlight_size = highlight_size, highlight_color = highlight_color,
                 highlight_alpha = highlight_alpha, pt_alpha = pt_alpha, pt_size = pt_size,
                 line_type = line_type, line_width = line_width, line_alpha = line_alpha,
+                add_hline = add_hline, hline_type = hline_type, hline_width = hline_width,
+                hline_color = hline_color, hline_alpha = hline_alpha,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
                 legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]], facet_args = facet_args,

@@ -35,6 +35,11 @@ LinePlot(
   line_type = "solid",
   line_width = 1,
   line_alpha = 0.8,
+  add_hline = FALSE,
+  hline_type = "solid",
+  hline_width = 0.5,
+  hline_color = "black",
+  hline_alpha = 1,
   theme = "theme_this",
   theme_args = list(),
   palette = "Paired",
@@ -134,6 +139,17 @@ It could also be an expression (in string) to filter the data.}
 \item{line_width}{The width of the line.}
 
 \item{line_alpha}{The alpha value of the line.}
+
+\item{add_hline}{A numeric value indicating the y-intercept of a horizontal line to add to the plot.
+If FALSE, no horizontal line will be added.}
+
+\item{hline_type}{The type of line to draw for the horizontal line.}
+
+\item{hline_width}{The width of the horizontal line.}
+
+\item{hline_color}{The color of the horizontal line.}
+
+\item{hline_alpha}{The alpha value of the horizontal line.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -248,6 +264,8 @@ LinePlot(data, x = "x", y = "y")
 LinePlot(data, x = "x", y = "y", highlight = "group == 'G1'",
    fill_point_by_x_if_no_group = FALSE, color_line_by_x_if_no_group = FALSE)
 LinePlot(data, x = "x", y = "y", group_by = "group")
+LinePlot(data, x = "x", y = "y", group_by = "group",
+   add_hline = 10, hline_color = "red")
 LinePlot(data, x = "x", y = "y", group_by = "group", add_bg = TRUE,
    highlight = "y > 10")
 LinePlot(data, x = "x", y = "y", group_by = "group", facet_by = "facet")

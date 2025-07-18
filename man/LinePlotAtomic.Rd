@@ -29,6 +29,11 @@ LinePlotAtomic(
   highlight_alpha = 0.8,
   pt_alpha = 1,
   pt_size = 5,
+  add_hline = FALSE,
+  hline_type = "solid",
+  hline_width = 0.5,
+  hline_color = "black",
+  hline_alpha = 1,
   line_type = "solid",
   line_width = 1,
   line_alpha = 0.8,
@@ -110,6 +115,17 @@ It could also be an expression (in string) to filter the data.}
 \item{pt_alpha}{The alpha value of the points.}
 
 \item{pt_size}{The size of the points.}
+
+\item{add_hline}{A numeric value indicating the y-intercept of a horizontal line to add to the plot.
+If FALSE, no horizontal line will be added.}
+
+\item{hline_type}{The type of line to draw for the horizontal line.}
+
+\item{hline_width}{The width of the horizontal line.}
+
+\item{hline_color}{The color of the horizontal line.}
+
+\item{hline_alpha}{The alpha value of the horizontal line.}
 
 \item{line_type}{The type of line to draw.}
 
