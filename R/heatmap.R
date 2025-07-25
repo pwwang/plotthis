@@ -253,7 +253,7 @@ process_heatmap_data <- function(
         rows_name <- rows_name %||% ifelse("rows" %in% colnames(data), "rows.1", "rows")
         values_by <- values_by %||% ifelse("value" %in% colnames(data), "value.1", "value")
         data <- tidyr::pivot_longer(data, cols = rows_by, names_to = rows_name, values_to = values_by)
-        data[[rows_name]] <- factor(data[[rows_name]], levels = rows_by)
+        data[[rows_name]] <- factor(data[[rows_name]], levels = unique(rows_by))
         data <- data[order(data[[rows_name]]), , drop = FALSE]
         rows_by <- rows_name
 
