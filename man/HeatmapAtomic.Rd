@@ -154,8 +154,12 @@ This is used to create pie charts in the heatmap when \code{cell_type} is \code{
 \item{bars_sample}{An integer specifying the number of samples to draw the bars.}
 
 \item{label}{A function to calculate the labels for the heatmap cells.
-It takes the aggregated values as the argument and returns the labels to be shown in the heatmap.
-No labels will be shown for the NA the returned values.}
+It can take either 1, 3, or 5 arguments. The first argument is the aggregated values.
+If it takes 3 arguments, the second and third arguments are the row and column indices.
+If it takes 5 arguments, the second and third arguments are the row and column indices,
+the fourth and fifth arguments are the row and column names.
+The function should return a character vector of the same length as the aggregated values.
+If the function returns NA, no label will be shown for that cell.}
 
 \item{label_size}{A numeric value specifying the size of the labels when \code{cell_type = "label"}.}
 
