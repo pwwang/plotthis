@@ -1,7 +1,7 @@
 #' ManhattanPlotAtomic
 #'
 #' Plot a Manhattan plot for atomic data (without splitting).
-#' This function is borrowed from [ggmanh::manhattan_plot()] with following customizations:
+#' This function is borrowed from `ggmanh::manhattan_plot()` with following customizations:
 #'
 #' * The dots in argument names are replaced with underscores wherever possible.
 #' * `chr.colname`, `pos.colname`, `pval.colname` and `label.colname` are replaced with
@@ -27,7 +27,7 @@
 #' @param chromosomes A vector of chromosomes to be plotted (default: NULL).
 #' If NULL, all chromosomes will be plotted.
 #' It is more of a combination of the `chromosome` and `chr.order` arguments of
-#' [ggmanh::manhattan_plot()].
+#' `ggmanh::manhattan_plot()`.
 #' We can use it to select chromosomes to be plotted or to set the order of the chromosomes.
 #' @param pt_size A numeric value to specify the size of the points in the plot.
 #' @param pt_color A character string to specify the color of the points in the plot.
@@ -288,7 +288,7 @@ ManhattanPlotAtomic <- function(
 
 #' ManhattanPlot
 #'
-#' This function is borrowed from [ggmanh::manhattan_plot()] with following customizations:
+#' This function is borrowed from `ggmanh::manhattan_plot()` with following customizations:
 #'
 #' * The dots in argument names are replaced with underscores wherever possible.
 #' * `chr.colname`, `pos.colname`, `pval.colname` and `label.colname` are replaced with

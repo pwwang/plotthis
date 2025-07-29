@@ -80,7 +80,7 @@ Only the variants with values in this column will be labeled.}
 \item{chromosomes}{A vector of chromosomes to be plotted (default: NULL).
 If NULL, all chromosomes will be plotted.
 It is more of a combination of the \code{chromosome} and \code{chr.order} arguments of
-\code{\link[ggmanh:manhattan_plot]{ggmanh::manhattan_plot()}}.
+\code{ggmanh::manhattan_plot()}.
 We can use it to select chromosomes to be plotted or to set the order of the chromosomes.}
 
 \item{pt_size}{A numeric value to specify the size of the points in the plot.}
@@ -229,7 +229,7 @@ If 'combine' is TRUE, a wrap_plots object will be returned.
 If 'combine' is FALSE, a list of ggplot objects will be returned.
 }
 \description{
-This function is borrowed from \code{\link[ggmanh:manhattan_plot]{ggmanh::manhattan_plot()}} with following customizations:
+This function is borrowed from \code{ggmanh::manhattan_plot()} with following customizations:
 }
 \details{
 \itemize{
