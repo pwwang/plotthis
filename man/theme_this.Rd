@@ -5,14 +5,20 @@
 \title{A ggplot2 theme and palettes for plotthis
 Borrowed from the \code{theme_this} function in the \code{SCP} pipeline}
 \usage{
-theme_this(aspect.ratio = NULL, base_size = 12, font_family = NULL, ...)
+theme_this(aspect.ratio = NULL, base_size = NULL, font_family = NULL, ...)
 }
 \arguments{
 \item{aspect.ratio}{The aspect ratio of the plot}
 
-\item{base_size}{The base size of the text}
+\item{base_size}{The base size of the text
+If not specified, it will use the value from \code{getOption("theme_this.base_size", 12)}.
+If you want to change the default base size, you can set the option \code{theme_this.base_size}.
+This is applied to all plots using this theme.}
 
-\item{font_family}{The font family of the text}
+\item{font_family}{The font family of the text
+If not specified, it will use the value from \code{getOption("theme_this.font_family")}.
+If you want to change the default font family, you can set the option \code{theme_this.font_family}.
+This is applied to all plots using this theme.}
 
 \item{...}{Other arguments for \code{theme()}}
 }

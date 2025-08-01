@@ -5,14 +5,22 @@
 #'
 #' @param aspect.ratio The aspect ratio of the plot
 #' @param base_size The base size of the text
+#' If not specified, it will use the value from `getOption("theme_this.base_size", 12)`.
+#' If you want to change the default base size, you can set the option `theme_this.base_size`.
+#' This is applied to all plots using this theme.
 #' @param font_family The font family of the text
+#' If not specified, it will use the value from `getOption("theme_this.font_family")`.
+#' If you want to change the default font family, you can set the option `theme_this.font_family`.
+#' This is applied to all plots using this theme.
 #' @param ... Other arguments for `theme()`
 #'
 #' @return A ggplot2 theme
 #' @importFrom methods formalArgs
 #' @importFrom ggplot2 element_text element_rect margin theme element_blank unit
 #' @export
-theme_this <- function(aspect.ratio = NULL, base_size = 12, font_family = NULL, ...) {
+theme_this <- function(aspect.ratio = NULL, base_size = NULL, font_family = NULL, ...) {
+    base_size <- base_size %||% getOption("theme_this.base_size", 12)
+    font_family <- font_family %||% getOption("theme_this.font_family")
     text_size_scale <- base_size / 12
     args1 <- list(
         aspect.ratio = aspect.ratio,
