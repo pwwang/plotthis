@@ -45,7 +45,7 @@ Borrowed from the <code>theme_this</code> function in the <code>SCP</code> pipel
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">theme_this</span><span class="op">(</span>aspect.ratio <span class="op">=</span> <span class="cn">NULL</span>, base_size <span class="op">=</span> <span class="fl">12</span>, font_family <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">theme_this</span><span class="op">(</span>aspect.ratio <span class="op">=</span> <span class="cn">NULL</span>, base_size <span class="op">=</span> <span class="cn">NULL</span>, font_family <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -57,11 +57,17 @@ Borrowed from the <code>theme_this</code> function in the <code>SCP</code> pipel
 
 
 <dt id="arg-base-size">base_size<a class="anchor" aria-label="anchor" href="#arg-base-size"></a></dt>
-<dd><p>The base size of the text</p></dd>
+<dd><p>The base size of the text
+If not specified, it will use the value from <code>getOption("theme_this.base_size", 12)</code>.
+If you want to change the default base size, you can set the option <code>theme_this.base_size</code>.
+This is applied to all plots using this theme.</p></dd>
 
 
 <dt id="arg-font-family">font_family<a class="anchor" aria-label="anchor" href="#arg-font-family"></a></dt>
-<dd><p>The font family of the text</p></dd>
+<dd><p>The font family of the text
+If not specified, it will use the value from <code>getOption("theme_this.font_family")</code>.
+If you want to change the default font family, you can set the option <code>theme_this.font_family</code>.
+This is applied to all plots using this theme.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
