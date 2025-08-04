@@ -235,7 +235,12 @@ facet_plot <- function(plot, facet_by, facet_scales, nrow, ncol, byrow,
     if (length(facet_by) == 1) {
         plot <- plot + ggplot2::facet_wrap(facets = facet_by, scales = facet_scales, nrow = nrow, ncol = ncol, dir = if (byrow) "h" else "v", ...)
     } else {
-        plot <- plot + ggplot2::facet_grid(vars(!!sym(facet_by[[1]])), vars(!!sym(facet_by[[2]])), scales = facet_scales, ...)
+        args <- rlang::dots_list(...)
+        args$strip.position <- NULL
+        args$rows <- vars(!!sym(facet_by[[1]]))
+        args$cols <- vars(!!sym(facet_by[[2]]))
+        args$scales <- facet_scales
+        plot <- plot + do.call(ggplot2::facet_grid, args)
     }
 
     return(plot)
