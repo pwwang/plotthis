@@ -37,7 +37,7 @@ BoxViolinPlotAtomic(
   pt_alpha = 1,
   y_nbreaks = 4,
   jitter_width = 0.5,
-  jitter_height = 0.1,
+  jitter_height = 0,
   stack = FALSE,
   y_max = NULL,
   y_min = NULL,
