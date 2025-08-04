@@ -366,8 +366,7 @@ BoxViolinPlotAtomic <- function(
         )
         y_max_use <- layer_scales(p)$y$range$range[1] + (layer_scales(p)$y$range$range[2] - layer_scales(p)$y$range$range[1]) * 1.15
     }
-
-    if (!is.null(y_max)) {
+    if (!is.null(y_max) && is.numeric(y_max)) {
         y_max_use <- max(y_max_use, y_max)
     }
 
