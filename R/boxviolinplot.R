@@ -209,13 +209,13 @@ BoxViolinPlotAtomic <- function(
     data$.highlight <- factor(as.character(data$.highlight), levels = c("TRUE", "FALSE"))
 
     if (sort_x == "mean" || sort_x == "mean_asc") {
-        data[[x]] <- stats::reorder(data[[x]], order(data$.y_mean))
+        data[[x]] <- stats::reorder(data[[x]], data$.y_mean)
     } else if (sort_x == "mean_desc") {
-        data[[x]] <- stats::reorder(data[[x]], -order(data$.y_mean))
+        data[[x]] <- stats::reorder(data[[x]], -data$.y_mean)
     } else if (sort_x == "median" || sort_x == "median_asc") {
-        data[[x]] <- stats::reorder(data[[x]], order(data$.y_median))
+        data[[x]] <- stats::reorder(data[[x]], data$.y_median)
     } else if (sort_x == "median_desc") {
-        data[[x]] <- stats::reorder(data[[x]], -order(data$.y_median))
+        data[[x]] <- stats::reorder(data[[x]], -data$.y_median)
     }
 
     if (isTRUE(flip)) {
