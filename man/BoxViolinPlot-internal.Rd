@@ -126,7 +126,16 @@ In other words, we use the following convention for symbols indicating statistic
 \item \verb{****}: p <= 0.0001
 }}
 
-\item{sort_x}{A character string to specify the sorting of x-axis. Either "none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median".}
+\item{sort_x}{A character string to specify the sorting of x-axis, chosen from "none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median".
+\itemize{
+\item \code{none} means no sorting (as-is).
+\item \code{mean_asc} sorts the x-axis by ascending mean of y-values.
+\item \code{mean_desc} sorts the x-axis by descending mean of y-values.
+\item \code{mean} is an alias for \code{mean_asc}.
+\item \code{median_asc} sorts the x-axis by ascending median of y-values.
+\item \code{median_desc} sorts the x-axis by descending median of y-values.
+\item \code{median} is an alias for \code{median_asc}.
+}}
 
 \item{flip}{A logical value to flip the plot.}
 

@@ -9,7 +9,14 @@
 #'  When `in_form` is "wide", `y` is not required. The values under `x` columns will be used as y-values.
 #' @param base A character string to specify the base plot type. Either "box" or "violin".
 #' @param in_form A character string to specify the input data type. Either "long" or "wide".
-#' @param sort_x A character string to specify the sorting of x-axis. Either "none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median".
+#' @param sort_x A character string to specify the sorting of x-axis, chosen from "none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median".
+#' * `none` means no sorting (as-is).
+#' * `mean_asc` sorts the x-axis by ascending mean of y-values.
+#' * `mean_desc` sorts the x-axis by descending mean of y-values.
+#' * `mean` is an alias for `mean_asc`.
+#' * `median_asc` sorts the x-axis by ascending median of y-values.
+#' * `median_desc` sorts the x-axis by descending median of y-values.
+#' * `median` is an alias for `median_asc`.
 #' @param flip A logical value to flip the plot.
 #' @param keep_empty A logical value to keep the empty levels in the x-axis.
 #' @param group_by A character string of the column name to dodge the boxes/violins
