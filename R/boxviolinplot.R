@@ -95,7 +95,7 @@
 #' @importFrom stats median quantile
 #' @importFrom rlang sym syms parse_expr
 #' @importFrom dplyr mutate ungroup first
-#' @importFrom ggplot2 geom_boxplot geom_violin geom_jitter geom_point geom_line geom_hline geom_vline
+#' @importFrom ggplot2 geom_boxplot geom_violin geom_jitter geom_point geom_line geom_hline geom_vline layer_data
 #' @importFrom ggplot2 scale_fill_manual scale_color_manual scale_shape_manual scale_linetype_manual stat_summary
 #' @importFrom ggplot2 labs theme element_line element_text position_dodge position_jitter coord_flip layer_scales
 #' @importFrom ggplot2 position_jitterdodge scale_shape_identity scale_size_manual scale_alpha_manual scale_y_continuous
@@ -294,7 +294,8 @@ BoxViolinPlotAtomic <- function(
 
     if (length(comparisons) > 0) {
         if (isTRUE(comparisons)) {
-            group_use <- names(which(rowSums(table(data[[x]], data[[group_by]]) >= 2) >= 2))
+            # group_use <- names(which(rowSums(table(data[[x]], data[[group_by]]) >= 2) >= 2))
+            # print(group_use)
             if (any(rowSums(table(data[[x]], data[[group_by]]) >= 2) >= 3)) {
                 message("Detected more than 2 groups. Use multiple_method for comparison")
                 # method <- multiple_method
@@ -302,8 +303,12 @@ BoxViolinPlotAtomic <- function(
             } else {
                 method <- pairwise_method
 
-                p <- p + ggpubr::geom_pwc(
-                    data = data[data[[x]] %in% group_use, , drop = FALSE],
+                if (!identical(fill_mode, "dodge")) {
+                    stop("`comparisons` can only be used with `fill_mode = 'dodge'`.")
+                }
+
+                p2 <- p + ggpubr::geom_pwc(
+                    # data = data[data[[x]] %in% group_use, , drop = FALSE],
                     label = sig_label,
                     label.size = sig_labelsize,
                     y.position = y_max_use,
@@ -315,6 +320,51 @@ BoxViolinPlotAtomic <- function(
                     method = method,
                     hide.ns = hide_ns
                 )
+
+                pdata <- suppressWarnings(layer_data(p2, 2))
+                if (ncol(pdata) == 0 || length(unique(pdata$group)) < length(unique(data[[x]]))) {
+                    warning("Some pairwise comparisons failed. Adjusting data to ensure valid comparisons. Note that p-values of 1 may indicate insufficient variability in the data.")
+                    # In case some tests fail, we fix it here
+                    newdata <- split(data, data[[x]])
+                    for (xval in names(newdata)) {
+                        df <- newdata[[xval]]
+                        gs <- unique(df[[group_by]])
+                        yval1 <- df[[y]][df[[group_by]] == gs[1]]
+                        yval2 <- df[[y]][df[[group_by]] == gs[2]]
+                        if (all(is.na(yval1)) && length(yval1) > 0) {
+                            yval1 <- c(0, rep(NA, length(yval1) - 1))
+                        }
+                        if (all(is.na(yval2)) && length(yval2) > 0) {
+                            yval2 <- c(1, rep(NA, length(yval2) - 1))
+                        }
+                        if (length(unique(yval1[!is.na(yval1)])) == 1 &&
+                            length(unique(yval2[!is.na(yval2)])) == 1) {
+                            # tests will fail
+                            yval1[!is.na(yval1)] <- c(0, rep(NA, length(yval1[!is.na(yval1)]) - 1))
+                            yval2[!is.na(yval2)] <- c(1, rep(NA, length(yval2[!is.na(yval2)]) - 1))
+                        }
+                        df[[y]][df[[group_by]] == gs[1]] <- yval1
+                        df[[y]][df[[group_by]] == gs[2]] <- yval2
+                        newdata[[xval]] <- df
+                    }
+                    newdata <- do.call(rbind, newdata)
+                    nd <<- newdata
+                    p <- p + ggpubr::geom_pwc(
+                        data = newdata,
+                        label = sig_label,
+                        label.size = sig_labelsize,
+                        y.position = y_max_use,
+                        step.increase = step_increase,
+                        symnum.args = symnum_args,
+                        tip.length = 0.03,
+                        vjust = 0,
+                        ref.group = ref_group,
+                        method = method,
+                        hide.ns = hide_ns
+                    )
+                } else {
+                    p <- p2
+                }
 
                 y_max_use <- layer_scales(p)$y$range$range[2]
             }
