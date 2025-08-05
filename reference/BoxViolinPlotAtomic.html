@@ -160,7 +160,14 @@ When <code>in_form</code> is "wide", <code>y</code> is not required. The values 
 
 
 <dt id="arg-sort-x">sort_x<a class="anchor" aria-label="anchor" href="#arg-sort-x"></a></dt>
-<dd><p>A character string to specify the sorting of x-axis. Either "none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median".</p></dd>
+<dd><p>A character string to specify the sorting of x-axis, chosen from "none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median".</p><ul><li><p><code>none</code> means no sorting (as-is).</p></li>
+<li><p><code>mean_asc</code> sorts the x-axis by ascending mean of y-values.</p></li>
+<li><p><code>mean_desc</code> sorts the x-axis by descending mean of y-values.</p></li>
+<li><p><code>mean</code> is an alias for <code>mean_asc</code>.</p></li>
+<li><p><code>median_asc</code> sorts the x-axis by ascending median of y-values.</p></li>
+<li><p><code>median_desc</code> sorts the x-axis by descending median of y-values.</p></li>
+<li><p><code>median</code> is an alias for <code>median_asc</code>.</p></li>
+</ul></dd>
 
 
 <dt id="arg-flip">flip<a class="anchor" aria-label="anchor" href="#arg-flip"></a></dt>
