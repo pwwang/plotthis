@@ -332,26 +332,32 @@ BoxViolinPlotAtomic <- function(
                 if (ncol(pdata) == 0 || length(unique(pdata$group)) < length(unique(data[[x]]))) {
                     warning("Some pairwise comparisons failed. Adjusting data to ensure valid comparisons. Note that p-values of 1 may indicate insufficient variability in the data.")
                     # In case some tests fail, we fix it here
-                    newdata <- split(data, data[[x]])
+                    newdata <- split(data[, c(x, y, group_by), drop = FALSE], data[[x]])
+                    all_gs <- unique(as.character(data[[group_by]]))[1:2]
                     for (xval in names(newdata)) {
                         df <- newdata[[xval]]
-                        gs <- unique(df[[group_by]])
-                        yval1 <- df[[y]][df[[group_by]] == gs[1]]
-                        yval2 <- df[[y]][df[[group_by]] == gs[2]]
-                        if (all(is.na(yval1)) && length(yval1) > 0) {
-                            yval1 <- c(0, rep(NA, length(yval1) - 1))
+                        gs <- unique(as.character(df[[group_by]]))
+                        if (length(gs) < 2) {
+                            df <- data.frame(x = xval, y = c(0, 1), group_by = all_gs)
+                            colnames(df) <- c(x, y, group_by)
+                        } else {
+                            yval1 <- df[[y]][df[[group_by]] == gs[1]]
+                            yval2 <- df[[y]][df[[group_by]] == gs[2]]
+                            if (all(is.na(yval1))) {
+                                yval1 <- c(0, rep(NA, length(yval1) - 1))
+                            }
+                            if (all(is.na(yval2))) {
+                                yval2 <- c(1, rep(NA, length(yval2) - 1))
+                            }
+                            if (length(unique(yval1[!is.na(yval1)])) == 1 &&
+                                length(unique(yval2[!is.na(yval2)])) == 1) {
+                                # tests will fail
+                                yval1[!is.na(yval1)] <- c(0, rep(NA, length(yval1[!is.na(yval1)]) - 1))
+                                yval2[!is.na(yval2)] <- c(1, rep(NA, length(yval2[!is.na(yval2)]) - 1))
+                            }
+                            df[[y]][df[[group_by]] == gs[1]] <- yval1
+                            df[[y]][df[[group_by]] == gs[2]] <- yval2
                         }
-                        if (all(is.na(yval2)) && length(yval2) > 0) {
-                            yval2 <- c(1, rep(NA, length(yval2) - 1))
-                        }
-                        if (length(unique(yval1[!is.na(yval1)])) == 1 &&
-                            length(unique(yval2[!is.na(yval2)])) == 1) {
-                            # tests will fail
-                            yval1[!is.na(yval1)] <- c(0, rep(NA, length(yval1[!is.na(yval1)]) - 1))
-                            yval2[!is.na(yval2)] <- c(1, rep(NA, length(yval2[!is.na(yval2)]) - 1))
-                        }
-                        df[[y]][df[[group_by]] == gs[1]] <- yval1
-                        df[[y]][df[[group_by]] == gs[2]] <- yval2
                         newdata[[xval]] <- df
                     }
                     newdata <- do.call(rbind, newdata)
