@@ -1258,7 +1258,7 @@ HeatmapAtomic <- function(
 
         pie_group_levels <- levels(data[[pie_group_by]])
         pie_data <- data %>%
-            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by, pie_group_by)))) %>%
+            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by, pie_group_by))), .drop = FALSE) %>%
             summarise(.value = pie_values(!!sym(values_by)), .groups = "drop") %>%
             group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
             group_map(
