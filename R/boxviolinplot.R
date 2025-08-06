@@ -361,7 +361,6 @@ BoxViolinPlotAtomic <- function(
                         newdata[[xval]] <- df
                     }
                     newdata <- do.call(rbind, newdata)
-                    nd <<- newdata
                     p <- p + ggpubr::geom_pwc(
                         data = newdata,
                         label = sig_label,
