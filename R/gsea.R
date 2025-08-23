@@ -14,6 +14,7 @@ gsea_running_score <- function(genes, gene_ranks, exponent = 1, hits_only = TRUE
     hits <- names(gene_ranks) %in% genes
     Phit[hits] <- abs(gene_ranks[hits])^exponent
     NR <- sum(Phit)
+    if (NR == 0) NR <- 1e-3
     Phit <- cumsum(Phit) / NR
     Pmiss[!hits] <- 1 / (N - Nh)
     Pmiss <- cumsum(Pmiss)
