@@ -91,10 +91,20 @@ CorPlotAtomic <- function(
                 if (item == "eq") {
                     a <- format(as.numeric(coef(m)[1]), digits = 2)
                     b <- format(as.numeric(abs(coef(m)[2])), digits = 2)
-                    if (coef(m)[2] >= 0) {
-                        anno_eq <- substitute(italic(y) == a + b %.% italic(x), list(a = a, b = b))
+                    if (is.na(coef(m)[2])) {
+                        anno_eq <- substitute(
+                            italic(y) == "NaN"
+                        )
+                    } else if (coef(m)[2] >= 0) {
+                        anno_eq <- substitute(
+                            italic(y) == a + b %.% italic(x),
+                            list(a = a, b = b)
+                        )
                     } else {
-                        anno_eq <- substitute(italic(y) == a - b %.% italic(x), list(a = a, b = b))
+                        anno_eq <- substitute(
+                            italic(y) == a - b %.% italic(x),
+                            list(a = a, b = b)
+                        )
                     }
                     anno <- c(anno, as.character(as.expression(anno_eq)))
                 } else if (item == "r2") {
@@ -104,10 +114,23 @@ CorPlotAtomic <- function(
                     )
                     anno <- c(anno, as.character(as.expression(anno_r2)))
                 } else if (item == "p") {
-                    anno_p <- substitute(
-                        italic("coeff.") ~ italic(p) ~ "=" ~ pvalue,
-                        list(pvalue = format(summary(m)$coefficients[2, 4], digits = 2))
-                    )
+                    coefs <- summary(m)$coefficients
+                    if (nrow(coefs) < 2 || all(is.na(coefs[2, ]))) {
+                        # Case: x is constant → no slope, no p-value
+                        anno_p <- substitute(
+                            italic("coeff.") ~ italic(p) ~ "=" ~ "NA"
+                        )
+                    } else {
+                        anno_p <- substitute(
+                            italic("coeff.") ~ italic(p) ~ "=" ~ pvalue,
+                            list(
+                                pvalue = format(
+                                    coefs[2, 4],
+                                    digits = 2
+                                )
+                            )
+                        )
+                    }
                     anno <- c(anno, as.character(as.expression(anno_p)))
                 } else if (item == "spearman") {
                     rho <- cor(dat[[x]], dat[[y]], method = "spearman")
