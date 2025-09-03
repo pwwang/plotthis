@@ -25,6 +25,7 @@ reference:
     - GSEASummaryPlot
     - Heatmap
     - Histogram
+    - JitterPlot
     - LinePlot
     - LollipopPlot
     - ManhattanPlot
