@@ -2069,6 +2069,8 @@ Heatmap <- function(
     legend.direction <- check_legend(legend.direction, names(hmdata$data), "legend.direction")
     legend.position <- check_legend(legend.position, names(hmdata$data), "legend.position")
 
+    return_grob <- utils::compareVersion(as.character(utils::packageVersion("ggplot2")), "3.5.2") <= 0
+
     plots <- lapply(
         names(hmdata$data), function(nm) {
             default_title <- if (length(hmdata$data) == 1 && identical(nm, "...")) NULL else nm
@@ -2122,7 +2124,7 @@ Heatmap <- function(
                 row_annotation_type = row_annotation_type, row_annotation_params = row_annotation_params,
                 row_annotation_agg = row_annotation_agg,
 
-                flip = flip, alpha = alpha, seed = seed, return_grob = TRUE,
+                flip = flip, alpha = alpha, seed = seed, return_grob = return_grob,
                 layer_fun_callback = layer_fun_callback, cell_type = cell_type, cell_agg = cell_agg,
 
                 ...
