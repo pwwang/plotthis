@@ -1,3 +1,5 @@
+^renv$
+^renv\.lock$
 ^LICENSE\.md$
 ^CRAN-SUBMISSION$
 ^cran-comments\.md$
