@@ -39,7 +39,7 @@
 #' @importFrom ggplot2 element_line waiver coord_flip scale_color_manual guide_legend coord_cartesian
 #' @importFrom ggrepel geom_text_repel
 BarPlotSingle <- function(
-    data, x, x_sep = "_", y = NULL, flip = FALSE, facet_by = NULL, facet_scales = "fixed", label = NULL, label_nudge = 0,
+    data, x, x_sep = "_", y = NULL, flip = FALSE, facet_by = NULL, facet_scales = "fixed", label = NULL, label_nudge = 0.02,
     label_fg = "black", label_size = 4, label_bg = "white", label_bg_r = 0.1,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1, y_min = NULL, y_max = NULL,
@@ -74,10 +74,10 @@ BarPlotSingle <- function(
             if (any(data[[y]] > 0)) {
                 # what is the best ratio for the label nudge?
                 # based on maximum y value?
-                expand[1] <- 0.05 + label_nudge * 0.01
+                expand[1] <- 0.05 + label_nudge * 0.5
             }
             if (any(data[[y]] < 0)) {
-                expand[3] <- 0.05 + label_nudge * 0.01
+                expand[3] <- 0.05 + label_nudge * 0.5
             }
         }
     }
@@ -110,12 +110,16 @@ BarPlotSingle <- function(
     if (!is.null(label)) {
         # nudge doesn't work as aes, let's adjust the y
         label_data <- data
+        label_data <- label_data[order(label_data[[x]]), , drop = FALSE]
         label_data$.label <- label_data[[label]]
-        label_data[[y]] <- ifelse(label_data[[y]] > 0, label_data[[y]] + label_nudge, label_data[[y]] - label_nudge)
+        yr <- diff(range(data[[y]], na.rm = TRUE))
+        label_data$.sign <- label_data[[y]] > 0
+        label_data[[y]] <- label_data[[y]] + yr * label_nudge * ifelse(label_data$.sign, 1, -1)
+
         p <- p + geom_text_repel(
-            data = label_data,
-            aes(label = !!sym(".label")), color = label_fg, size = label_size,
-            bg.color = label_bg, bg.r = label_bg_r, force = 0,
+            data = label_data, mapping = aes(label = !!sym(".label")),
+            color = label_fg, size = label_size, hjust = if (flip) ifelse(label_data$.sign, 0, 1) else 0.5,
+            bg.color = label_bg, bg.r = label_bg_r, direction = "y", force = 0,
             min.segment.length = 0, max.overlaps = 100, segment.color = 'transparent'
         )
     }
@@ -212,7 +216,7 @@ BarPlotSingle <- function(
 BarPlotGrouped <- function(
     data, x, x_sep = "_", y = NULL, scale_y = FALSE, flip = FALSE, group_by, group_by_sep = "_", group_name = NULL,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
-    label = NULL, label_nudge = 0, label_fg = "black", label_size = 4, label_bg = "white", label_bg_r = 0.1,
+    label = NULL, label_nudge = 0.02, label_fg = "black", label_size = 4, label_bg = "white", label_bg_r = 0.1,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1,
     add_line = NULL, line_color = "red2", line_width = .6, line_type = 2, line_name = NULL,
@@ -282,10 +286,10 @@ BarPlotGrouped <- function(
             expand <- c(top = 0, bottom = 0)
             if (!is.null(label)) {
                 if (any(data[[y]] > 0)) {
-                    expand['top'] <- 0.05 + label_nudge * 0.01
+                    expand['top'] <- 0.05 + label_nudge * 0.5
                 }
                 if (any(data[[y]] < 0)) {
-                    expand['bottom'] <- 0.05 + label_nudge * 0.01
+                    expand['bottom'] <- 0.05 + label_nudge * 0.5
                 }
             }
         } else if (min(data[[y]], na.rm = TRUE) > 0) {
@@ -338,39 +342,38 @@ BarPlotGrouped <- function(
 
     if (!is.null(label)) {
         label_data <- data
+        label_data <- label_data[order(label_data[[x]], label_data[[group_by]]), , drop = FALSE]
         label_data$.label <- label_data[[label]]
+        label_data$.sign <- label_data[[y]] > 0
+        yr <- diff(range(data[[y]], na.rm = TRUE))
         if (identical(position, "stack")) {
-            # only add to the last value if positive, and the first value if negative
-            label_data <- label_data %>%
-                dplyr::group_by(!!!syms(unique(c(x, facet_by)))) %>%
-                mutate(
-                    !!sym(y) := case_when(
-                        !!sym(group_by) == last(intersect(
-                            levels(label_data[[group_by]]),
-                            na.omit(if_else(!!sym(y) > 0, !!sym(group_by), NA_character_)))
-                        ) ~ !!sym(y) + label_nudge,
-                        !!sym(group_by) == first(intersect(
-                            levels(label_data[[group_by]]),
-                            na.omit(if_else(!!sym(y) < 0, !!sym(group_by), NA_character_)))
-                        ) ~ !!sym(y) - label_nudge,
-                        TRUE ~ !!sym(y)
-                    )
-                ) %>%
-                ungroup()
+            # caculate the y-axis of the labels
+            label_data <- mutate(
+                label_data,
+                !!sym(y) := ifelse(
+                    !!sym(".sign"),
+                    cumsum(rev(!!sym(y))) + yr * label_nudge,
+                    cumsum(rev(!!sym(y))) - yr * label_nudge
+                ),
+                .by = unique(c(x, ".sign", facet_by))
+            )
+
+            p <- p + geom_text_repel(
+                data = label_data, mapping = aes(label = !!sym(".label")), color = label_fg,
+                size = label_size, hjust = if (flip) ifelse(label_data$.sign, 0, 1) else 0.5,
+                bg.color = label_bg, bg.r = label_bg_r, direction = "y",
+                force = 0, min.segment.length = 0, max.overlaps = 100, segment.color = 'transparent'
+            )
         } else {
-            label_data[[y]] <- ifelse(
-                label_data[[y]] > 0,
-                label_data[[y]] + label_nudge,
-                label_data[[y]] - label_nudge
+            label_data[[y]] <- label_data[[y]] + yr * label_nudge * ifelse(label_data$.sign, 1, -1)
+
+            p <- p + geom_text_repel(
+                data = label_data, mapping = aes(label = !!sym(".label")), color = label_fg,
+                size = label_size, hjust = if (flip) ifelse(label_data$.sign, 0, 1) else 0.5,
+                bg.color = label_bg, bg.r = label_bg_r, position = position, direction = "y",
+                force = 0, min.segment.length = 0, max.overlaps = 100, segment.color = 'transparent'
             )
         }
-        p <- p + geom_text_repel(
-            data = label_data,
-            aes(label = !!sym(".label")), color = label_fg,
-            size = label_size, position = position, direction = "y",
-            bg.color = label_bg, bg.r = label_bg_r, force = 0,
-            min.segment.length = 0, max.overlaps = 100, segment.color = 'transparent'
-        )
     }
 
     facet_free <- !is.null(facet_by) && (
@@ -426,7 +429,7 @@ BarPlotGrouped <- function(
 #' @keywords internal
 BarPlotAtomic <- function(
     data, x, x_sep = "_", y = NULL, scale_y = FALSE, flip = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    fill_by_x_if_no_group = TRUE, label_nudge = 0,
+    fill_by_x_if_no_group = TRUE, label_nudge = 0.02,
     label = NULL, label_fg = "black", label_size = 4, label_bg = "white", label_bg_r = 0.1,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
@@ -505,7 +508,7 @@ BarPlotAtomic <- function(
 #' BarPlot(data, x = "x", y = "y")
 #' BarPlot(data, x = "x", y = "y", fill_by_x_if_no_group = FALSE)
 #' BarPlot(data, x = "x", y = "y", label = TRUE)
-#' BarPlot(data, x = "x", y = "y", label = "facet", label_nudge = 1)
+#' BarPlot(data, x = "x", y = "y", label = "facet", label_nudge = 0)
 #' BarPlot(data, x = "group", y = "y", group_by = "x")
 #' BarPlot(data,
 #'     x = "group", y = "y", group_by = "x",
@@ -534,7 +537,7 @@ BarPlotAtomic <- function(
 #' BarPlot(data, x = "group", flip = TRUE, ylab = "count")
 #' }
 BarPlot <- function(
-    data, x, x_sep = "_", y = NULL, flip = FALSE, fill_by_x_if_no_group = TRUE, line_name = NULL, label_nudge = 0,
+    data, x, x_sep = "_", y = NULL, flip = FALSE, fill_by_x_if_no_group = TRUE, line_name = NULL, label_nudge = 0.02,
     label = NULL, label_fg = "black", label_size = 4, label_bg = "white", label_bg_r = 0.1,
     group_by = NULL, group_by_sep = "_", group_name = NULL, split_by = NULL, split_by_sep = "_",
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE, facet_args = list(),

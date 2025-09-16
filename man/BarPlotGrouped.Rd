@@ -19,7 +19,7 @@ BarPlotGrouped(
   palette = "Paired",
   palcolor = NULL,
   label = NULL,
-  label_nudge = 0,
+  label_nudge = 0.02,
   label_fg = "black",
   label_size = 4,
   label_bg = "white",

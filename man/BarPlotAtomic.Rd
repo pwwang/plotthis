@@ -15,7 +15,7 @@ BarPlotAtomic(
   group_by_sep = "_",
   group_name = NULL,
   fill_by_x_if_no_group = TRUE,
-  label_nudge = 0,
+  label_nudge = 0.02,
   label = NULL,
   label_fg = "black",
   label_size = 4,

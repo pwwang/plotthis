@@ -14,7 +14,7 @@ BarPlot(
   flip = FALSE,
   fill_by_x_if_no_group = TRUE,
   line_name = NULL,
-  label_nudge = 0,
+  label_nudge = 0.02,
   label = NULL,
   label_fg = "black",
   label_size = 4,
@@ -416,7 +416,7 @@ data <- data.frame(
 BarPlot(data, x = "x", y = "y")
 BarPlot(data, x = "x", y = "y", fill_by_x_if_no_group = FALSE)
 BarPlot(data, x = "x", y = "y", label = TRUE)
-BarPlot(data, x = "x", y = "y", label = "facet", label_nudge = 1)
+BarPlot(data, x = "x", y = "y", label = "facet", label_nudge = 0)
 BarPlot(data, x = "group", y = "y", group_by = "x")
 BarPlot(data,
     x = "group", y = "y", group_by = "x",
