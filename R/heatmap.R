@@ -2069,7 +2069,7 @@ Heatmap <- function(
     legend.direction <- check_legend(legend.direction, names(hmdata$data), "legend.direction")
     legend.position <- check_legend(legend.position, names(hmdata$data), "legend.position")
 
-    return_grob <- utils::compareVersion(as.character(utils::packageVersion("ggplot2")), "3.5.2") <= 0
+    return_grob <- utils::compareVersion(as.character(utils::packageVersion("ggplot2")), "4") < 0 || length(hmdata$data) > 1
 
     plots <- lapply(
         names(hmdata$data), function(nm) {
