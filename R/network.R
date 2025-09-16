@@ -259,9 +259,14 @@ NetworkAtomic <- function(
         link_layer_args$linetype <- link_type_by
         link_type_by_guide <- "none"
     } else {
-        # link_type_by <- check_columns(df_edges, link_type_by, force_factor = TRUE)
-        link_layer_args$mapping[[length(link_layer_args$mapping) + 1]] <- aes(linetype = factor(!!sym(link_type_by)))
-        link_type_by_guide <- "guide"
+        if (utils::compareVersion(as.character(utils::packageVersion("ggplot2")), "4.0.0") < 0) {
+            link_layer_args$mapping[[length(link_layer_args$mapping) + 1]] <- aes(linetype = factor(!!sym(link_type_by)))
+            link_type_by_guide <- "guide"
+        } else {
+            warning("Using `link_type_by` with ggplot2 >= 4.0.0 (ggraph <= 2.2.2) is not supported. Set to 'solid'. See https://github.com/thomasp85/ggraph/issues/394 for details.")
+            link_layer_args$linetype <- "solid"
+            link_type_by_guide <- "none"
+        }
     }
 
     if (isTRUE(directed)) {
