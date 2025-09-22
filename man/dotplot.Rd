@@ -258,6 +258,7 @@ When x-axis and y-axis are both numeric, the plot works as a scatter plot.
 \code{LollipopPlot} is an alias of \code{DotPlot} when \code{lollipop} = TRUE.
 }
 \examples{
+\donttest{
 mtcars <- datasets::mtcars
 mtcars$carb <- factor(mtcars$carb)
 mtcars$gear <- factor(mtcars$gear)
@@ -281,6 +282,7 @@ DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
 # works as a scatter plot
 DotPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
         fill_by = "mpg", fill_cutoff = 18, fill_cutoff_name = "Small mpgs")
+}
 LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
              fill_by = "mpg")
 LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",

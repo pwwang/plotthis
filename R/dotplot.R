@@ -261,6 +261,7 @@ DotPlotAtomic <- function(
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
 #' @examples
+#' \donttest{
 #' mtcars <- datasets::mtcars
 #' mtcars$carb <- factor(mtcars$carb)
 #' mtcars$gear <- factor(mtcars$gear)
@@ -284,6 +285,7 @@ DotPlotAtomic <- function(
 #' # works as a scatter plot
 #' DotPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
 #'         fill_by = "mpg", fill_cutoff = 18, fill_cutoff_name = "Small mpgs")
+#' }
 DotPlot <- function(
     data, x, y, x_sep = "_", y_sep = "_", flip = FALSE,
     split_by = NULL, split_by_sep = "_", size_name = NULL, fill_name = NULL, fill_cutoff_name = NULL,
