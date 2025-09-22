@@ -196,7 +196,12 @@ VelocityPlot <- function(
                         color = !!sym(group_name)
                     ),
                     alpha = arrow_alpha,
-                    arrow = arrow(length = unit(df$length_perc, "npc"), type = "closed", angle = arrow_angle),
+                    arrow = if (utils::compareVersion(as.character(utils::packageVersion("ggplot2")), "4") < 0) {
+                        arrow(length = unit(df$length_perc, "npc"), type = "closed", angle = arrow_angle)
+                    } else {
+                        warning("[VelocityPlot] 'arrow()' in ggplot2 >= 4.0.0 does not support varying lengths. Using fixed length instead. See https://github.com/tidyverse/ggplot2/issues/6594 for details.")
+                        NULL
+                    },
                     lineend = "round", linejoin = "mitre", inherit.aes = FALSE
                 ),
                 scale_color_manual(
