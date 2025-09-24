@@ -142,7 +142,6 @@ DotPlotAtomic <- function(
             ) +
             new_scale_color()
     }
-
     if (is.numeric(size_by)) {
         p <- p + geom_point(aes(fill = !!sym(fill_by), color = ""), size = size_by, shape = 21, alpha = alpha)
     } else {
@@ -150,7 +149,7 @@ DotPlotAtomic <- function(
             scale_size_area(max_size = 6, n.breaks = 4) +
             guides(size = guide_legend(
                 title = size_name %||% size_by,
-                override.aes = list(fill = "grey30", shape = 21), order = 1))
+                override.aes = list(fill = "transparent", shape = 21), order = 1))
     }
 
     p <- p +
@@ -176,7 +175,7 @@ DotPlotAtomic <- function(
             axis.text.x = element_text(angle = x_text_angle, hjust = just$h, vjust = just$v)
         )
 
-    p <- p + scale_color_manual(values = NA, na.value = "black", guide = "none")
+    p <- p + scale_color_manual(values = "black", na.value = "black", guide = "none")
     if (!is.null(fill_by) && !is.null(fill_cutoff) && anyNA(data[[fill_by]])) {
         p <- p + guides(color = guide_legend(
             title = fill_cutoff_name %||% fill_cutoff_label,
