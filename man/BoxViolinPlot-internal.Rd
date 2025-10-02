@@ -21,6 +21,7 @@ BoxViolinPlot(
   group_by = NULL,
   group_by_sep = "_",
   group_name = NULL,
+  paired_by = NULL,
   x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
   step_increase = 0.1,
   fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
@@ -37,7 +38,7 @@ BoxViolinPlot(
   pt_color = "grey30",
   pt_size = NULL,
   pt_alpha = 1,
-  jitter_width = 0.5,
+  jitter_width = NULL,
   jitter_height = 0,
   stack = FALSE,
   y_max = NULL,
@@ -150,6 +151,8 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 
 \item{group_name}{A character string to name the legend of dodge.}
 
+\item{paired_by}{A character string of the column name identifying paired observations for paired tests.}
+
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
 
 \item{step_increase}{A numeric value to specify the step increase in fraction of total height for every
@@ -188,7 +191,8 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{pt_alpha}{A numeric value to specify the transparency of the points.}
 
-\item{jitter_width}{A numeric value to specify the width of the jitter.}
+\item{jitter_width}{A numeric value to specify the width of the jitter.
+Defaults to 0.5, but when paired_by is provided, it will be set to 0.}
 
 \item{jitter_height}{A numeric value to specify the height of the jitter.}
 

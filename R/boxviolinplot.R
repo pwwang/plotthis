@@ -22,6 +22,7 @@
 #' @param group_by A character string of the column name to dodge the boxes/violins
 #' @param group_by_sep A character string to concatenate the columns in `group_by`, if multiple columns are provided.
 #' @param group_name A character string to name the legend of dodge.
+#' @param paired_by A character string of the column name identifying paired observations for paired tests.
 #' @param fill_mode A character string to specify the fill mode. Either "dodge", "x", "mean", "median".
 #' @param fill_reverse A logical value to reverse the fill colors for gradient fill (mean/median).
 #' @param add_point A logical value to add (jitter) points to the plot.
@@ -29,6 +30,7 @@
 #' @param pt_size A numeric value to specify the size of the points.
 #' @param pt_alpha A numeric value to specify the transparency of the points.
 #' @param jitter_width A numeric value to specify the width of the jitter.
+#' Defaults to 0.5, but when paired_by is provided, it will be set to 0.
 #' @param jitter_height A numeric value to specify the height of the jitter.
 #' @param stack A logical value whether to stack the facetted plot by 'facet_by'.
 #' @param y_max A numeric value or a character string to specify the maximum value of the y-axis.
@@ -110,12 +112,12 @@ BoxViolinPlotAtomic <- function(
     data, x, x_sep = "_", y = NULL, base = c("box", "violin"), in_form = c("long", "wide"),
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
     flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
+    paired_by = NULL, x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE, symnum_args = NULL,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     add_point = FALSE, pt_color = "grey30", pt_size = NULL, pt_alpha = 1, y_nbreaks = 4,
-    jitter_width = 0.5, jitter_height = 0, stack = FALSE, y_max = NULL, y_min = NULL, y_trans = "identity",
+    jitter_width = NULL, jitter_height = 0, stack = FALSE, y_max = NULL, y_min = NULL, y_trans = "identity",
     add_box = FALSE, box_color = "black", box_width = 0.1, box_ptsize = 2.5,
     add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
     add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
@@ -147,6 +149,67 @@ BoxViolinPlotAtomic <- function(
         allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep
     )
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
+    paired_by <- check_columns(data, paired_by, force_factor = TRUE)
+    if (!is.null(paired_by)) {
+        if (!isTRUE(add_point)) {
+            warning("Forcing 'add_point' = TRUE when 'paired_by' is provided.")
+            add_point <- TRUE
+        }
+
+        if (any(is.na(data[[paired_by]]))) {
+            warning("'paired_by' contains missing values, removing corresponding rows.")
+            data <- data[!is.na(data[[paired_by]]), , drop = FALSE]
+        }
+        n_total_col <- paste0(".n_total_", paired_by)
+        sym_ntc <- sym(n_total_col)
+        if (!is.null(group_by)) {
+            # We should have exactly two groups for each x value
+            # and for a pair, the two observations must belong to different groups
+            # and the same paired_by value
+            problem_groups <- data %>%
+                dplyr::group_by(!!!syms(c(x, paired_by, group_by))) %>%
+                dplyr::summarise(.n = dplyr::n(), .groups = "drop") %>%
+                dplyr::add_count(!!!syms(c(x, paired_by)), name = n_total_col) %>%
+                dplyr::filter(!!sym(".n") != 1 | !!sym_ntc != 2) %>%
+                dplyr::mutate(
+                    .n = ifelse(!!sym(".n") == 1, !!sym(".n"), paste0(!!sym(".n"), " (expecting 1)")),
+                    !!sym_ntc := ifelse(!!sym_ntc == 2, !!sym_ntc, paste0(!!sym_ntc, " (expecting 2)"))
+                )
+            # If not, indicate which group (x, paired_by) has the problem
+            if (nrow(problem_groups) > 0) {
+                stop("When 'paired_by' and 'group_by' are both provided, each combination of 'x' and 'paired_by' must have exactly two observations, one for each group in 'group_by'. The following combinations do not satisfy this requirement:\n",
+                    paste0(
+                        apply(problem_groups[, c(x, paired_by, group_by, ".n", n_total_col)], 1, function(row) {
+                            paste(paste(names(row), row, sep = "="), collapse = ", ")
+                        }),
+                        collapse = "\n"
+                    )
+                )
+            }
+        } else if (dplyr::n_distinct(data[[x]], na.rm = TRUE) != 2) {
+            stop("Exactly two unique values of 'x' are required when 'paired_by' is provided without 'group_by'.")
+        } else {
+            problem_groups <- data %>%
+                dplyr::group_by(!!!syms(c(x, paired_by))) %>%
+                dplyr::summarise(.n = dplyr::n(), .groups = "drop") %>%
+                dplyr::add_count(!!!syms(paired_by), name = n_total_col) %>%
+                dplyr::filter(!!sym(".n") != 1 | !!sym_ntc != 2) %>%
+                dplyr::mutate(
+                    .n = ifelse(!!sym(".n") == 1, !!sym(".n"), paste0(!!sym(".n"), " (expecting 1)")),
+                    !!sym_ntc := ifelse(!!sym_ntc == 2, !!sym_ntc, paste0(!!sym_ntc, " (expecting 2)"))
+                )
+            if (nrow(problem_groups) > 0) {
+                stop("When 'paired_by' is provided without 'group_by', each combination of 'x' and 'paired_by' must have exactly two observations, one for each value of 'x'. The following combinations do not satisfy this requirement:\n",
+                    paste0(
+                        apply(problem_groups[, c(x, paired_by, ".n", n_total_col)], 1, function(row) {
+                            paste(paste(names(row), row, sep = "="), collapse = ", ")
+                        }),
+                        collapse = "\n"
+                    )
+                )
+            }
+        }
+    }
     if (isTRUE(comparisons) && is.null(group_by)) {
         # stop("'group_by' must be provided to when 'comparisons' is TRUE.")
         comparisons <- combn(levels(data[[x]]), 2, simplify = FALSE)
@@ -313,7 +376,7 @@ BoxViolinPlotAtomic <- function(
                 if (!identical(fill_mode, "dodge")) {
                     stop("`comparisons` can only be used with `fill_mode = 'dodge'`.")
                 }
-
+                # paired test is not supported yet
                 p2 <- p + ggpubr::geom_pwc(
                     # data = data[data[[x]] %in% group_use, , drop = FALSE],
                     label = sig_label,
@@ -361,6 +424,7 @@ BoxViolinPlotAtomic <- function(
                         newdata[[xval]] <- df
                     }
                     newdata <- do.call(rbind, newdata)
+                    # paired test is not supported yet
                     p <- p + ggpubr::geom_pwc(
                         data = newdata,
                         label = sig_label,
@@ -392,6 +456,7 @@ BoxViolinPlotAtomic <- function(
                     }
                 }
             )
+            # paired test is not supported yet
             p <- p + ggpubr::geom_pwc(
                 label = sig_label,
                 label.size = sig_labelsize,
@@ -433,11 +498,45 @@ BoxViolinPlotAtomic <- function(
     }
 
     if (isTRUE(add_point)) {
+        if (!is.null(paired_by)) {
+            if (is.null(group_by)) {
+                p <- p + geom_line(
+                    data = data,
+                    mapping = aes(x = !!sym(x), y = !!sym(y), group = !!sym(paired_by)),
+                    color = pt_color,
+                    alpha = pt_alpha,
+                    linewidth = 0.3,
+                    inherit.aes = FALSE
+                )
+            } else {
+                line_data <- data
+                # re-calculate x
+                # for the first group, x = integer(x) - n
+                # for the second group, x = integer(x) + n
+                line_data$.xint <- as.numeric(line_data[[x]])
+                groups <- levels(line_data[[group_by]])
+                line_data$.x <- ifelse(
+                    line_data[[group_by]] == groups[1],
+                    line_data$.xint - .225,  # n = 0.225 = 0.9 / 2 / 2
+                    line_data$.xint + .225
+                )
+                line_data$.line_group <- paste(line_data[[paired_by]], line_data[[x]], sep = " // ")
+                p <- p + geom_line(
+                    data = line_data,
+                    mapping = aes(x = .x, y = !!sym(y), group = !!sym(".line_group")),
+                    color = pt_color,
+                    alpha = pt_alpha,
+                    linewidth = 0.3,
+                    inherit.aes = FALSE
+                )
+            }
+        }
         p <- p +
             geom_point(
                 aes(fill = !!sym(fill_by), color = !!sym(".highlight"), size = !!sym(".highlight"), alpha = !!sym(".highlight")),
                 position = position_jitterdodge(
-                    jitter.width = jitter_width, jitter.height = jitter_height, dodge.width = 0.9, seed = seed
+                    jitter.width = jitter_width %||% ifelse(!is.null(paired_by), 0, 0.5),
+                    jitter.height = jitter_height, dodge.width = 0.9, seed = seed
                 ),
                 show.legend = FALSE
             ) +
@@ -615,12 +714,12 @@ BoxViolinPlot <- function(
     split_by = NULL, split_by_sep = "_", symnum_args = NULL,
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
     flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
+    paired_by = NULL, x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     add_point = FALSE, pt_color = "grey30", pt_size = NULL, pt_alpha = 1,
-    jitter_width = 0.5, jitter_height = 0, stack = FALSE, y_max = NULL, y_min = NULL,
+    jitter_width = NULL, jitter_height = 0, stack = FALSE, y_max = NULL, y_min = NULL,
     add_box = FALSE, box_color = "black", box_width = 0.1, box_ptsize = 2.5,
     add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
     add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
@@ -665,7 +764,7 @@ BoxViolinPlot <- function(
             BoxViolinPlotAtomic(datas[[nm]],
                 x = x, x_sep = x_sep, y = y, base = base, in_form = in_form,
                 sort_x = sort_x, flip = flip, keep_empty = keep_empty, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
-                x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse, step_increase = step_increase,
+                paired_by = paired_by, x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse, step_increase = step_increase,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                 add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha, symnum_args = symnum_args,
@@ -730,18 +829,41 @@ BoxViolinPlot <- function(
 #'     C = rnorm(100)
 #' )
 #' BoxPlot(data_wide, x = c("A", "B", "C"), in_form = "wide")
+#'
+#' paired_data <- data.frame(
+#'     subject = rep(paste0("s", 1:10), each = 2),
+#'     visit = rep(c("pre", "post"), times = 10),
+#'     value = rnorm(20)
+#' )
+#' BoxPlot(
+#'     paired_data,
+#'     x = "visit", y = "value",
+#'     paired_by = "subject", add_point = TRUE
+#' )
+#' paired_group_data <- data.frame(
+#'     subject = rep(paste0("s", 1:6), each = 2),
+#'     x = rep(c("A", "B"), each = 6),
+#'     group = rep(c("before", "after"), times = 6),
+#'     value = rnorm(12)
+#' )
+#' BoxPlot(
+#'     paired_group_data,
+#'     x = "x", y = "value",
+#'     paired_by = "subject", group_by = "group",
+#'     comparisons = TRUE, pt_size = 3, pt_color = "red"
+#' )
 #' }
 BoxPlot <- function(
     data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
     split_by = NULL, split_by_sep = "_", symnum_args = NULL,
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
     flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
+    paired_by = NULL, x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     add_point = FALSE, pt_color = "grey30", pt_size = NULL, pt_alpha = 1,
-    jitter_width = 0.5, jitter_height = 0, stack = FALSE, y_max = NULL, y_min = NULL,
+    jitter_width = NULL, jitter_height = 0, stack = FALSE, y_max = NULL, y_min = NULL,
     add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
     add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
@@ -759,7 +881,7 @@ BoxPlot <- function(
         data = data, x = x, x_sep = x_sep, y = y, base = "box", in_form = in_form,
         split_by = split_by, split_by_sep = split_by_sep,
         sort_x = sort_x, flip = flip, keep_empty = keep_empty, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
-        x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse, step_increase = step_increase,
+        paired_by = paired_by, x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse, step_increase = step_increase,
         theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
         aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
         add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha, symnum_args = symnum_args,
@@ -824,12 +946,12 @@ ViolinPlot <- function(
     split_by = NULL, split_by_sep = "_", symnum_args = NULL,
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
     flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
+    paired_by = NULL, x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     add_point = FALSE, pt_color = "grey30", pt_size = NULL, pt_alpha = 1,
-    jitter_width = 0.5, jitter_height = 0, stack = FALSE, y_max = NULL, y_min = NULL,
+    jitter_width = NULL, jitter_height = 0, stack = FALSE, y_max = NULL, y_min = NULL,
     add_box = FALSE, box_color = "black", box_width = 0.1, box_ptsize = 2.5,
     add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
     add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
@@ -848,7 +970,7 @@ ViolinPlot <- function(
         data = data, x = x, x_sep = x_sep, y = y, base = "violin", in_form = in_form,
         split_by = split_by, split_by_sep = split_by_sep,
         sort_x = sort_x, flip = flip, keep_empty = keep_empty, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
-        x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse, step_increase = step_increase,
+        paired_by = paired_by, x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse, step_increase = step_increase,
         theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
         aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
         add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha, symnum_args = symnum_args,
