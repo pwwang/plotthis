@@ -2069,7 +2069,8 @@ Heatmap <- function(
     legend.direction <- check_legend(legend.direction, names(hmdata$data), "legend.direction")
     legend.position <- check_legend(legend.position, names(hmdata$data), "legend.position")
 
-    return_grob <- utils::compareVersion(as.character(utils::packageVersion("ggplot2")), "4") < 0 || length(hmdata$data) > 1
+    ggplot2_v4 <- utils::compareVersion(as.character(utils::packageVersion("ggplot2")), "4") >= 0
+    return_grob <- !ggplot2_v4 || length(hmdata$data) > 1
 
     plots <- lapply(
         names(hmdata$data), function(nm) {
@@ -2139,5 +2140,12 @@ Heatmap <- function(
     if (length(plots) == 1) {
         attr(p, "data") <- attr(plots[[1]], "data")
     }
-    p
+
+    if (ggplot2_v4) {
+        # Return invisibly to prevent double printing in pkgdown with ggplot2 >= 4
+        # When return_grob = FALSE, p is a HeatmapList object with auto-printing behavior
+        invisible(p)
+    } else {
+        p
+    }
 }
