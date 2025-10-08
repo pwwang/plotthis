@@ -21,6 +21,8 @@
 #' @param y_max A numeric value to set the maximum value of the y-axis.
 #' @param y_nbreaks A numeric value to set the number of breaks in the y-axis.
 #' @param polygon A logical value to draw the polygons instead of the circles as panel grid.
+#' @param bg_color A character string to set the background color of the plot.
+#' @param bg_alpha A numeric value to set the transparency of the background color.
 #' @param fill A logical value to fill the polygons with colors.
 #' @param linewidth A numeric value to set the width of the lines.
 #' @param pt_size A numeric value to set the size of the points.
@@ -36,7 +38,7 @@
 RadarPlotAtomic <- function(
     data, x, x_sep = "_", group_by = NULL, group_by_sep = "_", y = NULL, group_name = NULL,
     scale_y = c("group", "global", "x", "none"), y_min = 0, y_max = NULL, y_nbreaks = 4,
-    polygon = FALSE, fill = TRUE, linewidth = 1, pt_size = 4, max_charwidth = 16,
+    polygon = FALSE, fill = TRUE, linewidth = 1, pt_size = 4, max_charwidth = 16, bg_color = "grey80", bg_alpha = 0.1,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     alpha = 0.2, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
@@ -96,7 +98,7 @@ RadarPlotAtomic <- function(
         complete(!!sym(x), fill = complete_fill) %>%
         ungroup()
 
-    coord_radar <- function(theta = "x", start = 0, direction = 1) {
+    coord_radar <<- function(theta = "x", start = 0, direction = 1) {
         theta <- match.arg(theta, c("x", "y"))
         r <- if (theta == "x") "y" else "x"
         ggproto(
@@ -112,6 +114,62 @@ RadarPlotAtomic <- function(
     breaks <- seq(y_min, y_max, length.out = y_nbreaks)
 
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y), group = !!sym(group_by), color = !!sym(group_by)))
+
+    # Add background (circle or polygon based on polygon parameter)
+    x_levels <- levels(data[[x]])
+    n_x <- length(x_levels)
+
+    if (polygon) {
+        # Polygonal background - connects discrete x-axis points
+        bg_df <- data.frame(
+            x = factor(c(x_levels, x_levels[1], rev(x_levels), rev(x_levels)[1]), levels = x_levels),
+            y = c(rep(y_max, n_x), y_max, rep(y_min, n_x), y_min),
+            bg_group = 1
+        )
+
+        p <- p + geom_polygon(
+            data = bg_df,
+            aes(x = !!sym("x"), y = !!sym("y"), group = !!sym("bg_group")),
+            fill = bg_color, alpha = bg_alpha, color = NA, inherit.aes = FALSE
+        )
+    } else {
+        # Circular background - smooth interpolated circle
+        # In polar coordinates with discrete x, we need to go from 0.5 to n_x+0.5
+        n_smooth <- 360
+        x_positions <- seq(0.5, n_x + 0.5, length.out = n_smooth + 1)
+
+        bg_df <- data.frame(
+            x_pos = c(x_positions, rev(x_positions)),
+            y = c(rep(y_max, n_smooth + 1), rep(y_min, n_smooth + 1)),
+            bg_group = 1
+        )
+
+        p <- p + geom_polygon(
+            data = bg_df,
+            aes(x = !!sym("x_pos"), y = !!sym("y"), group = !!sym("bg_group")),
+            fill = bg_color, alpha = bg_alpha, color = NA, inherit.aes = FALSE
+        )
+    }
+
+    # Add radial grid lines that only extend from y_min to y_max
+    if (!is.null(facet_by)) {
+        grid_df <- data %>% select(!!!syms(facet_by)) %>% distinct()
+        grid_df <- expand_grid(grid_df, x = levels(data[[x]]))
+    } else {
+        grid_df <- data.frame(x = levels(data[[x]]))
+    }
+    # Create two points for each radial line
+    n_lines <- nrow(grid_df)
+    grid_df <- grid_df[rep(seq_len(n_lines), each = 2), , drop = FALSE]
+    grid_df$y <- rep(c(y_min, y_max), times = n_lines)
+    # Create a unique identifier for grouping each radial line
+    grid_df$line_id <- rep(seq_len(n_lines), each = 2)
+
+    p <- p + geom_path(
+        data = grid_df,
+        aes(x = !!sym("x"), y = !!sym("y"), group = !!sym("line_id")),
+        colour = "grey80", linetype = 1, inherit.aes = FALSE
+    )
     if (isTRUE(polygon)) {
         for (i in seq_along(breaks)) {
             p <- p + geom_polygon(y = breaks[i], fill = "transparent", color = "grey80", linetype = 2)
@@ -159,8 +217,7 @@ RadarPlotAtomic <- function(
             axis.title = element_blank(),
             panel.grid = element_blank(),
             panel.border = element_blank(),
-            panel.spacing = panel.spacing,
-            panel.grid.major.x = element_line(colour = "grey80", linetype = 1)
+            panel.spacing = panel.spacing
         )
 
     if (isFALSE(polygon)) {
@@ -198,7 +255,7 @@ RadarPlotAtomic <- function(
 #' @export
 RadarPlot <- function(
     data, x, x_sep = "_", group_by = NULL, group_by_sep = "_", y = NULL, group_name = NULL,
-    scale_y = c("group", "global", "x", "none"), y_min = 0, y_max = NULL, y_nbreaks = 4,
+    scale_y = c("group", "global", "x", "none"), y_min = 0, y_max = NULL, y_nbreaks = 4, bg_color = "grey80", bg_alpha = 0.1,
     fill = TRUE, linewidth = 1, pt_size = 4, max_charwidth = 16, split_by = NULL, split_by_sep = "_",
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
@@ -234,7 +291,7 @@ RadarPlot <- function(
             RadarPlotAtomic(datas[[nm]],
                 x = x, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, y = y, group_name = group_name,
                 scale_y = scale_y, y_min = y_min, y_max = y_max, y_nbreaks = y_nbreaks, polygon = FALSE,
-                fill = fill, linewidth = linewidth, pt_size = pt_size, max_charwidth = max_charwidth,
+                fill = fill, linewidth = linewidth, pt_size = pt_size, max_charwidth = max_charwidth, bg_color = bg_color, bg_alpha = bg_alpha,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 alpha = alpha, aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
@@ -258,6 +315,7 @@ RadarPlot <- function(
 #'    group = sample(paste0("G", 1:4), 17, replace = TRUE)
 #' )
 #' RadarPlot(data, x = "x")
+#' RadarPlot(data, x = "x", bg_color = "lightpink")
 #' RadarPlot(data, x = "x", scale_y = "none")
 #' RadarPlot(data, x = "x", group_by = "group")
 #' SpiderPlot(data, x = "x")
@@ -276,7 +334,7 @@ RadarPlot <- function(
 #'           palette = c(G1 = "Set1", G2 = "Paired"))
 SpiderPlot <- function(
     data, x, x_sep = "_", group_by = NULL, group_by_sep = "_", y = NULL, group_name = NULL,
-    scale_y = c("group", "global", "x", "none"), y_min = 0, y_max = NULL, y_nbreaks = 4,
+    scale_y = c("group", "global", "x", "none"), y_min = 0, y_max = NULL, y_nbreaks = 4, bg_color = "grey80", bg_alpha = 0.1,
     fill = TRUE, linewidth = 1, pt_size = 4, max_charwidth = 16, split_by = NULL, split_by_sep = "_",
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
@@ -311,7 +369,7 @@ SpiderPlot <- function(
             }
             RadarPlotAtomic(datas[[nm]],
                 x = x, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, y = y, group_name = group_name,
-                scale_y = scale_y, y_min = y_min, y_max = y_max, y_nbreaks = y_nbreaks, polygon = TRUE,
+                scale_y = scale_y, y_min = y_min, y_max = y_max, y_nbreaks = y_nbreaks, polygon = TRUE, bg_color = bg_color, bg_alpha = bg_alpha,
                 fill = fill, linewidth = linewidth, pt_size = pt_size, max_charwidth = max_charwidth,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,

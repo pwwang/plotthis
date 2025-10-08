@@ -21,6 +21,8 @@ RadarPlotAtomic(
   linewidth = 1,
   pt_size = 4,
   max_charwidth = 16,
+  bg_color = "grey80",
+  bg_alpha = 0.1,
   theme = "theme_this",
   theme_args = list(),
   palette = "Paired",
@@ -82,6 +84,10 @@ Other options are "global", "x" and "none".
 \item{pt_size}{A numeric value to set the size of the points.}
 
 \item{max_charwidth}{A numeric value to set the maximum character width for the x labels.}
+
+\item{bg_color}{A character string to set the background color of the plot.}
+
+\item{bg_alpha}{A numeric value to set the transparency of the background color.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}

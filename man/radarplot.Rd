@@ -17,6 +17,8 @@ RadarPlot(
   y_min = 0,
   y_max = NULL,
   y_nbreaks = 4,
+  bg_color = "grey80",
+  bg_alpha = 0.1,
   fill = TRUE,
   linewidth = 1,
   pt_size = 4,
@@ -62,6 +64,8 @@ SpiderPlot(
   y_min = 0,
   y_max = NULL,
   y_nbreaks = 4,
+  bg_color = "grey80",
+  bg_alpha = 0.1,
   fill = TRUE,
   linewidth = 1,
   pt_size = 4,
@@ -126,6 +130,10 @@ Other options are "global", "x" and "none".
 \item{y_max}{A numeric value to set the maximum value of the y-axis.}
 
 \item{y_nbreaks}{A numeric value to set the number of breaks in the y-axis.}
+
+\item{bg_color}{A character string to set the background color of the plot.}
+
+\item{bg_alpha}{A numeric value to set the transparency of the background color.}
 
 \item{fill}{A logical value to fill the polygons with colors.}
 
@@ -238,6 +246,7 @@ data <- data.frame(
    group = sample(paste0("G", 1:4), 17, replace = TRUE)
 )
 RadarPlot(data, x = "x")
+RadarPlot(data, x = "x", bg_color = "lightpink")
 RadarPlot(data, x = "x", scale_y = "none")
 RadarPlot(data, x = "x", group_by = "group")
 SpiderPlot(data, x = "x")
