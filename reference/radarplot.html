@@ -57,6 +57,8 @@ Radar plot uses circles as the plot grid and Spider plot uses polygons.</p>
 <span>  y_min <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  y_max <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  y_nbreaks <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  bg_color <span class="op">=</span> <span class="st">"grey80"</span>,</span>
+<span>  bg_alpha <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  fill <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  linewidth <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  pt_size <span class="op">=</span> <span class="fl">4</span>,</span>
@@ -102,6 +104,8 @@ Radar plot uses circles as the plot grid and Spider plot uses polygons.</p>
 <span>  y_min <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  y_max <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  y_nbreaks <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  bg_color <span class="op">=</span> <span class="st">"grey80"</span>,</span>
+<span>  bg_alpha <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  fill <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  linewidth <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  pt_size <span class="op">=</span> <span class="fl">4</span>,</span>
@@ -189,6 +193,14 @@ Other options are "global", "x" and "none".</p><ul><li><p>If "group", the y-axis
 
 <dt id="arg-y-nbreaks">y_nbreaks<a class="anchor" aria-label="anchor" href="#arg-y-nbreaks"></a></dt>
 <dd><p>A numeric value to set the number of breaks in the y-axis.</p></dd>
+
+
+<dt id="arg-bg-color">bg_color<a class="anchor" aria-label="anchor" href="#arg-bg-color"></a></dt>
+<dd><p>A character string to set the background color of the plot.</p></dd>
+
+
+<dt id="arg-bg-alpha">bg_alpha<a class="anchor" aria-label="anchor" href="#arg-bg-alpha"></a></dt>
+<dd><p>A numeric value to set the transparency of the background color.</p></dd>
 
 
 <dt id="arg-fill">fill<a class="anchor" aria-label="anchor" href="#arg-fill"></a></dt>
@@ -358,14 +370,16 @@ See <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.htm
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">RadarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="radarplot-1.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">RadarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, scale_y <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">RadarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, bg_color <span class="op">=</span> <span class="st">"lightpink"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="radarplot-2.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">RadarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">RadarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, scale_y <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="radarplot-3.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">SpiderPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">RadarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="radarplot-4.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">SpiderPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">SpiderPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="radarplot-5.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">SpiderPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="radarplot-6.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># use the y value</span></span></span>
 <span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
@@ -374,14 +388,14 @@ See <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.htm
 <span class="r-in"><span>   group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"G1"</span>, <span class="st">"G2"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">RadarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, scale_y <span class="op">=</span> <span class="st">"none"</span>, group_by <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="radarplot-6.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">RadarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, facet_by <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="radarplot-7.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">RadarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, split_by <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">RadarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, facet_by <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="radarplot-8.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">RadarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, split_by <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="radarplot-9.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">RadarPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, split_by <span class="op">=</span> <span class="st">"group"</span>,</span></span>
 <span class="r-in"><span>          palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>G1 <span class="op">=</span> <span class="st">"Set1"</span>, G2 <span class="op">=</span> <span class="st">"Paired"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="radarplot-9.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="radarplot-10.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
