@@ -249,7 +249,8 @@ BarPlotGrouped <- function(
         y_scaled <- paste0(y, "_scaled")
         data <- data %>%
             dplyr::group_by(!!!syms(unique(c(x, facet_by)))) %>%
-            mutate(!!sym(y_scaled) := !!sym(y) / sum(!!sym(y)))
+            mutate(!!sym(y_scaled) := !!sym(y) / sum(!!sym(y))) %>%
+            ungroup()
     }
     if (inherits(width, "waiver")) width <- 0.8
 
@@ -344,17 +345,19 @@ BarPlotGrouped <- function(
         label_data <- data
         label_data <- label_data[order(label_data[[x]], label_data[[group_by]]), , drop = FALSE]
         label_data$.label <- label_data[[label]]
-        label_data$.sign <- label_data[[y]] > 0
-        yr <- diff(range(data[[y]], na.rm = TRUE))
+        .y <- ifelse(scale_y, y_scaled, y)
+        label_data$.sign <- label_data[[.y]] > 0
+        yr <- diff(range(data[[.y]], na.rm = TRUE))
         if (identical(position, "stack")) {
             # caculate the y-axis of the labels
             label_data <- mutate(
                 label_data,
-                !!sym(y) := ifelse(
+                !!sym(.y) := ifelse(
                     !!sym(".sign"),
-                    cumsum(rev(!!sym(y))) + yr * label_nudge,
-                    cumsum(rev(!!sym(y))) - yr * label_nudge
+                    cumsum(rev(!!sym(.y))) + yr * label_nudge,
+                    cumsum(rev(!!sym(.y))) - yr * label_nudge
                 ),
+                .label = rev(!!sym(".label")),
                 .by = unique(c(x, ".sign", facet_by))
             )
 
