@@ -376,9 +376,135 @@ BoxViolinPlotAtomic <- function(
                 if (!identical(fill_mode, "dodge")) {
                     stop("`comparisons` can only be used with `fill_mode = 'dodge'`.")
                 }
-                # paired test is not supported yet
-                p2 <- p + ggpubr::geom_pwc(
-                    # data = data[data[[x]] %in% group_use, , drop = FALSE],
+
+                # Preprocess data to avoid test failures
+                # Check each x/facet combination for problematic data
+                split_cols <- c(x, y, group_by)
+                grouping_vars <- x
+                if (!is.null(facet_by)) {
+                    split_cols <- c(split_cols, facet_by)
+                    grouping_vars <- c(grouping_vars, facet_by)
+                }
+
+                # Create grouping key for x and facet combinations
+                if (length(grouping_vars) > 1) {
+                    split_key <- interaction(data[grouping_vars], drop = TRUE, sep = " // ")
+                } else {
+                    split_key <- data[[grouping_vars]]
+                }
+
+                data_groups <- split(data[, split_cols, drop = FALSE], split_key)
+                needs_fix <- FALSE
+
+                # Check if any group will cause test failures
+                for (group_data in data_groups) {
+                    gs <- unique(as.character(group_data[[group_by]]))
+                    if (length(gs) >= 2) {
+                        yval1 <- group_data[[y]][group_data[[group_by]] == gs[1]]
+                        yval2 <- group_data[[y]][group_data[[group_by]] == gs[2]]
+                        # Check for zero variance or all NA
+                        if (all(is.na(yval1)) || all(is.na(yval2)) ||
+                            (length(unique(yval1[!is.na(yval1)])) <= 1 &&
+                             length(unique(yval2[!is.na(yval2)])) <= 1)) {
+                            needs_fix <- TRUE
+                            break
+                        }
+                    }
+                }
+
+                pwc_data <- data
+                if (needs_fix) {
+                    warning("Some pairwise comparisons may fail due to insufficient variability. Adjusting data to ensure valid comparisons.")
+
+                    # Split by facet if present
+                    if (!is.null(facet_by)) {
+                        facet_key <- interaction(data[facet_by], drop = TRUE, sep = " // ")
+                        facet_splits <- split(data[, split_cols, drop = FALSE], facet_key)
+                    } else {
+                        facet_splits <- list(data[, split_cols, drop = FALSE])
+                    }
+
+                    fixed_data_list <- lapply(facet_splits, function(facet_data) {
+                        xdata <- split(facet_data, facet_data[[x]])
+                        all_gs <- unique(as.character(facet_data[[group_by]]))[1:2]
+
+                        for (xval in names(xdata)) {
+                            df <- xdata[[xval]]
+                            gs <- unique(as.character(df[[group_by]]))
+
+                            if (length(gs) < 2) {
+                                # Create minimal data for both groups
+                                df <- data.frame(x = xval, y = c(0, 1), group_by = all_gs)
+                                colnames(df) <- c(x, y, group_by)
+                                if (!is.null(facet_by)) {
+                                    df[facet_by] <- unique(facet_data[facet_by])
+                                }
+                            } else {
+                                yval1 <- df[[y]][df[[group_by]] == gs[1]]
+                                yval2 <- df[[y]][df[[group_by]] == gs[2]]
+
+                                # Handle all NA cases
+                                if (all(is.na(yval1))) {
+                                    yval1 <- c(0, rep(NA, length(yval1) - 1))
+                                }
+                                if (all(is.na(yval2))) {
+                                    yval2 <- c(1, rep(NA, length(yval2) - 1))
+                                }
+
+                                # Handle zero variance cases
+                                unique_y1 <- unique(yval1[!is.na(yval1)])
+                                unique_y2 <- unique(yval2[!is.na(yval2)])
+
+                                if (length(unique_y1) == 1 && length(unique_y2) == 1) {
+                                    # Both groups have same single value - add minimal relative variance
+                                    # Calculate a small epsilon relative to the data scale
+                                    all_y <- c(yval1, yval2)
+                                    all_y_finite <- all_y[is.finite(all_y)]
+
+                                    if (length(all_y_finite) > 0) {
+                                        y_abs <- abs(all_y_finite)
+                                        if (max(y_abs) > 0) {
+                                            epsilon <- max(y_abs) * 1e-10
+                                        } else {
+                                            epsilon <- 1e-10
+                                        }
+                                    } else {
+                                        epsilon <- 1e-10
+                                    }
+
+                                    # Add variance within each group while maintaining the same mean
+                                    # This ensures the test will return p ≈ 1 (no significant difference)
+                                    non_na_idx_1 <- which(!is.na(yval1))
+                                    non_na_idx_2 <- which(!is.na(yval2))
+
+                                    if (length(non_na_idx_1) >= 2) {
+                                        yval1[non_na_idx_1[1]] <- unique_y1[1] - epsilon
+                                        yval1[non_na_idx_1[2]] <- unique_y1[1] + epsilon
+                                    } else if (length(non_na_idx_1) == 1) {
+                                        yval1[non_na_idx_1[1]] <- unique_y1[1]
+                                    }
+
+                                    if (length(non_na_idx_2) >= 2) {
+                                        yval2[non_na_idx_2[1]] <- unique_y2[1] - epsilon
+                                        yval2[non_na_idx_2[2]] <- unique_y2[1] + epsilon
+                                    } else if (length(non_na_idx_2) == 1) {
+                                        yval2[non_na_idx_2[1]] <- unique_y2[1]
+                                    }
+                                }
+
+                                df[[y]][df[[group_by]] == gs[1]] <- yval1
+                                df[[y]][df[[group_by]] == gs[2]] <- yval2
+                            }
+                            xdata[[xval]] <- df
+                        }
+                        do.call(rbind, xdata)
+                    })
+                    pwc_data <- do.call(rbind, fixed_data_list)
+                }
+
+                # Now call geom_pwc once with the preprocessed data
+                p <- p + ggpubr::geom_pwc(
+                    data = pwc_data,
                     label = sig_label,
                     label.size = sig_labelsize,
                     y.position = y_max_use,
@@ -391,60 +517,12 @@ BoxViolinPlotAtomic <- function(
                     hide.ns = hide_ns
                 )
 
-                pdata <- suppressWarnings(layer_data(p2, 2))
-                if (ncol(pdata) == 0 || length(unique(pdata$group)) < length(unique(data[[x]]))) {
-                    warning("Some pairwise comparisons failed. Adjusting data to ensure valid comparisons. Note that p-values of 1 may indicate insufficient variability in the data.")
-                    # In case some tests fail, we fix it here
-                    newdata <- split(data[, c(x, y, group_by), drop = FALSE], data[[x]])
-                    all_gs <- unique(as.character(data[[group_by]]))[1:2]
-                    for (xval in names(newdata)) {
-                        df <- newdata[[xval]]
-                        gs <- unique(as.character(df[[group_by]]))
-                        if (length(gs) < 2) {
-                            df <- data.frame(x = xval, y = c(0, 1), group_by = all_gs)
-                            colnames(df) <- c(x, y, group_by)
-                        } else {
-                            yval1 <- df[[y]][df[[group_by]] == gs[1]]
-                            yval2 <- df[[y]][df[[group_by]] == gs[2]]
-                            if (all(is.na(yval1))) {
-                                yval1 <- c(0, rep(NA, length(yval1) - 1))
-                            }
-                            if (all(is.na(yval2))) {
-                                yval2 <- c(1, rep(NA, length(yval2) - 1))
-                            }
-                            if (length(unique(yval1[!is.na(yval1)])) == 1 &&
-                                length(unique(yval2[!is.na(yval2)])) == 1) {
-                                # tests will fail
-                                yval1[!is.na(yval1)] <- c(0, rep(NA, length(yval1[!is.na(yval1)]) - 1))
-                                yval2[!is.na(yval2)] <- c(1, rep(NA, length(yval2[!is.na(yval2)]) - 1))
-                            }
-                            df[[y]][df[[group_by]] == gs[1]] <- yval1
-                            df[[y]][df[[group_by]] == gs[2]] <- yval2
-                        }
-                        newdata[[xval]] <- df
-                    }
-                    newdata <- do.call(rbind, newdata)
-                    # paired test is not supported yet
-                    p <- p + ggpubr::geom_pwc(
-                        data = newdata,
-                        label = sig_label,
-                        label.size = sig_labelsize,
-                        y.position = y_max_use,
-                        step.increase = step_increase,
-                        symnum.args = symnum_args,
-                        tip.length = 0.03,
-                        vjust = 0,
-                        ref.group = ref_group,
-                        method = method,
-                        hide.ns = hide_ns
-                    )
-                } else {
-                    p <- p2
-                }
-
                 y_max_use <- layer_scales(p)$y$range$range[2]
             }
         } else if (!isTRUE(multiplegroup_comparisons)) {
+            if (!is.null(group_by)) {
+                stop("`comparisons` can only be used when `group_by` is NULL is TRUE.")
+            }
             # Convert comparisons to indices
             comparisons <- lapply(
                 comparisons,
@@ -456,8 +534,98 @@ BoxViolinPlotAtomic <- function(
                     }
                 }
             )
+
+            # Preprocess data to avoid test failures (same as above for group_by case)
+            split_cols <- if (!is.null(group_by)) c(x, y, group_by) else c(x, y)
+            grouping_vars <- x
+            if (!is.null(facet_by)) {
+                split_cols <- c(split_cols, facet_by)
+                grouping_vars <- c(grouping_vars, facet_by)
+            }
+
+            # Create grouping key for x and facet combinations
+            if (length(grouping_vars) > 1) {
+                split_key <- interaction(data[grouping_vars], drop = TRUE, sep = " // ")
+            } else {
+                split_key <- data[[grouping_vars]]
+            }
+
+            data_groups <- split(data[, split_cols, drop = FALSE], split_key)
+            needs_fix <- FALSE
+
+            # For exact comparisons, we need to check x groups, not group_by groups
+            # Check if any x group has zero variance
+            for (group_data in data_groups) {
+                yval <- group_data[[y]]
+                # Check for zero variance or all NA
+                if (all(is.na(yval)) || length(unique(yval[!is.na(yval)])) <= 1) {
+                    needs_fix <- TRUE
+                    break
+                }
+            }
+
+            pwc_data <- data
+            if (needs_fix) {
+                warning("Some pairwise comparisons may fail due to insufficient variability. Adjusting data to ensure valid comparisons.")
+
+                # Split by facet if present
+                if (!is.null(facet_by)) {
+                    facet_key <- interaction(data[facet_by], drop = TRUE, sep = " // ")
+                    facet_splits <- split(data[, split_cols, drop = FALSE], facet_key)
+                } else {
+                    facet_splits <- list(data[, split_cols, drop = FALSE])
+                }
+
+                fixed_data_list <- lapply(facet_splits, function(facet_data) {
+                    xdata <- split(facet_data, facet_data[[x]])
+
+                    for (xval in names(xdata)) {
+                        df <- xdata[[xval]]
+                        yval <- df[[y]]
+
+                        # Handle all NA cases
+                        if (all(is.na(yval))) {
+                            yval <- c(0, 1, rep(NA, length(yval) - 2))
+                        }
+
+                        # Handle zero variance cases
+                        unique_y <- unique(yval[!is.na(yval)])
+
+                        if (length(unique_y) == 1) {
+                            # Single value - add minimal relative variance
+                            # Calculate a small epsilon relative to the data scale
+                            all_y_finite <- yval[is.finite(yval)]
+
+                            if (length(all_y_finite) > 0) {
+                                y_abs <- abs(all_y_finite)
+                                if (max(y_abs) > 0) {
+                                    epsilon <- max(y_abs) * 1e-10
+                                } else {
+                                    epsilon <- 1e-10
+                                }
+                            } else {
+                                epsilon <- 1e-10
+                            }
+
+                            # Add symmetric variance around the mean
+                            non_na_idx <- which(!is.na(yval))
+                            if (length(non_na_idx) >= 2) {
+                                yval[non_na_idx[1]] <- unique_y[1] - epsilon
+                                yval[non_na_idx[2]] <- unique_y[1] + epsilon
+                            }
+                        }
+
+                        df[[y]] <- yval
+                        xdata[[xval]] <- df
+                    }
+                    do.call(rbind, xdata)
+                })
+                pwc_data <- do.call(rbind, fixed_data_list)
+            }
+
             # paired test is not supported yet
             p <- p + ggpubr::geom_pwc(
+                data = pwc_data,
                 label = sig_label,
                 label.size = sig_labelsize,
                 y.position = y_max_use,
