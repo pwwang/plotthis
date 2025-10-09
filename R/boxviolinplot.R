@@ -209,6 +209,10 @@ BoxViolinPlotAtomic <- function(
                 )
             }
         }
+
+        # For paired tests, ensure data is sorted by paired_by so that
+        # corresponding observations across groups are in the same order
+        data <- data %>% dplyr::arrange(!!!syms(unique(c(paired_by, x, group_by))))
     }
     if (isTRUE(comparisons) && is.null(group_by)) {
         # stop("'group_by' must be provided to when 'comparisons' is TRUE.")
@@ -503,7 +507,8 @@ BoxViolinPlotAtomic <- function(
                 }
 
                 # Now call geom_pwc once with the preprocessed data
-                p <- p + ggpubr::geom_pwc(
+                # Add paired test support when paired_by is provided
+                pwc_call <- list(
                     data = pwc_data,
                     label = sig_label,
                     label.size = sig_labelsize,
@@ -516,6 +521,13 @@ BoxViolinPlotAtomic <- function(
                     method = method,
                     hide.ns = hide_ns
                 )
+
+                # Add paired test parameters if paired_by is provided
+                if (!is.null(paired_by)) {
+                    pwc_call$method.args <- c(pwc_call$method.args, list(paired = TRUE))
+                }
+
+                p <- p + do.call(ggpubr::geom_pwc, pwc_call)
 
                 y_max_use <- layer_scales(p)$y$range$range[2]
             }
@@ -623,7 +635,12 @@ BoxViolinPlotAtomic <- function(
                 pwc_data <- do.call(rbind, fixed_data_list)
             }
 
-            # paired test is not supported yet
+            # Add paired test support when paired_by is provided
+            method_args <- list(comparisons = comparisons)
+            if (!is.null(paired_by)) {
+                method_args$paired <- TRUE
+            }
+
             p <- p + ggpubr::geom_pwc(
                 data = pwc_data,
                 label = sig_label,
@@ -636,7 +653,7 @@ BoxViolinPlotAtomic <- function(
                 # comparisons = comparisons,
                 ref.group = ref_group,
                 method = pairwise_method,
-                method.args = list(comparisons = comparisons),
+                method.args = method_args,
                 hide.ns = hide_ns
             )
             y_max_use <- layer_scales(p)$y$range$range[1] + (layer_scales(p)$y$range$range[2] - layer_scales(p)$y$range$range[1]) * 1.15
@@ -691,7 +708,7 @@ BoxViolinPlotAtomic <- function(
                 line_data$.line_group <- paste(line_data[[paired_by]], line_data[[x]], sep = " // ")
                 p <- p + geom_line(
                     data = line_data,
-                    mapping = aes(x = .x, y = !!sym(y), group = !!sym(".line_group")),
+                    mapping = aes(x = !!sym(".x"), y = !!sym(y), group = !!sym(".line_group")),
                     color = pt_color,
                     alpha = pt_alpha,
                     linewidth = 0.3,
@@ -1003,9 +1020,10 @@ BoxViolinPlot <- function(
 #'     visit = rep(c("pre", "post"), times = 10),
 #'     value = rnorm(20)
 #' )
+#' # paired plot with connected lines and paired test
 #' BoxPlot(
 #'     paired_data,
-#'     x = "visit", y = "value",
+#'     x = "visit", y = "value", comparisons = TRUE,
 #'     paired_by = "subject", add_point = TRUE
 #' )
 #' paired_group_data <- data.frame(

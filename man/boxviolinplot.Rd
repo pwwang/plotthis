@@ -483,9 +483,10 @@ paired_data <- data.frame(
     visit = rep(c("pre", "post"), times = 10),
     value = rnorm(20)
 )
+# paired plot with connected lines and paired test
 BoxPlot(
     paired_data,
-    x = "visit", y = "value",
+    x = "visit", y = "value", comparisons = TRUE,
     paired_by = "subject", add_point = TRUE
 )
 paired_group_data <- data.frame(

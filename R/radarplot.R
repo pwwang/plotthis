@@ -98,7 +98,7 @@ RadarPlotAtomic <- function(
         complete(!!sym(x), fill = complete_fill) %>%
         ungroup()
 
-    coord_radar <<- function(theta = "x", start = 0, direction = 1) {
+    coord_radar <- function(theta = "x", start = 0, direction = 1) {
         theta <- match.arg(theta, c("x", "y"))
         r <- if (theta == "x") "y" else "x"
         ggproto(
