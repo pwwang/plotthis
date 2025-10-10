@@ -839,10 +839,10 @@ layer_pie <- function(j, i, x, y, w, h, fill, palette, palcolor, data, pie_size)
         pie_sizes <- sapply(data, function(d) pie_size(sum(d$Freq, na.rm = TRUE)))
         pie_sizes <- scales::rescale(pie_sizes, to = c(0.2, 1))
     }
-
+    idx <- which(sapply(pies[[1]]$grobs, function(g) inherits(g, "gTree") && !inherits(g, "zeroGrob") && !inherits(g, "absoluteGrob")))[1]
     for (m in seq_along(pies)) {
-        pies[[m]]$grobs[[5]]$vp <- viewport(x = x[m], y = y[m], width = pie_sizes[m] * w[m], height = pie_sizes[m] * h[m])
-        grid.draw(pies[[m]]$grobs[[5]])
+        pies[[m]]$grobs[[idx]]$vp <- viewport(x = x[m], y = y[m], width = pie_sizes[m] * w[m], height = pie_sizes[m] * h[m])
+        grid.draw(pies[[m]]$grobs[[idx]])
     }
 }
 
@@ -857,11 +857,12 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
         p <- fn(data.frame(x = 1, y = vlndata[[m]]), x = "x", y = "y", palcolor = colors %||% fill[m], flip = flip)
         ggplotGrob(p + theme_void() + theme(legend.position = "none"))
     })
+    idx <- which(sapply(vlnplots[[1]]$grobs, function(g) inherits(g, "gTree") && !inherits(g, "zeroGrob") && !inherits(g, "absoluteGrob")))[1]
     for (m in seq_along(vlnplots)) {
         wm <- if (flip) w[m] * 0.95 else w[m]
         hm <- if (flip) h[m] * 0.95 else h[m]
-        vlnplots[[m]]$grobs[[5]]$vp <- viewport(x = x[m], y = y[m], width = wm, height = hm)
-        grid.draw(vlnplots[[m]]$grobs[[5]])
+        vlnplots[[m]]$grobs[[idx]]$vp <- viewport(x = x[m], y = y[m], width = wm, height = hm)
+        grid.draw(vlnplots[[m]]$grobs[[idx]])
     }
 }
 
