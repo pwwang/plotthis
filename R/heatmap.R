@@ -2142,7 +2142,7 @@ Heatmap <- function(
         attr(p, "data") <- attr(plots[[1]], "data")
     }
 
-    if (ggplot2_v4) {
+    if (!return_grob) {
         # Return invisibly to prevent double printing in pkgdown with ggplot2 >= 4
         # When return_grob = FALSE, p is a HeatmapList object with auto-printing behavior
         invisible(p)
