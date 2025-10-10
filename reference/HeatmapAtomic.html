@@ -250,7 +250,8 @@ If it takes 3 arguments, the second and third arguments are the row and column i
 If it takes 5 arguments, the second and third arguments are the row and column indices,
 the fourth and fifth arguments are the row and column names.
 The function should return a character vector of the same length as the aggregated values.
-If the function returns NA, no label will be shown for that cell.</p></dd>
+If the function returns NA, no label will be shown for that cell.
+For the indices, if you have the same dimension of data (same order of rows and columns) as the heatmap, you need to use <code><a href="https://rdrr.io/pkg/ComplexHeatmap/man/pindex.html" class="external-link">ComplexHeatmap::pindex()</a></code> to get the correct values.</p></dd>
 
 
 <dt id="arg-label-size">label_size<a class="anchor" aria-label="anchor" href="#arg-label-size"></a></dt>
@@ -418,7 +419,8 @@ If the type is "auto", the type will be determined by the type and number of the
 
 <dt id="arg-column-annotation-params">column_annotation_params<a class="anchor" aria-label="anchor" href="#arg-column-annotation-params"></a></dt>
 <dd><p>A list of parameters passed to the annotation function.
-Could be a list with the keys as the names of the annotation and the values as the parameters.</p></dd>
+Could be a list with the keys as the names of the annotation and the values as the parameters passed to the annotation function. For the parameters for names (columns_by, rows_by, columns_split_by, rows_split_by), the key should be "name.(name)", where <code>(name)</code> is the name of the annotation.
+See <code><a href="heatmap-anno.html">anno_pie()</a></code>, <code><a href="heatmap-anno.html">anno_ring()</a></code>, <code><a href="heatmap-anno.html">anno_bar()</a></code>, <code><a href="heatmap-anno.html">anno_violin()</a></code>, <code><a href="heatmap-anno.html">anno_boxplot()</a></code>, <code><a href="heatmap-anno.html">anno_density()</a></code>, <code><a href="heatmap-anno.html">anno_simple()</a></code>, <code><a href="heatmap-anno.html">anno_points()</a></code> and <code><a href="heatmap-anno.html">anno_lines()</a></code> for the parameters of each annotation function.</p></dd>
 
 
 <dt id="arg-column-annotation-agg">column_annotation_agg<a class="anchor" aria-label="anchor" href="#arg-column-annotation-agg"></a></dt>
@@ -455,7 +457,8 @@ If the type is "auto", the type will be determined by the type and number of the
 
 <dt id="arg-row-annotation-params">row_annotation_params<a class="anchor" aria-label="anchor" href="#arg-row-annotation-params"></a></dt>
 <dd><p>A list of parameters passed to the annotation function.
-Could be a list with the keys as the names of the annotation and the values as the parameters.</p></dd>
+Could be a list with the keys as the names of the annotation and the values as the parameters.
+Same as <code>column_annotation_params</code>.</p></dd>
 
 
 <dt id="arg-row-annotation-agg">row_annotation_agg<a class="anchor" aria-label="anchor" href="#arg-row-annotation-agg"></a></dt>
