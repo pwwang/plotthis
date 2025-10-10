@@ -16,7 +16,20 @@ layer_bg(j, i, x, y, w, h, fill, alpha)
 
 layer_reticle(j, i, x, y, w, h, fill, color)
 
-layer_dot(j, i, x, y, w, h, fill, data, dot_size, alpha)
+layer_dot(
+  j,
+  i,
+  x,
+  y,
+  w,
+  h,
+  fill,
+  data,
+  dot_size,
+  alpha,
+  row_names = NULL,
+  col_names = NULL
+)
 
 layer_bars(j, i, x, y, w, h, fill, flip, col_fun, data, alpha)
 
@@ -48,7 +61,13 @@ create the heatmap itself, which is aggregated data. This dataframe is the origi
 where each cell could have multiple values.}
 
 \item{dot_size}{A numeric value specifying the size of the dot or a function to calculate the size
-from the values in the cell or a function to calculate the size from the values in the cell.}
+from the values in the cell. The function can take 1, 3, or 5 arguments: the first argument is
+the values in the cell before aggregation; the 2nd and 3rd arguments are the row and column
+indices; the 4th and 5th arguments are the row and column names.}
+
+\item{row_names}{Row names from the heatmap matrix.}
+
+\item{col_names}{Column names from the heatmap matrix.}
 
 \item{col_fun}{A function to calculate the color of the bars}
 

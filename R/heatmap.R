@@ -776,19 +776,23 @@ layer_reticle <- function(j, i, x, y, w, h, fill, color) {
 #'  create the heatmap itself, which is aggregated data. This dataframe is the original data,
 #'  where each cell could have multiple values.
 #' @param dot_size A numeric value specifying the size of the dot or a function to calculate the size
-#'  from the values in the cell or a function to calculate the size from the values in the cell.
+#'  from the values in the cell. The function can take 1, 3, or 5 arguments: the first argument is
+#'  the values in the cell before aggregation; the 2nd and 3rd arguments are the row and column
+#'  indices; the 4th and 5th arguments are the row and column names.
+#' @param row_names Row names from the heatmap matrix.
+#' @param col_names Column names from the heatmap matrix.
 #' @keywords internal
-layer_dot <- function(j, i, x, y, w, h, fill, data, dot_size, alpha) {
-    if (is.function(dot_size)) {
-        s <- unlist(data[paste(i, j, sep = "-")])
-        s <- scales::rescale(s, to = c(0.1, 1))
+layer_dot <- function(j, i, x, y, w, h, fill, data, dot_size, alpha, row_names = NULL, col_names = NULL) {
+    if (is.numeric(dot_size) && length(dot_size) == 1) {
+        # Simple numeric size
         grid.points(x, y,
-            pch = 21, size = unit(10, "mm") * s,
+            pch = 21, size = unit(dot_size, "mm"),
             gp = gpar(col = "black", lwd = 1, fill = adjcolors(fill, alpha))
         )
     } else {
+        # dot_size is a pre-computed vector/list or will be computed from function
         grid.points(x, y,
-            pch = 21, size = unit(unlist(dot_size), "mm"),
+            pch = 21, size = unit(scales::rescale(unlist(dot_size), to = c(.5, 12)), "mm"),
             gp = gpar(col = "black", lwd = 1, fill = adjcolors(fill, alpha))
         )
     }
@@ -1363,15 +1367,43 @@ HeatmapAtomic <- function(
                 dot_size <- match.fun(dot_size)
             }
         }
+        # Store raw values for each cell to pass to dot_size function later
         dot_data <- data %>%
             group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
-            group_map(~ if (is.function(dot_size)) dot_size(.x[[values_by]]) else dot_size)
+            group_map(~ .x[[values_by]])
 
         names(dot_data) <- indices
 
         if (!identical(legend.position, "none") && is.function(dot_size) && !is.null(dot_size_name)) {
-            dot_size_min <- min(unlist(dot_data), na.rm = TRUE)
-            dot_size_max <- max(unlist(dot_data), na.rm = TRUE)
+            # Optimized: only compute min/max for legend, not all sizes
+            nargs <- length(formalArgs(dot_size))
+            dot_size_min <- Inf
+            dot_size_max <- -Inf
+
+            for (idx in seq_along(indices)) {
+                cell_key <- indices[idx]
+                cell_values <- dot_data[[cell_key]]
+                # Parse indices from the key "i-j"
+                ij <- as.integer(strsplit(cell_key, "-")[[1]])
+
+                size_val <- if (nargs == 1 || is.primitive(dot_size)) {
+                    dot_size(cell_values)
+                } else if (nargs == 3) {
+                    dot_size(cell_values, ij[1], ij[2])
+                } else if (nargs == 5) {
+                    dot_size(cell_values, ij[1], ij[2],
+                             rownames(hmargs$matrix)[ij[1]],
+                             colnames(hmargs$matrix)[ij[2]])
+                } else {
+                    stop("[Heatmap] 'dot_size' function should take 1, 3 or 5 arguments.")
+                }
+
+                if (is.finite(size_val)) {
+                    if (size_val < dot_size_min) dot_size_min <- size_val
+                    if (size_val > dot_size_max) dot_size_max <- size_val
+                }
+            }
+
             legends$.dot_size <- ComplexHeatmap::Legend(
                 title = dot_size_name,
                 labels = scales::number((seq(dot_size_min, dot_size_max, length.out = ifelse(dot_size_max > dot_size_min, 4, 1)))),
@@ -1386,6 +1418,7 @@ HeatmapAtomic <- function(
                 direction = legend.direction
             )
         }
+
         hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
             layer_white_bg(j, i, x, y, w, h, fill)
             if (isTRUE(add_bg)) {
@@ -1394,10 +1427,34 @@ HeatmapAtomic <- function(
             if (isTRUE(add_reticle)) {
                 layer_reticle(j, i, x, y, w, h, fill, color = reticle_color)
             }
-            layer_dot(
-                j, i, x, y, w, h, fill,
-                data = dot_data, dot_size = dot_size, alpha = alpha
-            )
+            # Compute dot sizes based on function arguments
+            if (is.function(dot_size)) {
+                nargs <- length(formalArgs(dot_size))
+                sizes <- numeric(length(i))
+                for (idx in seq_along(i)) {
+                    cell_values <- dot_data[[paste(i[idx], j[idx], sep = "-")]]
+                    if (nargs == 1 || is.primitive(dot_size)) {
+                        sizes[idx] <- dot_size(cell_values)
+                    } else if (nargs == 3) {
+                        sizes[idx] <- dot_size(cell_values, i[idx], j[idx])
+                    } else if (nargs == 5) {
+                        sizes[idx] <- dot_size(cell_values, i[idx], j[idx],
+                                               rownames(hmargs$matrix)[i[idx]],
+                                               colnames(hmargs$matrix)[j[idx]])
+                    } else {
+                        stop("[Heatmap] 'dot_size' function should take 1, 3 or 5 arguments.")
+                    }
+                }
+                layer_dot(
+                    j, i, x, y, w, h, fill,
+                    data = dot_data, dot_size = sizes, alpha = alpha
+                )
+            } else {
+                layer_dot(
+                    j, i, x, y, w, h, fill,
+                    data = dot_data, dot_size = dot_size, alpha = alpha
+                )
+            }
             if (is.function(layer_fun_callback)) {
                 layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
             }
@@ -1797,6 +1854,19 @@ HeatmapAtomic <- function(
             ))
         }
     } else {
+        # When return_grob = FALSE (ggplot2 v4), ComplexHeatmap::draw() will render
+        # to the graphics device. To prevent unwanted output during assignment while
+        # still allowing proper display when explicitly printed, we capture to a
+        # null device first, then return the HeatmapList which can be drawn later.
+        current_dev <- grDevices::dev.cur()
+        null_dev <- grDevices::pdf(NULL)
+        on.exit({
+            grDevices::dev.off()  # Close the null device
+            if (current_dev > 1) {
+                grDevices::dev.set(current_dev)  # Restore the previous device if it wasn't null
+            }
+        }, add = TRUE)
+
         if (identical(legend.position, "none")) {
             p <- ComplexHeatmap::draw(p,
                 annotation_legend_list = legends,
@@ -1907,7 +1977,7 @@ HeatmapAtomic <- function(
 #'         values_by = "Players", legend_discrete = TRUE,
 #'         legend_items = c("Player 1" = 0, "Player 2" = 1),
 #'         # Set the pawns
-#'         cell_type = "dot", dot_size = function(x) ifelse(is.na(x), 0, 1),
+#'         cell_type = "dot", dot_size = function(x) ifelse(is.na(x), 0, 10),
 #'         dot_size_name = NULL,  # hide the dot size legend
 #'         palcolor = c("white", "black"),
 #'         # Set the board
@@ -1953,8 +2023,21 @@ HeatmapAtomic <- function(
 #'         cell_type = "bars")
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     Heatmap(data, values_by = "value", rows_by = "r", columns_by = "c",
+#'     p <- Heatmap(data, values_by = "value", rows_by = "r", columns_by = "c",
 #'         cell_type = "dot", dot_size = length, dot_size_name = "data points",
+#'         add_bg = TRUE, add_reticle = TRUE)
+#'     p
+#' }
+#' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     dot_size_data <- p@data
+#'     # Make it big so we can see if we get the right indexing
+#'     # for dot_size function
+#'     dot_size_data["A", "a"] <- max(dot_size_data) * 2
+#'
+#'     Heatmap(data, values_by = "value", rows_by = "r", columns_by = "c",
+#'         cell_type = "dot", dot_size_name = "data points",
+#'         dot_size = function(x, i, j) ComplexHeatmap::pindex(dot_size_data, i, j),
+#'         show_row_names = TRUE, show_column_names = TRUE,
 #'         add_bg = TRUE, add_reticle = TRUE)
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
@@ -2158,11 +2241,10 @@ Heatmap <- function(
         attr(p, "data") <- attr(plots[[1]], "data")
     }
 
-    if (!return_grob) {
-        # Return invisibly to prevent double printing in pkgdown with ggplot2 >= 4
-        # When return_grob = FALSE, p is a HeatmapList object with auto-printing behavior
-        invisible(p)
-    } else {
-        p
-    }
+    # Return the plot object
+    # When return_grob = FALSE, p is a HeatmapList object with auto-printing behavior
+    # The initial draw() in HeatmapAtomic was captured to a null device to prevent
+    # printing during assignment, so this returned object can print normally when
+    # called directly (e.g., in a Jupyter cell)
+    p
 }

@@ -510,7 +510,7 @@ if (requireNamespace("cluster", quietly = TRUE)) {
         values_by = "Players", legend_discrete = TRUE,
         legend_items = c("Player 1" = 0, "Player 2" = 1),
         # Set the pawns
-        cell_type = "dot", dot_size = function(x) ifelse(is.na(x), 0, 1),
+        cell_type = "dot", dot_size = function(x) ifelse(is.na(x), 0, 10),
         dot_size_name = NULL,  # hide the dot size legend
         palcolor = c("white", "black"),
         # Set the board
@@ -556,8 +556,21 @@ if (requireNamespace("cluster", quietly = TRUE)) {
         cell_type = "bars")
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-    Heatmap(data, values_by = "value", rows_by = "r", columns_by = "c",
+    p <- Heatmap(data, values_by = "value", rows_by = "r", columns_by = "c",
         cell_type = "dot", dot_size = length, dot_size_name = "data points",
+        add_bg = TRUE, add_reticle = TRUE)
+    p
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    dot_size_data <- p@data
+    # Make it big so we can see if we get the right indexing
+    # for dot_size function
+    dot_size_data["A", "a"] <- max(dot_size_data) * 2
+
+    Heatmap(data, values_by = "value", rows_by = "r", columns_by = "c",
+        cell_type = "dot", dot_size_name = "data points",
+        dot_size = function(x, i, j) ComplexHeatmap::pindex(dot_size_data, i, j),
+        show_row_names = TRUE, show_column_names = TRUE,
         add_bg = TRUE, add_reticle = TRUE)
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
