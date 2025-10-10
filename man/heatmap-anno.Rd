@@ -122,8 +122,8 @@ anno_density(
 anno_simple(
   x,
   split_by = NULL,
-  group_by,
-  column,
+  group_by = NULL,
+  column = NULL,
   title,
   which = "row",
   palette,

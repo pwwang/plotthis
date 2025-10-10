@@ -233,7 +233,8 @@ If it takes 3 arguments, the second and third arguments are the row and column i
 If it takes 5 arguments, the second and third arguments are the row and column indices,
 the fourth and fifth arguments are the row and column names.
 The function should return a character vector of the same length as the aggregated values.
-If the function returns NA, no label will be shown for that cell.}
+If the function returns NA, no label will be shown for that cell.
+For the indices, if you have the same dimension of data (same order of rows and columns) as the heatmap, you need to use \code{ComplexHeatmap::pindex()} to get the correct values.}
 
 \item{label_size}{A numeric value specifying the size of the labels when \code{cell_type = "label"}.}
 
@@ -331,7 +332,8 @@ Could be a list with the keys as the names of the annotation and the values as t
 If the type is "auto", the type will be determined by the type and number of the column data.}
 
 \item{column_annotation_params}{A list of parameters passed to the annotation function.
-Could be a list with the keys as the names of the annotation and the values as the parameters.}
+Could be a list with the keys as the names of the annotation and the values as the parameters passed to the annotation function. For the parameters for names (columns_by, rows_by, columns_split_by, rows_split_by), the key should be "name.(name)", where \code{(name)} is the name of the annotation.
+See \code{\link[=anno_pie]{anno_pie()}}, \code{\link[=anno_ring]{anno_ring()}}, \code{\link[=anno_bar]{anno_bar()}}, \code{\link[=anno_violin]{anno_violin()}}, \code{\link[=anno_boxplot]{anno_boxplot()}}, \code{\link[=anno_density]{anno_density()}}, \code{\link[=anno_simple]{anno_simple()}}, \code{\link[=anno_points]{anno_points()}} and \code{\link[=anno_lines]{anno_lines()}} for the parameters of each annotation function.}
 
 \item{column_annotation_agg}{A function to aggregate the values in the column annotation.}
 
@@ -354,7 +356,8 @@ Could be a list with the keys as the names of the annotation and the values as t
 If the type is "auto", the type will be determined by the type and number of the row data.}
 
 \item{row_annotation_params}{A list of parameters passed to the annotation function.
-Could be a list with the keys as the names of the annotation and the values as the parameters.}
+Could be a list with the keys as the names of the annotation and the values as the parameters.
+Same as \code{column_annotation_params}.}
 
 \item{row_annotation_agg}{A function to aggregate the values in the row annotation.}
 
