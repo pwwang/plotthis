@@ -1154,8 +1154,6 @@ HeatmapAtomic <- function(
     # rows_split_by1 rows_by1 0.1                            0.2                            ...
     # rows_split_by2 rows_by2 0.3                            0.4                            ...
     # ...
-    # Make sure the rows/columns are in order
-    data <- arrange(data, !!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by, pie_group_by))))
     hmargs$matrix <- data %>%
         group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
         summarise(.value = cell_agg(!!sym(values_by)), .groups = "drop") %>%
@@ -1172,6 +1170,22 @@ HeatmapAtomic <- function(
     hmargs$matrix$.rows <- NULL
     hmargs$matrix <- as.matrix(hmargs$matrix)
     hmargs$matrix[is.na(hmargs$matrix)] <- values_fill
+
+    columns_order <- data %>%
+        tidyr::expand(!!!syms(unique(c(columns_split_by, columns_by)))) %>%
+        unite(".columns", !!!syms(unique(c(columns_split_by, columns_by))), sep = " // ") %>%
+        dplyr::pull(".columns") %>%
+        unique() %>%
+        intersect(colnames(hmargs$matrix))
+    rows_order <- data %>%
+        tidyr::expand(!!!syms(unique(c(rows_split_by, rows_by)))) %>%
+        unite(".rows", !!!syms(unique(c(rows_split_by, rows_by))), sep = " // ") %>%
+        dplyr::pull(".rows") %>%
+        unique() %>%
+        intersect(rownames(hmargs$matrix))
+
+    hmargs$matrix <- hmargs$matrix[rows_order, columns_order, drop = FALSE]
+
     if (flip) {
         hmargs$matrix <- t(hmargs$matrix)
     }
