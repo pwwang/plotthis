@@ -115,6 +115,9 @@ The points will be ordered by the distance to the origin. Top \code{nlabel} poin
 
 \item{labels}{A character vector of row names or indexes to label the points.}
 
+\item{label_by}{A character string of column name to use as labels.
+If NULL, the row names will be used.}
+
 \item{label_size}{A numeric value to set the label size.}
 
 \item{label_fg}{A character string to set the label color.}

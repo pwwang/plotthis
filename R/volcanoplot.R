@@ -31,6 +31,8 @@
 #' @param nlabel A numeric value to set the number of labels to show.
 #'  The points will be ordered by the distance to the origin. Top `nlabel` points will be labeled.
 #' @param labels A character vector of row names or indexes to label the points.
+#' @param label_by A character string of column name to use as labels.
+#' If NULL, the row names will be used.
 #' @param label_size A numeric value to set the label size.
 #' @param label_fg A character string to set the label color.
 #' @param label_bg A character string to set the label background color.
@@ -385,7 +387,7 @@ VolcanoPlotAtomic <- function(
 #' }
 VolcanoPlot <- function(
     data, x, y, ytrans = function(n) -log10(n), color_by = NULL, color_name = NULL, xlim = NULL,
-    flip_negatives = FALSE, x_cutoff = NULL, y_cutoff = 0.05, split_by = NULL, split_by_sep = "_",
+    flip_negatives = FALSE, x_cutoff = NULL, y_cutoff = 0.05, split_by = NULL, split_by_sep = "_", label_by = NULL,
     x_cutoff_name = NULL, y_cutoff_name = NULL, x_cutoff_color = "red2", y_cutoff_color = "blue2",
     x_cutoff_linetype = "dashed", y_cutoff_linetype = "dashed", x_cutoff_linewidth = 0.5, y_cutoff_linewidth = 0.5,
     pt_size = 2, pt_alpha = 0.5, nlabel = 5, labels = NULL, label_size = 3, label_fg = "black", label_bg = "white",
@@ -426,7 +428,7 @@ VolcanoPlot <- function(
             }
             VolcanoPlotAtomic(datas[[nm]],
                 x = x, y = y, ytrans = ytrans, color_by = color_by, color_name = color_name,
-                flip_negatives = flip_negatives, x_cutoff = x_cutoff, y_cutoff = y_cutoff, trim = trim, xlim = xlim,
+                flip_negatives = flip_negatives, x_cutoff = x_cutoff, y_cutoff = y_cutoff, trim = trim, xlim = xlim, label_by = label_by,
                 x_cutoff_name = x_cutoff_name, y_cutoff_name = y_cutoff_name, x_cutoff_color = x_cutoff_color, y_cutoff_color = y_cutoff_color,
                 x_cutoff_linetype = x_cutoff_linetype, y_cutoff_linetype = y_cutoff_linetype, x_cutoff_linewidth = x_cutoff_linewidth, y_cutoff_linewidth = y_cutoff_linewidth,
                 pt_size = pt_size, pt_alpha = pt_alpha, nlabel = nlabel, labels = labels, label_size = label_size, label_fg = label_fg, label_bg = label_bg,

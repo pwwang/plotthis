@@ -17,6 +17,7 @@ VolcanoPlot(
   y_cutoff = 0.05,
   split_by = NULL,
   split_by_sep = "_",
+  label_by = NULL,
   x_cutoff_name = NULL,
   y_cutoff_name = NULL,
   x_cutoff_color = "red2",
@@ -95,6 +96,9 @@ So you should provide the original value.}
 \item{split_by}{The column(s) to split data by and plot separately.}
 
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
+
+\item{label_by}{A character string of column name to use as labels.
+If NULL, the row names will be used.}
 
 \item{x_cutoff_name}{A character string to name the x-axis cutoff.
 If "none", the legend for the x-axis cutoff will not be shown.}
