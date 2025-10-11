@@ -2000,10 +2000,11 @@ HeatmapAtomic <- function(
 #'         width = ggplot2::unit(105, "mm"), height = ggplot2::unit(105, "mm"))
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
-#'    # Make the row/column name annotation thinner
-#'    Heatmap(matrix_data,
-#'        column_annotation = list(simple_anno_size = ggplot2::unit(2, "mm")),
-#'        row_annotation = list(simple_anno_size = ggplot2::unit(2, "mm")))
+#'     # Make the row/column name annotation thicker
+#'     Heatmap(matrix_data,
+#'         # Use the "name." prefix
+#'         column_annotation_params = list(name.columns = list(height = 5)),
+#'         row_annotation_params = list(name.rows = list(width = 5)))
 #' }
 #'
 #' # Use long form data
