@@ -215,7 +215,7 @@ VolcanoPlotAtomic <- function(
                 mapping = aes(
                     xintercept = !!sym("xintercept"),
                     color = x_cutoff_name %||% paste0(x, " = +/-", scales::number(x_cutoff, accuracy = 0.01))),
-                alpha = 0.4, linetype = x_cutoff_linetype, size = x_cutoff_linewidth,
+                alpha = 0.4, linetype = x_cutoff_linetype, linewidth = x_cutoff_linewidth,
             ) +
             scale_color_manual(name = NULL, values = x_cutoff_color, guide = guide)
     }
@@ -241,7 +241,7 @@ VolcanoPlotAtomic <- function(
                 data = hline_df,
                 mapping = aes(yintercept = !!sym("yintercept"),
                     color = y_cutoff_name %||% paste0(ylab %||% y, " = ", scales::number(y_cutoff, accuracy = 0.01))),
-                alpha = 0.4, linetype = y_cutoff_linetype, size = y_cutoff_linewidth
+                alpha = 0.4, linetype = y_cutoff_linetype, linewidth = y_cutoff_linewidth
             ) +
             scale_color_manual(
                 name = NULL,
