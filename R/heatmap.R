@@ -1352,7 +1352,7 @@ HeatmapAtomic <- function(
         }
 
         bars_data <- data %>%
-            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
+            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by))), .drop = FALSE) %>%
             group_map(~ .x[[values_by]])
 
         names(bars_data) <- indices
@@ -1383,7 +1383,7 @@ HeatmapAtomic <- function(
         }
         # Store raw values for each cell to pass to dot_size function later
         dot_data <- data %>%
-            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
+            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by))), .drop = FALSE) %>%
             group_map(~ .x[[values_by]])
 
         names(dot_data) <- indices
