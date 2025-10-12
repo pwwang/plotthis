@@ -1352,7 +1352,7 @@ HeatmapAtomic <- function(
         }
 
         bars_data <- data %>%
-            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by))), .drop = FALSE) %>%
+            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
             group_map(~ .x[[values_by]])
 
         names(bars_data) <- indices
@@ -1383,10 +1383,19 @@ HeatmapAtomic <- function(
         }
         # Store raw values for each cell to pass to dot_size function later
         dot_data <- data %>%
-            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by))), .drop = FALSE) %>%
-            group_map(~ .x[[values_by]])
+            group_by(!!!syms(unique(c(rows_split_by, rows_by, columns_split_by, columns_by)))) %>%
+            summarise(.value = list(!!sym(values_by)), .groups = "drop") %>%
+            unite(".columns", !!!syms(unique(c(columns_split_by, columns_by))), sep = " // ") %>%
+            unite(".rows", !!!syms(unique(c(rows_split_by, rows_by))), sep = " // ") %>%
+            pivot_wider(
+                names_from = ".columns",
+                values_from = ".value",
+                values_fill = values_fill
+            ) %>%
+            as.data.frame()
 
-        names(dot_data) <- indices
+        rownames(dot_data) <- dot_data$.rows
+        dot_data$.rows <- NULL
 
         if (!identical(legend.position, "none") && is.function(dot_size) && !is.null(dot_size_name)) {
             # Optimized: only compute min/max for legend, not all sizes
@@ -1396,9 +1405,9 @@ HeatmapAtomic <- function(
 
             for (idx in seq_along(indices)) {
                 cell_key <- indices[idx]
-                cell_values <- dot_data[[cell_key]]
                 # Parse indices from the key "i-j"
                 ij <- as.integer(strsplit(cell_key, "-")[[1]])
+                cell_values <- dot_data[ij[1], ij[2]][[1]]
 
                 size_val <- if (nargs == 1 || is.primitive(dot_size)) {
                     dot_size(cell_values)
@@ -1446,7 +1455,7 @@ HeatmapAtomic <- function(
                 nargs <- length(formalArgs(dot_size))
                 sizes <- numeric(length(i))
                 for (idx in seq_along(i)) {
-                    cell_values <- dot_data[[paste(i[idx], j[idx], sep = "-")]]
+                    cell_values <- dot_data[[i[idx], j[idx]]]
                     if (nargs == 1 || is.primitive(dot_size)) {
                         sizes[idx] <- dot_size(cell_values)
                     } else if (nargs == 3) {
