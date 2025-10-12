@@ -409,7 +409,7 @@ JitterPlotAtomic <- function(
 #'
 #' # Map size with transform; legend shows original values
 #' JitterPlot(df, x = "x", y = "y", size_by = "size", size_name = "Abundance",
-#'     size_trans = sqrt, order_by = "-{y}^2")
+#'     size_trans = sqrt, order_by = "-y^2")
 #'
 #' # Dodge by group and add a horizontal line
 #' JitterPlot(df, x = "x", y = "y", group_by = "group",
