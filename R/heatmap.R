@@ -1388,10 +1388,12 @@ HeatmapAtomic <- function(
             unite(".columns", !!!syms(unique(c(columns_split_by, columns_by))), sep = " // ") %>%
             unite(".rows", !!!syms(unique(c(rows_split_by, rows_by))), sep = " // ") %>%
             pivot_wider(names_from = ".columns", values_from = ".value") %>%
+            select(-!!sym(".rows")) %>%
             as.data.frame()
 
-        rownames(dot_data) <- dot_data$.rows
-        dot_data$.rows <- NULL
+        if (flip) {
+            dot_data <- t(dot_data)
+        }
 
         if (!identical(legend.position, "none") && is.function(dot_size) && !is.null(dot_size_name)) {
             # Optimized: only compute min/max for legend, not all sizes
