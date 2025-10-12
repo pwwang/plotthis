@@ -1387,11 +1387,7 @@ HeatmapAtomic <- function(
             summarise(.value = list(!!sym(values_by)), .groups = "drop") %>%
             unite(".columns", !!!syms(unique(c(columns_split_by, columns_by))), sep = " // ") %>%
             unite(".rows", !!!syms(unique(c(rows_split_by, rows_by))), sep = " // ") %>%
-            pivot_wider(
-                names_from = ".columns",
-                values_from = ".value",
-                values_fill = values_fill
-            ) %>%
+            pivot_wider(names_from = ".columns", values_from = ".value") %>%
             as.data.frame()
 
         rownames(dot_data) <- dot_data$.rows
