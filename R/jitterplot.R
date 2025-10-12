@@ -42,6 +42,8 @@
 #' @param labels A vector of row names or indices to label the points.
 #' @param label_by A character column name to use as the label text. If NULL, rownames are used.
 #' @param nlabel Number of points to label per x-group when `labels` is NULL (top by y^2 + size^2).
+#' @param order_by A string of expression passed to `dplyr::arrange()` to order the data to get the
+#' top `nlabel` points for labeling. Default is `-({y}^2 + {size_by}^2)` (similar to VolcanoPlot).
 #' @param label_size,label_fg,label_bg,label_bg_r Label aesthetics.
 #' @param add_hline Add one or more horizontal reference lines at the given y-value(s).
 #' @param hline_type The line type for the horizontal reference line(s).
@@ -61,7 +63,7 @@ JitterPlotAtomic <- function(
     data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
     flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    x_text_angle = 0,
+    x_text_angle = 0, order_by = "-({y}^2 + {size_by}^2)",
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     shape = 21, border = "black",
@@ -134,21 +136,14 @@ JitterPlotAtomic <- function(
     if (!is.null(labels)) {
         data[labels, ".show_label"] <- TRUE
     } else if (nlabel > 0) {
-        size_for_dist <- if (is.numeric(size_by)) {
-            rep(size_by, nrow(data))
-        } else {
-            sb <- check_columns(data, size_by)
-            data[[sb]]
-        }
-        data$.distance <- (data[[y]] ^ 2) + (size_for_dist ^ 2)
         if (!is.null(facet_by)) {
             data <- data %>% dplyr::group_by(!!!syms(facet_by), !!sym(x)) %>%
-                dplyr::arrange(dplyr::desc(!!sym(".distance"))) %>%
+                dplyr::arrange(!!rlang::parse_expr(glue::glue(order_by))) %>%
                 dplyr::mutate(.show_label = dplyr::row_number() <= nlabel) %>%
                 dplyr::ungroup()
         } else {
             data <- data %>% dplyr::group_by(!!sym(x)) %>%
-                dplyr::arrange(dplyr::desc(!!sym(".distance"))) %>%
+                dplyr::arrange(!!rlang::parse_expr(glue::glue(order_by))) %>%
                 dplyr::mutate(.show_label = dplyr::row_number() <= nlabel) %>%
                 dplyr::ungroup()
         }
@@ -414,7 +409,7 @@ JitterPlotAtomic <- function(
 #'
 #' # Map size with transform; legend shows original values
 #' JitterPlot(df, x = "x", y = "y", size_by = "size", size_name = "Abundance",
-#'     size_trans = sqrt)
+#'     size_trans = sqrt, order_by = "-{y}^2")
 #'
 #' # Dodge by group and add a horizontal line
 #' JitterPlot(df, x = "x", y = "y", group_by = "group",
@@ -431,7 +426,7 @@ JitterPlot <- function(
     split_by = NULL, split_by_sep = "_",
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
     flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    x_text_angle = 0,
+    x_text_angle = 0, order_by = "-({y}^2 + {size_by}^2)",
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     shape = 21, border = "black",
@@ -476,7 +471,7 @@ JitterPlot <- function(
                 sort_x = sort_x, flip = flip, keep_empty = keep_empty, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
                 x_text_angle = x_text_angle, theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                shape = shape, border = border,
+                shape = shape, border = border, order_by = order_by,
                 size_by = size_by, size_name = size_name, size_trans = size_trans, y_nbreaks = y_nbreaks,
                 jitter_width = jitter_width, jitter_height = jitter_height, y_max = y_max, y_min = y_min, y_trans = y_trans,
                 add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,

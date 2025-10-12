@@ -18,6 +18,7 @@ JitterPlotAtomic(
   group_by_sep = "_",
   group_name = NULL,
   x_text_angle = 0,
+  order_by = "-({y}^2 + {size_by}^2)",
   theme = "theme_this",
   theme_args = list(),
   palette = "Paired",
@@ -106,6 +107,9 @@ When \code{in_form} is "wide", \code{y} is not required. The values under \code{
 \item{group_name}{A character string to name the legend of dodge.}
 
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
+
+\item{order_by}{A string of expression passed to \code{dplyr::arrange()} to order the data to get the
+top \code{nlabel} points for labeling. Default is \code{-({y}^2 + {size_by}^2)} (similar to VolcanoPlot).}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
