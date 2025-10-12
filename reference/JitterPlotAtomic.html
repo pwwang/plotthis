@@ -56,6 +56,7 @@
 <span>  group_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  group_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  x_text_angle <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  order_by <span class="op">=</span> <span class="st">"-({y}^2 + {size_by}^2)"</span>,</span>
 <span>  theme <span class="op">=</span> <span class="st">"theme_this"</span>,</span>
 <span>  theme_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
@@ -169,6 +170,11 @@ When <code>in_form</code> is "wide", <code>y</code> is not required. The values 
 
 <dt id="arg-x-text-angle">x_text_angle<a class="anchor" aria-label="anchor" href="#arg-x-text-angle"></a></dt>
 <dd><p>A numeric value specifying the angle of the x-axis text.</p></dd>
+
+
+<dt id="arg-order-by">order_by<a class="anchor" aria-label="anchor" href="#arg-order-by"></a></dt>
+<dd><p>A string of expression passed to <code><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">dplyr::arrange()</a></code> to order the data to get the
+top <code>nlabel</code> points for labeling. Default is <code>-({y}^2 + {size_by}^2)</code> (similar to VolcanoPlot).</p></dd>
 
 
 <dt id="arg-theme">theme<a class="anchor" aria-label="anchor" href="#arg-theme"></a></dt>
