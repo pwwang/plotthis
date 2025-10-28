@@ -48,7 +48,7 @@ prepare_fgsea_result <- function(data) {
     }
     data$core_enrichment <- sapply(data$leadingEdge, paste0, collapse = "/")
     data$leadingEdge <- NULL
-    data$NES <- data$NES[is.na(data$NES)] <- 0
+    data$NES[is.na(data$NES)] <- 0
 
     data
 }
@@ -165,6 +165,7 @@ GSEASummaryPlot <- function(
     }
     data$ID <- factor(data$ID, levels = rev(unique(data$ID)))
     data <- data[order(data$ID), , drop = FALSE]
+    print(data)
 
     if (!is.null(cutoff)) {
         # data <- data[data[[metric]] < cutoff, , drop = FALSE]
