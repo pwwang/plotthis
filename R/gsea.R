@@ -165,7 +165,6 @@ GSEASummaryPlot <- function(
     }
     data$ID <- factor(data$ID, levels = rev(unique(data$ID)))
     data <- data[order(data$ID), , drop = FALSE]
-    print(data)
 
     if (!is.null(cutoff)) {
         # data <- data[data[[metric]] < cutoff, , drop = FALSE]
