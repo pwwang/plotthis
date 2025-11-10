@@ -1,0 +1,10 @@
+# An example data for dimensionality reduction plot
+
+This dataset is generated from the scvelo (scv.datasets.pancreas()) with
+the scvelo run on the dataset. Then the cell embeddings and velocity
+embeddings are extracted (200 downsampled), which are the first 4
+columns of the data frame. The fifth column is the group identifier
+(clusters), and the sixth column is a fake grouping variable used to
+visualize stats, facetting, etc. An attribute "graph" is added to the
+data frame, which is a square matrix of the cell-cell distances, which
+is used for the graph (network) on dimensionality reduction plots.

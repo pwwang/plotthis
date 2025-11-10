@@ -1,0 +1,300 @@
+# Atomic Sankey plot
+
+Plot a Sankey plot without splitting the data.
+
+## Usage
+
+``` r
+SankeyPlotAtomic(
+  data,
+  in_form = c("auto", "long", "lodes", "wide", "alluvia", "counts"),
+  x,
+  x_sep = "_",
+  y = NULL,
+  stratum = NULL,
+  stratum_sep = "_",
+  alluvium = NULL,
+  alluvium_sep = "_",
+  flow = FALSE,
+  nodes_color = "grey30",
+  links_fill_by = NULL,
+  links_fill_by_sep = "_",
+  links_name = NULL,
+  links_color = "gray80",
+  nodes_palette = "Paired",
+  nodes_palcolor = NULL,
+  nodes_alpha = 1,
+  nodes_label = FALSE,
+  nodes_width = 0.25,
+  nodes_label_miny = 0,
+  nodes_legend = c("auto", "separate", "merge", "none"),
+  expand = c(0, 0, 0, 0),
+  links_palette = "Paired",
+  links_palcolor = NULL,
+  links_alpha = 0.6,
+  legend.box = "vertical",
+  keep_empty = TRUE,
+  x_text_angle = 0,
+  aspect.ratio = 1,
+  legend.position = "right",
+  legend.direction = "vertical",
+  flip = FALSE,
+  theme = "theme_this",
+  theme_args = list(),
+  title = NULL,
+  subtitle = NULL,
+  xlab = NULL,
+  ylab = NULL,
+  facet_by = NULL,
+  facet_scales = "fixed",
+  facet_ncol = NULL,
+  facet_nrow = NULL,
+  facet_byrow = TRUE,
+  ...
+)
+```
+
+## Arguments
+
+- data:
+
+  A data frame.
+
+- in_form:
+
+  A character string to specify the format of the data. Possible values
+  are "auto", "long", "lodes", "wide", "alluvia", and "counts".
+
+- x:
+
+  A character string of the column name to plot on the x-axis. See
+  `data` for more details.
+
+- x_sep:
+
+  A character string to concatenate the columns in `x`, if multiple
+  columns are provided.
+
+- y:
+
+  A character string of the column name to plot on the y-axis. When
+  `in_form` is "counts", `y` will be ignored. Otherwise, it defaults to
+  the count of each `x`, `stratum`, `alluvium` and `links_fill_by`.
+
+- stratum:
+
+  A character string of the column name to group the nodes for each `x`.
+  See `data` for more details.
+
+- stratum_sep:
+
+  A character string to concatenate the columns in `stratum`, if
+  multiple columns are provided.
+
+- alluvium:
+
+  A character string of the column name to define the links. See `data`
+  for more details.
+
+- alluvium_sep:
+
+  A character string to concatenate the columns in `alluvium`, if
+  multiple columns are provided.
+
+- flow:
+
+  A logical value to use
+  [ggalluvial::geom_flow](http://corybrunson.github.io/ggalluvial/reference/geom_flow.md)
+  instead of
+  [ggalluvial::geom_alluvium](http://corybrunson.github.io/ggalluvial/reference/geom_alluvium.md).
+
+- nodes_color:
+
+  A character string to color the nodes. Use a special value ".fill" to
+  use the same color as the fill.
+
+- links_fill_by:
+
+  A character string of the column name to fill the links.
+
+- links_fill_by_sep:
+
+  A character string to concatenate the columns in `links_fill_by`, if
+  multiple columns are provided.
+
+- links_name:
+
+  A character string to name the legend of links.
+
+- links_color:
+
+  A character string to color the borders of links. Use a special value
+  ".fill" to use the same color as the fill.
+
+- nodes_palette:
+
+  A character string to specify the palette of nodes fill.
+
+- nodes_palcolor:
+
+  A character vector to specify the colors of nodes fill.
+
+- nodes_alpha:
+
+  A numeric value to specify the transparency of nodes fill.
+
+- nodes_label:
+
+  A logical value to show the labels on the nodes.
+
+- nodes_width:
+
+  A numeric value to specify the width of nodes.
+
+- nodes_label_miny:
+
+  A numeric value to specify the minimum y (frequency) to show the
+  labels.
+
+- nodes_legend:
+
+  Controls how the legend of nodes will be shown. Possible values are:
+
+  - "merge": Merge the legends of nodes. That is only one legend will be
+    shown for all nodes.
+
+  - "separate": Show the legends of nodes separately. That is, nodes on
+    each `x` will have their own legend.
+
+  - "none": Do not show the legend of nodes.
+
+  - "auto": Automatically determine how to show the legend. When
+    `nodes_label` is TRUE, "none" will apply. When `nodes_label` is
+    FALSE, and if stratum is the same as links_fill_by, "none" will
+    apply. If there is any overlapping values between the nodes on
+    different `x`, "merge" will apply. Otherwise, "separate" will apply.
+
+- expand:
+
+  The values to expand the x and y axes. It is like CSS padding. When a
+  single value is provided, it is used for both axes on both sides. When
+  two values are provided, the first value is used for the top/bottom
+  side and the second value is used for the left/right side. When three
+  values are provided, the first value is used for the top side, the
+  second value is used for the left/right side, and the third value is
+  used for the bottom side. When four values are provided, the values
+  are used for the top, right, bottom, and left sides, respectively. You
+  can also use a named vector to specify the values for each side. When
+  the axis is discrete, the values will be applied as 'add' to the
+  'expansion' function. When the axis is continuous, the values will be
+  applied as 'mult' to the 'expansion' function. See also
+  <https://ggplot2.tidyverse.org/reference/expansion.html>
+
+- links_palette:
+
+  A character string to specify the palette of links fill.
+
+- links_palcolor:
+
+  A character vector to specify the colors of links fill.
+
+- links_alpha:
+
+  A numeric value to specify the transparency of links fill.
+
+- legend.box:
+
+  A character string to specify the box of the legend, either "vertical"
+  or "horizontal".
+
+- keep_empty:
+
+  A logical value to keep the empty nodes.
+
+- x_text_angle:
+
+  A numeric value specifying the angle of the x-axis text.
+
+- aspect.ratio:
+
+  A numeric value specifying the aspect ratio of the plot.
+
+- legend.position:
+
+  A character string specifying the position of the legend. if
+  `waiver()`, for single groups, the legend will be "none", otherwise
+  "right".
+
+- legend.direction:
+
+  A character string specifying the direction of the legend.
+
+- flip:
+
+  A logical value to flip the plot.
+
+- theme:
+
+  A character string or a theme class (i.e. ggplot2::theme_classic)
+  specifying the theme to use. Default is "theme_this".
+
+- theme_args:
+
+  A list of arguments to pass to the theme function.
+
+- title:
+
+  A character string specifying the title of the plot. A function can be
+  used to generate the title based on the default title. This is useful
+  when split_by is used and the title needs to be dynamic.
+
+- subtitle:
+
+  A character string specifying the subtitle of the plot.
+
+- xlab:
+
+  A character string specifying the x-axis label.
+
+- ylab:
+
+  A character string specifying the y-axis label.
+
+- facet_by:
+
+  A character string specifying the column name of the data frame to
+  facet the plot. Otherwise, the data will be split by `split_by` and
+  generate multiple plots and combine them into one using
+  [`patchwork::wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
+
+- facet_scales:
+
+  Whether to scale the axes of facets. Default is "fixed" Other options
+  are "free", "free_x", "free_y". See
+  [`ggplot2::facet_wrap`](https://ggplot2.tidyverse.org/reference/facet_wrap.html)
+
+- facet_ncol:
+
+  A numeric value specifying the number of columns in the facet. When
+  facet_by is a single column and facet_wrap is used.
+
+- facet_nrow:
+
+  A numeric value specifying the number of rows in the facet. When
+  facet_by is a single column and facet_wrap is used.
+
+- facet_byrow:
+
+  A logical value indicating whether to fill the plots by row. Default
+  is TRUE.
+
+- ...:
+
+  Other arguments to pass to
+  [ggalluvial::geom_alluvium](http://corybrunson.github.io/ggalluvial/reference/geom_alluvium.md)
+  or
+  [ggalluvial::geom_flow](http://corybrunson.github.io/ggalluvial/reference/geom_flow.md).
+
+## Value
+
+A ggplot object

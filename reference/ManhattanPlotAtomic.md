@@ -1,0 +1,294 @@
+# ManhattanPlotAtomic
+
+Plot a Manhattan plot for atomic data (without splitting). This function
+is borrowed from
+[`ggmanh::manhattan_plot()`](https://rdrr.io/pkg/ggmanh/man/manhattan_plot.html)
+with following customizations:
+
+## Usage
+
+``` r
+ManhattanPlotAtomic(
+  data,
+  chr_by,
+  pos_by,
+  pval_by,
+  label_by = NULL,
+  chromosomes = NULL,
+  pt_size = 0.75,
+  pt_color = NULL,
+  pt_alpha = alpha,
+  pt_shape = 19,
+  label_size = 3,
+  label_fg = NULL,
+  highlight = NULL,
+  highlight_color = NULL,
+  highlight_size = 1.5,
+  highlight_alpha = 1,
+  highlight_shape = 19,
+  preserve_position = TRUE,
+  chr_gap_scaling = 1,
+  pval_transform = "-log10",
+  signif = c(5e-08, 1e-05),
+  signif_color = NULL,
+  signif_rel_pos = 0.2,
+  signif_label = TRUE,
+  signif_label_size = 3.5,
+  signif_label_pos = c("left", "right"),
+  thin = NULL,
+  thin_n = 1000,
+  thin_bins = 200,
+  rescale = TRUE,
+  rescale_ratio_threshold = 5,
+  palette = "Dark2",
+  palcolor = NULL,
+  palreverse = FALSE,
+  alpha = 1,
+  theme = "theme_this",
+  theme_args = list(),
+  title = NULL,
+  subtitle = NULL,
+  xlab = NULL,
+  ylab = expression("-" * log[10](p)),
+  ...
+)
+```
+
+## Arguments
+
+- data:
+
+  A data frame or
+  [`GenomicRanges::GRanges`](https://rdrr.io/pkg/GenomicRanges/man/GRanges-class.html)
+  containing the data to be plotted.
+
+- chr_by:
+
+  Column name for chromosome (default: "chr").
+
+- pos_by:
+
+  Column name for position (default: "pos").
+
+- pval_by:
+
+  Column name for p-value (default: "pval").
+
+- label_by:
+
+  Column name for the variants to be labeled (default: NULL). Only the
+  variants with values in this column will be labeled.
+
+- chromosomes:
+
+  A vector of chromosomes to be plotted (default: NULL). If NULL, all
+  chromosomes will be plotted. It is more of a combination of the
+  `chromosome` and `chr.order` arguments of
+  [`ggmanh::manhattan_plot()`](https://rdrr.io/pkg/ggmanh/man/manhattan_plot.html).
+  We can use it to select chromosomes to be plotted or to set the order
+  of the chromosomes.
+
+- pt_size:
+
+  A numeric value to specify the size of the points in the plot.
+
+- pt_color:
+
+  A character string to specify the color of the points in the plot. By
+  default, the color of the points will be controled by `palette` or
+  `palcolor` arguments. This is useful to color the background points
+  when `highlight` and `highlight_color` are specified.
+
+- pt_alpha:
+
+  A numeric value to specify the transparency of the points in the plot.
+
+- pt_shape:
+
+  A numeric value to specify the shape of the points in the plot.
+
+- label_size:
+
+  A numeric value to specify the size of the labels in the plot.
+
+- label_fg:
+
+  A character string to specify the color of the labels in the plot. If
+  NULL, the color of the labels will be the same as the points.
+
+- highlight:
+
+  Either a vector of indices or a character of expression to select the
+  variants to be highlighted (default: NULL). If NULL, no variants will
+  be highlighted.
+
+- highlight_color:
+
+  A character string to specify the color of the highlighted points.
+
+- highlight_size:
+
+  A numeric value to specify the size of the highlighted points.
+
+- highlight_alpha:
+
+  A numeric value to specify the transparency of the highlighted points.
+
+- highlight_shape:
+
+  A numeric value to specify the shape of the highlighted points.
+
+- preserve_position:
+
+  If TRUE, the width of each chromosome reflect the number of variants
+  and the position of each variant is correctly scaled? If FALSE, the
+  width of each chromosome is equal and the variants are equally spaced.
+
+- chr_gap_scaling:
+
+  A numeric value to specify the scaling of the gap between chromosomes.
+  It is used to adjust the gap between chromosomes in the plot.
+
+- pval_transform:
+
+  A function to transform the p-values (default: -log10). If it is a
+  character, it will be evaluated as a function.
+
+- signif:
+
+  A vector of significance thresholds (default: c(5e-08, 1e-05)).
+
+- signif_color:
+
+  A character vector of equal length as signif. It contains colors for
+  the lines drawn at signif. If NULL, the smallest value is colored
+  black while others are grey.
+
+- signif_rel_pos:
+
+  A numeric between 0.1 and 0.9. If the plot is rescaled,
+
+- signif_label:
+
+  A logical value indicating whether to label the significance
+  thresholds (default: TRUE).
+
+- signif_label_size:
+
+  A numeric value to specify the size of the significance labels.
+
+- signif_label_pos:
+
+  A character string specifying the position of the significance labels.
+  where should the significance threshold be positioned? It can be
+  either "left" or "right" (default: "left").
+
+- thin:
+
+  A logical value indicating whether to thin the data (default: NULL).
+  Defaults to TRUE when `chromosomes` is specified and the length of it
+  is less than the number of chromosomes in the data. Defaults to FALSE
+  otherwise.
+
+- thin_n:
+
+  Number of max points per horizontal partitions of the plot. Defaults
+  to 1000.
+
+- thin_bins:
+
+  Number of bins to partition the data. Defaults to 200.
+
+- rescale:
+
+  A logical value indicating whether to rescale the plot (default:
+  TRUE).
+
+- rescale_ratio_threshold:
+
+  A numeric value to specify the ratio threshold for rescaling.
+
+- palette:
+
+  A character string specifying the palette to use. A named list or
+  vector can be used to specify the palettes for different `split_by`
+  values.
+
+- palcolor:
+
+  A character string specifying the color to use in the palette. A named
+  list can be used to specify the colors for different `split_by`
+  values. If some values are missing, the values from the palette will
+  be used (palcolor will be NULL for those values).
+
+- palreverse:
+
+  A logical value indicating whether to reverse the palette for
+  chromosomes (default: FALSE).
+
+- alpha:
+
+  Alias of `pt_alpha`.
+
+- theme:
+
+  A character string or a theme class (i.e. ggplot2::theme_classic)
+  specifying the theme to use. Default is "theme_this".
+
+- theme_args:
+
+  A list of arguments to pass to the theme function.
+
+- title:
+
+  A character string specifying the title of the plot. A function can be
+  used to generate the title based on the default title. This is useful
+  when split_by is used and the title needs to be dynamic.
+
+- subtitle:
+
+  A character string specifying the subtitle of the plot.
+
+- xlab:
+
+  A character string specifying the x-axis label.
+
+- ylab:
+
+  A character string specifying the y-axis label.
+
+- ...:
+
+  Additional arguments.
+
+## Value
+
+A ggplot object.
+
+## Details
+
+- The dots in argument names are replaced with underscores wherever
+  possible.
+
+- `chr.colname`, `pos.colname`, `pval.colname` and `label.colname` are
+  replaced with `chr_by`, `pos_by`, `pval_by` and `label_by`
+  respectively.
+
+- The `chromosome` and `chr.order` arguments are merged into a single
+  argument `chromosomes`.
+
+- The `highlight.colname` argument is replaced with `highlight`, which
+  can be a vector of indices or a character of expression to select the
+  variants to be highlighted, instead of a column name.
+
+- `point.size` is replaced with `pt_size`
+
+- When `highlight` is specified, the colors of the points will be
+  controled by `pt_color` and `highlight_color` arguments.
+
+- The labels get more controled by `label_*` arguments.
+
+- The highlighted points get more controled by `highlight_*` arguments.
+
+- The `pval_log_transform` argument is replaced with `pval_transform`,
+  which allows to specify a function to transform the p-values.

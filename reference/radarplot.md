@@ -1,0 +1,397 @@
+# Radar plot / Spider plot
+
+Create a radar plot or spider plot for a series of data. Radar plot uses
+circles as the plot grid and Spider plot uses polygons.
+
+## Usage
+
+``` r
+RadarPlot(
+  data,
+  x,
+  x_sep = "_",
+  group_by = NULL,
+  group_by_sep = "_",
+  y = NULL,
+  group_name = NULL,
+  scale_y = c("group", "global", "x", "none"),
+  y_min = 0,
+  y_max = NULL,
+  y_nbreaks = 4,
+  bg_color = "grey80",
+  bg_alpha = 0.1,
+  fill = TRUE,
+  linewidth = 1,
+  pt_size = 4,
+  max_charwidth = 16,
+  split_by = NULL,
+  split_by_sep = "_",
+  theme = "theme_this",
+  theme_args = list(),
+  palette = "Paired",
+  palcolor = NULL,
+  facet_by = NULL,
+  facet_scales = "fixed",
+  facet_ncol = NULL,
+  facet_nrow = NULL,
+  facet_byrow = TRUE,
+  alpha = 0.2,
+  aspect.ratio = 1,
+  legend.position = waiver(),
+  legend.direction = "vertical",
+  title = NULL,
+  subtitle = NULL,
+  seed = 8525,
+  combine = TRUE,
+  nrow = NULL,
+  ncol = NULL,
+  byrow = TRUE,
+  axes = NULL,
+  axis_titles = axes,
+  guides = NULL,
+  design = NULL,
+  ...
+)
+
+SpiderPlot(
+  data,
+  x,
+  x_sep = "_",
+  group_by = NULL,
+  group_by_sep = "_",
+  y = NULL,
+  group_name = NULL,
+  scale_y = c("group", "global", "x", "none"),
+  y_min = 0,
+  y_max = NULL,
+  y_nbreaks = 4,
+  bg_color = "grey80",
+  bg_alpha = 0.1,
+  fill = TRUE,
+  linewidth = 1,
+  pt_size = 4,
+  max_charwidth = 16,
+  split_by = NULL,
+  split_by_sep = "_",
+  theme = "theme_this",
+  theme_args = list(),
+  palette = "Paired",
+  palcolor = NULL,
+  facet_by = NULL,
+  facet_scales = "fixed",
+  facet_ncol = NULL,
+  facet_nrow = NULL,
+  facet_byrow = TRUE,
+  alpha = 0.2,
+  aspect.ratio = 1,
+  legend.position = waiver(),
+  legend.direction = "vertical",
+  title = NULL,
+  subtitle = NULL,
+  seed = 8525,
+  combine = TRUE,
+  nrow = NULL,
+  ncol = NULL,
+  byrow = TRUE,
+  axes = NULL,
+  axis_titles = axes,
+  guides = NULL,
+  design = NULL,
+  ...
+)
+```
+
+## Arguments
+
+- data:
+
+  A data frame.
+
+- x:
+
+  A character string specifying the column name of the data frame to
+  plot for the x-axis.
+
+- x_sep:
+
+  A character string to concatenate the columns in `x`, if multiple
+  columns are provided.
+
+- group_by:
+
+  Columns to group the data for plotting For those plotting functions
+  that do not support multiple groups, They will be concatenated into
+  one column, using `group_by_sep` as the separator
+
+- group_by_sep:
+
+  The separator for multiple group_by columns. See `group_by`
+
+- y:
+
+  A character string specifying the column name of the data frame to
+  plot for the y-axis.
+
+- group_name:
+
+  A character string to name the legend of group.
+
+- scale_y:
+
+  How should the y-axis be scaled? Default is "group". Other options are
+  "global", "x" and "none".
+
+  - If "group", the y-axis will be scaled to the fraction within each
+    group.
+
+  - If "global", the y-axis will be scaled to the fraction of the total.
+
+  - If "x", the y-axis will be scaled to the fraction of the total
+    within each x-axis group.
+
+  - If "none", the y-axis will be scaled to the count of each x-axis
+    group.
+
+- y_min:
+
+  A numeric value to set the minimum value of the y-axis.
+
+- y_max:
+
+  A numeric value to set the maximum value of the y-axis.
+
+- y_nbreaks:
+
+  A numeric value to set the number of breaks in the y-axis.
+
+- bg_color:
+
+  A character string to set the background color of the plot.
+
+- bg_alpha:
+
+  A numeric value to set the transparency of the background color.
+
+- fill:
+
+  A logical value to fill the polygons with colors.
+
+- linewidth:
+
+  A numeric value to set the width of the lines.
+
+- pt_size:
+
+  A numeric value to set the size of the points.
+
+- max_charwidth:
+
+  A numeric value to set the maximum character width for the x labels.
+
+- split_by:
+
+  The column(s) to split data by and plot separately.
+
+- split_by_sep:
+
+  The separator for multiple split_by columns. See `split_by`
+
+- theme:
+
+  A character string or a theme class (i.e. ggplot2::theme_classic)
+  specifying the theme to use. Default is "theme_this".
+
+- theme_args:
+
+  A list of arguments to pass to the theme function.
+
+- palette:
+
+  A character string specifying the palette to use. A named list or
+  vector can be used to specify the palettes for different `split_by`
+  values.
+
+- palcolor:
+
+  A character string specifying the color to use in the palette. A named
+  list can be used to specify the colors for different `split_by`
+  values. If some values are missing, the values from the palette will
+  be used (palcolor will be NULL for those values).
+
+- facet_by:
+
+  A character string specifying the column name of the data frame to
+  facet the plot. Otherwise, the data will be split by `split_by` and
+  generate multiple plots and combine them into one using
+  [`patchwork::wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
+
+- facet_scales:
+
+  Whether to scale the axes of facets. Default is "fixed" Other options
+  are "free", "free_x", "free_y". See
+  [`ggplot2::facet_wrap`](https://ggplot2.tidyverse.org/reference/facet_wrap.html)
+
+- facet_ncol:
+
+  A numeric value specifying the number of columns in the facet. When
+  facet_by is a single column and facet_wrap is used.
+
+- facet_nrow:
+
+  A numeric value specifying the number of rows in the facet. When
+  facet_by is a single column and facet_wrap is used.
+
+- facet_byrow:
+
+  A logical value indicating whether to fill the plots by row. Default
+  is TRUE.
+
+- alpha:
+
+  A numeric value specifying the transparency of the plot.
+
+- aspect.ratio:
+
+  A numeric value specifying the aspect ratio of the plot.
+
+- legend.position:
+
+  A character string specifying the position of the legend. if
+  `waiver()`, for single groups, the legend will be "none", otherwise
+  "right".
+
+- legend.direction:
+
+  A character string specifying the direction of the legend.
+
+- title:
+
+  A character string specifying the title of the plot. A function can be
+  used to generate the title based on the default title. This is useful
+  when split_by is used and the title needs to be dynamic.
+
+- subtitle:
+
+  A character string specifying the subtitle of the plot.
+
+- seed:
+
+  The random seed to use. Default is 8525.
+
+- combine:
+
+  Whether to combine the plots into one when facet is FALSE. Default is
+  TRUE.
+
+- nrow:
+
+  A numeric value specifying the number of rows in the facet.
+
+- ncol:
+
+  A numeric value specifying the number of columns in the facet.
+
+- byrow:
+
+  A logical value indicating whether to fill the plots by row.
+
+- axes:
+
+  A string specifying how axes should be treated. Passed to
+  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
+  Only relevant when `split_by` is used and `combine` is TRUE. Options
+  are:
+
+  - 'keep' will retain all axes in individual plots.
+
+  - 'collect' will remove duplicated axes when placed in the same run of
+    rows or columns of the layout.
+
+  - 'collect_x' and 'collect_y' will remove duplicated x-axes in the
+    columns or duplicated y-axes in the rows respectively.
+
+- axis_titles:
+
+  A string specifying how axis titltes should be treated. Passed to
+  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
+  Only relevant when `split_by` is used and `combine` is TRUE. Options
+  are:
+
+  - 'keep' will retain all axis titles in individual plots.
+
+  - 'collect' will remove duplicated titles in one direction and merge
+    titles in the opposite direction.
+
+  - 'collect_x' and 'collect_y' control this for x-axis titles and
+    y-axis titles respectively.
+
+- guides:
+
+  A string specifying how guides should be treated in the layout. Passed
+  to
+  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
+  Only relevant when `split_by` is used and `combine` is TRUE. Options
+  are:
+
+  - 'collect' will collect guides below to the given nesting level,
+    removing duplicates.
+
+  - 'keep' will stop collection at this level and let guides be placed
+    alongside their plot.
+
+  - 'auto' will allow guides to be collected if a upper level tries, but
+    place them alongside the plot if not.
+
+- design:
+
+  Specification of the location of areas in the layout, passed to
+  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
+  Only relevant when `split_by` is used and `combine` is TRUE. When
+  specified, `nrow`, `ncol`, and `byrow` are ignored. See
+  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
+  for more details.
+
+- ...:
+
+  Additional arguments.
+
+## Value
+
+A ggplot object or wrap_plots object or a list of ggplot objects
+
+## Examples
+
+``` r
+# use the count
+data <- data.frame(
+   x = c(rep("A", 2), rep("B", 3), rep("C", 3), rep("D", 4), rep("E", 5)),
+   group = sample(paste0("G", 1:4), 17, replace = TRUE)
+)
+RadarPlot(data, x = "x")
+
+RadarPlot(data, x = "x", bg_color = "lightpink")
+
+RadarPlot(data, x = "x", scale_y = "none")
+
+RadarPlot(data, x = "x", group_by = "group")
+
+SpiderPlot(data, x = "x")
+
+SpiderPlot(data, x = "x", group_by = "group")
+
+
+# use the y value
+data <- data.frame(
+   x = rep(LETTERS[1:5], 2),
+   y = c(1, 3, 6, 4, 2, 5, 7, 8, 9, 10),
+   group = rep(c("G1", "G2"), each = 5)
+)
+RadarPlot(data, x = "x", y = "y", scale_y = "none", group_by = "group")
+
+RadarPlot(data, x = "x", y = "y", facet_by = "group")
+
+RadarPlot(data, x = "x", y = "y", split_by = "group")
+
+RadarPlot(data, x = "x", y = "y", split_by = "group",
+          palette = c(G1 = "Set1", G2 = "Paired"))
+```

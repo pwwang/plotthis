@@ -1,0 +1,21 @@
+# Excluded words in keyword enrichment analysis and extraction
+
+The variable "words_excluded" represents the words that are excluded
+during keyword enrichment analysis or keyword extraction process. These
+mainly include words that are excessively redundant or of little value.
+
+## Examples
+
+``` r
+# \dontrun{
+if (interactive()) {
+  words_excluded <- c(
+    "the", "is", "and", "or", "a", "in", "on", "under", "between", "of", "through",
+    "via", "along", "that", "for", "with", "within", "without", "cell", "cellular",
+    "dna", "rna", "protein", "peptide", "amino", "acid", "development", "involved",
+    "organization", "system", "regulation", "regulated", "positive", "negative",
+    "response", "process", "processing", "small", "large", "change", "disease"
+  )
+}
+# }
+```
