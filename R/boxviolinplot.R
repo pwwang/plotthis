@@ -532,9 +532,9 @@ BoxViolinPlotAtomic <- function(
                 y_max_use <- layer_scales(p)$y$range$range[2]
             }
         } else if (!isTRUE(multiplegroup_comparisons)) {
-            if (!is.null(group_by)) {
-                stop("`comparisons` can only be used when `group_by` is NULL is TRUE.")
-            }
+            # if (!is.null(group_by)) {
+            #     stop("`comparisons` can only be used when `group_by` is NULL is TRUE.")
+            # }
             # Convert comparisons to indices
             comparisons <- lapply(
                 comparisons,
