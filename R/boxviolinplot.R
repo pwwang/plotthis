@@ -593,6 +593,10 @@ BoxViolinPlotAtomic <- function(
 
                     for (xval in names(xdata)) {
                         df <- xdata[[xval]]
+                        if (nrow(df) < 2) {
+                            xdata[[xval]] <- df
+                            next
+                        }
                         yval <- df[[y]]
 
                         # Handle all NA cases
