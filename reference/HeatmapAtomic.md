@@ -532,7 +532,8 @@ HeatmapAtomic(
   [`ComplexHeatmap::Heatmap()`](https://rdrr.io/pkg/ComplexHeatmap/man/Heatmap.html)
   When `row_names_max_width` is passed, a unit is expected. But you can
   also pass a numeric values, with a default unit "inches", or a string
-  like "5inches" to specify the number and unit directly.
+  like "5inches" to specify the number and unit directly. Unmatched
+  arguments will be warned and ignored.
 
 ## Value
 
