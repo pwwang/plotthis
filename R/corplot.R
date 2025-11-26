@@ -1,3 +1,246 @@
+#' Calculate Annotation Item
+#' @description Helper function to calculate individual annotation items
+#' @param item Annotation item type
+#' @param dat Data frame
+#' @param x X variable name
+#' @param y Y variable name
+#' @param m Linear model object
+#' @return Character string of formatted annotation expression
+#' @noRd
+calculate_annotation <- function(item, dat, x, y, m) {
+  if (item == "eq") {
+    coefs <- coef(m)
+    if (is.na(coefs[2])) {
+      return(as.character(as.expression(substitute(italic(y) == "NaN"))))
+    }
+    a <- format(as.numeric(coefs[1]), digits = 2)
+    b <- format(as.numeric(abs(coefs[2])), digits = 2)
+    if (coefs[2] >= 0) {
+      anno_eq <- substitute(italic(y) == a + b %.% italic(x), list(a = a, b = b))
+    } else {
+      anno_eq <- substitute(italic(y) == a - b %.% italic(x), list(a = a, b = b))
+    }
+    return(as.character(as.expression(anno_eq)))
+    
+  } else if (item == "r2") {
+    r2 <- format(summary(m)$r.squared, digits = 2)
+    anno_r2 <- substitute(italic(r)^2 ~ "=" ~ r2, list(r2 = r2))
+    return(as.character(as.expression(anno_r2)))
+    
+  } else if (item == "p") {
+    coefs <- summary(m)$coefficients
+    if (nrow(coefs) < 2 || all(is.na(coefs[2, ]))) {
+      anno_p <- substitute(italic("coeff.") ~ italic(p) ~ "=" ~ "NA")
+    } else {
+      pval <- format(coefs[2, 4], digits = 2)
+      anno_p <- substitute(italic("coeff.") ~ italic(p) ~ "=" ~ pvalue, list(pvalue = pval))
+    }
+    return(as.character(as.expression(anno_p)))
+    
+  } else if (item == "spearman") {
+    rho <- cor(dat[[x]], dat[[y]], method = "spearman")
+    anno_rho <- substitute(italic("spearman's") ~ italic(rho) ~ "=" ~ value, 
+                          list(value = format(rho, digits = 2)))
+    return(as.character(as.expression(anno_rho)))
+    
+  } else if (item == "pearson") {
+    r <- cor(dat[[x]], dat[[y]], method = "pearson")
+    anno_r <- substitute(italic("pearson's") ~ italic(r) ~ "=" ~ value, 
+                        list(value = format(r, digits = 2)))
+    return(as.character(as.expression(anno_r)))
+    
+  } else if (item == "kendall") {
+    tau <- cor(dat[[x]], dat[[y]], method = "kendall")
+    anno_tau <- substitute(italic("kendall's") ~ italic(tau) ~ "=" ~ value, 
+                          list(value = format(tau, digits = 2)))
+    return(as.character(as.expression(anno_tau)))
+    
+  } else if (item == "n") {
+    n <- nrow(dat)
+    anno_n <- substitute(italic(N) ~ "=" ~ value, list(value = n))
+    return(as.character(as.expression(anno_n)))
+    
+  } else {
+    stop("Unknown annotation item: ", item, 
+         ". Expected: eq, r2, p, spearman, pearson, kendall, n")
+  }
+}
+
+
+#' Add Point Layers (Normal + Highlight)
+#' @description Unified function to add point layers with optional highlighting
+#' @noRd
+add_point_layers <- function(p, data, x, y, group_by, 
+                             pt_size, pt_shape, alpha,
+                             raster, raster_dpi,
+                             highlight_color, highlight_size, 
+                             highlight_alpha, highlight_stroke) {
+  
+  normal_data <- data[!data$.highlight, , drop = FALSE]
+  highlight_data <- data[data$.highlight, , drop = FALSE]
+  
+  if (isTRUE(raster)) {
+    # Raster mode
+    if (nrow(normal_data) > 0) {
+      p <- p + scattermore::geom_scattermore(
+        data = normal_data, 
+        aes(color = !!sym(group_by)),
+        pointsize = ceiling(pt_size), 
+        alpha = alpha, 
+        pixels = raster_dpi
+      )
+    }
+    
+    if (nrow(highlight_data) > 0) {
+      p <- p +
+        scattermore::geom_scattermore(
+          data = highlight_data, 
+          aes(x = !!sym(x), y = !!sym(y)), 
+          color = highlight_color, 
+          pointsize = floor(highlight_size) + highlight_stroke,
+          alpha = highlight_alpha, 
+          pixels = raster_dpi, 
+          inherit.aes = FALSE
+        ) +
+        scattermore::geom_scattermore(
+          data = highlight_data, 
+          aes(color = !!sym(group_by)), 
+          pointsize = floor(highlight_size),
+          alpha = highlight_alpha, 
+          pixels = raster_dpi
+        )
+    }
+  } else {
+    # Normal mode
+    p <- p + geom_point(
+      aes(color = !!sym(group_by)), 
+      size = pt_size, 
+      shape = pt_shape, 
+      alpha = alpha
+    )
+    
+    if (nrow(highlight_data) > 0) {
+      p <- p +
+        geom_point(
+          data = highlight_data, 
+          aes(x = !!sym(x), y = !!sym(y)), 
+          color = highlight_color, 
+          size = highlight_size + highlight_stroke,
+          shape = pt_shape, 
+          alpha = highlight_alpha, 
+          inherit.aes = FALSE
+        ) +
+        geom_point(
+          data = highlight_data, 
+          aes(color = !!sym(group_by)), 
+          size = highlight_size, 
+          shape = pt_shape,
+          alpha = highlight_alpha
+        )
+    }
+  }
+  
+  return(p)
+}
+
+
+#' Get Diagonal Plot Info
+#' @noRd
+get_diag_info <- function(i, layout, n_cols, diag_type) {
+  diag_no_x_axis <- diag_type %in% c("box", "violin", "none")
+  xaxis <- yaxis <- xlab <- ylab <- "none"
+  
+  if (layout %in% c(".\\", "/.")) {
+    if (i == 1) {  # top corner
+      yaxis <- ifelse(diag_type == "none", "none", 
+                     ifelse(layout == ".\\", "left", "right"))
+      xlab <- "top"
+    } else if (i == n_cols) {  # bottom corner
+      xaxis <- ifelse(diag_no_x_axis, "none", "bottom")
+      ylab <- ifelse(layout == ".\\", "right", "left")
+    }
+  } else {  # layout %in% c("\\.", "./")
+    if (i == 1) {  # top corner
+      xaxis <- ifelse(diag_no_x_axis, "none", "top")
+      xlab <- "none"
+      ylab <- ifelse(layout == "\\.", "left", "right")
+    } else if (i == n_cols) {  # bottom corner
+      yaxis <- ifelse(diag_type == "none", "none", 
+                     ifelse(layout == "\\.", "right", "left"))
+      xlab <- "bottom"
+    }
+  }
+  
+  list(type = layout, xaxis = xaxis, yaxis = yaxis, xlab = xlab, ylab = ylab)
+}
+
+
+#' Get Upper Triangle Plot Info
+#' @noRd
+get_upper_info <- function(i, j1, layout, n_cols) {
+  xaxis <- yaxis <- xlab <- ylab <- "none"
+  
+  if (layout %in% c(".\\", "/.")) {
+    xlab <- ifelse(i > 1, "none", "top")
+    ylab <- ifelse(j1 < n_cols, "none", ifelse(layout == "/.", "left", "right"))
+    type <- "fill"
+  } else {  # layout %in% c("\\.", "./")
+    xaxis <- ifelse(i > 1, "none", "top")
+    yaxis <- ifelse(j1 < n_cols, "none", ifelse(layout == "\\.", "right", "left"))
+    type <- "cor"
+  }
+  
+  list(type = type, xaxis = xaxis, yaxis = yaxis, xlab = xlab, ylab = ylab)
+}
+
+
+#' Get Lower Triangle Plot Info
+#' @noRd
+get_lower_info <- function(i, j1, layout, n_cols) {
+  xaxis <- yaxis <- xlab <- ylab <- "none"
+  
+  if (layout %in% c(".\\", "/.")) {
+    xaxis <- ifelse(i < n_cols, "none", "bottom")
+    yaxis <- ifelse(j1 > 1, "none", ifelse(layout == "/.", "right", "left"))
+    type <- "cor"
+  } else {  # layout %in% c("\\.", "./")
+    xlab <- ifelse(i < n_cols, "none", "bottom")
+    ylab <- ifelse(j1 > 1, "none", ifelse(layout == "\\.", "left", "right"))
+    type <- "fill"
+  }
+  
+  list(type = type, xaxis = xaxis, yaxis = yaxis, xlab = xlab, ylab = ylab)
+}
+
+
+#' Format Correlation Text
+#' @description Format correlation value with custom format string
+#' @param cor_format Format string (supports {x}, {y}, {corr}, {round(corr, 2)})
+#' @param x X variable name
+#' @param y Y variable name  
+#' @param corr Correlation value
+#' @return Formatted string
+#' @noRd
+format_cor_text <- function(cor_format, x, y, corr) {
+  # Simple string interpolation without glue dependency
+  text <- cor_format
+  text <- gsub("\\{x\\}", x, text)
+  text <- gsub("\\{y\\}", y, text)
+  
+  # Handle expressions like {round(corr, 2)}
+  if (grepl("\\{.*corr.*\\}", text)) {
+    expr_match <- regmatches(text, regexpr("\\{[^}]+\\}", text))
+    expr_code <- gsub("[{}]", "", expr_match)
+    expr_result <- eval(parse(text = expr_code))
+    text <- gsub("\\{[^}]+\\}", expr_result, text)
+  } else {
+    text <- gsub("\\{corr\\}", sprintf("%.2f", corr), text)
+  }
+  
+  return(text)
+}
+
+
 #' Atomic Correlation Plot
 #'
 #' @description Generate scatter correlation plot for two variables.
@@ -81,87 +324,25 @@ CorPlotAtomic <- function(
     base_size <- theme_args$base_size %||% 12
     text_size_scale <- base_size / 12
 
-    # Calcuate the equation of the line, r-squared, and rho
+    # Calculate annotations using the new helper function
     annodata <- data %>%
         dplyr::group_by(!!!syms(facet_by)) %>%
         group_modify(function(dat, g) {
-            m <- lm(data[[y]] ~ data[[x]])
-            anno <- c()
-            for (item in anno_items) {
-                if (item == "eq") {
-                    a <- format(as.numeric(coef(m)[1]), digits = 2)
-                    b <- format(as.numeric(abs(coef(m)[2])), digits = 2)
-                    if (is.na(coef(m)[2])) {
-                        anno_eq <- substitute(
-                            italic(y) == "NaN"
-                        )
-                    } else if (coef(m)[2] >= 0) {
-                        anno_eq <- substitute(
-                            italic(y) == a + b %.% italic(x),
-                            list(a = a, b = b)
-                        )
-                    } else {
-                        anno_eq <- substitute(
-                            italic(y) == a - b %.% italic(x),
-                            list(a = a, b = b)
-                        )
-                    }
-                    anno <- c(anno, as.character(as.expression(anno_eq)))
-                } else if (item == "r2") {
-                    anno_r2 <- substitute(
-                        italic(r)^2 ~ "=" ~ r2,
-                        list(r2 = format(summary(m)$r.squared, digits = 2))
-                    )
-                    anno <- c(anno, as.character(as.expression(anno_r2)))
-                } else if (item == "p") {
-                    coefs <- summary(m)$coefficients
-                    if (nrow(coefs) < 2 || all(is.na(coefs[2, ]))) {
-                        # Case: x is constant → no slope, no p-value
-                        anno_p <- substitute(
-                            italic("coeff.") ~ italic(p) ~ "=" ~ "NA"
-                        )
-                    } else {
-                        anno_p <- substitute(
-                            italic("coeff.") ~ italic(p) ~ "=" ~ pvalue,
-                            list(
-                                pvalue = format(
-                                    coefs[2, 4],
-                                    digits = 2
-                                )
-                            )
-                        )
-                    }
-                    anno <- c(anno, as.character(as.expression(anno_p)))
-                } else if (item == "spearman") {
-                    rho <- cor(dat[[x]], dat[[y]], method = "spearman")
-                    anno_rho <- substitute(italic("spearman's") ~ italic(rho) ~ "=" ~ value, list(value = format(rho, digits = 2)))
-                    anno <- c(anno, as.character(as.expression(anno_rho)))
-                } else if (item == "pearson") {
-                    r <- cor(dat[[x]], dat[[y]], method = "pearson")
-                    anno_r <- substitute(italic("pearson's") ~ italic(r) ~ "=" ~ value, list(value = format(r, digits = 2)))
-                    anno <- c(anno, as.character(as.expression(anno_r)))
-                } else if (item == "kendall") {
-                    tau <- cor(dat[[x]], dat[[y]], method = "kendall")
-                    anno_tau <- substitute(italic("kendall's") ~ italic(tau) ~ "=" ~ value, list(value = format(tau, digits = 2)))
-                    anno <- c(anno, as.character(as.expression(anno_tau)))
-                } else if (item == "n") {
-                    n <- nrow(dat)
-                    anno_n <- substitute(italic(N) ~ "=" ~ value, list(value = n))
-                    anno <- c(anno, as.character(as.expression(anno_n)))
-                } else {
-                    stop("Unknown annotation item: ", item, ". Expect: eq, r2, p, spearman, pearson, kendall, n")
-                }
-            }
+            m <- lm(dat[[y]] ~ dat[[x]])
+            anno <- sapply(anno_items, function(item) {
+                calculate_annotation(item, dat, x, y, m)
+            }, USE.NAMES = FALSE)
             data.frame(anno = anno)
         })
 
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y)))
 
+    # Process highlight - FIXED BUG HERE
     data$.highlight <- FALSE
     if (!is.null(highlight)) {
         if (isTRUE(highlight)) {
             data$.highlight <- TRUE
-        } else if (length(highlight == 1 && is.character(highlight))) {
+        } else if (length(highlight) == 1 && is.character(highlight)) {  # FIXED: length(highlight) not length(highlight == 1)
             data <- data %>% mutate(.highlight = eval(parse(text = highlight)))
         } else {
             all_inst <- rownames(data) %||% 1:nrow(data)
@@ -176,40 +357,14 @@ CorPlotAtomic <- function(
         }
     }
 
-    if (isTRUE(raster)) {
-        # Normal points
-        if (sum(data$.highlight == FALSE) > 0) {
-            p <- p + scattermore::geom_scattermore(
-                data = data[data$.highlight == FALSE, , drop = FALSE], aes(color = !!sym(group_by)),
-                pointsize = ceiling(pt_size), alpha = alpha, pixels = raster_dpi
-            )
-        }
-        # Highlight points
-        if (sum(data$.highlight) > 0) {
-            hi_df <- data[data$.highlight, , drop = FALSE]
-            p <- p +
-                scattermore::geom_scattermore(
-                    data = hi_df, aes(x = !!sym(x), y = !!sym(y)), color = highlight_color, pointsize = floor(highlight_size) + highlight_stroke,
-                    alpha = highlight_alpha, pixels = raster_dpi, inherit.aes = FALSE) +
-                scattermore::geom_scattermore(
-                    data = hi_df, aes(color = !!sym(group_by)), pointsize = floor(highlight_size),
-                    alpha = highlight_alpha, pixels = raster_dpi)
-            rm(hi_df)
-        }
-    } else {
-        # Normal points
-        p <- p + geom_point(aes(color = !!sym(group_by)), size = pt_size, shape = pt_shape, alpha = alpha)
-        # Highlight points
-        if (sum(data$.highlight) > 0) {
-            hi_df <- data[data$.highlight, , drop = FALSE]
-            p <- p +
-                geom_point(data = hi_df, aes(x = !!sym(x), y = !!sym(y)), color = highlight_color, size = highlight_size + highlight_stroke,
-                    shape = pt_shape, alpha = highlight_alpha, inherit.aes = FALSE) +
-                geom_point(data = hi_df, aes(color = !!sym(group_by)), size = highlight_size, shape = pt_shape,
-                    alpha = highlight_alpha)
-            rm(hi_df)
-        }
-    }
+    # Add points using unified function
+    p <- add_point_layers(
+        p, data, x, y, group_by,
+        pt_size, pt_shape, alpha,
+        raster, raster_dpi,
+        highlight_color, highlight_size,
+        highlight_alpha, highlight_stroke
+    )
 
     anno_x <- ifelse(grepl("left", anno_position), -Inf, Inf)
     anno_y <- ifelse(grepl("top", anno_position), Inf, -Inf)
@@ -288,7 +443,6 @@ CorPlot <- function(
 
     if (!is.null(split_by)) {
         datas <- split(data, data[[split_by]])
-        # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
     } else {
         datas <- list(data)
@@ -350,8 +504,8 @@ CorPlot <- function(
 #' @param cor_palette The color palette for the correlation tile plots.
 #' @param cor_palcolor Custom colors used to create a color palette for the correlation tile plots.
 #' @param cor_size The size of the correlation text.
-#' @param cor_format The format of the correlation text. Default is "corr: %.2f".
-#'  It will be formatted using \code{sprintf(cor_format, corr)}.
+#' @param cor_format The format of the correlation text. Default is "corr: {round(corr, 2)}".
+#'  Supports {x}, {y}, {corr}, and expressions like {round(corr, 2)}.
 #' @param cor_fg The color of the correlation text.
 #' @param cor_bg The background color of the correlation text.
 #' @param cor_bg_r The radius of the background of the correlation text.
@@ -405,55 +559,19 @@ CorPairsPlotAtomic <- function(
     base_size <- theme_args$base_size %||% 12
     text_size_scale <- base_size / 12
 
-    # get the plot info (plotype, axis position, etc.) based on the layout
+    # Simplified get_plot_info using helper functions
     get_plot_info <- function(i, j, j1) {
-        diag_no_x_axis <- diag_type %in% c("box", "violin", "none")
-        xaxis <- yaxis <- xlab <- ylab <- "none"
-        if (i == j1) {  # diagonal
-            if (layout %in% c(".\\", "/.")) {
-                if (i == 1) {  # top corner
-                    yaxis <- ifelse(diag_type == "none", "none", ifelse(layout == ".\\", "left", "right"))
-                    xlab <- "top"
-                } else if (i == length(columns)) {  # bottom corner
-                    xaxis <- ifelse(diag_no_x_axis, "none", "bottom")
-                    ylab <- ifelse(layout == ".\\", "right", "left")
-                }
-            } else {  # layout %in% c("\\.", "./")
-                if (i == 1) {  # top corner
-                    xaxis <- ifelse(diag_no_x_axis, "none", "top")
-                    xlab <- "none"
-                    ylab <- ifelse(layout == "\\.", "left", "right")
-                } else if (i == length(columns)) {  # bottom corner
-                    yaxis <- ifelse(diag_type == "none", "none", ifelse(layout == "\\.", "right", "left"))
-                    xlab <- "bottom"
-                }
-            }
-            return(list(type = layout, xaxis = xaxis, yaxis = yaxis, xlab = xlab, ylab = ylab))
-        } else if (i < j1) {  # upper triangle
-            if (layout %in% c(".\\", "/.")) {
-                xlab <- ifelse(i > 1, "none", "top")
-                ylab <- ifelse(j1 < length(columns), "none", ifelse(layout == "/.", "left", "right"))
-                return(list(type = "fill", xaxis = xaxis, yaxis = yaxis, xlab = xlab, ylab = ylab))
-            } else {  # layout %in% c("\\.", "./")
-                xaxis <- ifelse(i > 1, "none", "top")
-                yaxis <- ifelse(j1 < length(columns), "none", ifelse(layout == "\\.", "right", "left"))
-                return(list(type = "cor", xaxis = xaxis, yaxis = yaxis, xlab = xlab, ylab = ylab))
-            }
-        } else {  # i > j1, lower triangle
-            if (layout %in% c(".\\", "/.")) {
-                xaxis <- ifelse(i < length(columns), "none", "bottom")
-                yaxis <- ifelse(j1 > 1, "none", ifelse(layout == "/.", "right", "left"))
-                return(list(type = "cor", xaxis = xaxis, yaxis = yaxis, xlab = xlab, ylab = ylab))
-            } else {  # layout %in% c("\\.", "./")
-                xlab <- ifelse(i < length(columns), "none", "bottom")
-                ylab <- ifelse(j1 > 1, "none", ifelse(layout == "\\.", "left", "right"))
-                return(list(type = "fill", xaxis = xaxis, yaxis = yaxis, xlab = xlab, ylab = ylab))
-            }
+        n_cols <- length(columns)
+        if (i == j1) {
+            return(get_diag_info(i, layout, n_cols, diag_type))
+        } else if (i < j1) {
+            return(get_upper_info(i, j1, layout, n_cols))
+        } else {
+            return(get_lower_info(i, j1, layout, n_cols))
         }
     }
 
     get_plot <- function(x, y, info) {
-        # Use facet to add label
         expand <- c(0, 0)
         if (diag_type == "none") {
             if (info$type %in% c("./", "/.")) {
@@ -471,8 +589,6 @@ CorPairsPlotAtomic <- function(
             info$type <- diag_type
         }
         if (info$type == "density") {
-            # Use guides instead of legend.position to remove the legend
-            # This way & theme(legend.position = ...) can work as expected
             args <- diag_args
             args$data <- data
             args$x <- x
@@ -533,11 +649,14 @@ CorPairsPlotAtomic <- function(
             }
         } else if (info$type == "fill") {
             corr <- cor(data[[x]], data[[y]], method = cor_method)
-            # x, y for cor_format
-            p <- ggplot(data.frame(i = 0.5, j = 0.5, x = y, y = x, corr = corr), aes(x = i, y = j, fill = corr)) +
+            # Format correlation text without glue dependency
+            cor_text <- format_cor_text(cor_format, x = y, y = x, corr = corr)
+            
+            p <- ggplot(data.frame(i = 0.5, j = 0.5, x = y, y = x, corr = corr, label = cor_text), 
+                       aes(x = i, y = j, fill = corr)) +
                 geom_tile(width = 1, height = 1) +
                 geom_text_repel(
-                    mapping = aes(label = glue(cor_format)),
+                    mapping = aes(label = label),
                     segment.color = "transparent", force = 0,
                     color = cor_fg, bg.color = cor_bg, bg.r = cor_bg_r,
                     size = text_size_scale * cor_size, seed = seed) +
@@ -552,7 +671,6 @@ CorPairsPlotAtomic <- function(
         p <- p + do.call(theme, theme_args)
 
         suppressMessages({
-            # place the axis and labels
             if (info$type %in% c("violin", "box")) {
                 scale_x <- scale_x_discrete
                 expand <- waiver()
@@ -600,11 +718,6 @@ CorPairsPlotAtomic <- function(
         for (j in seq_along(columns)) {
             j1 <- ifelse(layout %in% c("./", "/."), length(columns) - j + 1, j)
             info <- get_plot_info(i, j, j1)
-            # For debugging
-            # info$i <- i
-            # info$j <- j
-            # info$j1 <- j1
-            # str(info)
             p <- get_plot(columns[j1], columns[i], info)
             plots <- c(plots, list(p))
         }
@@ -614,7 +727,6 @@ CorPairsPlotAtomic <- function(
         plot_layout(guides = "collect") +
         plot_annotation(title = title, subtitle = subtitle) &
         ggplot2::theme(legend.position = legend.position, legend.direction = legend.direction)
-    # so that the plot title can be displayed
     p <- patchwork::wrap_elements(p)
 
     height <- width <- sqrt(length(columns)) * 4
@@ -640,7 +752,6 @@ CorPairsPlotAtomic <- function(
 #' @inheritParams CorPairsPlotAtomic
 #' @return A `patch_work::wrap_plots` object or a list of them if `combine` is `FALSE`.
 #' @export
-#' @importFrom glue glue
 #' @examples
 #' \donttest{
 #' set.seed(8525)
@@ -681,7 +792,6 @@ CorPairsPlot <- function(
 
     if (!is.null(split_by)) {
         datas <- split(data, data[[split_by]])
-        # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
     } else {
         datas <- list(data)
