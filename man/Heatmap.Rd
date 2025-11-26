@@ -423,7 +423,8 @@ See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details
 
 \item{...}{Other arguments passed to \code{\link[ComplexHeatmap:Heatmap]{ComplexHeatmap::Heatmap()}}
 When \code{row_names_max_width} is passed, a unit is expected. But you can also pass a numeric values,
-with a default unit "inches", or a string like "5inches" to specify the number and unit directly.}
+with a default unit "inches", or a string like "5inches" to specify the number and unit directly.
+Unmatched arguments will be warned and ignored.}
 }
 \description{
 Heatmap is a popular way to visualize data in matrix format. It is widely used in biology to visualize gene expression data in microarray and RNA-seq data. The heatmap is a matrix where rows represent the samples and columns represent the features. The color of each cell represents the value of the feature in the sample. The color can be continuous or discrete. The heatmap can be split by the columns or rows to show the subgroups in the data. The heatmap can also be annotated by the columns or rows to show the additional information of the samples or features.

@@ -313,7 +313,8 @@ The default is \code{mean}.}
 
 \item{...}{Other arguments passed to \code{\link[ComplexHeatmap:Heatmap]{ComplexHeatmap::Heatmap()}}
 When \code{row_names_max_width} is passed, a unit is expected. But you can also pass a numeric values,
-with a default unit "inches", or a string like "5inches" to specify the number and unit directly.}
+with a default unit "inches", or a string like "5inches" to specify the number and unit directly.
+Unmatched arguments will be warned and ignored.}
 }
 \value{
 A drawn HeatmapList object if \code{return_grob = FALSE}. Otherwise, a grob/gTree object.

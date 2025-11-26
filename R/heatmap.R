@@ -1007,6 +1007,7 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
 #' @param ... Other arguments passed to [ComplexHeatmap::Heatmap()]
 #' When `row_names_max_width` is passed, a unit is expected. But you can also pass a numeric values,
 #' with a default unit "inches", or a string like "5inches" to specify the number and unit directly.
+#' Unmatched arguments will be warned and ignored.
 #' @importFrom circlize colorRamp2
 #' @importFrom dplyr group_by across ungroup %>% all_of summarise first slice_sample everything group_map
 #' @importFrom tidyr pivot_longer pivot_wider unite expand_grid
@@ -1859,7 +1860,12 @@ HeatmapAtomic <- function(
             height <- height + 1.5
         }
     }
-
+    unknown_args <- setdiff(names(hmargs), methods::formalArgs(ComplexHeatmap::Heatmap))
+    if (length(unknown_args) > 0) {
+        warning("[Heatmap] Unknown arguments to ComplexHeatmap::Heatmap(): ",
+            paste(unknown_args, collapse = ", "))
+        hmargs <- hmargs[setdiff(names(hmargs), unknown_args)]
+    }
     p <- do.call(ComplexHeatmap::Heatmap, hmargs)
     mat <- p@matrix
     if (isTRUE(return_grob)) {
