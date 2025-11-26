@@ -942,7 +942,6 @@ DimPlot(dim_example, group_by = "clusters",  split_by = "group",
 # velocity plot
 DimPlot(dim_example, group_by = "clusters", velocity = c("stochasticbasis_1", "stochasticbasis_2"),
     pt_alpha = 0)
-#> Warning: [VelocityPlot] 'arrow()' in ggplot2 >= 4.0.0 does not support varying lengths. Using fixed length instead. See https://github.com/tidyverse/ggplot2/issues/6594 for details.
 #> Warning: Removed 1 row containing missing values or values outside the scale range
 #> (`geom_segment()`).
 

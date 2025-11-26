@@ -262,7 +262,6 @@ data(dim_example)
 VelocityPlot(dim_example[, 1:2], dim_example[, 3:4])
 
 VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], group_by = dim_example$clusters)
-#> Warning: [VelocityPlot] 'arrow()' in ggplot2 >= 4.0.0 does not support varying lengths. Using fixed length instead. See https://github.com/tidyverse/ggplot2/issues/6594 for details.
 
 VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], plot_type = "grid")
 

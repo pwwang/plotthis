@@ -491,7 +491,6 @@ Network(relations, actors, theme = "theme_blank", theme_args = list(add_coord = 
 Network(relations, actors, link_weight_by = "friendship", node_size_by = "age",
  link_weight_name = "FRIENDSHIP", node_fill_by = "gender", link_color_by = "to",
  link_type_by = "type", node_color_by = "black", layout = "circle", link_curvature = 0.2)
-#> Warning: Using `link_type_by` with ggplot2 >= 4.0.0 (ggraph <= 2.2.2) is not supported. Set to 'solid'. See https://github.com/thomasp85/ggraph/issues/394 for details.
 
 Network(relations, actors, layout = "tree", directed = FALSE, cluster = "fast_greedy",
  add_mark = TRUE)
