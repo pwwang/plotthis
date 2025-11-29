@@ -295,7 +295,8 @@ ROCCurve(data, truth_by = "D", score_by = "M1", facet_by = "gender")
 # Show cutoffs
 ROCCurve(data, truth_by = "D", score_by = "M1", cutoffs_at = c(0, "ROC01", "SpEqualSe"))
 # Split by a column
-p <- ROCCurve(data, truth_by = "D", score_by = "M1", split_by = "gender")
+p <- ROCCurve(data, truth_by = "D", score_by = "M1", split_by = "gender",
+   cutoffs_at = c(0.2, "MaxSpSe"))
 p
 # Retrieve the AUC values
 attr(p, "auc")
