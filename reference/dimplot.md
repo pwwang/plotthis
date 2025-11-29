@@ -893,13 +893,9 @@ DimPlot(dim_example, group_by = "clusters", add_density = TRUE)
 DimPlot(dim_example, group_by = "clusters", add_density = TRUE, density_filled = TRUE)
 #> Warning: Removed 396 rows containing missing values or values outside the scale range
 #> (`geom_raster()`).
-#> Warning: Removed 396 rows containing missing values or values outside the scale range
-#> (`geom_raster()`).
 
 DimPlot(dim_example, group_by = "clusters", add_density = TRUE, density_filled = TRUE,
     density_filled_palette = "Blues", highlight = TRUE)
-#> Warning: Removed 396 rows containing missing values or values outside the scale range
-#> (`geom_raster()`).
 #> Warning: Removed 396 rows containing missing values or values outside the scale range
 #> (`geom_raster()`).
 
@@ -911,18 +907,12 @@ DimPlot(dim_example, group_by = "clusters", stat_by = "group",
 DimPlot(dim_example, group_by = "clusters", hex = TRUE)
 #> Warning: Removed 1 row containing missing values or values outside the scale range
 #> (`geom_hex()`).
-#> Warning: Removed 1 row containing missing values or values outside the scale range
-#> (`geom_hex()`).
 
 DimPlot(dim_example, group_by = "clusters", hex = TRUE, hex_bins = 20)
 #> Warning: Removed 5 rows containing missing values or values outside the scale range
 #> (`geom_hex()`).
-#> Warning: Removed 5 rows containing missing values or values outside the scale range
-#> (`geom_hex()`).
 
 DimPlot(dim_example, group_by = "clusters", hex = TRUE, hex_count = FALSE)
-#> Warning: Removed 1 row containing missing values or values outside the scale range
-#> (`geom_hex()`).
 #> Warning: Removed 1 row containing missing values or values outside the scale range
 #> (`geom_hex()`).
 
@@ -980,17 +970,11 @@ FeatureDimPlot(dim_example, features = c("stochasticbasis_1", "stochasticbasis_2
 
 FeatureDimPlot(dim_example, features = c("stochasticbasis_1", "stochasticbasis_2"),
  hex = TRUE, hex_bins = 15)
-#> Warning: Removed 4 rows containing missing values or values outside the scale range
-#> (`geom_hex()`).
 #> Warning: Removed 8 rows containing missing values or values outside the scale range
 #> (`geom_hex()`).
 
 FeatureDimPlot(dim_example, features = c("stochasticbasis_1", "stochasticbasis_2"),
  hex = TRUE, hex_bins = 15, split_by = "group", palette = list(A = "Reds", B = "Blues"))
-#> Warning: Removed 3 rows containing missing values or values outside the scale range
-#> (`geom_hex()`).
-#> Warning: Removed 4 rows containing missing values or values outside the scale range
-#> (`geom_hex()`).
 #> Warning: Removed 6 rows containing missing values or values outside the scale range
 #> (`geom_hex()`).
 #> Warning: Removed 8 rows containing missing values or values outside the scale range

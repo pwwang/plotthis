@@ -27,7 +27,10 @@ theme_this(aspect.ratio = NULL, base_size = NULL, font_family = NULL, ...)
   The font family of the text If not specified, it will use the value
   from `getOption("theme_this.font_family")`. If you want to change the
   default font family, you can set the option `theme_this.font_family`.
-  This is applied to all plots using this theme.
+  This is applied to all plots using this theme. You can choose from the
+  built-in fonts in `plotthis`, system fonts, or Google fonts. See
+  [`list_fonts()`](https://pwwang.github.io/plotthis/reference/list_fonts.md)
+  for available fonts.
 
 - ...:
 

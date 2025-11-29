@@ -258,6 +258,12 @@ Functions for plot theming
   [`element_grob(`*`<element_textbox>`*`)`](https://pwwang.github.io/plotthis/reference/element_textbox.md)
   : Theme element that add a box to the text
 
+- [`list_fonts()`](https://pwwang.github.io/plotthis/reference/list_fonts.md)
+  : List fonts
+
+- [`import_font()`](https://pwwang.github.io/plotthis/reference/import_font.md)
+  : Import a font
+
 ## Data
 
 Built-in data for plotting or examples
