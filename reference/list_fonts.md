@@ -52,17 +52,14 @@ list_fonts(family_only = TRUE, source = "all")
 #> [1] "LiberationSans"
 #> 
 #> $system
-#>  [1] "C059"                   "D050000L"               "Nimbus Mono PS"        
-#>  [4] "Nimbus Roman"           "Nimbus Sans"            "Nimbus Sans Narrow"    
-#>  [7] "P052"                   "Standard Symbols PS"    "URW Bookman"           
-#> [10] "URW Gothic"             "Z003"                   "DejaVu Math TeX Gyre"  
-#> [13] "DejaVu Sans"            "DejaVu Sans Light"      "DejaVu Sans Condensed" 
-#> [16] "DejaVu Sans Mono"       "DejaVu Serif"           "DejaVu Serif Condensed"
-#> [19] "Droid Sans Fallback"    "Lato Black"             "Lato"                  
-#> [22] "Lato Hairline"          "Lato Heavy"             "Lato Light"            
-#> [25] "Lato Medium"            "Lato Semibold"          "Lato Thin"             
-#> [28] "Liberation Mono"        "Liberation Sans"        "Liberation Serif"      
-#> [31] "Noto Color Emoji"       "Noto Mono"              "Noto Sans Mono"        
+#>  [1] "D050000L"             "Nimbus Mono PS"       "Nimbus Roman"        
+#>  [4] "Nimbus Sans"          "Nimbus Sans Narrow"   "Standard Symbols PS" 
+#>  [7] "DejaVu Math TeX Gyre" "Droid Sans Fallback"  "Lato Black"          
+#> [10] "Lato"                 "Lato Hairline"        "Lato Heavy"          
+#> [13] "Lato Light"           "Lato Medium"          "Lato Semibold"       
+#> [16] "Lato Thin"            "Liberation Mono"      "Liberation Sans"     
+#> [19] "Liberation Serif"     "Noto Color Emoji"     "Noto Mono"           
+#> [22] "Noto Sans Mono"      
 #> 
 #> $google
 #>    [1] "ABeeZee"                           "Abel"                             
@@ -755,202 +752,126 @@ list_fonts(family_only = FALSE, source = "builtin")
 #> 3     liberationsans-400-italic LiberationSans     Italic    400
 #> 4    liberationsans-400-regular LiberationSans    Regular    400
 #>                                                                                                   path
-#> 1       /tmp/RtmpGNBkmE/temp_libpath243c36355fe1/plotthis/fonts/LiberationSans/LiberationSans-Bold.ttf
-#> 2 /tmp/RtmpGNBkmE/temp_libpath243c36355fe1/plotthis/fonts/LiberationSans/LiberationSans-BoldItalic.ttf
-#> 3     /tmp/RtmpGNBkmE/temp_libpath243c36355fe1/plotthis/fonts/LiberationSans/LiberationSans-Italic.ttf
-#> 4    /tmp/RtmpGNBkmE/temp_libpath243c36355fe1/plotthis/fonts/LiberationSans/LiberationSans-Regular.ttf
+#> 1       /tmp/Rtmp2LDppp/temp_libpath26fa287c3c06/plotthis/fonts/LiberationSans/LiberationSans-Bold.ttf
+#> 2 /tmp/Rtmp2LDppp/temp_libpath26fa287c3c06/plotthis/fonts/LiberationSans/LiberationSans-BoldItalic.ttf
+#> 3     /tmp/Rtmp2LDppp/temp_libpath26fa287c3c06/plotthis/fonts/LiberationSans/LiberationSans-Italic.ttf
+#> 4    /tmp/Rtmp2LDppp/temp_libpath26fa287c3c06/plotthis/fonts/LiberationSans/LiberationSans-Regular.ttf
 #>    source
 #> 1 builtin
 #> 2 builtin
 #> 3 builtin
 #> 4 builtin
 list_fonts(family_only = FALSE, source = "system")
-#>                               name                 family          font weight
-#> 1                       c059-bdita                   C059   Bold Italic    700
-#> 2                        c059-bold                   C059          Bold    700
-#> 3                      c059-italic                   C059        Italic    400
-#> 4                       c059-roman                   C059         Roman    400
-#> 5                         d050000l               D050000L       Regular    400
-#> 6                nimbusmonops-bold         Nimbus Mono PS          Bold    700
-#> 7          nimbusmonops-bolditalic         Nimbus Mono PS   Bold Italic    700
-#> 8              nimbusmonops-italic         Nimbus Mono PS        Italic    400
-#> 9             nimbusmonops-regular         Nimbus Mono PS       Regular    400
-#> 10                nimbusroman-bold           Nimbus Roman          Bold    700
-#> 11          nimbusroman-bolditalic           Nimbus Roman   Bold Italic    700
-#> 12              nimbusroman-italic           Nimbus Roman        Italic    400
-#> 13             nimbusroman-regular           Nimbus Roman       Regular    400
-#> 14                 nimbussans-bold            Nimbus Sans          Bold    700
-#> 15           nimbussans-bolditalic            Nimbus Sans   Bold Italic    700
-#> 16               nimbussans-italic            Nimbus Sans        Italic    400
-#> 17              nimbussans-regular            Nimbus Sans       Regular    400
-#> 18           nimbussansnarrow-bold     Nimbus Sans Narrow          Bold    700
-#> 19    nimbussansnarrow-boldoblique     Nimbus Sans Narrow  Bold Oblique    700
-#> 20        nimbussansnarrow-oblique     Nimbus Sans Narrow       Oblique    400
-#> 21        nimbussansnarrow-regular     Nimbus Sans Narrow       Regular    400
-#> 22                       p052-bold                   P052          Bold    700
-#> 23                 p052-bolditalic                   P052   Bold Italic    700
-#> 24                     p052-italic                   P052        Italic    400
-#> 25                      p052-roman                   P052         Roman    400
-#> 26               standardsymbolsps    Standard Symbols PS       Regular    400
-#> 27                 urwbookman-demi            URW Bookman          Demi    600
-#> 28           urwbookman-demiitalic            URW Bookman   Demi Italic    600
-#> 29                urwbookman-light            URW Bookman         Light    300
-#> 30          urwbookman-lightitalic            URW Bookman  Light Italic    300
-#> 31                  urwgothic-book             URW Gothic          Book    400
-#> 32           urwgothic-bookoblique             URW Gothic  Book Oblique    400
-#> 33                  urwgothic-demi             URW Gothic          Demi    600
-#> 34           urwgothic-demioblique             URW Gothic  Demi Oblique    600
-#> 35               z003-mediumitalic                   Z003 Medium Italic    400
-#> 36               dejavumathtexgyre   DejaVu Math TeX Gyre       Regular    400
-#> 37                 dejavusans-bold            DejaVu Sans          Bold    700
-#> 38          dejavusans-boldoblique            DejaVu Sans  Bold Oblique    700
-#> 39           dejavusans-extralight      DejaVu Sans Light    ExtraLight    300
-#> 40              dejavusans-oblique            DejaVu Sans       Oblique    400
-#> 41                      dejavusans            DejaVu Sans          Book    400
-#> 42        dejavusanscondensed-bold  DejaVu Sans Condensed          Bold    700
-#> 43 dejavusanscondensed-boldoblique  DejaVu Sans Condensed  Bold Oblique    700
-#> 44     dejavusanscondensed-oblique  DejaVu Sans Condensed       Oblique    400
-#> 45             dejavusanscondensed  DejaVu Sans Condensed          Book    400
-#> 46             dejavusansmono-bold       DejaVu Sans Mono          Bold    700
-#> 47      dejavusansmono-boldoblique       DejaVu Sans Mono  Bold Oblique    700
-#> 48          dejavusansmono-oblique       DejaVu Sans Mono       Oblique    400
-#> 49                  dejavusansmono       DejaVu Sans Mono          Book    400
-#> 50                dejavuserif-bold           DejaVu Serif          Bold    700
-#> 51          dejavuserif-bolditalic           DejaVu Serif   Bold Italic    700
-#> 52              dejavuserif-italic           DejaVu Serif        Italic    400
-#> 53                     dejavuserif           DejaVu Serif          Book    400
-#> 54       dejavuserifcondensed-bold DejaVu Serif Condensed          Bold    700
-#> 55 dejavuserifcondensed-bolditalic DejaVu Serif Condensed   Bold Italic    700
-#> 56     dejavuserifcondensed-italic DejaVu Serif Condensed        Italic    400
-#> 57            dejavuserifcondensed DejaVu Serif Condensed          Book    400
-#> 58           droidsansfallbackfull    Droid Sans Fallback       Regular    400
-#> 59                      lato-black             Lato Black       Regular    400
-#> 60                lato-blackitalic             Lato Black        Italic    400
-#> 61                       lato-bold                   Lato          Bold    700
-#> 62                 lato-bolditalic                   Lato   Bold Italic    700
-#> 63                   lato-hairline          Lato Hairline       Regular    400
-#> 64             lato-hairlineitalic          Lato Hairline        Italic    400
-#> 65                      lato-heavy             Lato Heavy       Regular    400
-#> 66                lato-heavyitalic             Lato Heavy        Italic    400
-#> 67                     lato-italic                   Lato        Italic    400
-#> 68                      lato-light             Lato Light       Regular    400
-#> 69                lato-lightitalic             Lato Light        Italic    400
-#> 70                     lato-medium            Lato Medium       Regular    400
-#> 71               lato-mediumitalic            Lato Medium        Italic    400
-#> 72                    lato-regular                   Lato       Regular    400
-#> 73                   lato-semibold          Lato Semibold       Regular    400
-#> 74             lato-semibolditalic          Lato Semibold        Italic    400
-#> 75                       lato-thin              Lato Thin       Regular    400
-#> 76                 lato-thinitalic              Lato Thin        Italic    400
-#> 77             liberationmono-bold        Liberation Mono          Bold    700
-#> 78       liberationmono-bolditalic        Liberation Mono   Bold Italic    700
-#> 79           liberationmono-italic        Liberation Mono        Italic    400
-#> 80          liberationmono-regular        Liberation Mono       Regular    400
-#> 81             liberationsans-bold        Liberation Sans          Bold    700
-#> 82       liberationsans-bolditalic        Liberation Sans   Bold Italic    700
-#> 83           liberationsans-italic        Liberation Sans        Italic    400
-#> 84          liberationsans-regular        Liberation Sans       Regular    400
-#> 85            liberationserif-bold       Liberation Serif          Bold    700
-#> 86      liberationserif-bolditalic       Liberation Serif   Bold Italic    700
-#> 87          liberationserif-italic       Liberation Serif        Italic    400
-#> 88         liberationserif-regular       Liberation Serif       Regular    400
-#> 89                  notocoloremoji       Noto Color Emoji       Regular    400
-#> 90                notomono-regular              Noto Mono       Regular    400
-#> 91               notosansmono-bold         Noto Sans Mono          Bold    700
-#> 92            notosansmono-regular         Noto Sans Mono       Regular    400
+#>                            name               family         font weight
+#> 1                      d050000l             D050000L      Regular    400
+#> 2             nimbusmonops-bold       Nimbus Mono PS         Bold    700
+#> 3       nimbusmonops-bolditalic       Nimbus Mono PS  Bold Italic    700
+#> 4           nimbusmonops-italic       Nimbus Mono PS       Italic    400
+#> 5          nimbusmonops-regular       Nimbus Mono PS      Regular    400
+#> 6              nimbusroman-bold         Nimbus Roman         Bold    700
+#> 7        nimbusroman-bolditalic         Nimbus Roman  Bold Italic    700
+#> 8            nimbusroman-italic         Nimbus Roman       Italic    400
+#> 9           nimbusroman-regular         Nimbus Roman      Regular    400
+#> 10              nimbussans-bold          Nimbus Sans         Bold    700
+#> 11        nimbussans-bolditalic          Nimbus Sans  Bold Italic    700
+#> 12            nimbussans-italic          Nimbus Sans       Italic    400
+#> 13           nimbussans-regular          Nimbus Sans      Regular    400
+#> 14        nimbussansnarrow-bold   Nimbus Sans Narrow         Bold    700
+#> 15 nimbussansnarrow-boldoblique   Nimbus Sans Narrow Bold Oblique    700
+#> 16     nimbussansnarrow-oblique   Nimbus Sans Narrow      Oblique    400
+#> 17     nimbussansnarrow-regular   Nimbus Sans Narrow      Regular    400
+#> 18            standardsymbolsps  Standard Symbols PS      Regular    400
+#> 19            dejavumathtexgyre DejaVu Math TeX Gyre      Regular    400
+#> 20        droidsansfallbackfull  Droid Sans Fallback      Regular    400
+#> 21                   lato-black           Lato Black      Regular    400
+#> 22             lato-blackitalic           Lato Black       Italic    400
+#> 23                    lato-bold                 Lato         Bold    700
+#> 24              lato-bolditalic                 Lato  Bold Italic    700
+#> 25                lato-hairline        Lato Hairline      Regular    400
+#> 26          lato-hairlineitalic        Lato Hairline       Italic    400
+#> 27                   lato-heavy           Lato Heavy      Regular    400
+#> 28             lato-heavyitalic           Lato Heavy       Italic    400
+#> 29                  lato-italic                 Lato       Italic    400
+#> 30                   lato-light           Lato Light      Regular    400
+#> 31             lato-lightitalic           Lato Light       Italic    400
+#> 32                  lato-medium          Lato Medium      Regular    400
+#> 33            lato-mediumitalic          Lato Medium       Italic    400
+#> 34                 lato-regular                 Lato      Regular    400
+#> 35                lato-semibold        Lato Semibold      Regular    400
+#> 36          lato-semibolditalic        Lato Semibold       Italic    400
+#> 37                    lato-thin            Lato Thin      Regular    400
+#> 38              lato-thinitalic            Lato Thin       Italic    400
+#> 39          liberationmono-bold      Liberation Mono         Bold    700
+#> 40    liberationmono-bolditalic      Liberation Mono  Bold Italic    700
+#> 41        liberationmono-italic      Liberation Mono       Italic    400
+#> 42       liberationmono-regular      Liberation Mono      Regular    400
+#> 43          liberationsans-bold      Liberation Sans         Bold    700
+#> 44    liberationsans-bolditalic      Liberation Sans  Bold Italic    700
+#> 45        liberationsans-italic      Liberation Sans       Italic    400
+#> 46       liberationsans-regular      Liberation Sans      Regular    400
+#> 47         liberationserif-bold     Liberation Serif         Bold    700
+#> 48   liberationserif-bolditalic     Liberation Serif  Bold Italic    700
+#> 49       liberationserif-italic     Liberation Serif       Italic    400
+#> 50      liberationserif-regular     Liberation Serif      Regular    400
+#> 51               notocoloremoji     Noto Color Emoji      Regular    400
+#> 52             notomono-regular            Noto Mono      Regular    400
+#> 53            notosansmono-bold       Noto Sans Mono         Bold    700
+#> 54         notosansmono-regular       Noto Sans Mono      Regular    400
 #>                                                                     path source
-#> 1                    /usr/share/fonts/opentype/urw-base35/C059-BdIta.otf system
-#> 2                     /usr/share/fonts/opentype/urw-base35/C059-Bold.otf system
-#> 3                   /usr/share/fonts/opentype/urw-base35/C059-Italic.otf system
-#> 4                    /usr/share/fonts/opentype/urw-base35/C059-Roman.otf system
-#> 5                      /usr/share/fonts/opentype/urw-base35/D050000L.otf system
-#> 6             /usr/share/fonts/opentype/urw-base35/NimbusMonoPS-Bold.otf system
-#> 7       /usr/share/fonts/opentype/urw-base35/NimbusMonoPS-BoldItalic.otf system
-#> 8           /usr/share/fonts/opentype/urw-base35/NimbusMonoPS-Italic.otf system
-#> 9          /usr/share/fonts/opentype/urw-base35/NimbusMonoPS-Regular.otf system
-#> 10             /usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf system
-#> 11       /usr/share/fonts/opentype/urw-base35/NimbusRoman-BoldItalic.otf system
-#> 12           /usr/share/fonts/opentype/urw-base35/NimbusRoman-Italic.otf system
-#> 13          /usr/share/fonts/opentype/urw-base35/NimbusRoman-Regular.otf system
-#> 14              /usr/share/fonts/opentype/urw-base35/NimbusSans-Bold.otf system
-#> 15        /usr/share/fonts/opentype/urw-base35/NimbusSans-BoldItalic.otf system
-#> 16            /usr/share/fonts/opentype/urw-base35/NimbusSans-Italic.otf system
-#> 17           /usr/share/fonts/opentype/urw-base35/NimbusSans-Regular.otf system
-#> 18        /usr/share/fonts/opentype/urw-base35/NimbusSansNarrow-Bold.otf system
-#> 19 /usr/share/fonts/opentype/urw-base35/NimbusSansNarrow-BoldOblique.otf system
-#> 20     /usr/share/fonts/opentype/urw-base35/NimbusSansNarrow-Oblique.otf system
-#> 21     /usr/share/fonts/opentype/urw-base35/NimbusSansNarrow-Regular.otf system
-#> 22                    /usr/share/fonts/opentype/urw-base35/P052-Bold.otf system
-#> 23              /usr/share/fonts/opentype/urw-base35/P052-BoldItalic.otf system
-#> 24                  /usr/share/fonts/opentype/urw-base35/P052-Italic.otf system
-#> 25                   /usr/share/fonts/opentype/urw-base35/P052-Roman.otf system
-#> 26            /usr/share/fonts/opentype/urw-base35/StandardSymbolsPS.otf system
-#> 27              /usr/share/fonts/opentype/urw-base35/URWBookman-Demi.otf system
-#> 28        /usr/share/fonts/opentype/urw-base35/URWBookman-DemiItalic.otf system
-#> 29             /usr/share/fonts/opentype/urw-base35/URWBookman-Light.otf system
-#> 30       /usr/share/fonts/opentype/urw-base35/URWBookman-LightItalic.otf system
-#> 31               /usr/share/fonts/opentype/urw-base35/URWGothic-Book.otf system
-#> 32        /usr/share/fonts/opentype/urw-base35/URWGothic-BookOblique.otf system
-#> 33               /usr/share/fonts/opentype/urw-base35/URWGothic-Demi.otf system
-#> 34        /usr/share/fonts/opentype/urw-base35/URWGothic-DemiOblique.otf system
-#> 35            /usr/share/fonts/opentype/urw-base35/Z003-MediumItalic.otf system
-#> 36                /usr/share/fonts/truetype/dejavu/DejaVuMathTeXGyre.ttf system
-#> 37                  /usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf system
-#> 38           /usr/share/fonts/truetype/dejavu/DejaVuSans-BoldOblique.ttf system
-#> 39            /usr/share/fonts/truetype/dejavu/DejaVuSans-ExtraLight.ttf system
-#> 40               /usr/share/fonts/truetype/dejavu/DejaVuSans-Oblique.ttf system
-#> 41                       /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf system
-#> 42         /usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-Bold.ttf system
-#> 43  /usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-BoldOblique.ttf system
-#> 44      /usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-Oblique.ttf system
-#> 45              /usr/share/fonts/truetype/dejavu/DejaVuSansCondensed.ttf system
-#> 46              /usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf system
-#> 47       /usr/share/fonts/truetype/dejavu/DejaVuSansMono-BoldOblique.ttf system
-#> 48           /usr/share/fonts/truetype/dejavu/DejaVuSansMono-Oblique.ttf system
-#> 49                   /usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf system
-#> 50                 /usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf system
-#> 51           /usr/share/fonts/truetype/dejavu/DejaVuSerif-BoldItalic.ttf system
-#> 52               /usr/share/fonts/truetype/dejavu/DejaVuSerif-Italic.ttf system
-#> 53                      /usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf system
-#> 54        /usr/share/fonts/truetype/dejavu/DejaVuSerifCondensed-Bold.ttf system
-#> 55  /usr/share/fonts/truetype/dejavu/DejaVuSerifCondensed-BoldItalic.ttf system
-#> 56      /usr/share/fonts/truetype/dejavu/DejaVuSerifCondensed-Italic.ttf system
-#> 57             /usr/share/fonts/truetype/dejavu/DejaVuSerifCondensed.ttf system
-#> 58             /usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf system
-#> 59                         /usr/share/fonts/truetype/lato/Lato-Black.ttf system
-#> 60                   /usr/share/fonts/truetype/lato/Lato-BlackItalic.ttf system
-#> 61                          /usr/share/fonts/truetype/lato/Lato-Bold.ttf system
-#> 62                    /usr/share/fonts/truetype/lato/Lato-BoldItalic.ttf system
-#> 63                      /usr/share/fonts/truetype/lato/Lato-Hairline.ttf system
-#> 64                /usr/share/fonts/truetype/lato/Lato-HairlineItalic.ttf system
-#> 65                         /usr/share/fonts/truetype/lato/Lato-Heavy.ttf system
-#> 66                   /usr/share/fonts/truetype/lato/Lato-HeavyItalic.ttf system
-#> 67                        /usr/share/fonts/truetype/lato/Lato-Italic.ttf system
-#> 68                         /usr/share/fonts/truetype/lato/Lato-Light.ttf system
-#> 69                   /usr/share/fonts/truetype/lato/Lato-LightItalic.ttf system
-#> 70                        /usr/share/fonts/truetype/lato/Lato-Medium.ttf system
-#> 71                  /usr/share/fonts/truetype/lato/Lato-MediumItalic.ttf system
-#> 72                       /usr/share/fonts/truetype/lato/Lato-Regular.ttf system
-#> 73                      /usr/share/fonts/truetype/lato/Lato-Semibold.ttf system
-#> 74                /usr/share/fonts/truetype/lato/Lato-SemiboldItalic.ttf system
-#> 75                          /usr/share/fonts/truetype/lato/Lato-Thin.ttf system
-#> 76                    /usr/share/fonts/truetype/lato/Lato-ThinItalic.ttf system
-#> 77          /usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf system
-#> 78    /usr/share/fonts/truetype/liberation/LiberationMono-BoldItalic.ttf system
-#> 79        /usr/share/fonts/truetype/liberation/LiberationMono-Italic.ttf system
-#> 80       /usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf system
-#> 81          /usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf system
-#> 82    /usr/share/fonts/truetype/liberation/LiberationSans-BoldItalic.ttf system
-#> 83        /usr/share/fonts/truetype/liberation/LiberationSans-Italic.ttf system
-#> 84       /usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf system
-#> 85         /usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf system
-#> 86   /usr/share/fonts/truetype/liberation/LiberationSerif-BoldItalic.ttf system
-#> 87       /usr/share/fonts/truetype/liberation/LiberationSerif-Italic.ttf system
-#> 88      /usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf system
-#> 89                     /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf system
-#> 90                   /usr/share/fonts/truetype/noto/NotoMono-Regular.ttf system
-#> 91                  /usr/share/fonts/truetype/noto/NotoSansMono-Bold.ttf system
-#> 92               /usr/share/fonts/truetype/noto/NotoSansMono-Regular.ttf system
+#> 1                      /usr/share/fonts/opentype/urw-base35/D050000L.otf system
+#> 2             /usr/share/fonts/opentype/urw-base35/NimbusMonoPS-Bold.otf system
+#> 3       /usr/share/fonts/opentype/urw-base35/NimbusMonoPS-BoldItalic.otf system
+#> 4           /usr/share/fonts/opentype/urw-base35/NimbusMonoPS-Italic.otf system
+#> 5          /usr/share/fonts/opentype/urw-base35/NimbusMonoPS-Regular.otf system
+#> 6              /usr/share/fonts/opentype/urw-base35/NimbusRoman-Bold.otf system
+#> 7        /usr/share/fonts/opentype/urw-base35/NimbusRoman-BoldItalic.otf system
+#> 8            /usr/share/fonts/opentype/urw-base35/NimbusRoman-Italic.otf system
+#> 9           /usr/share/fonts/opentype/urw-base35/NimbusRoman-Regular.otf system
+#> 10              /usr/share/fonts/opentype/urw-base35/NimbusSans-Bold.otf system
+#> 11        /usr/share/fonts/opentype/urw-base35/NimbusSans-BoldItalic.otf system
+#> 12            /usr/share/fonts/opentype/urw-base35/NimbusSans-Italic.otf system
+#> 13           /usr/share/fonts/opentype/urw-base35/NimbusSans-Regular.otf system
+#> 14        /usr/share/fonts/opentype/urw-base35/NimbusSansNarrow-Bold.otf system
+#> 15 /usr/share/fonts/opentype/urw-base35/NimbusSansNarrow-BoldOblique.otf system
+#> 16     /usr/share/fonts/opentype/urw-base35/NimbusSansNarrow-Oblique.otf system
+#> 17     /usr/share/fonts/opentype/urw-base35/NimbusSansNarrow-Regular.otf system
+#> 18            /usr/share/fonts/opentype/urw-base35/StandardSymbolsPS.otf system
+#> 19                /usr/share/fonts/truetype/dejavu/DejaVuMathTeXGyre.ttf system
+#> 20             /usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf system
+#> 21                         /usr/share/fonts/truetype/lato/Lato-Black.ttf system
+#> 22                   /usr/share/fonts/truetype/lato/Lato-BlackItalic.ttf system
+#> 23                          /usr/share/fonts/truetype/lato/Lato-Bold.ttf system
+#> 24                    /usr/share/fonts/truetype/lato/Lato-BoldItalic.ttf system
+#> 25                      /usr/share/fonts/truetype/lato/Lato-Hairline.ttf system
+#> 26                /usr/share/fonts/truetype/lato/Lato-HairlineItalic.ttf system
+#> 27                         /usr/share/fonts/truetype/lato/Lato-Heavy.ttf system
+#> 28                   /usr/share/fonts/truetype/lato/Lato-HeavyItalic.ttf system
+#> 29                        /usr/share/fonts/truetype/lato/Lato-Italic.ttf system
+#> 30                         /usr/share/fonts/truetype/lato/Lato-Light.ttf system
+#> 31                   /usr/share/fonts/truetype/lato/Lato-LightItalic.ttf system
+#> 32                        /usr/share/fonts/truetype/lato/Lato-Medium.ttf system
+#> 33                  /usr/share/fonts/truetype/lato/Lato-MediumItalic.ttf system
+#> 34                       /usr/share/fonts/truetype/lato/Lato-Regular.ttf system
+#> 35                      /usr/share/fonts/truetype/lato/Lato-Semibold.ttf system
+#> 36                /usr/share/fonts/truetype/lato/Lato-SemiboldItalic.ttf system
+#> 37                          /usr/share/fonts/truetype/lato/Lato-Thin.ttf system
+#> 38                    /usr/share/fonts/truetype/lato/Lato-ThinItalic.ttf system
+#> 39          /usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf system
+#> 40    /usr/share/fonts/truetype/liberation/LiberationMono-BoldItalic.ttf system
+#> 41        /usr/share/fonts/truetype/liberation/LiberationMono-Italic.ttf system
+#> 42       /usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf system
+#> 43          /usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf system
+#> 44    /usr/share/fonts/truetype/liberation/LiberationSans-BoldItalic.ttf system
+#> 45        /usr/share/fonts/truetype/liberation/LiberationSans-Italic.ttf system
+#> 46       /usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf system
+#> 47         /usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf system
+#> 48   /usr/share/fonts/truetype/liberation/LiberationSerif-BoldItalic.ttf system
+#> 49       /usr/share/fonts/truetype/liberation/LiberationSerif-Italic.ttf system
+#> 50      /usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf system
+#> 51                     /usr/share/fonts/truetype/noto/NotoColorEmoji.ttf system
+#> 52                   /usr/share/fonts/truetype/noto/NotoMono-Regular.ttf system
+#> 53                  /usr/share/fonts/truetype/noto/NotoSansMono-Bold.ttf system
+#> 54               /usr/share/fonts/truetype/noto/NotoSansMono-Regular.ttf system
 list_fonts(family_only = FALSE, source = "google")
 #>                                   name                            family
 #> 1                              abeezee                           ABeeZee

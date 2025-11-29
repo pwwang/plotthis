@@ -444,7 +444,8 @@ If <code>combine</code> is <code>FALSE</code>, The AUC value of each plot can be
 <span class="r-in"><span><span class="fu">ROCCurve</span><span class="op">(</span><span class="va">data</span>, truth_by <span class="op">=</span> <span class="st">"D"</span>, score_by <span class="op">=</span> <span class="st">"M1"</span>, cutoffs_at <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="st">"ROC01"</span>, <span class="st">"SpEqualSe"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="ROCCurve-10.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># Split by a column</span></span></span>
-<span class="r-in"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">ROCCurve</span><span class="op">(</span><span class="va">data</span>, truth_by <span class="op">=</span> <span class="st">"D"</span>, score_by <span class="op">=</span> <span class="st">"M1"</span>, split_by <span class="op">=</span> <span class="st">"gender"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">ROCCurve</span><span class="op">(</span><span class="va">data</span>, truth_by <span class="op">=</span> <span class="st">"D"</span>, score_by <span class="op">=</span> <span class="st">"M1"</span>, split_by <span class="op">=</span> <span class="st">"gender"</span>,</span></span>
+<span class="r-in"><span>   cutoffs_at <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="st">"MaxSpSe"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">p</span></span></span>
 <span class="r-plt img"><img src="ROCCurve-11.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># Retrieve the AUC values</span></span></span>
@@ -454,9 +455,16 @@ If <code>combine</code> is <code>FALSE</code>, The AUC value of each plot can be
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2     1     1     1 0.9039616   Male</span>
 <span class="r-in"><span><span class="co"># Retrieve the cutoffs</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"cutoffs"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      specificity gender  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] numeric,0   "Female"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] numeric,0   "Male"  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              cutoff         x         y              label ..group specificity</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1               0.2 0.2833333 0.9250000              0.200           0.7166667</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 0.359521377967435 0.2333333 0.8000000 0.360 (by MaxSpSe)           0.7666667</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3               0.2 0.3265306 0.8823529              0.200           0.6734694</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 0.344386035694676 0.2040816 0.8235294 0.344 (by MaxSpSe)           0.7959184</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   sensitivity gender</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   0.9250000 Female</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   0.8000000 Female</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3   0.8823529   Male</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   0.8235294   Male</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

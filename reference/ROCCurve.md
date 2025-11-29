@@ -495,7 +495,8 @@ ROCCurve(data, truth_by = "D", score_by = "M1", facet_by = "gender")
 ROCCurve(data, truth_by = "D", score_by = "M1", cutoffs_at = c(0, "ROC01", "SpEqualSe"))
 
 # Split by a column
-p <- ROCCurve(data, truth_by = "D", score_by = "M1", split_by = "gender")
+p <- ROCCurve(data, truth_by = "D", score_by = "M1", split_by = "gender",
+   cutoffs_at = c(0.2, "MaxSpSe"))
 p
 
 # Retrieve the AUC values
@@ -505,7 +506,14 @@ attr(p, "auc")
 #> 2     1     1     1 0.9039616   Male
 # Retrieve the cutoffs
 attr(p, "cutoffs")
-#>      specificity gender  
-#> [1,] numeric,0   "Female"
-#> [2,] numeric,0   "Male"  
+#>              cutoff         x         y              label ..group specificity
+#> 1               0.2 0.2833333 0.9250000              0.200           0.7166667
+#> 2 0.359521377967435 0.2333333 0.8000000 0.360 (by MaxSpSe)           0.7666667
+#> 3               0.2 0.3265306 0.8823529              0.200           0.6734694
+#> 4 0.344386035694676 0.2040816 0.8235294 0.344 (by MaxSpSe)           0.7959184
+#>   sensitivity gender
+#> 1   0.9250000 Female
+#> 2   0.8000000 Female
+#> 3   0.8823529   Male
+#> 4   0.8235294   Male
 ```
