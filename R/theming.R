@@ -636,6 +636,9 @@ list_fonts <- function(family_only = FALSE, source = c("all", "builtin", "system
     if (source %in% c("system", "all")) {
         ff <- tryCatch(sysfonts::font_files(), error = function(e) NULL)
         if (!is.null(ff) && is.data.frame(ff) && nrow(ff) > 0) {
+            # Exclude font family with no Regular face
+            has_regular <- ff$family[ff$face %in% c("Regular", "normal", NA)]
+            ff <- ff[ff$family %in% has_regular, , drop = FALSE]
             dfr_sys <- data.frame(
                 name = tolower(tools::file_path_sans_ext(ff$file)),
                 family = ff$family,
