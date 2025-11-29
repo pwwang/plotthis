@@ -12,6 +12,8 @@
 #' If not specified, it will use the value from `getOption("theme_this.font_family")`.
 #' If you want to change the default font family, you can set the option `theme_this.font_family`.
 #' This is applied to all plots using this theme.
+#' You can choose from the built-in fonts in `plotthis`, system fonts, or Google fonts.
+#' See \code{\link{list_fonts}()} for available fonts.
 #' @param ... Other arguments for `theme()`
 #'
 #' @return A ggplot2 theme
@@ -22,6 +24,7 @@ theme_this <- function(aspect.ratio = NULL, base_size = NULL, font_family = NULL
     base_size <- base_size %||% getOption("theme_this.base_size", 12)
     font_family <- font_family %||% getOption("theme_this.font_family")
     text_size_scale <- base_size / 12
+    import_font(font_family)
     args1 <- list(
         aspect.ratio = aspect.ratio,
         text = element_text(size = 12 * text_size_scale, family = font_family, color = "black"),
@@ -237,8 +240,6 @@ palette_this <- function(
     if (all(palcolor == "")) {
         palcolor <- palette_list[[palette]]
     }
-    # print(palcolor)
-    # return()
     if (is.null(palcolor) || length(palcolor) == 0) {
         palcolor <- palette_list[[palette]]
     }
@@ -262,7 +263,7 @@ palette_this <- function(
             )
             palcolor[names(mypal)] <- mypal
             # already reversed, specified palcolor won't be reversed
-            reverse = FALSE
+            reverse <- FALSE
         } else if (length(mypal) == length(x)) {
             palcolor <- mypal
         }
@@ -482,7 +483,8 @@ show_palettes <- function(palettes = NULL, type = c("discrete", "continuous"), i
 #' @return A ggplot2 theme element that can be used inside a [ggplot2::theme()] call.
 #' @export
 #' @importFrom grid unit
-element_textbox <- function (family = NULL, face = NULL, size = NULL, colour = NULL,
+element_textbox <- function(
+    family = NULL, face = NULL, size = NULL, colour = NULL,
     fill = NULL, box.colour = NULL, linetype = NULL, linewidth = NULL,
     hjust = NULL, vjust = NULL, halign = NULL, valign = NULL,
     lineheight = NULL, margin = NULL, padding = NULL, width = NULL,
@@ -496,6 +498,8 @@ element_textbox <- function (family = NULL, face = NULL, size = NULL, colour = N
     if (!is.null(box.color)) {
         box.colour <- box.color
     }
+    family <- family %||% getOption("theme_this.font_family")
+    import_font(family)
     structure(
         list(
             family = family, face = face, size = size, colour = colour, fill = fill, box.colour = box.colour,
@@ -562,4 +566,203 @@ element_grob.element_textbox <- function(
         orientation = orientation,
         gp = gp, box_gp = box_gp
     )
+}
+
+
+#' @title List fonts
+#' @description Lists available fonts.
+#' This function lists the fonts available in the `plotthis` package,
+#' as well as system fonts and Google fonts if specified.
+#' @details
+#' This is inspired from the `plummy` package.
+#' Those fonts will be automatically imported when used in `theme_this()`, typically via the `theme_args`
+#' argument in plotting functions. For example, `BarPlot(..., theme_args = list(font_family = "Barlow"))`.
+#' You can also use `import_font("Barlow")` to import the font manually before using it in plots separately.
+#' For example, `BarPlot(...) + theme(text = element_text(family = "Barlow"))`.
+#' See \code{\link{import_font}()} for more details on importing fonts.
+#' @param family_only Only list the font family names.
+#' @param source Source of the fonts to include. Can be one of "builtin", "system", "google", or "all".
+#' Default is "all".
+#' @return A list of font family names, where the names are the source of the fonts
+#' (system or google) if `family_only` is `TRUE`. If `family_only` is `FALSE`,
+#' returns a data frame with font family names and their paths.#'
+#' @export
+#' @examples
+#' \donttest{
+#' list_fonts(family_only = TRUE, source = "all")
+#' list_fonts(family_only = FALSE, source = "builtin")
+#' list_fonts(family_only = FALSE, source = "system")
+#' list_fonts(family_only = FALSE, source = "google")
+#' }
+list_fonts <- function(family_only = FALSE, source = c("all", "builtin", "system", "google")) {
+    source <- match.arg(source)
+
+    dfr_pkg <- NULL
+    if (source %in% c("builtin", "all")) {
+        fn_rd <- function(font = NULL) {
+            fn_wgt <- function(x) {
+                wgts <- c("Thin" = 100, "ExtraLight" = 200, "Light" = 300, "Regular" = 400, "Italic" = 400, "Medium" = 500, "SemiBold" = 600, "Bold" = 700, "ExtraBold" = 800, "Black" = 900)
+                return(wgts[grepl(paste0("^", x, "$"), names(wgts))])
+            }
+
+            paths <- list.files(system.file("fonts", font, package = "plotthis"), pattern = ".ttf", full.names = TRUE)
+            bnames <- basename(paths)
+            fam <- sapply(strsplit(bnames, split = "-"), "[[", 1)
+            fnt <- sub(".ttf", "", sapply(strsplit(bnames, split = "-"), "[[", 2))
+            wt <- as.integer(unlist(sapply(sub("Italic", "", sub("^Italic$", "Regular", fnt)), fn_wgt)))
+
+            dfr <- data.frame(
+                name = paste0(tolower(fam), "-", wt, "-", tolower(fnt)),
+                family = fam,
+                font = fnt,
+                weight = wt,
+                path = paths
+            )
+
+            return(dfr)
+        }
+
+        dfr_pkg <- Reduce(
+            rbind,
+            lapply(
+                list.files(path = system.file("fonts", package = "plotthis")),
+                fn_rd
+            )
+        )
+        dfr_pkg$source <- "builtin"
+    }
+
+    dfr_sys <- NULL
+    if (source %in% c("system", "all")) {
+        ff <- tryCatch(sysfonts::font_files(), error = function(e) NULL)
+        if (!is.null(ff) && is.data.frame(ff) && nrow(ff) > 0) {
+            dfr_sys <- data.frame(
+                name = tolower(tools::file_path_sans_ext(ff$file)),
+                family = ff$family,
+                font = ff$face,
+                weight = {
+                    w <- rep(400L, length(ff$face))
+                    ff_face <- ifelse(is.na(ff$face), "", ff$face)
+                    w[grepl("light", ff_face, ignore.case = TRUE)] <- 300L
+                    w[grepl("demi|semibold", ff_face, ignore.case = TRUE)] <- 600L
+                    w[grepl("bold", ff_face, ignore.case = TRUE)] <- 700L
+                    w
+                },
+                path = file.path(ff$path, ff$file),
+                source = "system",
+                stringsAsFactors = FALSE
+            )
+        }
+    }
+
+    dfr_google <- NULL
+    if (source %in% c("google", "all")) {
+        fams_g <- tryCatch(sysfonts::font_families_google(), error = function(e) NULL)
+        if (!is.null(fams_g) && length(fams_g) > 0) {
+            dfr_google <- data.frame(
+                name = tolower(fams_g),
+                family = fams_g,
+                font = fams_g,
+                weight = 400L,
+                path = NA_character_,
+                source = "google",
+                stringsAsFactors = FALSE
+            )
+        }
+    }
+
+    if (isTRUE(family_only)) {
+        font_list <- list()
+        if (!is.null(dfr_pkg)) {
+            font_list$builtin <- unique(dfr_pkg$family)
+        }
+        if (!is.null(dfr_sys)) {
+            font_list$system <- unique(dfr_sys$family)
+        }
+        if (!is.null(dfr_google)) {
+            font_list$google <- unique(dfr_google$family)
+        }
+        return(font_list)
+    } else {
+        dfr_all <- do.call(rbind, list(dfr_pkg, dfr_sys, dfr_google))
+        rownames(dfr_all) <- NULL
+        return(dfr_all)
+    }
+}
+
+
+#' @title Import a font
+#' @description Imports a font for use in plots.
+#' This function imports a font from the `plotthis` package,
+#' system fonts, or Google fonts.
+#' This is borrowed from the `plummy` package.
+#' To check available fonts, use `list_fonts()`.
+#' @param font Font family name to import.
+#' @return Invisible `TRUE`.
+#' @export
+import_font <- function(font) {
+    # check if font is already added
+    if (is.null(font) || font %in% sysfonts::font_families()) {
+        return(invisible(TRUE))
+    }
+    builtin_fonts <- list_fonts(family_only = TRUE, source = "builtin")
+    if (font %in% builtin_fonts$builtin) {
+        font_dir <- system.file("fonts", font, package = "plotthis")
+        sysfonts::font_add(
+            family = font,
+            regular = file.path(font_dir, paste0(font, "-Regular.ttf")),
+            bold = file.path(font_dir, paste0(font, "-Bold.ttf")),
+            italic = file.path(font_dir, paste0(font, "-Italic.ttf")),
+            bolditalic = file.path(font_dir, paste0(font, "-BoldItalic.ttf"))
+        )
+    } else if (font %in% sysfonts::font_families_google()) {
+        sysfonts::font_add_google(font)
+    } else {
+        fonts <- list_fonts(family_only = FALSE, source = "system")
+        if (font %in% fonts$family) {
+            font_df <- fonts[fonts$family == font, , drop = FALSE]
+            font_df$font <- tolower(font_df$font)
+            regular_ttf <- font_df$path[grepl("regular", font_df$font)][1]
+            bolditalic_ttf <- font_df$path[grepl("bolditalic", font_df$font)]
+            if (length(bolditalic_ttf) == 0) {
+                bolditalic_ttf <- NULL
+            } else {
+                bolditalic_ttf <- bolditalic_ttf[1]
+            }
+            italic_ttf <- font_df$path[grepl("italic", font_df$font)]
+            if (length(italic_ttf) == 0) {
+                italic_ttf <- NULL
+            } else {
+                italic_ttf <- italic_ttf[italic_ttf != bolditalic_ttf]
+                if (length(italic_ttf) == 0) {
+                    italic_ttf <- NULL
+                } else {
+                    italic_ttf <- italic_ttf[1]
+                }
+            }
+            bold_ttf <- font_df$path[grepl("bold", font_df$font)]
+            if (length(bold_ttf) == 0) {
+                bold_ttf <- NULL
+            } else {
+                bold_ttf <- bold_ttf[bold_ttf != bolditalic_ttf]
+                if (length(bold_ttf) == 0) {
+                    bold_ttf <- NULL
+                } else {
+                    bold_ttf <- bold_ttf[1]
+                }
+            }
+
+            sysfonts::font_add(
+                family = font,
+                regular = regular_ttf,
+                bold = bold_ttf,
+                italic = italic_ttf,
+                bolditalic = bolditalic_ttf
+            )
+            return(invisible(TRUE))
+        } else {
+            warning("Font '", font, "' not found in builtin fonts, system fonts, or Google fonts.")
+        }
+    }
+    invisible(TRUE)
 }

@@ -18,7 +18,9 @@ This is applied to all plots using this theme.}
 \item{font_family}{The font family of the text
 If not specified, it will use the value from \code{getOption("theme_this.font_family")}.
 If you want to change the default font family, you can set the option \code{theme_this.font_family}.
-This is applied to all plots using this theme.}
+This is applied to all plots using this theme.
+You can choose from the built-in fonts in \code{plotthis}, system fonts, or Google fonts.
+See \code{\link{list_fonts}()} for available fonts.}
 
 \item{...}{Other arguments for \code{theme()}}
 }

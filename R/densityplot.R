@@ -126,7 +126,7 @@ DensityHistoPlotAtomic <- function(
     }
     if (isTRUE(add_bars)) {
         p <- p +
-            geom_linerange(aes(ymin = !!sym(".ymin"), ymax = !!sym(".ymax")), size = 1, alpha = bar_alpha, linewidth = bar_width)
+            geom_linerange(aes(ymin = !!sym(".ymin"), ymax = !!sym(".ymax")), alpha = bar_alpha, linewidth = bar_width)
     }
     p <- p +
         scale_x_continuous(expand = expand$x, transform = xtrans) +

@@ -38,6 +38,7 @@ Imports:
     ggrepel,
     ggnewscale,
     cowplot,
+    sysfonts,
     zoo
 Suggests:
     testthat,

@@ -62,6 +62,8 @@ reference:
     - theme_box
     - show_palettes
     - element_textbox
+    - list_fonts
+    - import_font
   - title: Data
     description: Built-in data for plotting or examples
     contents:

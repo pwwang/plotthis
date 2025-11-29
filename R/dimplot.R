@@ -575,11 +575,11 @@ DimPlotAtomic <- function(
             )
         }
     }
-
-    legend_base <- get_plot_component(
+    # There may be warnings about fonts, but we don't care here
+    legend_base <- suppressWarnings(get_plot_component(
         p + theme_this(legend.position = "bottom", legend.direction = legend.direction),
         "guide-box-bottom"
-    )
+    ))
 
     legend_list <- list()
     ## Adding the lineages
@@ -642,7 +642,7 @@ DimPlotAtomic <- function(
         lineage_layers[[length(lineage_layers) + 1]] <- scale_color_manual(values = lineage_colors)
 
         suppressMessages({
-            legend_list$lineages <- get_plot_component(
+            legend_list$lineages <- suppressWarnings(get_plot_component(
                 ggplot() +
                     lineage_layers +
                     theme_this(
@@ -650,7 +650,7 @@ DimPlotAtomic <- function(
                         legend.direction = legend.direction
                     ),
                 "guide-box-bottom"
-            )
+            ))
         })
 
         p <- suppressWarnings({
@@ -691,12 +691,12 @@ DimPlotAtomic <- function(
         velocity_scales <- attr(velocity_layers, "scales")
         if (!is.null(velocity_scales) && "color" %in% velocity_scales) {
             p <- p + new_scale_color() + velocity_layers
-            legend_list$velocity <- get_plot_component(
+            legend_list$velocity <- suppressWarnings(get_plot_component(
                 ggplot() + velocity_layers + theme_this(
                     legend.position = "bottom", legend.direction = legend.direction
                 ),
                 "guide-box-bottom"
-            )
+            ))
         } else {
             p <- p + velocity_layers
             legend_list["velocity"] <- list(NULL)
@@ -751,10 +751,10 @@ DimPlotAtomic <- function(
             )
         }
         p <- p + stat_plot_list
-        legend_list$stat_by <- get_plot_component(
+        legend_list$stat_by <- suppressWarnings(get_plot_component(
             stat_plots[[coord_df[i, group_by]]] + ggplot2::theme(legend.position = "bottom"),
             "guide-box-bottom"
-        )
+        ))
     }
 
     ## Adding the labels
