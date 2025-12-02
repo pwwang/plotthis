@@ -752,10 +752,10 @@ list_fonts(family_only = FALSE, source = "builtin")
 #> 3     liberationsans-400-italic LiberationSans     Italic    400
 #> 4    liberationsans-400-regular LiberationSans    Regular    400
 #>                                                                                                   path
-#> 1       /tmp/Rtmp2LDppp/temp_libpath26fa287c3c06/plotthis/fonts/LiberationSans/LiberationSans-Bold.ttf
-#> 2 /tmp/Rtmp2LDppp/temp_libpath26fa287c3c06/plotthis/fonts/LiberationSans/LiberationSans-BoldItalic.ttf
-#> 3     /tmp/Rtmp2LDppp/temp_libpath26fa287c3c06/plotthis/fonts/LiberationSans/LiberationSans-Italic.ttf
-#> 4    /tmp/Rtmp2LDppp/temp_libpath26fa287c3c06/plotthis/fonts/LiberationSans/LiberationSans-Regular.ttf
+#> 1       /tmp/RtmptUvhZh/temp_libpath2597340b2dcf/plotthis/fonts/LiberationSans/LiberationSans-Bold.ttf
+#> 2 /tmp/RtmptUvhZh/temp_libpath2597340b2dcf/plotthis/fonts/LiberationSans/LiberationSans-BoldItalic.ttf
+#> 3     /tmp/RtmptUvhZh/temp_libpath2597340b2dcf/plotthis/fonts/LiberationSans/LiberationSans-Italic.ttf
+#> 4    /tmp/RtmptUvhZh/temp_libpath2597340b2dcf/plotthis/fonts/LiberationSans/LiberationSans-Regular.ttf
 #>    source
 #> 1 builtin
 #> 2 builtin
