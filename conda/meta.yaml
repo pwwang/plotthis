@@ -54,7 +54,6 @@ requirements:
     - r-inext
     - r-scattermore
     - r-sf
-    - r-sysfonts
     - r-terra
     - r-concaveman
     - r-plotroc
@@ -104,7 +103,6 @@ requirements:
     - r-inext
     - r-scattermore
     - r-sf
-    - r-sysfonts
     - r-terra
     - r-concaveman
     - r-plotroc
