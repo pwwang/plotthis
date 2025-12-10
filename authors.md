@@ -12,7 +12,7 @@ Source:
 
 Wang P (2025). *plotthis: High-Level Plotting Built Upon 'ggplot2' and
 Other Plotting Packages*. R package version
-0.8.2https://github.com/pwwang/plotthis
+0.9.0https://github.com/pwwang/plotthis
 https://pwwang.github.io/plotthis/, [https://github.com/pwwang/plotthis
 https://pwwang.github.io/plotthis/](https://github.com/pwwang/plotthis%20%20%20%20https://pwwang.github.io/plotthis/).
 
@@ -20,7 +20,7 @@ https://pwwang.github.io/plotthis/](https://github.com/pwwang/plotthis%20%20%20%
       title = {plotthis: High-Level Plotting Built Upon 'ggplot2' and Other Plotting Packages},
       author = {Panwen Wang},
       year = {2025},
-      note = {R package version 0.8.2https://github.com/pwwang/plotthis
+      note = {R package version 0.9.0https://github.com/pwwang/plotthis
         https://pwwang.github.io/plotthis/},
       url = {https://github.com/pwwang/plotthis
         https://pwwang.github.io/plotthis/},
