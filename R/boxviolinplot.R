@@ -150,6 +150,8 @@ BoxViolinPlotAtomic <- function(
     )
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
     paired_by <- check_columns(data, paired_by, force_factor = TRUE)
+    base_size <- theme_args$base_size %||% 12
+    sig_labelsize <- sig_labelsize * base_size / 12
     if (!is.null(paired_by)) {
         if (!isTRUE(add_point)) {
             warning("Forcing 'add_point' = TRUE when 'paired_by' is provided.")
