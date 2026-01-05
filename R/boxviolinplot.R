@@ -32,6 +32,15 @@
 #' @param jitter_width A numeric value to specify the width of the jitter.
 #' Defaults to 0.5, but when paired_by is provided, it will be set to 0.
 #' @param jitter_height A numeric value to specify the height of the jitter.
+#' @param add_beeswarm A logical value to add beeswarm points to the plot instead of jittered points.
+#'  When TRUE, points are positioned using the beeswarm algorithm to avoid overlap while showing density.
+#'  Requires the ggbeeswarm package to be installed.
+#' @param beeswarm_method A character string to specify the beeswarm method. Either "swarm", "compactswarm", "hex",
+#'  "square", or "center". Default is "swarm". See ggbeeswarm::geom_beeswarm for details.
+#' @param beeswarm_cex A numeric value to specify the scaling for adjusting point spacing in beeswarm.
+#'  Default is 1. Larger values space out points more.
+#' @param beeswarm_priority A character string to specify point layout priority. Either "ascending", "descending",
+#'  "density", or "random". Default is "ascending".
 #' @param stack A logical value whether to stack the facetted plot by 'facet_by'.
 #' @param y_max A numeric value or a character string to specify the maximum value of the y-axis.
 #' You can also use quantile notation like "q95" to specify the 95th percentile.
@@ -118,6 +127,7 @@ BoxViolinPlotAtomic <- function(
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     add_point = FALSE, pt_color = "grey30", pt_size = NULL, pt_alpha = 1, y_nbreaks = 4,
     jitter_width = NULL, jitter_height = 0, stack = FALSE, y_max = NULL, y_min = NULL, y_trans = "identity",
+    add_beeswarm = FALSE, beeswarm_method = "swarm", beeswarm_cex = 1, beeswarm_priority = "ascending",
     add_box = FALSE, box_color = "black", box_width = 0.1, box_ptsize = 2.5,
     add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
     add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
@@ -152,6 +162,22 @@ BoxViolinPlotAtomic <- function(
     paired_by <- check_columns(data, paired_by, force_factor = TRUE)
     base_size <- theme_args$base_size %||% 12
     sig_labelsize <- sig_labelsize * base_size / 12
+    
+    # Validate beeswarm parameters
+    if (isTRUE(add_beeswarm)) {
+        if (!requireNamespace("ggbeeswarm", quietly = TRUE)) {
+            stop("Package 'ggbeeswarm' is required for beeswarm plots. Please install it with: install.packages('ggbeeswarm')")
+        }
+        if (!isTRUE(add_point)) {
+            warning("Forcing 'add_point' = TRUE when 'add_beeswarm' is provided.")
+            add_point <- TRUE
+        }
+        if (!is.null(paired_by)) {
+            warning("'add_beeswarm' is not fully compatible with 'paired_by'. Using jittered points instead for paired data.")
+            add_beeswarm <- FALSE
+        }
+    }
+    
     if (!is.null(paired_by)) {
         if (!isTRUE(add_point)) {
             warning("Forcing 'add_point' = TRUE when 'paired_by' is provided.")
@@ -722,18 +748,53 @@ BoxViolinPlotAtomic <- function(
                 )
             }
         }
-        p <- p +
-            geom_point(
-                aes(fill = !!sym(fill_by), color = !!sym(".highlight"), size = !!sym(".highlight"), alpha = !!sym(".highlight")),
-                position = position_jitterdodge(
-                    jitter.width = jitter_width %||% ifelse(!is.null(paired_by), 0, 0.5),
-                    jitter.height = jitter_height, dodge.width = 0.9, seed = seed
-                ),
-                show.legend = FALSE
-            ) +
-            scale_color_manual(values = c("TRUE" = highlight_color, "FALSE" = pt_color)) +
-            scale_size_manual(values = c("TRUE" = highlight_size, "FALSE" = pt_size %||% min(3000 / nrow(data), 0.6))) +
-            scale_alpha_manual(values = c("TRUE" = highlight_alpha, "FALSE" = pt_alpha))
+        
+        # Use beeswarm or jittered points
+        if (isTRUE(add_beeswarm)) {
+            # Use ggbeeswarm for non-overlapping point layout
+            if (!is.null(group_by)) {
+                # When group_by is provided, use dodge.width
+                p <- p +
+                    ggbeeswarm::geom_beeswarm(
+                        aes(fill = !!sym(fill_by), color = !!sym(".highlight"), size = !!sym(".highlight"), alpha = !!sym(".highlight")),
+                        method = beeswarm_method,
+                        cex = beeswarm_cex,
+                        priority = beeswarm_priority,
+                        dodge.width = 0.9,
+                        show.legend = FALSE
+                    ) +
+                    scale_color_manual(values = c("TRUE" = highlight_color, "FALSE" = pt_color)) +
+                    scale_size_manual(values = c("TRUE" = highlight_size, "FALSE" = pt_size %||% min(3000 / nrow(data), 0.6))) +
+                    scale_alpha_manual(values = c("TRUE" = highlight_alpha, "FALSE" = pt_alpha))
+            } else {
+                # When no group_by, simpler beeswarm
+                p <- p +
+                    ggbeeswarm::geom_beeswarm(
+                        aes(fill = !!sym(fill_by), color = !!sym(".highlight"), size = !!sym(".highlight"), alpha = !!sym(".highlight")),
+                        method = beeswarm_method,
+                        cex = beeswarm_cex,
+                        priority = beeswarm_priority,
+                        show.legend = FALSE
+                    ) +
+                    scale_color_manual(values = c("TRUE" = highlight_color, "FALSE" = pt_color)) +
+                    scale_size_manual(values = c("TRUE" = highlight_size, "FALSE" = pt_size %||% min(3000 / nrow(data), 0.6))) +
+                    scale_alpha_manual(values = c("TRUE" = highlight_alpha, "FALSE" = pt_alpha))
+            }
+        } else {
+            # Use regular jittered points
+            p <- p +
+                geom_point(
+                    aes(fill = !!sym(fill_by), color = !!sym(".highlight"), size = !!sym(".highlight"), alpha = !!sym(".highlight")),
+                    position = position_jitterdodge(
+                        jitter.width = jitter_width %||% ifelse(!is.null(paired_by), 0, 0.5),
+                        jitter.height = jitter_height, dodge.width = 0.9, seed = seed
+                    ),
+                    show.legend = FALSE
+                ) +
+                scale_color_manual(values = c("TRUE" = highlight_color, "FALSE" = pt_color)) +
+                scale_size_manual(values = c("TRUE" = highlight_size, "FALSE" = pt_size %||% min(3000 / nrow(data), 0.6))) +
+                scale_alpha_manual(values = c("TRUE" = highlight_alpha, "FALSE" = pt_alpha))
+        }
     }
 
     if (isTRUE(add_trend)) {
@@ -911,6 +972,7 @@ BoxViolinPlot <- function(
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     add_point = FALSE, pt_color = "grey30", pt_size = NULL, pt_alpha = 1,
     jitter_width = NULL, jitter_height = 0, stack = FALSE, y_max = NULL, y_min = NULL,
+    add_beeswarm = FALSE, beeswarm_method = "swarm", beeswarm_cex = 1, beeswarm_priority = "ascending",
     add_box = FALSE, box_color = "black", box_width = 0.1, box_ptsize = 2.5,
     add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
     add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
@@ -960,6 +1022,7 @@ BoxViolinPlot <- function(
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                 add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha, symnum_args = symnum_args,
                 jitter_width = jitter_width, jitter_height = jitter_height, stack = stack, y_max = y_max, y_min = y_min,
+                add_beeswarm = add_beeswarm, beeswarm_method = beeswarm_method, beeswarm_cex = beeswarm_cex, beeswarm_priority = beeswarm_priority,
                 add_box = add_box, box_color = box_color, box_width = box_width, box_ptsize = box_ptsize,
                 add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
                 add_stat = add_stat, stat_name = stat_name, stat_color = stat_color, stat_size = stat_size, stat_stroke = stat_stroke, stat_shape = stat_shape,
@@ -1056,6 +1119,7 @@ BoxPlot <- function(
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     add_point = FALSE, pt_color = "grey30", pt_size = NULL, pt_alpha = 1,
     jitter_width = NULL, jitter_height = 0, stack = FALSE, y_max = NULL, y_min = NULL,
+    add_beeswarm = FALSE, beeswarm_method = "swarm", beeswarm_cex = 1, beeswarm_priority = "ascending",
     add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
     add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
@@ -1078,6 +1142,7 @@ BoxPlot <- function(
         aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
         add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha, symnum_args = symnum_args,
         jitter_width = jitter_width, jitter_height = jitter_height, stack = stack, y_max = y_max, y_min = y_min,
+        add_beeswarm = add_beeswarm, beeswarm_method = beeswarm_method, beeswarm_cex = beeswarm_cex, beeswarm_priority = beeswarm_priority,
         add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
         add_stat = add_stat, stat_name = stat_name, stat_color = stat_color, stat_size = stat_size, stat_stroke = stat_stroke, stat_shape = stat_shape,
         add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
@@ -1144,6 +1209,7 @@ ViolinPlot <- function(
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     add_point = FALSE, pt_color = "grey30", pt_size = NULL, pt_alpha = 1,
     jitter_width = NULL, jitter_height = 0, stack = FALSE, y_max = NULL, y_min = NULL,
+    add_beeswarm = FALSE, beeswarm_method = "swarm", beeswarm_cex = 1, beeswarm_priority = "ascending",
     add_box = FALSE, box_color = "black", box_width = 0.1, box_ptsize = 2.5,
     add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
     add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
@@ -1167,6 +1233,78 @@ ViolinPlot <- function(
         aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
         add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha, symnum_args = symnum_args,
         jitter_width = jitter_width, jitter_height = jitter_height, stack = stack, y_max = y_max, y_min = y_min,
+        add_beeswarm = add_beeswarm, beeswarm_method = beeswarm_method, beeswarm_cex = beeswarm_cex, beeswarm_priority = beeswarm_priority,
+        add_box = add_box, box_color = box_color, box_width = box_width, box_ptsize = box_ptsize,
+        add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
+        add_stat = add_stat, stat_name = stat_name, stat_color = stat_color, stat_size = stat_size, stat_stroke = stat_stroke, stat_shape = stat_shape,
+        add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
+        add_line = add_line, line_color = line_color, line_width = line_width, line_type = line_type,
+        highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha,
+        comparisons = comparisons, ref_group = ref_group, pairwise_method = pairwise_method,
+        multiplegroup_comparisons = multiplegroup_comparisons, multiple_method = multiple_method,
+        sig_label = sig_label, sig_labelsize = sig_labelsize, hide_ns = hide_ns,
+        facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
+        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+        axes = axes, axis_titles = axis_titles, guides = guides, ...
+    )
+}
+
+#' @rdname boxviolinplot
+#' @export
+#' @inheritParams BoxViolinPlot
+#' @examples
+#' \donttest{
+#' # Beeswarm plot examples
+#' BeeswarmPlot(data, x = "x", y = "y")
+#' BeeswarmPlot(data, x = "x", y = "y", add_box = TRUE)
+#' BeeswarmPlot(data, x = "x", y = "y", base = "violin")
+#' BeeswarmPlot(data, x = "x", y = "y", group_by = "group1")
+#' BeeswarmPlot(data,
+#'     x = "x", y = "y", group_by = "group1",
+#'     facet_by = "group2", add_box = TRUE
+#' )
+#' BeeswarmPlot(data,
+#'     x = "x", y = "y", beeswarm_method = "hex",
+#'     beeswarm_cex = 2
+#' )
+#' }
+BeeswarmPlot <- function(
+    data, x, x_sep = "_", y = NULL, base = c("box", "violin"), in_form = c("long", "wide"),
+    split_by = NULL, split_by_sep = "_", symnum_args = NULL,
+    sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
+    flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
+    paired_by = NULL, x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
+    fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
+    aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
+    pt_color = "grey30", pt_size = NULL, pt_alpha = 1,
+    jitter_width = NULL, jitter_height = 0, stack = FALSE, y_max = NULL, y_min = NULL,
+    beeswarm_method = "swarm", beeswarm_cex = 1, beeswarm_priority = "ascending",
+    add_box = FALSE, box_color = "black", box_width = 0.1, box_ptsize = 2.5,
+    add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
+    add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
+    add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
+    add_line = NULL, line_color = "red2", line_width = .6, line_type = 2,
+    highlight = NULL, highlight_color = "red2", highlight_size = 1, highlight_alpha = 1,
+    comparisons = NULL, ref_group = NULL, pairwise_method = "wilcox.test",
+    multiplegroup_comparisons = FALSE, multiple_method = "kruskal.test",
+    sig_label = "p.format", sig_labelsize = 3.5, hide_ns = FALSE,
+    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
+    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
+    axes = NULL, axis_titles = axes, guides = NULL, ...) {
+    base <- match.arg(base)
+    stat_name <- stat_name %||% paste0(y, " (", deparse(substitute(add_stat)), ")")
+    BoxViolinPlot(
+        data = data, x = x, x_sep = x_sep, y = y, base = base, in_form = in_form,
+        split_by = split_by, split_by_sep = split_by_sep,
+        sort_x = sort_x, flip = flip, keep_empty = keep_empty, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
+        paired_by = paired_by, x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse, step_increase = step_increase,
+        theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
+        aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
+        add_point = TRUE, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha, symnum_args = symnum_args,
+        jitter_width = jitter_width, jitter_height = jitter_height, stack = stack, y_max = y_max, y_min = y_min,
+        add_beeswarm = TRUE, beeswarm_method = beeswarm_method, beeswarm_cex = beeswarm_cex, beeswarm_priority = beeswarm_priority,
         add_box = add_box, box_color = box_color, box_width = box_width, box_ptsize = box_ptsize,
         add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
         add_stat = add_stat, stat_name = stat_name, stat_color = stat_color, stat_size = stat_size, stat_stroke = stat_stroke, stat_shape = stat_shape,
