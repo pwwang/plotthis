@@ -3,6 +3,7 @@
 \name{BoxPlot}
 \alias{BoxPlot}
 \alias{ViolinPlot}
+\alias{BeeswarmPlot}
 \title{Box / Violin Plot}
 \usage{
 BoxPlot(
@@ -35,7 +36,7 @@ BoxPlot(
   legend.position = "right",
   legend.direction = "vertical",
   add_point = FALSE,
-  pt_color = "grey30",
+  pt_color = if (isTRUE(add_beeswarm)) NULL else "grey30",
   pt_size = NULL,
   pt_alpha = 1,
   jitter_width = NULL,
@@ -43,6 +44,11 @@ BoxPlot(
   stack = FALSE,
   y_max = NULL,
   y_min = NULL,
+  add_beeswarm = FALSE,
+  beeswarm_method = "swarm",
+  beeswarm_cex = 1,
+  beeswarm_priority = "ascending",
+  beeswarm_dodge = 0.9,
   add_trend = FALSE,
   trend_color = NULL,
   trend_linewidth = 1,
@@ -123,7 +129,7 @@ ViolinPlot(
   legend.position = "right",
   legend.direction = "vertical",
   add_point = FALSE,
-  pt_color = "grey30",
+  pt_color = if (isTRUE(add_beeswarm)) NULL else "grey30",
   pt_size = NULL,
   pt_alpha = 1,
   jitter_width = NULL,
@@ -131,6 +137,107 @@ ViolinPlot(
   stack = FALSE,
   y_max = NULL,
   y_min = NULL,
+  add_beeswarm = FALSE,
+  beeswarm_method = "swarm",
+  beeswarm_cex = 1,
+  beeswarm_priority = "ascending",
+  beeswarm_dodge = 0.9,
+  add_box = FALSE,
+  box_color = "black",
+  box_width = 0.1,
+  box_ptsize = 2.5,
+  add_trend = FALSE,
+  trend_color = NULL,
+  trend_linewidth = 1,
+  trend_ptsize = 2,
+  add_stat = NULL,
+  stat_name = NULL,
+  stat_color = "black",
+  stat_size = 1,
+  stat_stroke = 1,
+  stat_shape = 25,
+  add_bg = FALSE,
+  bg_palette = "stripe",
+  bg_palcolor = NULL,
+  bg_alpha = 0.2,
+  add_line = NULL,
+  line_color = "red2",
+  line_width = 0.6,
+  line_type = 2,
+  highlight = NULL,
+  highlight_color = "red2",
+  highlight_size = 1,
+  highlight_alpha = 1,
+  comparisons = NULL,
+  ref_group = NULL,
+  pairwise_method = "wilcox.test",
+  multiplegroup_comparisons = FALSE,
+  multiple_method = "kruskal.test",
+  sig_label = "p.format",
+  sig_labelsize = 3.5,
+  hide_ns = FALSE,
+  facet_by = NULL,
+  facet_scales = "fixed",
+  facet_ncol = NULL,
+  facet_nrow = NULL,
+  facet_byrow = TRUE,
+  title = NULL,
+  subtitle = NULL,
+  xlab = NULL,
+  ylab = NULL,
+  seed = 8525,
+  combine = TRUE,
+  nrow = NULL,
+  ncol = NULL,
+  byrow = TRUE,
+  axes = NULL,
+  axis_titles = axes,
+  guides = NULL,
+  ...
+)
+
+BeeswarmPlot(
+  data,
+  x,
+  x_sep = "_",
+  y = NULL,
+  in_form = c("long", "wide"),
+  split_by = NULL,
+  split_by_sep = "_",
+  symnum_args = NULL,
+  sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc",
+    "median"),
+  flip = FALSE,
+  keep_empty = FALSE,
+  group_by = NULL,
+  group_by_sep = "_",
+  group_name = NULL,
+  paired_by = NULL,
+  x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
+  step_increase = 0.1,
+  fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
+  fill_reverse = FALSE,
+  theme = "theme_this",
+  theme_args = list(),
+  palette = "Paired",
+  palcolor = NULL,
+  alpha = 1,
+  aspect.ratio = NULL,
+  legend.position = "right",
+  legend.direction = "vertical",
+  pt_color = NULL,
+  pt_size = NULL,
+  pt_alpha = 1,
+  jitter_width = NULL,
+  jitter_height = 0,
+  stack = FALSE,
+  y_max = NULL,
+  y_min = NULL,
+  add_violin = FALSE,
+  beeswarm_method = "swarm",
+  beeswarm_cex = 1,
+  beeswarm_priority = "ascending",
+  beeswarm_dodge = 0.9,
   add_box = FALSE,
   box_color = "black",
   box_width = 0.1,
@@ -291,6 +398,22 @@ the significance labels.}
 \item{y_min}{A numeric value or a character string to specify the minimum value of the y-axis.
 You can also use quantile notation like "q5" to specify the 5th percentile.}
 
+\item{add_beeswarm}{A logical value to add beeswarm points to the plot instead of jittered points.
+When TRUE, points are positioned using the beeswarm algorithm to avoid overlap while showing density.
+Requires the ggbeeswarm package to be installed.}
+
+\item{beeswarm_method}{A character string to specify the beeswarm method. Either "swarm", "compactswarm", "hex",
+"square", or "center". Default is "swarm". See ggbeeswarm::geom_beeswarm for details.}
+
+\item{beeswarm_cex}{A numeric value to specify the scaling for adjusting point spacing in beeswarm.
+Default is 1. Larger values space out points more.}
+
+\item{beeswarm_priority}{A character string to specify point layout priority. Either "ascending", "descending",
+"density", or "random". Default is "ascending".}
+
+\item{beeswarm_dodge}{A numeric value to specify the dodge width for beeswarm points when group_by is provided.
+Default is 0.9}
+
 \item{add_trend}{A logical value to add trend line to the plot.}
 
 \item{trend_color}{A character string to specify the color of the trend line.
@@ -437,6 +560,10 @@ Options are:
 \item{box_width}{A numeric value to specify the width of the box plot.}
 
 \item{box_ptsize}{A numeric value to specify the size of the box plot points in the middle.}
+
+\item{add_violin}{Logical, whether to add violin plot behind the beeswarm points.
+Adding violin to a beeswarm plot is actually not supported. A message will be shown to
+remind users to use \code{ViolinPlot(..., add_beeswarm = TRUE)} instead.}
 }
 \value{
 The Box / Violin plot(s).
@@ -458,6 +585,7 @@ data <- data.frame(
 )
 
 BoxPlot(data, x = "x", y = "y")
+BoxPlot(data, x = "x", y = "y", add_beeswarm = TRUE, pt_color = "grey30")
 BoxPlot(data,
     x = "x", y = "y",
     stack = TRUE, flip = TRUE, facet_by = "group1",
@@ -504,6 +632,7 @@ BoxPlot(
 }
 \donttest{
 ViolinPlot(data, x = "x", y = "y")
+ViolinPlot(data, x = "x", y = "y", add_beeswarm = TRUE, pt_color = "grey30")
 ViolinPlot(data, x = "x", y = "y", add_box = TRUE)
 ViolinPlot(data, x = "x", y = "y", add_point = TRUE)
 ViolinPlot(data, x = "x", y = "y", add_trend = TRUE)
@@ -537,6 +666,23 @@ ViolinPlot(data,
     x = "x", y = "y", stack = TRUE,
     facet_by = "group2", add_box = TRUE, add_bg = TRUE,
     bg_palette = "Paired"
+)
+}
+\donttest{
+# Beeswarm plot examples
+BeeswarmPlot(data, x = "x", y = "y")
+BeeswarmPlot(data, x = "x", y = "y", pt_size = 1)
+BeeswarmPlot(data, x = "x", y = "y", add_box = TRUE, pt_color = "grey30")
+# Equivalent to:
+# BoxPlot(data, x = "x", y = "y", add_beeswarm = TRUE, pt_color = "grey30")
+
+BeeswarmPlot(data, x = "x", y = "y", group_by = "group1")
+# no dodging
+BeeswarmPlot(data, x = "x", y = "y", group_by = "group1", beeswarm_dodge = NULL)
+
+BeeswarmPlot(data,
+    x = "x", y = "y", beeswarm_method = "hex",
+    beeswarm_cex = 2
 )
 }
 }

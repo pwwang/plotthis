@@ -9,7 +9,7 @@ BoxViolinPlotAtomic(
   x,
   x_sep = "_",
   y = NULL,
-  base = c("box", "violin"),
+  base = c("box", "violin", "none"),
   in_form = c("long", "wide"),
   sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc",
     "median"),
@@ -33,7 +33,7 @@ BoxViolinPlotAtomic(
   legend.position = "right",
   legend.direction = "vertical",
   add_point = FALSE,
-  pt_color = "grey30",
+  pt_color = if (isTRUE(add_beeswarm)) NULL else "grey30",
   pt_size = NULL,
   pt_alpha = 1,
   y_nbreaks = 4,
@@ -43,6 +43,11 @@ BoxViolinPlotAtomic(
   y_max = NULL,
   y_min = NULL,
   y_trans = "identity",
+  add_beeswarm = FALSE,
+  beeswarm_method = "swarm",
+  beeswarm_cex = 1,
+  beeswarm_priority = "ascending",
+  beeswarm_dodge = 0.9,
   add_box = FALSE,
   box_color = "black",
   box_width = 0.1,
@@ -102,7 +107,7 @@ When \code{in_form} is "wide", \code{x} columns will not be concatenated.}
 \item{y}{A character string of the column name to plot on the y-axis. A numeric column is expected.
 When \code{in_form} is "wide", \code{y} is not required. The values under \code{x} columns will be used as y-values.}
 
-\item{base}{A character string to specify the base plot type. Either "box" or "violin".}
+\item{base}{A character string to specify the base plot type. Either "box", "violin" or "none" (used by BeeswarmPlot).}
 
 \item{in_form}{A character string to specify the input data type. Either "long" or "wide".}
 
@@ -196,6 +201,22 @@ the significance labels.}
 You can also use quantile notation like "q5" to specify the 5th percentile.}
 
 \item{y_trans}{A character string to specify the transformation of the y-axis.}
+
+\item{add_beeswarm}{A logical value to add beeswarm points to the plot instead of jittered points.
+When TRUE, points are positioned using the beeswarm algorithm to avoid overlap while showing density.
+Requires the ggbeeswarm package to be installed.}
+
+\item{beeswarm_method}{A character string to specify the beeswarm method. Either "swarm", "compactswarm", "hex",
+"square", or "center". Default is "swarm". See ggbeeswarm::geom_beeswarm for details.}
+
+\item{beeswarm_cex}{A numeric value to specify the scaling for adjusting point spacing in beeswarm.
+Default is 1. Larger values space out points more.}
+
+\item{beeswarm_priority}{A character string to specify point layout priority. Either "ascending", "descending",
+"density", or "random". Default is "ascending".}
+
+\item{beeswarm_dodge}{A numeric value to specify the dodge width for beeswarm points when group_by is provided.
+Default is 0.9}
 
 \item{add_box}{A logical value to add box plot to the plot.}
 
