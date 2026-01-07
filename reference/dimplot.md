@@ -355,6 +355,9 @@ FeatureDimPlot(
 
   - "random": random order
 
+  For `high-top` and `low-top`, the NA values will be always plotted at
+  the bottom.
+
   This works on `features` as they are numeric values. When this works
   on `group_by`, the ordering and coloring will not be changed in the
   legend. This is only affecting the order of drawing of the points in
