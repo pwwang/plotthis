@@ -9,6 +9,7 @@ reference:
     - AlluvialPlot
     - AreaPlot
     - BarPlot
+    - BeeswarmPlot
     - BoxPlot
     - ChordPlot
     - CircosPlot
