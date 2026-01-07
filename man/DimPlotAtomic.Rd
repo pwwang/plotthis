@@ -176,6 +176,8 @@ A character/factor column is expected. If multiple columns are provided, the col
 \item "random": random order
 }
 
+For \code{high-top} and \code{low-top}, the NA values will be always plotted at the bottom.
+
 This works on \code{features} as they are numeric values.
 When this works on \code{group_by}, the ordering and coloring will not be changed in the legend. This is
 only affecting the order of drawing of the points in the plot.

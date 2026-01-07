@@ -299,6 +299,8 @@ If TRUE, we will split the data by the \code{features}. Each feature will be plo
 \item "random": random order
 }
 
+For \code{high-top} and \code{low-top}, the NA values will be always plotted at the bottom.
+
 This works on \code{features} as they are numeric values.
 When this works on \code{group_by}, the ordering and coloring will not be changed in the legend. This is
 only affecting the order of drawing of the points in the plot.

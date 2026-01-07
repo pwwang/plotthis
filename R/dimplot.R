@@ -20,6 +20,8 @@
 #' * "low-top": points with low values on top
 #' * "random": random order
 #'
+#' For `high-top` and `low-top`, the NA values will be always plotted at the bottom.
+#'
 #' This works on `features` as they are numeric values.
 #' When this works on `group_by`, the ordering and coloring will not be changed in the legend. This is
 #' only affecting the order of drawing of the points in the plot.
@@ -254,9 +256,9 @@ DimPlotAtomic <- function(
     if (order == "reverse") {
         data <- data[nrow(data):1, , drop = FALSE]
     } else if (order == "high-top") {
-        data <- dplyr::arrange(data, !!sym(colorby))
+        data <- dplyr::arrange(data, !is.na(!!sym(colorby)), !!sym(colorby))
     } else if (order == "low-top") {
-        data <- dplyr::arrange(data, dplyr::desc(!!sym(colorby)))
+        data <- dplyr::arrange(data, !is.na(!!sym(colorby)), dplyr::desc(!!sym(colorby)))
     } else if (order == "random") {
         data <- data[sample(nrow(data)), , drop = FALSE]
     }
