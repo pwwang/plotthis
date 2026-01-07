@@ -15,6 +15,7 @@ Functions for plotting
   : Bar Plot
 - [`BoxPlot()`](https://pwwang.github.io/plotthis/reference/boxviolinplot.md)
   [`ViolinPlot()`](https://pwwang.github.io/plotthis/reference/boxviolinplot.md)
+  [`BeeswarmPlot()`](https://pwwang.github.io/plotthis/reference/boxviolinplot.md)
   : Box / Violin Plot
 - [`ChordPlot()`](https://pwwang.github.io/plotthis/reference/chordplot.md)
   [`CircosPlot()`](https://pwwang.github.io/plotthis/reference/chordplot.md)

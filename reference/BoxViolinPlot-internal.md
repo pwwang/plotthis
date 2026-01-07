@@ -36,7 +36,7 @@ BoxViolinPlot(
   legend.position = "right",
   legend.direction = "vertical",
   add_point = FALSE,
-  pt_color = "grey30",
+  pt_color = if (isTRUE(add_beeswarm)) NULL else "grey30",
   pt_size = NULL,
   pt_alpha = 1,
   jitter_width = NULL,
@@ -44,6 +44,11 @@ BoxViolinPlot(
   stack = FALSE,
   y_max = NULL,
   y_min = NULL,
+  add_beeswarm = FALSE,
+  beeswarm_method = "swarm",
+  beeswarm_cex = 1,
+  beeswarm_priority = "ascending",
+  beeswarm_dodge = 0.9,
   add_box = FALSE,
   box_color = "black",
   box_width = 0.1,
@@ -124,8 +129,8 @@ BoxViolinPlot(
 
 - base:
 
-  A character string to specify the base plot type. Either "box" or
-  "violin".
+  A character string to specify the base plot type. Either "box",
+  "violin" or "none" (used by BeeswarmPlot).
 
 - in_form:
 
@@ -307,6 +312,35 @@ BoxViolinPlot(
   A numeric value or a character string to specify the minimum value of
   the y-axis. You can also use quantile notation like "q5" to specify
   the 5th percentile.
+
+- add_beeswarm:
+
+  A logical value to add beeswarm points to the plot instead of jittered
+  points. When TRUE, points are positioned using the beeswarm algorithm
+  to avoid overlap while showing density. Requires the ggbeeswarm
+  package to be installed.
+
+- beeswarm_method:
+
+  A character string to specify the beeswarm method. Either "swarm",
+  "compactswarm", "hex", "square", or "center". Default is "swarm". See
+  ggbeeswarm::geom_beeswarm for details.
+
+- beeswarm_cex:
+
+  A numeric value to specify the scaling for adjusting point spacing in
+  beeswarm. Default is 1. Larger values space out points more.
+
+- beeswarm_priority:
+
+  A character string to specify point layout priority. Either
+  "ascending", "descending", "density", or "random". Default is
+  "ascending".
+
+- beeswarm_dodge:
+
+  A numeric value to specify the dodge width for beeswarm points when
+  group_by is provided. Default is 0.9
 
 - add_box:
 

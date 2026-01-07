@@ -73,7 +73,7 @@
 <span>  legend.position <span class="op">=</span> <span class="st">"right"</span>,</span>
 <span>  legend.direction <span class="op">=</span> <span class="st">"vertical"</span>,</span>
 <span>  add_point <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  pt_color <span class="op">=</span> <span class="st">"grey30"</span>,</span>
+<span>  pt_color <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Logic.html" class="external-link">isTRUE</a></span><span class="op">(</span><span class="va">add_beeswarm</span><span class="op">)</span><span class="op">)</span> <span class="cn">NULL</span> <span class="kw">else</span> <span class="st">"grey30"</span>,</span>
 <span>  pt_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pt_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  jitter_width <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -81,6 +81,11 @@
 <span>  stack <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  y_max <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  y_min <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  add_beeswarm <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  beeswarm_method <span class="op">=</span> <span class="st">"swarm"</span>,</span>
+<span>  beeswarm_cex <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  beeswarm_priority <span class="op">=</span> <span class="st">"ascending"</span>,</span>
+<span>  beeswarm_dodge <span class="op">=</span> <span class="fl">0.9</span>,</span>
 <span>  add_box <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  box_color <span class="op">=</span> <span class="st">"black"</span>,</span>
 <span>  box_width <span class="op">=</span> <span class="fl">0.1</span>,</span>
@@ -159,7 +164,7 @@ When <code>in_form</code> is "wide", <code>x</code> columns will not be concaten
 
 
 <dt id="arg-base">base<a class="anchor" aria-label="anchor" href="#arg-base"></a></dt>
-<dd><p>A character string to specify the base plot type. Either "box" or "violin".</p></dd>
+<dd><p>A character string to specify the base plot type. Either "box", "violin" or "none" (used by BeeswarmPlot).</p></dd>
 
 
 <dt id="arg-in-form">in_form<a class="anchor" aria-label="anchor" href="#arg-in-form"></a></dt>
@@ -316,6 +321,32 @@ the significance labels.</p></dd>
 <dt id="arg-y-min">y_min<a class="anchor" aria-label="anchor" href="#arg-y-min"></a></dt>
 <dd><p>A numeric value or a character string to specify the minimum value of the y-axis.
 You can also use quantile notation like "q5" to specify the 5th percentile.</p></dd>
+
+
+<dt id="arg-add-beeswarm">add_beeswarm<a class="anchor" aria-label="anchor" href="#arg-add-beeswarm"></a></dt>
+<dd><p>A logical value to add beeswarm points to the plot instead of jittered points.
+When TRUE, points are positioned using the beeswarm algorithm to avoid overlap while showing density.
+Requires the ggbeeswarm package to be installed.</p></dd>
+
+
+<dt id="arg-beeswarm-method">beeswarm_method<a class="anchor" aria-label="anchor" href="#arg-beeswarm-method"></a></dt>
+<dd><p>A character string to specify the beeswarm method. Either "swarm", "compactswarm", "hex",
+"square", or "center". Default is "swarm". See ggbeeswarm::geom_beeswarm for details.</p></dd>
+
+
+<dt id="arg-beeswarm-cex">beeswarm_cex<a class="anchor" aria-label="anchor" href="#arg-beeswarm-cex"></a></dt>
+<dd><p>A numeric value to specify the scaling for adjusting point spacing in beeswarm.
+Default is 1. Larger values space out points more.</p></dd>
+
+
+<dt id="arg-beeswarm-priority">beeswarm_priority<a class="anchor" aria-label="anchor" href="#arg-beeswarm-priority"></a></dt>
+<dd><p>A character string to specify point layout priority. Either "ascending", "descending",
+"density", or "random". Default is "ascending".</p></dd>
+
+
+<dt id="arg-beeswarm-dodge">beeswarm_dodge<a class="anchor" aria-label="anchor" href="#arg-beeswarm-dodge"></a></dt>
+<dd><p>A numeric value to specify the dodge width for beeswarm points when group_by is provided.
+Default is 0.9</p></dd>
 
 
 <dt id="arg-add-box">add_box<a class="anchor" aria-label="anchor" href="#arg-add-box"></a></dt>

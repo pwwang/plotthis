@@ -72,7 +72,7 @@
 <span>  legend.position <span class="op">=</span> <span class="st">"right"</span>,</span>
 <span>  legend.direction <span class="op">=</span> <span class="st">"vertical"</span>,</span>
 <span>  add_point <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  pt_color <span class="op">=</span> <span class="st">"grey30"</span>,</span>
+<span>  pt_color <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Logic.html" class="external-link">isTRUE</a></span><span class="op">(</span><span class="va">add_beeswarm</span><span class="op">)</span><span class="op">)</span> <span class="cn">NULL</span> <span class="kw">else</span> <span class="st">"grey30"</span>,</span>
 <span>  pt_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pt_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  jitter_width <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -80,6 +80,11 @@
 <span>  stack <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  y_max <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  y_min <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  add_beeswarm <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  beeswarm_method <span class="op">=</span> <span class="st">"swarm"</span>,</span>
+<span>  beeswarm_cex <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  beeswarm_priority <span class="op">=</span> <span class="st">"ascending"</span>,</span>
+<span>  beeswarm_dodge <span class="op">=</span> <span class="fl">0.9</span>,</span>
 <span>  add_trend <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  trend_color <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  trend_linewidth <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -160,7 +165,7 @@
 <span>  legend.position <span class="op">=</span> <span class="st">"right"</span>,</span>
 <span>  legend.direction <span class="op">=</span> <span class="st">"vertical"</span>,</span>
 <span>  add_point <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  pt_color <span class="op">=</span> <span class="st">"grey30"</span>,</span>
+<span>  pt_color <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Logic.html" class="external-link">isTRUE</a></span><span class="op">(</span><span class="va">add_beeswarm</span><span class="op">)</span><span class="op">)</span> <span class="cn">NULL</span> <span class="kw">else</span> <span class="st">"grey30"</span>,</span>
 <span>  pt_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pt_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  jitter_width <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -168,6 +173,107 @@
 <span>  stack <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  y_max <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  y_min <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  add_beeswarm <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  beeswarm_method <span class="op">=</span> <span class="st">"swarm"</span>,</span>
+<span>  beeswarm_cex <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  beeswarm_priority <span class="op">=</span> <span class="st">"ascending"</span>,</span>
+<span>  beeswarm_dodge <span class="op">=</span> <span class="fl">0.9</span>,</span>
+<span>  add_box <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  box_color <span class="op">=</span> <span class="st">"black"</span>,</span>
+<span>  box_width <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  box_ptsize <span class="op">=</span> <span class="fl">2.5</span>,</span>
+<span>  add_trend <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  trend_color <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  trend_linewidth <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  trend_ptsize <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  add_stat <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  stat_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  stat_color <span class="op">=</span> <span class="st">"black"</span>,</span>
+<span>  stat_size <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  stat_stroke <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  stat_shape <span class="op">=</span> <span class="fl">25</span>,</span>
+<span>  add_bg <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  bg_palette <span class="op">=</span> <span class="st">"stripe"</span>,</span>
+<span>  bg_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  bg_alpha <span class="op">=</span> <span class="fl">0.2</span>,</span>
+<span>  add_line <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  line_color <span class="op">=</span> <span class="st">"red2"</span>,</span>
+<span>  line_width <span class="op">=</span> <span class="fl">0.6</span>,</span>
+<span>  line_type <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  highlight <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  highlight_color <span class="op">=</span> <span class="st">"red2"</span>,</span>
+<span>  highlight_size <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  highlight_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  comparisons <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  ref_group <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  pairwise_method <span class="op">=</span> <span class="st">"wilcox.test"</span>,</span>
+<span>  multiplegroup_comparisons <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  multiple_method <span class="op">=</span> <span class="st">"kruskal.test"</span>,</span>
+<span>  sig_label <span class="op">=</span> <span class="st">"p.format"</span>,</span>
+<span>  sig_labelsize <span class="op">=</span> <span class="fl">3.5</span>,</span>
+<span>  hide_ns <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  facet_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  facet_scales <span class="op">=</span> <span class="st">"fixed"</span>,</span>
+<span>  facet_ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  facet_nrow <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  facet_byrow <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  title <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  subtitle <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  xlab <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  ylab <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">8525</span>,</span>
+<span>  combine <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  nrow <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  byrow <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  axes <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  axis_titles <span class="op">=</span> <span class="va">axes</span>,</span>
+<span>  guides <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">BeeswarmPlot</span><span class="op">(</span></span>
+<span>  <span class="va">data</span>,</span>
+<span>  <span class="va">x</span>,</span>
+<span>  x_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
+<span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  in_form <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"long"</span>, <span class="st">"wide"</span><span class="op">)</span>,</span>
+<span>  split_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  split_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
+<span>  symnum_args <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sort_x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"mean_asc"</span>, <span class="st">"mean_desc"</span>, <span class="st">"mean"</span>, <span class="st">"median_asc"</span>, <span class="st">"median_desc"</span>,</span>
+<span>    <span class="st">"median"</span><span class="op">)</span>,</span>
+<span>  flip <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  group_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  group_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
+<span>  group_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  paired_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  x_text_angle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Logic.html" class="external-link">isTRUE</a></span><span class="op">(</span><span class="va">flip</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/Logic.html" class="external-link">isTRUE</a></span><span class="op">(</span><span class="va">stack</span><span class="op">)</span>, <span class="fl">90</span>, <span class="fl">45</span><span class="op">)</span>,</span>
+<span>  step_increase <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  fill_mode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">group_by</span><span class="op">)</span>, <span class="st">"dodge"</span>, <span class="st">"x"</span><span class="op">)</span>,</span>
+<span>  fill_reverse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  theme <span class="op">=</span> <span class="st">"theme_this"</span>,</span>
+<span>  theme_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
+<span>  palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  alpha <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  aspect.ratio <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  legend.position <span class="op">=</span> <span class="st">"right"</span>,</span>
+<span>  legend.direction <span class="op">=</span> <span class="st">"vertical"</span>,</span>
+<span>  pt_color <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  pt_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  pt_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  jitter_width <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  jitter_height <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  stack <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  y_max <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  y_min <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  add_violin <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  beeswarm_method <span class="op">=</span> <span class="st">"swarm"</span>,</span>
+<span>  beeswarm_cex <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  beeswarm_priority <span class="op">=</span> <span class="st">"ascending"</span>,</span>
+<span>  beeswarm_dodge <span class="op">=</span> <span class="fl">0.9</span>,</span>
 <span>  add_box <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  box_color <span class="op">=</span> <span class="st">"black"</span>,</span>
 <span>  box_width <span class="op">=</span> <span class="fl">0.1</span>,</span>
@@ -398,6 +504,32 @@ the significance labels.</p></dd>
 <dt id="arg-y-min">y_min<a class="anchor" aria-label="anchor" href="#arg-y-min"></a></dt>
 <dd><p>A numeric value or a character string to specify the minimum value of the y-axis.
 You can also use quantile notation like "q5" to specify the 5th percentile.</p></dd>
+
+
+<dt id="arg-add-beeswarm">add_beeswarm<a class="anchor" aria-label="anchor" href="#arg-add-beeswarm"></a></dt>
+<dd><p>A logical value to add beeswarm points to the plot instead of jittered points.
+When TRUE, points are positioned using the beeswarm algorithm to avoid overlap while showing density.
+Requires the ggbeeswarm package to be installed.</p></dd>
+
+
+<dt id="arg-beeswarm-method">beeswarm_method<a class="anchor" aria-label="anchor" href="#arg-beeswarm-method"></a></dt>
+<dd><p>A character string to specify the beeswarm method. Either "swarm", "compactswarm", "hex",
+"square", or "center". Default is "swarm". See ggbeeswarm::geom_beeswarm for details.</p></dd>
+
+
+<dt id="arg-beeswarm-cex">beeswarm_cex<a class="anchor" aria-label="anchor" href="#arg-beeswarm-cex"></a></dt>
+<dd><p>A numeric value to specify the scaling for adjusting point spacing in beeswarm.
+Default is 1. Larger values space out points more.</p></dd>
+
+
+<dt id="arg-beeswarm-priority">beeswarm_priority<a class="anchor" aria-label="anchor" href="#arg-beeswarm-priority"></a></dt>
+<dd><p>A character string to specify point layout priority. Either "ascending", "descending",
+"density", or "random". Default is "ascending".</p></dd>
+
+
+<dt id="arg-beeswarm-dodge">beeswarm_dodge<a class="anchor" aria-label="anchor" href="#arg-beeswarm-dodge"></a></dt>
+<dd><p>A numeric value to specify the dodge width for beeswarm points when group_by is provided.
+Default is 0.9</p></dd>
 
 
 <dt id="arg-add-trend">add_trend<a class="anchor" aria-label="anchor" href="#arg-add-trend"></a></dt>
@@ -642,6 +774,12 @@ Options are:</p><ul><li><p>'collect' will collect guides below to the given nest
 <dt id="arg-box-ptsize">box_ptsize<a class="anchor" aria-label="anchor" href="#arg-box-ptsize"></a></dt>
 <dd><p>A numeric value to specify the size of the box plot points in the middle.</p></dd>
 
+
+<dt id="arg-add-violin">add_violin<a class="anchor" aria-label="anchor" href="#arg-add-violin"></a></dt>
+<dd><p>Logical, whether to add violin plot behind the beeswarm points.
+Adding violin to a beeswarm plot is actually not supported. A message will be shown to
+remind users to use <code>ViolinPlot(..., add_beeswarm = TRUE)</code> instead.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -664,19 +802,21 @@ otherwise, it returns a list of ggplot objects.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">BoxPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="boxviolinplot-1.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">BoxPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, add_beeswarm <span class="op">=</span> <span class="cn">TRUE</span>, pt_color <span class="op">=</span> <span class="st">"grey30"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="boxviolinplot-2.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">BoxPlot</span><span class="op">(</span><span class="va">data</span>,</span></span>
 <span class="r-in"><span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>,</span></span>
 <span class="r-in"><span>    stack <span class="op">=</span> <span class="cn">TRUE</span>, flip <span class="op">=</span> <span class="cn">TRUE</span>, facet_by <span class="op">=</span> <span class="st">"group1"</span>,</span></span>
 <span class="r-in"><span>    add_bg <span class="op">=</span> <span class="cn">TRUE</span>, bg_palette <span class="op">=</span> <span class="st">"Paired"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="boxviolinplot-2.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="boxviolinplot-3.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">BoxPlot</span><span class="op">(</span><span class="va">data</span>,</span></span>
 <span class="r-in"><span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>,</span></span>
 <span class="r-in"><span>    stack <span class="op">=</span> <span class="cn">TRUE</span>, flip <span class="op">=</span> <span class="cn">TRUE</span>, split_by <span class="op">=</span> <span class="st">"group1"</span>,</span></span>
 <span class="r-in"><span>    add_bg <span class="op">=</span> <span class="cn">TRUE</span>, bg_palette <span class="op">=</span> <span class="st">"Paired"</span>,</span></span>
 <span class="r-in"><span>    palcolor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>g1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"red"</span>, <span class="st">"blue"</span><span class="op">)</span>, g2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"blue"</span>, <span class="st">"red"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="boxviolinplot-3.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="boxviolinplot-4.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># wide form data</span></span></span>
 <span class="r-in"><span><span class="va">data_wide</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
@@ -685,7 +825,7 @@ otherwise, it returns a list of ggplot objects.</p>
 <span class="r-in"><span>    C <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">BoxPlot</span><span class="op">(</span><span class="va">data_wide</span>, x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span><span class="op">)</span>, in_form <span class="op">=</span> <span class="st">"wide"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="boxviolinplot-4.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="boxviolinplot-5.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">paired_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>    subject <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"s"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span></span>
@@ -698,7 +838,7 @@ otherwise, it returns a list of ggplot objects.</p>
 <span class="r-in"><span>    x <span class="op">=</span> <span class="st">"visit"</span>, y <span class="op">=</span> <span class="st">"value"</span>, comparisons <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>    paired_by <span class="op">=</span> <span class="st">"subject"</span>, add_point <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="boxviolinplot-5.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="boxviolinplot-6.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="va">paired_group_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>    subject <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"s"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>    x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">6</span><span class="op">)</span>,</span></span>
@@ -712,25 +852,27 @@ otherwise, it returns a list of ggplot objects.</p>
 <span class="r-in"><span>    comparisons <span class="op">=</span> <span class="cn">TRUE</span>, pt_size <span class="op">=</span> <span class="fl">3</span>, pt_color <span class="op">=</span> <span class="st">"red"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Forcing 'add_point' = TRUE when 'paired_by' is provided.</span>
-<span class="r-plt img"><img src="boxviolinplot-6.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="boxviolinplot-7.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="boxviolinplot-7.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, add_box <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="boxviolinplot-8.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, add_point <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, add_beeswarm <span class="op">=</span> <span class="cn">TRUE</span>, pt_color <span class="op">=</span> <span class="st">"grey30"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="boxviolinplot-9.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, add_trend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, add_box <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="boxviolinplot-10.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, add_stat <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, add_point <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="boxviolinplot-11.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, add_bg <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, add_trend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="boxviolinplot-12.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, add_line <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, add_stat <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="boxviolinplot-13.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, group_by <span class="op">=</span> <span class="st">"group1"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, add_bg <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="boxviolinplot-14.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, add_line <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="boxviolinplot-15.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, group_by <span class="op">=</span> <span class="st">"group1"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="boxviolinplot-16.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>,</span></span>
 <span class="r-in"><span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, group_by <span class="op">=</span> <span class="st">"group1"</span>,</span></span>
 <span class="r-in"><span>    facet_by <span class="op">=</span> <span class="st">"group2"</span>, add_box <span class="op">=</span> <span class="cn">TRUE</span></span></span>
@@ -743,20 +885,20 @@ otherwise, it returns a list of ggplot objects.</p>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Set `drop = FALSE` to consider such groups for position adjustment purposes.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Groups with fewer than two datapoints have been dropped.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Set `drop = FALSE` to consider such groups for position adjustment purposes.</span>
-<span class="r-plt img"><img src="boxviolinplot-15.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="boxviolinplot-17.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, add_point <span class="op">=</span> <span class="cn">TRUE</span>, highlight <span class="op">=</span> <span class="st">'group1 == "g1"'</span>,</span></span>
 <span class="r-in"><span>    alpha <span class="op">=</span> <span class="fl">0.8</span>, highlight_size <span class="op">=</span> <span class="fl">1.5</span>, pt_size <span class="op">=</span> <span class="fl">1</span>, add_box <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="boxviolinplot-16.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="boxviolinplot-18.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>,</span></span>
 <span class="r-in"><span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, group_by <span class="op">=</span> <span class="st">"group1"</span>,</span></span>
 <span class="r-in"><span>    comparisons <span class="op">=</span> <span class="cn">TRUE</span>, sig_label <span class="op">=</span> <span class="st">"p = {p}"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="boxviolinplot-17.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="boxviolinplot-19.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>,</span></span>
 <span class="r-in"><span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, sig_label <span class="op">=</span> <span class="st">"p.format"</span>, hide_ns <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>    facet_by <span class="op">=</span> <span class="st">"group2"</span>, comparisons <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"D"</span>, <span class="st">"E"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="boxviolinplot-18.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="boxviolinplot-20.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>,</span></span>
 <span class="r-in"><span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, fill_mode <span class="op">=</span> <span class="st">"mean"</span>,</span></span>
 <span class="r-in"><span>    facet_by <span class="op">=</span> <span class="st">"group2"</span>, palette <span class="op">=</span> <span class="st">"Blues"</span>, multiplegroup_comparisons <span class="op">=</span> <span class="cn">TRUE</span></span></span>
@@ -776,18 +918,47 @@ otherwise, it returns a list of ggplot objects.</p>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span>   the data.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Did you forget to specify a `group` aesthetic or to convert a numerical</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span>   variable into a factor?</span>
-<span class="r-plt img"><img src="boxviolinplot-19.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="boxviolinplot-21.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>,</span></span>
 <span class="r-in"><span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, fill_mode <span class="op">=</span> <span class="st">"mean"</span>,</span></span>
 <span class="r-in"><span>    split_by <span class="op">=</span> <span class="st">"group1"</span>, palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>g1 <span class="op">=</span> <span class="st">"Blues"</span>, g2 <span class="op">=</span> <span class="st">"Reds"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="boxviolinplot-20.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="boxviolinplot-22.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">ViolinPlot</span><span class="op">(</span><span class="va">data</span>,</span></span>
 <span class="r-in"><span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, stack <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>    facet_by <span class="op">=</span> <span class="st">"group2"</span>, add_box <span class="op">=</span> <span class="cn">TRUE</span>, add_bg <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>    bg_palette <span class="op">=</span> <span class="st">"Paired"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="boxviolinplot-21.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="boxviolinplot-23.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
+<span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="co"># Beeswarm plot examples</span></span></span>
+<span class="r-in"><span><span class="fu">BeeswarmPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="boxviolinplot-24.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">BeeswarmPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, pt_size <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="boxviolinplot-25.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">BeeswarmPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, add_box <span class="op">=</span> <span class="cn">TRUE</span>, pt_color <span class="op">=</span> <span class="st">"grey30"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="boxviolinplot-26.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="co"># Equivalent to:</span></span></span>
+<span class="r-in"><span><span class="co"># BoxPlot(data, x = "x", y = "y", add_beeswarm = TRUE, pt_color = "grey30")</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu">BeeswarmPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, group_by <span class="op">=</span> <span class="st">"group1"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="boxviolinplot-27.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="co"># no dodging</span></span></span>
+<span class="r-in"><span><span class="fu">BeeswarmPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, group_by <span class="op">=</span> <span class="st">"group1"</span>, beeswarm_dodge <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="boxviolinplot-28.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu">BeeswarmPlot</span><span class="op">(</span><span class="va">data</span>,</span></span>
+<span class="r-in"><span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, beeswarm_method <span class="op">=</span> <span class="st">"hex"</span>,</span></span>
+<span class="r-in"><span>    beeswarm_cex <span class="op">=</span> <span class="fl">2</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>In `position_beeswarm`, method `hex` discretizes the data axis (a.k.a the</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> continuous or non-grouped axis).</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> This may result in changes to the position of the points along that axis,</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> proportional to the value of `cex`.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> To prevent this behavior, set `preserve.data.axis=TRUE`.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #555555;">This warning is displayed once per session.</span></span>
+<span class="r-plt img"><img src="boxviolinplot-29.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
