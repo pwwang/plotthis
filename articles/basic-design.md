@@ -39,7 +39,7 @@ are widely used in single-cell analysis, including:
 See also the following documentation for more details:
 
 - [all available color
-  palettes](https://pwwang.github.io/plotthis/all-palettes.md)
+  palettes](https://pwwang.github.io/plotthis/articles/all-palettes.md)
 - [`show_palettes`](https://pwwang.github.io/plotthis/reference/show_palettes.md)
 - [`palette_this`](https://pwwang.github.io/plotthis/reference/palette_this.md)
 

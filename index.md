@@ -64,6 +64,8 @@ You can also install the package using `conda`:
 [`BoxPlot`](https://pwwang.github.io/plotthis/reference/boxviolinplot.html)
 /
 [`ViolinPlot`](https://pwwang.github.io/plotthis/reference/boxviolinplot.html)
+/
+[`BeeswarmPlot`](https://pwwang.github.io/plotthis/reference/boxviolinplot.html)
 
 ![](reference/figures/box-violin.png)
 
