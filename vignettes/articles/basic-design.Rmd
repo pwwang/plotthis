@@ -34,7 +34,7 @@ All the above palettes are provided by the [`SCP`][10] package. In addition, the
 
 See also the following documentation for more details:
 
-- [all available color palettes](../all-palettes.html)
+- [all available color palettes](all-palettes.html)
 - [`show_palettes`](../reference/show_palettes.html)
 - [`palette_this`](../reference/palette_this.html)
 
