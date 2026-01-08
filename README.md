@@ -46,7 +46,7 @@ $ conda install pwwang::r-plotthis
 
 ![](man/figures/bar-splitbar.png)
 
-[`BoxPlot`][12] / [`ViolinPlot`][12]
+[`BoxPlot`][12] / [`ViolinPlot`][12] / [`BeeswarmPlot`][12]
 
 ![](man/figures/box-violin.png)
 
