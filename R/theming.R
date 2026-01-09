@@ -378,7 +378,6 @@ palette_this <- function(
 #' @return A list of palette names or a list of palettes.
 #'
 #' @seealso \code{\link{palette_list}}
-#' @seealso \href{all-palettes.html}{All available palettes}
 #'
 #' @examples
 #' show_palettes(palettes = list(c("red", "blue", "green"), c("yellow", "purple", "orange")))
