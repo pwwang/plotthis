@@ -54,9 +54,6 @@ A list of palette names or a list of palettes.
 
 [`palette_list`](https://pwwang.github.io/plotthis/reference/palette_list.md)
 
-[All available
-palettes](https://pwwang.github.io/plotthis/reference/all-palettes.md)
-
 ## Examples
 
 ``` r
