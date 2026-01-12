@@ -53,7 +53,7 @@ PieChartAtomic(
 
   Which column to use as the label. NULL means no label. Default is the
   same as y. If y is NULL, you should use ".y" to specify the count as
-  the label.
+  the label. If TRUE, the y values will be used as the label.
 
 - clockwise:
 
