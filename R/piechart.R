@@ -3,6 +3,7 @@
 #' @inheritParams common_args
 #' @param label Which column to use as the label. NULL means no label.
 #' Default is the same as y. If y is NULL, you should use ".y" to specify the count as the label.
+#' If TRUE, the y values will be used as the label.
 #' @param y A character string of the column name to plot on the y-axis.
 #'   A numeric column is expected.
 #'   If NULL, the count of each x column will be used.
@@ -35,6 +36,9 @@ PieChartAtomic <- function(
             group_by(!!!syms(unique(c(x, facet_by)))) %>%
             summarise(.y = n(), .groups = "drop")
         y <- ".y"
+    }
+    if (isTRUE(label)) {
+        label <- y
     }
     label <- check_columns(data, label)
     concated_facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE)

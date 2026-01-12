@@ -41,7 +41,8 @@ A numeric column is expected.
 If NULL, the count of each x column will be used.}
 
 \item{label}{Which column to use as the label. NULL means no label.
-Default is the same as y. If y is NULL, you should use ".y" to specify the count as the label.}
+Default is the same as y. If y is NULL, you should use ".y" to specify the count as the label.
+If TRUE, the y values will be used as the label.}
 
 \item{clockwise}{A logical value to draw the pie chart clockwise or not.}
 
