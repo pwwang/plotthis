@@ -503,6 +503,9 @@ Network <- function(
 
     l_split_by <- check_columns(links, split_by, force_factor = TRUE, allow_multi = TRUE,
         concat_multi = TRUE, concat_sep = split_by_sep)
+    if (!is.null(l_split_by)) {
+        links[[l_split_by]] <- droplevels(links[[l_split_by]])
+    }
 
     if (isTRUE(split_nodes) && !is.null(nodes)) {
         if (is.character(nodes) && length(nodes) == 1 && startsWith(nodes, "@")) {
@@ -510,6 +513,9 @@ Network <- function(
         }
         n_split_by <- check_columns(nodes, split_by, force_factor = TRUE, allow_multi = TRUE,
             concat_multi = TRUE, concat_sep = split_by_sep)
+        if (!is.null(n_split_by)) {
+            nodes[[n_split_by]] <- droplevels(nodes[[n_split_by]])
+        }
 
         if (!identical(l_split_by, n_split_by)) {
             stop("The `split_by` columns in `links` and `nodes` must be the same.")

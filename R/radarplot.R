@@ -268,6 +268,7 @@ RadarPlot <- function(
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
 
     if (!is.null(split_by)) {
+        data[[split_by]] <- droplevels(data[[split_by]])
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
@@ -347,6 +348,7 @@ SpiderPlot <- function(
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
 
     if (!is.null(split_by)) {
+        data[[split_by]] <- droplevels(data[[split_by]])
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]

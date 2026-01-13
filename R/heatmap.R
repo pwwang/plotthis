@@ -183,6 +183,9 @@ process_heatmap_data <- function(
         data, split_by,
         force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep
     )
+    if (!is.null(split_by)) {
+        data[[split_by]] <- droplevels(data[[split_by]])
+    }
 
     if (in_form == "long") {
         # values_by
