@@ -92,6 +92,7 @@ DimPlotAtomic(
   streamline_palcolor = NULL,
   streamline_bg_color = "white",
   streamline_bg_stroke = 0.5,
+  keep_empty = FALSE,
   facet_by = NULL,
   facet_scales = "fixed",
   facet_nrow = NULL,
@@ -309,6 +310,8 @@ Only works for \code{plot_type = "raw"} and \code{plot_type = "grid"}. For \code
 \item{streamline_bg_color}{A character string specifying the background color of the velocity streamlines. Default is "white".}
 
 \item{streamline_bg_stroke}{A numeric value specifying the background stroke width of the velocity streamlines. Default is 0.5.}
+
+\item{keep_empty}{A logical value indicating whether to keep empty (NA) groups or values in the plot. Default is FALSE.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
