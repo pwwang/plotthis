@@ -98,7 +98,7 @@
 #' @param hex_binwidth A numeric value of the hex bin width. Default is NULL.
 #' @param bg_cutoff A numeric value to be used a cutoff to set the feature values to NA. Default is NULL.
 #' @param color_name A character string of the color legend name. Default is "".
-#' @param keep_empty A logical value indicating whether to keep empty (NA) groups or values in the plot. Default is FALSE.
+#' @param keep_empty A logical value indicating whether to keep empty (NA) groups. Default is FALSE.
 #' @return A ggplot object
 #' @keywords internal
 #' @importFrom scales rescale
@@ -235,9 +235,6 @@ DimPlotAtomic <- function(
         features <- ".value"
     }
     if (!is.null(features)) {
-        if (!isTRUE(keep_empty)) {
-            data <- data[!is.na(data[[features]]), , drop = FALSE]
-        }
         if (!is.null(bg_cutoff)) {
             data[[features]][data[[features]] <= bg_cutoff] <- NA
         }
@@ -1058,7 +1055,7 @@ FeatureDimPlot <- function(
     velocity_group_palette = "Set2", velocity_group_palcolor = NULL, arrow_angle = 20, arrow_color = "black", arrow_alpha = 1,
     streamline_l = 5, streamline_minl = 1, streamline_res = 1, streamline_n = 15,
     streamline_width = c(0, 0.8), streamline_alpha = 1, streamline_color = NULL, streamline_palette = "RdYlBu", streamline_palcolor = NULL,
-    streamline_bg_color = "white", streamline_bg_stroke = 0.5, keep_empty = FALSE,
+    streamline_bg_color = "white", streamline_bg_stroke = 0.5,
     facet_by = NULL, facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     theme = "theme_this", theme_args = list(), aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
@@ -1097,7 +1094,7 @@ FeatureDimPlot <- function(
                 streamline_l = streamline_l, streamline_minl = streamline_minl, streamline_res = streamline_res, streamline_n = streamline_n,
                 streamline_width = streamline_width, streamline_alpha = streamline_alpha, streamline_color = streamline_color,
                 streamline_palette = streamline_palette, streamline_palcolor = streamline_palcolor,
-                streamline_bg_color = streamline_bg_color, streamline_bg_stroke = streamline_bg_stroke, keep_empty = keep_empty,
+                streamline_bg_color = streamline_bg_color, streamline_bg_stroke = streamline_bg_stroke,
                 facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
                 title = title %||% feature, subtitle = subtitle, xlab = xlab, ylab = ylab,
                 theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
@@ -1165,7 +1162,7 @@ FeatureDimPlot <- function(
                     streamline_l = streamline_l, streamline_minl = streamline_minl, streamline_res = streamline_res, streamline_n = streamline_n,
                     streamline_width = streamline_width, streamline_alpha = streamline_alpha, streamline_color = streamline_color,
                     streamline_palette = streamline_palette, streamline_palcolor = streamline_palcolor,
-                    streamline_bg_color = streamline_bg_color, streamline_bg_stroke = streamline_bg_stroke, keep_empty = keep_empty,
+                    streamline_bg_color = streamline_bg_color, streamline_bg_stroke = streamline_bg_stroke,
                     facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
                     title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
                     theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],

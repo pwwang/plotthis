@@ -210,7 +210,6 @@ FeatureDimPlot(
   streamline_palcolor = NULL,
   streamline_bg_color = "white",
   streamline_bg_stroke = 0.5,
-  keep_empty = FALSE,
   facet_by = NULL,
   facet_scales = "fixed",
   facet_nrow = NULL,
