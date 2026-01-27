@@ -93,6 +93,7 @@ DimPlotAtomic(
   streamline_palcolor = NULL,
   streamline_bg_color = "white",
   streamline_bg_stroke = 0.5,
+  keep_empty = FALSE,
   facet_by = NULL,
   facet_scales = "fixed",
   facet_nrow = NULL,
@@ -520,6 +521,11 @@ DimPlotAtomic(
 
   A numeric value specifying the background stroke width of the velocity
   streamlines. Default is 0.5.
+
+- keep_empty:
+
+  A logical value indicating whether to keep empty (NA) groups. Default
+  is FALSE.
 
 - facet_by:
 
