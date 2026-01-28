@@ -27,7 +27,8 @@ process_heatmap_data(
   pie_group_by_sep,
   pie_name,
   rows_data,
-  columns_data
+  columns_data,
+  keep_na
 )
 }
 \arguments{
@@ -104,6 +105,11 @@ This is useful for adding additional information to the rows of the heatmap.}
 \item{columns_data}{A data frame containing additional data for columns, which can be used to add annotations to the heatmap.
 It will be joined to the main data by \code{columns_by} and \code{split_by} if \code{split_by} exists in \code{columns_data}.
 This is useful for adding additional information to the columns of the heatmap.}
+
+\item{keep_na}{Whether we should keep NA groups in rows, columns and split_by variables. Default is FALSE.
+FALSE to remove NA groups; TRUE to keep NA groups.
+A vector of column names can also be provided to specify which columns to keep NA groups.
+Note that the record will be removed if any of the grouping columns has NA and is not specified to keep NA.}
 }
 \value{
 A list containing the processed data and metadata:
