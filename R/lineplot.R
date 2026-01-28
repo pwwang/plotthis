@@ -55,7 +55,7 @@ LinePlotSingle <- function(
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     x_text_angle = 0, aspect.ratio = 1,
     legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, ...
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, keep_na = FALSE, ...
 ) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
@@ -65,6 +65,15 @@ LinePlotSingle <- function(
     x <- check_columns(data, x, force_factor = TRUE)
     y <- check_columns(data, y)
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
+
+    data[[x]] <- droplevels(data[[x]])
+    if (!keep_na) {
+        data <- data[!is.na(data[[x]]), , drop = FALSE]
+    } else if (anyNA(data[[x]])) {
+        levels(data[[x]]) <- c(levels(data[[x]]), "<NA>")
+        data[[x]][is.na(data[[x]])] <- "<NA>"
+    }
+
     if (is.null(y)) {
         data <- data %>% group_by(!!!syms(unique(x, facet_by))) %>% summarise(.y = n(), .groups = "drop")
         y <- ".y"
@@ -110,7 +119,7 @@ LinePlotSingle <- function(
 
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y)))
     if (isTRUE(add_bg)) {
-        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by)
+        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, facet_by)
     }
 
     if (!is.null(add_hline) && !isFALSE(add_hline)) {
@@ -219,7 +228,7 @@ LinePlotGrouped <- function(
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     x_text_angle = 0, aspect.ratio = 1,
     legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, ...
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, keep_na = FALSE, ...
 ) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
@@ -235,6 +244,14 @@ LinePlotGrouped <- function(
     if (is.null(y)) {
         data <- data %>% dplyr::group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>% summarise(.y = n(), .groups = "drop")
         y <- ".y"
+    }
+
+    data[[x]] <- droplevels(data[[x]])
+    if (!keep_na) {
+        data <- data[!is.na(data[[x]]), , drop = FALSE]
+    } else if (anyNA(data[[x]])) {
+        levels(data[[x]]) <- c(levels(data[[x]]), "<NA>")
+        data[[x]][is.na(data[[x]])] <- "<NA>"
     }
 
     if (isTRUE(add_errorbars)) {
@@ -275,7 +292,7 @@ LinePlotGrouped <- function(
 
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y)))
     if (isTRUE(add_bg)) {
-        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by)
+        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, facet_by)
     }
 
     colors <- palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
@@ -379,10 +396,13 @@ LinePlotAtomic <- function(
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     x_text_angle = 0, aspect.ratio = 1,
     legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, keep_na = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_args = list(),
     facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE, ...
 ) {
+    if (isTRUE(keep_empty)) {
+        stop("[LinePlot] 'keep_empty' = TRUE is not supported for LinePlot as it would break the continuity of the plot.")
+    }
     if (is.null(group_by)) {
         p <- LinePlotSingle(
             data = data, x = x, y = y, fill_point_by_x = fill_point_by_x_if_no_group,
@@ -399,7 +419,7 @@ LinePlotAtomic <- function(
             theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
             x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
             legend.position = legend.position, legend.direction = legend.direction,
-            title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...
+            title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, keep_na = keep_na, ...
         )
     } else {
         p <- LinePlotGrouped(
@@ -416,7 +436,7 @@ LinePlotAtomic <- function(
             theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
             x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
             legend.position = legend.position, legend.direction = legend.direction,
-            title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...
+            title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, keep_na = keep_na, ...
         )
     }
     facet_args$plot <- p
@@ -474,7 +494,7 @@ LinePlot <- function(
     facet_by = NULL, facet_scales = "fixed",
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
     facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE, facet_args = list(),
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, seed = 8525,
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, keep_na = FALSE, seed = 8525,
     axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
@@ -524,7 +544,7 @@ LinePlot <- function(
                 x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
                 legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]], facet_args = facet_args,
                 facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, keep_na = keep_na, ...
             )
         }
     )

@@ -63,6 +63,7 @@ LinePlot(
   xlab = NULL,
   ylab = NULL,
   keep_empty = FALSE,
+  keep_na = FALSE,
   seed = 8525,
   axes = NULL,
   axis_titles = axes,
@@ -209,8 +210,36 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{ylab}{A character string specifying the y-axis label.}
 
-\item{keep_empty}{A logical value indicating whether to keep empty groups.
-If FALSE, empty groups will be removed.}
+\item{keep_empty}{Logical or character. Whether to keep unused factor levels on categorical axes.
+\itemize{
+\item{\code{FALSE} (default): Drop unused factor levels via \code{droplevels()}.}
+\item{\code{TRUE}: Keep all factor levels defined in the data, even if they have no observations.
+For plots with both x and y categorical, applies to both axes.}
+\item{\code{"x"}: Keep unused levels only on the x-axis, drop from y-axis.}
+\item{\code{"y"}: Keep unused levels only on the y-axis, drop from x-axis.}
+\item{\code{c("x", "y")} or \code{"xy"}: Explicitly keep unused levels on both axes (same as \code{TRUE}).}
+}
+
+\strong{Note:} This parameter is distinct from \code{keep_na}. Use \code{keep_empty = TRUE}
+when you need to show all possible categories (e.g., all 12 months even if some have no data).
+For more complex completeness requirements, use \code{tidyr::complete()} before plotting.
+
+\strong{Backward compatibility:} If \code{keep_na} is not specified and \code{keep_empty}
+is provided, \code{keep_empty} will control both NA values and unused levels (legacy behavior).}
+
+\item{keep_na}{Logical or character. Whether to keep rows with NA values on categorical axes.
+\itemize{
+\item{\code{FALSE} (default): Remove rows with NA values in categorical axes.}
+\item{\code{TRUE}: Keep NA values and display them as a separate category (shown as "NA").
+For plots with both x and y categorical, applies to both axes.}
+\item{\code{"x"}: Keep NA values only on the x-axis, remove from y-axis.}
+\item{\code{"y"}: Keep NA values only on the y-axis, remove from x-axis.}
+\item{\code{c("x", "y")} or \code{"xy"}: Explicitly keep NA on both axes (same as \code{TRUE}).}
+}
+
+\strong{Special cases:} For \code{AreaPlot}, \code{LinePlot}, and \code{TrendPlot},
+keeping NA values would break the visual continuity. Setting \code{keep_na = TRUE}
+will raise an error for these plot types.}
 
 \item{seed}{The random seed to use. Default is 8525.}
 

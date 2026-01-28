@@ -16,6 +16,7 @@ JitterPlot(
     "median"),
   flip = FALSE,
   keep_empty = FALSE,
+  keep_na = FALSE,
   group_by = NULL,
   group_by_sep = "_",
   group_name = NULL,
@@ -113,6 +114,20 @@ When \code{in_form} is "wide", \code{y} is not required. The values under \code{
 \item{flip}{A logical value to flip the plot.}
 
 \item{keep_empty}{A logical value to keep the empty levels in the x-axis.}
+
+\item{keep_na}{Logical or character. Whether to keep rows with NA values on categorical axes.
+\itemize{
+\item{\code{FALSE} (default): Remove rows with NA values in categorical axes.}
+\item{\code{TRUE}: Keep NA values and display them as a separate category (shown as "NA").
+For plots with both x and y categorical, applies to both axes.}
+\item{\code{"x"}: Keep NA values only on the x-axis, remove from y-axis.}
+\item{\code{"y"}: Keep NA values only on the y-axis, remove from x-axis.}
+\item{\code{c("x", "y")} or \code{"xy"}: Explicitly keep NA on both axes (same as \code{TRUE}).}
+}
+
+\strong{Special cases:} For \code{AreaPlot}, \code{LinePlot}, and \code{TrendPlot},
+keeping NA values would break the visual continuity. Setting \code{keep_na = TRUE}
+will raise an error for these plot types.}
 
 \item{group_by}{A character string to dodge the points.}
 

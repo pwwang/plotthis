@@ -62,7 +62,7 @@
 JitterPlotAtomic <- function(
     data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
-    flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
+    flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
     x_text_angle = 0, order_by = "-({y}^2 + {size_by}^2)",
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
@@ -88,6 +88,18 @@ JitterPlotAtomic <- function(
     y <- check_columns(data, y)
     group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
+
+    # Filter out NA groups when keep_empty is FALSE
+    if (!keep_empty) {
+        data[[x]] <- droplevels(data[[x]])
+    }
+
+    if (!keep_na) {
+        data <- data[!is.na(data[[x]]), , drop = FALSE]
+    } else if (anyNA(data[[x]])) {
+        levels(data[[x]]) <- c(levels(data[[x]]), "<NA>")
+        data[[x]][is.na(data[[x]])] <- "<NA>"
+    }
 
     sort_x <- match.arg(sort_x)
     data <- data %>%
@@ -169,7 +181,7 @@ JitterPlotAtomic <- function(
     # Base
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y)))
     if (isTRUE(add_bg)) {
-        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by)
+        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, facet_by)
     }
 
     # Positioner (jitter + optional dodge)
@@ -178,6 +190,23 @@ JitterPlotAtomic <- function(
         dodge.width = ifelse(is.null(group_by), 0, 0.9), seed = seed
     )
 
+    # Pre-calculate jittered positions for labels (geom_text_repel doesn't respect position adjustments)
+    if (any(data$.show_label)) {
+        # Create a temporary plot to extract jittered positions
+        temp_data <- data
+        temp_mapping <- aes(x = !!sym(x), y = !!sym(y))
+        if (!is.null(group_by)) {
+            temp_mapping$group <- aes(group = !!sym(group_by))$group
+        }
+        temp_plot <- ggplot2::ggplot(temp_data, temp_mapping) +
+            geom_point(position = pos) +
+            scale_x_discrete(drop = !keep_empty)
+        temp_build <- ggplot2::ggplot_build(temp_plot)
+        jittered_coords <- temp_build$data[[1]]
+        data$.x_jittered <- jittered_coords$x
+        data$.y_jittered <- jittered_coords$y
+    }
+
     # Build point layer, color by x
     has_fill <- shape %in% 21:25
     point_args <- list(
@@ -185,11 +214,12 @@ JitterPlotAtomic <- function(
     )
     mapping <- list(aes())
 
+    color_col <- ifelse(is.null(group_by), x, group_by)
     if (has_fill) {
-        mapping[[length(mapping) + 1]] <- aes(fill = !!sym(x))
+        mapping[[length(mapping) + 1]] <- aes(fill = !!sym(color_col))
         # border handling
         if (isTRUE(border)) {
-            mapping[[length(mapping) + 1]] <- aes(color = !!sym(x))
+            mapping[[length(mapping) + 1]] <- aes(color = !!sym(color_col))
         } else if (is.character(border) && length(border) == 1) {
             point_args$color <- border
         } else {
@@ -197,7 +227,7 @@ JitterPlotAtomic <- function(
         }
     } else {
         # shapes without fill
-        mapping[[length(mapping) + 1]] <- aes(color = !!sym(x))
+        mapping[[length(mapping) + 1]] <- aes(color = !!sym(color_col))
     }
 
     # size handling
@@ -229,19 +259,19 @@ JitterPlotAtomic <- function(
     p <- p + do.call(geom_point, point_args)
 
     # Discrete color/fill scales by x
-    x_levels <- levels(data[[x]])
+    col_levels <- levels(data[[color_col]])
     if (has_fill) {
         p <- p + scale_fill_manual(
-            name = x, values = palette_this(x_levels, palette = palette, palcolor = palcolor), drop = !keep_empty
+            name = x, values = palette_this(col_levels, palette = palette, palcolor = palcolor)
         )
         if (isTRUE(border)) {
             p <- p + scale_color_manual(
-                values = palette_this(x_levels, palette = palette, palcolor = palcolor), guide = "none", drop = !keep_empty
+                values = palette_this(col_levels, palette = palette, palcolor = palcolor), guide = "none"
             )
         }
     } else {
         p <- p + scale_color_manual(
-            name = x, values = palette_this(x_levels, palette = palette, palcolor = palcolor), drop = !keep_empty
+            name = x, values = palette_this(col_levels, palette = palette, palcolor = palcolor)
         )
     }
 
@@ -297,7 +327,7 @@ JitterPlotAtomic <- function(
     if (any(data$.show_label)) {
         p <- p + geom_text_repel(
             data = data[data$.show_label, , drop = FALSE],
-            mapping = aes(label = !!sym(".label")),
+            mapping = aes(x = !!sym(".x_jittered"), y = !!sym(".y_jittered"), label = !!sym(".label")),
             color = label_fg, bg.color = label_bg, bg.r = label_bg_r,
             size = label_size, min.segment.length = 0, segment.color = "grey40",
             max.overlaps = 100
@@ -425,7 +455,7 @@ JitterPlot <- function(
     data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
     split_by = NULL, split_by_sep = "_",
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
-    flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
+    flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
     x_text_angle = 0, order_by = "-({y}^2 + {size_by}^2)",
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
@@ -469,7 +499,7 @@ JitterPlot <- function(
             JitterPlotAtomic(
                 datas[[nm]],
                 x = x, x_sep = x_sep, y = y, in_form = in_form,
-                sort_x = sort_x, flip = flip, keep_empty = keep_empty, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
+                sort_x = sort_x, flip = flip, keep_empty = keep_empty, keep_na = keep_na, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
                 x_text_angle = x_text_angle, theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                 shape = shape, border = border, order_by = order_by,

@@ -42,14 +42,26 @@ RadarPlotAtomic <- function(
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     alpha = 0.2, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
-    title = NULL, subtitle = NULL, ...) {
+    keep_empty = FALSE, keep_na = FALSE, title = NULL, subtitle = NULL, ...) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
     } else {
         ggplot2::ggplot
     }
     x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
-    data[[x]] <- droplevels(data[[x]])
+
+    # Filter out NA groups when keep_empty is FALSE
+    if (!keep_empty) {
+        data[[x]] <- droplevels(data[[x]])
+    }
+
+    if (!keep_na) {
+        data <- data[!is.na(data[[x]]), , drop = FALSE]
+    } else if (anyNA(data[[x]])) {
+        levels(data[[x]]) <- c(levels(data[[x]]), "<NA>")
+        data[[x]][is.na(data[[x]])] <- "<NA>"
+    }
+
     y <- check_columns(data, y)
     group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
@@ -154,9 +166,9 @@ RadarPlotAtomic <- function(
     # Add radial grid lines that only extend from y_min to y_max
     if (!is.null(facet_by)) {
         grid_df <- data %>% select(!!!syms(facet_by)) %>% distinct()
-        grid_df <- expand_grid(grid_df, x = levels(data[[x]]))
+        grid_df <- expand_grid(grid_df, x = x_levels)
     } else {
-        grid_df <- data.frame(x = levels(data[[x]]))
+        grid_df <- data.frame(x = x_levels)
     }
     # Create two points for each radial line
     n_lines <- nrow(grid_df)
@@ -200,7 +212,7 @@ RadarPlotAtomic <- function(
                 label = if (scale_y == "none") scales::number(!!sym("breaks")) else scales::percent(!!sym("breaks"))),
             x = pi / (length(breaks) - 0.88), color = "grey20", inherit.aes = FALSE) +
         scale_y_continuous(limits = c(y_min, y_max), breaks = breaks, expand = c(.1, 0, 0, 0)) +
-        scale_x_discrete(labels = scales::label_wrap(max_charwidth)) +
+        scale_x_discrete(labels = scales::label_wrap(max_charwidth), drop = !keep_empty) +
         scale_fill_manual(
             name = group_name %||% group_by,
             values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
@@ -260,7 +272,7 @@ RadarPlot <- function(
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     alpha = 0.2, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
-    title = NULL, subtitle = NULL, seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
+    keep_empty = FALSE, keep_na = FALSE, title = NULL, subtitle = NULL, seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
     axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...) {
 
     validate_common_args(seed, facet_by = facet_by)
@@ -296,7 +308,7 @@ RadarPlot <- function(
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 alpha = alpha, aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                title = title, subtitle = subtitle, ...
+                keep_empty = keep_empty, keep_na = keep_na, title = title, subtitle = subtitle, ...
             )
         }
     )
@@ -340,7 +352,7 @@ SpiderPlot <- function(
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     alpha = 0.2, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
-    title = NULL, subtitle = NULL, seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
+    keep_empty = FALSE, keep_na = FALSE, title = NULL, subtitle = NULL, seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
     axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...) {
 
     validate_common_args(seed, facet_by = facet_by)
@@ -376,7 +388,7 @@ SpiderPlot <- function(
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 alpha = alpha, aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                title = title, subtitle = subtitle, ...
+                keep_empty = keep_empty, keep_na = keep_na, title = title, subtitle = subtitle, ...
             )
         }
     )

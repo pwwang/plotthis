@@ -25,18 +25,28 @@ TrendPlotAtomic <- function(
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     x_text_angle = 0, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, ...
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, keep_na = FALSE, ...
 ) {
+    if (isTRUE(keep_empty)) {
+        stop("[TrendPlot] 'keep_empty' = TRUE is not supported for TrendPlot as it would break the continuity of the plot.")
+    }
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
     } else {
         ggplot2::ggplot
     }
     x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
-    data[[x]] <- droplevels(data[[x]])
     y <- check_columns(data, y)
     group_by <- check_columns(data, group_by, force_factor = TRUE,
         allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
+
+    data[[x]] <- droplevels(data[[x]])
+    if (!keep_na) {
+        data <- data[!is.na(data[[x]]), , drop = FALSE]
+    } else if (anyNA(data[[x]])) {
+        levels(data[[x]]) <- c(levels(data[[x]]), "<NA>")
+        data[[x]][is.na(data[[x]])] <- "<NA>"
+    }
 
     if (is.null(y)) {
         y <- ".count"
@@ -148,7 +158,7 @@ TrendPlot <- function(
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     x_text_angle = 0, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, keep_na = FALSE, seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
     axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...
 ){
@@ -183,7 +193,8 @@ TrendPlot <- function(
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]],
-                legend.direction = legend.direction[[nm]], title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, ...
+                legend.direction = legend.direction[[nm]], title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
+                keep_empty = keep_empty, keep_na = keep_na, ...
             )
         }
     )

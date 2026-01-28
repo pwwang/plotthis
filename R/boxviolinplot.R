@@ -18,7 +18,6 @@
 #' * `median_desc` sorts the x-axis by descending median of y-values.
 #' * `median` is an alias for `median_asc`.
 #' @param flip A logical value to flip the plot.
-#' @param keep_empty A logical value to keep the empty levels in the x-axis.
 #' @param group_by A character string of the column name to dodge the boxes/violins
 #' @param group_by_sep A character string to concatenate the columns in `group_by`, if multiple columns are provided.
 #' @param group_name A character string to name the legend of dodge.
@@ -122,7 +121,7 @@
 BoxViolinPlotAtomic <- function(
     data, x, x_sep = "_", y = NULL, base = c("box", "violin", "none"), in_form = c("long", "wide"),
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
-    flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
+    flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
     paired_by = NULL, x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE, symnum_args = NULL,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
@@ -155,6 +154,18 @@ BoxViolinPlotAtomic <- function(
     }
     x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
     y <- check_columns(data, y)
+
+    # Filter out NA groups when keep_empty is FALSE
+    if (!keep_empty) {
+        data[[x]] <- droplevels(data[[x]])
+    }
+
+    if (!keep_na) {
+        data <- data[!is.na(data[[x]]), , drop = FALSE]
+    } else if (anyNA(data[[x]])) {
+        levels(data[[x]]) <- c(levels(data[[x]]), "<NA>")
+        data[[x]][is.na(data[[x]])] <- "<NA>"
+    }
 
     group_by <- check_columns(data, group_by,
         force_factor = TRUE,
@@ -343,7 +354,7 @@ BoxViolinPlotAtomic <- function(
     }
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(fill_by)))
     if (isTRUE(add_bg)) {
-        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by)
+        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, facet_by)
     }
 
     if (base == "box" || (base == "none" && isTRUE(add_box))) {
@@ -972,7 +983,7 @@ BoxViolinPlot <- function(
     data, x, x_sep = "_", y = NULL, base = c("box", "violin"), in_form = c("long", "wide"),
     split_by = NULL, split_by_sep = "_", symnum_args = NULL,
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
-    flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
+    flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
     paired_by = NULL, x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
@@ -1024,7 +1035,7 @@ BoxViolinPlot <- function(
             }
             BoxViolinPlotAtomic(datas[[nm]],
                 x = x, x_sep = x_sep, y = y, base = base, in_form = in_form,
-                sort_x = sort_x, flip = flip, keep_empty = keep_empty, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
+                sort_x = sort_x, flip = flip, keep_empty = keep_empty, keep_na = keep_na, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
                 paired_by = paired_by, x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse, step_increase = step_increase,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
@@ -1121,7 +1132,7 @@ BoxPlot <- function(
     data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
     split_by = NULL, split_by_sep = "_", symnum_args = NULL,
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
-    flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
+    flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
     paired_by = NULL, x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
@@ -1145,7 +1156,7 @@ BoxPlot <- function(
     BoxViolinPlot(
         data = data, x = x, x_sep = x_sep, y = y, base = "box", in_form = in_form,
         split_by = split_by, split_by_sep = split_by_sep,
-        sort_x = sort_x, flip = flip, keep_empty = keep_empty, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
+        sort_x = sort_x, flip = flip, keep_empty = keep_empty, keep_na = keep_na, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
         paired_by = paired_by, x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse, step_increase = step_increase,
         theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
         aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
@@ -1212,7 +1223,7 @@ ViolinPlot <- function(
     data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
     split_by = NULL, split_by_sep = "_", symnum_args = NULL,
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
-    flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
+    flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
     paired_by = NULL, x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
@@ -1237,7 +1248,7 @@ ViolinPlot <- function(
     BoxViolinPlot(
         data = data, x = x, x_sep = x_sep, y = y, base = "violin", in_form = in_form,
         split_by = split_by, split_by_sep = split_by_sep,
-        sort_x = sort_x, flip = flip, keep_empty = keep_empty, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
+        sort_x = sort_x, flip = flip, keep_empty = keep_empty, keep_na = keep_na, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
         paired_by = paired_by, x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse, step_increase = step_increase,
         theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
         aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
@@ -1287,7 +1298,7 @@ BeeswarmPlot <- function(
     data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
     split_by = NULL, split_by_sep = "_", symnum_args = NULL,
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
-    flip = FALSE, keep_empty = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
+    flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
     paired_by = NULL, x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
@@ -1315,7 +1326,7 @@ BeeswarmPlot <- function(
     BoxViolinPlot(
         data = data, x = x, x_sep = x_sep, y = y, base = "none", in_form = in_form,
         split_by = split_by, split_by_sep = split_by_sep,
-        sort_x = sort_x, flip = flip, keep_empty = keep_empty, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
+        sort_x = sort_x, flip = flip, keep_empty = keep_empty, keep_na = keep_na, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
         paired_by = paired_by, x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse, step_increase = step_increase,
         theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
         aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,

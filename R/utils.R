@@ -321,27 +321,25 @@ combine_plots <- function(
 #' @param palette A character string specifying the palette to use
 #' @param palcolor A character string specifying the color to use in the palette
 #' @param alpha A numeric value specifying the transparency of the plot
-#' @param keep_empty A logical value indicating whether to keep empty groups
 #' @param facet_by A character string specifying the column name(s) of the data frame to facet the plot
 #' @param direction A character string specifying the direction for the background
 #' @return A ggplot layer for background
 #' @importFrom ggplot2 geom_rect
 #' @importFrom dplyr distinct
 #' @importFrom tidyr expand_grid
-bg_layer <- function(data, x, palette, palcolor, alpha, keep_empty, facet_by, direction = "vertical") {
-    fct <- data[[x]]
-    if (isFALSE(keep_empty)) {
-        fct <- droplevels(fct)
+bg_layer <- function(data, x, palette, palcolor, alpha, facet_by, direction = "vertical") {
+    lvls <- levels(data[[x]])
+    if (anyNA(data[[x]])) {
+        lvls <- c(lvls, "<NA>")
     }
-    bg_color <- palette_this(levels(fct), palette = palette, palcolor = palcolor)
-
-    bg_data <- data.frame(x = factor(levels(fct), levels = levels(fct)))
+    bg_color <- palette_this(lvls, palette = palette, palcolor = palcolor)
+    bg_data <- data.frame(x = factor(lvls, levels = lvls))
     bg_data$x <- as.numeric(bg_data$x)
     bg_data$xmin <- ifelse(bg_data$x == min(bg_data$x), -Inf, bg_data$x - 0.5)
     bg_data$xmax <- ifelse(bg_data$x == max(bg_data$x), Inf, bg_data$x + 0.5)
     bg_data$ymin <- -Inf
     bg_data$ymax <- Inf
-    bg_data$fill <- bg_color[levels(fct)]
+    bg_data$fill <- bg_color[lvls]
 
     if (!is.null(facet_by)) {
         unique_facet_values <- distinct(data, !!!syms(facet_by))

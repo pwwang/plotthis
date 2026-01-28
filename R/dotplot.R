@@ -43,7 +43,7 @@ DotPlotAtomic <- function(
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     x_text_angle = 0, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2, bg_direction = c("vertical", "horizontal", "v", "h"),
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, ...
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_na = FALSE, keep_empty = FALSE, ...
 ) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
@@ -63,6 +63,68 @@ DotPlotAtomic <- function(
     }
     if (!y_is_numeric) {
         y <- check_columns(data, y, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = y_sep)
+    }
+
+    # Normalize keep_na argument (for NA values)
+    if (isTRUE(keep_na)) {
+        keep_x_na <- !x_is_numeric
+        keep_y_na <- !y_is_numeric
+    } else if (isFALSE(keep_na)) {
+        keep_x_na <- FALSE
+        keep_y_na <- FALSE
+    } else if (is.character(keep_na)) {
+        if (length(keep_na) == 1 && keep_na == "xy") {
+            keep_x_na <- !x_is_numeric
+            keep_y_na <- !y_is_numeric
+        } else {
+            keep_x_na <- "x" %in% keep_na && !x_is_numeric
+            keep_y_na <- "y" %in% keep_na && !y_is_numeric
+        }
+    } else {
+        keep_x_na <- FALSE
+        keep_y_na <- FALSE
+    }
+
+    # Normalize keep_empty argument (for unused factor levels)
+    if (isTRUE(keep_empty)) {
+        keep_x_empty <- !x_is_numeric
+        keep_y_empty <- !y_is_numeric
+    } else if (isFALSE(keep_empty)) {
+        keep_x_empty <- FALSE
+        keep_y_empty <- FALSE
+    } else if (is.character(keep_empty)) {
+        if (length(keep_empty) == 1 && keep_empty == "xy") {
+            keep_x_empty <- !x_is_numeric
+            keep_y_empty <- !y_is_numeric
+        } else {
+            keep_x_empty <- "x" %in% keep_empty && !x_is_numeric
+            keep_y_empty <- "y" %in% keep_empty && !y_is_numeric
+        }
+    } else {
+        keep_x_empty <- FALSE
+        keep_y_empty <- FALSE
+    }
+
+    # Step 1: Drop unused levels (controlled by keep_empty)
+    if (!x_is_numeric && !keep_x_empty) {
+        data[[x]] <- droplevels(data[[x]])
+    }
+    if (!y_is_numeric && !keep_y_empty) {
+        data[[y]] <- droplevels(data[[y]])
+    }
+
+    # Step 2: Filter data to remove NA values (controlled by keep_na)
+    if (!x_is_numeric && !keep_x_na) {
+        data <- data[!is.na(data[[x]]), , drop = FALSE]
+    } else if (!x_is_numeric && anyNA(data[[x]])) {
+        levels(data[[x]]) <- c(levels(data[[x]]), "<NA>")
+        data[[x]][is.na(data[[x]])] <- "<NA>"
+    }
+    if (!y_is_numeric && !keep_y_na) {
+        data <- data[!is.na(data[[y]]), , drop = FALSE]
+    } else if (!y_is_numeric && anyNA(data[[y]])) {
+        levels(data[[y]]) <- c(levels(data[[y]]), "<NA>")
+        data[[y]][is.na(data[[y]])] <- "<NA>"
     }
 
     if (!is.null(fill_cutoff) && is.null(fill_by)) {
@@ -113,20 +175,19 @@ DotPlotAtomic <- function(
             if (x_is_numeric) {
                 stop("Vertical 'bg_direction' is not supported when 'x' is numeric.")
             }
-            p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by, bg_direction)
+            p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, facet_by, bg_direction)
         } else {
             if (y_is_numeric) {
                 stop("Horizontal 'bg_direction' is not supported when 'y' is numeric.")
             }
-            p <- p + bg_layer(data, y, bg_palette, bg_palcolor, bg_alpha, keep_empty, facet_by, bg_direction)
+            p <- p + bg_layer(data, y, bg_palette, bg_palcolor, bg_alpha, facet_by, bg_direction)
         }
     }
-
     if (!x_is_numeric) {
-        p <- p + scale_x_discrete(drop = !keep_empty)
+        p <- p + scale_x_discrete(drop = !keep_x_empty)
     }
     if (!y_is_numeric) {
-        p <- p + scale_y_discrete(drop = !keep_empty)
+        p <- p + scale_y_discrete(drop = !keep_y_empty)
     }
 
     if (isTRUE(lollipop)) {
@@ -190,14 +251,14 @@ DotPlotAtomic <- function(
 
     if (x_is_numeric) {
         nx <- 5
-    } else if (keep_empty) {
+    } else if (keep_x_empty) {
         nx <- nlevels(data[[x]])
     } else {
         nx <- nlevels(droplevels(data[[x]]))
     }
     if (y_is_numeric) {
         ny <- 5
-    } else if (keep_empty) {
+    } else if (keep_y_empty) {
         ny <- nlevels(data[[y]])
     } else {
         ny <- nlevels(droplevels(data[[y]]))
@@ -293,7 +354,7 @@ DotPlot <- function(
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     x_text_angle = 0, seed = 8525, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, keep_na = FALSE,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
     ...
 ) {
@@ -331,7 +392,7 @@ DotPlot <- function(
                 x_text_angle = x_text_angle, size_name = size_name, fill_name = fill_name, fill_cutoff_name = fill_cutoff_name,
                 add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, keep_na = keep_na, ...
             )
         }
     )
@@ -364,7 +425,7 @@ LollipopPlot <- function(
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     x_text_angle = 0, seed = 8525, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE,
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, keep_na = FALSE,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
     ...
 ) {
@@ -401,7 +462,7 @@ LollipopPlot <- function(
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 x_text_angle = x_text_angle, size_name = size_name, fill_name = fill_name, fill_cutoff_name = fill_cutoff_name,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, ...
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, keep_na = keep_na, ...
             )
         }
     )
