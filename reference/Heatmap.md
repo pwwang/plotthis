@@ -31,6 +31,7 @@ Heatmap(
   columns_split_by_sep = "_",
   rows_data = NULL,
   columns_data = NULL,
+  keep_na = FALSE,
   columns_name = NULL,
   columns_split_name = NULL,
   rows_name = NULL,
@@ -233,6 +234,14 @@ Heatmap(
   by `columns_by` and `split_by` if `split_by` exists in `columns_data`.
   This is useful for adding additional information to the columns of the
   heatmap.
+
+- keep_na:
+
+  Whether we should keep NA groups in rows, columns and split_by
+  variables. Default is FALSE. FALSE to remove NA groups; TRUE to keep
+  NA groups. A vector of column names can also be provided to specify
+  which columns to keep NA groups. Note that the record will be removed
+  if any of the grouping columns has NA and is not specified to keep NA.
 
 - columns_name:
 

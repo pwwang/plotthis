@@ -65,7 +65,8 @@
 <span>  <span class="va">pie_group_by_sep</span>,</span>
 <span>  <span class="va">pie_name</span>,</span>
 <span>  <span class="va">rows_data</span>,</span>
-<span>  <span class="va">columns_data</span></span>
+<span>  <span class="va">columns_data</span>,</span>
+<span>  <span class="va">keep_na</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -189,6 +190,13 @@ This is useful for adding additional information to the rows of the heatmap.</p>
 <dd><p>A data frame containing additional data for columns, which can be used to add annotations to the heatmap.
 It will be joined to the main data by <code>columns_by</code> and <code>split_by</code> if <code>split_by</code> exists in <code>columns_data</code>.
 This is useful for adding additional information to the columns of the heatmap.</p></dd>
+
+
+<dt id="arg-keep-na">keep_na<a class="anchor" aria-label="anchor" href="#arg-keep-na"></a></dt>
+<dd><p>Whether we should keep NA groups in rows, columns and split_by variables. Default is FALSE.
+FALSE to remove NA groups; TRUE to keep NA groups.
+A vector of column names can also be provided to specify which columns to keep NA groups.
+Note that the record will be removed if any of the grouping columns has NA and is not specified to keep NA.</p></dd>
 
 </dl></div>
     <div class="section level2">
