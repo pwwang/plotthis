@@ -5,16 +5,7 @@ Get a ggplot layer for background
 ## Usage
 
 ``` r
-bg_layer(
-  data,
-  x,
-  palette,
-  palcolor,
-  alpha,
-  keep_empty,
-  facet_by,
-  direction = "vertical"
-)
+bg_layer(data, x, palette, palcolor, alpha, facet_by, direction = "vertical")
 ```
 
 ## Arguments
@@ -39,10 +30,6 @@ bg_layer(
 - alpha:
 
   A numeric value specifying the transparency of the plot
-
-- keep_empty:
-
-  A logical value indicating whether to keep empty groups
 
 - facet_by:
 

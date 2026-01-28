@@ -16,6 +16,7 @@ BoxViolinPlotAtomic(
     "median"),
   flip = FALSE,
   keep_empty = FALSE,
+  keep_na = FALSE,
   group_by = NULL,
   group_by_sep = "_",
   group_name = NULL,
@@ -157,7 +158,55 @@ BoxViolinPlotAtomic(
 
 - keep_empty:
 
-  A logical value to keep the empty levels in the x-axis.
+  Logical or character. Whether to keep unused factor levels on
+  categorical axes.
+
+  - `FALSE` (default): Drop unused factor levels via
+    [`droplevels()`](https://rdrr.io/r/base/droplevels.html).
+
+  - `TRUE`: Keep all factor levels defined in the data, even if they
+    have no observations. For plots with both x and y categorical,
+    applies to both axes.
+
+  - `"x"`: Keep unused levels only on the x-axis, drop from y-axis.
+
+  - `"y"`: Keep unused levels only on the y-axis, drop from x-axis.
+
+  - `c("x", "y")` or `"xy"`: Explicitly keep unused levels on both axes
+    (same as `TRUE`).
+
+  **Note:** This parameter is distinct from `keep_na`. Use
+  `keep_empty = TRUE` when you need to show all possible categories
+  (e.g., all 12 months even if some have no data). For more complex
+  completeness requirements, use
+  [`tidyr::complete()`](https://tidyr.tidyverse.org/reference/complete.html)
+  before plotting.
+
+  **Backward compatibility:** If `keep_na` is not specified and
+  `keep_empty` is provided, `keep_empty` will control both NA values and
+  unused levels (legacy behavior).
+
+- keep_na:
+
+  Logical or character. Whether to keep rows with NA values on
+  categorical axes.
+
+  - `FALSE` (default): Remove rows with NA values in categorical axes.
+
+  - `TRUE`: Keep NA values and display them as a separate category
+    (shown as "NA"). For plots with both x and y categorical, applies to
+    both axes.
+
+  - `"x"`: Keep NA values only on the x-axis, remove from y-axis.
+
+  - `"y"`: Keep NA values only on the y-axis, remove from x-axis.
+
+  - `c("x", "y")` or `"xy"`: Explicitly keep NA on both axes (same as
+    `TRUE`).
+
+  **Special cases:** For `AreaPlot`, `LinePlot`, and `TrendPlot`,
+  keeping NA values would break the visual continuity. Setting
+  `keep_na = TRUE` will raise an error for these plot types.
 
 - group_by:
 

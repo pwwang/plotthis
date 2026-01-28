@@ -18,6 +18,7 @@ JitterPlot(
     "median"),
   flip = FALSE,
   keep_empty = FALSE,
+  keep_na = FALSE,
   group_by = NULL,
   group_by_sep = "_",
   group_name = NULL,
@@ -148,6 +149,28 @@ JitterPlot(
 - keep_empty:
 
   A logical value to keep the empty levels in the x-axis.
+
+- keep_na:
+
+  Logical or character. Whether to keep rows with NA values on
+  categorical axes.
+
+  - `FALSE` (default): Remove rows with NA values in categorical axes.
+
+  - `TRUE`: Keep NA values and display them as a separate category
+    (shown as "NA"). For plots with both x and y categorical, applies to
+    both axes.
+
+  - `"x"`: Keep NA values only on the x-axis, remove from y-axis.
+
+  - `"y"`: Keep NA values only on the y-axis, remove from x-axis.
+
+  - `c("x", "y")` or `"xy"`: Explicitly keep NA on both axes (same as
+    `TRUE`).
+
+  **Special cases:** For `AreaPlot`, `LinePlot`, and `TrendPlot`,
+  keeping NA values would break the visual continuity. Setting
+  `keep_na = TRUE` will raise an error for these plot types.
 
 - group_by:
 

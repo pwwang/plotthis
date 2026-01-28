@@ -52,6 +52,7 @@
 <span>    <span class="st">"median"</span><span class="op">)</span>,</span>
 <span>  flip <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  keep_na <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  group_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  group_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -154,6 +155,18 @@ When <code>in_form</code> is "wide", <code>y</code> is not required. The values 
 
 <dt id="arg-keep-empty">keep_empty<a class="anchor" aria-label="anchor" href="#arg-keep-empty"></a></dt>
 <dd><p>A logical value to keep the empty levels in the x-axis.</p></dd>
+
+
+<dt id="arg-keep-na">keep_na<a class="anchor" aria-label="anchor" href="#arg-keep-na"></a></dt>
+<dd><p>Logical or character. Whether to keep rows with NA values on categorical axes.</p><ul><li><p><code>FALSE</code> (default): Remove rows with NA values in categorical axes.</p></li>
+<li><p><code>TRUE</code>: Keep NA values and display them as a separate category (shown as "NA").
+For plots with both x and y categorical, applies to both axes.</p></li>
+<li><p><code>"x"</code>: Keep NA values only on the x-axis, remove from y-axis.</p></li>
+<li><p><code>"y"</code>: Keep NA values only on the y-axis, remove from x-axis.</p></li>
+<li><p><code>c("x", "y")</code> or <code>"xy"</code>: Explicitly keep NA on both axes (same as <code>TRUE</code>).</p></li>
+</ul><p><strong>Special cases:</strong> For <code>AreaPlot</code>, <code>LinePlot</code>, and <code>TrendPlot</code>,
+keeping NA values would break the visual continuity. Setting <code>keep_na = TRUE</code>
+will raise an error for these plot types.</p></dd>
 
 
 <dt id="arg-group-by">group_by<a class="anchor" aria-label="anchor" href="#arg-group-by"></a></dt>
