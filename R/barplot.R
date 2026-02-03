@@ -673,7 +673,7 @@ SplitBarPlotAtomic <- function(
     data, x, y, y_sep = "_", flip = FALSE, alpha_by = NULL, alpha_reverse = FALSE, alpha_name = NULL,
     order_y = list("+" = c("x_desc", "alpha_desc"), "-" = c("x_desc", "alpha_asc")), bar_height = 0.9,
     lineheight = 0.5, max_charwidth = 80, fill_by = NULL, fill_by_sep = "_",
-    fill_name = NULL, direction_pos_name = "positive", direction_neg_name = "negative",
+    fill_name = NULL, direction_name = "direction", direction_pos_name = "positive", direction_neg_name = "negative",
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL,
     facet_by = NULL, facet_scales = "free_y", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, x_min = NULL, x_max = NULL,
@@ -688,21 +688,12 @@ SplitBarPlotAtomic <- function(
     x <- check_columns(data, x)
     y <- check_columns(data, y, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = y_sep)
     fill_by <- check_columns(data, fill_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = fill_by_sep)
-    fill_by <- fill_by %||% ".direction"
+    fill_by <- fill_by %||% direction_name
     alpha_by <- check_columns(data, alpha_by)
-    data[[y]] <- fct_relabel(data[[y]], str_wrap, width = max_charwidth)
+    facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
 
-    # Filter out NA groups when keep_empty is FALSE
-    if (!keep_empty) {
-        data[[y]] <- droplevels(data[[y]])
-    }
-
-    if (!keep_na) {
-        data <- data[!is.na(data[[y]]), , drop = FALSE]
-    }
-
-    data$.direction <- ifelse(data[[x]] > 0, direction_pos_name, direction_neg_name)
-    data$.direction <- factor(data$.direction, levels = c(direction_pos_name, direction_neg_name))
+    data[[direction_name]] <- ifelse(data[[x]] > 0, direction_pos_name, direction_neg_name)
+    data[[direction_name]] <- factor(data[[direction_name]], levels = c(direction_pos_name, direction_neg_name))
     if (is.null(alpha_by)) {
         data$.alpha <- 1
         alpha_by <- ".alpha"
@@ -744,27 +735,55 @@ SplitBarPlotAtomic <- function(
         if (length(order_y) == 1) {  # *
             data <- order_df(data, order_y[[1]])
         } else {  # +, -
-            data_pos <- order_df(data[data$.direction == direction_pos_name, ], order_y[["+"]])
-            data_neg <- order_df(data[data$.direction == direction_neg_name, ], order_y[["-"]])
+            data_pos <- order_df(data[data[[direction_name]] == direction_pos_name, ], order_y[["+"]])
+            data_neg <- order_df(data[data[[direction_name]] == direction_neg_name, ], order_y[["-"]])
             data <- rbind(data_pos, data_neg)
             rm(data_pos, data_neg)
         }
         ordered_levels <- rev(unique(as.character(data[[y]])))
-        if (keep_empty) {
-            ordered_levels <- c(ordered_levels, setdiff(levels(data[[y]]), unique(data[[y]])))
-        }
+        ordered_levels <- c(ordered_levels, setdiff(levels(data[[y]]), unique(data[[y]])))
         data[[y]] <- factor(data[[y]], levels = ordered_levels)
+    }
+
+    data <- process_keep_na_empty(data, keep_na, keep_empty)
+    data[[y]] <- fct_relabel(data[[y]], str_wrap, width = max_charwidth)
+
+    # true: unused levels are kept on Y axis
+    # false: unused levels are dropped
+    # level: unused levels are dropped, but kept for determine fill_by colors
+    keep_empty_y <- keep_empty[[y]]
+    keep_empty_fill <- if (!is.null(fill_by)) keep_empty[[fill_by]] else NULL
+    if (identical(keep_empty_y, "true")) {
+        # add unused levels to data, and set x to 0
+        # todo: add unused levels for each facet?
+        y_vals <- unique(data[[y]])
+        all_y_vals <- unique(c(levels(data[[y]]), y_vals[is.na(y_vals)]))
+        missing_levels <- setdiff(all_y_vals, y_vals)
+        if (length(missing_levels) > 0) {
+            add_data <- data.frame(matrix(NA, nrow = length(missing_levels), ncol = ncol(data)))
+            colnames(add_data) <- colnames(data)
+            add_data[[y]] <- missing_levels
+            add_data[[x]] <- 0
+            add_data[[direction_name]] <- "positive"
+            data <- rbind(data, add_data)
+        }
     }
 
     x_min <- x_min %||% -max(abs(data[[x]]))
     x_max <- x_max %||% max(abs(data[[x]]))
 
+    fill_vals <- if (!identical(keep_empty_fill, "false")) {
+        levels(data[[fill_by]])
+    } else {
+        levels(droplevels(data[[fill_by]]))
+    }
+
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y))) +
         geom_vline(xintercept = 0) +
-        geom_col(aes(fill = !!sym(fill_by), alpha = !!sym(alpha_by)), color = "black", width = bar_height) +
+        geom_col(aes(fill = !!sym(fill_by), alpha = !!sym(alpha_by)), color = "black", width = bar_height, show.legend = TRUE) +
         scale_fill_manual(
             name = fill_name %||% fill_by,
-            values = palette_this(levels(data[[fill_by]]), palette = palette, palcolor = palcolor),
+            values = palette_this(fill_vals, palette = palette, palcolor = palcolor),
             guide = guide_legend(order = 1)
         ) +
         scale_alpha_continuous(
@@ -779,8 +798,12 @@ SplitBarPlotAtomic <- function(
                 aes(
                     x = 0, y = !!sym(y),
                     # nudge_x is not an aesthetic
-                    label = ifelse(.data[[x]] > 0, gsub("(\\n|$)", " \\1", !!sym(y)), gsub("(^|\\n)", "\\1 ", !!sym(y))),
-                    hjust = ifelse(.data[[x]] > 0, 1, 0),
+                    label = ifelse(
+                        is.na(!!sym(y)),
+                        " NA ",
+                        ifelse(.data[[x]] >= 0, gsub("(\\n|$)", " \\1", !!sym(y)), gsub("(^|\\n)", "\\1 ", !!sym(y)))
+                    ),
+                    hjust = ifelse(.data[[x]] >= 0, 1, 0),
                 ),
                 color = "black",
                 lineheight = lineheight,
@@ -793,8 +816,12 @@ SplitBarPlotAtomic <- function(
                 aes(
                     x = 0, y = !!sym(y),
                     # nudge_y is not an aesthetic
-                    label = ifelse(.data[[x]] > 0, gsub("(\\n|$)", " \\1", !!sym(y)), gsub("(^|\\n)", "\\1 ", !!sym(y))),
-                    hjust = ifelse(.data[[x]] > 0, 1, 0),
+                    label = ifelse(
+                        is.na(!!sym(y)),
+                        " NA ",
+                        ifelse(.data[[x]] >= 0, gsub("(\\n|$)", " \\1", !!sym(y)), gsub("(^|\\n)", "\\1 ", !!sym(y)))
+                    ),
+                    hjust = ifelse(.data[[x]] >= 0, 1, 0),
                 ),
                 color = "black",
                 lineheight = lineheight
@@ -805,7 +832,7 @@ SplitBarPlotAtomic <- function(
     p <- p +
         labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
         # scale_x_continuous(expand = expand$x) +
-        scale_y_discrete(drop = !keep_empty) +
+        scale_y_discrete() +
         do.call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
@@ -864,7 +891,7 @@ SplitBarPlot <- function(
     alpha_by = NULL, alpha_reverse = FALSE, alpha_name = NULL,
     order_y = list("+" = c("x_desc", "alpha_desc"), "-" = c("x_desc", "alpha_asc")), bar_height = 0.9,
     lineheight = 0.5, max_charwidth = 80, fill_by = NULL, fill_by_sep = "_",
-    fill_name = NULL, direction_pos_name = "positive", direction_neg_name = "negative",
+    fill_name = NULL, direction_name = "direction", direction_pos_name = "positive", direction_neg_name = "negative",
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL,
     facet_by = NULL, facet_scales = "free_y", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, x_min = NULL, x_max = NULL,
@@ -874,11 +901,16 @@ SplitBarPlot <- function(
     axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
+    keep_na <- check_keep_na(keep_na, y)
+    keep_empty <- check_keep_empty(keep_empty, y)
     theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
 
     if (!is.null(split_by)) {
-        data[[split_by]] <- droplevels(data[[split_by]])
+        data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
+        keep_na[[split_by]] <- NULL
+        keep_empty[[split_by]] <- NULL
+
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
@@ -904,7 +936,7 @@ SplitBarPlot <- function(
                 x = x, y = y, y_sep = y_sep, flip = flip, alpha_by = alpha_by, alpha_reverse = alpha_reverse, alpha_name = alpha_name,
                 order_y = order_y, bar_height = bar_height, lineheight = lineheight, max_charwidth = max_charwidth,
                 fill_by = fill_by, fill_by_sep = fill_by_sep, fill_name = fill_name,
-                direction_pos_name = direction_pos_name, direction_neg_name = direction_neg_name,
+                direction_name = direction_name, direction_pos_name = direction_pos_name, direction_neg_name = direction_neg_name,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
                 aspect.ratio = aspect.ratio, x_min = x_min, x_max = x_max,
