@@ -632,3 +632,107 @@ check_legend <- function(legend, datas_name, which = c("legend.position", "legen
 
     return(legend)
 }
+
+
+#' check_keep_na
+#' Check and normalize keep_na parameter
+#' @param keep_na keep_na
+#' @param x column name
+#' @keywords internal
+#' @return normalized keep_na
+check_keep_na <- function(keep_na, x = NULL) {
+    if (is.character(keep_na) || is.logical(keep_na)) {
+        if (isTRUE(keep_na) || is.na(keep_na)) keep_na <- NA
+        if (is.null(x)) {
+            return(keep_na)
+        } else {
+            return(stats::setNames(list(keep_na), x))
+        }
+    }
+    if (is.null(names(keep_na)) || !is.list(keep_na)) {
+        stop("'keep_na' must be a logical/character or a named list.")
+    }
+    for (name in names(keep_na)) {
+        keep_na[[name]] <- check_keep_na(keep_na[[name]])
+    }
+
+    return(keep_na)
+}
+
+#' check_keep_empty
+#' Check and normalize keep_empty parameter
+#' @param keep_empty keep_empty
+#' @param x column name
+#' @keywords internal
+#' @return normalized keep_empty
+check_keep_empty <- function(keep_empty, x = NULL) {
+    if (is.logical(keep_empty)) keep_empty <- as.character(keep_empty)
+    if (identical(keep_empty, "TRUE")) keep_empty <- "true"
+    if (identical(keep_empty, "FALSE")) keep_empty <- "false"
+    if (identical(keep_empty, "levels")) keep_empty <- "level"
+    if (is.character(keep_empty)) {
+        keep_empty <- tolower(keep_empty)
+        keep_empty <- match.arg(keep_empty, choices = c("true", "false", "level"))
+        if (is.null(x)) {
+            return(keep_empty)
+        } else {
+            return(stats::setNames(list(keep_empty), x))
+        }
+    }
+    if (is.null(names(keep_empty)) || !is.list(keep_empty)) {
+        stop("'keep_empty' must be a logical/character or a named list.")
+    }
+    for (name in names(keep_empty)) {
+        keep_empty[[name]] <- check_keep_empty(keep_empty[[name]])
+    }
+    return(keep_empty)
+}
+
+#' process_keep_na_empty
+#' Process keep_na and keep_empty to data
+#' @param data data frame
+#' @param keep_na List of keep_na
+#' @param keep_empty List of keep_empty
+#' @keywords internal
+#' @return processed data frame
+process_keep_na_empty <- function(data, keep_na = NULL, keep_empty = NULL, col = NULL) {
+    if (!is.null(keep_na)) {
+        if (!is.null(col) && col %in% names(keep_na)) {
+            keep_na <- keep_na[col]
+        }
+
+        for (cl in names(keep_na)) {
+            if (!cl %in% colnames(data)) {
+                warning("Column '", cl, "' not found in data. Skipping 'keep_na' processing for this column.")
+                next
+            }
+            if (!anyNA(data[[cl]])) next
+            if (isFALSE(keep_na[[cl]])) {
+                data <- data[!is.na(data[[cl]]), , drop = FALSE]
+                next
+            }
+            if (is.factor(data[[cl]])) {
+                levels(data[[cl]]) <- c(levels(data[[cl]]), keep_na[[cl]])
+            }
+            data[[cl]][is.na(data[[cl]])] <- keep_na[[cl]]
+        }
+    }
+
+    if (!is.null(keep_empty)) {
+        if (!is.null(col) && col %in% names(keep_empty)) {
+            keep_empty <- keep_empty[col]
+        }
+
+        for (cl in names(keep_empty)) {
+            if (!cl %in% colnames(data)) {
+                warning("Column '", cl, "' not found in data. Skipping 'keep_empty' processing for this column.")
+                next
+            }
+            if (!is.factor(data[[cl]])) next
+            if (identical(keep_empty[[cl]], "false")) {
+                data[[cl]] <- droplevels(data[[cl]])
+            }
+        }
+    }
+    return(data)
+}
