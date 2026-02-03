@@ -12,39 +12,28 @@
 #' @param group_by_sep The separator for multiple group_by columns. See \code{group_by}
 #' @param split_by The column(s) to split data by and plot separately.
 #' @param split_by_sep The separator for multiple split_by columns. See \code{split_by}
-#' @param keep_na Logical or character. Whether to keep rows with NA values on categorical axes.
-#'   \itemize{
-#'     \item{\code{FALSE} (default): Remove rows with NA values in categorical axes.}
-#'     \item{\code{TRUE}: Keep NA values and display them as a separate category (shown as "NA").
-#'       For plots with both x and y categorical, applies to both axes.}
-#'     \item{\code{"x"}: Keep NA values only on the x-axis, remove from y-axis.}
-#'     \item{\code{"y"}: Keep NA values only on the y-axis, remove from x-axis.}
-#'     \item{\code{c("x", "y")} or \code{"xy"}: Explicitly keep NA on both axes (same as \code{TRUE}).}
-#'   }
-#'   
-#'   \strong{Special cases:} For \code{AreaPlot}, \code{LinePlot}, and \code{TrendPlot}, 
-#'   keeping NA values would break the visual continuity. Setting \code{keep_na = TRUE} 
-#'   will raise an error for these plot types.
-#' 
-#' @param keep_empty Logical or character. Whether to keep unused factor levels on categorical axes.
-#'   \itemize{
-#'     \item{\code{FALSE} (default): Drop unused factor levels via \code{droplevels()}.}
-#'     \item{\code{TRUE}: Keep all factor levels defined in the data, even if they have no observations.
-#'       For plots with both x and y categorical, applies to both axes.}
-#'     \item{\code{"x"}: Keep unused levels only on the x-axis, drop from y-axis.}
-#'     \item{\code{"y"}: Keep unused levels only on the y-axis, drop from x-axis.}
-#'     \item{\code{c("x", "y")} or \code{"xy"}: Explicitly keep unused levels on both axes (same as \code{TRUE}).}
-#'   }
-#'   
-#'   \strong{Note:} This parameter is distinct from \code{keep_na}. Use \code{keep_empty = TRUE}
-#'   when you need to show all possible categories (e.g., all 12 months even if some have no data).
-#'   For more complex completeness requirements, use \code{tidyr::complete()} before plotting.
-#'   
-#'   \strong{Backward compatibility:} If \code{keep_na} is not specified and \code{keep_empty} 
-#'   is provided, \code{keep_empty} will control both NA values and unused levels (legacy behavior).
+#' @param keep_na A logical value or a character to replace the NA values in the data.
+#'   It can also take a named list to specify different behavior for different columns.
+#'   If TRUE, NA values will be replaced with "<NA>" string.
+#'   If FALSE, NA values will be removed from the data before plotting.
+#'   If a character string is provided, NA values will be replaced with the provided string.
+#'   If a named vector/list is provided, the names should be the column names to apply the behavior to,
+#'   and the values should be one of TRUE, FALSE, or a character string.
+#'   Without a named vector/list, the behavior applies to column for the `x` axis.
+#' @param keep_empty One of "FALSE", "TRUE" and "level". It can also take a named list to specify
+#' different behavior for different columns. If a single logical value is provided, it will be converted
+#' to a character value internally. Without a named list, the behavior applies to column for the `x` axis.
+#' \itemize{
+#'   \item{\code{FALSE} (default): Drop empty factor levels from the data before plotting.
+#'    Alias: \code{false}}
+#'   \item{\code{TRUE}: Keep empty factor levels and show them as a separate category in the plot.
+#'    Alias: \code{true}}
+#'   \item{\code{level}: Keep empty factor levels, but do not show them in the plot.
+#'     But they will be assigned colors from the palette to maintain consistency across multiple plots.
+#'    Alias: \code{levels}}
+#' }
 #' @param theme A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 #'   Default is "theme_this".
-#'
 #' @param theme_args A list of arguments to pass to the theme function.
 #' @param palette A character string specifying the palette to use.
 #'   A named list or vector can be used to specify the palettes for different `split_by` values.
@@ -128,7 +117,7 @@ validate_common_args <- function(
     facet_nrow = NULL,
     facet_ncol = NULL,
     facet_byrow = TRUE,
-    theme = "theme_scp",
+    theme = "theme_this",
     theme_args = list(),
     palette = NULL,
     palcolor = NULL,
@@ -158,4 +147,6 @@ validate_common_args <- function(
     if (length(facet_by) > 2) {
         stop("Too many columns specified in 'facet_by', only up to 2 columns are allowed.")
     }
+
+    invisible(NULL)
 }
