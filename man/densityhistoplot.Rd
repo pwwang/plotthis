@@ -26,6 +26,8 @@ DensityPlot(
   bar_height = 0.025,
   bar_alpha = 1,
   bar_width = 0.1,
+  keep_na = FALSE,
+  keep_empty = FALSE,
   title = NULL,
   subtitle = NULL,
   xlab = NULL,
@@ -69,6 +71,8 @@ Histogram(
   bar_alpha = 1,
   bar_width = 0.1,
   position = "identity",
+  keep_na = FALSE,
+  keep_empty = FALSE,
   use_trend = FALSE,
   add_trend = FALSE,
   trend_alpha = 1,
@@ -153,6 +157,27 @@ Default is "theme_this".}
 \item{bar_alpha}{A numeric value specifying the alpha of the bars.}
 
 \item{bar_width}{A numeric value specifying the width of the bars.}
+
+\item{keep_na}{A logical value or a character to replace the NA values in the data.
+It can also take a named list to specify different behavior for different columns.
+If TRUE or NA, NA values will be replaced with NA.
+If FALSE, NA values will be removed from the data before plotting.
+If a character string is provided, NA values will be replaced with the provided string.
+If a named vector/list is provided, the names should be the column names to apply the behavior to,
+and the values should be one of TRUE, FALSE, or a character string.
+Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
+for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.}
+
+\item{keep_empty}{One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.
+\itemize{
+\item{\code{FALSE} (default): Drop empty factor levels from the data before plotting.}
+\item{\code{TRUE}: Keep empty factor levels and show them as a separate category in the plot.}
+\item{\code{"level"}: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: \code{levels}}
+}}
 
 \item{title}{A character string specifying the title of the plot.
 A function can be used to generate the title based on the default title.
@@ -263,11 +288,16 @@ Density plot and histogram to illustrate the distribution of the data.
 set.seed(8525)
 data <- data.frame(
     x = c(rnorm(500, -1), rnorm(500, 1)),
-    group = rep(c("A", "B"), each = 500),
+    group = factor(rep(c("A", NA, "C", "D"), each = 250), levels = LETTERS[1:4]),
     facet = sample(c("F1", "F2"), 1000, replace = TRUE)
 )
 
 DensityPlot(data, x = "x")
+DensityPlot(data, x = "x", group_by = "group")
+DensityPlot(data, x = "x", group_by = "group",
+    keep_na = TRUE, keep_empty = TRUE)
+DensityPlot(data, x = "x", group_by = "group",
+    keep_na = TRUE, keep_empty = 'level')
 DensityPlot(data, x = "x", group_by = "group", facet_by = "facet")
 DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE)
 DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE,
@@ -275,12 +305,13 @@ DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE,
 set.seed(8525)
 data <- data.frame(
     x = sample(setdiff(1:100, c(30:36, 50:55, 70:77)), 1000, replace = TRUE),
-    group = factor(rep(c("A", "B"), each = 500), levels = c("A", "B")),
+    group = factor(rep(c("A", "B", NA, "D"), each = 250), levels = LETTERS[1:4]),
     facet = sample(c("F1", "F2"), 1000, replace = TRUE)
 )
 
 Histogram(data, x = "x")
 Histogram(data, x = "x", group_by = "group")
+Histogram(data, x = "x", group_by = "group", keep_na = TRUE, keep_empty = 'level')
 Histogram(data, x = "x", split_by = "facet", add_bars = TRUE)
 Histogram(data, x = "x", group_by = "group", add_trend = TRUE)
 Histogram(data, x = "x", group_by = "group", add_trend = TRUE, trend_skip_zero = TRUE)

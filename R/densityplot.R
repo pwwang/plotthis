@@ -35,7 +35,7 @@
 #' @keywords internal
 DensityHistoPlotAtomic <- function(
     data, x, group_by = NULL, group_by_sep = "_", group_name = NULL, xtrans = "identity", ytrans = "identity",
-    type = c("density", "histogram"), bins = NULL, binwidth = NULL, flip = FALSE,
+    type = c("density", "histogram"), bins = NULL, binwidth = NULL, flip = FALSE, keep_na = FALSE, keep_empty = FALSE,
     add_bars = FALSE, bar_height = 0.025, bar_alpha = 1, bar_width = .1, position = "identity",
     use_trend = FALSE, add_trend = FALSE, trend_alpha = 1, trend_linewidth = 0.8, trend_pt_size = 1.5, trend_skip_zero = FALSE,
     palette = "Paired", palcolor = NULL, alpha = .5, theme = "theme_this", theme_args = list(),
@@ -51,6 +51,7 @@ DensityHistoPlotAtomic <- function(
     expand <- norm_expansion(expand, x_type = "continuous", y_type = "continuous")
     x <- check_columns(data, x)
     group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
+    facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
     if (is.null(group_by)) {
         group_by <- ".group"
         data[[group_by]] <- factor("")
@@ -79,20 +80,40 @@ DensityHistoPlotAtomic <- function(
         data$.ymin <- lnheight * (1 - as.integer(data[[group_by]]))
         data$.ymax <- data$.ymin - lnheight
     }
+    data <- process_keep_na_empty(data, keep_na, keep_empty)
+    keep_empty_group <- if (!is.null(group_by)) keep_empty[[group_by]] else NULL
+    keep_empty_facet <- if (!is.null(facet_by)) keep_empty[[facet_by]] else NULL
+    if (length(facet_by) > 1) {
+        stopifnot("[Density/HistoPlot] `keep_empty` for `facet_by` variables must be identical." =
+            identical(keep_empty_facet, keep_empty[[facet_by[2]]]))
+    }
+    group_vals <- levels(data[[group_by]])
+    if (anyNA(data[[group_by]])) group_vals <- c(group_vals, NA)
 
-    p <- ggplot(data, aes(x = !!sym(x), fill = !!sym(group_by), color = !!sym(group_by))) +
-        scale_fill_manual(
+    p <- ggplot(data, aes(x = !!sym(x), fill = !!sym(group_by), color = !!sym(group_by)))
+    if (isTRUE(keep_empty_group)) {
+        p <- p + scale_fill_manual(
             name = group_name %||% group_by,
-            values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
-        ) +
-        scale_color_manual(
+            values = palette_this(group_vals, palette = palette, palcolor = palcolor),
+            breaks = group_vals, limits = group_vals, drop = FALSE
+        ) + scale_color_manual(
             name = group_name %||% group_by,
-            values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
+            values = palette_this(group_vals, palette = palette, palcolor = palcolor),
+            breaks = group_vals, limits = group_vals, drop = FALSE
         )
+    } else {
+        p <- p + scale_fill_manual(
+            name = group_name %||% group_by,
+            values = palette_this(group_vals, palette = palette, palcolor = palcolor)
+        ) + scale_color_manual(
+            name = group_name %||% group_by,
+            values = palette_this(group_vals, palette = palette, palcolor = palcolor)
+        )
+    }
 
     if (type == "histogram") {
         if (!use_trend) {
-            p <- p + geom_histogram(alpha = alpha, bins = bins, binwidth = binwidth, position = position, ...)
+            p <- p + geom_histogram(alpha = alpha, bins = bins, binwidth = binwidth, position = position, show.legend = TRUE, ...)
         }
         if (use_trend || add_trend) {
             p <- p + stat_bin(geom = "point", bins = bins, binwidth = binwidth, alpha = trend_alpha,
@@ -122,7 +143,7 @@ DensityHistoPlotAtomic <- function(
             }
         }
     } else {
-        p <- p + geom_density(alpha = alpha, position = position, ...)
+        p <- p + geom_density(alpha = alpha, position = position, show.legend = TRUE, ...)
     }
     if (isTRUE(add_bars)) {
         p <- p +
@@ -184,7 +205,6 @@ DensityHistoPlotAtomic <- function(
 #' @param group_name A character string to name the legend of 'group_by', if 'legend.position' is not "none".
 #' @param flip A logical value. If TRUE, the plot will be flipped.
 #' @param alpha A numeric value specifying the alpha of the ridges.
-#' @param keep_empty A logical value. If TRUE, keep the empty groups on the y-axis.
 #' @param reverse A logical value. If TRUE, reverse the order of the groups on the y-axis.
 #' @param scale A numeric value to scale the ridges.
 #'  See also \code{\link[ggridges]{geom_density_ridges}}.
@@ -202,7 +222,7 @@ RidgePlotAtomic <- function(
     data, x = NULL, in_form = c("long", "wide"), group_by = NULL, group_by_sep = "_", group_name = NULL,
     add_vline = NULL, vline_type = "solid", vline_color = TRUE, vline_width = 0.5, vline_alpha = 1,
     flip = FALSE, alpha = 0.8, scale = NULL, theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, x_text_angle = 90, keep_empty = FALSE, reverse = FALSE,
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, x_text_angle = 90, keep_na = FALSE, keep_empty = FALSE, reverse = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = "none", legend.direction = "vertical", ...) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
@@ -218,6 +238,7 @@ RidgePlotAtomic <- function(
     }
     x <- check_columns(data, x)
     group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
+    facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
     if (is.null(group_by)) {
         group_by <- ".group"
         data[[group_by]] <- factor(" ")
@@ -226,14 +247,31 @@ RidgePlotAtomic <- function(
         data[[group_by]] <- factor(data[[group_by]], levels = rev(levels(data[[group_by]])))
     }
 
-    colors <- palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
+    data <- process_keep_na_empty(data, keep_na, keep_empty)
+    keep_empty_group <- if (!is.null(group_by)) keep_empty[[group_by]] else NULL
+    keep_empty_facet <- if (!is.null(facet_by)) keep_empty[[facet_by]] else NULL
+    if (length(facet_by) > 1) {
+        stopifnot("[RidgePlot] `keep_empty` for `facet_by` variables must be identical." =
+            identical(keep_empty_facet, keep_empty[[facet_by[2]]]))
+    }
+    group_vals <- levels(data[[group_by]])
+    if (anyNA(data[[group_by]])) group_vals <- c(group_vals, NA)
+
+    colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+    if (anyNA(group_vals) && reverse) {
+        names(colors)[is.na(names(colors))] <- "NA"
+        group_vals[is.na(group_vals)] <- "NA"
+        levels(data[[group_by]]) <- c("NA", setdiff(group_vals, "NA"))
+        data[[group_by]][is.na(data[[group_by]])] <- "NA"
+    }
+
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(group_by), fill = !!sym(group_by)))
 
     if (!is.null(scale)) {
-        p <- p + ggridges::geom_density_ridges(alpha = alpha, scale = scale)
+        p <- p + ggridges::geom_density_ridges(alpha = alpha, scale = scale, show.legend = TRUE)
     } else {
         # Let the geom_density_ridges function to calculate the scale
-        p <- p + ggridges::geom_density_ridges(alpha = alpha)
+        p <- p + ggridges::geom_density_ridges(alpha = alpha, show.legend = TRUE)
     }
     if (!is.null(add_vline) && !isFALSE(add_vline)) {
         if (isTRUE(add_vline)) {
@@ -262,10 +300,21 @@ RidgePlotAtomic <- function(
         )
     }
     p <- p +
-        scale_fill_manual(values = colors) +
-        scale_y_discrete(drop = !keep_empty, expand = c(0, 0)) +
+        scale_y_discrete(drop = !isTRUE(keep_empty_group), expand = c(0, 0)) +
         scale_x_continuous(expand = c(0, 0)) +
         labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% group_by)
+
+    if (isTRUE(keep_empty_group)) {
+        p <- p + scale_fill_manual(
+            name = group_name %||% group_by, na.value = colors[length(colors)],
+            values = colors, breaks = group_vals, limits = group_vals, drop = FALSE
+        )
+    } else {
+        p <- p + scale_fill_manual(
+            name = group_name %||% group_by, na.value = colors[length(colors)],
+            values = colors
+        )
+    }
 
     if (flip) {
         just <- calc_just(x_text_angle)
@@ -316,7 +365,7 @@ RidgePlotAtomic <- function(
     facet_plot(p,
         facet_by = facet_by, facet_scales = facet_scales, ncol = facet_ncol,
         nrow = facet_nrow, byrow = facet_byrow, legend.position = legend.position,
-        legend.direction = legend.direction
+        legend.direction = legend.direction, drop = !isTRUE(keep_empty_facet)
     )
 }
 
@@ -331,17 +380,22 @@ RidgePlotAtomic <- function(
 #'  If 'combine' is FALSE, a list of ggplot objects will be returned.
 #' @export
 #' @examples
+#' \donttest{
 #' set.seed(8525)
 #' data <- data.frame(
 #'    x = c(rnorm(250, -1), rnorm(250, 1)),
-#'    group = rep(LETTERS[1:5], each = 100)
+#'    group = factor(rep(c("A", NA, LETTERS[3:5]), each = 100), levels = LETTERS[1:6])
 #' )
 #' RidgePlot(data, x = "x")  # fallback to a density plot
 #' RidgePlot(data, x = "x", add_vline = 0, vline_color = "black")
 #' RidgePlot(data, x = "x", group_by = "group")
+#' RidgePlot(data, x = "x", group_by = "group",
+#'    keep_na = TRUE, keep_empty = TRUE)
 #' RidgePlot(data, x = "x", group_by = "group", reverse = TRUE)
 #' RidgePlot(data, x = "x", group_by = "group",
 #'    add_vline = TRUE, vline_color = TRUE, alpha = 0.7)
+#' RidgePlot(data, x = "x", facet_by = "group",
+#'    keep_na = TRUE, keep_empty = TRUE)
 #'
 #' # wide form
 #' data_wide <- data.frame(
@@ -356,24 +410,29 @@ RidgePlotAtomic <- function(
 #' RidgePlot(data_wide, group_by = LETTERS[1:5], in_form = "wide", facet_by = "group")
 #' RidgePlot(data_wide, group_by = LETTERS[1:5], in_form = "wide", split_by = "group",
 #'    palette = list(a = "Reds", b = "Blues", c = "Greens", d = "Purples"))
+#' }
 RidgePlot <- function(
     data, x = NULL, in_form = c("long", "wide"), split_by = NULL, split_by_sep = "_",
-    group_by = NULL, group_by_sep = "_", group_name = NULL, scale = NULL,
+    group_by = NULL, group_by_sep = "_", group_name = NULL, scale = NULL, keep_na = FALSE, keep_empty = FALSE,
     add_vline = NULL, vline_type = "solid", vline_color = TRUE, vline_width = 0.5, vline_alpha = 1,
     flip = FALSE, alpha = 0.8, theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, x_text_angle = 90, keep_empty = FALSE, reverse = FALSE,
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, x_text_angle = 90, reverse = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = "none", legend.direction = "vertical",
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525,
     axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...) {
 
     validate_common_args(seed, facet_by = facet_by)
+    keep_na <- check_keep_na(keep_na, c(group_by, split_by, facet_by))
+    keep_empty <- check_keep_empty(keep_empty, c(group_by, split_by, facet_by))
     theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE,
         concat_multi = TRUE, concat_sep = split_by_sep)
 
     if (!is.null(split_by)) {
-        data[[split_by]] <- droplevels(data[[split_by]])
+        data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
+        keep_na[[split_by]] <- NULL
+        keep_empty[[split_by]] <- NULL
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
@@ -399,7 +458,7 @@ RidgePlot <- function(
                 x = x, in_form = in_form, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name, scale = scale,
                 add_vline = add_vline, vline_type = vline_type, vline_color = vline_color, vline_width = vline_width, vline_alpha = vline_alpha,
                 flip = flip, alpha = alpha, theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, x_text_angle = x_text_angle, keep_empty = keep_empty,
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, x_text_angle = x_text_angle, keep_na = keep_na, keep_empty = keep_empty,
                 reverse = reverse, facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]], ...
             )
@@ -422,11 +481,16 @@ RidgePlot <- function(
 #' set.seed(8525)
 #' data <- data.frame(
 #'     x = c(rnorm(500, -1), rnorm(500, 1)),
-#'     group = rep(c("A", "B"), each = 500),
+#'     group = factor(rep(c("A", NA, "C", "D"), each = 250), levels = LETTERS[1:4]),
 #'     facet = sample(c("F1", "F2"), 1000, replace = TRUE)
 #' )
 #'
 #' DensityPlot(data, x = "x")
+#' DensityPlot(data, x = "x", group_by = "group")
+#' DensityPlot(data, x = "x", group_by = "group",
+#'     keep_na = TRUE, keep_empty = TRUE)
+#' DensityPlot(data, x = "x", group_by = "group",
+#'     keep_na = TRUE, keep_empty = 'level')
 #' DensityPlot(data, x = "x", group_by = "group", facet_by = "facet")
 #' DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE)
 #' DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE,
@@ -435,18 +499,21 @@ DensityPlot <- function(
     data, x, group_by = NULL, group_by_sep = "_", group_name = NULL, xtrans = "identity", ytrans = "identity",
     split_by = NULL, split_by_sep = "_", flip = FALSE, position = "identity",
     palette = "Paired", palcolor = NULL, alpha = .5, theme = "theme_this", theme_args = list(),
-    add_bars = FALSE, bar_height = 0.025, bar_alpha = 1, bar_width = .1,
+    add_bars = FALSE, bar_height = 0.025, bar_alpha = 1, bar_width = .1, keep_na = FALSE, keep_empty = FALSE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(bottom = 0, left = 0, right = 0),
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     legend.position = ifelse(is.null(group_by), "none", "right"), legend.direction = "vertical", seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
     ...) {
     validate_common_args(seed, facet_by = facet_by)
+    keep_na <- check_keep_na(keep_na, c(group_by, split_by, facet_by))
+    keep_empty <- check_keep_empty(keep_empty, c(group_by, split_by, facet_by))
     theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
-
     if (!is.null(split_by)) {
-        data[[split_by]] <- droplevels(data[[split_by]])
+        data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
+        keep_na[[split_by]] <- NULL
+        keep_empty[[split_by]] <- NULL
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
@@ -473,7 +540,7 @@ DensityPlot <- function(
                 type = "density", flip = flip, xtrans = xtrans, ytrans = ytrans, position = position,
                 add_bars = add_bars, bar_height = bar_height, bar_alpha = bar_alpha, bar_width = bar_width,
                 palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha, theme = theme, theme_args = theme_args,
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, expand = expand,
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, expand = expand, keep_na = keep_na, keep_empty = keep_empty,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]], ...
             )
@@ -492,12 +559,13 @@ DensityPlot <- function(
 #' set.seed(8525)
 #' data <- data.frame(
 #'     x = sample(setdiff(1:100, c(30:36, 50:55, 70:77)), 1000, replace = TRUE),
-#'     group = factor(rep(c("A", "B"), each = 500), levels = c("A", "B")),
+#'     group = factor(rep(c("A", "B", NA, "D"), each = 250), levels = LETTERS[1:4]),
 #'     facet = sample(c("F1", "F2"), 1000, replace = TRUE)
 #' )
 #'
 #' Histogram(data, x = "x")
 #' Histogram(data, x = "x", group_by = "group")
+#' Histogram(data, x = "x", group_by = "group", keep_na = TRUE, keep_empty = 'level')
 #' Histogram(data, x = "x", split_by = "facet", add_bars = TRUE)
 #' Histogram(data, x = "x", group_by = "group", add_trend = TRUE)
 #' Histogram(data, x = "x", group_by = "group", add_trend = TRUE, trend_skip_zero = TRUE)
@@ -508,7 +576,7 @@ DensityPlot <- function(
 Histogram <- function(
     data, x, group_by = NULL, group_by_sep = "_", group_name = NULL, xtrans = "identity", ytrans = "identity",
     split_by = NULL, split_by_sep = "_", flip = FALSE, bins = NULL, binwidth = NULL, trend_skip_zero = FALSE,
-    add_bars = FALSE, bar_height = 0.025, bar_alpha = 1, bar_width = .1, position = "identity",
+    add_bars = FALSE, bar_height = 0.025, bar_alpha = 1, bar_width = .1, position = "identity", keep_na = FALSE, keep_empty = FALSE,
     use_trend = FALSE, add_trend = FALSE, trend_alpha = 1, trend_linewidth = 0.8, trend_pt_size = 1.5,
     palette = "Paired", palcolor = NULL, alpha = .5, theme = "theme_this", theme_args = list(),
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(bottom = 0, left = 0, right = 0),
@@ -517,11 +585,15 @@ Histogram <- function(
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
     ...) {
     validate_common_args(seed, facet_by = facet_by)
+    keep_na <- check_keep_na(keep_na, c(group_by, split_by, facet_by))
+    keep_empty <- check_keep_empty(keep_empty, c(group_by, split_by, facet_by))
     theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
 
     if (!is.null(split_by)) {
-        data[[split_by]] <- droplevels(data[[split_by]])
+        data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
+        keep_na[[split_by]] <- NULL
+        keep_empty[[split_by]] <- NULL
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
@@ -548,7 +620,7 @@ Histogram <- function(
                 type = "histogram", flip = flip, xtrans = xtrans, ytrans = ytrans, use_trend = use_trend, trend_skip_zero = trend_skip_zero,
                 add_trend = add_trend, trend_alpha = trend_alpha, trend_linewidth = trend_linewidth, trend_pt_size = trend_pt_size,
                 add_bars = add_bars, bar_height = bar_height, bar_alpha = bar_alpha, bar_width = bar_width,
-                bins = bins, binwidth = binwidth, expand = expand, position = position,
+                bins = bins, binwidth = binwidth, expand = expand, position = position, keep_na = keep_na, keep_empty = keep_empty,
                 palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha, theme = theme, theme_args = theme_args,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
