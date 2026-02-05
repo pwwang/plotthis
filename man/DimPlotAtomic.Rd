@@ -92,6 +92,7 @@ DimPlotAtomic(
   streamline_palcolor = NULL,
   streamline_bg_color = "white",
   streamline_bg_stroke = 0.5,
+  keep_na = FALSE,
   keep_empty = FALSE,
   facet_by = NULL,
   facet_scales = "fixed",
@@ -311,7 +312,26 @@ Only works for \code{plot_type = "raw"} and \code{plot_type = "grid"}. For \code
 
 \item{streamline_bg_stroke}{A numeric value specifying the background stroke width of the velocity streamlines. Default is 0.5.}
 
-\item{keep_empty}{A logical value indicating whether to keep empty (NA) groups. Default is FALSE.}
+\item{keep_na}{A logical value or a character to replace the NA values in the data.
+It can also take a named list to specify different behavior for different columns.
+If TRUE or NA, NA values will be replaced with NA.
+If FALSE, NA values will be removed from the data before plotting.
+If a character string is provided, NA values will be replaced with the provided string.
+If a named vector/list is provided, the names should be the column names to apply the behavior to,
+and the values should be one of TRUE, FALSE, or a character string.
+Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
+for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.}
+
+\item{keep_empty}{One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.
+\itemize{
+\item{\code{FALSE} (default): Drop empty factor levels from the data before plotting.}
+\item{\code{TRUE}: Keep empty factor levels and show them as a separate category in the plot.}
+\item{\code{"level"}: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: \code{levels}}
+}}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots

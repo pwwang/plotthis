@@ -98,7 +98,6 @@
 #' @param hex_binwidth A numeric value of the hex bin width. Default is NULL.
 #' @param bg_cutoff A numeric value to be used a cutoff to set the feature values to NA. Default is NULL.
 #' @param color_name A character string of the color legend name. Default is "".
-#' @param keep_empty A logical value indicating whether to keep empty (NA) groups. Default is FALSE.
 #' @return A ggplot object
 #' @keywords internal
 #' @importFrom scales rescale
@@ -133,7 +132,7 @@ DimPlotAtomic <- function(
     velocity_group_palette = "Set2", velocity_group_palcolor = NULL, arrow_angle = 20, arrow_color = "black",
     streamline_l = 5, streamline_minl = 1, streamline_res = 1, streamline_n = 15, arrow_alpha = 1,
     streamline_width = c(0, 0.8), streamline_alpha = 1, streamline_color = NULL, streamline_palette = "RdYlBu", streamline_palcolor = NULL,
-    streamline_bg_color = "white", streamline_bg_stroke = 0.5, keep_empty = FALSE,
+    streamline_bg_color = "white", streamline_bg_stroke = 0.5, keep_na = FALSE, keep_empty = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     theme = "theme_this", theme_args = list(), aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
@@ -166,7 +165,7 @@ DimPlotAtomic <- function(
     if (is.null(group_by) && is.null(features)) {
         stop("Either 'group_by' or 'features' should be specified.")
     }
-    facet_by <- check_columns(data, facet_by, force_factor = TRUE)
+    facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
     if (length(features) > 1 && !is.null(facet_by)) {
         stop("Cannot specify 'facet_by' with multiple features. The plot will be faceted by features.")
     }
@@ -183,14 +182,28 @@ DimPlotAtomic <- function(
         label <- TRUE
     }
 
+    data <- process_keep_na_empty(data, keep_na, keep_empty)
+    keep_empty_group <- if (!is.null(group_by)) keep_empty[[group_by]] else NULL
+    keep_empty_facet <- if (!is.null(facet_by)) keep_empty[[facet_by[1]]] else NULL
+    if (length(facet_by) > 1) {
+        keep_empty_facet2 <- if (!is.null(facet_by[2])) keep_empty[[facet_by[2]]] else NULL
+        stopifnot("[(Feature)DimPlot] `keep_empty` for `facet_by` variables must be identical." = identical(keep_empty_facet, keep_empty_facet2))
+    }
+
     facet_labeller <- "label_value"
     if (!is.null(group_by)) {
-        if (!isTRUE(keep_empty)) {
-            data <- data[!is.na(data[[group_by]]), , drop = FALSE]
-        }
-        colors <- palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor, NA_keep = TRUE)
-        labels_tb <- table(data[[group_by]])
-        labels_tb <- labels_tb[labels_tb != 0]
+        group_vals <- levels(data[[group_by]])
+        if (anyNA(data[[group_by]])) group_vals <- c(group_vals, NA)
+
+        colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+        names(colors)[is.na(names(colors))] <- "NA"
+        group_vals[is.na(group_vals)] <- "NA"
+        labels_tb <- table(data[[group_by]], useNA = "ifany")
+        # labels_tb <- labels_tb[labels_tb != 0]
+        # convert NA names to "NA"
+        names(labels_tb)[is.na(names(labels_tb))] <- "NA"
+        labels_tb <- labels_tb[group_vals]
+
         if (isTRUE(label_insitu)) {
             if (isTRUE(show_stat)) {
                 label_use <- paste0(names(labels_tb), "(", labels_tb, ")")
@@ -440,11 +453,11 @@ DimPlotAtomic <- function(
             p <- p + scattermore::geom_scattermore(
                 data = data[is.na(data[[group_by]]), , drop = FALSE],
                 mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])), color = bg_color,
-                pointsize = ceiling(pt_size), alpha = pt_alpha, pixels = raster_dpi
+                pointsize = ceiling(pt_size), alpha = pt_alpha, pixels = raster_dpi, show.legend = TRUE
             ) + scattermore::geom_scattermore(
                 data = data[!is.na(data[[group_by]]), , drop = FALSE],
                 mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(group_by)),
-                pointsize = ceiling(pt_size), alpha = pt_alpha, pixels = raster_dpi
+                pointsize = ceiling(pt_size), alpha = pt_alpha, pixels = raster_dpi, show.legend = TRUE
             )
         } else {  # features
             p <- p + scattermore::geom_scattermore(
@@ -472,7 +485,7 @@ DimPlotAtomic <- function(
         } else if (!is.null(group_by)) {
             p <- p + geom_hex(
                 mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(group_by), fill = !!sym(group_by)),
-                linewidth = hex_linewidth, bins = hex_bins, binwidth = hex_binwidth
+                linewidth = hex_linewidth, bins = hex_bins, binwidth = hex_binwidth, show.legend = TRUE
             )
         } else {  # features
             data_na <- data[is.na(data[[features]]), , drop = FALSE]
@@ -492,7 +505,7 @@ DimPlotAtomic <- function(
     } else {
         p <- p + geom_point(
             mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(colorby)),
-            size = pt_size, alpha = pt_alpha
+            size = pt_size, alpha = pt_alpha, show.legend = TRUE
         )
     }
 
@@ -540,26 +553,56 @@ DimPlotAtomic <- function(
     }
 
     if (!is.null(group_by)) {
-        p <- p + scale_color_manual(
-            values = colors[names(labels_tb)],
-            labels = label_use,
-            na.value = bg_color,
-            guide = guide_legend(
-                title.hjust = 0,
-                order = 1,
-                override.aes = list(size = 3, alpha = 1)
+        if (!isFALSE(keep_empty_group)) {
+            p <- p + scale_color_manual(
+                values = colors[names(labels_tb)],
+                labels = label_use,
+                na.value = bg_color,
+                breaks = group_vals,
+                limits = group_vals,
+                drop = FALSE,
+                guide = guide_legend(
+                    title.hjust = 0,
+                    order = 1,
+                    override.aes = list(size = 3, alpha = 1)
+                )
             )
-        )
-        if (has_fill) {
-            p <- p + scale_fill_manual(
+            if (has_fill) {
+                p <- p + scale_fill_manual(
+                    values = colors[names(labels_tb)],
+                    labels = label_use,
+                    na.value = bg_color,
+                    breaks = group_vals,
+                    limits = group_vals,
+                    drop = FALSE,
+                    guide = guide_legend(
+                        title.hjust = 0,
+                        order = 1
+                    )
+                )
+            }
+        } else {
+            p <- p + scale_color_manual(
                 values = colors[names(labels_tb)],
                 labels = label_use,
                 na.value = bg_color,
                 guide = guide_legend(
                     title.hjust = 0,
-                    order = 1
+                    order = 1,
+                    override.aes = list(size = 3, alpha = 1)
                 )
             )
+            if (has_fill) {
+                p <- p + scale_fill_manual(
+                    values = colors[names(labels_tb)],
+                    labels = label_use,
+                    na.value = bg_color,
+                    guide = guide_legend(
+                        title.hjust = 0,
+                        order = 1
+                    )
+                )
+            }
         }
     } else {  # features
         p <- p + scale_color_gradientn(
@@ -683,7 +726,7 @@ DimPlotAtomic <- function(
             embedding = data[, dims, drop = FALSE], v_embedding = v_embedding,
             plot_type = velocity_plot_type, group_by = if (velocity_plot_type == "raw") data[[group_by]] else NULL,
             group_name = group_by, group_palette = velocity_group_palette, group_palcolor = velocity_group_palcolor,
-            n_neighbors = velocity_n_neighbors, density = velocity_density,
+            n_neighbors = velocity_n_neighbors, density = velocity_density, keep_na = keep_na[[group_by]], keep_empty = keep_empty[[group_by]],
             smooth = velocity_smooth, scale = velocity_scale, min_mass = velocity_min_mass,
             cutoff_perc = velocity_cutoff_perc, arrow_angle = arrow_angle, arrow_color = arrow_color,
             streamline_l = streamline_l, streamline_minl = streamline_minl, arrow_alpha = arrow_alpha,
@@ -727,7 +770,7 @@ DimPlotAtomic <- function(
         stat_args$theme <- theme
         stat_args$theme_args <- theme_args
         stat_args$title <- character(0)
-        stat_args$keep_empty <- TRUE
+        stat_args$keep_empty <- keep_empty
         stat_args$palette <- stat_palette
         if (stat_plot_type == "pie") {
             stat_args$x <- stat_by
@@ -828,7 +871,7 @@ DimPlotAtomic <- function(
     if (length(legend_list) == 0) {
         p <- facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
                         labeller = facet_labeller, legend.position = legend.position,
-                        legend.direction = legend.direction)
+                        legend.direction = legend.direction, drop = !isTRUE(keep_empty_facet))
     }
     p
 }
@@ -891,6 +934,13 @@ DimPlotAtomic <- function(
 #'     velocity_plot_type = "grid", arrow_alpha = 0.6)
 #' DimPlot(dim_example, group_by = "clusters", velocity = 3:4,
 #'     velocity_plot_type = "stream")
+#'
+#' # keep_na and keep_empty
+#' dim_example$clusters[dim_example$clusters == "Ductal"] <- NA
+#'
+#' DimPlot(dim_example, group_by = "clusters", keep_na = FALSE, keep_empty = TRUE)
+#' DimPlot(dim_example, group_by = "clusters", keep_na = TRUE, keep_empty = TRUE)
+#' DimPlot(dim_example, group_by = "clusters", keep_na = TRUE, keep_empty = FALSE)
 #' }
 DimPlot <- function(
     data, dims = 1:2, group_by, group_by_sep = "_", split_by = NULL, split_by_sep = "_",
@@ -915,7 +965,7 @@ DimPlot <- function(
     velocity_group_palette = "Set2", velocity_group_palcolor = NULL, arrow_angle = 20, arrow_color = "black", arrow_alpha = 1,
     streamline_l = 5, streamline_minl = 1, streamline_res = 1, streamline_n = 15,
     streamline_width = c(0, 0.8), streamline_alpha = 1, streamline_color = NULL, streamline_palette = "RdYlBu", streamline_palcolor = NULL,
-    streamline_bg_color = "white", streamline_bg_stroke = 0.5, keep_empty = FALSE,
+    streamline_bg_color = "white", streamline_bg_stroke = 0.5, keep_na = FALSE, keep_empty = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     theme = "theme_this", theme_args = list(), aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
@@ -926,6 +976,8 @@ DimPlot <- function(
     ...) {
 
     validate_common_args(seed, facet_by = facet_by)
+    keep_na <- check_keep_na(keep_na, c(facet_by, group_by, split_by, stat_by))
+    keep_empty <- check_keep_empty(keep_empty, c(facet_by, group_by, split_by, stat_by))
     theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE,
         concat_multi = TRUE, concat_sep = split_by_sep)
@@ -933,7 +985,9 @@ DimPlot <- function(
     stopifnot("[DimPlot] 'split_by' is not supported for velocity plot." = is.null(velocity) || is.null(split_by))
 
     if (!is.null(split_by)) {
-        data[[split_by]] <- droplevels(data[[split_by]])
+        data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
+        keep_na[[split_by]] <- NULL
+        keep_empty[[split_by]] <- NULL
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
@@ -986,7 +1040,7 @@ DimPlot <- function(
                 streamline_l = streamline_l, streamline_minl = streamline_minl, streamline_res = streamline_res, streamline_n = streamline_n,
                 streamline_width = streamline_width, streamline_alpha = streamline_alpha, streamline_color = streamline_color,
                 streamline_palette = streamline_palette, streamline_palcolor = streamline_palcolor,
-                streamline_bg_color = streamline_bg_color, streamline_bg_stroke = streamline_bg_stroke, keep_empty = keep_empty,
+                streamline_bg_color = streamline_bg_color, streamline_bg_stroke = streamline_bg_stroke, keep_na = keep_na, keep_empty = keep_empty,
                 facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
                 theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
@@ -1011,6 +1065,7 @@ DimPlot <- function(
 #' @export
 #' @examples
 #' \donttest{
+#' data(dim_example)
 #' FeatureDimPlot(dim_example, features = "stochasticbasis_1", pt_size = 2)
 #' FeatureDimPlot(dim_example, features = "stochasticbasis_1", pt_size = 2, bg_cutoff = 0)
 #' FeatureDimPlot(dim_example, features = "stochasticbasis_1", raster = TRUE, raster_dpi = 30)
@@ -1041,7 +1096,7 @@ FeatureDimPlot <- function(
     label_segment_color = "black", order = c("as-is", "reverse", "high-top", "low-top", "random"),
     highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
     add_mark = FALSE, mark_type = c("hull", "ellipse", "rect", "circle"), mark_expand = unit(3, "mm"),
-    mark_alpha = 0.1, mark_linetype = 1,
+    mark_alpha = 0.1, mark_linetype = 1, keep_na = FALSE, keep_empty = FALSE,
     stat_by = NULL, stat_plot_type = c("pie", "ring", "bar", "line"), stat_plot_size = 0.1, stat_args = list(palette = "Set1"),
     graph = NULL, edge_size = c(0.05, 0.5), edge_alpha = 0.1, edge_color = "grey40",
     add_density = FALSE, density_color = "grey80", density_filled = FALSE,
@@ -1066,8 +1121,11 @@ FeatureDimPlot <- function(
     ...) {
 
     validate_common_args(seed, facet_by = facet_by)
+    theme <- process_theme(theme)
 
     if (isTRUE(split_by)) {
+        keep_na <- check_keep_na(keep_na, c(facet_by, stat_by))
+        keep_empty <- check_keep_empty(keep_empty, c(facet_by, stat_by))
         plots <- lapply(
             features, function(feature) DimPlotAtomic(
                 data, dims = dims,
@@ -1076,7 +1134,7 @@ FeatureDimPlot <- function(
                 label_insitu = label_insitu, show_stat = show_stat, features = feature, bg_cutoff = bg_cutoff,
                 label = label, label_size = label_size, label_fg = label_fg, label_bg = label_bg, label_bg_r = label_bg_r,
                 label_repel = label_repel, label_repulsion = label_repulsion, label_pt_size = label_pt_size, label_pt_color = label_pt_color,
-                label_segment_color = label_segment_color, order = order,
+                label_segment_color = label_segment_color, order = order, keep_na = keep_na, keep_empty = keep_empty,
                 highlight = highlight, highlight_alpha = highlight_alpha, highlight_size = highlight_size, highlight_color = highlight_color, highlight_stroke = highlight_stroke,
                 add_mark = add_mark, mark_type = mark_type, mark_expand = mark_expand, mark_alpha = mark_alpha, mark_linetype = mark_linetype,
                 stat_by = stat_by, stat_plot_type = stat_plot_type, stat_plot_size = stat_plot_size, stat_args = stat_args,
@@ -1104,11 +1162,16 @@ FeatureDimPlot <- function(
             )
         )
     } else {
+        keep_na <- check_keep_na(keep_na, c(facet_by, stat_by))
+        keep_empty <- check_keep_empty(keep_empty, c(facet_by, stat_by))
+
         split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE,
             concat_multi = TRUE, concat_sep = split_by_sep)
 
         if (!is.null(split_by)) {
-            data[[split_by]] <- droplevels(data[[split_by]])
+            data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
+            keep_na[[split_by]] <- NULL
+            keep_empty[[split_by]] <- NULL
             datas <- split(data, data[[split_by]])
             # keep the order of levels
             datas <- datas[levels(data[[split_by]])]
@@ -1144,7 +1207,7 @@ FeatureDimPlot <- function(
                     label_insitu = label_insitu, show_stat = show_stat, bg_cutoff = bg_cutoff,
                     label = label, label_size = label_size, label_fg = label_fg, label_bg = label_bg, label_bg_r = label_bg_r,
                     label_repel = label_repel, label_repulsion = label_repulsion, label_pt_size = label_pt_size, label_pt_color = label_pt_color,
-                    label_segment_color = label_segment_color, order = order,
+                    label_segment_color = label_segment_color, order = order, keep_na = keep_na, keep_empty = keep_empty,
                     highlight = highlight, highlight_alpha = highlight_alpha, highlight_size = highlight_size, highlight_color = highlight_color, highlight_stroke = highlight_stroke,
                     add_mark = add_mark, mark_type = mark_type, mark_expand = mark_expand, mark_alpha = mark_alpha, mark_linetype = mark_linetype,
                     stat_by = stat_by, stat_plot_type = stat_plot_type, stat_plot_size = stat_plot_size, stat_args = stat_args,

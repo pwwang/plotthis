@@ -87,6 +87,7 @@ DimPlot(
   streamline_palcolor = NULL,
   streamline_bg_color = "white",
   streamline_bg_stroke = 0.5,
+  keep_na = FALSE,
   keep_empty = FALSE,
   facet_by = NULL,
   facet_scales = "fixed",
@@ -161,6 +162,8 @@ FeatureDimPlot(
   mark_expand = unit(3, "mm"),
   mark_alpha = 0.1,
   mark_linetype = 1,
+  keep_na = FALSE,
+  keep_empty = FALSE,
   stat_by = NULL,
   stat_plot_type = c("pie", "ring", "bar", "line"),
   stat_plot_size = 0.1,
@@ -434,22 +437,26 @@ Only works for \code{plot_type = "raw"} and \code{plot_type = "grid"}. For \code
 
 \item{streamline_bg_stroke}{A numeric value specifying the background stroke width of the velocity streamlines. Default is 0.5.}
 
-\item{keep_empty}{Logical or character. Whether to keep unused factor levels on categorical axes.
+\item{keep_na}{A logical value or a character to replace the NA values in the data.
+It can also take a named list to specify different behavior for different columns.
+If TRUE or NA, NA values will be replaced with NA.
+If FALSE, NA values will be removed from the data before plotting.
+If a character string is provided, NA values will be replaced with the provided string.
+If a named vector/list is provided, the names should be the column names to apply the behavior to,
+and the values should be one of TRUE, FALSE, or a character string.
+Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
+for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.}
+
+\item{keep_empty}{One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.
 \itemize{
-\item{\code{FALSE} (default): Drop unused factor levels via \code{droplevels()}.}
-\item{\code{TRUE}: Keep all factor levels defined in the data, even if they have no observations.
-For plots with both x and y categorical, applies to both axes.}
-\item{\code{"x"}: Keep unused levels only on the x-axis, drop from y-axis.}
-\item{\code{"y"}: Keep unused levels only on the y-axis, drop from x-axis.}
-\item{\code{c("x", "y")} or \code{"xy"}: Explicitly keep unused levels on both axes (same as \code{TRUE}).}
-}
-
-\strong{Note:} This parameter is distinct from \code{keep_na}. Use \code{keep_empty = TRUE}
-when you need to show all possible categories (e.g., all 12 months even if some have no data).
-For more complex completeness requirements, use \code{tidyr::complete()} before plotting.
-
-\strong{Backward compatibility:} If \code{keep_na} is not specified and \code{keep_empty}
-is provided, \code{keep_empty} will control both NA values and unused levels (legacy behavior).}
+\item{\code{FALSE} (default): Drop empty factor levels from the data before plotting.}
+\item{\code{TRUE}: Keep empty factor levels and show them as a separate category in the plot.}
+\item{\code{"level"}: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: \code{levels}}
+}}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
@@ -615,8 +622,16 @@ DimPlot(dim_example, group_by = "clusters", velocity = 3:4,
     velocity_plot_type = "grid", arrow_alpha = 0.6)
 DimPlot(dim_example, group_by = "clusters", velocity = 3:4,
     velocity_plot_type = "stream")
+
+# keep_na and keep_empty
+dim_example$clusters[dim_example$clusters == "Ductal"] <- NA
+
+DimPlot(dim_example, group_by = "clusters", keep_na = FALSE, keep_empty = TRUE)
+DimPlot(dim_example, group_by = "clusters", keep_na = TRUE, keep_empty = TRUE)
+DimPlot(dim_example, group_by = "clusters", keep_na = TRUE, keep_empty = FALSE)
 }
 \donttest{
+data(dim_example)
 FeatureDimPlot(dim_example, features = "stochasticbasis_1", pt_size = 2)
 FeatureDimPlot(dim_example, features = "stochasticbasis_1", pt_size = 2, bg_cutoff = 0)
 FeatureDimPlot(dim_example, features = "stochasticbasis_1", raster = TRUE, raster_dpi = 30)
