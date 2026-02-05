@@ -18,7 +18,7 @@
 ChordPlotAtomic <- function(
     data, y = NULL, from = NULL, from_sep = "_", to = NULL, to_sep = "_", flip = FALSE, links_color = c("from", "to"),
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 0.5,
-    labels_rot = FALSE, title = NULL, subtitle = NULL, ...
+    labels_rot = FALSE, title = NULL, subtitle = NULL, keep_na = FALSE, keep_empty = FALSE, ...
 ) {
     # if (!requireNamespace("circlize", quietly = TRUE)) {
     #     stop("circlize is required for chord plot.")
@@ -28,13 +28,19 @@ ChordPlotAtomic <- function(
     to <- check_columns(data, to, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = to_sep)
     y <- check_columns(data, y)
     if (is.null(y)) {
+        from_levels <- levels(data[[from]])
+        to_levels <- levels(data[[to]])
         data <- data %>%
             group_by(!!sym(from), !!sym(to)) %>%
             summarise(.y = n(), .groups = "drop")
 
+        data[[from]] <- factor(data[[from]], levels = from_levels)
+        data[[to]] <- factor(data[[to]], levels = to_levels)
+
         y <- ".y"
     }
 
+    data <- process_keep_na_empty(data, keep_na, keep_empty)
     if (isTRUE(flip)) {
         data <- data %>% select(from = !!sym(to), to = !!sym(from), value = !!sym(y))
     } else {
@@ -42,13 +48,29 @@ ChordPlotAtomic <- function(
     }
 
     data <- data[order(data$from, data$to), , drop = FALSE]
-    data$from <- as.character(data$from)
-    data$to <- as.character(data$to)
+    # data$from <- as.character(data$from)
+    # data$to <- as.character(data$to)
 
-    froms <- unique(data$from)
-    tos <- unique(data$to)
-    grid_cols <- palette_this(c(froms, tos), palette = palette, palcolor = palcolor)
-    link_cols <- grid_cols[data[[links_color]]]
+    # froms <- unique(data$from)
+    # tos <- unique(data$to)
+    from_vals <- levels(data$from)
+    if (anyNA(data$from)) from_vals <- c(from_vals, NA)
+    to_vals <- levels(data$to)
+    if (anyNA(data$to)) to_vals <- c(to_vals, NA)
+
+    grid_cols <- palette_this(unique(c(from_vals, to_vals)), palette = palette, palcolor = palcolor, NA_keep = TRUE)
+    names(grid_cols)[is.na(names(grid_cols))] <- "NA"
+    if (anyNA(from_vals)) {
+        from_vals[is.na(from_vals)] <- "NA"
+        levels(data$from) <- from_vals
+        data$from[is.na(data$from)] <- "NA"
+    }
+    if (anyNA(to_vals)) {
+        to_levels[is.na(to_vals)] <- "NA"
+        levels(data$to) <- to_vals
+        data$to[is.na(data$to)] <- "NA"
+    }
+    link_cols <- grid_cols[as.character(data[[links_color]])]
 
     circlize::circos.clear()
     circlize::circos.par(track.margin = c(0.01, 0.02))
@@ -89,7 +111,7 @@ ChordPlotAtomic <- function(
             }, bg.border = NA) # here set bg.border to NA is important
         }
     } else {
-        allnames <- unique(c(froms, tos))
+        allnames <- unique(c(from_vals, to_vals))
         p <- ~ {
             circlize::chordDiagram(
                 data,
@@ -136,7 +158,7 @@ ChordPlotAtomic <- function(
 
     base_size <- 7
     if (isTRUE(labels_rot)) {
-        maxchar <- max(c(nchar(froms), nchar(tos)))
+        maxchar <- max(c(nchar(from_vals), nchar(to_vals)))
         if (maxchar < 16) {
             base_size <- base_size + 2
         } else if (maxchar < 32) {
@@ -183,15 +205,20 @@ ChordPlot <- function(
     split_by = NULL, split_by_sep = "_", flip = FALSE, links_color = c("from", "to"),
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 0.5,
     labels_rot = FALSE, title = NULL, subtitle = NULL, seed = 8525,
+    keep_na = FALSE, keep_empty = FALSE,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
     axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...
 ) {
     validate_common_args(seed)
+    keep_na <- check_keep_na(keep_na, c(split_by, from, to))
+    keep_empty <- check_keep_empty(keep_empty, c(split_by, from, to))
     theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
 
     if (!is.null(split_by)) {
-        data[[split_by]] <- droplevels(data[[split_by]])
+        data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
+        keep_na[[split_by]] <- NULL
+        keep_empty[[split_by]] <- NULL
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
@@ -214,7 +241,7 @@ ChordPlot <- function(
             ChordPlotAtomic(datas[[nm]],
                 y = y, from = from, from_sep = from_sep, to = to, to_sep = to_sep, flip = flip, links_color = links_color,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
-                labels_rot = labels_rot, title = title, subtitle = subtitle, ...
+                labels_rot = labels_rot, title = title, subtitle = subtitle, keep_na = keep_na, keep_empty = keep_empty, ...
             )
         }
     )
