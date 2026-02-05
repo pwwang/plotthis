@@ -28,7 +28,8 @@ process_heatmap_data(
   pie_name,
   rows_data,
   columns_data,
-  keep_na
+  keep_na,
+  keep_empty
 )
 }
 \arguments{

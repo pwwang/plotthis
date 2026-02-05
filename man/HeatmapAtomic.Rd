@@ -45,6 +45,8 @@ HeatmapAtomic(
   upper_cutoff = NULL,
   add_bg = FALSE,
   bg_alpha = 0.5,
+  keep_na = FALSE,
+  keep_empty = FALSE,
   add_reticle = FALSE,
   reticle_color = "grey",
   column_name_annotation = TRUE,
@@ -194,6 +196,22 @@ It's applied to raw values when raw values are used (e.g. plot_type bars, etc).}
 Does not work with \code{cell_type = "bars"} or \code{cell_type = "tile"}.}
 
 \item{bg_alpha}{A numeric value between 0 and 1 specifying the transparency of the background.}
+
+\item{keep_na}{Whether we should keep NA groups in rows, columns and split_by variables. Default is FALSE.
+FALSE to remove NA groups; TRUE to keep NA groups.
+A vector of column names can also be provided to specify which columns to keep NA groups.
+Note that the record will be removed if any of the grouping columns has NA and is not specified to keep NA.}
+
+\item{keep_empty}{One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.
+\itemize{
+\item{\code{FALSE} (default): Drop empty factor levels from the data before plotting.}
+\item{\code{TRUE}: Keep empty factor levels and show them as a separate category in the plot.}
+\item{\code{"level"}: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: \code{levels}}
+}}
 
 \item{add_reticle}{A logical value indicating whether to add a reticle to the heatmap.}
 

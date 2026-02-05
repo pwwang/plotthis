@@ -23,6 +23,7 @@ Heatmap(
   rows_data = NULL,
   columns_data = NULL,
   keep_na = FALSE,
+  keep_empty = FALSE,
   columns_name = NULL,
   columns_split_name = NULL,
   rows_name = NULL,
@@ -177,6 +178,17 @@ This is useful for adding additional information to the columns of the heatmap.}
 FALSE to remove NA groups; TRUE to keep NA groups.
 A vector of column names can also be provided to specify which columns to keep NA groups.
 Note that the record will be removed if any of the grouping columns has NA and is not specified to keep NA.}
+
+\item{keep_empty}{One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.
+\itemize{
+\item{\code{FALSE} (default): Drop empty factor levels from the data before plotting.}
+\item{\code{TRUE}: Keep empty factor levels and show them as a separate category in the plot.}
+\item{\code{"level"}: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: \code{levels}}
+}}
 
 \item{columns_name}{A character string to rename the column created by \code{columns_by}, which will be reflected in the name of the annotation or legend.}
 
