@@ -318,6 +318,7 @@ combine_plots <- function(
 #' @keywords internal
 #' @param data A data frame
 #' @param x A character string specifying the column name of the data frame to plot for the x-axis
+#' @param keep_empty A character string specifying whether to keep empty levels
 #' @param palette A character string specifying the palette to use
 #' @param palcolor A character string specifying the color to use in the palette
 #' @param alpha A numeric value specifying the transparency of the plot
@@ -327,11 +328,13 @@ combine_plots <- function(
 #' @importFrom ggplot2 geom_rect
 #' @importFrom dplyr distinct
 #' @importFrom tidyr expand_grid
-bg_layer <- function(data, x, palette, palcolor, alpha, facet_by, direction = "vertical") {
-    lvls <- levels(data[[x]])
+bg_layer <- function(data, x, keep_empty, palette, palcolor, alpha, facet_by, direction = "vertical") {
     if (anyNA(data[[x]])) {
-        lvls <- c(lvls, "<NA>")
+        randint <- sample.int(1e6, 1)
+        levels(data[[x]]) <- c(levels(data[[x]]), paste0("__NA__", randint))
+        data[[x]][is.na(data[[x]])] <- paste0("__NA__", randint)
     }
+    lvls <- if (keep_empty) levels(data[[x]]) else levels(droplevels(data[[x]]))
     bg_color <- palette_this(lvls, palette = palette, palcolor = palcolor)
     bg_data <- data.frame(x = factor(lvls, levels = lvls))
     bg_data$x <- as.numeric(bg_data$x)
@@ -637,16 +640,20 @@ check_legend <- function(legend, datas_name, which = c("legend.position", "legen
 #' check_keep_na
 #' Check and normalize keep_na parameter
 #' @param keep_na keep_na
-#' @param x column name
+#' @param cols column names if keep_na is a single value
 #' @keywords internal
 #' @return normalized keep_na
-check_keep_na <- function(keep_na, x = NULL) {
+check_keep_na <- function(keep_na, cols = NA) {
     if (is.character(keep_na) || is.logical(keep_na)) {
         if (isTRUE(keep_na) || is.na(keep_na)) keep_na <- NA
-        if (is.null(x)) {
+        if (is.null(cols) || length(cols) == 0) {
+            # no columns selected
+            return(list())
+        } else if (length(cols) == 1 && is.na(cols)) {
             return(keep_na)
         } else {
-            return(stats::setNames(list(keep_na), x))
+            cols <- unique(cols)
+            return(stats::setNames(rep(list(keep_na), length(cols)), cols))
         }
     }
     if (is.null(names(keep_na)) || !is.list(keep_na)) {
@@ -662,25 +669,27 @@ check_keep_na <- function(keep_na, x = NULL) {
 #' check_keep_empty
 #' Check and normalize keep_empty parameter
 #' @param keep_empty keep_empty
-#' @param x column name
+#' @param cols column names if keep_empty is a single value
 #' @keywords internal
 #' @return normalized keep_empty
-check_keep_empty <- function(keep_empty, x = NULL) {
-    if (is.logical(keep_empty)) keep_empty <- as.character(keep_empty)
-    if (identical(keep_empty, "TRUE")) keep_empty <- "true"
-    if (identical(keep_empty, "FALSE")) keep_empty <- "false"
+check_keep_empty <- function(keep_empty, cols = NA) {
     if (identical(keep_empty, "levels")) keep_empty <- "level"
-    if (is.character(keep_empty)) {
-        keep_empty <- tolower(keep_empty)
-        keep_empty <- match.arg(keep_empty, choices = c("true", "false", "level"))
-        if (is.null(x)) {
+    if (is.character(keep_empty) && !identical(keep_empty, "level")) {
+        stop("'keep_empty' must be one of TRUE/FALSE, 'level', or 'levels'.")
+    }
+    if (!is.list(keep_empty)) {
+        if (is.null(cols) || length(cols) == 0) {
+            # no columns selected
+            return(list())
+        } else if (length(cols) == 1 && is.na(cols)) {
             return(keep_empty)
         } else {
-            return(stats::setNames(list(keep_empty), x))
+            cols <- unique(cols)
+            return(stats::setNames(rep(list(keep_empty), length(cols)), cols))
         }
     }
-    if (is.null(names(keep_empty)) || !is.list(keep_empty)) {
-        stop("'keep_empty' must be a logical/character or a named list.")
+    if (is.null(names(keep_empty))) {
+        stop("'keep_empty' must have names when provided as a list.")
     }
     for (name in names(keep_empty)) {
         keep_empty[[name]] <- check_keep_empty(keep_empty[[name]])
@@ -711,7 +720,7 @@ process_keep_na_empty <- function(data, keep_na = NULL, keep_empty = NULL, col =
                 data <- data[!is.na(data[[cl]]), , drop = FALSE]
                 next
             }
-            if (is.factor(data[[cl]])) {
+            if (is.factor(data[[cl]]) && !is.na(keep_na[[cl]])) {
                 levels(data[[cl]]) <- c(levels(data[[cl]]), keep_na[[cl]])
             }
             data[[cl]][is.na(data[[cl]])] <- keep_na[[cl]]
@@ -729,7 +738,7 @@ process_keep_na_empty <- function(data, keep_na = NULL, keep_empty = NULL, col =
                 next
             }
             if (!is.factor(data[[cl]])) next
-            if (identical(keep_empty[[cl]], "false")) {
+            if (isFALSE(keep_empty[[cl]])) {
                 data[[cl]] <- droplevels(data[[cl]])
             }
         }

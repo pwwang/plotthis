@@ -4,12 +4,23 @@
 \alias{bg_layer}
 \title{Get a ggplot layer for background}
 \usage{
-bg_layer(data, x, palette, palcolor, alpha, facet_by, direction = "vertical")
+bg_layer(
+  data,
+  x,
+  keep_empty,
+  palette,
+  palcolor,
+  alpha,
+  facet_by,
+  direction = "vertical"
+)
 }
 \arguments{
 \item{data}{A data frame}
 
 \item{x}{A character string specifying the column name of the data frame to plot for the x-axis}
+
+\item{keep_empty}{A character string specifying whether to keep empty levels}
 
 \item{palette}{A character string specifying the palette to use}
 
