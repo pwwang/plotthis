@@ -22,6 +22,8 @@ VelocityPlot(
   arrow_angle = 20,
   arrow_color = "black",
   arrow_alpha = 1,
+  keep_na = FALSE,
+  keep_empty = FALSE,
   streamline_l = 5,
   streamline_minl = 1,
   streamline_res = 1,
@@ -82,6 +84,27 @@ VelocityPlot(
 \item{arrow_alpha}{A numeric value specifying the transparency of the velocity arrows. Default is 1 (fully opaque).
 Only works for \code{plot_type = "raw"} and \code{plot_type = "grid"}. For \code{plot_type = "stream"}, use \code{streamline_alpha} instead.}
 
+\item{keep_na}{A logical value or a character to replace the NA values in the data.
+It can also take a named list to specify different behavior for different columns.
+If TRUE or NA, NA values will be replaced with NA.
+If FALSE, NA values will be removed from the data before plotting.
+If a character string is provided, NA values will be replaced with the provided string.
+If a named vector/list is provided, the names should be the column names to apply the behavior to,
+and the values should be one of TRUE, FALSE, or a character string.
+Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
+for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.}
+
+\item{keep_empty}{One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.
+\itemize{
+\item{\code{FALSE} (default): Drop empty factor levels from the data before plotting.}
+\item{\code{TRUE}: Keep empty factor levels and show them as a separate category in the plot.}
+\item{\code{"level"}: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: \code{levels}}
+}}
+
 \item{streamline_l}{An optional numeric value specifying the length of the velocity streamlines. Default is 5.}
 
 \item{streamline_minl}{An optional numeric value specifying the minimum length of the velocity streamlines. Default is 1.}
@@ -139,10 +162,15 @@ The plot shows the velocity vectors of the cells in a specified reduction space.
 \examples{
 \donttest{
 data(dim_example)
-VelocityPlot(dim_example[, 1:2], dim_example[, 3:4])
+dim_example$clusters[dim_example$clusters == "Ductal"] <- NA
+
 VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], group_by = dim_example$clusters)
-VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], plot_type = "grid")
-VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], plot_type = "stream")
+VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], group_by = dim_example$clusters,
+    keep_na = TRUE, keep_empty = TRUE)
+VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], group_by = dim_example$clusters,
+    keep_na = TRUE, keep_empty = 'level')
+VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], group_by = dim_example$clusters,
+    keep_na = TRUE, keep_empty = FALSE)
 }
 }
 \seealso{

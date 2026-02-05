@@ -127,16 +127,21 @@
 #' @examples
 #' \donttest{
 #' data(dim_example)
-#' VelocityPlot(dim_example[, 1:2], dim_example[, 3:4])
+#' dim_example$clusters[dim_example$clusters == "Ductal"] <- NA
+#'
 #' VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], group_by = dim_example$clusters)
-#' VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], plot_type = "grid")
-#' VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], plot_type = "stream")
+#' VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], group_by = dim_example$clusters,
+#'     keep_na = TRUE, keep_empty = TRUE)
+#' VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], group_by = dim_example$clusters,
+#'     keep_na = TRUE, keep_empty = 'level')
+#' VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], group_by = dim_example$clusters,
+#'     keep_na = TRUE, keep_empty = FALSE)
 #' }
 VelocityPlot <- function(
     embedding, v_embedding, plot_type = c("raw", "grid", "stream"), split_by = NULL,
     group_by = NULL, group_name = "Group", group_palette = "Paired", group_palcolor = NULL,
     n_neighbors = NULL, density = 1, smooth = 0.5, scale = 1, min_mass = 1, cutoff_perc = 5,
-    arrow_angle = 20, arrow_color = "black", arrow_alpha = 1,
+    arrow_angle = 20, arrow_color = "black", arrow_alpha = 1, keep_na = FALSE, keep_empty = FALSE,
     streamline_l = 5, streamline_minl = 1, streamline_res = 1, streamline_n = 15,
     streamline_width = c(0, 0.8), streamline_alpha = 1, streamline_color = NULL, streamline_palette = "RdYlBu", streamline_palcolor = NULL,
     streamline_bg_color = "white", streamline_bg_stroke = 0.5,
@@ -150,6 +155,16 @@ VelocityPlot <- function(
         ggplot2::ggplot
     }
     stopifnot("[VelocityPlot] 'split_by' is not supported yet" = is.null(split_by))
+    stopifnot("[VelocityPlot] 'keep_na' supports only atomic values (logical or character)" =
+        is.atomic(keep_na) && (is.logical(keep_na) || is.character(keep_na)))
+    stopifnot("[VelocityPlot] 'keep_empty' supports only atomic values (logical or 'level'/'levels')" =
+        is.atomic(keep_empty) && (is.logical(keep_empty) || (is.character(keep_empty) && keep_empty %in% c("level", "levels"))))
+    stopifnot("[VelocityPlot] 'embedding' must be a matrix or data.frame" = is.matrix(embedding) || is.data.frame(embedding))
+    stopifnot("[VelocityPlot] 'v_embedding' must be a matrix or data.frame" = is.matrix(v_embedding) || is.data.frame(v_embedding))
+    stopifnot("[VelocityPlot] 'embedding' and 'v_embedding' must have the same dimensions" =
+        all(dim(embedding) == dim(v_embedding)))
+    stopifnot("[VelocityPlot] 'group_by' must be NULL or a vector of the same length as the number of rows in 'embedding'" =
+        is.null(group_by) || (length(group_by) == nrow(embedding)))
 
     set.seed(seed)
 
@@ -169,6 +184,26 @@ VelocityPlot <- function(
     }
     n_neighbors <- n_neighbors %||% ceiling(nrow(embedding) / 50)
 
+    if (!is.null(group_by)) {
+        group_by <- as.factor(group_by)
+    }
+
+    if (!is.null(group_by) && anyNA(group_by) && !isTRUE(keep_na) && !is.na(keep_na)) {
+        if (isFALSE(keep_na)) {
+            row_idxes <- is.na(group_by)
+            group_by <- group_by[!row_idxes]
+            embedding <- embedding[!row_idxes, , drop = FALSE]
+            v_embedding <- v_embedding[!row_idxes, , drop = FALSE]
+        } else {
+            keep_na <- as.character(keep_na)
+            levels(group_by) <- c(levels(group_by), keep_na)
+            group_by[is.na(group_by)] <- keep_na
+        }
+    }
+    if (!is.null(group_by) && isFALSE(keep_empty)) {
+        group_by <- droplevels(group_by)
+    }
+
     if (plot_type == "raw") {
         if (!is.null(density) && (density > 0 && density < 1)) {
             s <- ceiling(density * nrow(embedding))
@@ -186,10 +221,16 @@ VelocityPlot <- function(
         df$length_perc <- df$length / global_size
 
         if (!is.null(group_by)) {
-            df[[group_name]] <- as.factor(group_by)
+            df[[group_name]] <- group_by
+            group_vals <- levels(group_by)
+            if (anyNA(group_by)) {
+                group_vals <- c(group_vals, NA)
+            }
+            group_cols <- palette_this(group_vals, palette = group_palette, palcolor = group_palcolor, NA_keep = TRUE)
             velocity_layer <- list(
                 geom_segment(
-                    data = df, mapping = aes(
+                    data = df,
+                    mapping = aes(
                         x = !!sym("x"), y = !!sym("y"),
                         xend = !!sym("x") + !!sym("u"),
                         yend = !!sym("y") + !!sym("v"),
@@ -202,14 +243,25 @@ VelocityPlot <- function(
                         warning("[VelocityPlot] 'arrow()' in ggplot2 == 4.0.0 does not support varying lengths. Using fixed length instead. See https://github.com/tidyverse/ggplot2/issues/6594 for details.")
                         NULL
                     },
-                    lineend = "round", linejoin = "mitre", inherit.aes = FALSE
-                ),
-                scale_color_manual(
-                    name = group_name,
-                    values = palette_this(df[[group_name]], palette = group_palette, palcolor = group_palcolor),
-                    guide = guide_legend(title.hjust = 0, order = 1, override.aes = list(linewidth = 2, alpha = 1))
+                    lineend = "round", linejoin = "mitre", inherit.aes = FALSE, show.legend = TRUE
                 )
             )
+            if (isTRUE(keep_empty)) {
+                velocity_layer[[length(velocity_layer) + 1]] <- scale_color_manual(
+                    name = group_name,
+                    values = group_cols,
+                    breaks = group_vals,
+                    limits = group_vals,
+                    drop = FALSE,
+                    guide = guide_legend(title.hjust = 0, order = 1, override.aes = list(linewidth = 2, alpha = 1))
+                )
+            } else {
+                 velocity_layer[[length(velocity_layer) + 1]] <- scale_color_manual(
+                    name = group_name,
+                    values = group_cols,
+                    guide = guide_legend(title.hjust = 0, order = 1, override.aes = list(linewidth = 2, alpha = 1))
+                )
+            }
             attr(velocity_layer, "scales") <- unique(c(attr(velocity_layer, "scales"), "color"))
         } else {
             velocity_layer <- list(
