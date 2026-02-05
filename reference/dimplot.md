@@ -88,6 +88,7 @@ DimPlot(
   streamline_palcolor = NULL,
   streamline_bg_color = "white",
   streamline_bg_stroke = 0.5,
+  keep_na = FALSE,
   keep_empty = FALSE,
   facet_by = NULL,
   facet_scales = "fixed",
@@ -162,6 +163,8 @@ FeatureDimPlot(
   mark_expand = unit(3, "mm"),
   mark_alpha = 0.1,
   mark_linetype = 1,
+  keep_na = FALSE,
+  keep_empty = FALSE,
   stat_by = NULL,
   stat_plot_type = c("pie", "ring", "bar", "line"),
   stat_plot_size = 0.1,
@@ -638,35 +641,35 @@ FeatureDimPlot(
   A numeric value specifying the background stroke width of the velocity
   streamlines. Default is 0.5.
 
+- keep_na:
+
+  A logical value or a character to replace the NA values in the data.
+  It can also take a named list to specify different behavior for
+  different columns. If TRUE or NA, NA values will be replaced with NA.
+  If FALSE, NA values will be removed from the data before plotting. If
+  a character string is provided, NA values will be replaced with the
+  provided string. If a named vector/list is provided, the names should
+  be the column names to apply the behavior to, and the values should be
+  one of TRUE, FALSE, or a character string. Without a named
+  vector/list, the behavior applies to categorical/character columns
+  used on the plot, for example, the `x`, `group_by`, `fill_by`, etc.
+
 - keep_empty:
 
-  Logical or character. Whether to keep unused factor levels on
-  categorical axes.
+  One of FALSE, TRUE and "level". It can also take a named list to
+  specify different behavior for different columns. Without a named
+  list, the behavior applies to the categorical/character columns used
+  on the plot, for example, the `x`, `group_by`, `fill_by`, etc.
 
-  - `FALSE` (default): Drop unused factor levels via
-    [`droplevels()`](https://rdrr.io/r/base/droplevels.html).
+  - `FALSE` (default): Drop empty factor levels from the data before
+    plotting.
 
-  - `TRUE`: Keep all factor levels defined in the data, even if they
-    have no observations. For plots with both x and y categorical,
-    applies to both axes.
+  - `TRUE`: Keep empty factor levels and show them as a separate
+    category in the plot.
 
-  - `"x"`: Keep unused levels only on the x-axis, drop from y-axis.
-
-  - `"y"`: Keep unused levels only on the y-axis, drop from x-axis.
-
-  - `c("x", "y")` or `"xy"`: Explicitly keep unused levels on both axes
-    (same as `TRUE`).
-
-  **Note:** This parameter is distinct from `keep_na`. Use
-  `keep_empty = TRUE` when you need to show all possible categories
-  (e.g., all 12 months even if some have no data). For more complex
-  completeness requirements, use
-  [`tidyr::complete()`](https://tidyr.tidyverse.org/reference/complete.html)
-  before plotting.
-
-  **Backward compatibility:** If `keep_na` is not specified and
-  `keep_empty` is provided, `keep_empty` will control both NA values and
-  unused levels (legacy behavior).
+  - `"level"`: Keep empty factor levels, but do not show them in the
+    plot. But they will be assigned colors from the palette to maintain
+    consistency across multiple plots. Alias: `levels`
 
 - facet_by:
 
@@ -977,8 +980,19 @@ DimPlot(dim_example, group_by = "clusters", velocity = 3:4,
 DimPlot(dim_example, group_by = "clusters", velocity = 3:4,
     velocity_plot_type = "stream")
 
+
+# keep_na and keep_empty
+dim_example$clusters[dim_example$clusters == "Ductal"] <- NA
+
+DimPlot(dim_example, group_by = "clusters", keep_na = FALSE, keep_empty = TRUE)
+
+DimPlot(dim_example, group_by = "clusters", keep_na = TRUE, keep_empty = TRUE)
+
+DimPlot(dim_example, group_by = "clusters", keep_na = TRUE, keep_empty = FALSE)
+
 # }
 # \donttest{
+data(dim_example)
 FeatureDimPlot(dim_example, features = "stochasticbasis_1", pt_size = 2)
 
 FeatureDimPlot(dim_example, features = "stochasticbasis_1", pt_size = 2, bg_cutoff = 0)

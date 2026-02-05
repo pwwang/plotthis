@@ -34,6 +34,8 @@ LinePlot(
   highlight_alpha = 0.8,
   pt_alpha = 1,
   pt_size = 5,
+  keep_na = FALSE,
+  keep_empty = FALSE,
   line_type = "solid",
   line_width = 1,
   line_alpha = 0.8,
@@ -64,8 +66,6 @@ LinePlot(
   subtitle = NULL,
   xlab = NULL,
   ylab = NULL,
-  keep_empty = FALSE,
-  keep_na = FALSE,
   seed = 8525,
   axes = NULL,
   axis_titles = axes,
@@ -201,6 +201,36 @@ LinePlot(
 - pt_size:
 
   The size of the points.
+
+- keep_na:
+
+  A logical value or a character to replace the NA values in the data.
+  It can also take a named list to specify different behavior for
+  different columns. If TRUE or NA, NA values will be replaced with NA.
+  If FALSE, NA values will be removed from the data before plotting. If
+  a character string is provided, NA values will be replaced with the
+  provided string. If a named vector/list is provided, the names should
+  be the column names to apply the behavior to, and the values should be
+  one of TRUE, FALSE, or a character string. Without a named
+  vector/list, the behavior applies to categorical/character columns
+  used on the plot, for example, the `x`, `group_by`, `fill_by`, etc.
+
+- keep_empty:
+
+  One of FALSE, TRUE and "level". It can also take a named list to
+  specify different behavior for different columns. Without a named
+  list, the behavior applies to the categorical/character columns used
+  on the plot, for example, the `x`, `group_by`, `fill_by`, etc.
+
+  - `FALSE` (default): Drop empty factor levels from the data before
+    plotting.
+
+  - `TRUE`: Keep empty factor levels and show them as a separate
+    category in the plot.
+
+  - `"level"`: Keep empty factor levels, but do not show them in the
+    plot. But they will be assigned colors from the palette to maintain
+    consistency across multiple plots. Alias: `levels`
 
 - line_type:
 
@@ -347,58 +377,6 @@ LinePlot(
 
   A character string specifying the y-axis label.
 
-- keep_empty:
-
-  Logical or character. Whether to keep unused factor levels on
-  categorical axes.
-
-  - `FALSE` (default): Drop unused factor levels via
-    [`droplevels()`](https://rdrr.io/r/base/droplevels.html).
-
-  - `TRUE`: Keep all factor levels defined in the data, even if they
-    have no observations. For plots with both x and y categorical,
-    applies to both axes.
-
-  - `"x"`: Keep unused levels only on the x-axis, drop from y-axis.
-
-  - `"y"`: Keep unused levels only on the y-axis, drop from x-axis.
-
-  - `c("x", "y")` or `"xy"`: Explicitly keep unused levels on both axes
-    (same as `TRUE`).
-
-  **Note:** This parameter is distinct from `keep_na`. Use
-  `keep_empty = TRUE` when you need to show all possible categories
-  (e.g., all 12 months even if some have no data). For more complex
-  completeness requirements, use
-  [`tidyr::complete()`](https://tidyr.tidyverse.org/reference/complete.html)
-  before plotting.
-
-  **Backward compatibility:** If `keep_na` is not specified and
-  `keep_empty` is provided, `keep_empty` will control both NA values and
-  unused levels (legacy behavior).
-
-- keep_na:
-
-  Logical or character. Whether to keep rows with NA values on
-  categorical axes.
-
-  - `FALSE` (default): Remove rows with NA values in categorical axes.
-
-  - `TRUE`: Keep NA values and display them as a separate category
-    (shown as "NA"). For plots with both x and y categorical, applies to
-    both axes.
-
-  - `"x"`: Keep NA values only on the x-axis, remove from y-axis.
-
-  - `"y"`: Keep NA values only on the y-axis, remove from x-axis.
-
-  - `c("x", "y")` or `"xy"`: Explicitly keep NA on both axes (same as
-    `TRUE`).
-
-  **Special cases:** For `AreaPlot`, `LinePlot`, and `TrendPlot`,
-  keeping NA values would break the visual continuity. Setting
-  `keep_na = TRUE` will raise an error for these plot types.
-
 - seed:
 
   The random seed to use. Default is 8525.
@@ -470,6 +448,7 @@ A ggplot object or wrap_plots object or a list of ggplot objects
 ## Examples
 
 ``` r
+# \donttest{
 data <- data.frame(
    x = factor(c("A", "B", "C", "D", "A", "B", "C", "D"), levels = LETTERS[1:6]),
    y = c(10, 8, 16, 4, 6, 12, 14, 2),
@@ -496,4 +475,29 @@ LinePlot(data, x = "x", y = "y", group_by = "group", split_by = "facet")
 
 LinePlot(data, x = "x", y = "y", split_by = "group",
          palcolor = list(G1 = c("red", "blue"), G2 = c("green", "black")))
+
+
+# keep_na and keep_empty
+data <- data.frame(
+   x = factor(c("A", "B", NA, "D", "A", "B", NA, "D"), levels = LETTERS[1:4]),
+   y = c(10, 8, 16, 4, 6, 12, 14, 2),
+   group = factor(c("G1", "G1", "G1", NA, NA, "G3", "G3", "G3"),
+     levels = c("G1", "G2", "G3")),
+   facet = c("F1", "F1", "F2", "F2", "F3", "F3", "F4", "F4")
+)
+
+LinePlot(data, x = "x", y = "y", keep_na = TRUE)
+
+LinePlot(data, x = "x", y = "y", keep_empty = TRUE)
+
+LinePlot(data, x = "x", y = "y", keep_empty = 'level')
+
+LinePlot(data, x = "x", y = "y", group_by = "group", keep_na = TRUE)
+
+LinePlot(data, x = "x", y = "y", group_by = "group", keep_empty = TRUE)
+
+LinePlot(data, x = "x", y = "y", group_by = "group",
+   keep_empty = list(x = TRUE, group = 'level'))
+
+# }
 ```

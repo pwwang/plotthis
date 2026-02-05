@@ -50,11 +50,11 @@
 <span>  in_form <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"long"</span>, <span class="st">"wide"</span><span class="op">)</span>,</span>
 <span>  split_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  split_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
+<span>  keep_na <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  sort_x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"mean_asc"</span>, <span class="st">"mean_desc"</span>, <span class="st">"mean"</span>, <span class="st">"median_asc"</span>, <span class="st">"median_desc"</span>,</span>
 <span>    <span class="st">"median"</span><span class="op">)</span>,</span>
 <span>  flip <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  keep_na <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  group_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  group_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -156,6 +156,29 @@ When <code>in_form</code> is "wide", <code>y</code> is not required. The values 
 <dd><p>The separator for multiple split_by columns. See <code>split_by</code></p></dd>
 
 
+<dt id="arg-keep-na">keep_na<a class="anchor" aria-label="anchor" href="#arg-keep-na"></a></dt>
+<dd><p>A logical value or a character to replace the NA values in the data.
+It can also take a named list to specify different behavior for different columns.
+If TRUE or NA, NA values will be replaced with NA.
+If FALSE, NA values will be removed from the data before plotting.
+If a character string is provided, NA values will be replaced with the provided string.
+If a named vector/list is provided, the names should be the column names to apply the behavior to,
+and the values should be one of TRUE, FALSE, or a character string.
+Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
+for example, the <code>x</code>, <code>group_by</code>, <code>fill_by</code>, etc.</p></dd>
+
+
+<dt id="arg-keep-empty">keep_empty<a class="anchor" aria-label="anchor" href="#arg-keep-empty"></a></dt>
+<dd><p>One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the <code>x</code>, <code>group_by</code>, <code>fill_by</code>, etc.</p><ul><li><p><code>FALSE</code> (default): Drop empty factor levels from the data before plotting.</p></li>
+<li><p><code>TRUE</code>: Keep empty factor levels and show them as a separate category in the plot.</p></li>
+<li><p><code>"level"</code>: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: <code>levels</code></p></li>
+</ul></dd>
+
+
 <dt id="arg-sort-x">sort_x<a class="anchor" aria-label="anchor" href="#arg-sort-x"></a></dt>
 <dd><p>A character string to specify the sorting of x-axis, chosen from "none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median".</p><ul><li><p><code>none</code> means no sorting (as-is).</p></li>
 <li><p><code>mean_asc</code> sorts the x-axis by ascending mean of y-values.</p></li>
@@ -169,22 +192,6 @@ When <code>in_form</code> is "wide", <code>y</code> is not required. The values 
 
 <dt id="arg-flip">flip<a class="anchor" aria-label="anchor" href="#arg-flip"></a></dt>
 <dd><p>A logical value to flip the plot.</p></dd>
-
-
-<dt id="arg-keep-empty">keep_empty<a class="anchor" aria-label="anchor" href="#arg-keep-empty"></a></dt>
-<dd><p>A logical value to keep the empty levels in the x-axis.</p></dd>
-
-
-<dt id="arg-keep-na">keep_na<a class="anchor" aria-label="anchor" href="#arg-keep-na"></a></dt>
-<dd><p>Logical or character. Whether to keep rows with NA values on categorical axes.</p><ul><li><p><code>FALSE</code> (default): Remove rows with NA values in categorical axes.</p></li>
-<li><p><code>TRUE</code>: Keep NA values and display them as a separate category (shown as "NA").
-For plots with both x and y categorical, applies to both axes.</p></li>
-<li><p><code>"x"</code>: Keep NA values only on the x-axis, remove from y-axis.</p></li>
-<li><p><code>"y"</code>: Keep NA values only on the y-axis, remove from x-axis.</p></li>
-<li><p><code>c("x", "y")</code> or <code>"xy"</code>: Explicitly keep NA on both axes (same as <code>TRUE</code>).</p></li>
-</ul><p><strong>Special cases:</strong> For <code>AreaPlot</code>, <code>LinePlot</code>, and <code>TrendPlot</code>,
-keeping NA values would break the visual continuity. Setting <code>keep_na = TRUE</code>
-will raise an error for these plot types.</p></dd>
 
 
 <dt id="arg-group-by">group_by<a class="anchor" aria-label="anchor" href="#arg-group-by"></a></dt>
@@ -450,15 +457,21 @@ otherwise, it returns a list of ggplot objects.</p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">8525</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">200</span></span></span>
-<span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">LETTERS</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span>, <span class="va">n</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">group</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"G1"</span>, <span class="st">"G2"</span><span class="op">)</span>, <span class="va">n</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">180</span></span></span>
+<span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="cn">NA</span>, <span class="va">LETTERS</span><span class="op">[</span><span class="fl">3</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span>, <span class="va">n</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>, <span class="st">"D"</span>, <span class="st">"E"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">group</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"G1"</span>, <span class="cn">NA</span>, <span class="st">"G3"</span><span class="op">)</span>, <span class="va">n</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"G1"</span>, <span class="st">"G2"</span>, <span class="st">"G3"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">size</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="va">n</span>, rate <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">id</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"pt"</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span>, mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">group</span> <span class="op">==</span> <span class="st">"G1"</span>, <span class="fl">0.5</span>, <span class="op">-</span><span class="fl">0.5</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span></span>
-<span class="r-in"><span>     <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">x</span>, levels <span class="op">=</span> <span class="va">LETTERS</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">/</span><span class="fl">10</span></span></span>
+<span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span>, mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">group</span><span class="op">)</span>, <span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">group</span> <span class="op">==</span> <span class="st">"G1"</span>, <span class="fl">0.5</span>, <span class="op">-</span><span class="fl">0.5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>     <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, <span class="fl">0</span>, <span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">/</span><span class="fl">10</span></span></span>
 <span class="r-in"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">x</span>, levels <span class="op">=</span> <span class="va">LETTERS</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  x <span class="op">=</span> <span class="va">x</span>,</span></span>
 <span class="r-in"><span>  y <span class="op">=</span> <span class="va">y</span>,</span></span>
 <span class="r-in"><span>  group <span class="op">=</span> <span class="va">group</span>,</span></span>
 <span class="r-in"><span>  size <span class="op">=</span> <span class="va">size</span>,</span></span>
@@ -469,23 +482,33 @@ otherwise, it returns a list of ggplot objects.</p>
 <span class="r-in"><span><span class="fu">JitterPlot</span><span class="op">(</span><span class="va">df</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="jitterplot-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Keep empty x levels and NA</span></span></span>
+<span class="r-in"><span><span class="fu">JitterPlot</span><span class="op">(</span><span class="va">df</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, keep_na <span class="op">=</span> <span class="cn">TRUE</span>, keep_empty <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="jitterplot-2.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Map size with transform; legend shows original values</span></span></span>
 <span class="r-in"><span><span class="fu">JitterPlot</span><span class="op">(</span><span class="va">df</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, size_by <span class="op">=</span> <span class="st">"size"</span>, size_name <span class="op">=</span> <span class="st">"Abundance"</span>,</span></span>
 <span class="r-in"><span>    size_trans <span class="op">=</span> <span class="va">sqrt</span>, order_by <span class="op">=</span> <span class="st">"-y^2"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="jitterplot-2.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="jitterplot-3.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Dodge by group and add a horizontal line</span></span></span>
 <span class="r-in"><span><span class="fu">JitterPlot</span><span class="op">(</span><span class="va">df</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, group_by <span class="op">=</span> <span class="st">"group"</span>,</span></span>
 <span class="r-in"><span>  add_hline <span class="op">=</span> <span class="fl">0</span>, hline_type <span class="op">=</span> <span class="st">"dashed"</span>, hline_color <span class="op">=</span> <span class="st">"red2"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="jitterplot-3.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="jitterplot-4.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Keep the empty levels only for color coding</span></span></span>
+<span class="r-in"><span><span class="co"># Note the G3 is not blue (which is taken by unused level G2)</span></span></span>
+<span class="r-in"><span><span class="fu">JitterPlot</span><span class="op">(</span><span class="va">df</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, group_by <span class="op">=</span> <span class="st">"group"</span>,</span></span>
+<span class="r-in"><span>    keep_na <span class="op">=</span> <span class="cn">TRUE</span>, keep_empty <span class="op">=</span> <span class="st">'level'</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="jitterplot-5.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Label top points by distance (y^2 + size^2)</span></span></span>
 <span class="r-in"><span><span class="fu">JitterPlot</span><span class="op">(</span><span class="va">df</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, size_by <span class="op">=</span> <span class="st">"size"</span>, label_by <span class="op">=</span> <span class="st">"id"</span>, nlabel <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="jitterplot-4.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="jitterplot-6.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Flip axes</span></span></span>
 <span class="r-in"><span><span class="fu">JitterPlot</span><span class="op">(</span><span class="va">df</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, flip <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="jitterplot-5.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="jitterplot-7.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

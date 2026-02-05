@@ -54,6 +54,8 @@
 <span>  bins <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  binwidth <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  flip <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  keep_na <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  add_bars <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  bar_height <span class="op">=</span> <span class="fl">0.025</span>,</span>
 <span>  bar_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -136,6 +138,29 @@ Other options are "histogram".</p></dd>
 
 <dt id="arg-flip">flip<a class="anchor" aria-label="anchor" href="#arg-flip"></a></dt>
 <dd><p>A logical value. If TRUE, the plot will be flipped.</p></dd>
+
+
+<dt id="arg-keep-na">keep_na<a class="anchor" aria-label="anchor" href="#arg-keep-na"></a></dt>
+<dd><p>A logical value or a character to replace the NA values in the data.
+It can also take a named list to specify different behavior for different columns.
+If TRUE or NA, NA values will be replaced with NA.
+If FALSE, NA values will be removed from the data before plotting.
+If a character string is provided, NA values will be replaced with the provided string.
+If a named vector/list is provided, the names should be the column names to apply the behavior to,
+and the values should be one of TRUE, FALSE, or a character string.
+Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
+for example, the <code>x</code>, <code>group_by</code>, <code>fill_by</code>, etc.</p></dd>
+
+
+<dt id="arg-keep-empty">keep_empty<a class="anchor" aria-label="anchor" href="#arg-keep-empty"></a></dt>
+<dd><p>One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the <code>x</code>, <code>group_by</code>, <code>fill_by</code>, etc.</p><ul><li><p><code>FALSE</code> (default): Drop empty factor levels from the data before plotting.</p></li>
+<li><p><code>TRUE</code>: Keep empty factor levels and show them as a separate category in the plot.</p></li>
+<li><p><code>"level"</code>: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: <code>levels</code></p></li>
+</ul></dd>
 
 
 <dt id="arg-add-bars">add_bars<a class="anchor" aria-label="anchor" href="#arg-add-bars"></a></dt>

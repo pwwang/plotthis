@@ -32,6 +32,7 @@ Heatmap(
   rows_data = NULL,
   columns_data = NULL,
   keep_na = FALSE,
+  keep_empty = FALSE,
   columns_name = NULL,
   columns_split_name = NULL,
   rows_name = NULL,
@@ -242,6 +243,23 @@ Heatmap(
   NA groups. A vector of column names can also be provided to specify
   which columns to keep NA groups. Note that the record will be removed
   if any of the grouping columns has NA and is not specified to keep NA.
+
+- keep_empty:
+
+  One of FALSE, TRUE and "level". It can also take a named list to
+  specify different behavior for different columns. Without a named
+  list, the behavior applies to the categorical/character columns used
+  on the plot, for example, the `x`, `group_by`, `fill_by`, etc.
+
+  - `FALSE` (default): Drop empty factor levels from the data before
+    plotting.
+
+  - `TRUE`: Keep empty factor levels and show them as a separate
+    category in the plot.
+
+  - `"level"`: Keep empty factor levels, but do not show them in the
+    plot. But they will be assigned colors from the palette to maintain
+    consistency across multiple plots. Alias: `levels`
 
 - columns_name:
 

@@ -48,11 +48,11 @@
 <span>  x_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  in_form <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"long"</span>, <span class="st">"wide"</span><span class="op">)</span>,</span>
+<span>  keep_na <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  sort_x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"mean_asc"</span>, <span class="st">"mean_desc"</span>, <span class="st">"mean"</span>, <span class="st">"median_asc"</span>, <span class="st">"median_desc"</span>,</span>
 <span>    <span class="st">"median"</span><span class="op">)</span>,</span>
 <span>  flip <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  keep_na <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  group_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  group_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -138,6 +138,29 @@ When <code>in_form</code> is "wide", <code>y</code> is not required. The values 
 <dd><p>A character string to specify the input data type. Either "long" or "wide".</p></dd>
 
 
+<dt id="arg-keep-na">keep_na<a class="anchor" aria-label="anchor" href="#arg-keep-na"></a></dt>
+<dd><p>A logical value or a character to replace the NA values in the data.
+It can also take a named list to specify different behavior for different columns.
+If TRUE or NA, NA values will be replaced with NA.
+If FALSE, NA values will be removed from the data before plotting.
+If a character string is provided, NA values will be replaced with the provided string.
+If a named vector/list is provided, the names should be the column names to apply the behavior to,
+and the values should be one of TRUE, FALSE, or a character string.
+Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
+for example, the <code>x</code>, <code>group_by</code>, <code>fill_by</code>, etc.</p></dd>
+
+
+<dt id="arg-keep-empty">keep_empty<a class="anchor" aria-label="anchor" href="#arg-keep-empty"></a></dt>
+<dd><p>One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the <code>x</code>, <code>group_by</code>, <code>fill_by</code>, etc.</p><ul><li><p><code>FALSE</code> (default): Drop empty factor levels from the data before plotting.</p></li>
+<li><p><code>TRUE</code>: Keep empty factor levels and show them as a separate category in the plot.</p></li>
+<li><p><code>"level"</code>: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: <code>levels</code></p></li>
+</ul></dd>
+
+
 <dt id="arg-sort-x">sort_x<a class="anchor" aria-label="anchor" href="#arg-sort-x"></a></dt>
 <dd><p>A character string to specify the sorting of x-axis, chosen from "none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median".</p><ul><li><p><code>none</code> means no sorting (as-is).</p></li>
 <li><p><code>mean_asc</code> sorts the x-axis by ascending mean of y-values.</p></li>
@@ -151,22 +174,6 @@ When <code>in_form</code> is "wide", <code>y</code> is not required. The values 
 
 <dt id="arg-flip">flip<a class="anchor" aria-label="anchor" href="#arg-flip"></a></dt>
 <dd><p>A logical value to flip the plot.</p></dd>
-
-
-<dt id="arg-keep-empty">keep_empty<a class="anchor" aria-label="anchor" href="#arg-keep-empty"></a></dt>
-<dd><p>A logical value to keep the empty levels in the x-axis.</p></dd>
-
-
-<dt id="arg-keep-na">keep_na<a class="anchor" aria-label="anchor" href="#arg-keep-na"></a></dt>
-<dd><p>Logical or character. Whether to keep rows with NA values on categorical axes.</p><ul><li><p><code>FALSE</code> (default): Remove rows with NA values in categorical axes.</p></li>
-<li><p><code>TRUE</code>: Keep NA values and display them as a separate category (shown as "NA").
-For plots with both x and y categorical, applies to both axes.</p></li>
-<li><p><code>"x"</code>: Keep NA values only on the x-axis, remove from y-axis.</p></li>
-<li><p><code>"y"</code>: Keep NA values only on the y-axis, remove from x-axis.</p></li>
-<li><p><code>c("x", "y")</code> or <code>"xy"</code>: Explicitly keep NA on both axes (same as <code>TRUE</code>).</p></li>
-</ul><p><strong>Special cases:</strong> For <code>AreaPlot</code>, <code>LinePlot</code>, and <code>TrendPlot</code>,
-keeping NA values would break the visual continuity. Setting <code>keep_na = TRUE</code>
-will raise an error for these plot types.</p></dd>
 
 
 <dt id="arg-group-by">group_by<a class="anchor" aria-label="anchor" href="#arg-group-by"></a></dt>

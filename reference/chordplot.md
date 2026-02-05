@@ -27,6 +27,8 @@ ChordPlot(
   title = NULL,
   subtitle = NULL,
   seed = 8525,
+  keep_na = FALSE,
+  keep_empty = FALSE,
   combine = TRUE,
   nrow = NULL,
   ncol = NULL,
@@ -58,6 +60,8 @@ CircosPlot(
   title = NULL,
   subtitle = NULL,
   seed = 8525,
+  keep_na = FALSE,
+  keep_empty = FALSE,
   combine = TRUE,
   nrow = NULL,
   ncol = NULL,
@@ -161,6 +165,36 @@ CircosPlot(
 - seed:
 
   The random seed to use. Default is 8525.
+
+- keep_na:
+
+  A logical value or a character to replace the NA values in the data.
+  It can also take a named list to specify different behavior for
+  different columns. If TRUE or NA, NA values will be replaced with NA.
+  If FALSE, NA values will be removed from the data before plotting. If
+  a character string is provided, NA values will be replaced with the
+  provided string. If a named vector/list is provided, the names should
+  be the column names to apply the behavior to, and the values should be
+  one of TRUE, FALSE, or a character string. Without a named
+  vector/list, the behavior applies to categorical/character columns
+  used on the plot, for example, the `x`, `group_by`, `fill_by`, etc.
+
+- keep_empty:
+
+  One of FALSE, TRUE and "level". It can also take a named list to
+  specify different behavior for different columns. Without a named
+  list, the behavior applies to the categorical/character columns used
+  on the plot, for example, the `x`, `group_by`, `fill_by`, etc.
+
+  - `FALSE` (default): Drop empty factor levels from the data before
+    plotting.
+
+  - `TRUE`: Keep empty factor levels and show them as a separate
+    category in the plot.
+
+  - `"level"`: Keep empty factor levels, but do not show them in the
+    plot. But they will be assigned colors from the palette to maintain
+    consistency across multiple plots. Alias: `levels`
 
 - combine:
 

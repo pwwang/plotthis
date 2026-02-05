@@ -35,6 +35,7 @@ AreaPlot(
   subtitle = NULL,
   xlab = NULL,
   ylab = NULL,
+  keep_na = FALSE,
   keep_empty = FALSE,
   seed = 8525,
   combine = TRUE,
@@ -187,35 +188,35 @@ AreaPlot(
 
   A character string specifying the y-axis label.
 
+- keep_na:
+
+  A logical value or a character to replace the NA values in the data.
+  It can also take a named list to specify different behavior for
+  different columns. If TRUE or NA, NA values will be replaced with NA.
+  If FALSE, NA values will be removed from the data before plotting. If
+  a character string is provided, NA values will be replaced with the
+  provided string. If a named vector/list is provided, the names should
+  be the column names to apply the behavior to, and the values should be
+  one of TRUE, FALSE, or a character string. Without a named
+  vector/list, the behavior applies to categorical/character columns
+  used on the plot, for example, the `x`, `group_by`, `fill_by`, etc.
+
 - keep_empty:
 
-  Logical or character. Whether to keep unused factor levels on
-  categorical axes.
+  One of FALSE, TRUE and "level". It can also take a named list to
+  specify different behavior for different columns. Without a named
+  list, the behavior applies to the categorical/character columns used
+  on the plot, for example, the `x`, `group_by`, `fill_by`, etc.
 
-  - `FALSE` (default): Drop unused factor levels via
-    [`droplevels()`](https://rdrr.io/r/base/droplevels.html).
+  - `FALSE` (default): Drop empty factor levels from the data before
+    plotting.
 
-  - `TRUE`: Keep all factor levels defined in the data, even if they
-    have no observations. For plots with both x and y categorical,
-    applies to both axes.
+  - `TRUE`: Keep empty factor levels and show them as a separate
+    category in the plot.
 
-  - `"x"`: Keep unused levels only on the x-axis, drop from y-axis.
-
-  - `"y"`: Keep unused levels only on the y-axis, drop from x-axis.
-
-  - `c("x", "y")` or `"xy"`: Explicitly keep unused levels on both axes
-    (same as `TRUE`).
-
-  **Note:** This parameter is distinct from `keep_na`. Use
-  `keep_empty = TRUE` when you need to show all possible categories
-  (e.g., all 12 months even if some have no data). For more complex
-  completeness requirements, use
-  [`tidyr::complete()`](https://tidyr.tidyverse.org/reference/complete.html)
-  before plotting.
-
-  **Backward compatibility:** If `keep_na` is not specified and
-  `keep_empty` is provided, `keep_empty` will control both NA values and
-  unused levels (legacy behavior).
+  - `"level"`: Keep empty factor levels, but do not show them in the
+    plot. But they will be assigned colors from the palette to maintain
+    consistency across multiple plots. Alias: `levels`
 
 - seed:
 
@@ -305,6 +306,8 @@ A ggplot object or wrap_plots object or a list of ggplot objects
 ## Examples
 
 ``` r
+# \donttest{
+set.seed(8525)
 data <- data.frame(
     x = rep(c("A", "B", "C", "D"), 2),
     y = c(1, 3, 6, 4, 2, 5, 7, 8),
@@ -323,4 +326,30 @@ AreaPlot(data, x = "x", y = "y", split_by = "group", palette = c(F1 = "Blues", F
 AreaPlot(data, x = "x", y = "y", group_by = "group", split_by = "split",
     legend.direction = c(X = "horizontal", Y = "vertical"),
     legend.position = c(X = "top", Y = "right"))
+
+
+# How keep_na and keep_empty work
+data <- data.frame(
+    x = factor(rep(c("A", NA, "C", "D"), 3), levels = c("A", "B", "C", "D")),
+    y = c(1, 3, 6, 4, 2, 5, 7, 8, 4, 2, 3, 5),
+    group = factor(sample(rep(c("F1", NA, "F3"), each = 4)), levels = c("F1", "F2", "F3")),
+    split = factor(sample(rep(c("X", "Y", NA), 4)), levels = c("X", "Y", "Z")),
+    facet = factor(sample(rep(c("M", "N", NA), 4)), levels = c("M", "N", "O"))
+)
+
+AreaPlot(data, x = "x", y = "y", group_by = "group")
+
+AreaPlot(data, x = "x", y = "y", group_by = "group", keep_na = TRUE, keep_empty = TRUE)
+
+AreaPlot(data, x = "x", y = "y", group_by = "group", keep_na = TRUE, keep_empty = "level")
+
+AreaPlot(data, x = "x", y = "y", group_by = "group", keep_na = FALSE, keep_empty = TRUE)
+
+AreaPlot(data, x = "x", y = "y", group_by = "group",
+    keep_na = list(x = TRUE, group = FALSE), keep_empty = list(x = FALSE, group = TRUE))
+
+AreaPlot(data, x = "x", y = "y", group_by = "group",
+    keep_na = list(x = FALSE, group = TRUE), keep_empty = list(x = TRUE, group = FALSE))
+
+# }
 ```

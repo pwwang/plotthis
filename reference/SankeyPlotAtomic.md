@@ -209,7 +209,20 @@ SankeyPlotAtomic(
 
 - keep_empty:
 
-  A logical value to keep the empty nodes.
+  One of FALSE, TRUE and "level". It can also take a named list to
+  specify different behavior for different columns. Without a named
+  list, the behavior applies to the categorical/character columns used
+  on the plot, for example, the `x`, `group_by`, `fill_by`, etc.
+
+  - `FALSE` (default): Drop empty factor levels from the data before
+    plotting.
+
+  - `TRUE`: Keep empty factor levels and show them as a separate
+    category in the plot.
+
+  - `"level"`: Keep empty factor levels, but do not show them in the
+    plot. But they will be assigned colors from the palette to maintain
+    consistency across multiple plots. Alias: `levels`
 
 - x_text_angle:
 

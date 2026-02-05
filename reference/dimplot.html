@@ -127,6 +127,7 @@ FeatureDimPlot is used to plot the feature numeric values on the dimension reduc
 <span>  streamline_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  streamline_bg_color <span class="op">=</span> <span class="st">"white"</span>,</span>
 <span>  streamline_bg_stroke <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  keep_na <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  facet_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  facet_scales <span class="op">=</span> <span class="st">"fixed"</span>,</span>
@@ -201,6 +202,8 @@ FeatureDimPlot is used to plot the feature numeric values on the dimension reduc
 <span>  mark_expand <span class="op">=</span> <span class="fu">unit</span><span class="op">(</span><span class="fl">3</span>, <span class="st">"mm"</span><span class="op">)</span>,</span>
 <span>  mark_alpha <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  mark_linetype <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  keep_na <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  stat_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  stat_plot_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pie"</span>, <span class="st">"ring"</span>, <span class="st">"bar"</span>, <span class="st">"line"</span><span class="op">)</span>,</span>
 <span>  stat_plot_size <span class="op">=</span> <span class="fl">0.1</span>,</span>
@@ -635,18 +638,27 @@ Only works for <code>plot_type = "raw"</code> and <code>plot_type = "grid"</code
 <dd><p>A numeric value specifying the background stroke width of the velocity streamlines. Default is 0.5.</p></dd>
 
 
+<dt id="arg-keep-na">keep_na<a class="anchor" aria-label="anchor" href="#arg-keep-na"></a></dt>
+<dd><p>A logical value or a character to replace the NA values in the data.
+It can also take a named list to specify different behavior for different columns.
+If TRUE or NA, NA values will be replaced with NA.
+If FALSE, NA values will be removed from the data before plotting.
+If a character string is provided, NA values will be replaced with the provided string.
+If a named vector/list is provided, the names should be the column names to apply the behavior to,
+and the values should be one of TRUE, FALSE, or a character string.
+Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
+for example, the <code>x</code>, <code>group_by</code>, <code>fill_by</code>, etc.</p></dd>
+
+
 <dt id="arg-keep-empty">keep_empty<a class="anchor" aria-label="anchor" href="#arg-keep-empty"></a></dt>
-<dd><p>Logical or character. Whether to keep unused factor levels on categorical axes.</p><ul><li><p><code>FALSE</code> (default): Drop unused factor levels via <code><a href="https://rdrr.io/r/base/droplevels.html" class="external-link">droplevels()</a></code>.</p></li>
-<li><p><code>TRUE</code>: Keep all factor levels defined in the data, even if they have no observations.
-For plots with both x and y categorical, applies to both axes.</p></li>
-<li><p><code>"x"</code>: Keep unused levels only on the x-axis, drop from y-axis.</p></li>
-<li><p><code>"y"</code>: Keep unused levels only on the y-axis, drop from x-axis.</p></li>
-<li><p><code>c("x", "y")</code> or <code>"xy"</code>: Explicitly keep unused levels on both axes (same as <code>TRUE</code>).</p></li>
-</ul><p><strong>Note:</strong> This parameter is distinct from <code>keep_na</code>. Use <code>keep_empty = TRUE</code>
-when you need to show all possible categories (e.g., all 12 months even if some have no data).
-For more complex completeness requirements, use <code><a href="https://tidyr.tidyverse.org/reference/complete.html" class="external-link">tidyr::complete()</a></code> before plotting.</p>
-<p><strong>Backward compatibility:</strong> If <code>keep_na</code> is not specified and <code>keep_empty</code>
-is provided, <code>keep_empty</code> will control both NA values and unused levels (legacy behavior).</p></dd>
+<dd><p>One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the <code>x</code>, <code>group_by</code>, <code>fill_by</code>, etc.</p><ul><li><p><code>FALSE</code> (default): Drop empty factor levels from the data before plotting.</p></li>
+<li><p><code>TRUE</code>: Keep empty factor levels and show them as a separate category in the plot.</p></li>
+<li><p><code>"level"</code>: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: <code>levels</code></p></li>
+</ul></dd>
 
 
 <dt id="arg-facet-by">facet_by<a class="anchor" aria-label="anchor" href="#arg-facet-by"></a></dt>
@@ -925,43 +937,54 @@ See <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.htm
 <span class="r-in"><span><span class="fu">DimPlot</span><span class="op">(</span><span class="va">dim_example</span>, group_by <span class="op">=</span> <span class="st">"clusters"</span>, velocity <span class="op">=</span> <span class="fl">3</span><span class="op">:</span><span class="fl">4</span>,</span></span>
 <span class="r-in"><span>    velocity_plot_type <span class="op">=</span> <span class="st">"stream"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="dimplot-28.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># keep_na and keep_empty</span></span></span>
+<span class="r-in"><span><span class="va">dim_example</span><span class="op">$</span><span class="va">clusters</span><span class="op">[</span><span class="va">dim_example</span><span class="op">$</span><span class="va">clusters</span> <span class="op">==</span> <span class="st">"Ductal"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu">DimPlot</span><span class="op">(</span><span class="va">dim_example</span>, group_by <span class="op">=</span> <span class="st">"clusters"</span>, keep_na <span class="op">=</span> <span class="cn">FALSE</span>, keep_empty <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="dimplot-29.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">DimPlot</span><span class="op">(</span><span class="va">dim_example</span>, group_by <span class="op">=</span> <span class="st">"clusters"</span>, keep_na <span class="op">=</span> <span class="cn">TRUE</span>, keep_empty <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="dimplot-30.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">DimPlot</span><span class="op">(</span><span class="va">dim_example</span>, group_by <span class="op">=</span> <span class="st">"clusters"</span>, keep_na <span class="op">=</span> <span class="cn">TRUE</span>, keep_empty <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="dimplot-31.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">dim_example</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">FeatureDimPlot</span><span class="op">(</span><span class="va">dim_example</span>, features <span class="op">=</span> <span class="st">"stochasticbasis_1"</span>, pt_size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="dimplot-29.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="dimplot-32.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">FeatureDimPlot</span><span class="op">(</span><span class="va">dim_example</span>, features <span class="op">=</span> <span class="st">"stochasticbasis_1"</span>, pt_size <span class="op">=</span> <span class="fl">2</span>, bg_cutoff <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="dimplot-30.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="dimplot-33.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">FeatureDimPlot</span><span class="op">(</span><span class="va">dim_example</span>, features <span class="op">=</span> <span class="st">"stochasticbasis_1"</span>, raster <span class="op">=</span> <span class="cn">TRUE</span>, raster_dpi <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="dimplot-31.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="dimplot-34.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">FeatureDimPlot</span><span class="op">(</span><span class="va">dim_example</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"stochasticbasis_1"</span>, <span class="st">"stochasticbasis_2"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span> pt_size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="dimplot-32.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="dimplot-35.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">FeatureDimPlot</span><span class="op">(</span><span class="va">dim_example</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"stochasticbasis_1"</span><span class="op">)</span>, pt_size <span class="op">=</span> <span class="fl">2</span>,</span></span>
 <span class="r-in"><span> facet_by <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="dimplot-33.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="dimplot-36.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># Can't use facet_by for multiple features</span></span></span>
 <span class="r-in"><span><span class="fu">FeatureDimPlot</span><span class="op">(</span><span class="va">dim_example</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"stochasticbasis_1"</span>, <span class="st">"stochasticbasis_2"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span> pt_size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="dimplot-34.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="dimplot-37.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># We can use split_by</span></span></span>
 <span class="r-in"><span><span class="fu">FeatureDimPlot</span><span class="op">(</span><span class="va">dim_example</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"stochasticbasis_1"</span>, <span class="st">"stochasticbasis_2"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span> split_by <span class="op">=</span> <span class="st">"group"</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="dimplot-35.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="dimplot-38.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">FeatureDimPlot</span><span class="op">(</span><span class="va">dim_example</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"stochasticbasis_1"</span>, <span class="st">"stochasticbasis_2"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span> highlight <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="dimplot-36.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="dimplot-39.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">FeatureDimPlot</span><span class="op">(</span><span class="va">dim_example</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"stochasticbasis_1"</span>, <span class="st">"stochasticbasis_2"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span> hex <span class="op">=</span> <span class="cn">TRUE</span>, hex_bins <span class="op">=</span> <span class="fl">15</span><span class="op">)</span></span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Removed 8 rows containing missing values or values outside the scale range</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> (`geom_hex()`).</span>
-<span class="r-plt img"><img src="dimplot-37.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="dimplot-40.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">FeatureDimPlot</span><span class="op">(</span><span class="va">dim_example</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"stochasticbasis_1"</span>, <span class="st">"stochasticbasis_2"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span> hex <span class="op">=</span> <span class="cn">TRUE</span>, hex_bins <span class="op">=</span> <span class="fl">15</span>, split_by <span class="op">=</span> <span class="st">"group"</span>, palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>A <span class="op">=</span> <span class="st">"Reds"</span>, B <span class="op">=</span> <span class="st">"Blues"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Removed 6 rows containing missing values or values outside the scale range</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> (`geom_hex()`).</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Removed 8 rows containing missing values or values outside the scale range</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> (`geom_hex()`).</span>
-<span class="r-plt img"><img src="dimplot-38.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="dimplot-41.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

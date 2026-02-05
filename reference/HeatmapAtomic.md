@@ -46,6 +46,8 @@ HeatmapAtomic(
   upper_cutoff = NULL,
   add_bg = FALSE,
   bg_alpha = 0.5,
+  keep_na = FALSE,
+  keep_empty = FALSE,
   add_reticle = FALSE,
   reticle_color = "grey",
   column_name_annotation = TRUE,
@@ -294,6 +296,31 @@ HeatmapAtomic(
 
   A numeric value between 0 and 1 specifying the transparency of the
   background.
+
+- keep_na:
+
+  Whether we should keep NA groups in rows, columns and split_by
+  variables. Default is FALSE. FALSE to remove NA groups; TRUE to keep
+  NA groups. A vector of column names can also be provided to specify
+  which columns to keep NA groups. Note that the record will be removed
+  if any of the grouping columns has NA and is not specified to keep NA.
+
+- keep_empty:
+
+  One of FALSE, TRUE and "level". It can also take a named list to
+  specify different behavior for different columns. Without a named
+  list, the behavior applies to the categorical/character columns used
+  on the plot, for example, the `x`, `group_by`, `fill_by`, etc.
+
+  - `FALSE` (default): Drop empty factor levels from the data before
+    plotting.
+
+  - `TRUE`: Keep empty factor levels and show them as a separate
+    category in the plot.
+
+  - `"level"`: Keep empty factor levels, but do not show them in the
+    plot. But they will be assigned colors from the palette to maintain
+    consistency across multiple plots. Alias: `levels`
 
 - add_reticle:
 

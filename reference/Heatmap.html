@@ -61,6 +61,7 @@
 <span>  rows_data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  columns_data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  keep_na <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  columns_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  columns_split_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  rows_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -252,6 +253,17 @@ This is useful for adding additional information to the columns of the heatmap.<
 FALSE to remove NA groups; TRUE to keep NA groups.
 A vector of column names can also be provided to specify which columns to keep NA groups.
 Note that the record will be removed if any of the grouping columns has NA and is not specified to keep NA.</p></dd>
+
+
+<dt id="arg-keep-empty">keep_empty<a class="anchor" aria-label="anchor" href="#arg-keep-empty"></a></dt>
+<dd><p>One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the <code>x</code>, <code>group_by</code>, <code>fill_by</code>, etc.</p><ul><li><p><code>FALSE</code> (default): Drop empty factor levels from the data before plotting.</p></li>
+<li><p><code>TRUE</code>: Keep empty factor levels and show them as a separate category in the plot.</p></li>
+<li><p><code>"level"</code>: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: <code>levels</code></p></li>
+</ul></dd>
 
 
 <dt id="arg-columns-name">columns_name<a class="anchor" aria-label="anchor" href="#arg-columns-name"></a></dt>

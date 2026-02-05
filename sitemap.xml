@@ -75,6 +75,8 @@
 <url><loc>https://pwwang.github.io/plotthis/reference/boxviolinplot.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/calc_just.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/check_columns.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/check_keep_empty.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/check_keep_na.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/check_legend.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/check_palcolor.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/check_palette.html</loc></url>
@@ -115,6 +117,7 @@
 <url><loc>https://pwwang.github.io/plotthis/reference/prepare_upset_data.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/prepare_venn_data.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/process_heatmap_data.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/process_keep_na_empty.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/process_theme.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/radarplot.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/rgba_to_rgb.html</loc></url>

@@ -210,33 +210,20 @@ AlluvialPlot(
 
 - keep_empty:
 
-  Logical or character. Whether to keep unused factor levels on
-  categorical axes.
+  One of FALSE, TRUE and "level". It can also take a named list to
+  specify different behavior for different columns. Without a named
+  list, the behavior applies to the categorical/character columns used
+  on the plot, for example, the `x`, `group_by`, `fill_by`, etc.
 
-  - `FALSE` (default): Drop unused factor levels via
-    [`droplevels()`](https://rdrr.io/r/base/droplevels.html).
+  - `FALSE` (default): Drop empty factor levels from the data before
+    plotting.
 
-  - `TRUE`: Keep all factor levels defined in the data, even if they
-    have no observations. For plots with both x and y categorical,
-    applies to both axes.
+  - `TRUE`: Keep empty factor levels and show them as a separate
+    category in the plot.
 
-  - `"x"`: Keep unused levels only on the x-axis, drop from y-axis.
-
-  - `"y"`: Keep unused levels only on the y-axis, drop from x-axis.
-
-  - `c("x", "y")` or `"xy"`: Explicitly keep unused levels on both axes
-    (same as `TRUE`).
-
-  **Note:** This parameter is distinct from `keep_na`. Use
-  `keep_empty = TRUE` when you need to show all possible categories
-  (e.g., all 12 months even if some have no data). For more complex
-  completeness requirements, use
-  [`tidyr::complete()`](https://tidyr.tidyverse.org/reference/complete.html)
-  before plotting.
-
-  **Backward compatibility:** If `keep_na` is not specified and
-  `keep_empty` is provided, `keep_empty` will control both NA values and
-  unused levels (legacy behavior).
+  - `"level"`: Keep empty factor levels, but do not show them in the
+    plot. But they will be assigned colors from the palette to maintain
+    consistency across multiple plots. Alias: `levels`
 
 - flow:
 

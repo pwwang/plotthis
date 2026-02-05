@@ -83,6 +83,8 @@
 <span>  upper_cutoff <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  add_bg <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  bg_alpha <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  keep_na <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  add_reticle <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  reticle_color <span class="op">=</span> <span class="st">"grey"</span>,</span>
 <span>  column_name_annotation <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -309,6 +311,24 @@ Does not work with <code>cell_type = "bars"</code> or <code>cell_type = "tile"</
 
 <dt id="arg-bg-alpha">bg_alpha<a class="anchor" aria-label="anchor" href="#arg-bg-alpha"></a></dt>
 <dd><p>A numeric value between 0 and 1 specifying the transparency of the background.</p></dd>
+
+
+<dt id="arg-keep-na">keep_na<a class="anchor" aria-label="anchor" href="#arg-keep-na"></a></dt>
+<dd><p>Whether we should keep NA groups in rows, columns and split_by variables. Default is FALSE.
+FALSE to remove NA groups; TRUE to keep NA groups.
+A vector of column names can also be provided to specify which columns to keep NA groups.
+Note that the record will be removed if any of the grouping columns has NA and is not specified to keep NA.</p></dd>
+
+
+<dt id="arg-keep-empty">keep_empty<a class="anchor" aria-label="anchor" href="#arg-keep-empty"></a></dt>
+<dd><p>One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the <code>x</code>, <code>group_by</code>, <code>fill_by</code>, etc.</p><ul><li><p><code>FALSE</code> (default): Drop empty factor levels from the data before plotting.</p></li>
+<li><p><code>TRUE</code>: Keep empty factor levels and show them as a separate category in the plot.</p></li>
+<li><p><code>"level"</code>: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: <code>levels</code></p></li>
+</ul></dd>
 
 
 <dt id="arg-add-reticle">add_reticle<a class="anchor" aria-label="anchor" href="#arg-add-reticle"></a></dt>

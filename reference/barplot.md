@@ -96,6 +96,7 @@ SplitBarPlot(
   fill_by = NULL,
   fill_by_sep = "_",
   fill_name = NULL,
+  direction_name = "direction",
   direction_pos_name = "positive",
   direction_neg_name = "negative",
   theme = "theme_this",
@@ -148,6 +149,7 @@ WaterfallPlot(
   fill_by = NULL,
   fill_by_sep = "_",
   fill_name = NULL,
+  direction_name = "direction",
   direction_pos_name = "positive",
   direction_neg_name = "negative",
   theme = "theme_this",
@@ -432,55 +434,33 @@ WaterfallPlot(
 
 - keep_empty:
 
-  Logical or character. Whether to keep unused factor levels on
-  categorical axes.
+  One of FALSE, TRUE and "level". It can also take a named list to
+  specify different behavior for different columns. Without a named
+  list, the behavior applies to the categorical/character columns used
+  on the plot, for example, the `x`, `group_by`, `fill_by`, etc.
 
-  - `FALSE` (default): Drop unused factor levels via
-    [`droplevels()`](https://rdrr.io/r/base/droplevels.html).
+  - `FALSE` (default): Drop empty factor levels from the data before
+    plotting.
 
-  - `TRUE`: Keep all factor levels defined in the data, even if they
-    have no observations. For plots with both x and y categorical,
-    applies to both axes.
+  - `TRUE`: Keep empty factor levels and show them as a separate
+    category in the plot.
 
-  - `"x"`: Keep unused levels only on the x-axis, drop from y-axis.
-
-  - `"y"`: Keep unused levels only on the y-axis, drop from x-axis.
-
-  - `c("x", "y")` or `"xy"`: Explicitly keep unused levels on both axes
-    (same as `TRUE`).
-
-  **Note:** This parameter is distinct from `keep_na`. Use
-  `keep_empty = TRUE` when you need to show all possible categories
-  (e.g., all 12 months even if some have no data). For more complex
-  completeness requirements, use
-  [`tidyr::complete()`](https://tidyr.tidyverse.org/reference/complete.html)
-  before plotting.
-
-  **Backward compatibility:** If `keep_na` is not specified and
-  `keep_empty` is provided, `keep_empty` will control both NA values and
-  unused levels (legacy behavior).
+  - `"level"`: Keep empty factor levels, but do not show them in the
+    plot. But they will be assigned colors from the palette to maintain
+    consistency across multiple plots. Alias: `levels`
 
 - keep_na:
 
-  Logical or character. Whether to keep rows with NA values on
-  categorical axes.
-
-  - `FALSE` (default): Remove rows with NA values in categorical axes.
-
-  - `TRUE`: Keep NA values and display them as a separate category
-    (shown as "NA"). For plots with both x and y categorical, applies to
-    both axes.
-
-  - `"x"`: Keep NA values only on the x-axis, remove from y-axis.
-
-  - `"y"`: Keep NA values only on the y-axis, remove from x-axis.
-
-  - `c("x", "y")` or `"xy"`: Explicitly keep NA on both axes (same as
-    `TRUE`).
-
-  **Special cases:** For `AreaPlot`, `LinePlot`, and `TrendPlot`,
-  keeping NA values would break the visual continuity. Setting
-  `keep_na = TRUE` will raise an error for these plot types.
+  A logical value or a character to replace the NA values in the data.
+  It can also take a named list to specify different behavior for
+  different columns. If TRUE or NA, NA values will be replaced with NA.
+  If FALSE, NA values will be removed from the data before plotting. If
+  a character string is provided, NA values will be replaced with the
+  provided string. If a named vector/list is provided, the names should
+  be the column names to apply the behavior to, and the values should be
+  one of TRUE, FALSE, or a character string. Without a named
+  vector/list, the behavior applies to categorical/character columns
+  used on the plot, for example, the `x`, `group_by`, `fill_by`, etc.
 
 - expand:
 
@@ -639,6 +619,11 @@ WaterfallPlot(
 
   A character string indicating the legend name of the fill.
 
+- direction_name:
+
+  A character string indicating the name of the direction column and
+  will be shown in the legend.
+
 - direction_pos_name:
 
   A character string indicating the name of the positive direction.
@@ -712,7 +697,90 @@ BarPlot(data, x = "group", ylab = "count")
 # flip the plot
 BarPlot(data, x = "group", flip = TRUE, ylab = "count")
 
+
+data <- data.frame(
+    x = factor(c("A", "B", "C", "D", "E", "F", NA, "H"), levels = LETTERS[1:10]),
+    y = c(10, 8, 16, 4, 6, NA, 14, 2),
+    group = factor(c("G1", "G1", "G2", NA, "G3", "G3", "G5", "G5"),
+       levels = c("G1", "G2", "G3", "G4", "G5")),
+    facet = factor(c("F1", NA, "F3", "F4", "F1", "F2", "F3", "F4"),
+       levels = c("F1", "F2", "F3", "F4", "F5"))
+)
+# keep_na and keep_empty on simple barplots
+BarPlot(data, x = "x", y = "y",
+    title = "keep_na = FALSE; keep_empty = FALSE")
+#> Warning: Removed 1 row containing missing values or values outside the scale range
+#> (`geom_col()`).
+
+BarPlot(data, x = "x", y = "y",
+    keep_na = TRUE, keep_empty = TRUE,
+    title = "keep_na = TRUE; keep_empty = TRUE")
+#> Warning: Removed 1 row containing missing values or values outside the scale range
+#> (`geom_col()`).
+
+BarPlot(data, x = "x", y = "y",
+    keep_na = TRUE, keep_empty = TRUE, facet_by = "facet",
+    title = "keep_na = TRUE; keep_empty = TRUE; facet_by = 'facet'")
+#> Warning: Removed 1 row containing missing values or values outside the scale range
+#> (`geom_col()`).
+
+BarPlot(data, x = "x", y = "y",
+    keep_na = TRUE, keep_empty = 'level',
+    title = "keep_na = TRUE; keep_empty = 'level'")
+#> Warning: Removed 1 row containing missing values or values outside the scale range
+#> (`geom_col()`).
+
+BarPlot(data, x = "x", y = "y",
+    keep_na = list(x = TRUE), keep_empty = list(x = FALSE),
+    title = "keep_na: x=TRUE\nkeep_empty: x=FALSE"
+)
+#> Warning: Removed 1 row containing missing values or values outside the scale range
+#> (`geom_col()`).
+
+
+# keep_na and keep_empty on grouped barplots
+BarPlot(data,
+    x = "group", y = "y", group_by = "x",
+    title = "keep_na = FALSE; keep_empty = FALSE")
+#> Warning: Removed 1 row containing missing values or values outside the scale range
+#> (`geom_col()`).
+
+BarPlot(data,
+    x = "group", y = "y", group_by = "x",
+    keep_na = TRUE, keep_empty = TRUE,
+    title = "keep_na = TRUE; keep_empty = TRUE"
+)
+#> Warning: Removed 1 row containing missing values or values outside the scale range
+#> (`geom_col()`).
+
+BarPlot(data,
+    x = "group", y = "y", group_by = "x",
+    keep_na = TRUE, keep_empty = TRUE, facet_by = "facet",
+    title = "keep_na = TRUE; keep_empty = TRUE; facet_by = 'facet'"
+)
+#> Warning: Removed 1 row containing missing values or values outside the scale range
+#> (`geom_col()`).
+
+BarPlot(data,
+    x = "group", y = "y", group_by = "x",
+    keep_na = TRUE, keep_empty = 'level',
+    title = "keep_na = TRUE; keep_empty = 'level'"
+)
+#> Warning: Removed 1 row containing missing values or values outside the scale range
+#> (`geom_col()`).
+
+BarPlot(data,
+    x = "group", y = "y", group_by = "x",
+    keep_na = list(x = TRUE, group = FALSE),
+    keep_empty = list(x = FALSE, group = TRUE),
+    title = "keep_na: x=TRUE, group=FALSE\nkeep_empty: x=FALSE, group=TRUE"
+)
+#> Warning: Removed 1 row containing missing values or values outside the scale range
+#> (`geom_col()`).
+
 # }
+# \donttest{
+set.seed(8525)
 data <- data.frame(
     word = c("apple", "banana", "cherry", "date", "elderberry",
              "It is a very long term with a lot of words"),
@@ -732,4 +800,38 @@ SplitBarPlot(data, x = "count", y = "word", facet_by = "group",
 
 SplitBarPlot(data, x = "count", y = "word", alpha_by = "score", split_by="group",
              palette = c(A = "Reds", B = "Blues", C = "Greens"))
+
+
+# test keep_na and keep_empty
+data <- data.frame(
+    word = factor(c("apple", "banana", "cherry", NA, "elderberry",
+         "It is a very long term with a lot of words"),
+         levels = c("apple", "banana", "cherry", "date", "elderberry",
+             "unused", "It is a very long term with a lot of words")),
+    count = c(-10, 20, NA, 40, 10, 34),
+    score = c(1, 2, 3, 4, 5, 3.2),
+    group = factor(sample(c("A", "A", "B", "B", "C", "C")),
+         levels = c("A", "B", "C", "D"))
+)
+
+SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
+    title = "keep_na = FALSE; keep_empty = FALSE")
+
+SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
+    keep_na = TRUE, keep_empty = TRUE,
+    title = "keep_na = TRUE; keep_empty = TRUE")
+
+SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
+    keep_na = TRUE, keep_empty = TRUE, facet_by = "group",
+    title = "keep_na = TRUE; keep_empty = TRUE; facet_by = 'group'")
+
+SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
+    keep_na = TRUE, keep_empty = "level",
+    title = "keep_na = TRUE; keep_empty = 'level'")
+
+SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
+    keep_na = list(word = FALSE), keep_empty = list(word = TRUE),
+    title = "keep_na: word=FALSE; keep_empty: word=TRUE")
+
+# }
 ```

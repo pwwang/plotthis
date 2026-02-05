@@ -63,6 +63,8 @@
 <span>  bar_height <span class="op">=</span> <span class="fl">0.025</span>,</span>
 <span>  bar_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  bar_width <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  keep_na <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  title <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  subtitle <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  xlab <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -106,6 +108,8 @@
 <span>  bar_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  bar_width <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  position <span class="op">=</span> <span class="st">"identity"</span>,</span>
+<span>  keep_na <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  use_trend <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  add_trend <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  trend_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -233,6 +237,29 @@ Default is "theme_this".</p></dd>
 
 <dt id="arg-bar-width">bar_width<a class="anchor" aria-label="anchor" href="#arg-bar-width"></a></dt>
 <dd><p>A numeric value specifying the width of the bars.</p></dd>
+
+
+<dt id="arg-keep-na">keep_na<a class="anchor" aria-label="anchor" href="#arg-keep-na"></a></dt>
+<dd><p>A logical value or a character to replace the NA values in the data.
+It can also take a named list to specify different behavior for different columns.
+If TRUE or NA, NA values will be replaced with NA.
+If FALSE, NA values will be removed from the data before plotting.
+If a character string is provided, NA values will be replaced with the provided string.
+If a named vector/list is provided, the names should be the column names to apply the behavior to,
+and the values should be one of TRUE, FALSE, or a character string.
+Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
+for example, the <code>x</code>, <code>group_by</code>, <code>fill_by</code>, etc.</p></dd>
+
+
+<dt id="arg-keep-empty">keep_empty<a class="anchor" aria-label="anchor" href="#arg-keep-empty"></a></dt>
+<dd><p>One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the <code>x</code>, <code>group_by</code>, <code>fill_by</code>, etc.</p><ul><li><p><code>FALSE</code> (default): Drop empty factor levels from the data before plotting.</p></li>
+<li><p><code>TRUE</code>: Keep empty factor levels and show them as a separate category in the plot.</p></li>
+<li><p><code>"level"</code>: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: <code>levels</code></p></li>
+</ul></dd>
 
 
 <dt id="arg-title">title<a class="anchor" aria-label="anchor" href="#arg-title"></a></dt>
@@ -398,52 +425,63 @@ See <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.htm
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">8525</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>    x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">500</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">500</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">500</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="cn">NA</span>, <span class="st">"C"</span>, <span class="st">"D"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">250</span><span class="op">)</span>, levels <span class="op">=</span> <span class="va">LETTERS</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>    facet <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"F1"</span>, <span class="st">"F2"</span><span class="op">)</span>, <span class="fl">1000</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">DensityPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="densityhistoplot-1.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">DensityPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span>, facet_by <span class="op">=</span> <span class="st">"facet"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">DensityPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="densityhistoplot-2.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">DensityPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, split_by <span class="op">=</span> <span class="st">"facet"</span>, add_bars <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">DensityPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span>,</span></span>
+<span class="r-in"><span>    keep_na <span class="op">=</span> <span class="cn">TRUE</span>, keep_empty <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="densityhistoplot-3.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">DensityPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span>,</span></span>
+<span class="r-in"><span>    keep_na <span class="op">=</span> <span class="cn">TRUE</span>, keep_empty <span class="op">=</span> <span class="st">'level'</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="densityhistoplot-4.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">DensityPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span>, facet_by <span class="op">=</span> <span class="st">"facet"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="densityhistoplot-5.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">DensityPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, split_by <span class="op">=</span> <span class="st">"facet"</span>, add_bars <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="densityhistoplot-6.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">DensityPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, split_by <span class="op">=</span> <span class="st">"facet"</span>, add_bars <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>    palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>F1 <span class="op">=</span> <span class="st">"Set1"</span>, F2 <span class="op">=</span> <span class="st">"Set2"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="densityhistoplot-4.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="densityhistoplot-7.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">8525</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>    x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span><span class="op">:</span><span class="fl">36</span>, <span class="fl">50</span><span class="op">:</span><span class="fl">55</span>, <span class="fl">70</span><span class="op">:</span><span class="fl">77</span><span class="op">)</span><span class="op">)</span>, <span class="fl">1000</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">500</span><span class="op">)</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="cn">NA</span>, <span class="st">"D"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">250</span><span class="op">)</span>, levels <span class="op">=</span> <span class="va">LETTERS</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>    facet <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"F1"</span>, <span class="st">"F2"</span><span class="op">)</span>, <span class="fl">1000</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">Histogram</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
-<span class="r-plt img"><img src="densityhistoplot-5.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="densityhistoplot-8.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Histogram</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
-<span class="r-plt img"><img src="densityhistoplot-6.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="densityhistoplot-9.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">Histogram</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span>, keep_na <span class="op">=</span> <span class="cn">TRUE</span>, keep_empty <span class="op">=</span> <span class="st">'level'</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
+<span class="r-plt img"><img src="densityhistoplot-10.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Histogram</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, split_by <span class="op">=</span> <span class="st">"facet"</span>, add_bars <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
-<span class="r-plt img"><img src="densityhistoplot-7.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="densityhistoplot-11.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Histogram</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span>, add_trend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
-<span class="r-plt img"><img src="densityhistoplot-8.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="densityhistoplot-12.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Histogram</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span>, add_trend <span class="op">=</span> <span class="cn">TRUE</span>, trend_skip_zero <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
-<span class="r-plt img"><img src="densityhistoplot-9.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="densityhistoplot-13.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Histogram</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span>, split_by <span class="op">=</span> <span class="st">"facet"</span>,</span></span>
 <span class="r-in"><span> use_trend <span class="op">=</span> <span class="cn">TRUE</span>, trend_pt_size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
-<span class="r-plt img"><img src="densityhistoplot-10.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="densityhistoplot-14.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">Histogram</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span>, split_by <span class="op">=</span> <span class="st">"facet"</span>,</span></span>
 <span class="r-in"><span> palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>F1 <span class="op">=</span> <span class="st">"Paired"</span>, F2 <span class="op">=</span> <span class="st">"Spectral"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Using `bins = 30`. Pick better value with `binwidth`.</span>
-<span class="r-plt img"><img src="densityhistoplot-11.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="densityhistoplot-15.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

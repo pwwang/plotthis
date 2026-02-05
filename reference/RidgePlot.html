@@ -52,6 +52,8 @@
 <span>  group_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  group_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  scale <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  keep_na <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  add_vline <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  vline_type <span class="op">=</span> <span class="st">"solid"</span>,</span>
 <span>  vline_color <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -68,7 +70,6 @@
 <span>  xlab <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ylab <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  x_text_angle <span class="op">=</span> <span class="fl">90</span>,</span>
-<span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  reverse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  facet_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  facet_scales <span class="op">=</span> <span class="st">"fixed"</span>,</span>
@@ -132,6 +133,29 @@ They will be concatenated into one column, using <code>group_by_sep</code> as th
 <dt id="arg-scale">scale<a class="anchor" aria-label="anchor" href="#arg-scale"></a></dt>
 <dd><p>A numeric value to scale the ridges.
 See also <code><a href="https://wilkelab.org/ggridges/reference/geom_density_ridges.html" class="external-link">geom_density_ridges</a></code>.</p></dd>
+
+
+<dt id="arg-keep-na">keep_na<a class="anchor" aria-label="anchor" href="#arg-keep-na"></a></dt>
+<dd><p>A logical value or a character to replace the NA values in the data.
+It can also take a named list to specify different behavior for different columns.
+If TRUE or NA, NA values will be replaced with NA.
+If FALSE, NA values will be removed from the data before plotting.
+If a character string is provided, NA values will be replaced with the provided string.
+If a named vector/list is provided, the names should be the column names to apply the behavior to,
+and the values should be one of TRUE, FALSE, or a character string.
+Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
+for example, the <code>x</code>, <code>group_by</code>, <code>fill_by</code>, etc.</p></dd>
+
+
+<dt id="arg-keep-empty">keep_empty<a class="anchor" aria-label="anchor" href="#arg-keep-empty"></a></dt>
+<dd><p>One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the <code>x</code>, <code>group_by</code>, <code>fill_by</code>, etc.</p><ul><li><p><code>FALSE</code> (default): Drop empty factor levels from the data before plotting.</p></li>
+<li><p><code>TRUE</code>: Keep empty factor levels and show them as a separate category in the plot.</p></li>
+<li><p><code>"level"</code>: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: <code>levels</code></p></li>
+</ul></dd>
 
 
 <dt id="arg-add-vline">add_vline<a class="anchor" aria-label="anchor" href="#arg-add-vline"></a></dt>
@@ -205,20 +229,6 @@ This is useful when split_by is used and the title needs to be dynamic.</p></dd>
 
 <dt id="arg-x-text-angle">x_text_angle<a class="anchor" aria-label="anchor" href="#arg-x-text-angle"></a></dt>
 <dd><p>A numeric value specifying the angle of the x-axis text.</p></dd>
-
-
-<dt id="arg-keep-empty">keep_empty<a class="anchor" aria-label="anchor" href="#arg-keep-empty"></a></dt>
-<dd><p>Logical or character. Whether to keep unused factor levels on categorical axes.</p><ul><li><p><code>FALSE</code> (default): Drop unused factor levels via <code><a href="https://rdrr.io/r/base/droplevels.html" class="external-link">droplevels()</a></code>.</p></li>
-<li><p><code>TRUE</code>: Keep all factor levels defined in the data, even if they have no observations.
-For plots with both x and y categorical, applies to both axes.</p></li>
-<li><p><code>"x"</code>: Keep unused levels only on the x-axis, drop from y-axis.</p></li>
-<li><p><code>"y"</code>: Keep unused levels only on the y-axis, drop from x-axis.</p></li>
-<li><p><code>c("x", "y")</code> or <code>"xy"</code>: Explicitly keep unused levels on both axes (same as <code>TRUE</code>).</p></li>
-</ul><p><strong>Note:</strong> This parameter is distinct from <code>keep_na</code>. Use <code>keep_empty = TRUE</code>
-when you need to show all possible categories (e.g., all 12 months even if some have no data).
-For more complex completeness requirements, use <code><a href="https://tidyr.tidyverse.org/reference/complete.html" class="external-link">tidyr::complete()</a></code> before plotting.</p>
-<p><strong>Backward compatibility:</strong> If <code>keep_na</code> is not specified and <code>keep_empty</code>
-is provided, <code>keep_empty</code> will control both NA values and unused levels (legacy behavior).</p></dd>
 
 
 <dt id="arg-reverse">reverse<a class="anchor" aria-label="anchor" href="#arg-reverse"></a></dt>
@@ -330,10 +340,11 @@ If 'combine' is FALSE, a list of ggplot objects will be returned.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">8525</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">8525</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>   x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">250</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">250</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>   group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">LETTERS</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span>, each <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
+<span class="r-in"><span>   group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="cn">NA</span>, <span class="va">LETTERS</span><span class="op">[</span><span class="fl">3</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">100</span><span class="op">)</span>, levels <span class="op">=</span> <span class="va">LETTERS</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">RidgePlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span><span class="op">)</span>  <span class="co"># fallback to a density plot</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.371</span>
@@ -342,15 +353,44 @@ If 'combine' is FALSE, a list of ggplot objects will be returned.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.371</span>
 <span class="r-plt img"><img src="RidgePlot-2.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">RidgePlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.378</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.385</span>
 <span class="r-plt img"><img src="RidgePlot-3.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="fu">RidgePlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span>, reverse <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">RidgePlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span>,</span></span>
+<span class="r-in"><span>   keep_na <span class="op">=</span> <span class="cn">TRUE</span>, keep_empty <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.378</span>
 <span class="r-plt img"><img src="RidgePlot-4.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">RidgePlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span>, reverse <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.385</span>
+<span class="r-plt img"><img src="RidgePlot-5.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">RidgePlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, group_by <span class="op">=</span> <span class="st">"group"</span>,</span></span>
 <span class="r-in"><span>   add_vline <span class="op">=</span> <span class="cn">TRUE</span>, vline_color <span class="op">=</span> <span class="cn">TRUE</span>, alpha <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.378</span>
-<span class="r-plt img"><img src="RidgePlot-5.png" alt="" width="700" height="433"></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.385</span>
+<span class="r-plt img"><img src="RidgePlot-6.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">RidgePlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, facet_by <span class="op">=</span> <span class="st">"group"</span>,</span></span>
+<span class="r-in"><span>   keep_na <span class="op">=</span> <span class="cn">TRUE</span>, keep_empty <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.356</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of NaN</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>no non-missing arguments to min; returning Inf</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>no non-missing arguments to max; returning -Inf</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.518</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.361</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.307</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of NaN</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>no non-missing arguments to min; returning Inf</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>no non-missing arguments to max; returning -Inf</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.347</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.356</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of NaN</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>no non-missing arguments to min; returning Inf</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>no non-missing arguments to max; returning -Inf</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.518</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.361</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.307</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of NaN</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>no non-missing arguments to min; returning Inf</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>no non-missing arguments to max; returning -Inf</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.347</span>
+<span class="r-plt img"><img src="RidgePlot-7.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># wide form</span></span></span>
 <span class="r-in"><span><span class="va">data_wide</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
@@ -362,25 +402,86 @@ If 'combine' is FALSE, a list of ggplot objects will be returned.</p>
 <span class="r-in"><span>   group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">letters</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span>, <span class="fl">100</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">RidgePlot</span><span class="op">(</span><span class="va">data_wide</span>, group_by <span class="op">=</span> <span class="va">LETTERS</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span>, in_form <span class="op">=</span> <span class="st">"wide"</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'A' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'B' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'C' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'D' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'E' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'A' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'B' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'C' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'D' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'E' not found in data. Skipping 'keep_empty' processing for this column.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.337</span>
-<span class="r-plt img"><img src="RidgePlot-6.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="RidgePlot-8.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">RidgePlot</span><span class="op">(</span><span class="va">data_wide</span>, group_by <span class="op">=</span> <span class="va">LETTERS</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span>, in_form <span class="op">=</span> <span class="st">"wide"</span>, facet_by <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'A' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'B' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'C' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'D' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'E' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'A' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'B' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'C' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'D' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'E' not found in data. Skipping 'keep_empty' processing for this column.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.429</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.367</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.416</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.367</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.428</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.429</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.367</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.416</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.367</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.428</span>
-<span class="r-plt img"><img src="RidgePlot-7.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="RidgePlot-9.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">RidgePlot</span><span class="op">(</span><span class="va">data_wide</span>, group_by <span class="op">=</span> <span class="va">LETTERS</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span>, in_form <span class="op">=</span> <span class="st">"wide"</span>, split_by <span class="op">=</span> <span class="st">"group"</span>,</span></span>
 <span class="r-in"><span>   palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>a <span class="op">=</span> <span class="st">"Reds"</span>, b <span class="op">=</span> <span class="st">"Blues"</span>, c <span class="op">=</span> <span class="st">"Greens"</span>, d <span class="op">=</span> <span class="st">"Purples"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'A' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'B' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'C' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'D' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'E' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'A' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'B' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'C' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'D' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'E' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'A' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'B' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'C' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'D' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'E' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'A' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'B' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'C' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'D' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'E' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'A' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'B' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'C' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'D' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'E' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'A' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'B' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'C' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'D' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'E' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'A' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'B' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'C' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'D' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'E' not found in data. Skipping 'keep_na' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'A' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'B' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'C' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'D' not found in data. Skipping 'keep_empty' processing for this column.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Column 'E' not found in data. Skipping 'keep_empty' processing for this column.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.429</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.416</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.367</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Picking joint bandwidth of 0.428</span>
-<span class="r-plt img"><img src="RidgePlot-8.png" alt="" width="700" height="433"></span>
+<span class="r-plt img"><img src="RidgePlot-10.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

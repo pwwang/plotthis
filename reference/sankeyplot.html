@@ -233,17 +233,14 @@ See <code>data</code> for more details.</p></dd>
 
 
 <dt id="arg-keep-empty">keep_empty<a class="anchor" aria-label="anchor" href="#arg-keep-empty"></a></dt>
-<dd><p>Logical or character. Whether to keep unused factor levels on categorical axes.</p><ul><li><p><code>FALSE</code> (default): Drop unused factor levels via <code><a href="https://rdrr.io/r/base/droplevels.html" class="external-link">droplevels()</a></code>.</p></li>
-<li><p><code>TRUE</code>: Keep all factor levels defined in the data, even if they have no observations.
-For plots with both x and y categorical, applies to both axes.</p></li>
-<li><p><code>"x"</code>: Keep unused levels only on the x-axis, drop from y-axis.</p></li>
-<li><p><code>"y"</code>: Keep unused levels only on the y-axis, drop from x-axis.</p></li>
-<li><p><code>c("x", "y")</code> or <code>"xy"</code>: Explicitly keep unused levels on both axes (same as <code>TRUE</code>).</p></li>
-</ul><p><strong>Note:</strong> This parameter is distinct from <code>keep_na</code>. Use <code>keep_empty = TRUE</code>
-when you need to show all possible categories (e.g., all 12 months even if some have no data).
-For more complex completeness requirements, use <code><a href="https://tidyr.tidyverse.org/reference/complete.html" class="external-link">tidyr::complete()</a></code> before plotting.</p>
-<p><strong>Backward compatibility:</strong> If <code>keep_na</code> is not specified and <code>keep_empty</code>
-is provided, <code>keep_empty</code> will control both NA values and unused levels (legacy behavior).</p></dd>
+<dd><p>One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the <code>x</code>, <code>group_by</code>, <code>fill_by</code>, etc.</p><ul><li><p><code>FALSE</code> (default): Drop empty factor levels from the data before plotting.</p></li>
+<li><p><code>TRUE</code>: Keep empty factor levels and show them as a separate category in the plot.</p></li>
+<li><p><code>"level"</code>: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: <code>levels</code></p></li>
+</ul></dd>
 
 
 <dt id="arg-flow">flow<a class="anchor" aria-label="anchor" href="#arg-flow"></a></dt>

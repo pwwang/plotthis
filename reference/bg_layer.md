@@ -5,7 +5,16 @@ Get a ggplot layer for background
 ## Usage
 
 ``` r
-bg_layer(data, x, palette, palcolor, alpha, facet_by, direction = "vertical")
+bg_layer(
+  data,
+  x,
+  keep_empty,
+  palette,
+  palcolor,
+  alpha,
+  facet_by,
+  direction = "vertical"
+)
 ```
 
 ## Arguments
@@ -18,6 +27,10 @@ bg_layer(data, x, palette, palcolor, alpha, facet_by, direction = "vertical")
 
   A character string specifying the column name of the data frame to
   plot for the x-axis
+
+- keep_empty:
+
+  A character string specifying whether to keep empty levels
 
 - palette:
 

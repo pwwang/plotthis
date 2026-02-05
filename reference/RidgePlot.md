@@ -16,6 +16,8 @@ RidgePlot(
   group_by_sep = "_",
   group_name = NULL,
   scale = NULL,
+  keep_na = FALSE,
+  keep_empty = FALSE,
   add_vline = NULL,
   vline_type = "solid",
   vline_color = TRUE,
@@ -32,7 +34,6 @@ RidgePlot(
   xlab = NULL,
   ylab = NULL,
   x_text_angle = 90,
-  keep_empty = FALSE,
   reverse = FALSE,
   facet_by = NULL,
   facet_scales = "fixed",
@@ -97,6 +98,36 @@ RidgePlot(
 
   A numeric value to scale the ridges. See also
   [`geom_density_ridges`](https://wilkelab.org/ggridges/reference/geom_density_ridges.html).
+
+- keep_na:
+
+  A logical value or a character to replace the NA values in the data.
+  It can also take a named list to specify different behavior for
+  different columns. If TRUE or NA, NA values will be replaced with NA.
+  If FALSE, NA values will be removed from the data before plotting. If
+  a character string is provided, NA values will be replaced with the
+  provided string. If a named vector/list is provided, the names should
+  be the column names to apply the behavior to, and the values should be
+  one of TRUE, FALSE, or a character string. Without a named
+  vector/list, the behavior applies to categorical/character columns
+  used on the plot, for example, the `x`, `group_by`, `fill_by`, etc.
+
+- keep_empty:
+
+  One of FALSE, TRUE and "level". It can also take a named list to
+  specify different behavior for different columns. Without a named
+  list, the behavior applies to the categorical/character columns used
+  on the plot, for example, the `x`, `group_by`, `fill_by`, etc.
+
+  - `FALSE` (default): Drop empty factor levels from the data before
+    plotting.
+
+  - `TRUE`: Keep empty factor levels and show them as a separate
+    category in the plot.
+
+  - `"level"`: Keep empty factor levels, but do not show them in the
+    plot. But they will be assigned colors from the palette to maintain
+    consistency across multiple plots. Alias: `levels`
 
 - add_vline:
 
@@ -173,36 +204,6 @@ RidgePlot(
 - x_text_angle:
 
   A numeric value specifying the angle of the x-axis text.
-
-- keep_empty:
-
-  Logical or character. Whether to keep unused factor levels on
-  categorical axes.
-
-  - `FALSE` (default): Drop unused factor levels via
-    [`droplevels()`](https://rdrr.io/r/base/droplevels.html).
-
-  - `TRUE`: Keep all factor levels defined in the data, even if they
-    have no observations. For plots with both x and y categorical,
-    applies to both axes.
-
-  - `"x"`: Keep unused levels only on the x-axis, drop from y-axis.
-
-  - `"y"`: Keep unused levels only on the y-axis, drop from x-axis.
-
-  - `c("x", "y")` or `"xy"`: Explicitly keep unused levels on both axes
-    (same as `TRUE`).
-
-  **Note:** This parameter is distinct from `keep_na`. Use
-  `keep_empty = TRUE` when you need to show all possible categories
-  (e.g., all 12 months even if some have no data). For more complex
-  completeness requirements, use
-  [`tidyr::complete()`](https://tidyr.tidyverse.org/reference/complete.html)
-  before plotting.
-
-  **Backward compatibility:** If `keep_na` is not specified and
-  `keep_empty` is provided, `keep_empty` will control both NA values and
-  unused levels (legacy behavior).
 
 - reverse:
 
@@ -342,10 +343,11 @@ is FALSE, a list of ggplot objects will be returned.
 ## Examples
 
 ``` r
+# \donttest{
 set.seed(8525)
 data <- data.frame(
    x = c(rnorm(250, -1), rnorm(250, 1)),
-   group = rep(LETTERS[1:5], each = 100)
+   group = factor(rep(c("A", NA, LETTERS[3:5]), each = 100), levels = LETTERS[1:6])
 )
 RidgePlot(data, x = "x")  # fallback to a density plot
 #> Picking joint bandwidth of 0.371
@@ -354,14 +356,43 @@ RidgePlot(data, x = "x", add_vline = 0, vline_color = "black")
 #> Picking joint bandwidth of 0.371
 
 RidgePlot(data, x = "x", group_by = "group")
+#> Picking joint bandwidth of 0.385
+
+RidgePlot(data, x = "x", group_by = "group",
+   keep_na = TRUE, keep_empty = TRUE)
 #> Picking joint bandwidth of 0.378
 
 RidgePlot(data, x = "x", group_by = "group", reverse = TRUE)
-#> Picking joint bandwidth of 0.378
+#> Picking joint bandwidth of 0.385
 
 RidgePlot(data, x = "x", group_by = "group",
    add_vline = TRUE, vline_color = TRUE, alpha = 0.7)
-#> Picking joint bandwidth of 0.378
+#> Picking joint bandwidth of 0.385
+
+RidgePlot(data, x = "x", facet_by = "group",
+   keep_na = TRUE, keep_empty = TRUE)
+#> Picking joint bandwidth of 0.356
+#> Picking joint bandwidth of NaN
+#> Warning: no non-missing arguments to min; returning Inf
+#> Warning: no non-missing arguments to max; returning -Inf
+#> Picking joint bandwidth of 0.518
+#> Picking joint bandwidth of 0.361
+#> Picking joint bandwidth of 0.307
+#> Picking joint bandwidth of NaN
+#> Warning: no non-missing arguments to min; returning Inf
+#> Warning: no non-missing arguments to max; returning -Inf
+#> Picking joint bandwidth of 0.347
+#> Picking joint bandwidth of 0.356
+#> Picking joint bandwidth of NaN
+#> Warning: no non-missing arguments to min; returning Inf
+#> Warning: no non-missing arguments to max; returning -Inf
+#> Picking joint bandwidth of 0.518
+#> Picking joint bandwidth of 0.361
+#> Picking joint bandwidth of 0.307
+#> Picking joint bandwidth of NaN
+#> Warning: no non-missing arguments to min; returning Inf
+#> Warning: no non-missing arguments to max; returning -Inf
+#> Picking joint bandwidth of 0.347
 
 
 # wide form
@@ -374,22 +405,84 @@ data_wide <- data.frame(
    group = sample(letters[1:4], 100, replace = TRUE)
 )
 RidgePlot(data_wide, group_by = LETTERS[1:5], in_form = "wide")
+#> Warning: Column 'A' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'B' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'C' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'D' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'E' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'A' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'B' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'C' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'D' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'E' not found in data. Skipping 'keep_empty' processing for this column.
 #> Picking joint bandwidth of 0.337
 
 RidgePlot(data_wide, group_by = LETTERS[1:5], in_form = "wide", facet_by = "group")
+#> Warning: Column 'A' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'B' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'C' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'D' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'E' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'A' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'B' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'C' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'D' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'E' not found in data. Skipping 'keep_empty' processing for this column.
 #> Picking joint bandwidth of 0.429
-#> Picking joint bandwidth of 0.367
 #> Picking joint bandwidth of 0.416
+#> Picking joint bandwidth of 0.367
 #> Picking joint bandwidth of 0.428
 #> Picking joint bandwidth of 0.429
-#> Picking joint bandwidth of 0.367
 #> Picking joint bandwidth of 0.416
+#> Picking joint bandwidth of 0.367
 #> Picking joint bandwidth of 0.428
 
 RidgePlot(data_wide, group_by = LETTERS[1:5], in_form = "wide", split_by = "group",
    palette = list(a = "Reds", b = "Blues", c = "Greens", d = "Purples"))
+#> Warning: Column 'A' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'B' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'C' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'D' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'E' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'A' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'B' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'C' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'D' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'E' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'A' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'B' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'C' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'D' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'E' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'A' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'B' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'C' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'D' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'E' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'A' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'B' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'C' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'D' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'E' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'A' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'B' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'C' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'D' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'E' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'A' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'B' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'C' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'D' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'E' not found in data. Skipping 'keep_na' processing for this column.
+#> Warning: Column 'A' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'B' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'C' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'D' not found in data. Skipping 'keep_empty' processing for this column.
+#> Warning: Column 'E' not found in data. Skipping 'keep_empty' processing for this column.
 #> Picking joint bandwidth of 0.429
 #> Picking joint bandwidth of 0.416
 #> Picking joint bandwidth of 0.367
 #> Picking joint bandwidth of 0.428
+
+# }
 ```
