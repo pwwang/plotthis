@@ -14,6 +14,8 @@ RidgePlot(
   group_by_sep = "_",
   group_name = NULL,
   scale = NULL,
+  keep_na = FALSE,
+  keep_empty = FALSE,
   add_vline = NULL,
   vline_type = "solid",
   vline_color = TRUE,
@@ -30,7 +32,6 @@ RidgePlot(
   xlab = NULL,
   ylab = NULL,
   x_text_angle = 90,
-  keep_empty = FALSE,
   reverse = FALSE,
   facet_by = NULL,
   facet_scales = "fixed",
@@ -74,6 +75,27 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 \item{scale}{A numeric value to scale the ridges.
 See also \code{\link[ggridges]{geom_density_ridges}}.}
 
+\item{keep_na}{A logical value or a character to replace the NA values in the data.
+It can also take a named list to specify different behavior for different columns.
+If TRUE or NA, NA values will be replaced with NA.
+If FALSE, NA values will be removed from the data before plotting.
+If a character string is provided, NA values will be replaced with the provided string.
+If a named vector/list is provided, the names should be the column names to apply the behavior to,
+and the values should be one of TRUE, FALSE, or a character string.
+Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
+for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.}
+
+\item{keep_empty}{One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.
+\itemize{
+\item{\code{FALSE} (default): Drop empty factor levels from the data before plotting.}
+\item{\code{TRUE}: Keep empty factor levels and show them as a separate category in the plot.}
+\item{\code{"level"}: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: \code{levels}}
+}}
+
 \item{add_vline}{A numeric vector or a named list of numeric values to add vertical lines to the plot.
 If a named list is provided, the names should match the levels of 'group_by'.
 If \code{TRUE}, the vertical lines will be added at the mean of each group.}
@@ -114,23 +136,6 @@ This is useful when split_by is used and the title needs to be dynamic.}
 \item{ylab}{A character string specifying the y-axis label.}
 
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
-
-\item{keep_empty}{Logical or character. Whether to keep unused factor levels on categorical axes.
-\itemize{
-\item{\code{FALSE} (default): Drop unused factor levels via \code{droplevels()}.}
-\item{\code{TRUE}: Keep all factor levels defined in the data, even if they have no observations.
-For plots with both x and y categorical, applies to both axes.}
-\item{\code{"x"}: Keep unused levels only on the x-axis, drop from y-axis.}
-\item{\code{"y"}: Keep unused levels only on the y-axis, drop from x-axis.}
-\item{\code{c("x", "y")} or \code{"xy"}: Explicitly keep unused levels on both axes (same as \code{TRUE}).}
-}
-
-\strong{Note:} This parameter is distinct from \code{keep_na}. Use \code{keep_empty = TRUE}
-when you need to show all possible categories (e.g., all 12 months even if some have no data).
-For more complex completeness requirements, use \code{tidyr::complete()} before plotting.
-
-\strong{Backward compatibility:} If \code{keep_na} is not specified and \code{keep_empty}
-is provided, \code{keep_empty} will control both NA values and unused levels (legacy behavior).}
 
 \item{reverse}{A logical value. If TRUE, reverse the order of the groups on the y-axis.}
 
@@ -209,17 +214,22 @@ If 'combine' is FALSE, a list of ggplot objects will be returned.
 Ridge plot to illustrate the distribution of the data in different groups.
 }
 \examples{
+\donttest{
 set.seed(8525)
 data <- data.frame(
    x = c(rnorm(250, -1), rnorm(250, 1)),
-   group = rep(LETTERS[1:5], each = 100)
+   group = factor(rep(c("A", NA, LETTERS[3:5]), each = 100), levels = LETTERS[1:6])
 )
 RidgePlot(data, x = "x")  # fallback to a density plot
 RidgePlot(data, x = "x", add_vline = 0, vline_color = "black")
 RidgePlot(data, x = "x", group_by = "group")
+RidgePlot(data, x = "x", group_by = "group",
+   keep_na = TRUE, keep_empty = TRUE)
 RidgePlot(data, x = "x", group_by = "group", reverse = TRUE)
 RidgePlot(data, x = "x", group_by = "group",
    add_vline = TRUE, vline_color = TRUE, alpha = 0.7)
+RidgePlot(data, x = "x", facet_by = "group",
+   keep_na = TRUE, keep_empty = TRUE)
 
 # wide form
 data_wide <- data.frame(
@@ -234,4 +244,5 @@ RidgePlot(data_wide, group_by = LETTERS[1:5], in_form = "wide")
 RidgePlot(data_wide, group_by = LETTERS[1:5], in_form = "wide", facet_by = "group")
 RidgePlot(data_wide, group_by = LETTERS[1:5], in_form = "wide", split_by = "group",
    palette = list(a = "Reds", b = "Blues", c = "Greens", d = "Purples"))
+}
 }

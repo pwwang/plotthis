@@ -38,8 +38,8 @@ RadarPlot(
   aspect.ratio = 1,
   legend.position = waiver(),
   legend.direction = "vertical",
-  keep_empty = FALSE,
   keep_na = FALSE,
+  keep_empty = FALSE,
   title = NULL,
   subtitle = NULL,
   seed = 8525,
@@ -87,8 +87,8 @@ SpiderPlot(
   aspect.ratio = 1,
   legend.position = waiver(),
   legend.direction = "vertical",
-  keep_empty = FALSE,
   keep_na = FALSE,
+  keep_empty = FALSE,
   title = NULL,
   subtitle = NULL,
   seed = 8525,
@@ -187,36 +187,26 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
-\item{keep_empty}{Logical or character. Whether to keep unused factor levels on categorical axes.
+\item{keep_na}{A logical value or a character to replace the NA values in the data.
+It can also take a named list to specify different behavior for different columns.
+If TRUE or NA, NA values will be replaced with NA.
+If FALSE, NA values will be removed from the data before plotting.
+If a character string is provided, NA values will be replaced with the provided string.
+If a named vector/list is provided, the names should be the column names to apply the behavior to,
+and the values should be one of TRUE, FALSE, or a character string.
+Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
+for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.}
+
+\item{keep_empty}{One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.
 \itemize{
-\item{\code{FALSE} (default): Drop unused factor levels via \code{droplevels()}.}
-\item{\code{TRUE}: Keep all factor levels defined in the data, even if they have no observations.
-For plots with both x and y categorical, applies to both axes.}
-\item{\code{"x"}: Keep unused levels only on the x-axis, drop from y-axis.}
-\item{\code{"y"}: Keep unused levels only on the y-axis, drop from x-axis.}
-\item{\code{c("x", "y")} or \code{"xy"}: Explicitly keep unused levels on both axes (same as \code{TRUE}).}
-}
-
-\strong{Note:} This parameter is distinct from \code{keep_na}. Use \code{keep_empty = TRUE}
-when you need to show all possible categories (e.g., all 12 months even if some have no data).
-For more complex completeness requirements, use \code{tidyr::complete()} before plotting.
-
-\strong{Backward compatibility:} If \code{keep_na} is not specified and \code{keep_empty}
-is provided, \code{keep_empty} will control both NA values and unused levels (legacy behavior).}
-
-\item{keep_na}{Logical or character. Whether to keep rows with NA values on categorical axes.
-\itemize{
-\item{\code{FALSE} (default): Remove rows with NA values in categorical axes.}
-\item{\code{TRUE}: Keep NA values and display them as a separate category (shown as "NA").
-For plots with both x and y categorical, applies to both axes.}
-\item{\code{"x"}: Keep NA values only on the x-axis, remove from y-axis.}
-\item{\code{"y"}: Keep NA values only on the y-axis, remove from x-axis.}
-\item{\code{c("x", "y")} or \code{"xy"}: Explicitly keep NA on both axes (same as \code{TRUE}).}
-}
-
-\strong{Special cases:} For \code{AreaPlot}, \code{LinePlot}, and \code{TrendPlot},
-keeping NA values would break the visual continuity. Setting \code{keep_na = TRUE}
-will raise an error for these plot types.}
+\item{\code{FALSE} (default): Drop empty factor levels from the data before plotting.}
+\item{\code{TRUE}: Keep empty factor levels and show them as a separate category in the plot.}
+\item{\code{"level"}: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: \code{levels}}
+}}
 
 \item{title}{A character string specifying the title of the plot.
 A function can be used to generate the title based on the default title.
@@ -275,18 +265,28 @@ Create a radar plot or spider plot for a series of data.
 Radar plot uses circles as the plot grid and Spider plot uses polygons.
 }
 \examples{
+\donttest{
+set.seed(8525)
 # use the count
 data <- data.frame(
-   x = c(rep("A", 2), rep("B", 3), rep("C", 3), rep("D", 4), rep("E", 5)),
-   group = sample(paste0("G", 1:4), 17, replace = TRUE)
+   x = factor(
+    c(rep("A", 20), rep("B", 30), rep(NA, 30), rep("D", 40), rep("E", 50)),
+    levels = LETTERS[1:5]
+   ),
+   group = factor(
+    sample(c("G1", NA, "G3", "G4"), 170, replace = TRUE),
+    levels = c("G1", "G2", "G3", "G4")
+   )
 )
+
 RadarPlot(data, x = "x")
+RadarPlot(data, x = "x", keep_na = TRUE, keep_empty = TRUE)
 RadarPlot(data, x = "x", bg_color = "lightpink")
 RadarPlot(data, x = "x", scale_y = "none")
-RadarPlot(data, x = "x", group_by = "group")
+RadarPlot(data, x = "x", group_by = "group", keep_na = TRUE)
+RadarPlot(data, x = "x", facet_by = "group")
 SpiderPlot(data, x = "x")
 SpiderPlot(data, x = "x", group_by = "group")
-
 # use the y value
 data <- data.frame(
    x = rep(LETTERS[1:5], 2),
@@ -298,4 +298,5 @@ RadarPlot(data, x = "x", y = "y", facet_by = "group")
 RadarPlot(data, x = "x", y = "y", split_by = "group")
 RadarPlot(data, x = "x", y = "y", split_by = "group",
           palette = c(G1 = "Set1", G2 = "Paired"))
+}
 }

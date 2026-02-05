@@ -42,36 +42,16 @@ RadarPlotAtomic <- function(
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     alpha = 0.2, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
-    keep_empty = FALSE, keep_na = FALSE, title = NULL, subtitle = NULL, ...) {
+    keep_na = FALSE, keep_empty = FALSE, title = NULL, subtitle = NULL, ...) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
     } else {
         ggplot2::ggplot
     }
     x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
-
-    # Filter out NA groups when keep_empty is FALSE
-    if (!keep_empty) {
-        data[[x]] <- droplevels(data[[x]])
-    }
-
-    if (!keep_na) {
-        data <- data[!is.na(data[[x]]), , drop = FALSE]
-    } else if (anyNA(data[[x]])) {
-        levels(data[[x]]) <- c(levels(data[[x]]), "<NA>")
-        data[[x]][is.na(data[[x]])] <- "<NA>"
-    }
-
     y <- check_columns(data, y)
     group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
-
-    if (is.null(y)) {
-        y <- ".count"
-        data <- data %>%
-            dplyr::group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>%
-            summarise(.count = n(), .groups = "drop")
-    }
 
     if (is.null(group_by)) {
         data$.group <- factor("")
@@ -81,16 +61,37 @@ RadarPlotAtomic <- function(
         legend.position <- ifelse(inherits(legend.position, "waiver"), "right", legend.position)
     }
 
+    orig_data <- data
+    if (is.null(y)) {
+        y <- ".count"
+        data <- data %>%
+            dplyr::group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>%
+            summarise(.count = n(), .groups = "drop")
+
+        for (col in unique(c(x, group_by, facet_by))) {
+            data[[col]] <- factor(data[[col]], levels = levels(orig_data[[col]]))
+        }
+    }
+
+
     scale_y <- match.arg(scale_y)
     if (scale_y == "group") {
         data <- data %>%
             dplyr::group_by(!!!syms(unique(c(group_by, facet_by)))) %>%
-            mutate(!!sym(y) := !!sym(y) / sum(!!sym(y)))
+            mutate(!!sym(y) := !!sym(y) / sum(!!sym(y))) %>%
+            ungroup()
+        for (col in unique(c(group_by, facet_by))) {
+            data[[col]] <- factor(data[[col]], levels = levels(orig_data[[col]]))
+        }
     } else if (scale_y == "global") {
         if (!is.null(facet_by)) {
             data <- data %>%
                 dplyr::group_by(!!!syms(unique(facet_by))) %>%
-                mutate(!!sym(y) := !!sym(y) / sum(!!sym(y)))
+                mutate(!!sym(y) := !!sym(y) / sum(!!sym(y))) %>%
+                ungroup()
+            for (col in unique(facet_by)) {
+                data[[col]] <- factor(data[[col]], levels = levels(orig_data[[col]]))
+            }
         } else {
             data <- data %>%
                 mutate(!!sym(y) := !!sym(y) / sum(!!sym(y)))
@@ -98,17 +99,31 @@ RadarPlotAtomic <- function(
     } else if (scale_y == "x") {
         data <- data %>%
             dplyr::group_by(!!!syms(unique(c(x, facet_by)))) %>%
-            mutate(!!sym(y) := !!sym(y) / sum(!!sym(y)))
+            mutate(!!sym(y) := !!sym(y) / sum(!!sym(y))) %>%
+            ungroup()
+        for (col in unique(c(x, facet_by))) {
+            data[[col]] <- factor(data[[col]], levels = levels(orig_data[[col]]))
+        }
+    }
+    rm(orig_data)
+
+    data <- process_keep_na_empty(data, keep_na, keep_empty)
+    keep_empty_x <- keep_empty[[x]]
+    keep_empty_group <- if (!is.null(group_by)) keep_empty[[group_by]] else NULL
+    keep_empty_facet <- if (!is.null(facet_by)) keep_empty[[facet_by[1]]] else NULL
+    if (length(facet_by) > 1) {
+        stopifnot("[RadarPLot/SpiderPlot] `keep_empty` for `facet_by` variables must be identical." =
+            identical(keep_empty_facet, keep_empty[[facet_by[2]]]))
     }
 
     # We need all levels of x in each group and facet
     # fill the y value with 0 if the level is missing
-    complete_fill = list(0)
-    names(complete_fill) = y
-    data <- data %>%
-        dplyr::group_by(!!!syms(unique(c(group_by, facet_by)))) %>%
-        complete(!!sym(x), fill = complete_fill) %>%
-        ungroup()
+    # complete_fill = list(0)
+    # names(complete_fill) = y
+    # data <- data %>%
+    #     dplyr::group_by(!!!syms(unique(c(group_by, facet_by)))) %>%
+    #     complete(!!sym(x), fill = complete_fill) %>%
+    #     ungroup()
 
     coord_radar <- function(theta = "x", start = 0, direction = 1) {
         theta <- match.arg(theta, c("x", "y"))
@@ -124,12 +139,22 @@ RadarPlotAtomic <- function(
     y_min <- y_min %||% min(data[[y]])
     y_max <- y_max %||% max(data[[y]])
     breaks <- seq(y_min, y_max, length.out = y_nbreaks)
-
-    p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y), group = !!sym(group_by), color = !!sym(group_by)))
+    group_vals <- levels(data[[group_by]])
+    if (anyNA(data[[group_by]])) {
+        group_vals <- c(group_vals, NA)
+    }
+    group_colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
 
     # Add background (circle or polygon based on polygon parameter)
     x_levels <- levels(data[[x]])
+    if (anyNA(data[[x]])) {
+        # Otherwise there will be an angle shift if NA is present
+        x_levels <- c(x_levels, "NA")
+        levels(data[[x]]) <- x_levels
+        data[[x]][is.na(data[[x]])] <- "NA"
+    }
     n_x <- length(x_levels)
+    p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y), group = !!sym(group_by), color = !!sym(group_by)))
 
     if (polygon) {
         # Polygonal background - connects discrete x-axis points
@@ -183,13 +208,27 @@ RadarPlotAtomic <- function(
         colour = "grey80", linetype = 1, inherit.aes = FALSE
     )
     if (isTRUE(polygon)) {
+        # Create proper polygon grid at each break level
         for (i in seq_along(breaks)) {
-            p <- p + geom_polygon(y = breaks[i], fill = "transparent", color = "grey80", linetype = 2)
+            if (!is.null(facet_by)) {
+                poly_grid_df <- data %>% select(!!!syms(facet_by)) %>% distinct()
+                poly_grid_df <- expand_grid(poly_grid_df, x = x_levels)
+            } else {
+                poly_grid_df <- data.frame(x = x_levels)
+            }
+            poly_grid_df$y <- breaks[i]
+            poly_grid_df$poly_id <- i
+
+            p <- p + geom_polygon(
+                data = poly_grid_df,
+                aes(x = !!sym("x"), y = !!sym("y"), group = !!sym("poly_id")),
+                fill = "transparent", color = "grey80", linetype = 2, inherit.aes = FALSE
+            )
         }
     }
 
     if (isTRUE(fill)) {
-        p <- p + geom_polygon(aes(fill = !!sym(group_by)), alpha = alpha, linewidth = linewidth)
+        p <- p + geom_polygon(aes(fill = !!sym(group_by)), alpha = alpha, linewidth = linewidth, show.legend = TRUE)
     } else {
         p <- p + geom_polygon(alpha = alpha, linewidth = linewidth, fill = "transparent")
     }
@@ -205,21 +244,21 @@ RadarPlotAtomic <- function(
     panel.spacing <- theme_args$panel.spacing %||% unit(mc * 2, "points")
     theme_args$panel.spacing <- NULL
     p <- p +
-        geom_point(aes(colour = !!sym(group_by), fill = !!sym(group_by)), size = pt_size, shape = 21) +
+        geom_point(aes(colour = !!sym(group_by), fill = !!sym(group_by)), size = pt_size, shape = 21, show.legend = TRUE) +
         geom_text(
             data = labels_df,
             mapping = aes(y = !!sym("breaks"),
                 label = if (scale_y == "none") scales::number(!!sym("breaks")) else scales::percent(!!sym("breaks"))),
             x = pi / (length(breaks) - 0.88), color = "grey20", inherit.aes = FALSE) +
         scale_y_continuous(limits = c(y_min, y_max), breaks = breaks, expand = c(.1, 0, 0, 0)) +
-        scale_x_discrete(labels = scales::label_wrap(max_charwidth), drop = !keep_empty) +
-        scale_fill_manual(
-            name = group_name %||% group_by,
-            values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
-        ) +
-        scale_color_manual(
-            values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
-        ) +
+        scale_x_discrete(labels = scales::label_wrap(max_charwidth), drop = !isTRUE(keep_empty_x)) +
+        # scale_fill_manual(
+        #     name = group_name %||% group_by,
+        #     values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
+        # ) +
+        # scale_color_manual(
+        #     values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
+        # ) +
         coord_radar(start = -pi / nlevels(data[[x]])) +
         labs(title = title, subtitle = subtitle) +
         do.call(theme, theme_args) +
@@ -231,6 +270,22 @@ RadarPlotAtomic <- function(
             panel.border = element_blank(),
             panel.spacing = panel.spacing
         )
+
+    if (isTRUE(keep_empty_group)) {
+        p <- p + scale_fill_manual(
+            name = group_name %||% group_by, values = group_colors,
+            breaks = group_vals, limits = group_vals, drop = FALSE
+        ) + scale_color_manual(
+            values = group_colors,
+            breaks = group_vals, limits = group_vals, drop = FALSE
+        )
+    } else {
+        p <- p + scale_fill_manual(
+            name = group_name %||% group_by, values = group_colors
+        ) + scale_color_manual(
+            values = group_colors
+        )
+    }
 
     if (isFALSE(polygon)) {
         p <- p + ggplot2::theme(panel.grid.major.y = element_line(
@@ -252,7 +307,9 @@ RadarPlotAtomic <- function(
     attr(p, "height") <- height
     attr(p, "width") <- width
 
-    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow)
+    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
+        legend.position = legend.position, legend.direction = legend.direction,
+        drop = !isTRUE(keep_empty_facet))
 }
 
 #' Radar plot / Spider plot
@@ -272,15 +329,19 @@ RadarPlot <- function(
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     alpha = 0.2, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
-    keep_empty = FALSE, keep_na = FALSE, title = NULL, subtitle = NULL, seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
+    keep_na = FALSE, keep_empty = FALSE, title = NULL, subtitle = NULL, seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
     axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...) {
 
     validate_common_args(seed, facet_by = facet_by)
+    keep_na <- check_keep_na(keep_na, c(x, group_by, facet_by, split_by))
+    keep_empty <- check_keep_empty(keep_empty, c(x, group_by, facet_by, split_by))
     theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
 
     if (!is.null(split_by)) {
-        data[[split_by]] <- droplevels(data[[split_by]])
+        data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
+        keep_na[[split_by]] <- NULL
+        keep_empty[[split_by]] <- NULL
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
@@ -308,7 +369,7 @@ RadarPlot <- function(
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 alpha = alpha, aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                keep_empty = keep_empty, keep_na = keep_na, title = title, subtitle = subtitle, ...
+                keep_na = keep_na, keep_empty = keep_empty, title = title, subtitle = subtitle, ...
             )
         }
     )
@@ -322,18 +383,28 @@ RadarPlot <- function(
 #' @export
 #' @importFrom ggplot2 waiver
 #' @examples
+#' \donttest{
+#' set.seed(8525)
 #' # use the count
 #' data <- data.frame(
-#'    x = c(rep("A", 2), rep("B", 3), rep("C", 3), rep("D", 4), rep("E", 5)),
-#'    group = sample(paste0("G", 1:4), 17, replace = TRUE)
+#'    x = factor(
+#'     c(rep("A", 20), rep("B", 30), rep(NA, 30), rep("D", 40), rep("E", 50)),
+#'     levels = LETTERS[1:5]
+#'    ),
+#'    group = factor(
+#'     sample(c("G1", NA, "G3", "G4"), 170, replace = TRUE),
+#'     levels = c("G1", "G2", "G3", "G4")
+#'    )
 #' )
+#'
 #' RadarPlot(data, x = "x")
+#' RadarPlot(data, x = "x", keep_na = TRUE, keep_empty = TRUE)
 #' RadarPlot(data, x = "x", bg_color = "lightpink")
 #' RadarPlot(data, x = "x", scale_y = "none")
-#' RadarPlot(data, x = "x", group_by = "group")
+#' RadarPlot(data, x = "x", group_by = "group", keep_na = TRUE)
+#' RadarPlot(data, x = "x", facet_by = "group")
 #' SpiderPlot(data, x = "x")
 #' SpiderPlot(data, x = "x", group_by = "group")
-#'
 #' # use the y value
 #' data <- data.frame(
 #'    x = rep(LETTERS[1:5], 2),
@@ -345,6 +416,7 @@ RadarPlot <- function(
 #' RadarPlot(data, x = "x", y = "y", split_by = "group")
 #' RadarPlot(data, x = "x", y = "y", split_by = "group",
 #'           palette = c(G1 = "Set1", G2 = "Paired"))
+#' }
 SpiderPlot <- function(
     data, x, x_sep = "_", group_by = NULL, group_by_sep = "_", y = NULL, group_name = NULL,
     scale_y = c("group", "global", "x", "none"), y_min = 0, y_max = NULL, y_nbreaks = 4, bg_color = "grey80", bg_alpha = 0.1,
@@ -352,15 +424,19 @@ SpiderPlot <- function(
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     alpha = 0.2, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
-    keep_empty = FALSE, keep_na = FALSE, title = NULL, subtitle = NULL, seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
+    keep_na = FALSE, keep_empty = FALSE, title = NULL, subtitle = NULL, seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
     axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...) {
 
     validate_common_args(seed, facet_by = facet_by)
+    keep_na <- check_keep_na(keep_na, c(x, group_by, facet_by, split_by))
+    keep_empty <- check_keep_empty(keep_empty, c(x, group_by, facet_by, split_by))
     theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
 
     if (!is.null(split_by)) {
-        data[[split_by]] <- droplevels(data[[split_by]])
+        data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
+        keep_na[[split_by]] <- NULL
+        keep_empty[[split_by]] <- NULL
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
@@ -388,7 +464,7 @@ SpiderPlot <- function(
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 alpha = alpha, aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                keep_empty = keep_empty, keep_na = keep_na, title = title, subtitle = subtitle, ...
+                keep_na = keep_na, keep_empty = keep_empty, title = title, subtitle = subtitle, ...
             )
         }
     )
