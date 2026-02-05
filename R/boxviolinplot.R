@@ -155,18 +155,6 @@ BoxViolinPlotAtomic <- function(
     x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
     y <- check_columns(data, y)
 
-    # Filter out NA groups when keep_empty is FALSE
-    if (!keep_empty) {
-        data[[x]] <- droplevels(data[[x]])
-    }
-
-    if (!keep_na) {
-        data <- data[!is.na(data[[x]]), , drop = FALSE]
-    } else if (anyNA(data[[x]])) {
-        levels(data[[x]]) <- c(levels(data[[x]]), "<NA>")
-        data[[x]][is.na(data[[x]])] <- "<NA>"
-    }
-
     group_by <- check_columns(data, group_by,
         force_factor = TRUE,
         allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep
@@ -175,6 +163,15 @@ BoxViolinPlotAtomic <- function(
     paired_by <- check_columns(data, paired_by, force_factor = TRUE)
     base_size <- theme_args$base_size %||% 12
     sig_labelsize <- sig_labelsize * base_size / 12
+
+    data <- process_keep_na_empty(data, keep_na, keep_empty)
+    keep_empty_x <- keep_empty[[x]]
+    keep_empty_group <- if (!is.null(group_by)) keep_empty[[group_by]] else NULL
+    keep_empty_facet <- if (!is.null(facet_by)) keep_empty[[facet_by[1]]] else NULL
+    if (length(facet_by) > 1) {
+        stopifnot("[Box/Violin/BeeswarmPlot] `keep_empty` for `facet_by` variables must be identical." =
+            identical(keep_empty_facet, keep_empty[[facet_by[2]]]))
+    }
 
     # Validate beeswarm parameters
     if (isTRUE(add_beeswarm)) {
@@ -277,10 +274,17 @@ BoxViolinPlotAtomic <- function(
     if (sort_x != "none" && !is.null(facet_by)) {
         stop("Cannot sort x-axis when facet_by is provided.")
     }
+    orig_data <- data
     data <- data %>%
         dplyr::group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>%
         mutate(.y_mean = mean(!!sym(y)), .y_median = median(!!sym(y))) %>%
         ungroup()
+
+    # keep the factor levels
+    for (col in unique(c(x, group_by, facet_by))) {
+        data[[col]] <- factor(data[[col]], levels = levels(orig_data[[col]]))
+    }
+    rm(orig_data)
 
     values <- data[[y]][is.finite(data[[y]])]
     if (is.character(y_max)) {
@@ -354,12 +358,13 @@ BoxViolinPlotAtomic <- function(
     }
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(fill_by)))
     if (isTRUE(add_bg)) {
-        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, facet_by)
+        p <- p + bg_layer(data, x, isTRUE(keep_empty_x), bg_palette, bg_palcolor, bg_alpha, facet_by)
     }
 
     if (base == "box" || (base == "none" && isTRUE(add_box))) {
         p <- p + geom_boxplot(
-            position = position_dodge(width = 0.9), color = "black", width = 0.8, outlier.shape = NA
+            position = position_dodge(width = 0.9), color = "black",
+            width = 0.8, outlier.shape = NA, show.legend = TRUE
         )
     } else if (base == "violin") {
         p <- p + geom_violin(
@@ -367,19 +372,39 @@ BoxViolinPlotAtomic <- function(
             # See https://github.com/tidyverse/ggplot2/issues/2801
             # There is a fix but not yet released
             position = position_dodge(width = 0.9), scale = "width", trim = TRUE,
-            alpha = alpha, width = 0.8
+            alpha = alpha, width = 0.8, show.legend = TRUE
         )
     }
     if (fill_mode == "dodge") {
-        p <- p + scale_fill_manual(
-            name = group_name %||% group_by,
-            values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
-        )
+        group_vals <- levels(data[[group_by]])
+        if (anyNA(group_vals)) group_vals <- c(group_vals, NA)
+        if (isTRUE(keep_empty_group)) {
+            p <- p + scale_fill_manual(
+                name = group_name %||% group_by,
+                values = palette_this(group_vals, palette = palette, palcolor = palcolor),
+                breaks = group_vals, limits = group_vals, drop = FALSE
+            )
+        } else {
+            p <- p + scale_fill_manual(
+                name = group_name %||% group_by,
+                values = palette_this(group_vals, palette = palette, palcolor = palcolor)
+            )
+        }
     } else if (fill_mode == "x") {
-        p <- p + scale_fill_manual(
-            name = x,
-            values = palette_this(levels(data[[x]]), palette = palette, palcolor = palcolor)
-        )
+        x_vals <- levels(data[[x]])
+        if (anyNA(x_vals)) x_vals <- c(x_vals, NA)
+        if (isTRUE(keep_empty_x)) {
+            p <- p + scale_fill_manual(
+                name = x,
+                values = palette_this(x_vals, palette = palette, palcolor = palcolor),
+                breaks = x_vals, limits = x_vals, drop = FALSE
+            )
+        } else {
+            p <- p + scale_fill_manual(
+                name = x,
+                values = palette_this(x_vals, palette = palette, palcolor = palcolor)
+            )
+        }
     } else {
         p <- p + scale_fill_gradientn(
             name = paste0(y, " (", fill_mode, ")"),
@@ -826,10 +851,18 @@ BoxViolinPlotAtomic <- function(
                 position = position_dodge(width = 0.9), linewidth = trend_linewidth
             )
             if (!is.null(group_by)) {
-                p <- p + scale_color_manual(
-                    values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor),
-                    guide = "none"
-                )
+                group_vals <- levels(data[[group_by]])
+                if (anyNA(group_vals)) group_vals <- c(group_vals, NA)
+                if (isTRUE(keep_empty_group)) {
+                    p <- p + scale_color_manual(
+                        values = palette_this(group_vals, palette = palette, palcolor = palcolor),
+                        breaks = group_vals, limits = group_vals, drop = FALSE
+                    )
+                } else {
+                    p <- p + scale_color_manual(
+                        values = palette_this(group_vals, palette = palette, palcolor = palcolor)
+                    )
+                }
             }
         } else {
             p <- p + stat_summary(
@@ -876,7 +909,7 @@ BoxViolinPlotAtomic <- function(
 
     just <- calc_just(x_text_angle)
     p <- p +
-        scale_x_discrete(drop = !keep_empty) +
+        scale_x_discrete(drop = !isTRUE(keep_empty_x)) +
         labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y)
 
     p <- p + scale_y_continuous(trans = y_trans, n.breaks = y_nbreaks)
@@ -967,7 +1000,7 @@ BoxViolinPlotAtomic <- function(
 
     facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
         strip.position = strip_position, legend.position = legend.position,
-        legend.direction = legend.direction
+        legend.direction = legend.direction, drop = !isTRUE(keep_empty_facet)
     )
 }
 
@@ -1005,11 +1038,16 @@ BoxViolinPlot <- function(
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
     axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...) {
     validate_common_args(seed)
+    keep_na <- check_keep_na(keep_na, c(x, split_by, group_by, paired_by, facet_by))
+    keep_empty <- check_keep_empty(keep_empty, c(x, split_by, group_by, paired_by, facet_by))
     theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
 
     if (!is.null(split_by)) {
-        data[[split_by]] <- droplevels(data[[split_by]])
+        data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
+        keep_na[[split_by]] <- NULL
+        keep_empty[[split_by]] <- NULL
+
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
@@ -1126,6 +1164,43 @@ BoxViolinPlot <- function(
 #'     x = "x", y = "value",
 #'     paired_by = "subject", group_by = "group",
 #'     comparisons = TRUE, pt_size = 3, pt_color = "red"
+#' )
+#'
+#' # keep_na and keep_empty example
+#' data <- data.frame(
+#'     x = factor(rep(c(LETTERS[1:3], NA, LETTERS[5:8]), each = 40),
+#'        levels = c(LETTERS[1:8])),
+#'     y = c(rnorm(160), rnorm(160, mean = 1)),
+#'     group1 = sample(c("g1", "g2"), 320, replace = TRUE),
+#'     group2 = factor(sample(c("h1", NA, "h3", "h4"), 320, replace = TRUE),
+#'        levels = c("h1", "h2", "h3", "h4"))
+#' )
+#'
+#' BoxPlot(data, x = "x", y = "y",
+#'     title = "keep_na = FALSE; keep_empty = FALSE")
+#' BoxPlot(data, x = "x", y = "y", keep_na = TRUE, keep_empty = TRUE,
+#'     title = "keep_na = TRUE; keep_empty = TRUE")
+#' BoxPlot(data, x = "x", y = "y", keep_na = TRUE, keep_empty = TRUE,
+#'     title = "keep_na = TRUE; keep_empty = TRUE", facet_by = "group2")
+#' BoxPlot(data, x = "x", y = "y", keep_na = TRUE, keep_empty = 'level',
+#'     title = "keep_na = TRUE; keep_empty = 'level'")
+#' BoxPlot(data, x = "x", y = "y", group_by = "group2",
+#'     title = "keep_na = FALSE; keep_empty = FALSE; group_by = 'group2'")
+#' BoxPlot(data, x = "x", y = "y", group_by = "group2",
+#'     keep_na = TRUE, keep_empty = TRUE,
+#'     title = "keep_na = TRUE; keep_empty = TRUE; group_by = 'group2'")
+#' BoxPlot(data, x = "x", y = "y", group_by = "group2",
+#'     keep_na = TRUE, keep_empty = 'level',
+#'     title = "keep_na = TRUE; keep_empty = 'level'; group_by = 'group2'")
+#' BoxPlot(data, x = "x", y = "y", group_by = "group2",
+#'     keep_na = list(x = TRUE, group2 = FALSE),
+#'     keep_empty = list(x = FALSE, group2 = TRUE),
+#'     title = "keep_na: x=TRUE, group2=FALSE\nkeep_empty: x=FALSE, group2=TRUE"
+#' )
+#' BoxPlot(data, x = "x", y = "y", group_by = "group2",
+#'     keep_na = list(x = FALSE, group2 = TRUE),
+#'     keep_empty = list(x = TRUE, group2 = FALSE),
+#'     title = "keep_na: x=FALSE, group2=TRUE\nkeep_empty: x=TRUE, group2=FALSE"
 #' )
 #' }
 BoxPlot <- function(
