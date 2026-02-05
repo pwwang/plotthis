@@ -120,22 +120,21 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{keep_na}{A logical value or a character to replace the NA values in the data.
 It can also take a named list to specify different behavior for different columns.
-If TRUE, NA values will be replaced with "\if{html}{\out{<NA>}}" string.
+If TRUE or NA, NA values will be replaced with NA.
 If FALSE, NA values will be removed from the data before plotting.
 If a character string is provided, NA values will be replaced with the provided string.
 If a named vector/list is provided, the names should be the column names to apply the behavior to,
 and the values should be one of TRUE, FALSE, or a character string.
-Without a named vector/list, the behavior applies to column for the \code{x} axis.}
+Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
+for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.}
 
-\item{keep_empty}{One of "FALSE", "TRUE" and "level". It can also take a named list to specify
-different behavior for different columns. If a single logical value is provided, it will be converted
-to a character value internally. Without a named list, the behavior applies to column for the \code{x} axis.
+\item{keep_empty}{One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.
 \itemize{
-\item{\code{FALSE} (default): Drop empty factor levels from the data before plotting.
-Alias: \code{false}}
-\item{\code{TRUE}: Keep empty factor levels and show them as a separate category in the plot.
-Alias: \code{true}}
-\item{\code{level}: Keep empty factor levels, but do not show them in the plot.
+\item{\code{FALSE} (default): Drop empty factor levels from the data before plotting.}
+\item{\code{TRUE}: Keep empty factor levels and show them as a separate category in the plot.}
+\item{\code{"level"}: Keep empty factor levels, but do not show them in the plot.
 But they will be assigned colors from the palette to maintain consistency across multiple plots.
 Alias: \code{levels}}
 }}
@@ -192,6 +191,7 @@ progression of a another variable
 }
 \examples{
 \donttest{
+set.seed(8525)
 data <- data.frame(
     x = rep(c("A", "B", "C", "D"), 2),
     y = c(1, 3, 6, 4, 2, 5, 7, 8),
@@ -209,18 +209,19 @@ AreaPlot(data, x = "x", y = "y", group_by = "group", split_by = "split",
 
 # How keep_na and keep_empty work
 data <- data.frame(
-    x = factor(rep(c("A", "B", NA, "D"), 3), levels = c("A", "B", "C", "D")),
+    x = factor(rep(c("A", NA, "C", "D"), 3), levels = c("A", "B", "C", "D")),
     y = c(1, 3, 6, 4, 2, 5, 7, 8, 4, 2, 3, 5),
-    group = factor(rep(c("F1", "F2", NA), each = 4), levels = c("F1", "F2", "F3")),
-    split = factor(rep(c("X", "Y", NA), 4), levels = c("X", "Y", "Z"))
+    group = factor(sample(rep(c("F1", NA, "F3"), each = 4)), levels = c("F1", "F2", "F3")),
+    split = factor(sample(rep(c("X", "Y", NA), 4)), levels = c("X", "Y", "Z")),
+    facet = factor(sample(rep(c("M", "N", NA), 4)), levels = c("M", "N", "O"))
 )
+
 AreaPlot(data, x = "x", y = "y", group_by = "group")
+AreaPlot(data, x = "x", y = "y", group_by = "group", keep_na = TRUE, keep_empty = TRUE)
+AreaPlot(data, x = "x", y = "y", group_by = "group", keep_na = TRUE, keep_empty = "level")
+AreaPlot(data, x = "x", y = "y", group_by = "group", keep_na = FALSE, keep_empty = TRUE)
 AreaPlot(data, x = "x", y = "y", group_by = "group",
-    keep_na = TRUE, keep_empty = TRUE)
-AreaPlot(data, x = "x", y = "y", group_by = "group",
-    keep_na = list(x = TRUE, group = FALSE), keep_empty = list(x = TRUE, group = TRUE))
-AreaPlot(data, x = "x", y = "y", group_by = "group",
-    keep_na = list(x = TRUE, group = FALSE), keep_empty = list(x = TRUE, group = "level"))
+    keep_na = list(x = TRUE, group = FALSE), keep_empty = list(x = FALSE, group = TRUE))
 AreaPlot(data, x = "x", y = "y", group_by = "group",
     keep_na = list(x = FALSE, group = TRUE), keep_empty = list(x = TRUE, group = FALSE))
 }
