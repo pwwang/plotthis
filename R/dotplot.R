@@ -64,74 +64,22 @@ DotPlotAtomic <- function(
     if (!y_is_numeric) {
         y <- check_columns(data, y, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = y_sep)
     }
+    fill_by <- check_columns(data, fill_by)
+    facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
 
-    # Normalize keep_na argument (for NA values)
-    if (isTRUE(keep_na)) {
-        keep_x_na <- !x_is_numeric
-        keep_y_na <- !y_is_numeric
-    } else if (isFALSE(keep_na)) {
-        keep_x_na <- FALSE
-        keep_y_na <- FALSE
-    } else if (is.character(keep_na)) {
-        if (length(keep_na) == 1 && keep_na == "xy") {
-            keep_x_na <- !x_is_numeric
-            keep_y_na <- !y_is_numeric
-        } else {
-            keep_x_na <- "x" %in% keep_na && !x_is_numeric
-            keep_y_na <- "y" %in% keep_na && !y_is_numeric
-        }
-    } else {
-        keep_x_na <- FALSE
-        keep_y_na <- FALSE
-    }
-
-    # Normalize keep_empty argument (for unused factor levels)
-    if (isTRUE(keep_empty)) {
-        keep_x_empty <- !x_is_numeric
-        keep_y_empty <- !y_is_numeric
-    } else if (isFALSE(keep_empty)) {
-        keep_x_empty <- FALSE
-        keep_y_empty <- FALSE
-    } else if (is.character(keep_empty)) {
-        if (length(keep_empty) == 1 && keep_empty == "xy") {
-            keep_x_empty <- !x_is_numeric
-            keep_y_empty <- !y_is_numeric
-        } else {
-            keep_x_empty <- "x" %in% keep_empty && !x_is_numeric
-            keep_y_empty <- "y" %in% keep_empty && !y_is_numeric
-        }
-    } else {
-        keep_x_empty <- FALSE
-        keep_y_empty <- FALSE
-    }
-
-    # Step 1: Drop unused levels (controlled by keep_empty)
-    if (!x_is_numeric && !keep_x_empty) {
-        data[[x]] <- droplevels(data[[x]])
-    }
-    if (!y_is_numeric && !keep_y_empty) {
-        data[[y]] <- droplevels(data[[y]])
-    }
-
-    # Step 2: Filter data to remove NA values (controlled by keep_na)
-    if (!x_is_numeric && !keep_x_na) {
-        data <- data[!is.na(data[[x]]), , drop = FALSE]
-    } else if (!x_is_numeric && anyNA(data[[x]])) {
-        levels(data[[x]]) <- c(levels(data[[x]]), "<NA>")
-        data[[x]][is.na(data[[x]])] <- "<NA>"
-    }
-    if (!y_is_numeric && !keep_y_na) {
-        data <- data[!is.na(data[[y]]), , drop = FALSE]
-    } else if (!y_is_numeric && anyNA(data[[y]])) {
-        levels(data[[y]]) <- c(levels(data[[y]]), "<NA>")
-        data[[y]][is.na(data[[y]])] <- "<NA>"
+    data <- process_keep_na_empty(data, keep_na, keep_empty)
+    keep_empty_x <- keep_empty[[x]]
+    keep_empty_y <- keep_empty[[y]]
+    keep_empty_facet <- if (!is.null(facet_by)) keep_empty[[facet_by[1]]] else NULL
+    if (length(facet_by) > 1) {
+        stopifnot("[DotPlot/LillipopPlot] `keep_empty` for `facet_by` variables must be identical." =
+            identical(keep_empty_facet, keep_empty[[facet_by[2]]]))
     }
 
     if (!is.null(fill_cutoff) && is.null(fill_by)) {
-        stop("'fill_by' must be provided when 'fill_cutoff' is specified.")
+        stop("[DotPlot/LollipopPlot]'fill_by' must be provided when 'fill_cutoff' is specified.")
     }
 
-    facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
     if (!is.numeric(size_by)) {
         size_by <- check_columns(data, size_by)
     }
@@ -146,10 +94,15 @@ DotPlotAtomic <- function(
                 group_by(!!!syms(unique(c(x, y, facet_by)))) %>%
                 summarise(!!sym(fill_by) := first(!!sym(fill_by)), .size = n(), .groups = "drop")
         }
+        # keep the levels of x, y, and facet_by
+        for (col in unique(x, y, facet_by)) {
+            if (is.factor(data[[col]])) {
+                data[[col]] <- factor(data[[col]], levels = levels(data[[col]]))
+            }
+        }
         size_by <- ".size"
     }
 
-    fill_by <- check_columns(data, fill_by)
     if (!is.null(fill_by) && !is.null(fill_cutoff)) {
         # Add a column to indicate the fill cutoff
         if (isFALSE(fill_reverse)) {
@@ -175,19 +128,19 @@ DotPlotAtomic <- function(
             if (x_is_numeric) {
                 stop("Vertical 'bg_direction' is not supported when 'x' is numeric.")
             }
-            p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, facet_by, bg_direction)
+            p <- p + bg_layer(data, x, isTRUE(keep_empty_x), bg_palette, bg_palcolor, bg_alpha, facet_by, bg_direction)
         } else {
             if (y_is_numeric) {
                 stop("Horizontal 'bg_direction' is not supported when 'y' is numeric.")
             }
-            p <- p + bg_layer(data, y, bg_palette, bg_palcolor, bg_alpha, facet_by, bg_direction)
+            p <- p + bg_layer(data, y, isTRUE(keep_empty_y), bg_palette, bg_palcolor, bg_alpha, facet_by, bg_direction)
         }
     }
     if (!x_is_numeric) {
-        p <- p + scale_x_discrete(drop = !keep_x_empty)
+        p <- p + scale_x_discrete(drop = !isTRUE(keep_empty_x))
     }
     if (!y_is_numeric) {
-        p <- p + scale_y_discrete(drop = !keep_y_empty)
+        p <- p + scale_y_discrete(drop = !isTRUE(keep_empty_y))
     }
 
     if (isTRUE(lollipop)) {
@@ -251,14 +204,14 @@ DotPlotAtomic <- function(
 
     if (x_is_numeric) {
         nx <- 5
-    } else if (keep_x_empty) {
+    } else if (isTRUE(keep_empty_x)) {
         nx <- nlevels(data[[x]])
     } else {
         nx <- nlevels(droplevels(data[[x]]))
     }
     if (y_is_numeric) {
         ny <- 5
-    } else if (keep_y_empty) {
+    } else if (isTRUE(keep_empty_y)) {
         ny <- nlevels(data[[y]])
     } else {
         ny <- nlevels(droplevels(data[[y]]))
@@ -306,7 +259,8 @@ DotPlotAtomic <- function(
     }
 
     facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-        legend.position = legend.position, legend.direction = legend.direction)
+        legend.position = legend.position, legend.direction = legend.direction,
+        drop = !isTRUE(keep_empty_facet))
 }
 
 #' Dot Plot / Scatter Plot / Lollipop Plot
@@ -345,6 +299,12 @@ DotPlotAtomic <- function(
 #' # works as a scatter plot
 #' DotPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
 #'         fill_by = "mpg", fill_cutoff = 18, fill_cutoff_name = "Small mpgs")
+#' # keep_na and keep_empty
+#' mtcars$carb[mtcars$carb == "1"] <- NA
+#' mtcars$gear[mtcars$gear == "3"] <- NA
+#' DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
+#'         fill_by = "mpg", fill_cutoff = 18,
+#'         keep_na = TRUE, keep_empty = TRUE)
 #' }
 DotPlot <- function(
     data, x, y, x_sep = "_", y_sep = "_", flip = FALSE,
@@ -354,16 +314,20 @@ DotPlot <- function(
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     x_text_angle = 0, seed = 8525, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, keep_na = FALSE,
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_na = FALSE, keep_empty = FALSE,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
     ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
+    keep_na <- check_keep_na(keep_na, c(x, y, split_by, fill_by, facet_by))
+    keep_empty <- check_keep_empty(keep_empty, c(x, y, split_by, fill_by, facet_by))
     theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
 
     if (!is.null(split_by)) {
-        data[[split_by]] <- droplevels(data[[split_by]])
+        data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
+        keep_na[[split_by]] <- NULL
+        keep_empty[[split_by]] <- NULL
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
@@ -392,7 +356,7 @@ DotPlot <- function(
                 x_text_angle = x_text_angle, size_name = size_name, fill_name = fill_name, fill_cutoff_name = fill_cutoff_name,
                 add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, keep_na = keep_na, ...
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_na = keep_na, keep_empty = keep_empty, ...
             )
         }
     )
@@ -425,16 +389,20 @@ LollipopPlot <- function(
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     x_text_angle = 0, seed = 8525, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, keep_na = FALSE,
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_na = FALSE, keep_empty = FALSE,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
     ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
+    keep_na <- check_keep_na(keep_na, c(y, split_by, fill_by, facet_by))
+    keep_empty <- check_keep_empty(keep_empty, c(y, split_by, fill_by, facet_by))
     theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
 
     if (!is.null(split_by)) {
-        data[[split_by]] <- droplevels(data[[split_by]])
+        data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
+        keep_na[[split_by]] <- NULL
+        keep_empty[[split_by]] <- NULL
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
@@ -462,7 +430,7 @@ LollipopPlot <- function(
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 x_text_angle = x_text_angle, size_name = size_name, fill_name = fill_name, fill_cutoff_name = fill_cutoff_name,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, keep_na = keep_na, ...
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_na = keep_na, keep_empty = keep_empty, ...
             )
         }
     )
