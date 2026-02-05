@@ -10,11 +10,11 @@ JitterPlotAtomic(
   x_sep = "_",
   y = NULL,
   in_form = c("long", "wide"),
+  keep_na = FALSE,
+  keep_empty = FALSE,
   sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc",
     "median"),
   flip = FALSE,
-  keep_empty = FALSE,
-  keep_na = FALSE,
   group_by = NULL,
   group_by_sep = "_",
   group_name = NULL,
@@ -86,6 +86,27 @@ When \code{in_form} is "wide", \code{y} is not required. The values under \code{
 
 \item{in_form}{A character string to specify the input data type. Either "long" or "wide".}
 
+\item{keep_na}{A logical value or a character to replace the NA values in the data.
+It can also take a named list to specify different behavior for different columns.
+If TRUE or NA, NA values will be replaced with NA.
+If FALSE, NA values will be removed from the data before plotting.
+If a character string is provided, NA values will be replaced with the provided string.
+If a named vector/list is provided, the names should be the column names to apply the behavior to,
+and the values should be one of TRUE, FALSE, or a character string.
+Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
+for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.}
+
+\item{keep_empty}{One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.
+\itemize{
+\item{\code{FALSE} (default): Drop empty factor levels from the data before plotting.}
+\item{\code{TRUE}: Keep empty factor levels and show them as a separate category in the plot.}
+\item{\code{"level"}: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: \code{levels}}
+}}
+
 \item{sort_x}{A character string to specify the sorting of x-axis, chosen from "none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median".
 \itemize{
 \item \code{none} means no sorting (as-is).
@@ -98,22 +119,6 @@ When \code{in_form} is "wide", \code{y} is not required. The values under \code{
 }}
 
 \item{flip}{A logical value to flip the plot.}
-
-\item{keep_empty}{A logical value to keep the empty levels in the x-axis.}
-
-\item{keep_na}{Logical or character. Whether to keep rows with NA values on categorical axes.
-\itemize{
-\item{\code{FALSE} (default): Remove rows with NA values in categorical axes.}
-\item{\code{TRUE}: Keep NA values and display them as a separate category (shown as "NA").
-For plots with both x and y categorical, applies to both axes.}
-\item{\code{"x"}: Keep NA values only on the x-axis, remove from y-axis.}
-\item{\code{"y"}: Keep NA values only on the y-axis, remove from x-axis.}
-\item{\code{c("x", "y")} or \code{"xy"}: Explicitly keep NA on both axes (same as \code{TRUE}).}
-}
-
-\strong{Special cases:} For \code{AreaPlot}, \code{LinePlot}, and \code{TrendPlot},
-keeping NA values would break the visual continuity. Setting \code{keep_na = TRUE}
-will raise an error for these plot types.}
 
 \item{group_by}{A character string to dodge the points.}
 
