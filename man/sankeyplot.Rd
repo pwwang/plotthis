@@ -168,22 +168,16 @@ See \code{data} for more details.}
 
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
-\item{keep_empty}{Logical or character. Whether to keep unused factor levels on categorical axes.
+\item{keep_empty}{One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.
 \itemize{
-\item{\code{FALSE} (default): Drop unused factor levels via \code{droplevels()}.}
-\item{\code{TRUE}: Keep all factor levels defined in the data, even if they have no observations.
-For plots with both x and y categorical, applies to both axes.}
-\item{\code{"x"}: Keep unused levels only on the x-axis, drop from y-axis.}
-\item{\code{"y"}: Keep unused levels only on the y-axis, drop from x-axis.}
-\item{\code{c("x", "y")} or \code{"xy"}: Explicitly keep unused levels on both axes (same as \code{TRUE}).}
-}
-
-\strong{Note:} This parameter is distinct from \code{keep_na}. Use \code{keep_empty = TRUE}
-when you need to show all possible categories (e.g., all 12 months even if some have no data).
-For more complex completeness requirements, use \code{tidyr::complete()} before plotting.
-
-\strong{Backward compatibility:} If \code{keep_na} is not specified and \code{keep_empty}
-is provided, \code{keep_empty} will control both NA values and unused levels (legacy behavior).}
+\item{\code{FALSE} (default): Drop empty factor levels from the data before plotting.}
+\item{\code{TRUE}: Keep empty factor levels and show them as a separate category in the plot.}
+\item{\code{"level"}: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: \code{levels}}
+}}
 
 \item{flow}{A logical value to use \link[ggalluvial:geom_flow]{ggalluvial::geom_flow} instead of \link[ggalluvial:geom_alluvium]{ggalluvial::geom_alluvium}.}
 

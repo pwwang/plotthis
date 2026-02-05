@@ -42,7 +42,6 @@
 #' @param links_palcolor A character vector to specify the colors of links fill.
 #' @param links_alpha A numeric value to specify the transparency of links fill.
 #' @param legend.box A character string to specify the box of the legend, either "vertical" or "horizontal".
-#' @param keep_empty A logical value to keep the empty nodes.
 #' @param flip A logical value to flip the plot.
 #' @param ... Other arguments to pass to [ggalluvial::geom_alluvium] or [ggalluvial::geom_flow].
 #' @return A ggplot object
