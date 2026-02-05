@@ -14,21 +14,20 @@
 #' @param split_by_sep The separator for multiple split_by columns. See \code{split_by}
 #' @param keep_na A logical value or a character to replace the NA values in the data.
 #'   It can also take a named list to specify different behavior for different columns.
-#'   If TRUE, NA values will be replaced with "<NA>" string.
+#'   If TRUE or NA, NA values will be replaced with NA.
 #'   If FALSE, NA values will be removed from the data before plotting.
 #'   If a character string is provided, NA values will be replaced with the provided string.
 #'   If a named vector/list is provided, the names should be the column names to apply the behavior to,
 #'   and the values should be one of TRUE, FALSE, or a character string.
-#'   Without a named vector/list, the behavior applies to column for the `x` axis.
-#' @param keep_empty One of "FALSE", "TRUE" and "level". It can also take a named list to specify
-#' different behavior for different columns. If a single logical value is provided, it will be converted
-#' to a character value internally. Without a named list, the behavior applies to column for the `x` axis.
+#'   Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
+#'   for example, the `x`, `group_by`, `fill_by`, etc.
+#' @param keep_empty One of FALSE, TRUE and "level". It can also take a named list to specify
+#' different behavior for different columns. Without a named list, the behavior applies to the
+#' categorical/character columns used on the plot, for example, the `x`, `group_by`, `fill_by`, etc.
 #' \itemize{
-#'   \item{\code{FALSE} (default): Drop empty factor levels from the data before plotting.
-#'    Alias: \code{false}}
-#'   \item{\code{TRUE}: Keep empty factor levels and show them as a separate category in the plot.
-#'    Alias: \code{true}}
-#'   \item{\code{level}: Keep empty factor levels, but do not show them in the plot.
+#'   \item{\code{FALSE} (default): Drop empty factor levels from the data before plotting.}
+#'   \item{\code{TRUE}: Keep empty factor levels and show them as a separate category in the plot.}
+#'   \item{\code{"level"}: Keep empty factor levels, but do not show them in the plot.
 #'     But they will be assigned colors from the palette to maintain consistency across multiple plots.
 #'    Alias: \code{levels}}
 #' }
