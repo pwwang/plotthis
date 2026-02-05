@@ -66,16 +66,13 @@ LinePlotSingle <- function(
     y <- check_columns(data, y)
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
 
-    data[[x]] <- droplevels(data[[x]])
-    if (!keep_na) {
-        data <- data[!is.na(data[[x]]), , drop = FALSE]
-    } else if (anyNA(data[[x]])) {
-        levels(data[[x]]) <- c(levels(data[[x]]), "<NA>")
-        data[[x]][is.na(data[[x]])] <- "<NA>"
-    }
-
     if (is.null(y)) {
+        orig_data <- data
         data <- data %>% group_by(!!!syms(unique(x, facet_by))) %>% summarise(.y = n(), .groups = "drop")
+        for (col in unique(c(x, facet_by))) {
+            data[[col]] <- factor(data[[col]], levels = levels(orig_data[[col]]))
+        }
+        rm(orig_data)
         y <- ".y"
     }
 
@@ -91,16 +88,8 @@ LinePlotSingle <- function(
         }
     }
 
-    if (keep_empty) {
-        # fill y with 0 for empty x. 'drop' with scale_fill_* doesn't have color for empty x
-        fill_list <- list(0)
-        names(fill_list) <- y
-        if (is.null(facet_by)) {
-            data <- data %>% complete(!!sym(x), fill = fill_list)
-        } else {
-            data <- data %>% group_by(!!!syms(facet_by)) %>% complete(!!sym(x), fill = fill_list)
-        }
-    }
+    data <- process_keep_na_empty(data, keep_na, keep_empty)
+    keep_empty_x <- keep_empty[[x]]
 
     hidata <- NULL
     if (!is.null(highlight)) {
@@ -119,7 +108,7 @@ LinePlotSingle <- function(
 
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y)))
     if (isTRUE(add_bg)) {
-        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, facet_by)
+        p <- p + bg_layer(data, x, isTRUE(keep_empty_x), bg_palette, bg_palcolor, bg_alpha, facet_by)
     }
 
     if (!is.null(add_hline) && !isFALSE(add_hline)) {
@@ -129,12 +118,22 @@ LinePlotSingle <- function(
         )
     }
 
-    colors <- palette_this(levels(data[[x]]), palette = palette, palcolor = palcolor)
+    x_vals <- levels(data[[x]])
+    if (anyNA(data[[x]])) x_vals <- c(x_vals, NA)
+    colors <- palette_this(x_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
     if (isTRUE(color_line_by_x)) {
         p <- p + geom_line(
             aes(color = !!sym(x), group = 1),
-            alpha = line_alpha, linetype = line_type, linewidth = line_width) +
-            scale_color_manual(name = x, values = colors, guide = "legend", drop = !keep_empty)
+            alpha = line_alpha, linetype = line_type, linewidth = line_width, show.legend = TRUE)
+
+        if (isTRUE(keep_empty_x)) {
+            p <- p + scale_color_manual(
+                name = x, values = colors, guide = "legend",
+                breaks = x_vals, limits = x_vals, drop = FALSE
+            )
+        } else {
+            p <- p + scale_color_manual(name = x, values = colors, guide = "legend")
+        }
     } else {
         p <- p + geom_line(
             aes(group = 1), color = colors[[1]],
@@ -160,8 +159,15 @@ LinePlotSingle <- function(
     if (isTRUE(fill_point_by_x)) {
         p <- p + geom_point(
             aes(fill = !!sym(x)),
-            color = "grey20", alpha = pt_alpha, size = pt_size, shape = 21) +
-            scale_fill_manual(name = x, values = colors, guide = "legend", drop = !keep_empty)
+            color = "grey20", alpha = pt_alpha, size = pt_size, shape = 21, show.legend = TRUE)
+        if (isTRUE(keep_empty_x)) {
+            p <- p + scale_fill_manual(
+                name = x, values = colors, guide = "legend",
+                breaks = x_vals, limits = x_vals, drop = FALSE
+            )
+        } else {
+            p <- p + scale_fill_manual(name = x, values = colors, guide = "legend")
+        }
     } else {
         p <- p + geom_point(
             fill = colors[[1]],
@@ -175,7 +181,7 @@ LinePlotSingle <- function(
     }
 
     just <- calc_just(x_text_angle)
-    p <- p + scale_x_discrete(drop = !keep_empty) +
+    p <- p + scale_x_discrete(drop = !isTRUE(keep_empty_x)) +
         labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
         do.call(theme, theme_args) +
         ggplot2::theme(
@@ -242,16 +248,14 @@ LinePlotGrouped <- function(
         allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep
     )
     if (is.null(y)) {
+        orig_data <- data
         data <- data %>% dplyr::group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>% summarise(.y = n(), .groups = "drop")
+        # keep the factor levels
+        for (col in unique(c(x, group_by, facet_by))) {
+            data[[col]] <- factor(data[[col]], levels = levels(orig_data[[col]]))
+        }
+        rm(orig_data)
         y <- ".y"
-    }
-
-    data[[x]] <- droplevels(data[[x]])
-    if (!keep_na) {
-        data <- data[!is.na(data[[x]]), , drop = FALSE]
-    } else if (anyNA(data[[x]])) {
-        levels(data[[x]]) <- c(levels(data[[x]]), "<NA>")
-        data[[x]][is.na(data[[x]])] <- "<NA>"
     }
 
     if (isTRUE(add_errorbars)) {
@@ -266,14 +270,10 @@ LinePlotGrouped <- function(
         }
     }
 
-    if (keep_empty) {
-        # fill y with 0 for empty group_by. 'drop' with scale_fill_* doesn't have color for empty group_by
-        fill_list <- list(0)
-        names(fill_list) <- y
-        data <- data %>%
-            dplyr::group_by(!!!syms(unique(c(x, facet_by)))) %>%
-            complete(!!sym(group_by), fill = fill_list)
-    }
+    data <- process_keep_na_empty(data, keep_na, keep_empty)
+
+    keep_empty_x <- keep_empty[[x]]
+    keep_empty_group <- if (!is.null(group_by)) keep_empty[[group_by]] else NULL
 
     hidata <- NULL
     if (!is.null(highlight)) {
@@ -292,10 +292,12 @@ LinePlotGrouped <- function(
 
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y)))
     if (isTRUE(add_bg)) {
-        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, facet_by)
+        p <- p + bg_layer(data, x, isTRUE(keep_empty_x), bg_palette, bg_palcolor, bg_alpha, facet_by)
     }
+    group_vals <- levels(data[[group_by]])
+    if (anyNA(data[[group_by]])) group_vals <- c(group_vals, NA)
 
-    colors <- palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
+    colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
     if (!is.null(add_hline) && !isFALSE(add_hline)) {
         if (isTRUE(hline_color)) {
             if (!is.list(add_hline)) {
@@ -314,8 +316,16 @@ LinePlotGrouped <- function(
 
     p <- p + geom_line(
         aes(color = !!sym(group_by), group = !!sym(group_by)),
-        alpha = line_alpha, linetype = line_type, linewidth = line_width) +
-        scale_color_manual(name = group_by, values = colors, guide = "legend", drop = !keep_empty)
+        alpha = line_alpha, linetype = line_type, linewidth = line_width, show.legend = TRUE)
+
+    if (isTRUE(keep_empty_group)) {
+        p <- p + scale_color_manual(
+            name = group_by, values = colors, guide = "legend",
+            breaks = group_vals, limits = group_vals, drop = FALSE
+        )
+    } else {
+        p <- p + scale_color_manual(name = group_by, values = colors, guide = "legend")
+    }
 
     if (isTRUE(add_errorbars)) {
         if (errorbar_color == "line") {
@@ -331,8 +341,15 @@ LinePlotGrouped <- function(
 
     p <- p + geom_point(
         aes(fill = !!sym(group_by)),
-        color = "grey20", alpha = pt_alpha, size = pt_size, shape = 21) +
-        scale_fill_manual(name = group_by, values = colors, guide = "legend", drop = !keep_empty)
+        color = "grey20", alpha = pt_alpha, size = pt_size, shape = 21, show.legend = TRUE)
+    if (isTRUE(keep_empty_group)) {
+        p <- p + scale_fill_manual(
+            name = group_by, values = colors, guide = "legend",
+            breaks = group_vals, limits = group_vals, drop = FALSE
+        )
+    } else {
+        p <- p + scale_fill_manual(name = group_by, values = colors, guide = "legend")
+    }
 
     if (!is.null(hidata)) {
         p <- p + geom_point(
@@ -341,7 +358,7 @@ LinePlotGrouped <- function(
     }
 
     just <- calc_just(x_text_angle)
-    p <- p + scale_x_discrete(drop = !keep_empty) +
+    p <- p + scale_x_discrete(drop = !isTRUE(keep_empty_x)) +
         labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
         do.call(theme, theme_args) +
         ggplot2::theme(
@@ -400,9 +417,7 @@ LinePlotAtomic <- function(
     facet_by = NULL, facet_scales = "fixed", facet_args = list(),
     facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE, ...
 ) {
-    if (isTRUE(keep_empty)) {
-        stop("[LinePlot] 'keep_empty' = TRUE is not supported for LinePlot as it would break the continuity of the plot.")
-    }
+    facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
     if (is.null(group_by)) {
         p <- LinePlotSingle(
             data = data, x = x, y = y, fill_point_by_x = fill_point_by_x_if_no_group,
@@ -439,9 +454,16 @@ LinePlotAtomic <- function(
             title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, keep_na = keep_na, ...
         )
     }
+
+    keep_empty_facet <- if (!is.null(facet_by)) keep_empty[[facet_by[1]]] else NULL
+    if (length(facet_by) > 1) {
+        stopifnot("[LinePlot] `keep_empty` for `facet_by` variables must be identical." =
+            identical(keep_empty_facet, keep_empty[[facet_by[2]]]))
+    }
     facet_args$plot <- p
     facet_args["facet_by"] <- list(facet_by)
     facet_args["facet_scales"] <- list(facet_scales)
+    facet_args["drop"] <- list(!isTRUE(keep_empty_facet))
     facet_args["nrow"] <- list(facet_nrow)
     facet_args["ncol"] <- list(facet_ncol)
     facet_args["byrow"] <- list(facet_byrow)
@@ -459,6 +481,7 @@ LinePlotAtomic <- function(
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
 #' @examples
+#' \donttest{
 #' data <- data.frame(
 #'    x = factor(c("A", "B", "C", "D", "A", "B", "C", "D"), levels = LETTERS[1:6]),
 #'    y = c(10, 8, 16, 4, 6, 12, 14, 2),
@@ -478,6 +501,24 @@ LinePlotAtomic <- function(
 #' LinePlot(data, x = "x", y = "y", group_by = "group", split_by = "facet")
 #' LinePlot(data, x = "x", y = "y", split_by = "group",
 #'          palcolor = list(G1 = c("red", "blue"), G2 = c("green", "black")))
+#'
+#' # keep_na and keep_empty
+#' data <- data.frame(
+#'    x = factor(c("A", "B", NA, "D", "A", "B", NA, "D"), levels = LETTERS[1:4]),
+#'    y = c(10, 8, 16, 4, 6, 12, 14, 2),
+#'    group = factor(c("G1", "G1", "G1", NA, NA, "G3", "G3", "G3"),
+#'      levels = c("G1", "G2", "G3")),
+#'    facet = c("F1", "F1", "F2", "F2", "F3", "F3", "F4", "F4")
+#' )
+#'
+#' LinePlot(data, x = "x", y = "y", keep_na = TRUE)
+#' LinePlot(data, x = "x", y = "y", keep_empty = TRUE)
+#' LinePlot(data, x = "x", y = "y", keep_empty = 'level')
+#' LinePlot(data, x = "x", y = "y", group_by = "group", keep_na = TRUE)
+#' LinePlot(data, x = "x", y = "y", group_by = "group", keep_empty = TRUE)
+#' LinePlot(data, x = "x", y = "y", group_by = "group",
+#'    keep_empty = list(x = TRUE, group = 'level'))
+#' }
 LinePlot <- function(
     data, x, y = NULL, group_by = NULL, group_by_sep = "_", split_by = NULL, split_by_sep = "_",
     fill_point_by_x_if_no_group = TRUE, color_line_by_x_if_no_group = TRUE,
@@ -485,7 +526,7 @@ LinePlot <- function(
     add_errorbars = FALSE, errorbar_width = 0.1, errorbar_alpha = 1,
     errorbar_color = "grey30", errorbar_linewidth = .75, errorbar_min = NULL, errorbar_max = NULL, errorbar_sd = NULL,
     highlight = NULL, highlight_size = pt_size - 0.75, highlight_color = "red2", highlight_alpha = 0.8,
-    pt_alpha = 1, pt_size = 5,
+    pt_alpha = 1, pt_size = 5, keep_na = FALSE, keep_empty = FALSE,
     line_type = "solid", line_width = 1, line_alpha = .8,
     add_hline = FALSE, hline_type = "solid", hline_width = 0.5, hline_color = "black", hline_alpha = 1,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
@@ -494,10 +535,12 @@ LinePlot <- function(
     facet_by = NULL, facet_scales = "fixed",
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
     facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE, facet_args = list(),
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, keep_na = FALSE, seed = 8525,
+    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
+    keep_na <- check_keep_na(keep_na, c(x, group_by, split_by, facet_by))
+    keep_empty <- check_keep_empty(keep_empty, c(x, group_by, split_by, facet_by))
     theme <- process_theme(theme)
 
     x <- check_columns(data, x, force_factor = TRUE)
@@ -506,7 +549,9 @@ LinePlot <- function(
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
 
     if (!is.null(split_by)) {
-        data[[split_by]] <- droplevels(data[[split_by]])
+        data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
+        keep_na[[split_by]] <- NULL
+        keep_empty[[split_by]] <- NULL
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
@@ -544,7 +589,7 @@ LinePlot <- function(
                 x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
                 legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]], facet_args = facet_args,
                 facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, keep_na = keep_na, ...
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_na = keep_na, keep_empty = keep_empty, ...
             )
         }
     )

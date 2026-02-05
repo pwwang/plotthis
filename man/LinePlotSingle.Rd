@@ -161,36 +161,26 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{ylab}{A character string specifying the y-axis label.}
 
-\item{keep_empty}{Logical or character. Whether to keep unused factor levels on categorical axes.
+\item{keep_empty}{One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.
 \itemize{
-\item{\code{FALSE} (default): Drop unused factor levels via \code{droplevels()}.}
-\item{\code{TRUE}: Keep all factor levels defined in the data, even if they have no observations.
-For plots with both x and y categorical, applies to both axes.}
-\item{\code{"x"}: Keep unused levels only on the x-axis, drop from y-axis.}
-\item{\code{"y"}: Keep unused levels only on the y-axis, drop from x-axis.}
-\item{\code{c("x", "y")} or \code{"xy"}: Explicitly keep unused levels on both axes (same as \code{TRUE}).}
-}
+\item{\code{FALSE} (default): Drop empty factor levels from the data before plotting.}
+\item{\code{TRUE}: Keep empty factor levels and show them as a separate category in the plot.}
+\item{\code{"level"}: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: \code{levels}}
+}}
 
-\strong{Note:} This parameter is distinct from \code{keep_na}. Use \code{keep_empty = TRUE}
-when you need to show all possible categories (e.g., all 12 months even if some have no data).
-For more complex completeness requirements, use \code{tidyr::complete()} before plotting.
-
-\strong{Backward compatibility:} If \code{keep_na} is not specified and \code{keep_empty}
-is provided, \code{keep_empty} will control both NA values and unused levels (legacy behavior).}
-
-\item{keep_na}{Logical or character. Whether to keep rows with NA values on categorical axes.
-\itemize{
-\item{\code{FALSE} (default): Remove rows with NA values in categorical axes.}
-\item{\code{TRUE}: Keep NA values and display them as a separate category (shown as "NA").
-For plots with both x and y categorical, applies to both axes.}
-\item{\code{"x"}: Keep NA values only on the x-axis, remove from y-axis.}
-\item{\code{"y"}: Keep NA values only on the y-axis, remove from x-axis.}
-\item{\code{c("x", "y")} or \code{"xy"}: Explicitly keep NA on both axes (same as \code{TRUE}).}
-}
-
-\strong{Special cases:} For \code{AreaPlot}, \code{LinePlot}, and \code{TrendPlot},
-keeping NA values would break the visual continuity. Setting \code{keep_na = TRUE}
-will raise an error for these plot types.}
+\item{keep_na}{A logical value or a character to replace the NA values in the data.
+It can also take a named list to specify different behavior for different columns.
+If TRUE or NA, NA values will be replaced with NA.
+If FALSE, NA values will be removed from the data before plotting.
+If a character string is provided, NA values will be replaced with the provided string.
+If a named vector/list is provided, the names should be the column names to apply the behavior to,
+and the values should be one of TRUE, FALSE, or a character string.
+Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
+for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.}
 
 \item{...}{Additional arguments.}
 }
