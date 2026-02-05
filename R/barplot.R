@@ -60,14 +60,19 @@ BarPlotSingle <- function(
     y <- check_columns(data, y)
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
     if (is.null(y)) {
+        orig_data <- data
         data <- data %>%
             group_by(!!!syms(unique(c(x, facet_by)))) %>%
             summarise(.y = n(), .groups = "drop")
+        # keep the factor levels
+        for (col in unique(c(x, facet_by))) {
+            data[[col]] <- factor(data[[col]], levels = levels(orig_data[[col]]))
+        }
+        rm(orig_data)
         y <- ".y"
     }
-    if (isTRUE(label)) {
-        label <- y
-    }
+    if (isTRUE(label)) label <- y
+
     label <- check_columns(data, label)
     if (inherits(expand, "waiver")) {
         expand <- c(0, 0, 0, 0)
@@ -84,47 +89,28 @@ BarPlotSingle <- function(
     }
     expand <- norm_expansion(expand, x_type = "discrete", y_type = "continuous")
 
-    # Step 1: Drop unused levels (controlled by keep_empty)
-    if (!keep_empty) {
-        data[[x]] <- droplevels(data[[x]])
-    }
+    data <- process_keep_na_empty(data, keep_na, keep_empty)
 
-    # Step 2: Handle NA values (controlled by keep_na)
-    if (!keep_na) {
-        data <- data[!is.na(data[[x]]), , drop = FALSE]
-    } else if (anyNA(data[[x]])) {
-        levels(data[[x]]) <- c(levels(data[[x]]), "<NA>")
-        data[[x]][is.na(data[[x]])] <- "<NA>"
-    }
-
-    # Step 3: Use complete() for cross-group completeness when keep_empty = TRUE
-    if (keep_empty) {
-        # fill y with 0 for empty factor levels
-        fill_list <- list(0)
-        names(fill_list) <- y
-        if (is.null(facet_by)) {
-            data <- data %>% complete(!!sym(x), fill = fill_list)
-        } else {
-            data <- data %>% group_by(!!!syms(facet_by)) %>% complete(!!sym(x), fill = fill_list)
-        }
-    }
+    keep_empty_x <- keep_empty[[x]]
 
     if (isTRUE(fill_by_x)) {
-        p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(x)))
-        colors <- palette_this(levels(data[[x]]), palette = palette, palcolor = palcolor)
+        x_vals <- levels(data[[x]])
+        if (anyNA(data[[x]])) x_vals <- c(x_vals, NA)
+        colors <- palette_this(x_vals, palette = palette, palcolor = palcolor)
         guide <- guide_legend(order = 1)
+        p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(x)))
     } else {
-        p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = "fill"))
         colors <- palette_this("fill", palette = palette, palcolor = palcolor)
         guide <- "none"
+        p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = "fill"))
     }
     if (isTRUE(add_bg)) {
-        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, facet_by)
+        p <- p + bg_layer(data, x, isTRUE(keep_empty_x), bg_palette, bg_palcolor, bg_alpha, facet_by)
     }
 
     just <- calc_just(x_text_angle)
 
-    p <- p + geom_col(alpha = alpha, width = width)
+    p <- p + geom_col(alpha = alpha, width = width, show.legend = TRUE)
 
     if (!is.null(label)) {
         # nudge doesn't work as aes, let's adjust the y
@@ -143,9 +129,9 @@ BarPlotSingle <- function(
         )
     }
     p <- p +
-        scale_fill_manual(name = x, values = colors, guide = guide) +
+        # scale_fill_manual(name = x, values = colors, guide = guide) +
         labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
-        scale_x_discrete(expand = expand$x, drop = !keep_empty) +
+        scale_x_discrete(expand = expand$x, drop = !isTRUE(keep_empty_x)) +
         scale_y_continuous(expand = expand$y) +
         do.call(theme, theme_args) +
         ggplot2::theme(
@@ -155,6 +141,21 @@ BarPlotSingle <- function(
             panel.grid.major = element_line(colour = "grey80", linetype = 2),
             axis.text.x = element_text(angle = x_text_angle, hjust = just$h, vjust = just$v)
         )
+
+    if (isTRUE(keep_empty_x)) {
+        p <- p +
+            scale_fill_manual(
+                values = colors,
+                guide = guide,
+                breaks = x_vals, limits = x_vals, drop = FALSE
+            )
+    } else {
+        p <- p +
+            scale_fill_manual(
+                values = colors,
+                guide = guide
+            )
+    }
 
     if (isTRUE(add_trend)) {
         p <- p +
@@ -254,10 +255,15 @@ BarPlotGrouped <- function(
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
     x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
     y <- check_columns(data, y)
+    orig_data <- data
     if (is.null(y)) {
         data <- data %>%
             dplyr::group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>%
             summarise(.y = n(), .groups = "drop")
+        # keep the factor levels
+        for (col in unique(c(x, group_by, facet_by))) {
+            data[[col]] <- factor(data[[col]], levels = levels(orig_data[[col]]))
+        }
         y <- ".y"
     }
     if (isTRUE(label)) {
@@ -270,42 +276,28 @@ BarPlotGrouped <- function(
             dplyr::group_by(!!!syms(unique(c(x, facet_by)))) %>%
             mutate(!!sym(y_scaled) := !!sym(y) / sum(!!sym(y))) %>%
             ungroup()
+
+        for (col in unique(c, facet_by)) {
+            data[[col]] <- factor(data[[col]], levels = levels(orig_data[[col]]))
+        }
     }
+    rm(orig_data)
+
     if (inherits(width, "waiver")) width <- 0.8
 
-    # Step 1: Drop unused levels (controlled by keep_empty)
-    if (!keep_empty) {
-        data[[x]] <- droplevels(data[[x]])
-        data[[group_by]] <- droplevels(data[[group_by]])
-    }
+    data <- process_keep_na_empty(data, keep_na, keep_empty)
 
-    # Step 2: Handle NA values (controlled by keep_na)
-    if (!keep_na) {
-        data <- data[!is.na(data[[x]]), , drop = FALSE]
-    } else if (anyNA(data[[x]])) {
-        levels(data[[x]]) <- c(levels(data[[x]]), "<NA>")
-        data[[x]][is.na(data[[x]])] <- "<NA>"
-    }
-
-    # Step 3: Use complete() for cross-group completeness when keep_empty = TRUE
-    if (keep_empty) {
-        # fill y with 0 for empty group_by
-        fill_list <- list(0)
-        names(fill_list) <- y
-        if (isTRUE(scale_y)) {
-            fill_list[[y_scaled]] <- 0
-        }
-        data <- data %>%
-            dplyr::group_by(!!!syms(unique(c(x, facet_by)))) %>%
-            complete(!!sym(group_by), fill = fill_list)
-    }
+    keep_empty_x <- keep_empty[[x]]
+    keep_empty_group <- keep_empty[[group_by]]
+    group_vals <- levels(data[[group_by]])
+    if (anyNA(data[[group_by]])) group_vals <- c(group_vals, NA)
 
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(ifelse(scale_y, y_scaled, y)), fill = !!sym(group_by)))
     if (isTRUE(add_bg)) {
-        p <- p + bg_layer(data, x, bg_palette, bg_palcolor, bg_alpha, facet_by)
+        p <- p + bg_layer(data, x, isTRUE(keep_empty_x), bg_palette, bg_palcolor, bg_alpha, facet_by)
     }
 
-    colors <- palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
+    colors <- palette_this(group_vals, palette = palette, palcolor = palcolor)
     just <- calc_just(x_text_angle)
     if (position == "auto") {
         position <- if (length(colors) <= 5) {
@@ -337,10 +329,9 @@ BarPlotGrouped <- function(
     }
     expand <- norm_expansion(expand, x_type = "discrete", y_type = "continuous")
 
-    p <- p + geom_col(alpha = alpha, position = position, width = width) +
-        scale_fill_manual(name = group_name %||% group_by, values = colors, guide = guide_legend(order = 1)) +
+    p <- p + geom_col(alpha = alpha, position = position, width = width, show.legend = TRUE) +
         labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
-        scale_x_discrete(expand = expand$x, drop = !keep_empty) +
+        scale_x_discrete(expand = expand$x, drop = !isTRUE(keep_empty_x)) +
         scale_y_continuous(expand = expand$y) +
         do.call(theme, theme_args) +
         ggplot2::theme(
@@ -350,6 +341,23 @@ BarPlotGrouped <- function(
             panel.grid.major = element_line(colour = "grey80", linetype = 2),
             axis.text.x = element_text(angle = x_text_angle, hjust = just$h, vjust = just$v)
         )
+
+    if (isTRUE(keep_empty_group)) {
+        p <- p +
+            scale_fill_manual(
+                name = group_name %||% group_by,
+                values = colors,
+                guide = guide_legend(order = 1),
+                breaks = group_vals, limits = group_vals, drop = FALSE
+            )
+    } else {
+        p <- p +
+            scale_fill_manual(
+                name = group_name %||% group_by,
+                values = colors,
+                guide = guide_legend(order = 1)
+            )
+    }
 
     if (isTRUE(add_trend)) {
         if (is.null(trend_color)) {
@@ -510,10 +518,16 @@ BarPlotAtomic <- function(
             expand = expand, width = width, ...
         )
     }
+    keep_empty_facet <- if (!is.null(facet_by)) keep_empty[[facet_by[1]]] else NULL
+    if (length(facet_by) > 1) {
+        stopifnot("[BarPlot] `keep_empty` for `facet_by` variables must be identical." =
+            identical(keep_empty_facet, keep_empty[[facet_by[2]]]))
+    }
 
     facet_args$plot <- p
     facet_args["facet_by"] <- list(facet_by)
     facet_args["facet_scales"] <- list(facet_scales)
+    facet_args["drop"] <- list(!isTRUE(keep_empty_facet))
     facet_args["nrow"] <- list(facet_nrow)
     facet_args["ncol"] <- list(facet_ncol)
     facet_args["byrow"] <- list(facet_byrow)
@@ -572,6 +586,57 @@ BarPlotAtomic <- function(
 #' BarPlot(data, x = "group", ylab = "count")
 #' # flip the plot
 #' BarPlot(data, x = "group", flip = TRUE, ylab = "count")
+#'
+#' data <- data.frame(
+#'     x = factor(c("A", "B", "C", "D", "E", "F", NA, "H"), levels = LETTERS[1:10]),
+#'     y = c(10, 8, 16, 4, 6, NA, 14, 2),
+#'     group = factor(c("G1", "G1", "G2", NA, "G3", "G3", "G5", "G5"),
+#'        levels = c("G1", "G2", "G3", "G4", "G5")),
+#'     facet = factor(c("F1", NA, "F3", "F4", "F1", "F2", "F3", "F4"),
+#'        levels = c("F1", "F2", "F3", "F4", "F5"))
+#' )
+#' # keep_na and keep_empty on simple barplots
+#' BarPlot(data, x = "x", y = "y",
+#'     title = "keep_na = FALSE; keep_empty = FALSE")
+#' BarPlot(data, x = "x", y = "y",
+#'     keep_na = TRUE, keep_empty = TRUE,
+#'     title = "keep_na = TRUE; keep_empty = TRUE")
+#' BarPlot(data, x = "x", y = "y",
+#'     keep_na = TRUE, keep_empty = TRUE, facet_by = "facet",
+#'     title = "keep_na = TRUE; keep_empty = TRUE; facet_by = 'facet'")
+#' BarPlot(data, x = "x", y = "y",
+#'     keep_na = TRUE, keep_empty = 'level',
+#'     title = "keep_na = TRUE; keep_empty = 'level'")
+#' BarPlot(data, x = "x", y = "y",
+#'     keep_na = list(x = TRUE), keep_empty = list(x = FALSE),
+#'     title = "keep_na: x=TRUE\nkeep_empty: x=FALSE"
+#' )
+#'
+#' # keep_na and keep_empty on grouped barplots
+#' BarPlot(data,
+#'     x = "group", y = "y", group_by = "x",
+#'     title = "keep_na = FALSE; keep_empty = FALSE")
+#' BarPlot(data,
+#'     x = "group", y = "y", group_by = "x",
+#'     keep_na = TRUE, keep_empty = TRUE,
+#'     title = "keep_na = TRUE; keep_empty = TRUE"
+#' )
+#' BarPlot(data,
+#'     x = "group", y = "y", group_by = "x",
+#'     keep_na = TRUE, keep_empty = TRUE, facet_by = "facet",
+#'     title = "keep_na = TRUE; keep_empty = TRUE; facet_by = 'facet'"
+#' )
+#' BarPlot(data,
+#'     x = "group", y = "y", group_by = "x",
+#'     keep_na = TRUE, keep_empty = 'level',
+#'     title = "keep_na = TRUE; keep_empty = 'level'"
+#' )
+#' BarPlot(data,
+#'     x = "group", y = "y", group_by = "x",
+#'     keep_na = list(x = TRUE, group = FALSE),
+#'     keep_empty = list(x = FALSE, group = TRUE),
+#'     title = "keep_na: x=TRUE, group=FALSE\nkeep_empty: x=FALSE, group=TRUE"
+#' )
 #' }
 BarPlot <- function(
     data, x, x_sep = "_", y = NULL, flip = FALSE, fill_by_x_if_no_group = TRUE, line_name = NULL, label_nudge = 0.02,
@@ -589,10 +654,16 @@ BarPlot <- function(
     expand = waiver(), width = waiver(), combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525,
     axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...) {
     validate_common_args(seed, facet_by = facet_by)
+    keep_na <- check_keep_na(keep_na, c(x, split_by, facet_by, group_by))
+    keep_empty <- check_keep_empty(keep_empty, c(x, split_by, facet_by, group_by))
     theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
 
     if (!is.null(split_by)) {
+        data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
+        keep_na[[split_by]] <- NULL
+        keep_empty[[split_by]] <- NULL
+
         data[[split_by]] <- droplevels(data[[split_by]])
         datas <- split(data, data[[split_by]])
         # keep the order of levels
@@ -659,6 +730,7 @@ BarPlot <- function(
 #' @param fill_by A character string indicating the column name to use for the fill of the bars.
 #' @param fill_by_sep A character string to concatenate the fill columns if there are multiple.
 #' @param fill_name A character string indicating the legend name of the fill.
+#' @param direction_name A character string indicating the name of the direction column and will be shown in the legend.
 #' @param direction_pos_name A character string indicating the name of the positive direction.
 #' @param direction_neg_name A character string indicating the name of the negative direction.
 #' @param x_min A numeric value indicating the minimum value of the x axis.
@@ -735,6 +807,8 @@ SplitBarPlotAtomic <- function(
         if (length(order_y) == 1) {  # *
             data <- order_df(data, order_y[[1]])
         } else {  # +, -
+            data[[direction_name]][is.na(data[[x]])] <- "positive"
+            data[[x]][is.na(data[[x]])] <- 0
             data_pos <- order_df(data[data[[direction_name]] == direction_pos_name, ], order_y[["+"]])
             data_neg <- order_df(data[data[[direction_name]] == direction_neg_name, ], order_y[["-"]])
             data <- rbind(data_pos, data_neg)
@@ -744,7 +818,6 @@ SplitBarPlotAtomic <- function(
         ordered_levels <- c(ordered_levels, setdiff(levels(data[[y]]), unique(data[[y]])))
         data[[y]] <- factor(data[[y]], levels = ordered_levels)
     }
-
     data <- process_keep_na_empty(data, keep_na, keep_empty)
     data[[y]] <- fct_relabel(data[[y]], str_wrap, width = max_charwidth)
 
@@ -753,44 +826,92 @@ SplitBarPlotAtomic <- function(
     # level: unused levels are dropped, but kept for determine fill_by colors
     keep_empty_y <- keep_empty[[y]]
     keep_empty_fill <- if (!is.null(fill_by)) keep_empty[[fill_by]] else NULL
-    if (identical(keep_empty_y, "true")) {
-        # add unused levels to data, and set x to 0
-        # todo: add unused levels for each facet?
-        y_vals <- unique(data[[y]])
-        all_y_vals <- unique(c(levels(data[[y]]), y_vals[is.na(y_vals)]))
-        missing_levels <- setdiff(all_y_vals, y_vals)
-        if (length(missing_levels) > 0) {
-            add_data <- data.frame(matrix(NA, nrow = length(missing_levels), ncol = ncol(data)))
-            colnames(add_data) <- colnames(data)
-            add_data[[y]] <- missing_levels
-            add_data[[x]] <- 0
-            add_data[[direction_name]] <- "positive"
-            data <- rbind(data, add_data)
+    keep_empty_facet <- if (!is.null(facet_by)) keep_empty[[facet_by[1]]] else NULL
+    if (length(facet_by) > 1) {
+        stopifnot("[SplitBarPlot] `keep_empty` for `facet_by` variables must be identical." =
+            identical(keep_empty_facet, keep_empty[[facet_by[2]]]))
+    }
+    if (isTRUE(keep_empty_y)) {
+        # Determine all possible y values globally (levels + NA if present anywhere)
+        all_y_vals_global <- unique(c(levels(data[[y]]), if (anyNA(data[[y]])) NA else NULL))
+
+        # Create facet grouping (or single group if no facets)
+        if (!is.null(facet_by)) {
+            facet_cols <- if (length(facet_by) > 1) {
+                interaction(data[facet_by], drop = TRUE, sep = "___")
+            } else {
+                data[[facet_by[1]]]
+            }
+        } else {
+            facet_cols <- factor(rep("__single__", nrow(data)))
         }
+
+        # Add missing levels per facet (or globally if no facets)
+        data_list <- split(data, facet_cols)
+        data_list <- lapply(names(data_list), function(facet_val) {
+            facet_data <- data_list[[facet_val]]
+            y_vals <- unique(facet_data[[y]])
+            missing_levels <- setdiff(all_y_vals_global, y_vals)
+
+            if (length(missing_levels) > 0) {
+                add_data <- data.frame(matrix(NA, nrow = length(missing_levels), ncol = ncol(facet_data)))
+                colnames(add_data) <- colnames(facet_data)
+                add_data[[y]] <- missing_levels
+                add_data[[x]] <- 0
+                add_data[[direction_name]] <- "positive"
+
+                # Set facet variables if they exist
+                if (!is.null(facet_by)) {
+                    if (length(facet_by) > 1) {
+                        facet_vals <- strsplit(facet_val, "___", fixed = TRUE)[[1]]
+                        for (i in seq_along(facet_by)) {
+                            add_data[[facet_by[i]]] <- facet_vals[i]
+                        }
+                    } else {
+                        add_data[[facet_by[1]]] <- facet_val
+                    }
+                }
+
+                facet_data <- rbind(facet_data, add_data)
+            }
+            facet_data
+        })
+        data <- do.call(rbind, data_list)
+        rownames(data) <- NULL
     }
 
     x_min <- x_min %||% -max(abs(data[[x]]))
     x_max <- x_max %||% max(abs(data[[x]]))
 
-    fill_vals <- if (!identical(keep_empty_fill, "false")) {
+    fill_vals <- if (!isFALSE(keep_empty_fill) || !anyNA(data[[fill_by]])) {
         levels(data[[fill_by]])
     } else {
-        levels(droplevels(data[[fill_by]]))
+        c(levels(data[[fill_by]]), NA)
     }
-
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y))) +
         geom_vline(xintercept = 0) +
         geom_col(aes(fill = !!sym(fill_by), alpha = !!sym(alpha_by)), color = "black", width = bar_height, show.legend = TRUE) +
-        scale_fill_manual(
-            name = fill_name %||% fill_by,
-            values = palette_this(fill_vals, palette = palette, palcolor = palcolor),
-            guide = guide_legend(order = 1)
-        ) +
         scale_alpha_continuous(
             name = alpha_name %||% alpha_by,
             range = if (alpha_reverse) c(1, 0.1) else c(0.1, 1),
             guide = alpha_guide
         )
+    if (isTRUE(keep_empty_fill)) {
+        p <- p +
+            scale_fill_manual(
+                name = fill_name %||% fill_by,
+                values = palette_this(fill_vals, palette = palette, palcolor = palcolor),
+                guide = guide_legend(order = 1),
+                breaks = fill_vals, limits = fill_vals, drop = FALSE
+            )
+    } else {
+        p <- p +
+            scale_fill_manual(
+                name = fill_name %||% fill_by,
+                values = palette_this(fill_vals, palette = palette, palcolor = palcolor),
+                guide = guide_legend(order = 1)
+            )
+    }
 
     if (isTRUE(flip)) {
         p <- p +
@@ -811,22 +932,21 @@ SplitBarPlotAtomic <- function(
             ) +
             ggplot2::theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
     } else {
-        p <- p +
-            geom_text(
-                aes(
-                    x = 0, y = !!sym(y),
-                    # nudge_y is not an aesthetic
-                    label = ifelse(
-                        is.na(!!sym(y)),
-                        " NA ",
-                        ifelse(.data[[x]] >= 0, gsub("(\\n|$)", " \\1", !!sym(y)), gsub("(^|\\n)", "\\1 ", !!sym(y)))
-                    ),
-                    hjust = ifelse(.data[[x]] >= 0, 1, 0),
+        p <- p + geom_text(
+            aes(
+                x = 0, y = !!sym(y),
+                # nudge_y is not an aesthetic
+                label = ifelse(
+                    is.na(!!sym(y)),
+                    " NA ",
+                    ifelse(.data[[x]] >= 0, gsub("(\\n|$)", " \\1", !!sym(y)), gsub("(^|\\n)", "\\1 ", !!sym(y)))
                 ),
-                color = "black",
-                lineheight = lineheight
-            ) +
-            ggplot2::theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+                hjust = ifelse(.data[[x]] >= 0, 1, 0),
+            ),
+            color = "black",
+            lineheight = lineheight
+        ) +
+        ggplot2::theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
     }
 
     p <- p +
@@ -863,7 +983,8 @@ SplitBarPlotAtomic <- function(
     attr(p, "width") <- width
 
     facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-        legend.position = legend.position, legend.direction = legend.direction)
+        legend.position = legend.position, legend.direction = legend.direction,
+        drop = !isTRUE(keep_empty_facet))
 }
 
 #' @rdname barplot
@@ -871,6 +992,8 @@ SplitBarPlotAtomic <- function(
 #' @inheritParams SplitBarPlotAtomic
 #' @export
 #' @examples
+#' \donttest{
+#' set.seed(8525)
 #' data <- data.frame(
 #'     word = c("apple", "banana", "cherry", "date", "elderberry",
 #'              "It is a very long term with a lot of words"),
@@ -886,6 +1009,34 @@ SplitBarPlotAtomic <- function(
 #'              fill_name = "Direction")
 #' SplitBarPlot(data, x = "count", y = "word", alpha_by = "score", split_by="group",
 #'              palette = c(A = "Reds", B = "Blues", C = "Greens"))
+#'
+#' # test keep_na and keep_empty
+#' data <- data.frame(
+#'     word = factor(c("apple", "banana", "cherry", NA, "elderberry",
+#'          "It is a very long term with a lot of words"),
+#'          levels = c("apple", "banana", "cherry", "date", "elderberry",
+#'              "unused", "It is a very long term with a lot of words")),
+#'     count = c(-10, 20, NA, 40, 10, 34),
+#'     score = c(1, 2, 3, 4, 5, 3.2),
+#'     group = factor(sample(c("A", "A", "B", "B", "C", "C")),
+#'          levels = c("A", "B", "C", "D"))
+#' )
+#'
+#' SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
+#'     title = "keep_na = FALSE; keep_empty = FALSE")
+#' SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
+#'     keep_na = TRUE, keep_empty = TRUE,
+#'     title = "keep_na = TRUE; keep_empty = TRUE")
+#' SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
+#'     keep_na = TRUE, keep_empty = TRUE, facet_by = "group",
+#'     title = "keep_na = TRUE; keep_empty = TRUE; facet_by = 'group'")
+#' SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
+#'     keep_na = TRUE, keep_empty = "level",
+#'     title = "keep_na = TRUE; keep_empty = 'level'")
+#' SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
+#'     keep_na = list(word = FALSE), keep_empty = list(word = TRUE),
+#'     title = "keep_na: word=FALSE; keep_empty: word=TRUE")
+#' }
 SplitBarPlot <- function(
     data, x, y, y_sep = "_", flip = FALSE, split_by = NULL, split_by_sep = "_",
     alpha_by = NULL, alpha_reverse = FALSE, alpha_name = NULL,
@@ -901,8 +1052,8 @@ SplitBarPlot <- function(
     axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
-    keep_na <- check_keep_na(keep_na, y)
-    keep_empty <- check_keep_empty(keep_empty, y)
+    keep_na <- check_keep_na(keep_na, c(y, split_by, facet_by, fill_by))
+    keep_empty <- check_keep_empty(keep_empty, c(y, split_by, facet_by, fill_by))
     theme <- process_theme(theme)
     split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
 

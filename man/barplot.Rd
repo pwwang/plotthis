@@ -94,6 +94,7 @@ SplitBarPlot(
   fill_by = NULL,
   fill_by_sep = "_",
   fill_name = NULL,
+  direction_name = "direction",
   direction_pos_name = "positive",
   direction_neg_name = "negative",
   theme = "theme_this",
@@ -146,6 +147,7 @@ WaterfallPlot(
   fill_by = NULL,
   fill_by_sep = "_",
   fill_name = NULL,
+  direction_name = "direction",
   direction_pos_name = "positive",
   direction_neg_name = "negative",
   theme = "theme_this",
@@ -304,27 +306,26 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{ylab}{A character string specifying the y-axis label.}
 
-\item{keep_empty}{One of "FALSE", "TRUE" and "level". It can also take a named list to specify
-different behavior for different columns. If a single logical value is provided, it will be converted
-to a character value internally. Without a named list, the behavior applies to column for the \code{x} axis.
+\item{keep_empty}{One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.
 \itemize{
-\item{\code{FALSE} (default): Drop empty factor levels from the data before plotting.
-Alias: \code{false}}
-\item{\code{TRUE}: Keep empty factor levels and show them as a separate category in the plot.
-Alias: \code{true}}
-\item{\code{level}: Keep empty factor levels, but do not show them in the plot.
+\item{\code{FALSE} (default): Drop empty factor levels from the data before plotting.}
+\item{\code{TRUE}: Keep empty factor levels and show them as a separate category in the plot.}
+\item{\code{"level"}: Keep empty factor levels, but do not show them in the plot.
 But they will be assigned colors from the palette to maintain consistency across multiple plots.
 Alias: \code{levels}}
 }}
 
 \item{keep_na}{A logical value or a character to replace the NA values in the data.
 It can also take a named list to specify different behavior for different columns.
-If TRUE, NA values will be replaced with "\if{html}{\out{<NA>}}" string.
+If TRUE or NA, NA values will be replaced with NA.
 If FALSE, NA values will be removed from the data before plotting.
 If a character string is provided, NA values will be replaced with the provided string.
 If a named vector/list is provided, the names should be the column names to apply the behavior to,
 and the values should be one of TRUE, FALSE, or a character string.
-Without a named vector/list, the behavior applies to column for the \code{x} axis.}
+Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
+for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.}
 
 \item{expand}{The values to expand the x and y axes. It is like CSS padding.
 When a single value is provided, it is used for both axes on both sides.
@@ -409,6 +410,8 @@ The "*" key is used to order the y axis without considering the direction.}
 
 \item{fill_name}{A character string indicating the legend name of the fill.}
 
+\item{direction_name}{A character string indicating the name of the direction column and will be shown in the legend.}
+
 \item{direction_pos_name}{A character string indicating the name of the positive direction.}
 
 \item{direction_neg_name}{A character string indicating the name of the negative direction.}
@@ -465,7 +468,60 @@ BarPlot(data,
 BarPlot(data, x = "group", ylab = "count")
 # flip the plot
 BarPlot(data, x = "group", flip = TRUE, ylab = "count")
+
+data <- data.frame(
+    x = factor(c("A", "B", "C", "D", "E", "F", NA, "H"), levels = LETTERS[1:10]),
+    y = c(10, 8, 16, 4, 6, NA, 14, 2),
+    group = factor(c("G1", "G1", "G2", NA, "G3", "G3", "G5", "G5"),
+       levels = c("G1", "G2", "G3", "G4", "G5")),
+    facet = factor(c("F1", NA, "F3", "F4", "F1", "F2", "F3", "F4"),
+       levels = c("F1", "F2", "F3", "F4", "F5"))
+)
+# keep_na and keep_empty on simple barplots
+BarPlot(data, x = "x", y = "y",
+    title = "keep_na = FALSE; keep_empty = FALSE")
+BarPlot(data, x = "x", y = "y",
+    keep_na = TRUE, keep_empty = TRUE,
+    title = "keep_na = TRUE; keep_empty = TRUE")
+BarPlot(data, x = "x", y = "y",
+    keep_na = TRUE, keep_empty = TRUE, facet_by = "facet",
+    title = "keep_na = TRUE; keep_empty = TRUE; facet_by = 'facet'")
+BarPlot(data, x = "x", y = "y",
+    keep_na = TRUE, keep_empty = 'level',
+    title = "keep_na = TRUE; keep_empty = 'level'")
+BarPlot(data, x = "x", y = "y",
+    keep_na = list(x = TRUE), keep_empty = list(x = FALSE),
+    title = "keep_na: x=TRUE\nkeep_empty: x=FALSE"
+)
+
+# keep_na and keep_empty on grouped barplots
+BarPlot(data,
+    x = "group", y = "y", group_by = "x",
+    title = "keep_na = FALSE; keep_empty = FALSE")
+BarPlot(data,
+    x = "group", y = "y", group_by = "x",
+    keep_na = TRUE, keep_empty = TRUE,
+    title = "keep_na = TRUE; keep_empty = TRUE"
+)
+BarPlot(data,
+    x = "group", y = "y", group_by = "x",
+    keep_na = TRUE, keep_empty = TRUE, facet_by = "facet",
+    title = "keep_na = TRUE; keep_empty = TRUE; facet_by = 'facet'"
+)
+BarPlot(data,
+    x = "group", y = "y", group_by = "x",
+    keep_na = TRUE, keep_empty = 'level',
+    title = "keep_na = TRUE; keep_empty = 'level'"
+)
+BarPlot(data,
+    x = "group", y = "y", group_by = "x",
+    keep_na = list(x = TRUE, group = FALSE),
+    keep_empty = list(x = FALSE, group = TRUE),
+    title = "keep_na: x=TRUE, group=FALSE\nkeep_empty: x=FALSE, group=TRUE"
+)
 }
+\donttest{
+set.seed(8525)
 data <- data.frame(
     word = c("apple", "banana", "cherry", "date", "elderberry",
              "It is a very long term with a lot of words"),
@@ -481,4 +537,32 @@ SplitBarPlot(data, x = "count", y = "word", facet_by = "group",
              fill_name = "Direction")
 SplitBarPlot(data, x = "count", y = "word", alpha_by = "score", split_by="group",
              palette = c(A = "Reds", B = "Blues", C = "Greens"))
+
+# test keep_na and keep_empty
+data <- data.frame(
+    word = factor(c("apple", "banana", "cherry", NA, "elderberry",
+         "It is a very long term with a lot of words"),
+         levels = c("apple", "banana", "cherry", "date", "elderberry",
+             "unused", "It is a very long term with a lot of words")),
+    count = c(-10, 20, NA, 40, 10, 34),
+    score = c(1, 2, 3, 4, 5, 3.2),
+    group = factor(sample(c("A", "A", "B", "B", "C", "C")),
+         levels = c("A", "B", "C", "D"))
+)
+
+SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
+    title = "keep_na = FALSE; keep_empty = FALSE")
+SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
+    keep_na = TRUE, keep_empty = TRUE,
+    title = "keep_na = TRUE; keep_empty = TRUE")
+SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
+    keep_na = TRUE, keep_empty = TRUE, facet_by = "group",
+    title = "keep_na = TRUE; keep_empty = TRUE; facet_by = 'group'")
+SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
+    keep_na = TRUE, keep_empty = "level",
+    title = "keep_na = TRUE; keep_empty = 'level'")
+SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
+    keep_na = list(word = FALSE), keep_empty = list(word = TRUE),
+    title = "keep_na: word=FALSE; keep_empty: word=TRUE")
+}
 }
