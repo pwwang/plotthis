@@ -3,6 +3,9 @@ title: "Basic Design Of The Plots"
 ---
 
 ## Color palettes
+
+### Available color palettes
+
 The package provides a set of color palettes that are widely used. They are from different packages or used in different tools, including:
 
 - `viridis` from the [`viridis`][1] package
@@ -37,6 +40,117 @@ See also the following documentation for more details:
 - [all available color palettes](all-palettes.html)
 - [`show_palettes`](../reference/show_palettes.html)
 - [`palette_this`](../reference/palette_this.html)
+
+### Using `palette` and `palcolor` arguments to control the colors in the plots
+
+Most plotting functions in `plotthis` support two arguments to control colors: `palette` and `palcolor`. These arguments provide flexible color customization while maintaining consistency with predefined palettes.
+
+#### The `palette` argument
+
+The `palette` argument specifies which predefined color palette to use. You can view all available palettes with `show_palettes()`. For example:
+
+```r
+# Use the "Spectral" palette
+BarPlot(data = iris, x = "Species", y = "Petal.Length", palette = "Spectral")
+
+# Use the "nejm" palette from ggsci
+BarPlot(data = iris, x = "Species", y = "Petal.Length", palette = "nejm")
+```
+
+The palette serves as the foundation for color generation. Colors are automatically assigned based on the number of categories or the range of continuous values in your data.
+
+#### The `palcolor` argument
+
+The `palcolor` argument allows you to override specific colors from the palette. The behavior differs for discrete and continuous color scales:
+
+##### For discrete colors (categorical data)
+
+Use a **named vector** where names correspond to categories in your data. The function will use the palette as the base and replace only the specified colors:
+
+```r
+# Replace specific category colors
+BarPlot(
+    data = iris,
+    x = "Species",
+    y = "Petal.Length",
+    palette = "Paired",
+    palcolor = c("setosa" = "red", "versicolor" = "blue")
+)
+# "virginica" will still use the color from the "Paired" palette
+```
+
+##### For continuous colors (numeric data)
+
+Use a **positional vector** where `NA` values indicate positions to keep from the palette, and non-NA values replace specific positions. The replacement happens **evenly distributed** across the base palette colors:
+
+```r
+data(dim_example)
+FeatureDimPlot(
+    data = dim_example,
+    features = "stochasticbasis_1",
+    palette = "Spectral",
+    # The colors will be evenly replace across the palette based on the number of custom colors provided
+    # Here are the colors that will be used to generate the ramp colors:
+    # "red"       "#3288BD"   "#66C2A5"   "pink"      "#E6F598"   "#FFFFBF"
+    # "#FEE08B"   "lightblue" "#F46D43"   "#D53E4F"   "blue"
+    # Notice that the 1st, 4th, 8th, and 11th colors in the palette are replaced
+    palcolor = c("red", "pink", NA, "lightblue", "blue")
+)
+```
+
+The positions are calculated evenly across the palette, so:
+- With 2 values in `palcolor`: replaces first and last colors
+- With 3 values: replaces first, middle, and last colors
+- With 4 values: replaces at positions 1, 2, 4, and 5 (for a 5-color palette)
+
+This approach ensures smooth color transitions while allowing you to control the endpoints and key intermediate colors.
+
+#### Customizing NA colors
+
+You can specify the color for `NA` values using the `"NA"` key in `palcolor`**
+
+```r
+data <- data.frame(x = c("A", NA, "B", "C"), y = c(1, 2, 3, 4))
+BarPlot(
+    data = data,
+    x = "x", y = "y",
+    palette = "Paired",
+    palcolor = c("A" = "red", "NA" = "orange"),
+    # NA values by default will be dropped
+    keep_na = TRUE
+)
+```
+
+#### Complete example
+
+Here's a comprehensive example showing how `palette` and `palcolor` work together:
+
+```r
+library(plotthis)
+
+# Sample data with NA values
+data <- data.frame(
+    category = c("A", "B", "C", "D", NA, "A", "B", "C", "D", NA),
+    value = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+)
+
+# Use palette as base, override specific categories, and customize NA color
+BarPlot(
+    data = data,
+    x = "category",
+    y = "value",
+    palette = "Paired",                    # Base palette
+    # "A" and "C" will use colors from the "Paired" palette
+    palcolor = c(                          # Override specific colors
+        "B" = "#FF5733",                   # Custom color for "B"
+        "D" = "#33FF57",                   # Custom color for "D"
+        "NA" = "#333333"                   # Custom color for NA values
+    ),
+    keep_na = TRUE                        # Keep NA values in the plot
+)
+```
+
+This design gives you fine-grained control over your plot colors while maintaining the convenience of predefined palettes.
 
 ## Basic implementation of the plotting functions
 
@@ -162,4 +276,75 @@ GSEAPlot(data)
 
 # Equivalent to
 GSEAPlot(data, gene_ranks = gene_ranks, gene_sets = gene_sets)
+```
+
+## Handling NA values and unused levels of factors
+
+## NA values
+
+When NA values appear in the grouping variables or category variables that are used to in the plot (x-axis, fill, color, group, etc.), they will be excluded by default. You can use `keep_na` option to control whether and how to keep the NA values.
+
+- `TRUE`: just keep the NA values as they are, and they will be treated as a separate group or category. They will be included in the plot and the legend. The color for the NA values will be `grey80` by default, but you can customize it using the `palcolor` argument (`palcolor = list("NA" = "orange")`).
+- `FALSE`: drop the NA values, and they will not be included in the plot or the legend. This is the default behavior.
+- `"missing"`: or other character string, will replace the NA values with the specified string, and they will be treated as a separate group or category. They will be included in the plot and the legend. The color for the values will be determined by `palette` and `palcolor` as usual.
+
+See the above section (Using `palette` and `palcolor` arguments to control the colors in the plots) for more details on how to customize the colors for NA values.
+
+## Unused (Empty) levels of factors
+
+When there are unused levels of factors in the grouping variables or category variables that are used to in the plot (x-axis, fill, color, group, etc.), they will be included in the plot by default. You can use `keep_empty` option to control whether and how to keep the unused levels of factors.
+
+`keep_empty` can take 3 values:
+
+- `TRUE`: just keep the unused levels of factors as they are, and they will be treated as separate groups or categories. They will be included in the plot and the legend.
+- `FALSE`: drop the unused levels of factors, and they will not be included in the plot or the legend. This is the default behavior.
+- `"level"` or `"levels"`: The unused levels of factors will not be plotted (for example, on x-axis), but they will be included when determining the colors for the groups or categories, and they will not be included in the legend. Use `TRUE` if you want to include them in the legend.
+
+When `keep_empty` is `TRUE` or `"level"`, the colors for the unused levels of factors will be determined by `palette` and `palcolor` as usual, even though they are not plotted (they will affect the colors of existing levels).
+
+```r
+data <- data.frame(
+    # C is an unused level
+    x = factor(c("A", "B", "D"), levels = c("A", "B", "C", "D")),
+    y = c(1, 2, 3)
+)
+
+# Excluded by default
+BarPlot(
+    data = data,
+    x = "x", y = "y"
+)
+
+# Keep the unused level "C"
+BarPlot(
+    data = data,
+    x = "x", y = "y",
+    keep_empty = TRUE
+)
+
+# Keep the unused level "C" for color assignment but not plotting
+BarPlot(
+    data = data,
+    x = "x", y = "y",
+    keep_empty = "level"
+)
+```
+
+## Variable-level control of keeping NA values and unused levels of factors
+
+The `keep_na` and `keep_empty` arguments can also take a named list to control the behavior for each variable separately. The names of the list should correspond to the variables in the data. For example:
+
+```r
+data <- data.frame(
+    x = factor(c("A", NA, "B", "D"), levels = c("A", "B", "C", "D")),
+    group = factor(c("G3", "G1", NA, "G3"), levels = c("G1", "G2", "G3")),
+    y = c(1, 2, 3, 4)
+)
+
+BarPlot(
+    data = data,
+    x = "x", y = "y", fill_by = "group",
+    keep_empty = list(x = TRUE, group = "level"),
+    keep_na = list(x = FALSE, group = TRUE)
+)
 ```
