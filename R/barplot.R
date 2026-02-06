@@ -165,7 +165,7 @@ BarPlotSingle <- function(
             p <- p + scale_fill_manual(
                 name = fill_name %||% fill_by,
                 values = colors, guide = fill_guide,
-                breaks = x_vals, limits = x_vals, drop = FALSE
+                breaks = fill_vals, limits = fill_vals, drop = FALSE
             )
         } else {
             p <- p + scale_fill_manual(
