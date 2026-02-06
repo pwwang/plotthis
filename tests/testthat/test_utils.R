@@ -15,7 +15,8 @@ test_that("check_keep_na works with default column", {
     res <- check_keep_na(list(col1 = TRUE, col2 = FALSE), cols = "missing")
     expect_equal(res$col1, NA)
     expect_equal(res$col2, FALSE)
-    expect_equal(length(res), 2)
+    expect_equal(res$missing, FALSE)
+    expect_equal(length(res), 3)
 
     res <- check_keep_na(TRUE, cols = "missing")
     expect_equal(res, list(missing = NA))
@@ -41,7 +42,8 @@ test_that("check_keep_empty works with default column", {
     res <- check_keep_empty(list(col1 = TRUE, col2 = FALSE), cols = "level")
     expect_equal(res$col1, TRUE)
     expect_equal(res$col2, FALSE)
-    expect_equal(length(res), 2)
+    expect_equal(res$level, FALSE)
+    expect_equal(length(res), 3)
 
     res <- check_keep_empty(TRUE, cols = "level")
     expect_equal(res, list(level = TRUE))

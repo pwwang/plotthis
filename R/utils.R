@@ -659,11 +659,16 @@ check_keep_na <- function(keep_na, cols = NA) {
     if (is.null(names(keep_na)) || !is.list(keep_na)) {
         stop("'keep_na' must be a logical/character or a named list.")
     }
+    out <- list()
+    if (length(cols) > 1 || (length(cols) == 1 && !is.na(cols))) {
+        cols <- unique(cols)
+        out <- stats::setNames(rep(list(FALSE), length(cols)), cols)
+    }
     for (name in names(keep_na)) {
-        keep_na[[name]] <- check_keep_na(keep_na[[name]])
+        out[[name]] <- check_keep_na(keep_na[[name]])
     }
 
-    return(keep_na)
+    return(out)
 }
 
 #' check_keep_empty
@@ -691,10 +696,15 @@ check_keep_empty <- function(keep_empty, cols = NA) {
     if (is.null(names(keep_empty))) {
         stop("'keep_empty' must have names when provided as a list.")
     }
-    for (name in names(keep_empty)) {
-        keep_empty[[name]] <- check_keep_empty(keep_empty[[name]])
+    out <- list()
+    if (length(cols) > 1 || (length(cols) == 1 && !is.na(cols))) {
+        cols <- unique(cols)
+        out <- stats::setNames(rep(list(FALSE), length(cols)), cols)
     }
-    return(keep_empty)
+    for (name in names(keep_empty)) {
+        out[[name]] <- check_keep_empty(keep_empty[[name]])
+    }
+    return(out)
 }
 
 #' process_keep_na_empty
@@ -709,7 +719,6 @@ process_keep_na_empty <- function(data, keep_na = NULL, keep_empty = NULL, col =
         if (!is.null(col) && col %in% names(keep_na)) {
             keep_na <- keep_na[col]
         }
-
         for (cl in names(keep_na)) {
             if (!cl %in% colnames(data)) {
                 warning("Column '", cl, "' not found in data. Skipping 'keep_na' processing for this column.")
