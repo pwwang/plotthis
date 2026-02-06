@@ -2,6 +2,10 @@
 title: "Basic Design Of The Plots"
 ---
 
+```{r setup, include = FALSE}
+library(plotthis)
+```
+
 ## Color palettes
 
 ### Available color palettes
@@ -49,10 +53,14 @@ Most plotting functions in `plotthis` support two arguments to control colors: `
 
 The `palette` argument specifies which predefined color palette to use. You can view all available palettes with `show_palettes()`. For example:
 
-```r
+```{r}
+#| fig-alt: Example of using the palette argument
 # Use the "Spectral" palette
 BarPlot(data = iris, x = "Species", y = "Petal.Length", palette = "Spectral")
+```
 
+```{r}
+#| fig-alt: Example of using the palette argument
 # Use the "nejm" palette from ggsci
 BarPlot(data = iris, x = "Species", y = "Petal.Length", palette = "nejm")
 ```
@@ -67,7 +75,8 @@ The `palcolor` argument allows you to override specific colors from the palette.
 
 Use a **named vector** where names correspond to categories in your data. The function will use the palette as the base and replace only the specified colors:
 
-```r
+```{r}
+#| fig-alt: Example of using the palcolor argument for discrete colors
 # Replace specific category colors
 BarPlot(
     data = iris,
@@ -83,8 +92,11 @@ BarPlot(
 
 Use a **positional vector** where `NA` values indicate positions to keep from the palette, and non-NA values replace specific positions. The replacement happens **evenly distributed** across the base palette colors:
 
-```r
+```{r}
+#| fig-alt: Example of using the palcolor argument for continuous colors
+
 data(dim_example)
+
 FeatureDimPlot(
     data = dim_example,
     features = "stochasticbasis_1",
@@ -109,8 +121,11 @@ This approach ensures smooth color transitions while allowing you to control the
 
 You can specify the color for `NA` values using the `"NA"` key in `palcolor`**
 
-```r
+```{r}
+#| fig-alt: Example of customizing NA colors
+
 data <- data.frame(x = c("A", NA, "B", "C"), y = c(1, 2, 3, 4))
+
 BarPlot(
     data = data,
     x = "x", y = "y",
@@ -125,16 +140,14 @@ BarPlot(
 
 Here's a comprehensive example showing how `palette` and `palcolor` work together:
 
-```r
-library(plotthis)
+```{r}
+#| fig-alt: Use palette as base, override specific categories, and customize NA color
 
-# Sample data with NA values
 data <- data.frame(
     category = c("A", "B", "C", "D", NA, "A", "B", "C", "D", NA),
     value = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 )
 
-# Use palette as base, override specific categories, and customize NA color
 BarPlot(
     data = data,
     x = "category",
@@ -243,25 +256,11 @@ dev.off()
 
 If a plot is created by `ggplot2` behind the scenes, `plotthis` relies on the `gglogger` package to trace the `ggplot2` calls. The `gglogger` package is used to log the `ggplot2` calls and the arguments passed to the `ggplot2` functions. This is useful for debugging and understanding how the plot is created.
 
-```r
+```{r}
 options(plotthis.gglogger.enabled = TRUE)
 
 p <- BarPlot(data = iris, x = "Species")
 p$logs
-
-# ggplot2::ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(x))) +
-#   geom_col(alpha = alpha, width = width) +
-#   scale_fill_manual(name = x, values = colors, guide = guide) +
-#   labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||%
-#     y) +
-#   scale_x_discrete(drop = !keep_empty, expand = expand$x) +
-#   scale_y_continuous(expand = expand$y) +
-#   do.call(theme, theme_args) +
-#   ggplot2::theme(aspect.ratio = aspect.ratio, legend.position = legend.position,
-#     legend.direction = legend.direction, panel.grid.major = element_line(colour = "grey80",
-#         linetype = 2), axis.text.x = element_text(angle = x_text_angle,
-#         hjust = just$h, vjust = just$v)) +
-#   coord_cartesian(ylim = c(y_min, y_max))
 ```
 
 ## Providing extra data for plotting
@@ -302,26 +301,35 @@ When there are unused levels of factors in the grouping variables or category va
 
 When `keep_empty` is `TRUE` or `"level"`, the colors for the unused levels of factors will be determined by `palette` and `palcolor` as usual, even though they are not plotted (they will affect the colors of existing levels).
 
-```r
+```{r}
 data <- data.frame(
     # C is an unused level
     x = factor(c("A", "B", "D"), levels = c("A", "B", "C", "D")),
     y = c(1, 2, 3)
 )
+```
 
+```{r}
+#| fig-alt: Example of keeping NA values and unused levels of factors
 # Excluded by default
 BarPlot(
     data = data,
     x = "x", y = "y"
 )
+```
 
+```{r}
+#| fig-alt: Example of keeping NA values and unused levels of factors
 # Keep the unused level "C"
 BarPlot(
     data = data,
     x = "x", y = "y",
     keep_empty = TRUE
 )
+```
 
+```{r}
+#| fig-alt: Example of keeping NA values and unused levels of factors
 # Keep the unused level "C" for color assignment but not plotting
 BarPlot(
     data = data,
@@ -334,7 +342,8 @@ BarPlot(
 
 The `keep_na` and `keep_empty` arguments can also take a named list to control the behavior for each variable separately. The names of the list should correspond to the variables in the data. For example:
 
-```r
+```{r}
+#| fig-alt: Example of variable-level control of keeping NA values and unused levels of factors
 data <- data.frame(
     x = factor(c("A", NA, "B", "D"), levels = c("A", "B", "C", "D")),
     group = factor(c("G3", "G1", NA, "G3"), levels = c("G1", "G2", "G3")),

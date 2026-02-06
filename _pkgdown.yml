@@ -2,6 +2,10 @@ url: https://pwwang.github.io/plotthis/
 template:
   bootstrap: 5
   bootswatch: lumen
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github]
 reference:
   - title: Plotting
     description: Functions for plotting

@@ -1,6 +1,6 @@
 Package: plotthis
 Title: High-Level Plotting Built Upon 'ggplot2' and Other Plotting Packages
-Version: 0.9.3
+Version: 0.10.0
 Authors@R:
     person("Panwen", "Wang", , "pwwang@pwwang.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-4614-8970"))
