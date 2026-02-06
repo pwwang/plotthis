@@ -61,10 +61,18 @@ For example:
 ``` r
 # Use the "Spectral" palette
 BarPlot(data = iris, x = "Species", y = "Petal.Length", palette = "Spectral")
+```
 
+![Example of using the palette
+argument](basic-design_files/figure-html/unnamed-chunk-1-1.png)
+
+``` r
 # Use the "nejm" palette from ggsci
 BarPlot(data = iris, x = "Species", y = "Petal.Length", palette = "nejm")
 ```
+
+![Example of using the palette
+argument](basic-design_files/figure-html/unnamed-chunk-2-1.png)
 
 The palette serves as the foundation for color generation. Colors are
 automatically assigned based on the number of categories or the range of
@@ -90,6 +98,12 @@ BarPlot(
     palette = "Paired",
     palcolor = c("setosa" = "red", "versicolor" = "blue")
 )
+```
+
+![Example of using the palcolor argument for discrete
+colors](basic-design_files/figure-html/unnamed-chunk-3-1.png)
+
+``` r
 # "virginica" will still use the color from the "Paired" palette
 ```
 
@@ -102,6 +116,7 @@ colors:
 
 ``` r
 data(dim_example)
+
 FeatureDimPlot(
     data = dim_example,
     features = "stochasticbasis_1",
@@ -114,6 +129,9 @@ FeatureDimPlot(
     palcolor = c("red", "pink", NA, "lightblue", "blue")
 )
 ```
+
+![Example of using the palcolor argument for continuous
+colors](basic-design_files/figure-html/unnamed-chunk-4-1.png)
 
 The positions are calculated evenly across the palette, so: - With 2
 values in `palcolor`: replaces first and last colors - With 3 values:
@@ -130,6 +148,7 @@ You can specify the color for `NA` values using the `"NA"` key in
 
 ``` r
 data <- data.frame(x = c("A", NA, "B", "C"), y = c(1, 2, 3, 4))
+
 BarPlot(
     data = data,
     x = "x", y = "y",
@@ -140,21 +159,20 @@ BarPlot(
 )
 ```
 
+![Example of customizing NA
+colors](basic-design_files/figure-html/unnamed-chunk-5-1.png)
+
 #### Complete example
 
 Here’s a comprehensive example showing how `palette` and `palcolor` work
 together:
 
 ``` r
-library(plotthis)
-
-# Sample data with NA values
 data <- data.frame(
     category = c("A", "B", "C", "D", NA, "A", "B", "C", "D", NA),
     value = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 )
 
-# Use palette as base, override specific categories, and customize NA color
 BarPlot(
     data = data,
     x = "category",
@@ -169,6 +187,9 @@ BarPlot(
     keep_na = TRUE                        # Keep NA values in the plot
 )
 ```
+
+![Use palette as base, override specific categories, and customize NA
+color](basic-design_files/figure-html/unnamed-chunk-6-1.png)
 
 This design gives you fine-grained control over your plot colors while
 maintaining the convenience of predefined palettes.
@@ -301,22 +322,67 @@ how the plot is created.
 options(plotthis.gglogger.enabled = TRUE)
 
 p <- BarPlot(data = iris, x = "Species")
-p$logs
-
-# ggplot2::ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(x))) +
-#   geom_col(alpha = alpha, width = width) +
-#   scale_fill_manual(name = x, values = colors, guide = guide) +
-#   labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||%
-#     y) +
-#   scale_x_discrete(drop = !keep_empty, expand = expand$x) +
-#   scale_y_continuous(expand = expand$y) +
-#   do.call(theme, theme_args) +
-#   ggplot2::theme(aspect.ratio = aspect.ratio, legend.position = legend.position,
-#     legend.direction = legend.direction, panel.grid.major = element_line(colour = "grey80",
-#         linetype = 2), axis.text.x = element_text(angle = x_text_angle,
-#         hjust = just$h, vjust = just$v)) +
-#   coord_cartesian(ylim = c(y_min, y_max))
 ```
+
+    ## Registered S3 method overwritten by 'gglogger':
+    ##   method from   
+    ##   +.gg   ggplot2
+
+``` r
+p$logs
+```
+
+    ## Reference class object of class "GGLogs"
+    ## Field "logs":
+    ## [[1]]
+    ## Reference class object of class "GGLog"
+    ## Field "code":
+    ## [1] "ggplot2::ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(fill_by)))"
+    ## 
+    ## [[2]]
+    ## Reference class object of class "GGLog"
+    ## Field "code":
+    ## [1] "geom_col(alpha = alpha, width = width, show.legend = TRUE)"
+    ## 
+    ## [[3]]
+    ## Reference class object of class "GGLog"
+    ## Field "code":
+    ## [1] "labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% "
+    ## [2] "    y)"                                                                  
+    ## 
+    ## [[4]]
+    ## Reference class object of class "GGLog"
+    ## Field "code":
+    ## [1] "scale_x_discrete(expand = expand$x, drop = !isTRUE(keep_empty_x))"
+    ## 
+    ## [[5]]
+    ## Reference class object of class "GGLog"
+    ## Field "code":
+    ## [1] "scale_y_continuous(expand = expand$y)"
+    ## 
+    ## [[6]]
+    ## Reference class object of class "GGLog"
+    ## Field "code":
+    ## [1] "do.call(theme, theme_args)"
+    ## 
+    ## [[7]]
+    ## Reference class object of class "GGLog"
+    ## Field "code":
+    ## [1] "ggplot2::theme(aspect.ratio = aspect.ratio, legend.position = legend.position, "               
+    ## [2] "    legend.direction = legend.direction, panel.grid.major = element_line(colour = \"grey80\", "
+    ## [3] "        linetype = 2), axis.text.x = element_text(angle = x_text_angle, "                      
+    ## [4] "        hjust = just$h, vjust = just$v))"                                                      
+    ## 
+    ## [[8]]
+    ## Reference class object of class "GGLog"
+    ## Field "code":
+    ## [1] "scale_fill_manual(name = fill_name %||% fill_by, na.value = colors[\"NA\"] %||% "
+    ## [2] "    \"grey80\", values = colors, guide = fill_guide)"                            
+    ## 
+    ## [[9]]
+    ## Reference class object of class "GGLog"
+    ## Field "code":
+    ## [1] "coord_cartesian(ylim = c(y_min, y_max))"
 
 ## Providing extra data for plotting
 
@@ -394,20 +460,32 @@ data <- data.frame(
     x = factor(c("A", "B", "D"), levels = c("A", "B", "C", "D")),
     y = c(1, 2, 3)
 )
+```
 
+``` r
 # Excluded by default
 BarPlot(
     data = data,
     x = "x", y = "y"
 )
+```
 
+![Example of keeping NA values and unused levels of
+factors](basic-design_files/figure-html/unnamed-chunk-9-1.png)
+
+``` r
 # Keep the unused level "C"
 BarPlot(
     data = data,
     x = "x", y = "y",
     keep_empty = TRUE
 )
+```
 
+![Example of keeping NA values and unused levels of
+factors](basic-design_files/figure-html/unnamed-chunk-10-1.png)
+
+``` r
 # Keep the unused level "C" for color assignment but not plotting
 BarPlot(
     data = data,
@@ -415,6 +493,9 @@ BarPlot(
     keep_empty = "level"
 )
 ```
+
+![Example of keeping NA values and unused levels of
+factors](basic-design_files/figure-html/unnamed-chunk-11-1.png)
 
 ## Variable-level control of keeping NA values and unused levels of factors
 
@@ -436,3 +517,7 @@ BarPlot(
     keep_na = list(x = FALSE, group = TRUE)
 )
 ```
+
+![Example of variable-level control of keeping NA values and unused
+levels of
+factors](basic-design_files/figure-html/unnamed-chunk-12-1.png)
