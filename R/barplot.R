@@ -530,7 +530,7 @@ BarPlotAtomic <- function(
             expand = expand, fill_by = ifelse(isTRUE(fill_by), x, fill_by), fill_name = fill_name, width = width, ...
         )
     } else {
-        stopifnot("[BarPlot] `fill_by` cannot be applied when `group_by` is specified." = identical(fill_by, group_by))
+        stopifnot("[BarPlot] `fill_by` cannot be applied when `group_by` is specified." = !missing(fill_by) || identical(fill_by, group_by))
         p <- BarPlotGrouped(
             data, x, x_sep, y,
             label = label, label_nudge = label_nudge,
