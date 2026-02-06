@@ -129,10 +129,14 @@ LinePlotSingle <- function(
         if (isTRUE(keep_empty_x)) {
             p <- p + scale_color_manual(
                 name = x, values = colors, guide = "legend",
-                breaks = x_vals, limits = x_vals, drop = FALSE
+                breaks = x_vals, limits = x_vals, drop = FALSE,
+                na.value = colors[is.na(x_vals)]
             )
         } else {
-            p <- p + scale_color_manual(name = x, values = colors, guide = "legend")
+            p <- p + scale_color_manual(
+                name = x, values = colors, guide = "legend",
+                na.value = colors[is.na(x_vals)]
+            )
         }
     } else {
         p <- p + geom_line(
@@ -163,10 +167,14 @@ LinePlotSingle <- function(
         if (isTRUE(keep_empty_x)) {
             p <- p + scale_fill_manual(
                 name = x, values = colors, guide = "legend",
-                breaks = x_vals, limits = x_vals, drop = FALSE
+                breaks = x_vals, limits = x_vals, drop = FALSE,
+                na.value = colors[is.na(x_vals)]
             )
         } else {
-            p <- p + scale_fill_manual(name = x, values = colors, guide = "legend")
+            p <- p + scale_fill_manual(
+                name = x, values = colors, guide = "legend",,
+                na.value = colors[is.na(x_vals)]
+            )
         }
     } else {
         p <- p + geom_point(
@@ -345,10 +353,14 @@ LinePlotGrouped <- function(
     if (isTRUE(keep_empty_group)) {
         p <- p + scale_fill_manual(
             name = group_by, values = colors, guide = "legend",
-            breaks = group_vals, limits = group_vals, drop = FALSE
+            breaks = group_vals, limits = group_vals, drop = FALSE,
+            na.value = colors[is.na(group_vals)]
         )
     } else {
-        p <- p + scale_fill_manual(name = group_by, values = colors, guide = "legend")
+        p <- p + scale_fill_manual(
+            name = group_by, values = colors, guide = "legend",
+            na.value = colors[is.na(group_vals)]
+        )
     }
 
     if (!is.null(hidata)) {
