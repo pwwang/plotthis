@@ -106,7 +106,6 @@ BarPlotSingle <- function(
         }
     }
     expand <- norm_expansion(expand, x_type = "discrete", y_type = "continuous")
-
     data <- process_keep_na_empty(data, keep_na, keep_empty)
 
     keep_empty_x <- keep_empty[[x]]
@@ -163,13 +162,13 @@ BarPlotSingle <- function(
     if (!fill_is_numeric) {
         if (isTRUE(keep_empty_fill)) {
             p <- p + scale_fill_manual(
-                name = fill_name %||% fill_by,
+                name = fill_name %||% fill_by, na.value = colors['NA'] %||% 'grey80',
                 values = colors, guide = fill_guide,
                 breaks = fill_vals, limits = fill_vals, drop = FALSE
             )
         } else {
             p <- p + scale_fill_manual(
-                name = fill_name %||% fill_by,
+                name = fill_name %||% fill_by, na.value = colors['NA'] %||% 'grey80',
                 values = colors, guide = fill_guide
             )
         }
@@ -177,6 +176,7 @@ BarPlotSingle <- function(
         p <- p + scale_fill_gradientn(
             name = fill_name %||% fill_by,
             colors = colors,
+            n.breaks = 3,
             guide = fill_guide
         )
     }
