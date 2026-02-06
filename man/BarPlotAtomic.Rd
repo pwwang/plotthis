@@ -14,7 +14,8 @@ BarPlotAtomic(
   group_by = NULL,
   group_by_sep = "_",
   group_name = NULL,
-  fill_by_x_if_no_group = TRUE,
+  fill_by = TRUE,
+  fill_name = NULL,
   label_nudge = 0.02,
   label = NULL,
   label_fg = "black",
@@ -27,7 +28,7 @@ BarPlotAtomic(
   bg_alpha = 0.2,
   theme = "theme_this",
   theme_args = list(),
-  palette = "Paired",
+  palette = NULL,
   palcolor = NULL,
   alpha = 1,
   x_text_angle = 0,
@@ -86,7 +87,13 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 
 \item{group_name}{A character string to specify the name of the group_by in the legend.}
 
-\item{fill_by_x_if_no_group}{A logical value indicating whether to fill the bars by the x-axis values if there is no group_by.}
+\item{fill_by}{A variable used to fill the bars. Both character/factor and numeric columns are accepted.
+If \code{TRUE} (default), the bars will be filled by the x-axis values,
+If \code{FALSE}, the bars will be filled a single color (the first color in the palette).
+ONLY works when \code{group_by} is NULL. When \code{group_by} is not NULL, the bars will be filled by the \code{group_by} variable.}
+
+\item{fill_name}{A character string to specify the name of the fill variable in the legend.
+Only works when \code{fill_by} applies.}
 
 \item{label_nudge}{A numeric value to nudge the labels (the distance between the label and the top of the bar).}
 

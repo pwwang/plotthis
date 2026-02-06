@@ -12,7 +12,8 @@ BarPlot(
   x_sep = "_",
   y = NULL,
   flip = FALSE,
-  fill_by_x_if_no_group = TRUE,
+  fill_by = TRUE,
+  fill_name = NULL,
   line_name = NULL,
   label_nudge = 0.02,
   label = NULL,
@@ -45,7 +46,7 @@ BarPlot(
   trend_ptsize = 2,
   theme = "theme_this",
   theme_args = list(),
-  palette = "Paired",
+  palette = NULL,
   palcolor = NULL,
   alpha = 1,
   x_text_angle = 0,
@@ -193,7 +194,13 @@ WaterfallPlot(
 
 \item{flip}{A logical value indicating whether to flip the x and y axes.}
 
-\item{fill_by_x_if_no_group}{A logical value indicating whether to fill the bars by the x-axis values if there is no group_by.}
+\item{fill_by}{A variable used to fill the bars. Both character/factor and numeric columns are accepted.
+If \code{TRUE} (default), the bars will be filled by the x-axis values,
+If \code{FALSE}, the bars will be filled a single color (the first color in the palette).
+ONLY works when \code{group_by} is NULL. When \code{group_by} is not NULL, the bars will be filled by the \code{group_by} variable.}
+
+\item{fill_name}{A character string to specify the name of the fill variable in the legend.
+Only works when \code{fill_by} applies.}
 
 \item{line_name}{A character string indicating the name of the line.}
 
@@ -268,8 +275,9 @@ Default is "theme_this".}
 
 \item{theme_args}{A list of arguments to pass to the theme function.}
 
-\item{palette}{A character string specifying the palette to use.
-A named list or vector can be used to specify the palettes for different \code{split_by} values.}
+\item{palette}{A character string specifying the palette to use for the bars.
+When \code{group_by} is specified, it defaults to "Paired".
+When \code{group_by} is not specified, it defaults to "Spectral" if \code{fill_by} column is numeric, otherwise "Paired".}
 
 \item{palcolor}{A character string specifying the color to use in the palette.
 A named list can be used to specify the colors for different \code{split_by} values.
@@ -404,12 +412,7 @@ The "*" key is used to order the y axis without considering the direction.}
 
 \item{max_charwidth}{A numeric value indicating the maximum width of the text.}
 
-\item{fill_by}{A character string indicating the column name to use for the fill of the bars.
-Can be either a categorical variable or a numeric variable.}
-
 \item{fill_by_sep}{A character string to concatenate the fill columns if there are multiple.}
-
-\item{fill_name}{A character string indicating the legend name of the fill.}
 
 \item{direction_name}{A character string indicating the name of the direction column and will be shown in the legend.}
 
@@ -440,7 +443,7 @@ data <- data.frame(
 )
 
 BarPlot(data, x = "x", y = "y")
-BarPlot(data, x = "x", y = "y", fill_by_x_if_no_group = FALSE)
+BarPlot(data, x = "x", y = "y", fill_by = FALSE)
 BarPlot(data, x = "x", y = "y", label = TRUE)
 BarPlot(data, x = "x", y = "y", label = "facet", label_nudge = 0)
 BarPlot(data, x = "group", y = "y", group_by = "x")
@@ -469,6 +472,8 @@ BarPlot(data,
 BarPlot(data, x = "group", ylab = "count")
 # flip the plot
 BarPlot(data, x = "group", flip = TRUE, ylab = "count")
+# Allow numeric fill_by
+BarPlot(data, x = "x", y = "y", fill_by = "y", flip = TRUE)
 
 data <- data.frame(
     x = factor(c("A", "B", "C", "D", "E", "F", NA, "H"), levels = LETTERS[1:10]),
