@@ -232,40 +232,51 @@ palette_this <- function(
     if (!palette %in% names(palette_list)) {
         stop("The palette name (", palette, ") is invalid! You can check the available palette names with 'show_palettes()'. Or pass palette colors via the 'palcolor' parameter.")
     }
+
+    # Store custom colors for later replacement
+    custom_colors <- NULL
     if (is.list(palcolor)) {
         palcolor <- unlist(palcolor)
     }
+    if (!is.null(palcolor) && length(palcolor) > 0 && !all(palcolor == "")) {
+        custom_colors <- palcolor
+    }
+
+    # Use palette colors as base
     if (all(palcolor == "")) {
         palcolor <- palette_list[[palette]]
     }
     if (is.null(palcolor) || length(palcolor) == 0) {
         palcolor <- palette_list[[palette]]
     }
-    if (!is.null(names(palcolor))) {
-        mypal <- palcolor[intersect(names(palcolor), x)]
-        # palcolor partially matches x
-        if (length(mypal) < length(x) && length(mypal) > 0) {
-            palcolor <- palette_this(
-                x = x,
-                n = n,
-                palette = palette,
-                palcolor = NULL,
-                type = type,
-                keep_names = TRUE,
-                alpha = 1,
-                matched = matched,
-                reverse = reverse,
-                NA_keep = NA_keep,
-                NA_color = NA_color,
-                transparent = transparent
-            )
-            palcolor[names(mypal)] <- mypal
-            # already reversed, specified palcolor won't be reversed
-            reverse <- FALSE
-        } else if (length(mypal) == length(x)) {
-            palcolor <- mypal
+
+    # If custom_colors are provided, use palette as base
+    if (!is.null(custom_colors)) {
+        palcolor <- palette_list[[palette]]
+
+        # For continuous colors without names, replace evenly in the base palette
+        if (is.null(names(custom_colors))) {
+            custom_len <- length(custom_colors)
+            pal_len <- length(palcolor)
+            if (custom_len > 0 && pal_len > 0) {
+                # Calculate evenly spaced positions
+                positions <- round(seq(1, pal_len, length.out = custom_len))
+                # Replace at those positions where custom_colors is not NA
+                for (i in seq_along(custom_colors)) {
+                    if (!is.na(custom_colors[i])) {
+                        palcolor[positions[i]] <- custom_colors[i]
+                    }
+                }
+            }
+            # Clear custom_colors for continuous since we've already applied them
+            custom_colors_continuous <- NULL
+        } else {
+            custom_colors_continuous <- custom_colors
         }
+    } else {
+        custom_colors_continuous <- NULL
     }
+
     pal_n <- length(palcolor)
 
     if (!type %in% c("auto", "discrete", "continuous")) {
@@ -287,8 +298,6 @@ palette_this <- function(
         if (isTRUE(attr(palcolor, "type") == "continuous")) {
             color <- colorRampPalette(palcolor)(n_x)
             names(color) <- levels(x)
-        } else if (!is.null(names(palcolor))) {
-            color <- palcolor[intersect(names(palcolor), levels(x))]
         } else {
             color <- ifelse(rep(n_x, n_x) <= pal_n,
                 palcolor[1:n_x],
@@ -297,8 +306,22 @@ palette_this <- function(
             names(color) <- levels(x)
         }
 
+        # Replace colors with custom_colors if provided
+        if (!is.null(custom_colors) && !is.null(names(custom_colors))) {
+            matching_names <- intersect(names(custom_colors), names(color))
+            if (length(matching_names) > 0) {
+                color[matching_names] <- custom_colors[matching_names]
+            }
+        }
+
         if (any(is.na(x))) {
-            color <- c(color, setNames(NA_color, "NA"))
+            # Check if custom_colors has "NA" key
+            na_col <- if (!is.null(custom_colors) && "NA" %in% names(custom_colors)) {
+                custom_colors["NA"]
+            } else {
+                NA_color
+            }
+            color <- c(color, setNames(na_col, "NA"))
         }
         if (isTRUE(matched)) {
             color <- color[x]
@@ -326,8 +349,17 @@ palette_this <- function(
             colorRampPalette(palcolor)(n_x)
         )
         names(color) <- levels(values)
+
         if (any(is.na(x))) {
-            color <- c(color, setNames(NA_color, "NA"))
+            # Check if custom_colors_continuous has "NA" key
+            na_col <- if (!is.null(custom_colors_continuous) && "NA" %in% names(custom_colors_continuous)) {
+                custom_colors_continuous["NA"]
+            } else if (!is.null(custom_colors) && "NA" %in% names(custom_colors)) {
+                custom_colors["NA"]
+            } else {
+                NA_color
+            }
+            color <- c(color, setNames(na_col, "NA"))
         }
         if (isTRUE(matched)) {
             if (all(is.na(x))) {
@@ -362,6 +394,7 @@ palette_this <- function(
             color <- adjcolors(color, alpha)
         }
     }
+
     return(color)
 }
 
