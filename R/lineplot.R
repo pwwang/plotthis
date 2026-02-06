@@ -121,6 +121,8 @@ LinePlotSingle <- function(
     x_vals <- levels(data[[x]])
     if (anyNA(data[[x]])) x_vals <- c(x_vals, NA)
     colors <- palette_this(x_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+    na_value <- ifelse(anyNA(x_vals), colors["NA"], "grey50")
+
     if (isTRUE(color_line_by_x)) {
         p <- p + geom_line(
             aes(color = !!sym(x), group = 1),
@@ -130,12 +132,12 @@ LinePlotSingle <- function(
             p <- p + scale_color_manual(
                 name = x, values = colors, guide = "legend",
                 breaks = x_vals, limits = x_vals, drop = FALSE,
-                na.value = colors[is.na(x_vals)]
+                na.value = na_value
             )
         } else {
             p <- p + scale_color_manual(
                 name = x, values = colors, guide = "legend",
-                na.value = colors[is.na(x_vals)]
+                na.value = na_value
             )
         }
     } else {
@@ -168,12 +170,12 @@ LinePlotSingle <- function(
             p <- p + scale_fill_manual(
                 name = x, values = colors, guide = "legend",
                 breaks = x_vals, limits = x_vals, drop = FALSE,
-                na.value = colors[is.na(x_vals)]
+                na.value = na_value
             )
         } else {
             p <- p + scale_fill_manual(
                 name = x, values = colors, guide = "legend",,
-                na.value = colors[is.na(x_vals)]
+                na.value = na_value
             )
         }
     } else {
@@ -306,6 +308,7 @@ LinePlotGrouped <- function(
     if (anyNA(data[[group_by]])) group_vals <- c(group_vals, NA)
 
     colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+    na_value <- ifelse(anyNA(group_vals), colors["NA"], "grey50")
     if (!is.null(add_hline) && !isFALSE(add_hline)) {
         if (isTRUE(hline_color)) {
             if (!is.list(add_hline)) {
@@ -354,12 +357,12 @@ LinePlotGrouped <- function(
         p <- p + scale_fill_manual(
             name = group_by, values = colors, guide = "legend",
             breaks = group_vals, limits = group_vals, drop = FALSE,
-            na.value = colors[is.na(group_vals)]
+            na.value = na_value
         )
     } else {
         p <- p + scale_fill_manual(
             name = group_by, values = colors, guide = "legend",
-            na.value = colors[is.na(group_vals)]
+            na.value = na_value
         )
     }
 
