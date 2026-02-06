@@ -14,7 +14,8 @@ BarPlot(
   x_sep = "_",
   y = NULL,
   flip = FALSE,
-  fill_by_x_if_no_group = TRUE,
+  fill_by = TRUE,
+  fill_name = NULL,
   line_name = NULL,
   label_nudge = 0.02,
   label = NULL,
@@ -47,7 +48,7 @@ BarPlot(
   trend_ptsize = 2,
   theme = "theme_this",
   theme_args = list(),
-  palette = "Paired",
+  palette = NULL,
   palcolor = NULL,
   alpha = 1,
   x_text_angle = 0,
@@ -210,10 +211,19 @@ WaterfallPlot(
 
   A logical value indicating whether to flip the x and y axes.
 
-- fill_by_x_if_no_group:
+- fill_by:
 
-  A logical value indicating whether to fill the bars by the x-axis
-  values if there is no group_by.
+  A variable used to fill the bars. Both character/factor and numeric
+  columns are accepted. If `TRUE` (default), the bars will be filled by
+  the x-axis values, If `FALSE`, the bars will be filled a single color
+  (the first color in the palette). ONLY works when `group_by` is NULL.
+  When `group_by` is not NULL, the bars will be filled by the `group_by`
+  variable.
+
+- fill_name:
+
+  A character string to specify the name of the fill variable in the
+  legend. Only works when `fill_by` applies.
 
 - line_name:
 
@@ -361,9 +371,10 @@ WaterfallPlot(
 
 - palette:
 
-  A character string specifying the palette to use. A named list or
-  vector can be used to specify the palettes for different `split_by`
-  values.
+  A character string specifying the palette to use for the bars. When
+  `group_by` is specified, it defaults to "Paired". When `group_by` is
+  not specified, it defaults to "Spectral" if `fill_by` column is
+  numeric, otherwise "Paired".
 
 - palcolor:
 
@@ -605,19 +616,10 @@ WaterfallPlot(
 
   A numeric value indicating the maximum width of the text.
 
-- fill_by:
-
-  A character string indicating the column name to use for the fill of
-  the bars.
-
 - fill_by_sep:
 
   A character string to concatenate the fill columns if there are
   multiple.
-
-- fill_name:
-
-  A character string indicating the legend name of the fill.
 
 - direction_name:
 
@@ -657,7 +659,7 @@ data <- data.frame(
 
 BarPlot(data, x = "x", y = "y")
 
-BarPlot(data, x = "x", y = "y", fill_by_x_if_no_group = FALSE)
+BarPlot(data, x = "x", y = "y", fill_by = FALSE)
 
 BarPlot(data, x = "x", y = "y", label = TRUE)
 
@@ -696,6 +698,9 @@ BarPlot(data, x = "group", ylab = "count")
 
 # flip the plot
 BarPlot(data, x = "group", flip = TRUE, ylab = "count")
+
+# Allow numeric fill_by
+BarPlot(data, x = "x", y = "y", fill_by = "y", flip = TRUE)
 
 
 data <- data.frame(

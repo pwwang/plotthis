@@ -16,7 +16,8 @@ BarPlotAtomic(
   group_by = NULL,
   group_by_sep = "_",
   group_name = NULL,
-  fill_by_x_if_no_group = TRUE,
+  fill_by = TRUE,
+  fill_name = NULL,
   label_nudge = 0.02,
   label = NULL,
   label_fg = "black",
@@ -29,7 +30,7 @@ BarPlotAtomic(
   bg_alpha = 0.2,
   theme = "theme_this",
   theme_args = list(),
-  palette = "Paired",
+  palette = NULL,
   palcolor = NULL,
   alpha = 1,
   x_text_angle = 0,
@@ -111,10 +112,19 @@ BarPlotAtomic(
 
   A character string to specify the name of the group_by in the legend.
 
-- fill_by_x_if_no_group:
+- fill_by:
 
-  A logical value indicating whether to fill the bars by the x-axis
-  values if there is no group_by.
+  A variable used to fill the bars. Both character/factor and numeric
+  columns are accepted. If `TRUE` (default), the bars will be filled by
+  the x-axis values, If `FALSE`, the bars will be filled a single color
+  (the first color in the palette). ONLY works when `group_by` is NULL.
+  When `group_by` is not NULL, the bars will be filled by the `group_by`
+  variable.
+
+- fill_name:
+
+  A character string to specify the name of the fill variable in the
+  legend. Only works when `fill_by` applies.
 
 - label_nudge:
 

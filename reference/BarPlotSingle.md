@@ -25,7 +25,7 @@ BarPlotSingle(
   bg_alpha = 0.2,
   theme = "theme_this",
   theme_args = list(),
-  palette = "Paired",
+  palette = NULL,
   palcolor = NULL,
   alpha = 1,
   x_text_angle = 0,
@@ -50,7 +50,8 @@ BarPlotSingle(
   keep_na = FALSE,
   keep_empty = FALSE,
   expand = waiver(),
-  fill_by_x = TRUE,
+  fill_by = TRUE,
+  fill_name = NULL,
   width = 0.9,
   ...
 )
@@ -271,12 +272,6 @@ BarPlotSingle(
   'expansion' function. When the axis is continuous, the values will be
   applied as 'mult' to the 'expansion' function. See also
   <https://ggplot2.tidyverse.org/reference/expansion.html>
-
-- fill_by_x:
-
-  A logical value indicating whether to fill the bars by the x-axis
-  values. If FALSE, the bars will be filled a single color (the first
-  color in the palette).
 
 - width:
 

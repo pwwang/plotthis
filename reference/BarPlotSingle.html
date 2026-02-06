@@ -62,7 +62,7 @@
 <span>  bg_alpha <span class="op">=</span> <span class="fl">0.2</span>,</span>
 <span>  theme <span class="op">=</span> <span class="st">"theme_this"</span>,</span>
 <span>  theme_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
+<span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  x_text_angle <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -87,7 +87,8 @@
 <span>  keep_na <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  expand <span class="op">=</span> <span class="fu">waiver</span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  fill_by_x <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  fill_by <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  fill_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  width <span class="op">=</span> <span class="fl">0.9</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -291,11 +292,6 @@ You can also use a named vector to specify the values for each side.
 When the axis is discrete, the values will be applied as 'add' to the 'expansion' function.
 When the axis is continuous, the values will be applied as 'mult' to the 'expansion' function.
 See also <a href="https://ggplot2.tidyverse.org/reference/expansion.html" class="external-link">https://ggplot2.tidyverse.org/reference/expansion.html</a></p></dd>
-
-
-<dt id="arg-fill-by-x">fill_by_x<a class="anchor" aria-label="anchor" href="#arg-fill-by-x"></a></dt>
-<dd><p>A logical value indicating whether to fill the bars by the x-axis values.
-If FALSE, the bars will be filled a single color (the first color in the palette).</p></dd>
 
 
 <dt id="arg-width">width<a class="anchor" aria-label="anchor" href="#arg-width"></a></dt>

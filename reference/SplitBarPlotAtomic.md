@@ -113,7 +113,7 @@ SplitBarPlotAtomic(
 - fill_by:
 
   A character string indicating the column name to use for the fill of
-  the bars.
+  the bars. Can be either a categorical variable or a numeric variable.
 
 - fill_by_sep:
 

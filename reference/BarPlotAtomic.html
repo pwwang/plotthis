@@ -52,7 +52,8 @@
 <span>  group_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  group_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  fill_by_x_if_no_group <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  fill_by <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  fill_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  label_nudge <span class="op">=</span> <span class="fl">0.02</span>,</span>
 <span>  label <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  label_fg <span class="op">=</span> <span class="st">"black"</span>,</span>
@@ -65,7 +66,7 @@
 <span>  bg_alpha <span class="op">=</span> <span class="fl">0.2</span>,</span>
 <span>  theme <span class="op">=</span> <span class="st">"theme_this"</span>,</span>
 <span>  theme_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
+<span>  palette <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  x_text_angle <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -146,8 +147,16 @@ They will be concatenated into one column, using <code>group_by_sep</code> as th
 <dd><p>A character string to specify the name of the group_by in the legend.</p></dd>
 
 
-<dt id="arg-fill-by-x-if-no-group">fill_by_x_if_no_group<a class="anchor" aria-label="anchor" href="#arg-fill-by-x-if-no-group"></a></dt>
-<dd><p>A logical value indicating whether to fill the bars by the x-axis values if there is no group_by.</p></dd>
+<dt id="arg-fill-by">fill_by<a class="anchor" aria-label="anchor" href="#arg-fill-by"></a></dt>
+<dd><p>A variable used to fill the bars. Both character/factor and numeric columns are accepted.
+If <code>TRUE</code> (default), the bars will be filled by the x-axis values,
+If <code>FALSE</code>, the bars will be filled a single color (the first color in the palette).
+ONLY works when <code>group_by</code> is NULL. When <code>group_by</code> is not NULL, the bars will be filled by the <code>group_by</code> variable.</p></dd>
+
+
+<dt id="arg-fill-name">fill_name<a class="anchor" aria-label="anchor" href="#arg-fill-name"></a></dt>
+<dd><p>A character string to specify the name of the fill variable in the legend.
+Only works when <code>fill_by</code> applies.</p></dd>
 
 
 <dt id="arg-label-nudge">label_nudge<a class="anchor" aria-label="anchor" href="#arg-label-nudge"></a></dt>
