@@ -728,6 +728,7 @@ BarPlot <- function(
 #' @param lineheight A numeric value indicating the height of the text.
 #' @param max_charwidth A numeric value indicating the maximum width of the text.
 #' @param fill_by A character string indicating the column name to use for the fill of the bars.
+#' Can be either a categorical variable or a numeric variable.
 #' @param fill_by_sep A character string to concatenate the fill columns if there are multiple.
 #' @param fill_name A character string indicating the legend name of the fill.
 #' @param direction_name A character string indicating the name of the direction column and will be shown in the legend.
@@ -759,13 +760,20 @@ SplitBarPlotAtomic <- function(
     }
     x <- check_columns(data, x)
     y <- check_columns(data, y, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = y_sep)
-    fill_by <- check_columns(data, fill_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = fill_by_sep)
+    fill_by <- check_columns(data, fill_by)
     fill_by <- fill_by %||% direction_name
+    data[[direction_name]] <- ifelse(data[[x]] > 0, direction_pos_name, direction_neg_name)
+    data[[direction_name]] <- factor(data[[direction_name]], levels = c(direction_pos_name, direction_neg_name))
+    if (is.numeric(data[[fill_by]])) {
+        fill_by_numeric <- TRUE
+    } else {
+        fill_by_numeric <- FALSE
+        fill_by <- check_columns(data, fill_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = fill_by_sep)
+    }
+
     alpha_by <- check_columns(data, alpha_by)
     facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
 
-    data[[direction_name]] <- ifelse(data[[x]] > 0, direction_pos_name, direction_neg_name)
-    data[[direction_name]] <- factor(data[[direction_name]], levels = c(direction_pos_name, direction_neg_name))
     if (is.null(alpha_by)) {
         data$.alpha <- 1
         alpha_by <- ".alpha"
@@ -825,7 +833,7 @@ SplitBarPlotAtomic <- function(
     # false: unused levels are dropped
     # level: unused levels are dropped, but kept for determine fill_by colors
     keep_empty_y <- keep_empty[[y]]
-    keep_empty_fill <- if (!is.null(fill_by)) keep_empty[[fill_by]] else NULL
+    keep_empty_fill <- if (!fill_by_numeric) keep_empty[[fill_by]] else NULL
     keep_empty_facet <- if (!is.null(facet_by)) keep_empty[[facet_by[1]]] else NULL
     if (length(facet_by) > 1) {
         stopifnot("[SplitBarPlot] `keep_empty` for `facet_by` variables must be identical." =
@@ -883,11 +891,6 @@ SplitBarPlotAtomic <- function(
     x_min <- x_min %||% -max(abs(data[[x]]))
     x_max <- x_max %||% max(abs(data[[x]]))
 
-    fill_vals <- if (!isFALSE(keep_empty_fill) || !anyNA(data[[fill_by]])) {
-        levels(data[[fill_by]])
-    } else {
-        c(levels(data[[fill_by]]), NA)
-    }
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y))) +
         geom_vline(xintercept = 0) +
         geom_col(aes(fill = !!sym(fill_by), alpha = !!sym(alpha_by)), color = "black", width = bar_height, show.legend = TRUE) +
@@ -896,21 +899,37 @@ SplitBarPlotAtomic <- function(
             range = if (alpha_reverse) c(1, 0.1) else c(0.1, 1),
             guide = alpha_guide
         )
-    if (isTRUE(keep_empty_fill)) {
-        p <- p +
-            scale_fill_manual(
-                name = fill_name %||% fill_by,
-                values = palette_this(fill_vals, palette = palette, palcolor = palcolor),
-                guide = guide_legend(order = 1),
-                breaks = fill_vals, limits = fill_vals, drop = FALSE
-            )
+
+    if (!fill_by_numeric) {
+        fill_vals <- if (!isFALSE(keep_empty_fill) || !anyNA(data[[fill_by]])) {
+            levels(data[[fill_by]])
+        } else {
+            c(levels(data[[fill_by]]), NA)
+        }
+        if (isTRUE(keep_empty_fill)) {
+            p <- p +
+                scale_fill_manual(
+                    name = fill_name %||% fill_by,
+                    values = palette_this(fill_vals, palette = palette, palcolor = palcolor),
+                    guide = guide_legend(order = 1),
+                    breaks = fill_vals, limits = fill_vals, drop = FALSE
+                )
+        } else {
+            p <- p +
+                scale_fill_manual(
+                    name = fill_name %||% fill_by,
+                    values = palette_this(fill_vals, palette = palette, palcolor = palcolor),
+                    guide = guide_legend(order = 1)
+                )
+        }
     } else {
-        p <- p +
-            scale_fill_manual(
-                name = fill_name %||% fill_by,
-                values = palette_this(fill_vals, palette = palette, palcolor = palcolor),
-                guide = guide_legend(order = 1)
-            )
+        p <- p + scale_fill_gradientn(
+            name = fill_name %||% fill_by,
+            n.breaks = 3,
+            colors = palette_this(palette = palette, palcolor = palcolor),
+            na.value = "grey80",
+            guide = guide_colorbar(frame.colour = "black", ticks.colour = "black", title.hjust = 0)
+        )
     }
 
     if (isTRUE(flip)) {

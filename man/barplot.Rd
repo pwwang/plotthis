@@ -404,7 +404,8 @@ The "*" key is used to order the y axis without considering the direction.}
 
 \item{max_charwidth}{A numeric value indicating the maximum width of the text.}
 
-\item{fill_by}{A character string indicating the column name to use for the fill of the bars.}
+\item{fill_by}{A character string indicating the column name to use for the fill of the bars.
+Can be either a categorical variable or a numeric variable.}
 
 \item{fill_by_sep}{A character string to concatenate the fill columns if there are multiple.}
 
