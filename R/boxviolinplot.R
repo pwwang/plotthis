@@ -378,31 +378,35 @@ BoxViolinPlotAtomic <- function(
     if (fill_mode == "dodge") {
         group_vals <- levels(data[[group_by]])
         if (anyNA(group_vals)) group_vals <- c(group_vals, NA)
+        group_colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+
         if (isTRUE(keep_empty_group)) {
             p <- p + scale_fill_manual(
                 name = group_name %||% group_by,
-                values = palette_this(group_vals, palette = palette, palcolor = palcolor),
+                values = group_colors, na.value = group_colors['NA'] %||% "grey80",
                 breaks = group_vals, limits = group_vals, drop = FALSE
             )
         } else {
             p <- p + scale_fill_manual(
                 name = group_name %||% group_by,
-                values = palette_this(group_vals, palette = palette, palcolor = palcolor)
+                values = group_colors, na.value = group_colors['NA'] %||% "grey80"
             )
         }
     } else if (fill_mode == "x") {
         x_vals <- levels(data[[x]])
         if (anyNA(x_vals)) x_vals <- c(x_vals, NA)
+        x_colors <- palette_this(x_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+
         if (isTRUE(keep_empty_x)) {
             p <- p + scale_fill_manual(
                 name = x,
-                values = palette_this(x_vals, palette = palette, palcolor = palcolor),
+                values = x_colors, na.value = x_colors['NA'] %||% "grey80",
                 breaks = x_vals, limits = x_vals, drop = FALSE
             )
         } else {
             p <- p + scale_fill_manual(
                 name = x,
-                values = palette_this(x_vals, palette = palette, palcolor = palcolor)
+                values = x_colors, na.value = x_colors['NA'] %||% "grey80"
             )
         }
     } else {
@@ -853,14 +857,16 @@ BoxViolinPlotAtomic <- function(
             if (!is.null(group_by)) {
                 group_vals <- levels(data[[group_by]])
                 if (anyNA(group_vals)) group_vals <- c(group_vals, NA)
+                group_colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+
                 if (isTRUE(keep_empty_group)) {
                     p <- p + scale_color_manual(
-                        values = palette_this(group_vals, palette = palette, palcolor = palcolor),
+                        values = group_colors, na.value = group_colors['NA'] %||% "grey80",
                         breaks = group_vals, limits = group_vals, drop = FALSE
                     )
                 } else {
                     p <- p + scale_color_manual(
-                        values = palette_this(group_vals, palette = palette, palcolor = palcolor)
+                        values = group_colors, na.value = group_colors['NA'] %||% "grey80"
                     )
                 }
             }

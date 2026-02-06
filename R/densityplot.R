@@ -89,25 +89,26 @@ DensityHistoPlotAtomic <- function(
     }
     group_vals <- levels(data[[group_by]])
     if (anyNA(data[[group_by]])) group_vals <- c(group_vals, NA)
+    group_colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
 
     p <- ggplot(data, aes(x = !!sym(x), fill = !!sym(group_by), color = !!sym(group_by)))
     if (isTRUE(keep_empty_group)) {
         p <- p + scale_fill_manual(
             name = group_name %||% group_by,
-            values = palette_this(group_vals, palette = palette, palcolor = palcolor),
+            values = group_colors, na.value = group_colors['NA'] %||% "grey80",
             breaks = group_vals, limits = group_vals, drop = FALSE
         ) + scale_color_manual(
             name = group_name %||% group_by,
-            values = palette_this(group_vals, palette = palette, palcolor = palcolor),
+            values = group_colors, na.value = group_colors['NA'] %||% "grey80",
             breaks = group_vals, limits = group_vals, drop = FALSE
         )
     } else {
         p <- p + scale_fill_manual(
             name = group_name %||% group_by,
-            values = palette_this(group_vals, palette = palette, palcolor = palcolor)
+            values = group_colors, na.value = group_colors['NA'] %||% "grey80"
         ) + scale_color_manual(
             name = group_name %||% group_by,
-            values = palette_this(group_vals, palette = palette, palcolor = palcolor)
+            values = group_colors, na.value = group_colors['NA'] %||% "grey80"
         )
     }
 

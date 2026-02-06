@@ -146,7 +146,6 @@ BarPlotSingle <- function(
         )
     }
     p <- p +
-        # scale_fill_manual(name = x, values = colors, guide = guide) +
         labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
         scale_x_discrete(expand = expand$x, drop = !isTRUE(keep_empty_x)) +
         scale_y_continuous(expand = expand$y) +
@@ -321,7 +320,7 @@ BarPlotGrouped <- function(
         p <- p + bg_layer(data, x, isTRUE(keep_empty_x), bg_palette, bg_palcolor, bg_alpha, facet_by)
     }
 
-    colors <- palette_this(group_vals, palette = palette, palcolor = palcolor)
+    colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
     just <- calc_just(x_text_angle)
     if (position == "auto") {
         position <- if (length(colors) <= 5) {
@@ -370,7 +369,7 @@ BarPlotGrouped <- function(
         p <- p +
             scale_fill_manual(
                 name = group_name %||% group_by,
-                values = colors,
+                values = colors, na.value = colors["NA"] %||% "grey80",
                 guide = guide_legend(order = 1),
                 breaks = group_vals, limits = group_vals, drop = FALSE
             )
@@ -378,7 +377,7 @@ BarPlotGrouped <- function(
         p <- p +
             scale_fill_manual(
                 name = group_name %||% group_by,
-                values = colors,
+                values = colors, na.value = colors["NA"] %||% "grey80",
                 guide = guide_legend(order = 1)
             )
     }
@@ -941,11 +940,13 @@ SplitBarPlotAtomic <- function(
         } else {
             c(levels(data[[fill_by]]), NA)
         }
+        fill_colors <- palette_this(fill_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+
         if (isTRUE(keep_empty_fill)) {
             p <- p +
                 scale_fill_manual(
                     name = fill_name %||% fill_by,
-                    values = palette_this(fill_vals, palette = palette, palcolor = palcolor),
+                    values = fill_colors, na.value = fill_colors['NA'] %||% "grey80",
                     guide = guide_legend(order = 1),
                     breaks = fill_vals, limits = fill_vals, drop = FALSE
                 )
@@ -953,7 +954,7 @@ SplitBarPlotAtomic <- function(
             p <- p +
                 scale_fill_manual(
                     name = fill_name %||% fill_by,
-                    values = palette_this(fill_vals, palette = palette, palcolor = palcolor),
+                    values = fill_colors, na.value = fill_colors['NA'] %||% "grey80",
                     guide = guide_legend(order = 1)
                 )
         }

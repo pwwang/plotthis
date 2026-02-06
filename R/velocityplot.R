@@ -249,7 +249,7 @@ VelocityPlot <- function(
             if (isTRUE(keep_empty)) {
                 velocity_layer[[length(velocity_layer) + 1]] <- scale_color_manual(
                     name = group_name,
-                    values = group_cols,
+                    values = group_cols, na.value = group_cols["NA"] %||% "grey80",
                     breaks = group_vals,
                     limits = group_vals,
                     drop = FALSE,
@@ -258,7 +258,7 @@ VelocityPlot <- function(
             } else {
                  velocity_layer[[length(velocity_layer) + 1]] <- scale_color_manual(
                     name = group_name,
-                    values = group_cols,
+                    values = group_cols, na.value = group_cols["NA"] %||% "grey80",
                     guide = guide_legend(title.hjust = 0, order = 1, override.aes = list(linewidth = 2, alpha = 1))
                 )
             }

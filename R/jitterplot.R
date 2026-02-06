@@ -285,23 +285,23 @@ JitterPlotAtomic <- function(
     if (has_fill) {
         if (isTRUE(keep_empty_col)) {
             p <- p + scale_fill_manual(
-                name = color_col, values = colors,
+                name = color_col, values = colors, na.value = colors['NA'] %||% "grey80",
                 breaks = col_levels, limits = col_levels, drop = FALSE
             )
         } else {
-            p <- p + scale_fill_manual(name = color_col, values = colors)
+            p <- p + scale_fill_manual(name = color_col, values = colors, na.value = colors['NA'] %||% "grey80")
         }
         if (isTRUE(border)) {
-            p <- p + scale_color_manual(values = colors, guide = "none")
+            p <- p + scale_color_manual(values = colors, guide = "none", na.value = colors['NA'] %||% "grey80")
         }
     } else {
         if (isTRUE(keep_empty_col)) {
             p <- p + scale_color_manual(
-                name = color_col, values = colors,
+                name = color_col, values = colors, na.value = colors['NA'] %||% "grey80",
                 breaks = col_levels, limits = col_levels, drop = FALSE
             )
         } else {
-            p <- p + scale_color_manual(name = color_col, values = colors)
+            p <- p + scale_color_manual(name = color_col, values = colors, na.value = colors['NA'] %||% "grey80")
         }
     }
 

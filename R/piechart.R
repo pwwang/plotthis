@@ -110,13 +110,13 @@ PieChartAtomic <- function(
 
     if (isTRUE(keep_empty_x)) {
         p <- p + scale_fill_manual(
-            name = x, values = colors,
+            name = x, values = colors, na.value = colors["NA"] %||% "grey80",
             breaks = rev(x_vals), limits = rev(x_vals), drop = FALSE,
             guide = guide_legend(reverse = clockwise)
         )
     } else {
         p <- p + scale_fill_manual(
-            name = x, values = colors,
+            name = x, values = colors, na.value = colors["NA"] %||% "grey80",
             breaks = rev(x_vals),
             guide = guide_legend(reverse = clockwise)
         )

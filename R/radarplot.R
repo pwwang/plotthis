@@ -273,10 +273,10 @@ RadarPlotAtomic <- function(
 
     if (isTRUE(keep_empty_group)) {
         p <- p + scale_fill_manual(
-            name = group_name %||% group_by, values = group_colors,
+            name = group_name %||% group_by, values = group_colors, na.value = group_colors["NA"] %||% "grey80",
             breaks = group_vals, limits = group_vals, drop = FALSE
         ) + scale_color_manual(
-            values = group_colors,
+            values = group_colors, na.value = group_colors["NA"] %||% "grey80",
             breaks = group_vals, limits = group_vals, drop = FALSE
         )
     } else {

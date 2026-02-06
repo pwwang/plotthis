@@ -120,7 +120,7 @@ RingPlotAtomic <- function(
     if (isTRUE(keep_empty_group)) {
         p <- p + scale_fill_manual(
             name = group_name %||% group_by,
-            values = colors,
+            values = colors, na.value = colors["NA"] %||% "grey80",
             breaks = rev(group_vals),
             limits = rev(group_vals),
             drop = FALSE,
@@ -129,7 +129,7 @@ RingPlotAtomic <- function(
     } else {
         p <- p + scale_fill_manual(
             name = group_name %||% group_by,
-            values = colors,
+            values = colors, na.value = colors["NA"] %||% "grey80",
             breaks = rev(group_vals),
             drop = TRUE,
             guide = group_guide
