@@ -33,7 +33,7 @@
 #' @importFrom rlang sym %||%
 #' @importFrom dplyr %>% group_by summarise n
 #' @importFrom tidyr complete
-#' @importFrom ggplot2 aes geom_bar scale_fill_manual labs scale_x_discrete scale_y_continuous guide_legend guide_colorbar
+#' @importFrom ggplot2 aes geom_bar geom_text scale_fill_manual labs scale_x_discrete scale_y_continuous guide_legend guide_colorbar
 #' @importFrom ggplot2 element_line waiver coord_flip scale_color_manual guide_legend coord_cartesian
 #' @importFrom ggrepel geom_text_repel
 BarPlotSingle <- function(
@@ -138,12 +138,21 @@ BarPlotSingle <- function(
         label_data$.sign <- label_data[[y]] > 0
         label_data[[y]] <- label_data[[y]] + yr * label_nudge * ifelse(label_data$.sign, 1, -1)
 
-        p <- p + geom_text_repel(
-            data = label_data, mapping = aes(label = !!sym(".label")),
-            color = label_fg, size = label_size, hjust = if (flip) ifelse(label_data$.sign, 0, 1) else 0.5,
-            bg.color = label_bg, bg.r = label_bg_r, direction = "y", force = 0,
-            min.segment.length = 0, max.overlaps = 100, segment.color = 'transparent'
-        )
+        if (!isTRUE(flip)) {
+            p <- p + geom_text_repel(
+                data = label_data, mapping = aes(label = !!sym(".label")),
+                color = label_fg, size = label_size, hjust = if (flip) ifelse(label_data$.sign, 0, 1) else 0.5,
+                bg.color = label_bg, bg.r = label_bg_r, direction = "y", force = 0,
+                min.segment.length = 0, max.overlaps = 100, segment.color = 'transparent'
+            )
+        } else {
+            p <- p + geom_text(
+                data = label_data, mapping = aes(label = !!sym(".label")),
+                color = label_fg, size = label_size,
+                hjust = if (flip) ifelse(label_data$.sign, 0, 1) else 0.5,
+                show.legend = FALSE
+            )
+        }
     }
     p <- p +
         labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
@@ -209,8 +218,14 @@ BarPlotSingle <- function(
         p <- p + coord_cartesian(ylim = c(y_min, y_max))
     }
 
-    height <- 3.5 + max(nchar(unlist(strsplit(levels(data[[x]]), "\n"))) * 0.1, 1)
-    width <- .5 + min(nlevels(data[[x]]) * .8, height / aspect.ratio)
+    x_maxchars <- max(nchar(unlist(strsplit(levels(data[[x]]), "\n"))))
+    if (isTRUE(flip)) {
+        height <- max(.5 + nlevels(data[[x]]) * .8, 4)
+        width <- 4 + x_maxchars * 0.1
+    } else {
+        height <- 3.5 + max(x_maxchars * 0.1, 1)
+        width <- .5 + min(nlevels(data[[x]]) * .8, if (is.null(aspect.ratio)) Inf else height / aspect.ratio)
+    }
     if (!identical(legend.position, "none")) {
         if (legend.position %in% c("right", "left")) {
             width <- width + 1
@@ -221,13 +236,8 @@ BarPlotSingle <- function(
         }
     }
 
-    if (isTRUE(flip)) {
-        attr(p, "height") <- width
-        attr(p, "width") <- height
-    } else {
-        attr(p, "height") <- height
-        attr(p, "width") <- width
-    }
+    attr(p, "height") <- height
+    attr(p, "width") <- width
     p
 }
 
