@@ -2,6 +2,8 @@
 
 ## Version 0.10.0
 
+CRAN release: 2026-02-06
+
 ### New Features
 
 - Add `keep_na` and `keep_empty` parameters to control handling of NA
