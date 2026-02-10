@@ -838,9 +838,9 @@ BoxViolinPlotAtomic <- function(
                     ),
                     show.legend = FALSE
                 ) +
-                scale_color_manual(values = c("TRUE" = highlight_color, "FALSE" = pt_color)) +
-                scale_size_manual(values = c("TRUE" = highlight_size, "FALSE" = pt_size %||% min(3000 / nrow(data), 0.6))) +
-                scale_alpha_manual(values = c("TRUE" = highlight_alpha, "FALSE" = pt_alpha))
+                scale_color_manual(values = c("TRUE" = highlight_color, "FALSE" = pt_color), guide = "none") +
+                scale_size_manual(values = c("TRUE" = highlight_size, "FALSE" = pt_size %||% min(3000 / nrow(data), 0.6)), guide = "none") +
+                scale_alpha_manual(values = c("TRUE" = highlight_alpha, "FALSE" = pt_alpha), guide = "none")
         }
     }
 
