@@ -78,7 +78,7 @@ BarPlotSingle <- function(
         fill_is_numeric <- FALSE
         palette <- palette %||% "Paired"
     } else {
-        fill_by <- check_columns(data, fill_by)
+        fill_by <- check_columns(data, fill_by, allow_multi = TRUE)
         if (is.numeric(data[[fill_by]])) {
             fill_guide <- guide_colorbar(frame.colour = "black", ticks.colour = "black", title.hjust = 0)
             fill_is_numeric <- TRUE
@@ -536,7 +536,7 @@ BarPlotAtomic <- function(
             add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
             legend.position = legend.position, legend.direction = legend.direction, y_min = y_min, y_max = y_max,
             title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_na = keep_na, keep_empty = keep_empty,
-            expand = expand, fill_by = if (isTRUE(fill_by)) x else fill_by, fill_name = fill_name, width = width, ...
+            expand = expand, fill_by = fill_by, fill_name = fill_name, width = width, ...
         )
     } else {
         stopifnot("[BarPlot] `fill_by` cannot be applied when `group_by` is specified." = !missing(fill_by) || identical(fill_by, group_by))
@@ -804,7 +804,7 @@ SplitBarPlotAtomic <- function(
     }
     x <- check_columns(data, x)
     y <- check_columns(data, y, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = y_sep)
-    fill_by <- check_columns(data, fill_by)
+    fill_by <- check_columns(data, fill_by, allow_multi = TRUE)
     fill_by <- fill_by %||% direction_name
     data[[direction_name]] <- ifelse(data[[x]] > 0, direction_pos_name, direction_neg_name)
     data[[direction_name]] <- factor(data[[direction_name]], levels = c(direction_pos_name, direction_neg_name))
