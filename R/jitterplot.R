@@ -208,10 +208,14 @@ JitterPlotAtomic <- function(
     }
 
     # Positioner (jitter + optional dodge)
-    pos <- position_jitterdodge(
-        jitter.width = jitter_width, jitter.height = jitter_height,
-        dodge.width = ifelse(is.null(group_by), 0, 0.9), seed = seed
-    )
+    if (is.null(group_by)) {
+        pos <- position_jitter(width = jitter_width, height = jitter_height, seed = seed)
+    } else {
+        pos <- position_jitterdodge(
+            jitter.width = jitter_width, jitter.height = jitter_height,
+            dodge.width = 0.9, seed = seed
+        )
+    }
 
     # Pre-calculate jittered positions for labels (geom_text_repel doesn't respect position adjustments)
     if (any(data$.show_label)) {
@@ -219,7 +223,8 @@ JitterPlotAtomic <- function(
         temp_data <- data
         temp_mapping <- aes(x = !!sym(x), y = !!sym(y))
         if (!is.null(group_by)) {
-            temp_mapping$group <- aes(group = !!sym(group_by))$group
+            # position_jitterdodge requires a visual aesthetic (fill/colour), not just group
+            temp_mapping$fill <- aes(fill = !!sym(group_by))$fill
         }
         temp_plot <- ggplot2::ggplot(temp_data, temp_mapping) +
             geom_point(position = pos) +
