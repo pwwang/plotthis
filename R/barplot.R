@@ -536,7 +536,7 @@ BarPlotAtomic <- function(
             add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
             legend.position = legend.position, legend.direction = legend.direction, y_min = y_min, y_max = y_max,
             title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_na = keep_na, keep_empty = keep_empty,
-            expand = expand, fill_by = ifelse(isTRUE(fill_by), x, fill_by), fill_name = fill_name, width = width, ...
+            expand = expand, fill_by = if (isTRUE(fill_by)) x else fill_by, fill_name = fill_name, width = width, ...
         )
     } else {
         stopifnot("[BarPlot] `fill_by` cannot be applied when `group_by` is specified." = !missing(fill_by) || identical(fill_by, group_by))
