@@ -795,7 +795,6 @@ BoxViolinPlotAtomic <- function(
             if (!is.null(pt_color)) {
                 p <- p +
                     ggbeeswarm::geom_beeswarm(
-                        aes(size = !!sym(".highlight"), alpha = !!sym(".highlight")),
                         color = pt_color,
                         method = beeswarm_method,
                         cex = beeswarm_cex,
@@ -803,30 +802,38 @@ BoxViolinPlotAtomic <- function(
                         dodge.width = beeswarm_dodge,
                         show.legend = FALSE
                     )
-
             } else {
+                colors <- palette_this(levels(data[[fill_by]]), palette = palette, palcolor = palcolor)
                 p <- p +
                     ggbeeswarm::geom_beeswarm(
-                        aes(color = !!sym(fill_by), size = !!sym(".highlight"), alpha = !!sym(".highlight")),
+                        aes(color = !!sym(fill_by)),
                         method = beeswarm_method,
                         cex = beeswarm_cex,
                         priority = beeswarm_priority,
                         dodge.width = beeswarm_dodge
                     ) +
-                    scale_color_manual(
-                        values = palette_this(levels(data[[fill_by]]), palette = palette, palcolor = palcolor),
-                        guide = "legend"
+                    scale_color_manual(values = colors, guide = "legend")
+            }
+            if (any(data$.highlight == "TRUE")) {
+                p <- p +
+                    ggbeeswarm::geom_beeswarm(
+                        data = data[data$.highlight == "TRUE", , drop = FALSE],
+                        color = highlight_color,
+                        method = beeswarm_method,
+                        cex = beeswarm_cex,
+                        priority = beeswarm_priority,
+                        dodge.width = beeswarm_dodge,
+                        show.legend = FALSE
+                    ) +
+                    scale_size_manual(
+                        values = c("TRUE" = highlight_size, "FALSE" = pt_size %||% min(3000 / nrow(data), 0.6)),
+                        guide = "none"
+                    ) +
+                    scale_alpha_manual(
+                        values = c("TRUE" = highlight_alpha, "FALSE" = pt_alpha),
+                        guide = "none"
                     )
             }
-            p <- p +
-                scale_size_manual(
-                    values = c("TRUE" = highlight_size, "FALSE" = pt_size %||% min(3000 / nrow(data), 0.6)),
-                    guide = "none"
-                ) +
-                scale_alpha_manual(
-                    values = c("TRUE" = highlight_alpha, "FALSE" = pt_alpha),
-                    guide = "none"
-                )
         } else {
             # Use regular jittered points
             p <- p +
