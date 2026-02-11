@@ -101,6 +101,13 @@ join_heatmap_meta <- function(data, meta_data, by, cr_split_by, split_by, which)
 #' @param columns_split_by A character of column name in `data` that contains the split information for columns.
 #' @param columns_split_by_sep A character string to concat multiple columns in `columns_split_by`.
 #' @param columns_split_name A character string to rename the column created by `columns_split_by`, which will be reflected in the name of the annotation or legend.
+#' @param rows_orderby A expression (in character) to specify how to order rows. It will be evaluated in the context of the data frame used for rows (after grouping by rows_split_by and rows_by). The expression should return a vector of the same length as the number of rows in the data frame. The default is NULL, which means no specific ordering.
+#' Can't be used with cluster_rows = TRUE.
+#' This is applied before renaming rows_by to rows_name.
+#' @param columns_orderby A expression (in character) to specify how to order columns. It will be evaluated in the context of the data frame used for columns (after grouping by columns
+#' split_by and columns_by). The expression should return a vector of the same length as the number of rows in the data frame. The default is NULL, which means no specific ordering.
+#' Can't be used with cluster_columns = TRUE.
+#' This is applied before renaming columns_by to columns_name.
 #' @param pie_group_by A character of column name in `data` that contains the group information for pie charts.
 #' This is used to create pie charts in the heatmap when `cell_type` is `"pie"`.
 #' @param pie_group_by_sep A character string to concat multiple columns in `pie_group_by`.
@@ -124,11 +131,12 @@ join_heatmap_meta <- function(data, meta_data, by, cr_split_by, split_by, which)
 #' * `columns_by`: The name of the column containing the column information.
 #' * `columns_split_by`: The name of the column containing the column split information.
 #' * `pie_group_by`: The name of the column containing the pie group information.
-#' @importFrom rlang sym %||%
+#' @importFrom rlang sym syms %||% parse_expr
+#' @importFrom dplyr arrange group_by summarise pull
 #' @keywords internal
 process_heatmap_data <- function(
     data, in_form, values_by, name,
-    split_by, split_by_sep,
+    split_by, split_by_sep, rows_orderby, columns_orderby,
     rows_by, rows_by_sep, rows_name,
     rows_split_by, rows_split_by_sep, rows_split_name,
     columns_by, columns_by_sep, columns_name,
@@ -189,6 +197,27 @@ process_heatmap_data <- function(
         force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep
     )
 
+    apply_orderby <- function(df, orderby, by, sby, sby_levels) {
+        if (!is.null(orderby)) {
+            by_levels <- df %>%
+                group_by(!!sym(by)) %>%
+                summarise(.orderby = !!parse_expr(orderby)) %>%
+                arrange(!!sym(".orderby")) %>%
+                pull(!!sym(by))
+            df[[by]] <- factor(df[[by]], levels = by_levels)
+
+            if (!is.null(sby) && is.null(sby_levels)) {
+                sby_levels <- df %>%
+                    group_by(!!sym(sby)) %>%
+                    summarise(.orderby = !!parse_expr(orderby)) %>%
+                    arrange(!!sym(".orderby")) %>%
+                    pull(!!sym(sby))
+                df[[sby]] <- factor(df[[sby]], levels = sby_levels)
+            }
+        }
+        df
+    }
+
     if (in_form == "long") {
         # values_by
         values_by <- check_columns(data, values_by)
@@ -215,6 +244,11 @@ process_heatmap_data <- function(
                 split_by = split_by, which = "row"
             )
         }
+        rows_split_levels <- if (length(rows_split_by) == 1 && is.factor(data[[rows_split_by]])) {
+            levels(data[[rows_split_by]])
+        } else {
+            NULL
+        }
         rows_split_by <- check_columns(
             data, rows_split_by,
             force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = rows_split_by_sep
@@ -226,10 +260,18 @@ process_heatmap_data <- function(
                 split_by = split_by, which = "column"
             )
         }
+        columns_split_leves <- if (length(columns_split_by) == 1 && is.factor(data[[columns_split_by]])) {
+            levels(data[[columns_split_by]])
+        } else {
+            NULL
+        }
         columns_split_by <- check_columns(
             data, columns_split_by,
             force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = columns_split_by_sep
         )
+
+        data <- apply_orderby(data, rows_orderby, rows_by, rows_split_by, rows_split_levels)
+        data <- apply_orderby(data, columns_orderby, columns_by, columns_split_by, columns_split_leves)
 
         # rename
         if (!is.null(rows_name)) {
@@ -268,7 +310,12 @@ process_heatmap_data <- function(
                 split_by = split_by, which = "row"
             )
         }
-        row_split_by <- check_columns(
+        rows_split_levels <- if (length(rows_split_by) == 1 && is.factor(data[[rows_split_by]])) {
+            levels(data[[rows_split_by]])
+        } else {
+            NULL
+        }
+        rows_split_by <- check_columns(
             data, rows_split_by,
             force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = rows_split_by_sep
         )
@@ -279,10 +326,18 @@ process_heatmap_data <- function(
                 split_by = split_by, which = "column"
             )
         }
+        columns_split_levels <- if (length(columns_split_by) == 1 && is.factor(data[[columns_split_by]])) {
+            levels(data[[columns_split_by]])
+        } else {
+            NULL
+        }
         columns_split_by <- check_columns(
             data, columns_split_by,
             force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = columns_split_by_sep
         )
+
+        data <- apply_orderby(data, rows_orderby, rows_by, rows_split_by, rows_split_levels)
+        data <- apply_orderby(data, columns_orderby, columns_by, columns_split_by, columns_split_levels)
 
         if (!is.null(columns_name)) {
             data <- dplyr::rename(data, !!sym(columns_name) := columns_by)
@@ -316,6 +371,11 @@ process_heatmap_data <- function(
                 split_by = split_by, which = "row"
             )
         }
+        rows_split_levels <- if (length(rows_split_by) == 1 && is.factor(data[[rows_split_by]])) {
+            levels(data[[rows_split_by]])
+        } else {
+            NULL
+        }
         rows_split_by <- check_columns(
             data, rows_split_by,
             force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = rows_split_by_sep
@@ -327,10 +387,18 @@ process_heatmap_data <- function(
                 split_by = split_by, which = "column"
             )
         }
+        columns_split_leves <- if (length(columns_split_by) == 1 && is.factor(data[[columns_split_by]])) {
+            levels(data[[columns_split_by]])
+        } else {
+            NULL
+        }
         columns_split_by <- check_columns(
             data, columns_split_by,
             force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = columns_split_by_sep
         )
+
+        data <- apply_orderby(data, rows_orderby, rows_by, rows_split_by, rows_split_levels)
+        data <- apply_orderby(data, columns_orderby, columns_by, columns_split_by, columns_split_leves)
 
         if (!is.null(rows_name)) {
             data <- dplyr::rename(data, !!sym(rows_name) := rows_by)
@@ -2120,6 +2188,7 @@ Heatmap <- function(
     rows_by = NULL, rows_by_sep = "_", rows_split_by = NULL, rows_split_by_sep = "_",
     columns_by = NULL, columns_by_sep = "_", columns_split_by = NULL, columns_split_by_sep = "_",
     rows_data = NULL, columns_data = NULL, keep_na = FALSE, keep_empty = FALSE,
+    rows_orderby = NULL, columns_orderby = NULL,
     # names
     columns_name = NULL, columns_split_name = NULL,
     rows_name = NULL, rows_split_name = NULL,
@@ -2152,7 +2221,7 @@ Heatmap <- function(
     # passed to ComplexHeatmap::Heatmap
     column_name_annotation = TRUE, column_name_legend = NULL,
     row_name_annotation = TRUE, row_name_legend = NULL,
-    cluster_columns = TRUE, cluster_rows = TRUE, show_row_names = !row_name_annotation, show_column_names = !column_name_annotation,
+    cluster_columns = NULL, cluster_rows = NULL, show_row_names = !row_name_annotation, show_column_names = !column_name_annotation,
     border = TRUE, title = NULL, column_title = character(0), row_title = character(0), na_col = "grey85",
     row_names_side = "right", column_names_side = "bottom",
     column_annotation = NULL, column_annotation_side = "top", column_annotation_palette = "Paired", column_annotation_palcolor = NULL,
@@ -2171,9 +2240,23 @@ Heatmap <- function(
     in_form <- match.arg(in_form)
     cell_type <- match.arg(cell_type)
 
+    if (!is.null(rows_orderby)) {
+        cluster_rows <- cluster_rows %||% FALSE
+        stopifnot("[Heatmap] `rows_orderby` can't be used with `cluster_rows = TRUE`" = isFALSE(cluster_rows))
+    } else {
+        cluster_rows <- cluster_rows %||% TRUE
+    }
+
+    if (!is.null(columns_orderby)) {
+        cluster_columns <- cluster_columns %||% FALSE
+        stopifnot("[Heatmap] `columns_orderby` can't be used with `cluster_columns = TRUE`" = isFALSE(cluster_columns))
+    } else {
+        cluster_columns <- cluster_columns %||% TRUE
+    }
+
     hmdata <- process_heatmap_data(
         data, in_form = in_form, values_by = values_by, name = name,
-        split_by = split_by, split_by_sep = split_by_sep,
+        split_by = split_by, split_by_sep = split_by_sep, rows_orderby = rows_orderby, columns_orderby = columns_orderby,
         rows_by = rows_by, rows_by_sep = rows_by_sep, rows_name = rows_name,
         rows_split_by = rows_split_by, rows_split_by_sep = rows_split_by_sep, rows_split_name = rows_split_name,
         columns_by = columns_by, columns_by_sep = columns_by_sep, columns_name = columns_name,

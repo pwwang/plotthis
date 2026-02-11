@@ -24,6 +24,8 @@ Heatmap(
   columns_data = NULL,
   keep_na = FALSE,
   keep_empty = FALSE,
+  rows_orderby = NULL,
+  columns_orderby = NULL,
   columns_name = NULL,
   columns_split_name = NULL,
   rows_name = NULL,
@@ -69,8 +71,8 @@ Heatmap(
   column_name_legend = NULL,
   row_name_annotation = TRUE,
   row_name_legend = NULL,
-  cluster_columns = TRUE,
-  cluster_rows = TRUE,
+  cluster_columns = NULL,
+  cluster_rows = NULL,
   show_row_names = !row_name_annotation,
   show_column_names = !column_name_annotation,
   border = TRUE,
@@ -189,6 +191,15 @@ categorical/character columns used on the plot, for example, the \code{x}, \code
 But they will be assigned colors from the palette to maintain consistency across multiple plots.
 Alias: \code{levels}}
 }}
+
+\item{rows_orderby}{A expression (in character) to specify how to order rows. It will be evaluated in the context of the data frame used for rows (after grouping by rows_split_by and rows_by). The expression should return a vector of the same length as the number of rows in the data frame. The default is NULL, which means no specific ordering.
+Can't be used with cluster_rows = TRUE.
+This is applied before renaming rows_by to rows_name.}
+
+\item{columns_orderby}{A expression (in character) to specify how to order columns. It will be evaluated in the context of the data frame used for columns (after grouping by columns
+split_by and columns_by). The expression should return a vector of the same length as the number of rows in the data frame. The default is NULL, which means no specific ordering.
+Can't be used with cluster_columns = TRUE.
+This is applied before renaming columns_by to columns_name.}
 
 \item{columns_name}{A character string to rename the column created by \code{columns_by}, which will be reflected in the name of the annotation or legend.}
 
