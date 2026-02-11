@@ -6,6 +6,9 @@
 #' @param x_sep A character string to concatenate the columns in `x`, if multiple columns are provided.
 #' @param group_by A character string of the column name(s) to group the data (the lines) by.
 #'  Character/factor column(s) is expected.
+#' @param groups A character vector of group values (in the `group_by` column) to include in the plot. If NULL, all groups will be included.
+#' This can be used to exclude certain groups from the plot or to specify the order of groups in the legend.
+#' Only applicable when `group_by` is provided.
 #' @param group_by_sep A character string to concatenate the columns in `group_by`, if multiple columns are provided.
 #' @param y A character string of the column name to plot on the y-axis.
 #'  A numeric column is expected.
@@ -36,7 +39,7 @@
 #' @importFrom ggplot2 scale_color_manual coord_polar labs theme element_blank element_line element_text element_rect
 #' @importFrom ggplot2 ggproto CoordPolar waiver
 RadarPlotAtomic <- function(
-    data, x, x_sep = "_", group_by = NULL, group_by_sep = "_", y = NULL, group_name = NULL,
+    data, x, x_sep = "_", group_by = NULL, group_by_sep = "_", y = NULL, group_name = NULL, groups = NULL,
     scale_y = c("group", "global", "x", "none"), y_min = 0, y_max = NULL, y_nbreaks = 4,
     polygon = FALSE, fill = TRUE, linewidth = 1, pt_size = 4, max_charwidth = 16, bg_color = "grey80", bg_alpha = 0.1,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
@@ -58,6 +61,8 @@ RadarPlotAtomic <- function(
         group_by <- ".group"
         legend.position <- ifelse(inherits(legend.position, "waiver"), "none", "right")
     } else {
+        data <- data[data[[group_by]] %in% groups, , drop = FALSE]
+        data[[group_by]] <- droplevels(data[[group_by]])
         legend.position <- ifelse(inherits(legend.position, "waiver"), "right", legend.position)
     }
 
@@ -323,7 +328,7 @@ RadarPlotAtomic <- function(
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
 RadarPlot <- function(
-    data, x, x_sep = "_", group_by = NULL, group_by_sep = "_", y = NULL, group_name = NULL,
+    data, x, x_sep = "_", group_by = NULL, group_by_sep = "_", y = NULL, group_name = NULL, groups = NULL,
     scale_y = c("group", "global", "x", "none"), y_min = 0, y_max = NULL, y_nbreaks = 4, bg_color = "grey80", bg_alpha = 0.1,
     fill = TRUE, linewidth = 1, pt_size = 4, max_charwidth = 16, split_by = NULL, split_by_sep = "_",
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
@@ -363,7 +368,7 @@ RadarPlot <- function(
                 title <- title %||% default_title
             }
             RadarPlotAtomic(datas[[nm]],
-                x = x, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, y = y, group_name = group_name,
+                x = x, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, y = y, group_name = group_name, groups = groups,
                 scale_y = scale_y, y_min = y_min, y_max = y_max, y_nbreaks = y_nbreaks, polygon = FALSE,
                 fill = fill, linewidth = linewidth, pt_size = pt_size, max_charwidth = max_charwidth, bg_color = bg_color, bg_alpha = bg_alpha,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
@@ -418,7 +423,7 @@ RadarPlot <- function(
 #'           palette = c(G1 = "Set1", G2 = "Paired"))
 #' }
 SpiderPlot <- function(
-    data, x, x_sep = "_", group_by = NULL, group_by_sep = "_", y = NULL, group_name = NULL,
+    data, x, x_sep = "_", group_by = NULL, group_by_sep = "_", y = NULL, group_name = NULL, groups = NULL,
     scale_y = c("group", "global", "x", "none"), y_min = 0, y_max = NULL, y_nbreaks = 4, bg_color = "grey80", bg_alpha = 0.1,
     fill = TRUE, linewidth = 1, pt_size = 4, max_charwidth = 16, split_by = NULL, split_by_sep = "_",
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
@@ -458,7 +463,7 @@ SpiderPlot <- function(
                 title <- title %||% default_title
             }
             RadarPlotAtomic(datas[[nm]],
-                x = x, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, y = y, group_name = group_name,
+                x = x, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, y = y, group_name = group_name, groups = groups,
                 scale_y = scale_y, y_min = y_min, y_max = y_max, y_nbreaks = y_nbreaks, polygon = TRUE, bg_color = bg_color, bg_alpha = bg_alpha,
                 fill = fill, linewidth = linewidth, pt_size = pt_size, max_charwidth = max_charwidth,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],

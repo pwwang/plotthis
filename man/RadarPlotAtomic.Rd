@@ -12,6 +12,7 @@ RadarPlotAtomic(
   group_by_sep = "_",
   y = NULL,
   group_name = NULL,
+  groups = NULL,
   scale_y = c("group", "global", "x", "none"),
   y_min = 0,
   y_max = NULL,
@@ -61,6 +62,10 @@ A numeric column is expected.
 If NULL, the count of the x-axis column in each group will be used.}
 
 \item{group_name}{A character string to name the legend of group.}
+
+\item{groups}{A character vector of group values (in the \code{group_by} column) to include in the plot. If NULL, all groups will be included.
+This can be used to exclude certain groups from the plot or to specify the order of groups in the legend.
+Only applicable when \code{group_by} is provided.}
 
 \item{scale_y}{How should the y-axis be scaled? Default is "group".
 Other options are "global", "x" and "none".
