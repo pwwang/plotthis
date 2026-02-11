@@ -68,7 +68,8 @@ AreaPlotAtomic <- function(
     if (isTRUE(scale_y)) {
         data <- data %>%
             dplyr::group_by(!!!syms(unique(c(x, facet_by)))) %>%
-            mutate(!!sym(y) := !!sym(y) / sum(!!sym(y)))
+            mutate(!!sym(y) := !!sym(y) / sum(!!sym(y))) %>%
+            ungroup()
         # keep the levels
         for (col in unique(c(x, group_by, facet_by))) {
             data[[col]] <- factor(data[[col]], levels = levels(orig_data[[col]]))
@@ -101,13 +102,27 @@ AreaPlotAtomic <- function(
 
     just <- calc_just(x_text_angle)
 
-    # Convert x to numeric, handling NA values by assigning them the next position
-    data$.x_numeric <- as.numeric(data[[x]])
-    if (anyNA(data[[x]])) {
-        data$.x_numeric[is.na(data[[x]])] <- length(levels(data[[x]])) + 1
+    # Complete all x * group_by (and facet_by) combinations so that geom_area
+    # doesn't interpolate across missing groups, which would cause stacked
+    # areas to exceed the correct total.
+    complete_vars <- unique(c(x, group_by, facet_by))
+    complete_fill <- setNames(list(0), y)
+    data_complete <- data %>%
+        tidyr::complete(!!!syms(complete_vars), fill = complete_fill)
+    # Restore factor levels that complete() may have altered
+    for (col in complete_vars) {
+        if (is.factor(data[[col]])) {
+            data_complete[[col]] <- factor(data_complete[[col]], levels = levels(data[[col]]))
+        }
     }
 
-    p <- ggplot(data, aes(x = !!sym(".x_numeric"), y = !!sym(y), fill = !!sym(group_by))) +
+    # Convert x to numeric, handling NA values by assigning them the next position
+    data_complete$.x_numeric <- as.numeric(data_complete[[x]])
+    if (anyNA(data_complete[[x]])) {
+        data_complete$.x_numeric[is.na(data_complete[[x]])] <- length(levels(data_complete[[x]])) + 1
+    }
+
+    p <- ggplot(data_complete, aes(x = !!sym(".x_numeric"), y = !!sym(y), fill = !!sym(group_by))) +
         geom_area(alpha = alpha, color = "grey50", position = position_stack(vjust = 0.5), show.legend = TRUE) +
         scale_x_discrete(expand = c(0, 0), breaks = x_vals, limits = x_vals, drop = isFALSE(keep_empty_x)) +
         scale_y_continuous(expand = c(0, 0), labels = if (isFALSE(scale_y)) scales::number else scales::percent) +
