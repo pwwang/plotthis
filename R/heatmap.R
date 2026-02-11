@@ -203,7 +203,8 @@ process_heatmap_data <- function(
                 group_by(!!sym(by)) %>%
                 summarise(.orderby = !!parse_expr(orderby)) %>%
                 arrange(!!sym(".orderby")) %>%
-                pull(!!sym(by))
+                pull(!!sym(by)) %>%
+                as.character()
             df[[by]] <- factor(df[[by]], levels = by_levels)
 
             if (!is.null(sby) && is.null(sby_levels)) {
@@ -211,7 +212,8 @@ process_heatmap_data <- function(
                     group_by(!!sym(sby)) %>%
                     summarise(.orderby = !!parse_expr(orderby)) %>%
                     arrange(!!sym(".orderby")) %>%
-                    pull(!!sym(sby))
+                    pull(!!sym(sby)) %>%
+                    as.character()
                 df[[sby]] <- factor(df[[sby]], levels = sby_levels)
             }
         }
