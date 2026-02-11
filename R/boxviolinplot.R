@@ -9,14 +9,9 @@
 #'  When `in_form` is "wide", `y` is not required. The values under `x` columns will be used as y-values.
 #' @param base A character string to specify the base plot type. Either "box", "violin" or "none" (used by BeeswarmPlot).
 #' @param in_form A character string to specify the input data type. Either "long" or "wide".
-#' @param sort_x A character string to specify the sorting of x-axis, chosen from "none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median".
-#' * `none` means no sorting (as-is).
-#' * `mean_asc` sorts the x-axis by ascending mean of y-values.
-#' * `mean_desc` sorts the x-axis by descending mean of y-values.
-#' * `mean` is an alias for `mean_asc`.
-#' * `median_asc` sorts the x-axis by ascending median of y-values.
-#' * `median_desc` sorts the x-axis by descending median of y-values.
-#' * `median` is an alias for `median_asc`.
+#' @param sort_x An expression (in character string) to order x-axis.
+#' For example, "mean(y)" will order the x-axis by the mean of y. Default is NULL, which means keeping the original order of x.
+#' Note that when keep_empty is TRUE for x, the empty x levels will always be placed at the end of the x-axis.
 #' @param flip A logical value to flip the plot.
 #' @param group_by A character string of the column name to dodge the boxes/violins
 #' @param group_by_sep A character string to concatenate the columns in `group_by`, if multiple columns are provided.
@@ -119,8 +114,7 @@
 #' @importFrom ggplot2 labs theme element_line element_text position_dodge position_jitter coord_flip layer_scales
 #' @importFrom ggplot2 position_jitterdodge scale_shape_identity scale_size_manual scale_alpha_manual scale_y_continuous
 BoxViolinPlotAtomic <- function(
-    data, x, x_sep = "_", y = NULL, base = c("box", "violin", "none"), in_form = c("long", "wide"),
-    sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
+    data, x, x_sep = "_", y = NULL, base = c("box", "violin", "none"), in_form = c("long", "wide"), sort_x = NULL,
     flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
     paired_by = NULL, x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE, symnum_args = NULL,
@@ -269,11 +263,6 @@ BoxViolinPlotAtomic <- function(
         )
     }
 
-
-    sort_x <- match.arg(sort_x)
-    if (sort_x != "none" && !is.null(facet_by)) {
-        stop("Cannot sort x-axis when facet_by is provided.")
-    }
     orig_data <- data
     data <- data %>%
         dplyr::group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>%
@@ -324,14 +313,18 @@ BoxViolinPlotAtomic <- function(
     }
     data$.highlight <- factor(as.character(data$.highlight), levels = c("TRUE", "FALSE"))
 
-    if (sort_x == "mean" || sort_x == "mean_asc") {
-        data[[x]] <- stats::reorder(data[[x]], data$.y_mean)
-    } else if (sort_x == "mean_desc") {
-        data[[x]] <- stats::reorder(data[[x]], -data$.y_mean)
-    } else if (sort_x == "median" || sort_x == "median_asc") {
-        data[[x]] <- stats::reorder(data[[x]], data$.y_median)
-    } else if (sort_x == "median_desc") {
-        data[[x]] <- stats::reorder(data[[x]], -data$.y_median)
+    if (!is.null(sort_x)) {
+        x_levels <- data %>%
+            dplyr::group_by(!!sym(x)) %>%
+            dplyr::summarise(.sort_x = !!rlang::parse_expr(sort_x), .groups = "drop") %>%
+            dplyr::arrange(!!sym(".sort_x")) %>%
+            dplyr::pull(!!sym(x)) %>%
+            as.character()
+
+        if (!isFALSE(keep_empty_x)) {
+            x_levels <- c(x_levels, setdiff(levels(data[[x]]), x_levels))
+        }
+        data[[x]] <- factor(data[[x]], levels = x_levels)
     }
 
     if (isTRUE(flip)) {
@@ -377,7 +370,7 @@ BoxViolinPlotAtomic <- function(
     }
     if (fill_mode == "dodge") {
         group_vals <- levels(data[[group_by]])
-        if (anyNA(group_vals)) group_vals <- c(group_vals, NA)
+        if (anyNA(data[[group_by]])) group_vals <- c(group_vals, NA)
         group_colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
 
         if (isTRUE(keep_empty_group)) {
@@ -394,7 +387,7 @@ BoxViolinPlotAtomic <- function(
         }
     } else if (fill_mode == "x") {
         x_vals <- levels(data[[x]])
-        if (anyNA(x_vals)) x_vals <- c(x_vals, NA)
+        if (anyNA(data[[x]])) x_vals <- c(x_vals, NA)
         x_colors <- palette_this(x_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
 
         if (isTRUE(keep_empty_x)) {
@@ -863,7 +856,7 @@ BoxViolinPlotAtomic <- function(
             )
             if (!is.null(group_by)) {
                 group_vals <- levels(data[[group_by]])
-                if (anyNA(group_vals)) group_vals <- c(group_vals, NA)
+                if (anyNA(data[[group_by]])) group_vals <- c(group_vals, NA)
                 group_colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
 
                 if (isTRUE(keep_empty_group)) {
@@ -1027,8 +1020,7 @@ BoxViolinPlotAtomic <- function(
 #' @importFrom rlang %||%
 BoxViolinPlot <- function(
     data, x, x_sep = "_", y = NULL, base = c("box", "violin"), in_form = c("long", "wide"),
-    split_by = NULL, split_by_sep = "_", symnum_args = NULL,
-    sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
+    split_by = NULL, split_by_sep = "_", symnum_args = NULL, sort_x = NULL,
     flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
     paired_by = NULL, x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
@@ -1147,6 +1139,16 @@ BoxViolinPlot <- function(
 #'     palcolor = list(g1 = c("red", "blue"), g2 = c("blue", "red"))
 #' )
 #'
+#' # sort_x
+#' data <- data.frame(
+#'   x = factor(rep(LETTERS[1:5], each = 40),
+#'      levels = c(LETTERS[1:2], "unused", LETTERS[3:5])),
+#'   y = c(rnorm(40, mean = 5), rnorm(40, mean = 4), rnorm(40, mean = 3),
+#'      rnorm(40, mean = 2), rnorm(40, mean = 1))
+#' )
+#' BoxPlot(data, x = "x", y = "y", sort_x = "mean(y)", keep_empty = TRUE)
+#' BoxPlot(data, x = "x", y = "y", sort_x = "mean(-y)", keep_empty = TRUE)
+#'
 #' # wide form data
 #' data_wide <- data.frame(
 #'     A = rnorm(100),
@@ -1218,8 +1220,7 @@ BoxViolinPlot <- function(
 #' }
 BoxPlot <- function(
     data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
-    split_by = NULL, split_by_sep = "_", symnum_args = NULL,
-    sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
+    split_by = NULL, split_by_sep = "_", symnum_args = NULL, sort_x = NULL,
     flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
     paired_by = NULL, x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
@@ -1309,8 +1310,7 @@ BoxPlot <- function(
 #' }
 ViolinPlot <- function(
     data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
-    split_by = NULL, split_by_sep = "_", symnum_args = NULL,
-    sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
+    split_by = NULL, split_by_sep = "_", symnum_args = NULL, sort_x = NULL,
     flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
     paired_by = NULL, x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
@@ -1384,8 +1384,7 @@ ViolinPlot <- function(
 #' }
 BeeswarmPlot <- function(
     data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
-    split_by = NULL, split_by_sep = "_", symnum_args = NULL,
-    sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
+    split_by = NULL, split_by_sep = "_", symnum_args = NULL, sort_x = NULL,
     flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
     paired_by = NULL, x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,

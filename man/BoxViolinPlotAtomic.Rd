@@ -11,8 +11,7 @@ BoxViolinPlotAtomic(
   y = NULL,
   base = c("box", "violin", "none"),
   in_form = c("long", "wide"),
-  sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc",
-    "median"),
+  sort_x = NULL,
   flip = FALSE,
   keep_empty = FALSE,
   keep_na = FALSE,
@@ -112,16 +111,9 @@ When \code{in_form} is "wide", \code{y} is not required. The values under \code{
 
 \item{in_form}{A character string to specify the input data type. Either "long" or "wide".}
 
-\item{sort_x}{A character string to specify the sorting of x-axis, chosen from "none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median".
-\itemize{
-\item \code{none} means no sorting (as-is).
-\item \code{mean_asc} sorts the x-axis by ascending mean of y-values.
-\item \code{mean_desc} sorts the x-axis by descending mean of y-values.
-\item \code{mean} is an alias for \code{mean_asc}.
-\item \code{median_asc} sorts the x-axis by ascending median of y-values.
-\item \code{median_desc} sorts the x-axis by descending median of y-values.
-\item \code{median} is an alias for \code{median_asc}.
-}}
+\item{sort_x}{An expression (in character string) to order x-axis.
+For example, "mean(y)" will order the x-axis by the mean of y. Default is NULL, which means keeping the original order of x.
+Note that when keep_empty is TRUE for x, the empty x levels will always be placed at the end of the x-axis.}
 
 \item{flip}{A logical value to flip the plot.}
 
