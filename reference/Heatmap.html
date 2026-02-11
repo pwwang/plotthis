@@ -63,6 +63,8 @@
 <span>  columns_data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  keep_na <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  rows_orderby <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  columns_orderby <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  columns_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  columns_split_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  rows_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -108,8 +110,8 @@
 <span>  column_name_legend <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  row_name_annotation <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  row_name_legend <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  cluster_columns <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  cluster_rows <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  cluster_columns <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  cluster_rows <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  show_row_names <span class="op">=</span> <span class="op">!</span><span class="va">row_name_annotation</span>,</span>
 <span>  show_column_names <span class="op">=</span> <span class="op">!</span><span class="va">column_name_annotation</span>,</span>
 <span>  border <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -265,6 +267,19 @@ categorical/character columns used on the plot, for example, the <code>x</code>,
 But they will be assigned colors from the palette to maintain consistency across multiple plots.
 Alias: <code>levels</code></p></li>
 </ul></dd>
+
+
+<dt id="arg-rows-orderby">rows_orderby<a class="anchor" aria-label="anchor" href="#arg-rows-orderby"></a></dt>
+<dd><p>A expression (in character) to specify how to order rows. It will be evaluated in the context of the data frame used for rows (after grouping by rows_split_by and rows_by). The expression should return a vector of the same length as the number of rows in the data frame. The default is NULL, which means no specific ordering.
+Can't be used with cluster_rows = TRUE.
+This is applied before renaming rows_by to rows_name.</p></dd>
+
+
+<dt id="arg-columns-orderby">columns_orderby<a class="anchor" aria-label="anchor" href="#arg-columns-orderby"></a></dt>
+<dd><p>A expression (in character) to specify how to order columns. It will be evaluated in the context of the data frame used for columns (after grouping by columns
+split_by and columns_by). The expression should return a vector of the same length as the number of rows in the data frame. The default is NULL, which means no specific ordering.
+Can't be used with cluster_columns = TRUE.
+This is applied before renaming columns_by to columns_name.</p></dd>
 
 
 <dt id="arg-columns-name">columns_name<a class="anchor" aria-label="anchor" href="#arg-columns-name"></a></dt>

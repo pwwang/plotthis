@@ -13,6 +13,8 @@ process_heatmap_data(
   name,
   split_by,
   split_by_sep,
+  rows_orderby,
+  columns_orderby,
   rows_by,
   rows_by_sep,
   rows_name,
@@ -86,6 +88,26 @@ process_heatmap_data(
 - split_by_sep:
 
   A character string to concat multiple columns in `split_by`.
+
+- rows_orderby:
+
+  A expression (in character) to specify how to order rows. It will be
+  evaluated in the context of the data frame used for rows (after
+  grouping by rows_split_by and rows_by). The expression should return a
+  vector of the same length as the number of rows in the data frame. The
+  default is NULL, which means no specific ordering. Can't be used with
+  cluster_rows = TRUE. This is applied before renaming rows_by to
+  rows_name.
+
+- columns_orderby:
+
+  A expression (in character) to specify how to order columns. It will
+  be evaluated in the context of the data frame used for columns (after
+  grouping by columns split_by and columns_by). The expression should
+  return a vector of the same length as the number of rows in the data
+  frame. The default is NULL, which means no specific ordering. Can't be
+  used with cluster_columns = TRUE. This is applied before renaming
+  columns_by to columns_name.
 
 - rows_by:
 

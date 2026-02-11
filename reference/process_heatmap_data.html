@@ -50,6 +50,8 @@
 <span>  <span class="va">name</span>,</span>
 <span>  <span class="va">split_by</span>,</span>
 <span>  <span class="va">split_by_sep</span>,</span>
+<span>  <span class="va">rows_orderby</span>,</span>
+<span>  <span class="va">columns_orderby</span>,</span>
 <span>  <span class="va">rows_by</span>,</span>
 <span>  <span class="va">rows_by_sep</span>,</span>
 <span>  <span class="va">rows_name</span>,</span>
@@ -113,6 +115,19 @@ Defaults to <code>NULL</code>, meaning no split.</p></dd>
 
 <dt id="arg-split-by-sep">split_by_sep<a class="anchor" aria-label="anchor" href="#arg-split-by-sep"></a></dt>
 <dd><p>A character string to concat multiple columns in <code>split_by</code>.</p></dd>
+
+
+<dt id="arg-rows-orderby">rows_orderby<a class="anchor" aria-label="anchor" href="#arg-rows-orderby"></a></dt>
+<dd><p>A expression (in character) to specify how to order rows. It will be evaluated in the context of the data frame used for rows (after grouping by rows_split_by and rows_by). The expression should return a vector of the same length as the number of rows in the data frame. The default is NULL, which means no specific ordering.
+Can't be used with cluster_rows = TRUE.
+This is applied before renaming rows_by to rows_name.</p></dd>
+
+
+<dt id="arg-columns-orderby">columns_orderby<a class="anchor" aria-label="anchor" href="#arg-columns-orderby"></a></dt>
+<dd><p>A expression (in character) to specify how to order columns. It will be evaluated in the context of the data frame used for columns (after grouping by columns
+split_by and columns_by). The expression should return a vector of the same length as the number of rows in the data frame. The default is NULL, which means no specific ordering.
+Can't be used with cluster_columns = TRUE.
+This is applied before renaming columns_by to columns_name.</p></dd>
 
 
 <dt id="arg-rows-by">rows_by<a class="anchor" aria-label="anchor" href="#arg-rows-by"></a></dt>
