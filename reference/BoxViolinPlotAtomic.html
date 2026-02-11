@@ -50,8 +50,7 @@
 <span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  base <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"box"</span>, <span class="st">"violin"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
 <span>  in_form <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"long"</span>, <span class="st">"wide"</span><span class="op">)</span>,</span>
-<span>  sort_x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"mean_asc"</span>, <span class="st">"mean_desc"</span>, <span class="st">"mean"</span>, <span class="st">"median_asc"</span>, <span class="st">"median_desc"</span>,</span>
-<span>    <span class="st">"median"</span><span class="op">)</span>,</span>
+<span>  sort_x <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  flip <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  keep_na <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -168,14 +167,9 @@ When <code>in_form</code> is "wide", <code>y</code> is not required. The values 
 
 
 <dt id="arg-sort-x">sort_x<a class="anchor" aria-label="anchor" href="#arg-sort-x"></a></dt>
-<dd><p>A character string to specify the sorting of x-axis, chosen from "none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median".</p><ul><li><p><code>none</code> means no sorting (as-is).</p></li>
-<li><p><code>mean_asc</code> sorts the x-axis by ascending mean of y-values.</p></li>
-<li><p><code>mean_desc</code> sorts the x-axis by descending mean of y-values.</p></li>
-<li><p><code>mean</code> is an alias for <code>mean_asc</code>.</p></li>
-<li><p><code>median_asc</code> sorts the x-axis by ascending median of y-values.</p></li>
-<li><p><code>median_desc</code> sorts the x-axis by descending median of y-values.</p></li>
-<li><p><code>median</code> is an alias for <code>median_asc</code>.</p></li>
-</ul></dd>
+<dd><p>An expression (in character string) to order x-axis.
+For example, "mean(y)" will order the x-axis by the mean of y. Default is NULL, which means keeping the original order of x.
+Note that when keep_empty is TRUE for x, the empty x levels will always be placed at the end of the x-axis.</p></dd>
 
 
 <dt id="arg-flip">flip<a class="anchor" aria-label="anchor" href="#arg-flip"></a></dt>

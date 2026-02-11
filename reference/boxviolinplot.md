@@ -15,8 +15,7 @@ BoxPlot(
   split_by = NULL,
   split_by_sep = "_",
   symnum_args = NULL,
-  sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc",
-    "median"),
+  sort_x = NULL,
   flip = FALSE,
   keep_empty = FALSE,
   keep_na = FALSE,
@@ -109,8 +108,7 @@ ViolinPlot(
   split_by = NULL,
   split_by_sep = "_",
   symnum_args = NULL,
-  sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc",
-    "median"),
+  sort_x = NULL,
   flip = FALSE,
   keep_empty = FALSE,
   keep_na = FALSE,
@@ -207,8 +205,7 @@ BeeswarmPlot(
   split_by = NULL,
   split_by_sep = "_",
   symnum_args = NULL,
-  sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc",
-    "median"),
+  sort_x = NULL,
   flip = FALSE,
   keep_empty = FALSE,
   keep_na = FALSE,
@@ -351,23 +348,11 @@ BeeswarmPlot(
 
 - sort_x:
 
-  A character string to specify the sorting of x-axis, chosen from
-  "none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc",
-  "median".
-
-  - `none` means no sorting (as-is).
-
-  - `mean_asc` sorts the x-axis by ascending mean of y-values.
-
-  - `mean_desc` sorts the x-axis by descending mean of y-values.
-
-  - `mean` is an alias for `mean_asc`.
-
-  - `median_asc` sorts the x-axis by ascending median of y-values.
-
-  - `median_desc` sorts the x-axis by descending median of y-values.
-
-  - `median` is an alias for `median_asc`.
+  An expression (in character string) to order x-axis. For example,
+  "mean(y)" will order the x-axis by the mean of y. Default is NULL,
+  which means keeping the original order of x. Note that when keep_empty
+  is TRUE for x, the empty x levels will always be placed at the end of
+  the x-axis.
 
 - flip:
 
@@ -873,6 +858,18 @@ BoxPlot(data,
     add_bg = TRUE, bg_palette = "Paired",
     palcolor = list(g1 = c("red", "blue"), g2 = c("blue", "red"))
 )
+
+
+# sort_x
+data <- data.frame(
+  x = factor(rep(LETTERS[1:5], each = 40),
+     levels = c(LETTERS[1:2], "unused", LETTERS[3:5])),
+  y = c(rnorm(40, mean = 5), rnorm(40, mean = 4), rnorm(40, mean = 3),
+     rnorm(40, mean = 2), rnorm(40, mean = 1))
+)
+BoxPlot(data, x = "x", y = "y", sort_x = "mean(y)", keep_empty = TRUE)
+
+BoxPlot(data, x = "x", y = "y", sort_x = "mean(-y)", keep_empty = TRUE)
 
 
 # wide form data
