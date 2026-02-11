@@ -9,6 +9,7 @@
 #' @param groups A character vector of group values (in the `group_by` column) to include in the plot. If NULL, all groups will be included.
 #' This can be used to exclude certain groups from the plot or to specify the order of groups in the legend.
 #' Only applicable when `group_by` is provided.
+#' And this implies `keep_empty` for `group_by` is FALSE, which means the groups not in the data will not be shown in the legend.
 #' @param group_by_sep A character string to concatenate the columns in `group_by`, if multiple columns are provided.
 #' @param y A character string of the column name to plot on the y-axis.
 #'  A numeric column is expected.
@@ -61,8 +62,10 @@ RadarPlotAtomic <- function(
         group_by <- ".group"
         legend.position <- ifelse(inherits(legend.position, "waiver"), "none", "right")
     } else {
-        data <- data[data[[group_by]] %in% groups, , drop = FALSE]
-        data[[group_by]] <- droplevels(data[[group_by]])
+        if (!is.null(groups)) {
+            data <- data[data[[group_by]] %in% groups, , drop = FALSE]
+            data[[group_by]] <- droplevels(data[[group_by]])
+        }
         legend.position <- ifelse(inherits(legend.position, "waiver"), "right", legend.position)
     }
 

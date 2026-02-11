@@ -65,7 +65,8 @@ If NULL, the count of the x-axis column in each group will be used.}
 
 \item{groups}{A character vector of group values (in the \code{group_by} column) to include in the plot. If NULL, all groups will be included.
 This can be used to exclude certain groups from the plot or to specify the order of groups in the legend.
-Only applicable when \code{group_by} is provided.}
+Only applicable when \code{group_by} is provided.
+And this implies \code{keep_empty} for \code{group_by} is FALSE, which means the groups not in the data will not be shown in the legend.}
 
 \item{scale_y}{How should the y-axis be scaled? Default is "group".
 Other options are "global", "x" and "none".
