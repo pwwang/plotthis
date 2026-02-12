@@ -310,7 +310,7 @@ BarPlotGrouped <- function(
             mutate(!!sym(y_scaled) := !!sym(y) / sum(!!sym(y))) %>%
             ungroup()
 
-        for (col in unique(c, facet_by)) {
+        for (col in unique(c(x, facet_by))) {
             data[[col]] <- factor(data[[col]], levels = levels(orig_data[[col]]))
         }
     }

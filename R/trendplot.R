@@ -48,7 +48,7 @@ TrendPlotAtomic <- function(
             dplyr::group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>%
             summarise(.count = n(), .groups = "drop")
 
-        for (col in c(x, group_by, facet_by)) {
+        for (col in unique(c(x, group_by, facet_by))) {
             data[[col]] <- factor(data[[col]], levels = levels(orig_data[[col]]))
         }
     }
@@ -59,7 +59,7 @@ TrendPlotAtomic <- function(
             mutate(!!sym(y) := !!sym(y) / sum(!!sym(y))) %>%
             ungroup()
 
-        for (col in c(x, facet_by)) {
+        for (col in unique(c(x, facet_by))) {
             data[[col]] <- factor(data[[col]], levels = levels(orig_data[[col]]))
         }
     }

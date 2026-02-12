@@ -63,7 +63,7 @@ RingPlotAtomic <- function(
     orig_data <- data
     if (is.null(y)) {
         data <- data %>% dplyr::group_by(!!!syms(unique(c(x, group_by, facet_by)))) %>% summarise(.y = n(), .groups = "drop")
-        for (col in c(x, facet_by)) {
+        for (col in unique(c(x, facet_by))) {
             data[[col]] <- factor(data[[col]], levels = levels(orig_data[[col]]))
         }
         y <- ".y"
