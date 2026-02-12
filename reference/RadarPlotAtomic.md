@@ -13,6 +13,7 @@ RadarPlotAtomic(
   group_by_sep = "_",
   y = NULL,
   group_name = NULL,
+  groups = NULL,
   scale_y = c("group", "global", "x", "none"),
   y_min = 0,
   y_max = NULL,
@@ -80,6 +81,15 @@ RadarPlotAtomic(
 - group_name:
 
   A character string to name the legend of group.
+
+- groups:
+
+  A character vector of group values (in the `group_by` column) to
+  include in the plot. If NULL, all groups will be included. This can be
+  used to exclude certain groups from the plot or to specify the order
+  of groups in the legend. Only applicable when `group_by` is provided.
+  And this implies `keep_empty` for `group_by` is FALSE, which means the
+  groups not in the data will not be shown in the legend.
 
 - scale_y:
 

@@ -54,6 +54,7 @@ Radar plot uses circles as the plot grid and Spider plot uses polygons.</p>
 <span>  group_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  groups <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  scale_y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"group"</span>, <span class="st">"global"</span>, <span class="st">"x"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
 <span>  y_min <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  y_max <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -103,6 +104,7 @@ Radar plot uses circles as the plot grid and Spider plot uses polygons.</p>
 <span>  group_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
 <span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  group_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  groups <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  scale_y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"group"</span>, <span class="st">"global"</span>, <span class="st">"x"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
 <span>  y_min <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  y_max <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -177,6 +179,13 @@ They will be concatenated into one column, using <code>group_by_sep</code> as th
 
 <dt id="arg-group-name">group_name<a class="anchor" aria-label="anchor" href="#arg-group-name"></a></dt>
 <dd><p>A character string to name the legend of group.</p></dd>
+
+
+<dt id="arg-groups">groups<a class="anchor" aria-label="anchor" href="#arg-groups"></a></dt>
+<dd><p>A character vector of group values (in the <code>group_by</code> column) to include in the plot. If NULL, all groups will be included.
+This can be used to exclude certain groups from the plot or to specify the order of groups in the legend.
+Only applicable when <code>group_by</code> is provided.
+And this implies <code>keep_empty</code> for <code>group_by</code> is FALSE, which means the groups not in the data will not be shown in the legend.</p></dd>
 
 
 <dt id="arg-scale-y">scale_y<a class="anchor" aria-label="anchor" href="#arg-scale-y"></a></dt>
