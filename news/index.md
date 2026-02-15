@@ -1,5 +1,36 @@
 # Changelog
 
+## Version 0.10.1
+
+- BREAKING(Box/ViolinPlot): update sort_x parameter to accept
+  expressions for x-axis ordering
+- feat(RadarPlot): add groups parameter to filter and order groups in
+  the plot
+- feat(Heatmap): add rows_orderby and columns_orderby to order rows and
+  columns (if set, cluster_rows and cluster_columns will default to
+  FALSE)
+- fix: update BarPlotSingle to conditionally use geom_text for flipped
+  plots and adjust height/width calculations
+- fix(Box/ViolinPlo): hide legends for color, size, and alpha scales for
+  highlighted points
+- fix(BeeswarmPlot):fix highlight not working
+- fix(JitterPlot): fix
+  [`position_jitterdodge()`](https://ggplot2.tidyverse.org/reference/position_jitterdodge.html)
+  requires at least one aesthetic to dodge by for ggplot2 v3
+- fix(BarPlot): correct conditional assignment for `fill_by` parameter
+- fix(BarPlot): fix when x has multiple columns
+- fix(Heatmap): ensure ordered factors are converted to character for
+  proper processing
+- fix(TrendPlot): complete missing combinations for area layer to
+  prevent interpolation issues
+- fix(AreaPlot): complete missing combinations for x, group_by, and
+  facet_by to prevent interpolation issues
+- fix(RadarPlot): clarify groups parameter documentation and its
+  implications on keep_empty
+- fix: ensure unique values in for loops for grouping in bar, pie, ring,
+  and trend plots
+- fix(heatmap): ensure unique values in processed data for heatmap
+
 ## Version 0.10.0
 
 CRAN release: 2026-02-06

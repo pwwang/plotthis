@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">plotthis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,6 +36,24 @@
       <small>Source: <a href="https://github.com/pwwang/plotthis/blob/master/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.10.1" id="version-0101">Version 0.10.1<a class="anchor" aria-label="anchor" href="#version-0101"></a></h2>
+<ul><li>BREAKING(Box/ViolinPlot): update sort_x parameter to accept expressions for x-axis ordering</li>
+<li>feat(RadarPlot): add groups parameter to filter and order groups in the plot</li>
+<li>feat(Heatmap): add rows_orderby and columns_orderby to order rows and columns (if set, cluster_rows and cluster_columns will default to FALSE)</li>
+<li>fix: update BarPlotSingle to conditionally use geom_text for flipped plots and adjust height/width calculations</li>
+<li>fix(Box/ViolinPlo): hide legends for color, size, and alpha scales for highlighted points</li>
+<li>fix(BeeswarmPlot):fix highlight not working</li>
+<li>fix(JitterPlot): fix <code><a href="https://ggplot2.tidyverse.org/reference/position_jitterdodge.html" class="external-link">position_jitterdodge()</a></code> requires at least one aesthetic to dodge by for ggplot2 v3</li>
+<li>fix(BarPlot): correct conditional assignment for <code>fill_by</code> parameter</li>
+<li>fix(BarPlot): fix when x has multiple columns</li>
+<li>fix(Heatmap): ensure ordered factors are converted to character for proper processing</li>
+<li>fix(TrendPlot): complete missing combinations for area layer to prevent interpolation issues</li>
+<li>fix(AreaPlot): complete missing combinations for x, group_by, and facet_by to prevent interpolation issues</li>
+<li>fix(RadarPlot): clarify groups parameter documentation and its implications on keep_empty</li>
+<li>fix: ensure unique values in for loops for grouping in bar, pie, ring, and trend plots</li>
+<li>fix(heatmap): ensure unique values in processed data for heatmap</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.10.0" id="version-0100">Version 0.10.0<a class="anchor" aria-label="anchor" href="#version-0100"></a></h2><p class="text-muted">CRAN release: 2026-02-06</p>
 <div class="section level3">
