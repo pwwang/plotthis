@@ -17,6 +17,7 @@ if (interactive()) {
   library(dichromat)
   library(jcolors)
   library(scales)
+  library(ggthemes)
   syspals <- utils::getFromNamespace("syspals", "pals")
   brewer.pal.info <- RColorBrewer::brewer.pal.info
   ggsci_db <- utils::getFromNamespace("ggsci_db", "ggsci")
@@ -26,7 +27,7 @@ if (interactive()) {
   nord_palettes <- nord::nord_palettes
   viridis_names <- c("magma", "inferno", "plasma", "viridis", "cividis", "rocket",
      "mako", "turbo")
-  viridis_palettes <- lapply(setNames(viridis_names, viridis_names),
+  viridis_palettes <- lapply(stats::setNames(viridis_names, viridis_names),
      function(x) viridis::viridis(100, option = x))
   ocean_names <- names(syspals)[grep("ocean", names(syspals))]
   ocean_palettes <- syspals[ocean_names]
@@ -91,21 +92,41 @@ if (interactive()) {
        '#ff69ff', '#ff9b9b', '#37ff69', '#ff6937', '#6969ff', '#699bff',
        '#ffcd69', '#69ffff', '#37ff37', '#6937cd', '#37cd37', '#3769ff',
        '#cd69ff', '#6969cd', '#9bcd37', '#69ff69', '#37cdcd', '#cd37ff',
-       '#37379b', '#37ffcd', '#69cd69'
+       '#37379b', '#37ffcd', '#69cd69', '#ff69cd', '#9bffff', '#9b9b37'
      )
   )
   seurat_continuous_palettes <- list(
+    seurat = hue_pal()(16),
     seurat.16 = hue_pal()(16),
     seurat.32 = hue_pal()(32),
     seurat.64 = hue_pal()(64)
   )
+  stripe_palettes <- list(
+    stripe = rep(c("white", "grey60"), 8),
+    stripe.16 = rep(c("white", "grey60"), 8),
+    stripe.32 = rep(c("white", "grey60"), 16),
+    stripe.64 = rep(c("white", "grey60"), 32)
+  )
+  tableau_palettes <- list()
+  orig_tableau_palettes <- ggthemes::ggthemes_data[["tableau"]][["color-palettes"]]
+  for (g in names(orig_tableau_palettes)) {
+    for (pal in names(orig_tableau_palettes[[g]])) {
+      palcolors <- as.list(orig_tableau_palettes[[g]][[pal]])
+      if (!is.null(palcolors$name)) {
+        tableau_palettes[[pal]] <- stats::setNames(palcolors$value, palcolors$name)
+      } else {
+        tableau_palettes[[pal]] <- palcolors$value
+      }
+    }
+  }
 
   palette_list <- list()
   all_colors <- c(
     rownames(brewer.pal.info), names(ggsci_db), rownames(redmonder.pal.info),
     rownames(metacartocolors), names(nord_palettes), names(viridis_palettes),
-    ocean_names, names(dichromat_palettes), jcolors_names, names(seurat_palettes),
-    names(seurat_continuous_palettes), custom_names
+    ocean_names, names(dichromat_palettes), jcolors_names, names(seurat_discrete_palettes),
+    names(seurat_continuous_palettes), custom_names, names(stripe_palettes),
+    names(tableau_palettes)
   )
   for (pal in all_colors) {
     if (!pal %in% all_colors) {
@@ -205,6 +226,12 @@ if (interactive()) {
     } else if (pal %in% names(seurat_continuous_palettes)) {
       palcolor <- seurat_continuous_palettes[[pal]]
       attr(palcolor, "type") <- "continuous"
+    } else if (pal %in% names(stripe_palettes)) {
+      palcolor <- stripe_palettes[[pal]]
+      attr(palcolor, "type") <- "discrete"
+    } else if (pal %in% names(tableau_palettes)) {
+      palcolor <- tableau_palettes[[pal]]
+      attr(palcolor, "type") <- "discrete"
     }
     palette_list[[pal]] <- palcolor
   }
