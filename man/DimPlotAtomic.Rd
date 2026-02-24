@@ -124,7 +124,10 @@ DimPlotAtomic(
 \arguments{
 \item{data}{A data frame.}
 
-\item{dims}{A character vector of the column names to plot on the x and y axes or a numeric vector of the column indices.}
+\item{dims}{A character vector of the column names to plot on the x, y (and optionally z) axes or a numeric vector
+of the column indices. When 3 dimensions are provided, a 3D interactive plot is created using plotly.
+Supported in 3D: group_by, features, labels, highlight, lineages, graph/network, show_stat, order.
+Not supported in 3D: add_mark, stat_by, add_density, velocity, hex, facet_by, raster.}
 
 \item{group_by}{A character string of the column name to group the data.
 A character/factor column is expected. If multiple columns are provided, the columns will be concatenated with \code{group_by_sep}.}
@@ -396,7 +399,7 @@ If some values are missing, the values from the palette will be used (palcolor w
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object
+A ggplot object or a plotly object (when 3 dimensions are provided)
 }
 \description{
 Atomic Dimension Reduction Plot without splitting the data

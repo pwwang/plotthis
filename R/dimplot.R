@@ -1,8 +1,352 @@
+#' Internal helper to create a 3D dimension reduction plot using plotly
+#'
+#' @keywords internal
+DimPlotAtomic3D <- function(
+    data, dims, group_by = NULL, features = NULL, colorby,
+    colors = NULL, feat_colors_value = NULL,
+    label_use = NULL, labels_tb = NULL, keep_empty_group = FALSE,
+    bg_color = "grey80", color_name = "",
+    pt_size = NULL, pt_alpha = 1,
+    show_stat = TRUE, title = NULL, subtitle = NULL,
+    xlab = NULL, ylab = NULL,
+    label = FALSE, label_insitu = FALSE, label_size = 4,
+    label_fg = "white", label_bg = "black",
+    highlight = NULL, highlight_color = "black",
+    highlight_size = 1, highlight_stroke = 0.8, highlight_alpha = 1,
+    graph = NULL, edge_size = c(0.05, 0.5), edge_alpha = 0.1, edge_color = "grey40",
+    lineages = NULL, lineages_trim = c(0.01, 0.99), lineages_span = 0.75,
+    lineages_palette = "Dark2", lineages_palcolor = NULL,
+    palette = "Spectral", palcolor = NULL,
+    n_sampled = NULL) {
+
+    if (!requireNamespace("plotly", quietly = TRUE)) {
+        stop("Package 'plotly' is required for 3D plots. Install it with: install.packages('plotly')")
+    }
+
+    xlab <- xlab %||% dims[1]
+    ylab <- ylab %||% dims[2]
+    zlab <- dims[3]
+
+    # Scale pt_size for plotly (plotly marker sizes are in pixels, ggplot sizes are in mm)
+    marker_size <- max(pt_size * 2, 1)
+
+    # Disable per-point hover text for large datasets to reduce JSON payload
+    large_data <- nrow(data) > 1e5
+    hover_mode <- if (large_data) "none" else "text"
+
+    p <- plotly::plot_ly()
+
+    ## Graph / network edges (rendered first so they appear behind points)
+    if (!is.null(graph)) {
+        if (is.character(graph) && length(graph) == 1 && startsWith(graph, "@")) {
+            graph_name <- substring(graph, 2)
+            net_mat <- attr(data, graph_name)
+            if (is.null(net_mat)) {
+                stop(paste0("[DimPlot] The graph '", graph_name, "' is not found in the data attributes."))
+            }
+        } else if (inherits(graph, "Graph")) {
+            net_mat <- as.matrix(graph)
+        } else if (is.matrix(graph) || is.data.frame(graph) || inherits(graph, "dgCMatrix")) {
+            net_mat <- graph
+        } else if (is.numeric(graph)) {
+            graph_cols <- colnames(data)[graph]
+            net_mat <- data[graph_cols]
+        } else if (is.character(graph)) {
+            net_mat <- data[graph]
+        } else {
+            stop("[DimPlot] The 'graph' should be a matrix, data.frame, Graph object, indexes, or column names.")
+        }
+
+        if (!is.matrix(net_mat)) {
+            net_mat <- as.matrix(net_mat)
+        }
+
+        if (!is.null(rownames(net_mat)) && !is.null(colnames(net_mat))) {
+            net_mat <- net_mat[rownames(data), rownames(data)]
+        } else if (is.null(rownames(net_mat))) {
+            stop("The graph matrix should have rownames and colnames.")
+        } else if (is.null(rownames(data))) {
+            stop("'graph' requires the input data to have rownames.")
+        }
+        net_mat[net_mat == 0] <- NA
+        net_mat[upper.tri(net_mat)] <- NA
+
+        net_df <- reshape2::melt(net_mat, na.rm = TRUE, stringsAsFactors = FALSE)
+        net_df$value <- as.numeric(net_df$value)
+        net_df$Var1 <- as.character(net_df$Var1)
+        net_df$Var2 <- as.character(net_df$Var2)
+
+        # Build edge coordinates with NA separators for line breaks
+        edge_x <- as.vector(rbind(data[net_df$Var1, dims[1]], data[net_df$Var2, dims[1]], NA))
+        edge_y <- as.vector(rbind(data[net_df$Var1, dims[2]], data[net_df$Var2, dims[2]], NA))
+        edge_z <- as.vector(rbind(data[net_df$Var1, dims[3]], data[net_df$Var2, dims[3]], NA))
+
+        # Scale edge width: use mean of edge_size range, scaled for plotly
+        edge_width <- mean(edge_size) * 10
+
+        p <- plotly::add_trace(
+            p = p,
+            x = edge_x, y = edge_y, z = edge_z,
+            type = "scatter3d", mode = "lines",
+            line = list(color = edge_color, width = edge_width),
+            opacity = edge_alpha,
+            name = "edges",
+            showlegend = FALSE,
+            hoverinfo = "none"
+        )
+    }
+
+    ## Main scatter traces
+    if (!is.null(group_by)) {
+        # Group-by mode: one trace per group for consistent legend with 2D (label_use)
+        for (i in seq_along(labels_tb)) {
+            grp <- names(labels_tb)[i]
+            is_na_grp <- grp == "NA"
+
+            if (is_na_grp) {
+                grp_data <- data[is.na(data[[group_by]]), , drop = FALSE]
+                grp_color <- bg_color
+            } else {
+                grp_data <- data[!is.na(data[[group_by]]) & as.character(data[[group_by]]) == grp, , drop = FALSE]
+                grp_color <- colors[grp]
+            }
+
+            if (nrow(grp_data) == 0 && !isTRUE(keep_empty_group)) next
+
+            legend_label <- if (!is.null(label_use)) label_use[i] else grp
+
+            trace_args <- list(
+                p = p,
+                x = grp_data[[dims[1]]], y = grp_data[[dims[2]]], z = grp_data[[dims[3]]],
+                type = "scatter3d", mode = "markers",
+                marker = list(size = marker_size, color = grp_color, opacity = pt_alpha),
+                name = legend_label,
+                legendgroup = grp,
+                showlegend = TRUE,
+                hoverinfo = hover_mode
+            )
+            if (!large_data) {
+                trace_args$text <- if (is_na_grp) {
+                    paste0("Cell: ", rownames(grp_data))
+                } else {
+                    paste0("Cell: ", rownames(grp_data), "\nGroup: ", grp)
+                }
+            }
+            p <- do.call(plotly::add_trace, trace_args)
+        }
+    } else {
+        # Feature mode: continuous coloring
+        feat_colors <- palette_this(palette = palette, palcolor = palcolor, type = "continuous")
+        n_colors <- length(feat_colors)
+        plotly_colorscale <- lapply(seq_len(n_colors), function(i) {
+            list((i - 1) / (n_colors - 1), feat_colors[i])
+        })
+
+        na_mask <- is.na(data[[features]])
+        # Plot NA/background points
+        if (any(na_mask)) {
+            data_na <- data[na_mask, , drop = FALSE]
+            na_trace_args <- list(
+                p = p,
+                x = data_na[[dims[1]]], y = data_na[[dims[2]]], z = data_na[[dims[3]]],
+                type = "scatter3d", mode = "markers",
+                marker = list(size = marker_size, color = bg_color, opacity = pt_alpha),
+                name = "NA",
+                showlegend = FALSE,
+                hoverinfo = hover_mode
+            )
+            if (!large_data) na_trace_args$text <- paste0("Cell: ", rownames(data_na))
+            p <- do.call(plotly::add_trace, na_trace_args)
+        }
+        # Plot non-NA points with colorscale
+        data_valid <- data[!na_mask, , drop = FALSE]
+        if (nrow(data_valid) > 0) {
+            colorbar_title <- if (nchar(color_name) > 0) color_name else colorby
+            feat_trace_args <- list(
+                p = p,
+                x = data_valid[[dims[1]]], y = data_valid[[dims[2]]], z = data_valid[[dims[3]]],
+                type = "scatter3d", mode = "markers",
+                marker = list(
+                    size = marker_size,
+                    color = data_valid[[features]],
+                    colorscale = plotly_colorscale,
+                    cmin = min(feat_colors_value, na.rm = TRUE),
+                    cmax = max(feat_colors_value, na.rm = TRUE),
+                    opacity = pt_alpha,
+                    showscale = TRUE,
+                    colorbar = list(
+                        title = list(text = colorbar_title)
+                    )
+                ),
+                showlegend = FALSE,
+                hoverinfo = hover_mode
+            )
+            if (!large_data) {
+                feat_trace_args$text <- paste0(
+                    "Cell: ", rownames(data_valid),
+                    "\nValue: ", round(data_valid[[features]], 3)
+                )
+            }
+            p <- do.call(plotly::add_trace, feat_trace_args)
+        }
+    }
+
+    ## Highlight
+    if (!is.null(highlight)) {
+        if (isTRUE(highlight)) {
+            hi_df <- data
+        } else if (length(highlight) == 1 && is.character(highlight)) {
+            hi_df <- eval(parse(text = paste0("dplyr::filter(data, ", highlight, ")")))
+        } else {
+            all_inst <- if (is.numeric(highlight)) seq_len(nrow(data)) else rownames(data)
+            if (!any(highlight %in% all_inst)) {
+                stop("No highlight items found in the data (rownames).")
+            }
+            if (!all(highlight %in% all_inst)) {
+                warning("Not all highlight items found in the data (rownames).", immediate. = TRUE)
+            }
+            hi_df <- data[intersect(highlight, all_inst), , drop = FALSE]
+        }
+        if (nrow(hi_df) > 0) {
+            hi_trace_args <- list(
+                p = p,
+                x = hi_df[[dims[1]]], y = hi_df[[dims[2]]], z = hi_df[[dims[3]]],
+                type = "scatter3d", mode = "markers",
+                marker = list(
+                    size = highlight_size * 2 + highlight_stroke,
+                    color = highlight_color,
+                    opacity = highlight_alpha,
+                    symbol = "circle-open"
+                ),
+                name = "highlight",
+                showlegend = FALSE,
+                hoverinfo = hover_mode
+            )
+            if (!large_data) hi_trace_args$text <- paste0("Cell: ", rownames(hi_df))
+            p <- do.call(plotly::add_trace, hi_trace_args)
+        }
+    }
+
+    ## Lineages
+    if (!is.null(lineages)) {
+        lineages <- unique(check_columns(data, lineages, force_factor = FALSE, allow_multi = TRUE))
+        lineage_colors <- palette_this(lineages, palette = lineages_palette, palcolor = lineages_palcolor)
+
+        for (l in lineages) {
+            trim_pass <- (
+                data[[l]] > quantile(data[[l]], lineages_trim[1], na.rm = TRUE) &
+                    data[[l]] < quantile(data[[l]], lineages_trim[2], na.rm = TRUE))
+            na_pass <- !is.na(data[[l]])
+            index <- which(trim_pass & na_pass)
+            index <- index[order(data[index, l])]
+            dat_sub <- data[index, , drop = FALSE]
+            weights_used <- rep(1, nrow(dat_sub))
+
+            fitted_vals <- lapply(dims, function(x) {
+                loess(formula(paste(x, l, sep = "~")),
+                      weights = weights_used, data = dat_sub,
+                      span = lineages_span, degree = 2)$fitted
+            })
+            names(fitted_vals) <- dims
+            dat_smooth <- as.data.frame(fitted_vals)
+            dat_smooth <- unique(na.omit(dat_smooth))
+
+            if (nrow(dat_smooth) > 0) {
+                p <- plotly::add_trace(
+                    p = p,
+                    x = dat_smooth[[dims[1]]], y = dat_smooth[[dims[2]]], z = dat_smooth[[dims[3]]],
+                    text = paste0("Lineage: ", l),
+                    type = "scatter3d", mode = "lines",
+                    line = list(width = 6, color = lineage_colors[l]),
+                    name = l,
+                    showlegend = TRUE,
+                    hoverinfo = "text"
+                )
+            }
+        }
+    }
+
+    ## Labels
+    if (isTRUE(label) && !is.null(group_by)) {
+        # Compute label positions at group median coordinates (same as 2D)
+        label_data <- data[!is.na(data[[group_by]]), , drop = FALSE]
+        label_df <- aggregate(label_data[, dims, drop = FALSE], by = list(label_data[[group_by]]), FUN = median)
+        colnames(label_df)[1] <- ".group"
+        if (!isTRUE(label_insitu)) {
+            label_df[, ".label"] <- seq_len(nrow(label_df))
+        } else {
+            label_df[, ".label"] <- label_df[, ".group"]
+        }
+        # In 3D, plotly doesn't support text background/outline like geom_text_repel,
+        # so we use label_bg as the text color for visibility
+        p <- plotly::add_trace(
+            p = p,
+            x = label_df[[dims[1]]], y = label_df[[dims[2]]], z = label_df[[dims[3]]],
+            text = as.character(label_df[[".label"]]),
+            type = "scatter3d", mode = "text",
+            textfont = list(
+                size = label_size * 3,
+                color = label_bg
+            ),
+            textposition = "middle center",
+            hoverinfo = "text",
+            showlegend = FALSE
+        )
+    }
+
+    ## Layout
+    # Use subtitle from parent (already includes show_stat "N = ..." if applicable)
+    subtitle_text <- subtitle %||% ""
+    if (!is.null(n_sampled)) {
+        sample_note <- paste0("Showing ", n_sampled, " sampled points")
+        if (nchar(subtitle_text) > 0) {
+            subtitle_text <- paste0(subtitle_text, "; ", sample_note)
+        } else {
+            subtitle_text <- sample_note
+        }
+    }
+    title_text <- title %||% ""
+    if (nchar(title_text) > 0 && nchar(subtitle_text) > 0) {
+        full_title <- paste0(title_text, "<br><sup>", subtitle_text, "</sup>")
+    } else if (nchar(subtitle_text) > 0) {
+        full_title <- paste0("<sup>", subtitle_text, "</sup>")
+    } else {
+        full_title <- title_text
+    }
+
+    p <- plotly::layout(
+        p = p,
+        title = list(
+            text = full_title,
+            font = list(size = 16, color = "black"),
+            y = 0.95
+        ),
+        showlegend = TRUE,
+        legend = list(
+            itemsizing = "constant",
+            y = 0.5,
+            x = 1,
+            xanchor = "left"
+        ),
+        scene = list(
+            xaxis = list(title = xlab),
+            yaxis = list(title = ylab),
+            zaxis = list(title = zlab),
+            aspectratio = list(x = 1, y = 1, z = 1)
+        )
+    )
+
+    return(p)
+}
+
 #' Atomic Dimension Reduction Plot without splitting the data
 #'
 #' @inheritParams common_args
 #' @inheritParams VelocityPlot
-#' @param dims A character vector of the column names to plot on the x and y axes or a numeric vector of the column indices.
+#' @param dims A character vector of the column names to plot on the x, y (and optionally z) axes or a numeric vector
+#'  of the column indices. When 3 dimensions are provided, a 3D interactive plot is created using plotly.
+#'  Supported in 3D: group_by, features, labels, highlight, lineages, graph/network, show_stat, order.
+#'  Not supported in 3D: add_mark, stat_by, add_density, velocity, hex, facet_by, raster.
 #' @param features A character vector of the column names to plot as features.
 #' @param lower_quantile,upper_quantile,lower_cutoff,upper_cutoff Vector of minimum and maximum cutoff values or quantile values for each feature.
 #' @param group_by A character string of the column name to group the data.
@@ -98,7 +442,7 @@
 #' @param hex_binwidth A numeric value of the hex bin width. Default is NULL.
 #' @param bg_cutoff A numeric value to be used a cutoff to set the feature values to NA. Default is NULL.
 #' @param color_name A character string of the color legend name. Default is "".
-#' @return A ggplot object
+#' @return A ggplot object or a plotly object (when 3 dimensions are provided)
 #' @keywords internal
 #' @importFrom scales rescale
 #' @importFrom stats loess formula na.omit aggregate
@@ -149,8 +493,8 @@ DimPlotAtomic <- function(
     if (is.numeric(dims)) {
         dims <- colnames(data)[dims]
     }
-    if (length(dims) != 2) {
-        stop("Only 2 dimensions are allowed for dimension reduction plot.")
+    if (!length(dims) %in% c(2, 3)) {
+        stop("Only 2 or 3 dimensions are allowed for dimension reduction plot.")
     }
     dims <- check_columns(data, dims, allow_multi = TRUE)
     if (length(raster_dpi) == 1) {
@@ -240,6 +584,10 @@ DimPlotAtomic <- function(
     }
 
     ## Making long data for features when length(features) > 1
+    if (length(dims) == 3 && length(features) > 1) {
+        stop("Multiple features are not supported for 3D plots. ",
+             "Use `split_by = TRUE` in `FeatureDimPlot()` to plot features separately with `combine = FALSE`.")
+    }
     multifeats <- length(features) > 1
     if (multifeats) {
         data <- data %>% pivot_longer(cols = features, names_to = ".feature", values_to = ".value")
@@ -278,6 +626,69 @@ DimPlotAtomic <- function(
         data <- dplyr::arrange(data, !is.na(!!sym(colorby)), dplyr::desc(!!sym(colorby)))
     } else if (order == "random") {
         data <- data[sample(nrow(data)), , drop = FALSE]
+    }
+
+    ## 3D plot using plotly
+    if (length(dims) == 3) {
+        unsupported_args <- c(
+            if (isTRUE(add_mark)) "add_mark",
+            if (!is.null(stat_by)) "stat_by",
+            if (isTRUE(add_density)) "add_density",
+            if (!is.null(velocity)) "velocity",
+            if (isTRUE(hex)) "hex",
+            if (!is.null(facet_by)) "facet_by"
+        )
+        if (length(unsupported_args) > 0) {
+            warning("The following features are not supported for 3D plots and will be ignored: ",
+                    paste(unsupported_args, collapse = ", "), immediate. = TRUE)
+        }
+
+        # Downsample for large datasets (analogous to raster in 2D)
+        n_sampled <- NULL
+        if (isTRUE(raster) && nrow(data) > prod(raster_dpi)) {
+            set.seed(seed)
+            max_pts <- prod(raster_dpi)
+            if (!is.null(group_by)) {
+                # Stratified sampling: proportional to group size, at least 1 per non-empty group
+                grp_vals_all <- as.character(data[[group_by]])
+                grp_vals_all[is.na(grp_vals_all)] <- "NA"
+                grp_counts <- table(grp_vals_all)
+                grp_n <- pmax(1L, as.integer(round(grp_counts / sum(grp_counts) * max_pts)))
+                names(grp_n) <- names(grp_counts)
+                sampled_idx <- unlist(lapply(names(grp_counts), function(g) {
+                    idx <- which(grp_vals_all == g)
+                    sample(idx, min(length(idx), grp_n[g]))
+                }))
+                data <- data[sort(sampled_idx), , drop = FALSE]
+            } else {
+                data <- data[sort(sample(nrow(data), max_pts)), , drop = FALSE]
+            }
+            n_sampled <- nrow(data)
+        }
+
+        return(DimPlotAtomic3D(
+            data = data, dims = dims, group_by = group_by, features = features,
+            colorby = colorby,
+            colors = if (!is.null(group_by)) colors else NULL,
+            feat_colors_value = if (!is.null(features)) feat_colors_value else NULL,
+            label_use = if (!is.null(group_by)) label_use else NULL,
+            labels_tb = if (!is.null(group_by)) labels_tb else NULL,
+            keep_empty_group = isTRUE(keep_empty_group),
+            bg_color = bg_color, color_name = color_name,
+            pt_size = pt_size, pt_alpha = pt_alpha,
+            show_stat = show_stat, title = title, subtitle = subtitle,
+            xlab = xlab, ylab = ylab,
+            label = label, label_insitu = label_insitu, label_size = label_size,
+            label_fg = label_fg, label_bg = label_bg,
+            highlight = highlight, highlight_color = highlight_color,
+            highlight_size = highlight_size, highlight_stroke = highlight_stroke,
+            highlight_alpha = highlight_alpha,
+            graph = graph, edge_size = edge_size, edge_alpha = edge_alpha, edge_color = edge_color,
+            lineages = lineages, lineages_trim = lineages_trim, lineages_span = lineages_span,
+            lineages_palette = lineages_palette, lineages_palcolor = lineages_palcolor,
+            palette = palette, palcolor = palcolor,
+            n_sampled = n_sampled
+        ))
     }
 
     # Do we have fill scale?
@@ -885,7 +1296,8 @@ DimPlotAtomic <- function(
 #' @rdname dimplot
 #' @inheritParams common_args
 #' @inheritParams DimPlotAtomic
-#' @return A ggplot object or wrap_plots object or a list of ggplot objects
+#' @return A ggplot object or wrap_plots object or a list of ggplot objects.
+#'  When `dims` has 3 elements, a plotly object is returned instead.
 #' @export
 #' @seealso \code{\link{VelocityPlot}}
 #' @examples
@@ -934,6 +1346,13 @@ DimPlotAtomic <- function(
 #'     velocity_plot_type = "grid", arrow_alpha = 0.6)
 #' DimPlot(dim_example, group_by = "clusters", velocity = 3:4,
 #'     velocity_plot_type = "stream")
+#'
+#' # 3D plots (returns a plotly object)
+#' DimPlot(dim_example, dims = 1:3, group_by = "clusters")
+#' DimPlot(dim_example, dims = 1:3, group_by = "clusters", label = TRUE,
+#'     label_insitu = TRUE)
+#' DimPlot(dim_example, dims = c("basis_1", "basis_2", "stochasticbasis_1"),
+#'     group_by = "clusters", graph = "@graph", edge_color = "grey80")
 #'
 #' # keep_na and keep_empty
 #' dim_example$clusters[dim_example$clusters == "Ductal"] <- NA
@@ -1061,7 +1480,8 @@ DimPlot <- function(
 #' @inheritParams DimPlotAtomic
 #' @param split_by A character vector of column names to split the data and plot separately
 #'   If TRUE, we will split the data by the `features`. Each feature will be plotted separately.
-#' @return A ggplot object or wrap_plots object or a list of ggplot objects
+#' @return A ggplot object or wrap_plots object or a list of ggplot objects.
+#'  When `dims` has 3 elements, a plotly object is returned instead.
 #' @export
 #' @examples
 #' \donttest{
@@ -1085,6 +1505,11 @@ DimPlot <- function(
 #'  hex = TRUE, hex_bins = 15)
 #' FeatureDimPlot(dim_example, features = c("stochasticbasis_1", "stochasticbasis_2"),
 #'  hex = TRUE, hex_bins = 15, split_by = "group", palette = list(A = "Reds", B = "Blues"))
+#'
+#' # 3D plots (returns a plotly object)
+#' FeatureDimPlot(dim_example, dims = 1:3, features = "stochasticbasis_2", pt_size = 2)
+#' FeatureDimPlot(dim_example, dims = c("basis_1", "basis_2", "stochasticbasis_1"),
+#'  features = "stochasticbasis_2")
 #' }
 FeatureDimPlot <- function(
     data, dims = 1:2, features, split_by = NULL, split_by_sep = "_",

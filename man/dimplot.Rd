@@ -251,7 +251,10 @@ FeatureDimPlot(
 \arguments{
 \item{data}{A data frame.}
 
-\item{dims}{A character vector of the column names to plot on the x and y axes or a numeric vector of the column indices.}
+\item{dims}{A character vector of the column names to plot on the x, y (and optionally z) axes or a numeric vector
+of the column indices. When 3 dimensions are provided, a 3D interactive plot is created using plotly.
+Supported in 3D: group_by, features, labels, highlight, lineages, graph/network, show_stat, order.
+Not supported in 3D: add_mark, stat_by, add_density, velocity, hex, facet_by, raster.}
 
 \item{group_by}{Columns to group the data for plotting
 For those plotting functions that do not support multiple groups,
@@ -568,9 +571,11 @@ See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details
 \item{color_name}{A character string of the color legend name. Default is "".}
 }
 \value{
-A ggplot object or wrap_plots object or a list of ggplot objects
+A ggplot object or wrap_plots object or a list of ggplot objects.
+When \code{dims} has 3 elements, a plotly object is returned instead.
 
-A ggplot object or wrap_plots object or a list of ggplot objects
+A ggplot object or wrap_plots object or a list of ggplot objects.
+When \code{dims} has 3 elements, a plotly object is returned instead.
 }
 \description{
 Visualizing the dimension reduction data.
@@ -623,6 +628,13 @@ DimPlot(dim_example, group_by = "clusters", velocity = 3:4,
 DimPlot(dim_example, group_by = "clusters", velocity = 3:4,
     velocity_plot_type = "stream")
 
+# 3D plots (returns a plotly object)
+DimPlot(dim_example, dims = 1:3, group_by = "clusters")
+DimPlot(dim_example, dims = 1:3, group_by = "clusters", label = TRUE,
+    label_insitu = TRUE)
+DimPlot(dim_example, dims = c("basis_1", "basis_2", "stochasticbasis_1"),
+    group_by = "clusters", graph = "@graph", edge_color = "grey80")
+
 # keep_na and keep_empty
 dim_example$clusters[dim_example$clusters == "Ductal"] <- NA
 
@@ -651,6 +663,11 @@ FeatureDimPlot(dim_example, features = c("stochasticbasis_1", "stochasticbasis_2
  hex = TRUE, hex_bins = 15)
 FeatureDimPlot(dim_example, features = c("stochasticbasis_1", "stochasticbasis_2"),
  hex = TRUE, hex_bins = 15, split_by = "group", palette = list(A = "Reds", B = "Blues"))
+
+# 3D plots (returns a plotly object)
+FeatureDimPlot(dim_example, dims = 1:3, features = "stochasticbasis_2", pt_size = 2)
+FeatureDimPlot(dim_example, dims = c("basis_1", "basis_2", "stochasticbasis_1"),
+ features = "stochasticbasis_2")
 }
 }
 \seealso{
