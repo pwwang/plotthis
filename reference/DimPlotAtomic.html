@@ -170,7 +170,10 @@
 
 
 <dt id="arg-dims">dims<a class="anchor" aria-label="anchor" href="#arg-dims"></a></dt>
-<dd><p>A character vector of the column names to plot on the x and y axes or a numeric vector of the column indices.</p></dd>
+<dd><p>A character vector of the column names to plot on the x, y (and optionally z) axes or a numeric vector
+of the column indices. When 3 dimensions are provided, a 3D interactive plot is created using plotly.
+Supported in 3D: group_by, features, labels, highlight, lineages, graph/network, show_stat, order.
+Not supported in 3D: add_mark, stat_by, add_density, velocity, hex, facet_by, raster.</p></dd>
 
 
 <dt id="arg-group-by">group_by<a class="anchor" aria-label="anchor" href="#arg-group-by"></a></dt>
@@ -653,7 +656,7 @@ If some values are missing, the values from the palette will be used (palcolor w
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A ggplot object</p>
+    <p>A ggplot object or a plotly object (when 3 dimensions are provided)</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

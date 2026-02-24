@@ -131,8 +131,12 @@ DimPlotAtomic(
 
 - dims:
 
-  A character vector of the column names to plot on the x and y axes or
-  a numeric vector of the column indices.
+  A character vector of the column names to plot on the x, y (and
+  optionally z) axes or a numeric vector of the column indices. When 3
+  dimensions are provided, a 3D interactive plot is created using
+  plotly. Supported in 3D: group_by, features, labels, highlight,
+  lineages, graph/network, show_stat, order. Not supported in 3D:
+  add_mark, stat_by, add_density, velocity, hex, facet_by, raster.
 
 - group_by:
 
@@ -673,4 +677,4 @@ DimPlotAtomic(
 
 ## Value
 
-A ggplot object
+A ggplot object or a plotly object (when 3 dimensions are provided)
