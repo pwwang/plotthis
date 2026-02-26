@@ -244,6 +244,7 @@ UpsetPlotAtomic <- function(
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
 #' @examples
+#' \donttest{
 #' data <- list(
 #'     A = 1:5,
 #'     B = 2:6,
@@ -253,6 +254,7 @@ UpsetPlotAtomic <- function(
 #' UpsetPlot(data)
 #' UpsetPlot(data, label = FALSE)
 #' UpsetPlot(data, palette = "Reds", specific = FALSE)
+#' }
 UpsetPlot <- function(
     data, in_form = c("auto", "long", "wide", "list", "upset"), split_by = NULL, split_by_sep = "_",
     group_by = NULL, group_by_sep = "_", id_by = NULL, label = TRUE, label_fg = "black",

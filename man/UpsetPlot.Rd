@@ -196,6 +196,7 @@ A ggplot object or wrap_plots object or a list of ggplot objects
 Upset Plot
 }
 \examples{
+\donttest{
 data <- list(
     A = 1:5,
     B = 2:6,
@@ -205,4 +206,5 @@ data <- list(
 UpsetPlot(data)
 UpsetPlot(data, label = FALSE)
 UpsetPlot(data, palette = "Reds", specific = FALSE)
+}
 }
