@@ -192,7 +192,7 @@ UpsetPlotAtomic <- function(
         p <- p + geom_text_repel(aes(label = after_stat(!!sym("count"))),
             stat = "count",
             colour = label_fg, size = label_size %||% text_size_scale * 3.5,
-            bg.color = label_bg, bg.r = label_bg_r,
+            bg.color = label_bg, bg.r = label_bg_r, nudge_y = 0.12 * text_size_scale,
             point.size = NA, max.overlaps = 100, force = 0,
             min.segment.length = 0, segment.colour = NA
         )
