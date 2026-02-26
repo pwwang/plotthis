@@ -18,7 +18,7 @@ UpsetPlot(
   label_size = NULL,
   label_bg = "white",
   label_bg_r = 0.1,
-  palette = "material-indigo",
+  palette = "Blues",
   palcolor = NULL,
   alpha = 1,
   specific = TRUE,
@@ -289,6 +289,7 @@ A ggplot object or wrap_plots object or a list of ggplot objects
 ## Examples
 
 ``` r
+# \donttest{
 data <- list(
     A = 1:5,
     B = 2:6,
@@ -296,12 +297,42 @@ data <- list(
     D = 4:8
 )
 UpsetPlot(data)
-#> Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
-#> ℹ Please use `linewidth` instead.
-#> ℹ The deprecated feature was likely used in the ggupset package.
-#>   Please report the issue at <https://github.com/const-ae/ggupset/issues>.
+#> Coordinate system already present.
+#> ℹ Adding new coordinate system, which will replace the existing one.
 
 UpsetPlot(data, label = FALSE)
+#> Coordinate system already present.
+#> ℹ Adding new coordinate system, which will replace the existing one.
 
 UpsetPlot(data, palette = "Reds", specific = FALSE)
+#> Coordinate system already present.
+#> ℹ Adding new coordinate system, which will replace the existing one.
+
+
+# long form input
+data_long <- data.frame(
+    group_by = factor(
+         c(rep("A", 5), rep("B", 5), rep("C", 5), rep("D", 5)),
+         levels = c("A", "B", "C", "D")
+    ),
+    id_by = c(1:5, 2:6, 3:7, 4:8)
+)
+UpsetPlot(data_long, in_form = "long", group_by = "group_by", id_by = "id_by")
+#> Coordinate system already present.
+#> ℹ Adding new coordinate system, which will replace the existing one.
+
+
+# wide form input
+data <- data.frame(
+    id = LETTERS[1:10],
+    B = c(1, 0, 1, 1, 0, 0, 1, 0, 1, 0),
+    A = c(1, 1, 1, 0, 0, 1, 0, 0, 1, 0),
+    D = c(1, 0, 0, 1, 1, 0, 0, 1, 0, 1),
+    C = c(0, 1, 1, 0, 1, 0, 1, 0, 1, 0)
+)
+UpsetPlot(data, in_form = "wide", id_by = "id")
+#> Coordinate system already present.
+#> ℹ Adding new coordinate system, which will replace the existing one.
+
+# }
 ```
