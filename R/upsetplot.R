@@ -107,22 +107,34 @@ prepare_upset_data <- function(data, in_form = "auto", group_by = NULL, group_by
     process_upset_data <- getFromNamespace("process_upset_data", "ggVennDiagram")
     if (in_form == "list") {
         listdata <- data
+        group_order <- names(listdata)
     } else if (in_form == "long") {
         group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
+        group_order <- levels(data[[group_by]])
         listdata <- split(data[[id_by]], data[[group_by]])
     } else { # in_form == "wide"
         group_by <- check_columns(data, group_by, allow_multi = TRUE)
         if (is.null(group_by)) {
-            group_by <- colnames(data)
+            group_by <- setdiff(colnames(data), id_by)
         }
+        group_order <- group_by
         for (g in group_by) {
             # columns must be logical or 0/1
             if (!is.logical(data[[g]]) && !all(data[[g]] %in% c(0, 1))) {
-                stop("The columns in group_by must be logical or 0/1 when the in_form is 'wide'.")
+                stop("[UpSetPlot] The columns in group_by must be logical or 0/1 when the in_form is 'wide', but column '", g, "' is not.")
             }
         }
-        data$.id <- paste0("id", seq_len(nrow(data)))
-        listdata <- lapply(group_by, function(g) data[as.logical(data[[g]]), ".id", drop = TRUE])
+        id_by <- check_columns(data, id_by)
+        if (is.null(id_by)) {
+            id_by <- ".id"
+            data$.id <- paste0("id", seq_len(nrow(data)))
+        } else {
+            # check if id_by column values are unique
+            if (any(duplicated(data[[id_by]]))) {
+                stop("[UpSetPlot] The values in id_by column must be unique when the in_form is 'wide', but there are duplicated values in column '", id_by, "'.")
+            }
+        }
+        listdata <- lapply(group_by, function(g) data[as.logical(data[[g]]), id_by, drop = TRUE])
         names(listdata) <- group_by
         for (nm in names(listdata)) {
             if (length(listdata[[nm]]) == 0) {
@@ -143,7 +155,9 @@ prepare_upset_data <- function(data, in_form = "auto", group_by = NULL, group_by
         idnames[strsplit(x, sep, fixed = TRUE)[[1]]]
     })
 
-    uncount(data, !!sym("size"))
+    out <- uncount(data, !!sym("size"))
+    attr(out, "group_order") <- group_order
+    out
 }
 
 #' Atomic Upset plot
@@ -158,8 +172,10 @@ prepare_upset_data <- function(data, in_form = "auto", group_by = NULL, group_by
 #' @param ... Additional arguments passed to [ggupset::scale_x_upset].
 #' @return A ggplot object with Upset plot
 #' @keywords internal
-#' @importFrom rlang %||%
+#' @importFrom rlang %||% sym
 #' @importFrom ggplot2 geom_bar labs guide_colorbar scale_fill_gradientn
+#' @importFrom ggplot2 aes geom_rect geom_point geom_line scale_x_continuous expansion
+#' @importFrom ggplot2 scale_fill_manual scale_color_manual guides element_blank unit
 #' @importFrom ggrepel geom_text_repel
 UpsetPlotAtomic <- function(
     data, in_form = "auto", group_by = NULL, group_by_sep = "_", id_by = NULL,
@@ -174,6 +190,8 @@ UpsetPlotAtomic <- function(
     }
 
     data <- prepare_upset_data(data, in_form, group_by, group_by_sep, id_by, specific)
+    group_order <- attr(data, "group_order")
+
     base_size <- theme_args$base_size %||% 12
     text_size_scale <- base_size / 12
 
@@ -207,10 +225,44 @@ UpsetPlotAtomic <- function(
             legend.direction = legend.direction,
             panel.grid.major = element_line(colour = "grey80", linetype = 2)
         ) +
-        ggupset::theme_combmatrix(
-            combmatrix.label.text = element_text(size = 12, color = "black"),
-            combmatrix.label.extra_spacing = 6
-        )
+        # try to keep the group order in combmatrix
+        ggupset::axis_combmatrix(sep = " // ", override_plotting_function = function(df) {
+            # df$single_label <- factor(df$single_label, levels = group_order)
+            # single_label is something like: 'C (5)''B (5)''D (5)''A (5)'
+            # but group_order is something like: 'A', 'B', 'C', 'D'
+            # so we need to extract the group name from single_label and match it with group_order
+            df$group_name <- sapply(as.character(df$single_label), function(x) {
+                # extract the group name from single_label, which is the part before the first " ("
+                strsplit(x, " (", fixed = TRUE)[[1]][1]
+            })
+            df$group_name <- factor(df$group_name, levels = rev(group_order))
+            df <- df[order(df$group_name), , drop = FALSE]
+            df$single_label <- factor(df$single_label, levels = unique(df$single_label))
+            ggplot(df, aes(x = !!sym("at"), y = !!sym("single_label"))) +
+                geom_rect(
+                    aes(fill = !!sym("index") %% 2 == 0), ymin = df$index - 0.5,
+                        ymax = df$index + 0.5, xmin = 0, xmax = 1) +
+                geom_point(aes(color = !!sym("observed")), size = text_size_scale * 3) +
+                geom_line(data = function(dat) dat[dat$observed, , drop = FALSE],
+                    aes(group = !!sym("labels")), linewidth = 1.2 * text_size_scale) +
+                ggplot2::ylab("") + ggplot2::xlab("") +
+                scale_x_continuous(limits = c(0, 1), expand = c(0, 0)) +
+                scale_y_discrete(expand = c(0, 0)) +
+                scale_fill_manual(values= c(`TRUE` = "white", `FALSE` = "#F7F7F7")) +
+                scale_color_manual(values= c(`TRUE` = "black", `FALSE` = "#E0E0E0")) +
+                guides(color = "none", fill = "none") +
+                ggplot2::theme(
+                    panel.background = element_blank(),
+                    axis.text.x = element_blank(),
+                    axis.text.y = element_text(size = 12 * text_size_scale, color = "black"),
+                    axis.ticks.y = element_blank(),
+                    axis.ticks.length = unit(0, "pt"),
+                    axis.title.y = element_blank(),
+                    axis.title.x = element_blank(),
+                    axis.line = element_blank(),
+                    panel.border = element_blank()
+                )
+        })
 
     upset_args <- list(...)
     n_sets <- upset_args$n_sets %||% 99
@@ -254,6 +306,26 @@ UpsetPlotAtomic <- function(
 #' UpsetPlot(data)
 #' UpsetPlot(data, label = FALSE)
 #' UpsetPlot(data, palette = "Reds", specific = FALSE)
+#'
+#' # long form input
+#' data_long <- data.frame(
+#'     group_by = factor(
+#'          c(rep("A", 5), rep("B", 5), rep("C", 5), rep("D", 5)),
+#'          levels = c("A", "B", "C", "D")
+#'     ),
+#'     id_by = c(1:5, 2:6, 3:7, 4:8)
+#' )
+#' UpsetPlot(data_long, in_form = "long", group_by = "group_by", id_by = "id_by")
+#'
+#' # wide form input
+#' data <- data.frame(
+#'     id = LETTERS[1:10],
+#'     B = c(1, 0, 1, 1, 0, 0, 1, 0, 1, 0),
+#'     A = c(1, 1, 1, 0, 0, 1, 0, 0, 1, 0),
+#'     D = c(1, 0, 0, 1, 1, 0, 0, 1, 0, 1),
+#'     C = c(0, 1, 1, 0, 1, 0, 1, 0, 1, 0)
+#' )
+#' UpsetPlot(data, in_form = "wide", id_by = "id")
 #' }
 UpsetPlot <- function(
     data, in_form = c("auto", "long", "wide", "list", "upset"), split_by = NULL, split_by_sep = "_",

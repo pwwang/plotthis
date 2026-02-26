@@ -206,5 +206,25 @@ data <- list(
 UpsetPlot(data)
 UpsetPlot(data, label = FALSE)
 UpsetPlot(data, palette = "Reds", specific = FALSE)
+
+# long form input
+data_long <- data.frame(
+    group_by = factor(
+         c(rep("A", 5), rep("B", 5), rep("C", 5), rep("D", 5)),
+         levels = c("A", "B", "C", "D")
+    ),
+    id_by = c(1:5, 2:6, 3:7, 4:8)
+)
+UpsetPlot(data_long, in_form = "long", group_by = "group_by", id_by = "id_by")
+
+# wide form input
+data <- data.frame(
+    id = LETTERS[1:10],
+    B = c(1, 0, 1, 1, 0, 0, 1, 0, 1, 0),
+    A = c(1, 1, 1, 0, 0, 1, 0, 0, 1, 0),
+    D = c(1, 0, 0, 1, 1, 0, 0, 1, 0, 1),
+    C = c(0, 1, 1, 0, 1, 0, 1, 0, 1, 0)
+)
+UpsetPlot(data, in_form = "wide", id_by = "id")
 }
 }
