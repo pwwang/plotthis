@@ -256,7 +256,7 @@ UpsetPlotAtomic <- function(
 UpsetPlot <- function(
     data, in_form = c("auto", "long", "wide", "list", "upset"), split_by = NULL, split_by_sep = "_",
     group_by = NULL, group_by_sep = "_", id_by = NULL, label = TRUE, label_fg = "black",
-    label_size = NULL, label_bg = "white", label_bg_r = 0.1, palette = "material-indigo", palcolor = NULL,
+    label_size = NULL, label_bg = "white", label_bg_r = 0.1, palette = "Blues", palcolor = NULL,
     alpha = 1, specific = TRUE, theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL,
     xlab = NULL, ylab = NULL, aspect.ratio = 0.6, legend.position = "right", legend.direction = "vertical",
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525,
