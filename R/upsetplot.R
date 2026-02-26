@@ -194,7 +194,7 @@ UpsetPlotAtomic <- function(
             colour = label_fg, size = label_size %||% text_size_scale * 3.5,
             bg.color = label_bg, bg.r = label_bg_r,
             point.size = NA, max.overlaps = 100, force = 0,
-            min.segment.length = 0, segment.colour = "black"
+            min.segment.length = 0, segment.colour = NA
         )
     }
     p <- p +
