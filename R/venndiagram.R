@@ -306,7 +306,7 @@ VennDiagram <- function(
     data, in_form = c("auto", "long", "wide", "list", "venn"), split_by = NULL, split_by_sep = "_",
     group_by = NULL, group_by_sep = "_", id_by = NULL, label = "count", label_fg = "black",
     label_size = NULL, label_bg = "white", label_bg_r = 0.1, fill_mode = "count", fill_name = NULL,
-    palette = ifelse(fill_mode == "set", "Paired", "Spectral"), palcolor = NULL, alpha = 1,
+    palette = ifelse(fill_mode == "set", "Paired", "Blues"), palcolor = NULL, alpha = 1,
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL,
     legend.position = "right", legend.direction = "vertical",
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525,
