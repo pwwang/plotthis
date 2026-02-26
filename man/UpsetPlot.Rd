@@ -225,6 +225,6 @@ data <- data.frame(
     D = c(1, 0, 0, 1, 1, 0, 0, 1, 0, 1),
     C = c(0, 1, 1, 0, 1, 0, 1, 0, 1, 0)
 )
-UpsetPlot(data, in_form = "wide", id_by = "id")
+UpsetPlot(data, in_form = "wide", id_by = "id", n_intersections = 4)
 }
 }

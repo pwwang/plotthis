@@ -215,9 +215,17 @@ UpsetPlotAtomic <- function(
             min.segment.length = 0, segment.colour = NA
         )
     }
+    upset_args <- list(...)
+    ytrans <- upset_args$ytrans %||% "identity"
+
+    # scale_x_upset() internally calls axis_combmatrix(), bundling a CoordCombMatrix into its
+    # return list. We extract only the ScaleUpset (index [[1]]) and discard the bundled
+    # CoordCombMatrix (index [[2]]), then add our own axis_combmatrix() once — avoiding
+    # a second coord system replacement and its "Coordinate system already present" message.
+    scale_x_upset_res <- ggupset::scale_x_upset(...)
     p <- p +
         labs(title = title, subtitle = subtitle, x = xlab %||% "", y = ylab %||% "Intersection size") +
-        ggupset::scale_x_upset(...) +
+        scale_x_upset_res[[1]] +
         do.call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
@@ -226,7 +234,7 @@ UpsetPlotAtomic <- function(
             panel.grid.major = element_line(colour = "grey80", linetype = 2)
         ) +
         # try to keep the group order in combmatrix
-        ggupset::axis_combmatrix(sep = " // ", override_plotting_function = function(df) {
+        ggupset::axis_combmatrix(sep = " // ", ytrans = ytrans, override_plotting_function = function(df) {
             # df$single_label <- factor(df$single_label, levels = group_order)
             # single_label is something like: 'C (5)''B (5)''D (5)''A (5)'
             # but group_order is something like: 'A', 'B', 'C', 'D'
@@ -262,9 +270,9 @@ UpsetPlotAtomic <- function(
                     axis.line = element_blank(),
                     panel.border = element_blank()
                 )
-        })
+        }) +
+        ggupset::theme_combmatrix(combmatrix.label.extra_spacing = 6)
 
-    upset_args <- list(...)
     n_sets <- upset_args$n_sets %||% 99
     n_sets <- min(n_sets, length(unique(unlist(data$Intersection))))
     n_intersections <- upset_args$n_intersections %||% 99
@@ -325,7 +333,7 @@ UpsetPlotAtomic <- function(
 #'     D = c(1, 0, 0, 1, 1, 0, 0, 1, 0, 1),
 #'     C = c(0, 1, 1, 0, 1, 0, 1, 0, 1, 0)
 #' )
-#' UpsetPlot(data, in_form = "wide", id_by = "id")
+#' UpsetPlot(data, in_form = "wide", id_by = "id", n_intersections = 4)
 #' }
 UpsetPlot <- function(
     data, in_form = c("auto", "long", "wide", "list", "upset"), split_by = NULL, split_by_sep = "_",
