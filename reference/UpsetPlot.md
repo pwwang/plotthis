@@ -297,16 +297,10 @@ data <- list(
     D = 4:8
 )
 UpsetPlot(data)
-#> Coordinate system already present.
-#> ℹ Adding new coordinate system, which will replace the existing one.
 
 UpsetPlot(data, label = FALSE)
-#> Coordinate system already present.
-#> ℹ Adding new coordinate system, which will replace the existing one.
 
 UpsetPlot(data, palette = "Reds", specific = FALSE)
-#> Coordinate system already present.
-#> ℹ Adding new coordinate system, which will replace the existing one.
 
 
 # long form input
@@ -318,8 +312,6 @@ data_long <- data.frame(
     id_by = c(1:5, 2:6, 3:7, 4:8)
 )
 UpsetPlot(data_long, in_form = "long", group_by = "group_by", id_by = "id_by")
-#> Coordinate system already present.
-#> ℹ Adding new coordinate system, which will replace the existing one.
 
 
 # wide form input
@@ -330,9 +322,9 @@ data <- data.frame(
     D = c(1, 0, 0, 1, 1, 0, 0, 1, 0, 1),
     C = c(0, 1, 1, 0, 1, 0, 1, 0, 1, 0)
 )
-UpsetPlot(data, in_form = "wide", id_by = "id")
-#> Coordinate system already present.
-#> ℹ Adding new coordinate system, which will replace the existing one.
+UpsetPlot(data, in_form = "wide", id_by = "id", n_intersections = 4)
+#> Warning: Removed 4 rows containing non-finite outside the scale range (`stat_count()`).
+#> Warning: Removed 4 rows containing non-finite outside the scale range (`stat_count()`).
 
 # }
 ```
