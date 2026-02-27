@@ -35,6 +35,7 @@ UpsetPlot(
   ncol = NULL,
   byrow = TRUE,
   seed = 8525,
+  combmatrix_gap = 6,
   axes = NULL,
   axis_titles = axes,
   guides = NULL,
@@ -155,6 +156,10 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 \item{byrow}{A logical value indicating whether to fill the plots by row.}
 
 \item{seed}{The random seed to use. Default is 8525.}
+
+\item{combmatrix_gap}{A numeric value specifying the gap between the rows of the combination matrix.
+The default value is 6, which is suitable for a base_size of 12.
+The actual gap will be scaled by the text size scale, which is calculated as base_size / 12.}
 
 \item{axes}{A string specifying how axes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
 Only relevant when \code{split_by} is used and \code{combine} is TRUE.

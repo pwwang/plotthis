@@ -19,6 +19,7 @@ UpsetPlotAtomic(
   palcolor = NULL,
   alpha = 1,
   specific = TRUE,
+  combmatrix_gap = 6,
   theme = "theme_this",
   theme_args = list(),
   title = NULL,
@@ -109,6 +110,10 @@ If some values are missing, the values from the palette will be used (palcolor w
 ggVennDiagram, by default, only return the specific subsets of a region. However,
 sometimes, we want to show all the overlapping items for two or more sets.
 See \url{https://github.com/gaospecial/ggVennDiagram/issues/64} for more details.}
+
+\item{combmatrix_gap}{A numeric value specifying the gap between the rows of the combination matrix.
+The default value is 6, which is suitable for a base_size of 12.
+The actual gap will be scaled by the text size scale, which is calculated as base_size / 12.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}

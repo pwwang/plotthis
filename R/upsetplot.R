@@ -169,6 +169,9 @@ prepare_upset_data <- function(data, in_form = "auto", group_by = NULL, group_by
 #' @param label_size A numeric value specifying the size of the label text.
 #' @param label_bg A character string specifying the background color of the label.
 #' @param label_bg_r A numeric value specifying the radius of the background of the label.
+#' @param combmatrix_gap A numeric value specifying the gap between the rows of the combination matrix.
+#' The default value is 6, which is suitable for a base_size of 12.
+#' The actual gap will be scaled by the text size scale, which is calculated as base_size / 12.
 #' @param ... Additional arguments passed to [ggupset::scale_x_upset].
 #' @return A ggplot object with Upset plot
 #' @keywords internal
@@ -180,7 +183,7 @@ prepare_upset_data <- function(data, in_form = "auto", group_by = NULL, group_by
 UpsetPlotAtomic <- function(
     data, in_form = "auto", group_by = NULL, group_by_sep = "_", id_by = NULL,
     label = TRUE, label_fg = "black", label_size = NULL, label_bg = "white", label_bg_r = 0.1,
-    palette = "material-indigo", palcolor = NULL, alpha = 1, specific = TRUE,
+    palette = "material-indigo", palcolor = NULL, alpha = 1, specific = TRUE, combmatrix_gap = 6,
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     aspect.ratio = 0.6, legend.position = "right", legend.direction = "vertical", levels = NULL, ...) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
@@ -210,7 +213,7 @@ UpsetPlotAtomic <- function(
         p <- p + geom_text_repel(aes(label = after_stat(!!sym("count"))),
             stat = "count",
             colour = label_fg, size = label_size %||% text_size_scale * 3.5,
-            bg.color = label_bg, bg.r = label_bg_r, nudge_y = 0.12 * text_size_scale,
+            bg.color = label_bg, bg.r = label_bg_r, nudge_y = 0.08 * text_size_scale,
             point.size = NA, max.overlaps = 100, force = 0,
             min.segment.length = 0, segment.colour = NA
         )
@@ -262,7 +265,7 @@ UpsetPlotAtomic <- function(
                 ggplot2::theme(
                     panel.background = element_blank(),
                     axis.text.x = element_blank(),
-                    axis.text.y = element_text(size = 12 * text_size_scale, color = "black"),
+                    axis.text.y = element_text(size = 12 * text_size_scale^0.7, color = "black"),
                     axis.ticks.y = element_blank(),
                     axis.ticks.length = unit(0, "pt"),
                     axis.title.y = element_blank(),
@@ -271,7 +274,7 @@ UpsetPlotAtomic <- function(
                     panel.border = element_blank()
                 )
         }) +
-        ggupset::theme_combmatrix(combmatrix.label.extra_spacing = 6)
+        ggupset::theme_combmatrix(combmatrix.label.extra_spacing = combmatrix_gap * text_size_scale)
 
     n_sets <- upset_args$n_sets %||% 99
     n_sets <- min(n_sets, length(unique(unlist(data$Intersection))))
@@ -341,7 +344,7 @@ UpsetPlot <- function(
     label_size = NULL, label_bg = "white", label_bg_r = 0.1, palette = "Blues", palcolor = NULL,
     alpha = 1, specific = TRUE, theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL,
     xlab = NULL, ylab = NULL, aspect.ratio = 0.6, legend.position = "right", legend.direction = "vertical",
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525,
+    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525, combmatrix_gap = 6,
     axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...) {
     validate_common_args(seed)
     in_form <- match.arg(in_form)
@@ -377,7 +380,7 @@ UpsetPlot <- function(
                 group_by <- setdiff(colnames(datas[[nm]]), c(id_by, split_by))
             }
             UpsetPlotAtomic(datas[[nm]],
-                in_form = in_form, group_by = group_by, group_by_sep = group_by_sep, id_by = id_by,
+                in_form = in_form, group_by = group_by, group_by_sep = group_by_sep, id_by = id_by, combmatrix_gap = combmatrix_gap,
                 label = label, label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
                 palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha, specific = specific,
                 theme = theme, theme_args = theme_args, title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
