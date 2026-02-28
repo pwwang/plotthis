@@ -164,14 +164,27 @@ TrendPlotAtomic <- function(
 
     xs <- levels(data[[x]])
     if (anyNA(data[[x]])) xs <- c(xs, NA)
-    height = ifelse(length(xs) < 10, 4.5, 6.5)
-    width = 0.5 + length(xs) * ifelse(length(xs) < 10, 0.8, 0.25)
-    if (legend.position %in% c("right", "left")) {
-        width <- width + 1
-    } else if (legend.direction == "horizontal") {
-        height <- height + 1
+    dims <- calculate_plot_dimensions(
+        base_height = ifelse(length(xs) < 10, 4.5, 6.5),
+        aspect.ratio = aspect.ratio,
+        n_x = length(xs),
+        x_scale_factor = ifelse(length(xs) < 10, 0.8, 0.25),
+        legend.position = legend.position,
+        legend.direction = legend.direction
+    )
+    if (is.null(dims)) {
+        height = ifelse(length(xs) < 10, 4.5, 6.5)
+        width = 0.5 + length(xs) * ifelse(length(xs) < 10, 0.8, 0.25)
+        if (legend.position %in% c("right", "left")) {
+            width <- width + 1
+        } else if (legend.direction == "horizontal") {
+            height <- height + 1
+        } else {
+            width <- width + 2
+        }
     } else {
-        width <- width + 2
+        height <- dims$height
+        width <- dims$width
     }
 
     attr(p, "height") <- height

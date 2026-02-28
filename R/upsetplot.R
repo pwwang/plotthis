@@ -282,20 +282,36 @@ UpsetPlotAtomic <- function(
     n_intersections <- min(n_intersections, length(unique(data$Intersection)))
     maxchars <- max(sapply(unique(unlist(data$Intersection)), nchar))
 
-    height <- 4.5 + n_sets * 0.5
-    width <- n_intersections * aspect.ratio + maxchars * 0.05
-    if (!identical(legend.position, "none")) {
-        if (legend.position %in% c("right", "left")) {
-            width <- width + 1
-        } else if (legend.direction == "horizontal") {
-            height <- height + 1
-        } else {
-            width <- width + 2
+    # Height driven by number of sets; width driven by number of intersections.
+    # x_scale_factor = 0.6 preserves the original per-intersection width (the original
+    # default aspect.ratio = 0.6 was used as a width-per-intersection scale, not H/W ratio).
+    # aspect.ratio is now used as the standard H/W ratio coupling.
+    dims <- calculate_plot_dimensions(
+        base_height = 4.5 + n_sets * 0.5,
+        aspect.ratio = aspect.ratio,
+        n_x = n_intersections,
+        x_scale_factor = 0.6,
+        legend.position = legend.position,
+        legend.direction = legend.direction
+    )
+    if (is.null(dims)) {
+        height <- 4.5 + n_sets * 0.5
+        width <- n_intersections * (if (is.null(aspect.ratio)) 1 else aspect.ratio) + maxchars * 0.05
+        if (!identical(legend.position, "none")) {
+            if (legend.position %in% c("right", "left")) {
+                width <- width + 1
+            } else if (legend.direction == "horizontal") {
+                height <- height + 1
+            } else {
+                width <- width + 2
+            }
         }
+        attr(p, "height") <- height
+        attr(p, "width") <- width
+    } else {
+        attr(p, "height") <- dims$height
+        attr(p, "width") <- dims$width + maxchars * 0.05
     }
-
-    attr(p, "height") <- height
-    attr(p, "width") <- width
 
     p
 }

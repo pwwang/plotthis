@@ -282,19 +282,30 @@ GSEASummaryPlot <- function(
         )
 
     max_nchar_y <- min(max(nchar(levels(data$Description))), character_width)
-    height <- nrow(data) * 0.65
-    width <- max_nchar_y * 0.1 + 5
-    if (!identical(legend.position, "none")) {
-        if (legend.position %in% c("right", "left")) {
-            width <- width + 1.5
-        } else if (legend.direction == "horizontal") {
-            height <- height + 2
-        } else {
-            height <- height + 3.5
+    dims <- calculate_plot_dimensions(
+        base_height = nrow(data) * 0.65,
+        aspect.ratio = aspect.ratio,
+        legend.position = legend.position,
+        legend.direction = legend.direction
+    )
+    if (is.null(dims)) {
+        height <- nrow(data) * 0.65
+        width <- max_nchar_y * 0.1 + 5
+        if (!identical(legend.position, "none")) {
+            if (legend.position %in% c("right", "left")) {
+                width <- width + 1.5
+            } else if (legend.direction == "horizontal") {
+                height <- height + 2
+            } else {
+                height <- height + 3.5
+            }
         }
+        attr(p, "height") <- height
+        attr(p, "width") <- width
+    } else {
+        attr(p, "height") <- dims$height
+        attr(p, "width") <- dims$width + max_nchar_y * 0.1
     }
-    attr(p, "height") <- height
-    attr(p, "width") <- width
 
     p
 }
@@ -536,12 +547,14 @@ GSEAPlotAtomic <- function(
 
         p <- wrap_plots(p1, plot_spacer(), p2, plot_spacer(), p3, p4, heights = c(3.5, -0.19, 1, -0.24, 1.5), widths = c(12, .5)) +
             plot_layout(axes = "collect", design = "AF\nBF\nCF\nDF\nEF")
-        attr(p, "height") <- 6.5
+        dims <- calculate_plot_dimensions(base_height = 6.5, aspect.ratio = NULL, legend.position = "none")
+        attr(p, "height") <- if (is.null(dims)) 6.5 else dims$height
         attr(p, "width") <- 8
     } else {
         p <- wrap_plots(p1, plot_spacer(), p2, plot_spacer(), p3, ncol = 1, heights = c(3.5, -0.19, 1, -0.24, 1.5)) +
             plot_layout(axes = "collect")
-        attr(p, "height") <- 6.5
+        dims <- calculate_plot_dimensions(base_height = 6.5, aspect.ratio = NULL, legend.position = "none")
+        attr(p, "height") <- if (is.null(dims)) 6.5 else dims$height
         attr(p, "width") <- 7.5
     }
     p

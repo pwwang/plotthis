@@ -116,7 +116,7 @@
 BoxViolinPlotAtomic <- function(
     data, x, x_sep = "_", y = NULL, base = c("box", "violin", "none"), in_form = c("long", "wide"), sort_x = NULL,
     flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    paired_by = NULL, x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
+    paired_by = NULL, x_text_angle = ifelse(isTRUE(flip), 0, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE, symnum_args = NULL,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
@@ -145,6 +145,19 @@ BoxViolinPlotAtomic <- function(
         data <- data %>% pivot_longer(cols = x, names_to = ".x", values_to = ".y")
         x <- ".x"
         y <- ".y"
+        # if all values in keep_na are FALSE that means it is default
+        if (is.list(keep_na) && all(sapply(keep_na, isFALSE))) {
+            keep_na <- NULL
+        } else if (is.list(keep_na) && length(setdiff(names(keep_na), c(x, y))) > 0) {
+            warning("[Box/Violin/BeeswarmPlot] Ignoring `keep_na` for columns other than `.x` and `.y` when `in_form` is 'wide'.")
+            keep_na <- keep_na[names(keep_na) %in% c(x, y)]
+        }
+        if (is.list(keep_empty) && all(sapply(keep_empty, isFALSE))) {
+            keep_empty <- NULL
+        } else if (is.list(keep_empty) && length(setdiff(names(keep_empty), x)) > 0) {
+            warning("[Box/Violin/BeeswarmPlot] Ignoring `keep_empty` for columns other than `.x` when `in_form` is 'wide'.")
+            keep_empty <- keep_empty[names(keep_empty) %in% x]
+        }
     }
     x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
     y <- check_columns(data, y)
@@ -920,16 +933,6 @@ BoxViolinPlotAtomic <- function(
 
     p <- p + scale_y_continuous(trans = y_trans, n.breaks = y_nbreaks)
 
-    height <- width <- 0
-    if (!identical(legend.position, "none")) {
-        if (legend.position %in% c("right", "left")) {
-            width <- width + 1
-        } else if (legend.direction == "horizontal") {
-            height <- height + 1
-        } else {
-            height <- height + 2
-        }
-    }
     x_maxchars <- max(nchar(levels(data[[x]])))
     nx <- nlevels(data[[x]])
     nd <- ifelse(is.null(group_by), 1, nlevels(data[[group_by]]))
@@ -951,8 +954,6 @@ BoxViolinPlotAtomic <- function(
         } else {
             p <- p + coord_flip(ylim = c(y_min_use, y_max_use))
         }
-        width <- max(3, width + 2 + x_maxchars * 0.05)
-        height <- height + nx * nd * 0.3
     } else if (isTRUE(flip) && isFALSE(stack)) {
         strip_position <- "top"
         p <- p + ggplot2::theme(
@@ -964,8 +965,6 @@ BoxViolinPlotAtomic <- function(
         } else {
             p <- p + coord_flip(ylim = c(y_min_use, y_max_use))
         }
-        width <- max(3, width + 2.2 + x_maxchars * 0.05)
-        height <- height + nx * nd * 0.3
     } else if (isTRUE(stack)) {
         facet_ncol <- facet_ncol %||% 1
         strip_position <- "right"
@@ -977,8 +976,6 @@ BoxViolinPlotAtomic <- function(
         if (!facet_free) {
             p <- p + coord_cartesian(ylim = c(y_min_use, y_max_use))
         }
-        height <- height + 4 + x_maxchars * 0.05
-        width <- width + nx * nd * 0.3
     } else {
         strip_position <- "top"
         p <- p + ggplot2::theme(
@@ -988,8 +985,6 @@ BoxViolinPlotAtomic <- function(
         if (!facet_free) {
             p <- p + coord_cartesian(ylim = c(y_min_use, y_max_use))
         }
-        height <- max(3, height + 2 + x_maxchars * 0.05)
-        width <- width + nx * nd * 0.3
     }
 
     p <- p +
@@ -1000,6 +995,77 @@ BoxViolinPlotAtomic <- function(
             legend.position = legend.position,
             legend.direction = legend.direction,
         )
+
+    # Dimension calculation
+    # When flipped: nx*nd categories land on the visual y-axis (height-driven);
+    #               x-axis label chars add to width.
+    # When not flipped: nx*nd categories land on the visual x-axis (width-driven);
+    #                   x-axis label chars add to height.
+    if (isTRUE(flip)) {
+        label_min_width <- if (isTRUE(stack)) max(3, 2 + x_maxchars * 0.05) else max(3, 2.2 + x_maxchars * 0.05)
+        dims <- calculate_plot_dimensions(
+            base_height = label_min_width,
+            aspect.ratio = aspect.ratio,
+            n_y = nx * nd,
+            y_scale_factor = 0.5,
+            legend.position = legend.position,
+            legend.direction = legend.direction,
+            flip = TRUE
+        )
+        if (is.null(dims)) {
+            height <- width <- 0
+            if (!identical(legend.position, "none")) {
+                if (legend.position %in% c("right", "left")) {
+                    width <- width + 1
+                } else if (legend.direction == "horizontal") {
+                    height <- height + 1
+                } else {
+                    height <- height + 2
+                }
+            }
+            if (isTRUE(stack)) {
+                width <- max(3, width + 2 + x_maxchars * 0.05)
+            } else {
+                width <- max(3, width + 2.2 + x_maxchars * 0.05)
+            }
+            height <- height + nx * nd * 0.3
+        } else {
+            height <- dims$height
+            width <- max(dims$width, label_min_width)
+        }
+    } else {
+        label_min_height <- if (isTRUE(stack)) 4 + x_maxchars * 0.05 else 2 + x_maxchars * 0.05
+        dims <- calculate_plot_dimensions(
+            base_height = label_min_height,
+            aspect.ratio = aspect.ratio,
+            n_x = nx * nd,
+            x_scale_factor = 0.5,
+            legend.position = legend.position,
+            legend.direction = legend.direction,
+            flip = FALSE
+        )
+        if (is.null(dims)) {
+            height <- width <- 0
+            if (!identical(legend.position, "none")) {
+                if (legend.position %in% c("right", "left")) {
+                    width <- width + 1
+                } else if (legend.direction == "horizontal") {
+                    height <- height + 1
+                } else {
+                    height <- height + 2
+                }
+            }
+            if (isTRUE(stack)) {
+                height <- height + 4 + x_maxchars * 0.05
+            } else {
+                height <- max(3, height + 2 + x_maxchars * 0.05)
+            }
+            width <- width + nx * nd * 0.3
+        } else {
+            height <- max(dims$height, label_min_height)
+            width <- dims$width
+        }
+    }
 
     attr(p, "height") <- height
     attr(p, "width") <- max(width, height)
@@ -1019,10 +1085,10 @@ BoxViolinPlotAtomic <- function(
 #' @keywords internal
 #' @importFrom rlang %||%
 BoxViolinPlot <- function(
-    data, x, x_sep = "_", y = NULL, base = c("box", "violin"), in_form = c("long", "wide"),
+    data, x, x_sep = "_", y = NULL, base = c("box", "violin", "none"), in_form = c("long", "wide"),
     split_by = NULL, split_by_sep = "_", symnum_args = NULL, sort_x = NULL,
     flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    paired_by = NULL, x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
+    paired_by = NULL, x_text_angle = ifelse(isTRUE(flip), 0, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
@@ -1067,6 +1133,7 @@ BoxViolinPlot <- function(
     legend.position <- check_legend(legend.position, names(datas), "legend.position")
 
     stat_name <- stat_name %||% paste0(y, " (", deparse(substitute(add_stat)), ")")
+    base <- match.arg(base)
 
     plots <- lapply(
         names(datas), function(nm) {
@@ -1222,7 +1289,7 @@ BoxPlot <- function(
     data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
     split_by = NULL, split_by_sep = "_", symnum_args = NULL, sort_x = NULL,
     flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    paired_by = NULL, x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
+    paired_by = NULL, x_text_angle = ifelse(isTRUE(flip), 0, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
@@ -1312,7 +1379,7 @@ ViolinPlot <- function(
     data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
     split_by = NULL, split_by_sep = "_", symnum_args = NULL, sort_x = NULL,
     flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    paired_by = NULL, x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
+    paired_by = NULL, x_text_angle = ifelse(isTRUE(flip), 0, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
@@ -1386,7 +1453,7 @@ BeeswarmPlot <- function(
     data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
     split_by = NULL, split_by_sep = "_", symnum_args = NULL, sort_x = NULL,
     flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    paired_by = NULL, x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45), step_increase = 0.1,
+    paired_by = NULL, x_text_angle = ifelse(isTRUE(flip), 0, 45), step_increase = 0.1,
     fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
@@ -1410,6 +1477,7 @@ BeeswarmPlot <- function(
         stop("Adding violin to a beeswarm plot is not supported. Please use ViolinPlot(..., add_beeswarm = TRUE) instead.")
     }
     stat_name <- stat_name %||% paste0(y, " (", deparse(substitute(add_stat)), ")")
+
     BoxViolinPlot(
         data = data, x = x, x_sep = x_sep, y = y, base = "none", in_form = in_form,
         split_by = split_by, split_by_sep = split_by_sep,

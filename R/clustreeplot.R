@@ -111,12 +111,30 @@ ClustreePlotAtomic <- function(
         scale_x_continuous(expand = expand$x)
     })
 
-    height <- nres * max_clusters / 20
-    width <- if (max_clusters > 20) 11 else if (max_clusters > 15) 9 else 7
+    # height driven by nres (resolution rows); width driven by max_clusters (node spread)
+    # keep old heuristics only as fallback
+    height_val <- nres * max_clusters / 20
+    width_val <- if (max_clusters > 20) 11 else if (max_clusters > 15) 9 else 7
 
     if (isTRUE(flip)) {
-        attr(p, "height") <- width
-        attr(p, "width") <- height
+        # After flip: resolutions become x-axis columns, clusters become y-axis rows
+        # Width driven by nres; height by max_clusters (or aspect.ratio applied to width)
+        content_width_fl <- max(3, 0.5 + nres * 1.0)
+        content_height_fl <- if (!is.null(aspect.ratio)) {
+            max(3, min(content_width_fl * aspect.ratio, 12))
+        } else {
+            max(3, 0.5 + max_clusters * 0.5)
+        }
+        dims <- calculate_plot_dimensions(
+            base_height = content_height_fl,
+            aspect.ratio = NULL,
+            n_x = nres,
+            x_scale_factor = 1.0,
+            legend.position = legend.position,
+            legend.direction = legend.direction
+        )
+        attr(p, "height") <- if (is.null(dims)) width_val else dims$height
+        attr(p, "width") <- if (is.null(dims)) height_val else dims$width
         p <- suppressMessages({
             p + scale_y_reverse(breaks = nres:1, labels = resolutions, expand = expand$y) +
             coord_flip(clip = "off") +
@@ -128,8 +146,24 @@ ClustreePlotAtomic <- function(
                 axis.ticks.y = element_blank())
         })
     } else {
-        attr(p, "height") <- height
-        attr(p, "width") <- width
+        # Non-flip: resolutions on y-axis (rows), clusters spread on x-axis (columns)
+        # Width driven by max_clusters; height by nres (or aspect.ratio applied to width)
+        content_width_nf <- max(3, 0.5 + max_clusters * 0.5)
+        content_height_nf <- if (!is.null(aspect.ratio)) {
+            max(3, min(content_width_nf * aspect.ratio, 12))
+        } else {
+            max(3, 0.5 + nres * 1.0)
+        }
+        dims <- calculate_plot_dimensions(
+            base_height = content_height_nf,
+            aspect.ratio = NULL,
+            n_x = max_clusters,
+            x_scale_factor = 0.5,
+            legend.position = legend.position,
+            legend.direction = legend.direction
+        )
+        attr(p, "height") <- if (is.null(dims)) height_val else dims$height
+        attr(p, "width") <- if (is.null(dims)) width_val else dims$width
         p <- suppressMessages({
             p + coord_cartesian(clip = "off") +
             scale_y_continuous(breaks = nres:1, labels = resolutions, expand = expand$y) +

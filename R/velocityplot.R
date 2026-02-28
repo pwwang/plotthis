@@ -395,8 +395,19 @@ VelocityPlot <- function(
             legend.direction = legend.direction
         )
 
-    attr(p, "width") <- 6
-    attr(p, "height") <- 6
+    dims <- calculate_plot_dimensions(
+        base_height = 6,
+        aspect.ratio = aspect.ratio,
+        legend.position = legend.position,
+        legend.direction = legend.direction
+    )
+    if (is.null(dims)) {
+        attr(p, "height") <- 6
+        attr(p, "width") <- 6
+    } else {
+        attr(p, "height") <- dims$height
+        attr(p, "width") <- dims$width
+    }
 
     return(p)
 }

@@ -307,18 +307,29 @@ EnrichMapAtomic <- function(
             legend.direction = legend.direction
         )
 
-    height <- width <- 8
-    if (!identical(legend.position, "none")) {
-        if (legend.position %in% c("right", "left")) {
-            width <- width + 2
-        } else if (legend.direction == "horizontal") {
-            height <- height + 1
-        } else {
-            width <- width + 4
+    dims <- calculate_plot_dimensions(
+        base_height = 8,
+        aspect.ratio = aspect.ratio,
+        legend.position = legend.position,
+        legend.direction = legend.direction
+    )
+    if (is.null(dims)) {
+        height <- width <- 8
+        if (!identical(legend.position, "none")) {
+            if (legend.position %in% c("right", "left")) {
+                width <- width + 2
+            } else if (legend.direction == "horizontal") {
+                height <- height + 1
+            } else {
+                width <- width + 4
+            }
         }
+        attr(p, "height") <- height
+        attr(p, "width") <- width
+    } else {
+        attr(p, "height") <- dims$height
+        attr(p, "width") <- dims$width
     }
-    attr(p, "height") <- height
-    attr(p, "width") <- width
     p
 }
 
@@ -474,18 +485,29 @@ EnrichNetworkAtomic <- function(
             legend.direction = legend.direction
         )
 
-    height <- width <- 8
-    if (!identical(legend.position, "none")) {
-        if (legend.position %in% c("right", "left")) {
-            width <- width + 2
-        } else if (legend.direction == "horizontal") {
-            height <- height + 1
-        } else {
-            width <- width + 4
+    dims <- calculate_plot_dimensions(
+        base_height = 8,
+        aspect.ratio = aspect.ratio,
+        legend.position = legend.position,
+        legend.direction = legend.direction
+    )
+    if (is.null(dims)) {
+        height <- width <- 8
+        if (!identical(legend.position, "none")) {
+            if (legend.position %in% c("right", "left")) {
+                width <- width + 2
+            } else if (legend.direction == "horizontal") {
+                height <- height + 1
+            } else {
+                width <- width + 4
+            }
         }
+        attr(p, "height") <- height
+        attr(p, "width") <- width
+    } else {
+        attr(p, "height") <- dims$height
+        attr(p, "width") <- dims$width
     }
-    attr(p, "height") <- height
-    attr(p, "width") <- width
     p
 }
 

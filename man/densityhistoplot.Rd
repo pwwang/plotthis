@@ -38,6 +38,7 @@ DensityPlot(
   facet_ncol = NULL,
   facet_nrow = NULL,
   facet_byrow = TRUE,
+  aspect.ratio = 1,
   legend.position = ifelse(is.null(group_by), "none", "right"),
   legend.direction = "vertical",
   seed = 8525,
@@ -93,6 +94,7 @@ Histogram(
   facet_ncol = NULL,
   facet_nrow = NULL,
   facet_byrow = TRUE,
+  aspect.ratio = 1,
   legend.position = ifelse(is.null(group_by), "none", "right"),
   legend.direction = "vertical",
   seed = 8525,
@@ -213,6 +215,8 @@ When facet_by is a single column and facet_wrap is used.}
 When facet_by is a single column and facet_wrap is used.}
 
 \item{facet_byrow}{A logical value indicating whether to fill the plots by row. Default is TRUE.}
+
+\item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
 \item{legend.position}{A character string specifying the position of the legend.
 if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}

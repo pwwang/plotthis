@@ -19,7 +19,7 @@ BoxViolinPlotAtomic(
   group_by_sep = "_",
   group_name = NULL,
   paired_by = NULL,
-  x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
+  x_text_angle = ifelse(isTRUE(flip), 0, 45),
   step_increase = 0.1,
   fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
   fill_reverse = FALSE,

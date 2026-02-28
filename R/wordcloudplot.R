@@ -159,13 +159,24 @@ WordCloudPlotAtomic <- function(
             legend.direction = legend.direction
         )
 
-    height <- width <- 4.5
-    if (legend.position %in% c("right", "left")) {
-        width <- width + 1
-    } else if (legend.direction == "horizontal") {
-        height <- height + 1
+    dims <- calculate_plot_dimensions(
+        base_height = 4.5,
+        aspect.ratio = aspect.ratio,
+        legend.position = legend.position,
+        legend.direction = legend.direction
+    )
+    if (is.null(dims)) {
+        height <- width <- 4.5
+        if (legend.position %in% c("right", "left")) {
+            width <- width + 1
+        } else if (legend.direction == "horizontal") {
+            height <- height + 1
+        } else {
+            height <- height + 2
+        }
     } else {
-        height <- height + 2
+        height <- dims$height
+        width <- dims$width
     }
 
     attr(p, "height") <- height

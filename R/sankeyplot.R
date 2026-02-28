@@ -332,11 +332,38 @@ SankeyPlotAtomic <- function(
 
     if (isTRUE(flip)) {
         p <- p + coord_flip()
-        attr(p, "height") <- nlevels(data[[stratum]]) * ifelse(nlevels(data[[stratum]]) < 5, 2, 1.5)
-        attr(p, "width") <- 6
+        dims <- calculate_plot_dimensions(
+            base_height = 6,
+            aspect.ratio = aspect.ratio,
+            n_y = nlevels(data[[x]]),
+            y_scale_factor = 1.5,
+            legend.position = legend.position,
+            legend.direction = legend.direction,
+            flip = TRUE
+        )
+        if (is.null(dims)) {
+            attr(p, "height") <- nlevels(data[[x]]) * ifelse(nlevels(data[[x]]) < 5, 2, 1.5)
+            attr(p, "width") <- 6
+        } else {
+            attr(p, "height") <- dims$height
+            attr(p, "width") <- dims$width
+        }
     } else {
-        attr(p, "height") <- 6
-        attr(p, "width") <- nlevels(data[[x]]) * ifelse(nlevels(data[[x]]) < 5, 2, 1.5)
+        dims <- calculate_plot_dimensions(
+            base_height = 6,
+            aspect.ratio = aspect.ratio,
+            n_x = nlevels(data[[x]]),
+            x_scale_factor = 1.5,
+            legend.position = legend.position,
+            legend.direction = legend.direction
+        )
+        if (is.null(dims)) {
+            attr(p, "height") <- 6
+            attr(p, "width") <- nlevels(data[[x]]) * ifelse(nlevels(data[[x]]) < 5, 2, 1.5)
+        } else {
+            attr(p, "height") <- dims$height
+            attr(p, "width") <- dims$width
+        }
     }
 
     facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,

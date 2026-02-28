@@ -1900,20 +1900,60 @@ HeatmapAtomic <- function(
     }
     rm(left_annos)
 
-    ## Set up the heatmap
+    ## Set up the heatmap dimensions
     rownames_width <- convertUnit(hmargs$row_names_max_width, "inches", valueOnly = TRUE) * 0.5 - 0.2
     rownames_width <- max(rownames_width, 0)
-    if (isTRUE(flip)) {
-        width <- nrows * 0.25 + ncol_annos * 0.5 + rownames_width
-        # How about column name length (nchars)?
-        height <- ncols * 0.25 + nrow_annos * 0.5
+
+    # Estimate column-name height (uses the same max_text_width heuristic, rotated 90°)
+    colnames_height <- if (isTRUE(show_column_names)) {
+        convertUnit(hmargs$row_names_max_width, "inches", valueOnly = TRUE) * 0.25
     } else {
-        width <- ncols * 0.25 + nrow_annos * 0.5 + rownames_width
-        height <- nrows * 0.25 + ncol_annos * 0.5
+        0
     }
+
+    # Annotation overhead per side:
+    #   - row-side  (left/right): dendrogram + per-track bars → adds to width
+    #   - col-side  (top/bottom): dendrogram + per-track bars → adds to height
+    # nrow_annos / ncol_annos include: (cluster_* + show_*_names)*4 + n_splits + n_name_annos
+    # We strip out the show_*_names contribution (already captured by rownames_width /
+    # colnames_height above) and reduce the per-item coefficient to avoid double-counting.
+    row_overhead <- (if (isTRUE(cluster_rows))    0.5 else 0) +
+                    (nrow_annos - show_row_names * 4) * 0.15
+    col_overhead <- (if (isTRUE(cluster_columns)) 0.5 else 0) +
+                    (ncol_annos - show_column_names * 4) * 0.15 + colnames_height
+
+    if (getOption("plotthis.dimcalc.enabled", TRUE)) {
+        # Cap the cell body to prevent runaway sizes for large heatmaps
+        max_body <- 8
+        if (isTRUE(flip)) {
+            body_width  <- min(nrows * 0.25, max_body)
+            body_height <- min(ncols * 0.25, max_body)
+        } else {
+            body_width  <- min(ncols * 0.25, max_body)
+            body_height <- min(nrows * 0.25, max_body)
+        }
+    } else {
+        if (isTRUE(flip)) {
+            body_width  <- nrows * 0.25
+            body_height <- ncols * 0.25
+        } else {
+            body_width  <- ncols * 0.25
+            body_height <- nrows * 0.25
+        }
+    }
+
+    if (isTRUE(flip)) {
+        width  <- body_width  + col_overhead + rownames_width
+        height <- body_height + row_overhead
+    } else {
+        width  <- body_width  + row_overhead + rownames_width
+        height <- body_height + col_overhead
+    }
+
     if (cell_type == "pie") {
-        width <- max(width, height)
-        height <- max(width, height)
+        sq <- max(width, height)
+        width  <- sq
+        height <- sq
     }
     if (!identical(legend.position, "none")) {
         if (legend.position %in% c("right", "left")) {
@@ -1975,8 +2015,8 @@ HeatmapAtomic <- function(
         }
     }
 
-    attr(p, "height") <- max(height, 4)
-    attr(p, "width") <- max(width, 4)
+    attr(p, "height") <- max(min(height, 15), 4)
+    attr(p, "width") <- max(min(width, 15), 4)
     attr(p, "data") <- mat
     p
 }

@@ -28,6 +28,7 @@ VennDiagram(
   subtitle = NULL,
   legend.position = "right",
   legend.direction = "vertical",
+  aspect.ratio = 1,
   combine = TRUE,
   nrow = NULL,
   ncol = NULL,
@@ -136,6 +137,8 @@ This is useful when split_by is used and the title needs to be dynamic.}
 if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
+
+\item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
 \item{combine}{Whether to combine the plots into one when facet is FALSE. Default is TRUE.}
 

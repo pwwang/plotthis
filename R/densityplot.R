@@ -38,7 +38,7 @@ DensityHistoPlotAtomic <- function(
     type = c("density", "histogram"), bins = NULL, binwidth = NULL, flip = FALSE, keep_na = FALSE, keep_empty = FALSE,
     add_bars = FALSE, bar_height = 0.025, bar_alpha = 1, bar_width = .1, position = "identity",
     use_trend = FALSE, add_trend = FALSE, trend_alpha = 1, trend_linewidth = 0.8, trend_pt_size = 1.5, trend_skip_zero = FALSE,
-    palette = "Paired", palcolor = NULL, alpha = .5, theme = "theme_this", theme_args = list(),
+    palette = "Paired", palcolor = NULL, alpha = .5, theme = "theme_this", theme_args = list(), aspect.ratio = 1,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(bottom = 0, left = 0, right = 0),
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     legend.position = ifelse(is.null(group_by), "none", "right"), legend.direction = "vertical", ...) {
@@ -155,29 +155,41 @@ DensityHistoPlotAtomic <- function(
         scale_y_continuous(expand = expand$y, transform = ytrans) +
         do.call(theme, theme_args) +
         labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% ifelse(type == "histogram", "Count", "Density")) +
-        ggplot2::theme(legend.position = legend.position, legend.direction = legend.direction)
+        ggplot2::theme(aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction)
 
     if (flip) {
         p <- p + coord_flip()
     }
 
-    height <- 3.5
-    width <- 4
-    if (!identical(legend.position, "none")) {
-        if (legend.position %in% c("right", "left")) {
-            width <- width + 1
-        } else if (legend.direction == "horizontal") {
-            height <- height + 1
-        } else {
-            height <- height + 1
+    dims <- calculate_plot_dimensions(
+        base_height = 3.5,
+        aspect.ratio = aspect.ratio,
+        legend.position = legend.position,
+        legend.direction = legend.direction,
+        flip = flip
+    )
+    if (is.null(dims)) {
+        height <- 3.5
+        width <- 4
+        if (!identical(legend.position, "none")) {
+            if (legend.position %in% c("right", "left")) {
+                width <- width + 1
+            } else if (legend.direction == "horizontal") {
+                height <- height + 1
+            } else {
+                height <- height + 1
+            }
         }
-    }
-    if (flip) {
-        attr(p, "height") <- width
-        attr(p, "width") <- height
+        if (flip) {
+            attr(p, "height") <- width
+            attr(p, "width") <- height
+        } else {
+            attr(p, "height") <- height
+            attr(p, "width") <- width
+        }
     } else {
-        attr(p, "height") <- height
-        attr(p, "width") <- width
+        attr(p, "height") <- dims$height
+        attr(p, "width") <- dims$width
     }
 
     facet_plot(p,
@@ -344,23 +356,37 @@ RidgePlotAtomic <- function(
             legend.direction = legend.direction
         )
 
-    height <- 1 + nlevels(data[[group_by]]) * 1
-    width <- 3 + nlevels(data[[group_by]]) * 0.5
-    if (!identical(legend.position, "none")) {
-        if (legend.position %in% c("right", "left")) {
-            width <- width + 1
-        } else if (legend.direction == "horizontal") {
-            height <- height + 1
-        } else {
-            height <- height + 2
+    dims <- calculate_plot_dimensions(
+        base_height = 1,
+        aspect.ratio = aspect.ratio,
+        n_y = nlevels(data[[group_by]]),
+        y_scale_factor = 1,
+        legend.position = legend.position,
+        legend.direction = legend.direction,
+        flip = flip
+    )
+    if (is.null(dims)) {
+        height <- 1 + nlevels(data[[group_by]]) * 1
+        width <- 3 + nlevels(data[[group_by]]) * 0.5
+        if (!identical(legend.position, "none")) {
+            if (legend.position %in% c("right", "left")) {
+                width <- width + 1
+            } else if (legend.direction == "horizontal") {
+                height <- height + 1
+            } else {
+                height <- height + 2
+            }
         }
-    }
-    if (flip) {
-        attr(p, "height") <- width
-        attr(p, "width") <- height
+        if (flip) {
+            attr(p, "height") <- width
+            attr(p, "width") <- height
+        } else {
+            attr(p, "height") <- height
+            attr(p, "width") <- width
+        }
     } else {
-        attr(p, "height") <- height
-        attr(p, "width") <- width
+        attr(p, "height") <- dims$height
+        attr(p, "width") <- dims$width
     }
 
     facet_plot(p,
@@ -502,7 +528,7 @@ DensityPlot <- function(
     palette = "Paired", palcolor = NULL, alpha = .5, theme = "theme_this", theme_args = list(),
     add_bars = FALSE, bar_height = 0.025, bar_alpha = 1, bar_width = .1, keep_na = FALSE, keep_empty = FALSE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(bottom = 0, left = 0, right = 0),
-    facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
+    facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE, aspect.ratio = 1,
     legend.position = ifelse(is.null(group_by), "none", "right"), legend.direction = "vertical", seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
     ...) {
@@ -538,7 +564,7 @@ DensityPlot <- function(
             }
             DensityHistoPlotAtomic(datas[[nm]],
                 x = x, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
-                type = "density", flip = flip, xtrans = xtrans, ytrans = ytrans, position = position,
+                type = "density", flip = flip, xtrans = xtrans, ytrans = ytrans, position = position, aspect.ratio = aspect.ratio,
                 add_bars = add_bars, bar_height = bar_height, bar_alpha = bar_alpha, bar_width = bar_width,
                 palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha, theme = theme, theme_args = theme_args,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, expand = expand, keep_na = keep_na, keep_empty = keep_empty,
@@ -581,7 +607,7 @@ Histogram <- function(
     use_trend = FALSE, add_trend = FALSE, trend_alpha = 1, trend_linewidth = 0.8, trend_pt_size = 1.5,
     palette = "Paired", palcolor = NULL, alpha = .5, theme = "theme_this", theme_args = list(),
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(bottom = 0, left = 0, right = 0),
-    facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
+    facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE, aspect.ratio = 1,
     legend.position = ifelse(is.null(group_by), "none", "right"), legend.direction = "vertical", seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
     ...) {
@@ -623,7 +649,7 @@ Histogram <- function(
                 add_bars = add_bars, bar_height = bar_height, bar_alpha = bar_alpha, bar_width = bar_width,
                 bins = bins, binwidth = binwidth, expand = expand, position = position, keep_na = keep_na, keep_empty = keep_empty,
                 palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha, theme = theme, theme_args = theme_args,
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
+                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, aspect.ratio = aspect.ratio,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]], ...
             )

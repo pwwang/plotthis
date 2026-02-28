@@ -146,7 +146,7 @@ prepare_venn_data <- function(data, in_form = "auto", group_by = NULL, group_by_
 VennDiagramAtomic <- function(
     data, in_form = "auto", group_by = NULL, group_by_sep = "_", id_by = NULL,
     label = "count", label_fg = "black", label_size = NULL, label_bg = "white", label_bg_r = 0.1,
-    fill_mode = "count", fill_name = NULL,
+    fill_mode = "count", fill_name = NULL, aspect.ratio = 1,
     palette = ifelse(fill_mode == "set", "Paired", "Spectral"), palcolor = NULL, alpha = 1,
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL,
     legend.position = "right", legend.direction = "vertical", ...
@@ -246,6 +246,7 @@ VennDiagramAtomic <- function(
         coord_equal() +
         do.call(theme, theme_args) +
         ggplot2::theme(
+            aspect.ratio = aspect.ratio,
             legend.position = legend.position,
             legend.direction = legend.direction,
             panel.grid.major = element_blank(),
@@ -261,19 +262,30 @@ VennDiagramAtomic <- function(
         expand = expansion(add = 0.001 * maxchars * text_size_scale, mult = 0.1),
     )
 
-    height <- 5.5
-    width <- 6
-    if (fill_mode != "set") {
-        if (legend.position %in% c("right", "left")) {
-            width <- width + 1
-        } else if (legend.direction == "horizontal") {
-            height <- height + 1
-        } else {
-            width <- width + 2
+    dims <- calculate_plot_dimensions(
+        base_height = 5.5,
+        aspect.ratio = aspect.ratio,
+        legend.position = if (fill_mode == "set") "none" else legend.position,
+        legend.direction = legend.direction
+    )
+    if (is.null(dims)) {
+        height <- 5.5
+        width <- 6
+        if (fill_mode != "set") {
+            if (legend.position %in% c("right", "left")) {
+                width <- width + 1
+            } else if (legend.direction == "horizontal") {
+                height <- height + 1
+            } else {
+                width <- width + 2
+            }
         }
+        attr(p, "height") <- height
+        attr(p, "width") <- width
+    } else {
+        attr(p, "height") <- dims$height
+        attr(p, "width") <- dims$width
     }
-    attr(p, "height") <- height
-    attr(p, "width") <- width
 
     return(p)
 }
@@ -308,7 +320,7 @@ VennDiagram <- function(
     label_size = NULL, label_bg = "white", label_bg_r = 0.1, fill_mode = "count", fill_name = NULL,
     palette = ifelse(fill_mode == "set", "Paired", "Blues"), palcolor = NULL, alpha = 1,
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL,
-    legend.position = "right", legend.direction = "vertical",
+    legend.position = "right", legend.direction = "vertical", aspect.ratio = 1,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525,
     axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...
 ) {
@@ -349,7 +361,7 @@ VennDiagram <- function(
                 in_form = in_form, group_by = group_by, group_by_sep = group_by_sep, id_by = id_by,
                 label = label, label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
                 fill_mode = fill_mode, fill_name = fill_name, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
-                theme = theme, theme_args = theme_args, title = title, subtitle = subtitle,
+                theme = theme, theme_args = theme_args, title = title, subtitle = subtitle, aspect.ratio = aspect.ratio,
                 legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]], ...
             )
         }

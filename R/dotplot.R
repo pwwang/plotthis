@@ -95,7 +95,7 @@ DotPlotAtomic <- function(
                 summarise(!!sym(fill_by) := first(!!sym(fill_by)), .size = n(), .groups = "drop")
         }
         # keep the levels of x, y, and facet_by
-        for (col in unique(x, y, facet_by)) {
+        for (col in unique(c(x, y, facet_by))) {
             if (is.factor(data[[col]])) {
                 data[[col]] <- factor(data[[col]], levels = levels(data[[col]]))
             }
@@ -239,6 +239,17 @@ DotPlotAtomic <- function(
         width <- width + y_label_len * 0.1
     }
     width <- max(width, 3)
+    height <- max(height, 3)
+
+    # Apply aspect.ratio coupling: derive the smaller dimension from the larger one
+    ar <- if (isTRUE(flip)) 1 / aspect.ratio else aspect.ratio
+    coupled_height <- width * ar
+    if (abs(coupled_height - height) / max(height, 1) < 0.5) {
+        # Only apply coupling if the adjustment is less than 50% change
+        height <- coupled_height
+        height <- max(height, 3)
+    }
+
     if (!identical(legend.position, "none")) {
         if (legend.position %in% c("right", "left")) {
             width <- width + 1

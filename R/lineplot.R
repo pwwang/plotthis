@@ -201,17 +201,29 @@ LinePlotSingle <- function(
             axis.text.x = element_text(angle = x_text_angle, hjust = just$h, vjust = just$v)
         )
 
-    height <- 4.5
-    width <- .5 + nlevels(data[[x]]) * .8
-
-    if (!identical(legend.position, "none")) {
-        if (legend.position %in% c("right", "left")) {
-            width <- width + 1
-        } else if (legend.direction == "horizontal") {
-            height <- height + 1
-        } else {
-            width <- width + 2
+    dims <- calculate_plot_dimensions(
+        base_height = 4.5,
+        aspect.ratio = aspect.ratio,
+        n_x = nlevels(data[[x]]),
+        x_scale_factor = 0.8,
+        legend.position = legend.position,
+        legend.direction = legend.direction
+    )
+    if (is.null(dims)) {
+        height <- 4.5
+        width <- .5 + nlevels(data[[x]]) * .8
+        if (!identical(legend.position, "none")) {
+            if (legend.position %in% c("right", "left")) {
+                width <- width + 1
+            } else if (legend.direction == "horizontal") {
+                height <- height + 1
+            } else {
+                width <- width + 2
+            }
         }
+    } else {
+        height <- dims$height
+        width <- dims$width
     }
 
     attr(p, "height") <- height
@@ -386,17 +398,29 @@ LinePlotGrouped <- function(
             axis.text.x = element_text(angle = x_text_angle, hjust = just$h, vjust = just$v)
         )
 
-    height <- 4.5
-    width <- .5 + nlevels(data[[x]]) * .8
-
-    if (!identical(legend.position, "none")) {
-        if (legend.position %in% c("right", "left")) {
-            width <- width + 1
-        } else if (legend.direction == "horizontal") {
-            height <- height + 1
-        } else {
-            width <- width + 2
+    dims <- calculate_plot_dimensions(
+        base_height = 4.5,
+        aspect.ratio = aspect.ratio,
+        n_x = nlevels(data[[x]]),
+        x_scale_factor = 0.8,
+        legend.position = legend.position,
+        legend.direction = legend.direction
+    )
+    if (is.null(dims)) {
+        height <- 4.5
+        width <- .5 + nlevels(data[[x]]) * .8
+        if (!identical(legend.position, "none")) {
+            if (legend.position %in% c("right", "left")) {
+                width <- width + 1
+            } else if (legend.direction == "horizontal") {
+                height <- height + 1
+            } else {
+                width <- width + 2
+            }
         }
+    } else {
+        height <- dims$height
+        width <- dims$width
     }
 
     attr(p, "height") <- height

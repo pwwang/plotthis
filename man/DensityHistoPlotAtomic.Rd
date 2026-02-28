@@ -34,6 +34,7 @@ DensityHistoPlotAtomic(
   alpha = 0.5,
   theme = "theme_this",
   theme_args = list(),
+  aspect.ratio = 1,
   title = NULL,
   subtitle = NULL,
   xlab = NULL,
@@ -134,6 +135,8 @@ If some values are missing, the values from the palette will be used (palcolor w
 Default is "theme_this".}
 
 \item{theme_args}{A list of arguments to pass to the theme function.}
+
+\item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
 \item{title}{A character string specifying the title of the plot.
 A function can be used to generate the title based on the default title.

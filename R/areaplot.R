@@ -151,16 +151,33 @@ AreaPlotAtomic <- function(
             )
     }
 
-    height = 4.5
-    width = 0.5 + length(x_vals) * 0.5
-    if (!identical(legend.position, "none")) {
-        if (legend.position %in% c("right", "left")) {
-            width <- width + 1
-        } else if (legend.direction == "horizontal") {
-            height <- height + 1
-        } else {
-            width <- width + 2
+    # Calculate plot dimensions with aspect ratio consideration
+    dims <- calculate_plot_dimensions(
+        base_height = 4.5,
+        aspect.ratio = aspect.ratio,
+        n_x = length(x_vals),
+        x_scale_factor = 0.5,
+        legend.position = legend.position,
+        legend.direction = legend.direction,
+        flip = FALSE
+    )
+
+    # Fallback to old calculation if dimension calculator is disabled
+    if (is.null(dims)) {
+        height = 4.5
+        width = 0.5 + length(x_vals) * 0.5
+        if (!identical(legend.position, "none")) {
+            if (legend.position %in% c("right", "left")) {
+                width <- width + 1
+            } else if (legend.direction == "horizontal") {
+                height <- height + 1
+            } else {
+                width <- width + 2
+            }
         }
+    } else {
+        height <- dims$height
+        width <- dims$width
     }
 
     attr(p, "height") <- height

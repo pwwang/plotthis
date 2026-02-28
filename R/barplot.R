@@ -219,25 +219,38 @@ BarPlotSingle <- function(
     }
 
     x_maxchars <- max(nchar(unlist(strsplit(levels(data[[x]]), "\n"))))
-    if (isTRUE(flip)) {
-        height <- max(.5 + nlevels(data[[x]]) * .8, 4)
-        width <- 4 + x_maxchars * 0.1
-    } else {
-        height <- 3.5 + max(x_maxchars * 0.1, 1)
-        width <- .5 + min(nlevels(data[[x]]) * .8, if (is.null(aspect.ratio)) Inf else height / aspect.ratio)
-    }
-    if (!identical(legend.position, "none")) {
-        if (legend.position %in% c("right", "left")) {
-            width <- width + 1
-        } else if (legend.direction == "horizontal") {
-            height <- height + 1
+    dims <- calculate_plot_dimensions(
+        base_height = if (isTRUE(flip)) max(.5 + nlevels(data[[x]]) * .8, 4) else 3.5 + max(x_maxchars * 0.1, 1),
+        aspect.ratio = aspect.ratio,
+        n_x = if (isTRUE(flip)) NULL else nlevels(data[[x]]),
+        x_scale_factor = 0.8,
+        legend.position = legend.position,
+        legend.direction = legend.direction,
+        flip = isTRUE(flip)
+    )
+    if (is.null(dims)) {
+        if (isTRUE(flip)) {
+            height <- max(.5 + nlevels(data[[x]]) * .8, 4)
+            width <- 4 + x_maxchars * 0.1
         } else {
-            width <- width + 2
+            height <- 3.5 + max(x_maxchars * 0.1, 1)
+            width <- .5 + min(nlevels(data[[x]]) * .8, if (is.null(aspect.ratio)) Inf else height / aspect.ratio)
         }
+        if (!identical(legend.position, "none")) {
+            if (legend.position %in% c("right", "left")) {
+                width <- width + 1
+            } else if (legend.direction == "horizontal") {
+                height <- height + 1
+            } else {
+                width <- width + 2
+            }
+        }
+        attr(p, "height") <- height
+        attr(p, "width") <- width
+    } else {
+        attr(p, "height") <- dims$height
+        attr(p, "width") <- dims$width + if (isTRUE(flip)) x_maxchars * 0.1 else 0
     }
-
-    attr(p, "height") <- height
-    attr(p, "width") <- width
     p
 }
 
@@ -467,28 +480,42 @@ BarPlotGrouped <- function(
         p <- p + coord_cartesian(ylim = c(y_min, y_max))
     }
 
-    height <- 4.5
-    if (is.character(position) && position == "stack") {
-        width <- max(min(.5 + nlevels(data[[x]]) * .8, 1.2 * height / aspect.ratio), 4.5)
-    } else {
-        width <- .5 + min(nlevels(data[[x]]) * length(unique(data[[group_by]])) * .5, 1.2 * height / aspect.ratio)
-    }
-    if (!identical(legend.position, "none")) {
-        if (legend.position %in% c("right", "left")) {
-            width <- width + 1
-        } else if (legend.direction == "horizontal") {
-            height <- height + 1
+    n_groups <- length(unique(data[[group_by]]))
+    dims <- calculate_plot_dimensions(
+        base_height = 4.5,
+        aspect.ratio = aspect.ratio,
+        n_x = if (is.character(position) && position == "stack") nlevels(data[[x]]) else nlevels(data[[x]]) * n_groups,
+        x_scale_factor = if (is.character(position) && position == "stack") 0.8 else 0.5,
+        legend.position = legend.position,
+        legend.direction = legend.direction,
+        flip = isTRUE(flip)
+    )
+    if (is.null(dims)) {
+        height <- 4.5
+        if (is.character(position) && position == "stack") {
+            width <- max(min(.5 + nlevels(data[[x]]) * .8, 1.2 * height / aspect.ratio), 4.5)
         } else {
-            width <- width + 2
+            width <- .5 + min(nlevels(data[[x]]) * length(unique(data[[group_by]])) * .5, 1.2 * height / aspect.ratio)
         }
-    }
-
-    if (isTRUE(flip)) {
-        attr(p, "height") <- width
-        attr(p, "width") <- height
+        if (!identical(legend.position, "none")) {
+            if (legend.position %in% c("right", "left")) {
+                width <- width + 1
+            } else if (legend.direction == "horizontal") {
+                height <- height + 1
+            } else {
+                width <- width + 2
+            }
+        }
+        if (isTRUE(flip)) {
+            attr(p, "height") <- width
+            attr(p, "width") <- height
+        } else {
+            attr(p, "height") <- height
+            attr(p, "width") <- width
+        }
     } else {
-        attr(p, "height") <- height
-        attr(p, "width") <- width
+        attr(p, "height") <- dims$height
+        attr(p, "width") <- dims$width
     }
 
     p
@@ -1025,27 +1052,45 @@ SplitBarPlotAtomic <- function(
             legend.direction = legend.direction
         )
 
-    if (isTRUE(flip)) {
-        p <- p + coord_flip(xlim = c(x_min, x_max))
-        height <- 5.5
-        width <- max(nlevels(data[[y]]) * bar_height / 4, 4.5)
-    } else {
-        p <- p + coord_cartesian(xlim = c(x_min, x_max))
-        width <- 5.5
-        height <- max(nlevels(data[[y]]) * bar_height / 4, 4.5)
-    }
-    if (!identical(legend.position, "none")) {
-        if (legend.position %in% c("right", "left")) {
-            width <- width + 1
-        } else if (legend.direction == "horizontal") {
-            height <- height + 1
+    dims <- calculate_plot_dimensions(
+        base_height = 5.5,
+        aspect.ratio = aspect.ratio,
+        n_y = nlevels(data[[y]]),
+        y_scale_factor = bar_height / 4,
+        legend.position = legend.position,
+        legend.direction = legend.direction,
+        flip = isTRUE(flip)
+    )
+    if (is.null(dims)) {
+        if (isTRUE(flip)) {
+            p <- p + coord_flip(xlim = c(x_min, x_max))
+            height <- 5.5
+            width <- max(nlevels(data[[y]]) * bar_height / 4, 4.5)
         } else {
-            width <- width + 2
+            p <- p + coord_cartesian(xlim = c(x_min, x_max))
+            width <- 5.5
+            height <- max(nlevels(data[[y]]) * bar_height / 4, 4.5)
         }
+        if (!identical(legend.position, "none")) {
+            if (legend.position %in% c("right", "left")) {
+                width <- width + 1
+            } else if (legend.direction == "horizontal") {
+                height <- height + 1
+            } else {
+                width <- width + 2
+            }
+        }
+        attr(p, "height") <- height
+        attr(p, "width") <- width
+    } else {
+        if (isTRUE(flip)) {
+            p <- p + coord_flip(xlim = c(x_min, x_max))
+        } else {
+            p <- p + coord_cartesian(xlim = c(x_min, x_max))
+        }
+        attr(p, "height") <- dims$height
+        attr(p, "width") <- dims$width
     }
-
-    attr(p, "height") <- height
-    attr(p, "width") <- width
 
     facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
         legend.position = legend.position, legend.direction = legend.direction,
