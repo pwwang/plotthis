@@ -20,6 +20,7 @@ UpsetPlotAtomic(
   palcolor = NULL,
   alpha = 1,
   specific = TRUE,
+  combmatrix_gap = 6,
   theme = "theme_this",
   theme_args = list(),
   title = NULL,
@@ -141,6 +142,13 @@ UpsetPlotAtomic(
   for two or more sets. See
   <https://github.com/gaospecial/ggVennDiagram/issues/64> for more
   details.
+
+- combmatrix_gap:
+
+  A numeric value specifying the gap between the rows of the combination
+  matrix. The default value is 6, which is suitable for a base_size
+  of 12. The actual gap will be scaled by the text size scale, which is
+  calculated as base_size / 12.
 
 - theme:
 

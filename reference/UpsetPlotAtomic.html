@@ -58,6 +58,7 @@
 <span>  palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  specific <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  combmatrix_gap <span class="op">=</span> <span class="fl">6</span>,</span>
 <span>  theme <span class="op">=</span> <span class="st">"theme_this"</span>,</span>
 <span>  theme_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  title <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -172,6 +173,12 @@ If some values are missing, the values from the palette will be used (palcolor w
 ggVennDiagram, by default, only return the specific subsets of a region. However,
 sometimes, we want to show all the overlapping items for two or more sets.
 See <a href="https://github.com/gaospecial/ggVennDiagram/issues/64" class="external-link">https://github.com/gaospecial/ggVennDiagram/issues/64</a> for more details.</p></dd>
+
+
+<dt id="arg-combmatrix-gap">combmatrix_gap<a class="anchor" aria-label="anchor" href="#arg-combmatrix-gap"></a></dt>
+<dd><p>A numeric value specifying the gap between the rows of the combination matrix.
+The default value is 6, which is suitable for a base_size of 12.
+The actual gap will be scaled by the text size scale, which is calculated as base_size / 12.</p></dd>
 
 
 <dt id="arg-theme">theme<a class="anchor" aria-label="anchor" href="#arg-theme"></a></dt>

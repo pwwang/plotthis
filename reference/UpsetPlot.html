@@ -74,6 +74,7 @@
 <span>  ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  byrow <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">8525</span>,</span>
+<span>  combmatrix_gap <span class="op">=</span> <span class="fl">6</span>,</span>
 <span>  axes <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  axis_titles <span class="op">=</span> <span class="va">axes</span>,</span>
 <span>  guides <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -250,6 +251,12 @@ if <code>waiver()</code>, for single groups, the legend will be "none", otherwis
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
 <dd><p>The random seed to use. Default is 8525.</p></dd>
+
+
+<dt id="arg-combmatrix-gap">combmatrix_gap<a class="anchor" aria-label="anchor" href="#arg-combmatrix-gap"></a></dt>
+<dd><p>A numeric value specifying the gap between the rows of the combination matrix.
+The default value is 6, which is suitable for a base_size of 12.
+The actual gap will be scaled by the text size scale, which is calculated as base_size / 12.</p></dd>
 
 
 <dt id="arg-axes">axes<a class="anchor" aria-label="anchor" href="#arg-axes"></a></dt>

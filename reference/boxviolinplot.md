@@ -23,7 +23,7 @@ BoxPlot(
   group_by_sep = "_",
   group_name = NULL,
   paired_by = NULL,
-  x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
+  x_text_angle = ifelse(isTRUE(flip), 0, 45),
   step_increase = 0.1,
   fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
   fill_reverse = FALSE,
@@ -116,7 +116,7 @@ ViolinPlot(
   group_by_sep = "_",
   group_name = NULL,
   paired_by = NULL,
-  x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
+  x_text_angle = ifelse(isTRUE(flip), 0, 45),
   step_increase = 0.1,
   fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
   fill_reverse = FALSE,
@@ -213,7 +213,7 @@ BeeswarmPlot(
   group_by_sep = "_",
   group_name = NULL,
   paired_by = NULL,
-  x_text_angle = ifelse(isTRUE(flip) && isTRUE(stack), 90, 45),
+  x_text_angle = ifelse(isTRUE(flip), 0, 45),
   step_increase = 0.1,
   fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
   fill_reverse = FALSE,
@@ -879,12 +879,6 @@ data_wide <- data.frame(
     C = rnorm(100)
 )
 BoxPlot(data_wide, x = c("A", "B", "C"), in_form = "wide")
-#> Warning: Column 'A' not found in data. Skipping 'keep_na' processing for this column.
-#> Warning: Column 'B' not found in data. Skipping 'keep_na' processing for this column.
-#> Warning: Column 'C' not found in data. Skipping 'keep_na' processing for this column.
-#> Warning: Column 'A' not found in data. Skipping 'keep_empty' processing for this column.
-#> Warning: Column 'B' not found in data. Skipping 'keep_empty' processing for this column.
-#> Warning: Column 'C' not found in data. Skipping 'keep_empty' processing for this column.
 
 
 paired_data <- data.frame(

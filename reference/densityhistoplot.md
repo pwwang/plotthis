@@ -38,6 +38,7 @@ DensityPlot(
   facet_ncol = NULL,
   facet_nrow = NULL,
   facet_byrow = TRUE,
+  aspect.ratio = 1,
   legend.position = ifelse(is.null(group_by), "none", "right"),
   legend.direction = "vertical",
   seed = 8525,
@@ -93,6 +94,7 @@ Histogram(
   facet_ncol = NULL,
   facet_nrow = NULL,
   facet_byrow = TRUE,
+  aspect.ratio = 1,
   legend.position = ifelse(is.null(group_by), "none", "right"),
   legend.direction = "vertical",
   seed = 8525,
@@ -302,6 +304,10 @@ Histogram(
 
   A logical value indicating whether to fill the plots by row. Default
   is TRUE.
+
+- aspect.ratio:
+
+  A numeric value specifying the aspect ratio of the plot.
 
 - legend.position:
 

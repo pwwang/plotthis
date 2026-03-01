@@ -29,6 +29,7 @@ VennDiagram(
   subtitle = NULL,
   legend.position = "right",
   legend.direction = "vertical",
+  aspect.ratio = 1,
   combine = TRUE,
   nrow = NULL,
   ncol = NULL,
@@ -188,6 +189,10 @@ VennDiagram(
 - legend.direction:
 
   A character string specifying the direction of the legend.
+
+- aspect.ratio:
+
+  A numeric value specifying the aspect ratio of the plot.
 
 - combine:
 

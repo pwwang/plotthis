@@ -35,6 +35,7 @@ DensityHistoPlotAtomic(
   alpha = 0.5,
   theme = "theme_this",
   theme_args = list(),
+  aspect.ratio = 1,
   title = NULL,
   subtitle = NULL,
   xlab = NULL,
@@ -212,6 +213,10 @@ DensityHistoPlotAtomic(
 - theme_args:
 
   A list of arguments to pass to the theme function.
+
+- aspect.ratio:
+
+  A numeric value specifying the aspect ratio of the plot.
 
 - title:
 

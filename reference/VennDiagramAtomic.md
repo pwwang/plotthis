@@ -18,6 +18,7 @@ VennDiagramAtomic(
   label_bg_r = 0.1,
   fill_mode = "count",
   fill_name = NULL,
+  aspect.ratio = 1,
   palette = ifelse(fill_mode == "set", "Paired", "Spectral"),
   palcolor = NULL,
   alpha = 1,
@@ -123,6 +124,10 @@ VennDiagramAtomic(
 - fill_name:
 
   A character string to name the legend of colorbar.
+
+- aspect.ratio:
+
+  A numeric value specifying the aspect ratio of the plot.
 
 - palette:
 
