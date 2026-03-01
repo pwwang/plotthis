@@ -55,7 +55,7 @@ jobs:
             any::ggupset, any::ggpubr, any::ggforce, any::scattermore, any::ComplexHeatmap, any::cluster,
             any::clustree, any::ggwordcloud, any::ggraph, any::igraph, any::hexbin, any::ggridges,
             any::zoo, any::gridtext, any::concaveman, any::iNEXT, any::alluvial, any::ggmanh,
-            any::sf, any::terra, any::Matrix, any::proxyC, any::metR
+            any::sf, any::terra, any::Matrix, any::proxyC, any::metR, github::slowkow/ggrepel@0.9.5
 
       - uses: r-lib/actions/check-r-package@v2
 
