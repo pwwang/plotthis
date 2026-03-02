@@ -286,10 +286,12 @@ CorPairsPlot(data, group_by = "g", diag_type = "none", layout = "./",
  theme_args = list(axis.title = element_textbox(
      color = "black", box.color = "grey20", size = 16, halign = 0.5, fill = "grey90",
      linetype = 1, width = grid::unit(1, "npc"), padding = ggplot2::margin(5, 5, 5, 5))))
+#> Warning: no non-missing arguments to max; returning -Inf
 
 
 CorPairsPlot(data, group_by = "g", diag_type = "violin", layout = "\\.",
   cor_format = "{x}\n{y}\ncorr: {round(corr, 2)}")
+#> Warning: no non-missing arguments to max; returning -Inf
 
 
 CorPairsPlot(data, split_by = "g", diag_type = "none", layout = ".\\",

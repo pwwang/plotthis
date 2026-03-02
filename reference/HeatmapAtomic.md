@@ -83,6 +83,7 @@ HeatmapAtomic(
   alpha = 1,
   seed = 8525,
   return_grob = FALSE,
+  padding = 15,
   layer_fun_callback = NULL,
   cell_type = "tile",
   cell_agg = NULL,
@@ -530,6 +531,22 @@ HeatmapAtomic(
   A logical value indicating whether to return the grob object of the
   heatmap. This is useful when merging multiple heatmaps using
   patchwork.
+
+- padding:
+
+  A numeric vector of length 4 specifying the padding of the heatmap in
+  the order of top, right, bottom, left. Like padding in css. Note that
+  it is different than the `padding` argument in
+  [`ComplexHeatmap::draw()`](https://rdrr.io/pkg/ComplexHeatmap/man/draw-dispatch.html),
+  which is the padding in the order of bottom, left, top, right. It also
+  support 1, 2, 3 values like css padding. When 1 element is provided,
+  it will be used for all sides. When 2 elements are provided, the first
+  one will be used for top and bottom, and the second one will be used
+  for left and right. When 3 elements are provided, the first one will
+  be used for top, the second one will be used for left and right, and
+  the third one will be used for bottom. When 4 elements are provided,
+  they will be used for top, right, bottom, and left respectively. If no
+  unit is provided, the default unit will be "mm".
 
 - layer_fun_callback:
 
