@@ -279,10 +279,16 @@ process_heatmap_data <- function(
 
         # rename
         if (!is.null(rows_name)) {
+            if (identical(rows_name, "")) {
+                rows_name <- " "
+            }
             data <- dplyr::rename(data, !!sym(rows_name) := rows_by)
             rows_by <- rows_name
         }
         if (!is.null(columns_name)) {
+            if (identical(columns_name, "")) {
+                columns_name <- " "
+            }
             data <- dplyr::rename(data, !!sym(columns_name) := columns_by)
             columns_by <- columns_name
         }
@@ -344,6 +350,9 @@ process_heatmap_data <- function(
         data <- apply_orderby(data, columns_orderby, columns_by, columns_split_by, columns_split_levels)
 
         if (!is.null(columns_name)) {
+            if (identical(columns_name, "")) {
+                columns_name <- " "
+            }
             data <- dplyr::rename(data, !!sym(columns_name) := columns_by)
             columns_by <- columns_name
         }
@@ -405,24 +414,39 @@ process_heatmap_data <- function(
         data <- apply_orderby(data, columns_orderby, columns_by, columns_split_by, columns_split_leves)
 
         if (!is.null(rows_name)) {
+            if (identical(rows_name, "")) {
+                rows_name <- " "
+            }
             data <- dplyr::rename(data, !!sym(rows_name) := rows_by)
             rows_by <- rows_name
         }
     }
 
     if (!is.null(rows_split_name) && !is.null(rows_split_by)) {
+        if (identical(rows_split_name, "")) {
+            rows_split_name <- " "
+        }
         data <- dplyr::rename(data, !!sym(rows_split_name) := rows_split_by)
         rows_split_by <- rows_split_name
     }
     if (!is.null(columns_split_name) && !is.null(columns_split_by)) {
+        if (identical(columns_split_name, "")) {
+            columns_split_name <- " "
+        }
         data <- dplyr::rename(data, !!sym(columns_split_name) := columns_split_by)
         columns_split_by <- columns_split_name
     }
     if (!is.null(pie_name) && !is.null(pie_group_by)) {
+        if (identical(pie_name, "")) {
+            pie_name <- " "
+        }
         data <- dplyr::rename(data, !!sym(pie_name) := pie_group_by)
         pie_group_by <- pie_name
     }
     if (!is.null(name)) {
+        if (identical(name, "")) {
+            name <- " "
+        }
         data <- dplyr::rename(data, !!sym(name) := !!sym(values_by))
         values_by <- name
     }
