@@ -1901,12 +1901,29 @@ HeatmapAtomic <- function(
     rm(left_annos)
 
     ## Set up the heatmap dimensions
-    rownames_width <- convertUnit(hmargs$row_names_max_width, "inches", valueOnly = TRUE) * 0.5 - 0.2
-    rownames_width <- max(rownames_width, 0)
+    # Row names appear on left/right and add to width; only count when show_row_names is TRUE.
+    # hmargs$show_row_names already accounts for flip (equals original show_column_names when
+    # flip=TRUE, since original column labels become the row labels in the transposed matrix).
+    # hmargs$row_names_max_width likewise accounts for flip (uses columns_by labels when flip=TRUE).
+    rownames_width <- if (isTRUE(hmargs$show_row_names)) {
+        max(convertUnit(hmargs$row_names_max_width, "inches", valueOnly = TRUE) * 0.5 - 0.2, 0)
+    } else {
+        0
+    }
 
-    # Estimate column-name height (uses the same max_text_width heuristic, rotated 90°)
+    # Estimate the dimension contribution of the original column labels.
+    # Column labels are rendered rotated (vertical text), so their display height is proportional
+    # to their text width. When flip=TRUE the matrix is transposed, so original column labels
+    # end up as hmargs row labels (left/right) — but colnames_height lives inside col_overhead
+    # which is routed to WIDTH in the flip case, so the geometry is still correct.
+    # Always gate on the original show_column_names param (not hmargs$show_column_names, which
+    # is swapped to show_row_names when flip=TRUE) to match the col_overhead accounting.
+    # Use rownames(hmargs$matrix) when flip=TRUE because t() moved the original column labels
+    # to row positions; use colnames(hmargs$matrix) otherwise.
     colnames_height <- if (isTRUE(show_column_names)) {
-        convertUnit(hmargs$row_names_max_width, "inches", valueOnly = TRUE) * 0.25
+        orig_col_labels <- if (isTRUE(flip)) rownames(hmargs$matrix) else colnames(hmargs$matrix)
+        col_max_width <- ComplexHeatmap::max_text_width(orig_col_labels)
+        convertUnit(col_max_width, "inches", valueOnly = TRUE) * 0.25
     } else {
         0
     }
