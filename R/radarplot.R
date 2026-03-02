@@ -304,7 +304,9 @@ RadarPlotAtomic <- function(
         base_height = 4.5,
         aspect.ratio = aspect.ratio,
         legend.position = legend.position,
-        legend.direction = legend.direction
+        legend.direction = legend.direction,
+        legend_n = length(group_vals),
+        legend_nchar = max(nchar(as.character(group_vals)), na.rm = TRUE)
     )
     if (is.null(dims)) {
         height <- 4.5

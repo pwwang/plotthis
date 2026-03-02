@@ -13,6 +13,8 @@ calculate_plot_dimensions(
   y_scale_factor = 0.5,
   legend.position = "right",
   legend.direction = "vertical",
+  legend_n = 1,
+  legend_nchar = 5,
   flip = FALSE,
   min_width = 3,
   min_height = 3,

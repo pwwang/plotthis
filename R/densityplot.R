@@ -166,6 +166,8 @@ DensityHistoPlotAtomic <- function(
         aspect.ratio = aspect.ratio,
         legend.position = legend.position,
         legend.direction = legend.direction,
+        legend_n = length(group_vals),
+        legend_nchar = max(nchar(as.character(group_vals)), na.rm = TRUE),
         flip = flip
     )
     if (is.null(dims)) {
@@ -363,6 +365,8 @@ RidgePlotAtomic <- function(
         y_scale_factor = 1,
         legend.position = legend.position,
         legend.direction = legend.direction,
+        legend_n = length(group_vals),
+        legend_nchar = max(nchar(as.character(group_vals)), na.rm = TRUE),
         flip = flip
     )
     if (is.null(dims)) {

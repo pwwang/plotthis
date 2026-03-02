@@ -292,7 +292,9 @@ UpsetPlotAtomic <- function(
         n_x = n_intersections,
         x_scale_factor = 0.6,
         legend.position = legend.position,
-        legend.direction = legend.direction
+        legend.direction = legend.direction,
+        legend_n = n_sets,
+        legend_nchar = maxchars
     )
     if (is.null(dims)) {
         height <- 4.5 + n_sets * 0.5

@@ -171,7 +171,9 @@ QQPlotAtomic <- function(
         base_height = 4.5,
         aspect.ratio = aspect.ratio,
         legend.position = legend.position,
-        legend.direction = legend.direction
+        legend.direction = legend.direction,
+        legend_n = length(bands),
+        legend_nchar = if (length(bands) > 0) max(nchar(bands)) else 5
     )
     if (is.null(dims)) {
         height <- width <- 4.5

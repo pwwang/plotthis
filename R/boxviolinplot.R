@@ -1010,6 +1010,8 @@ BoxViolinPlotAtomic <- function(
             y_scale_factor = 0.5,
             legend.position = legend.position,
             legend.direction = legend.direction,
+            legend_n = nd,
+            legend_nchar = if (is.null(group_by)) 5 else max(nchar(levels(data[[group_by]]))),
             flip = TRUE
         )
         if (is.null(dims)) {
@@ -1042,6 +1044,8 @@ BoxViolinPlotAtomic <- function(
             x_scale_factor = 0.5,
             legend.position = legend.position,
             legend.direction = legend.direction,
+            legend_n = nd,
+            legend_nchar = if (is.null(group_by)) 5 else max(nchar(levels(data[[group_by]]))),
             flip = FALSE
         )
         if (is.null(dims)) {

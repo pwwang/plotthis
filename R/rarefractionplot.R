@@ -89,7 +89,9 @@ RarefactionPlotAtomic <- function(
         base_height = 4.5,
         aspect.ratio = aspect.ratio,
         legend.position = legend.position,
-        legend.direction = legend.direction
+        legend.direction = legend.direction,
+        legend_n = nlevels(data[[group_by]]),
+        legend_nchar = max(nchar(levels(data[[group_by]])))
     )
     if (is.null(dims)) {
         height <- width <- 4.5

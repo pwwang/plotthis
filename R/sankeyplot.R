@@ -339,6 +339,8 @@ SankeyPlotAtomic <- function(
             y_scale_factor = 1.5,
             legend.position = legend.position,
             legend.direction = legend.direction,
+            legend_n = length(unique(c(levels(data[[stratum]]), levels(data[[links_fill_by]])))),
+            legend_nchar = max(nchar(unique(c(levels(data[[stratum]]), levels(data[[links_fill_by]]))))),
             flip = TRUE
         )
         if (is.null(dims)) {
@@ -355,7 +357,9 @@ SankeyPlotAtomic <- function(
             n_x = nlevels(data[[x]]),
             x_scale_factor = 1.5,
             legend.position = legend.position,
-            legend.direction = legend.direction
+            legend.direction = legend.direction,
+            legend_n = length(unique(c(levels(data[[stratum]]), levels(data[[links_fill_by]])))),
+            legend_nchar = max(nchar(unique(c(levels(data[[stratum]]), levels(data[[links_fill_by]])))))
         )
         if (is.null(dims)) {
             attr(p, "height") <- 6

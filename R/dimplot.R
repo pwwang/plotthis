@@ -1270,7 +1270,9 @@ DimPlotAtomic <- function(
         base_height = 5.5,
         aspect.ratio = aspect.ratio,
         legend.position = legend.position,
-        legend.direction = legend.direction
+        legend.direction = legend.direction,
+        legend_n = if (!is.null(group_by)) length(group_vals) else 1,
+        legend_nchar = if (!is.null(group_by)) max(nchar(label_use)) else 5
     )
     if (is.null(dims)) {
         height <- width <- 5.5

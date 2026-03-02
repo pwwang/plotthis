@@ -159,6 +159,8 @@ AreaPlotAtomic <- function(
         x_scale_factor = 0.5,
         legend.position = legend.position,
         legend.direction = legend.direction,
+        legend_n = length(group_by_vals),
+        legend_nchar = max(nchar(as.character(group_by_vals)), na.rm = TRUE),
         flip = FALSE
     )
 

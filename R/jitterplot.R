@@ -425,6 +425,8 @@ JitterPlotAtomic <- function(
             y_scale_factor = 0.5,
             legend.position = legend.position,
             legend.direction = legend.direction,
+            legend_n = nd,
+            legend_nchar = max(nchar(col_levels)),
             flip = TRUE
         )
         if (is.null(dims)) {
@@ -453,6 +455,8 @@ JitterPlotAtomic <- function(
             x_scale_factor = 0.5,
             legend.position = legend.position,
             legend.direction = legend.direction,
+            legend_n = nd,
+            legend_nchar = max(nchar(col_levels)),
             flip = FALSE
         )
         if (is.null(dims)) {

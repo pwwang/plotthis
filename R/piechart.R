@@ -137,7 +137,9 @@ PieChartAtomic <- function(
         base_height = 4.5,
         aspect.ratio = aspect.ratio,
         legend.position = legend.position,
-        legend.direction = legend.direction
+        legend.direction = legend.direction,
+        legend_n = length(x_vals),
+        legend_nchar = max(nchar(as.character(x_vals)), na.rm = TRUE)
     )
     if (is.null(dims)) {
         height <- 4.5

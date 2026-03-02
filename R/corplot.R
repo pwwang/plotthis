@@ -238,7 +238,9 @@ CorPlotAtomic <- function(
         base_height = 4.5,
         aspect.ratio = aspect.ratio,
         legend.position = legend.position,
-        legend.direction = legend.direction
+        legend.direction = legend.direction,
+        legend_n = nlevels(data[[group_by]]),
+        legend_nchar = max(nchar(levels(data[[group_by]])))
     )
     if (is.null(dims)) {
         height <- width <- 4.5
@@ -633,7 +635,9 @@ CorPairsPlotAtomic <- function(
         base_height = sqrt(length(columns)) * 4,
         aspect.ratio = 1,  # pairs plot panels are always square
         legend.position = legend.position,
-        legend.direction = legend.direction
+        legend.direction = legend.direction,
+        legend_n = if (!is.null(group_by)) nlevels(data[[group_by]]) else 1,
+        legend_nchar = if (!is.null(group_by)) max(nchar(levels(data[[group_by]]))) else 5
     )
     if (is.null(dims)) {
         height <- width <- sqrt(length(columns)) * 4

@@ -226,7 +226,9 @@ ScatterPlotAtomic <- function(
         base_height = 5,
         aspect.ratio = aspect.ratio,
         legend.position = legend.position,
-        legend.direction = legend.direction
+        legend.direction = legend.direction,
+        legend_n = if (!is.null(color_by) && is.factor(data[[color_by]])) nlevels(data[[color_by]]) else 1,
+        legend_nchar = if (!is.null(color_by) && is.factor(data[[color_by]])) max(nchar(levels(data[[color_by]]))) else 5
     )
     if (is.null(dims)) {
         height <- width <- 5

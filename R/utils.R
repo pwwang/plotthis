@@ -221,6 +221,8 @@ calculate_plot_dimensions <- function(
     y_scale_factor = 0.5,
     legend.position = "right",
     legend.direction = "vertical",
+    legend_n = 1,
+    legend_nchar = 5,
     flip = FALSE,
     min_width = 3,
     min_height = 3,
@@ -321,13 +323,33 @@ calculate_plot_dimensions <- function(
     width <- max(width, min_width)
 
     # Add legend space additively (after aspect ratio calculations)
+    # Legend metrics (ggplot2 defaults at 11pt text):
+    #   key:  ~0.25 in (unit(1.2, "lines") at 11pt) + internal padding
+    #   text: ~0.07 in per character  (11pt, ~0.6 aspect ratio, 1/72 in/pt)
+    #   row height (key + spacing): ~0.30 in
+    #   outer margin / title:       ~0.35 in
+    legend_key_w  <- 0.30   # key width + internal margins
+    legend_char_w <- 0.07   # inches per character of label text
+    legend_row_h  <- 0.30   # height of one stacked legend row
+    legend_pad    <- 0.35   # outer margin + optional title
+
     if (!identical(legend.position, "none")) {
         if (legend.position %in% c("right", "left")) {
-            width <- width + 1
+            # Vertical legend: width = key + text, at least 1 in
+            legend_width <- max(1.0, legend_key_w + legend_nchar * legend_char_w)
+            width <- width + legend_width
         } else if (legend.direction == "horizontal") {
-            height <- height + 1
+            # Horizontal legend (bottom / top): items sit side-by-side, may wrap
+            # Estimate how many items fit per row given current (pre-legend) width
+            item_w <- max(0.5, legend_key_w + legend_nchar * legend_char_w + 0.1)
+            items_per_row <- max(1L, floor(width / item_w))
+            n_rows <- ceiling(max(1L, legend_n) / items_per_row)
+            legend_height <- max(1.0, legend_pad + n_rows * legend_row_h)
+            height <- height + legend_height
         } else {
-            width <- width + 2
+            # Vertical legend at bottom / top or floating: treat like right/left
+            legend_width <- max(1.0, legend_key_w + legend_nchar * legend_char_w)
+            width <- width + legend_width
         }
     }
 

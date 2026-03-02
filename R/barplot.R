@@ -226,6 +226,8 @@ BarPlotSingle <- function(
         x_scale_factor = 0.8,
         legend.position = legend.position,
         legend.direction = legend.direction,
+        legend_n = if (!fill_is_numeric) length(fill_vals) else 1,
+        legend_nchar = if (!fill_is_numeric) max(nchar(as.character(fill_vals)), na.rm = TRUE) else 5,
         flip = isTRUE(flip)
     )
     if (is.null(dims)) {
@@ -488,6 +490,8 @@ BarPlotGrouped <- function(
         x_scale_factor = if (is.character(position) && position == "stack") 0.8 else 0.5,
         legend.position = legend.position,
         legend.direction = legend.direction,
+        legend_n = n_groups,
+        legend_nchar = max(nchar(levels(data[[group_by]]))),
         flip = isTRUE(flip)
     )
     if (is.null(dims)) {
@@ -1059,6 +1063,8 @@ SplitBarPlotAtomic <- function(
         y_scale_factor = bar_height / 4,
         legend.position = legend.position,
         legend.direction = legend.direction,
+        legend_n = if (!fill_by_numeric) length(fill_vals) else 1,
+        legend_nchar = if (!fill_by_numeric) max(nchar(as.character(fill_vals)), na.rm = TRUE) else 5,
         flip = isTRUE(flip)
     )
     if (is.null(dims)) {

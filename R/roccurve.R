@@ -379,7 +379,9 @@ ROCCurveAtomic <- function(data, truth_by, score_by, pos_label = NULL,
         base_height = 4.5,
         aspect.ratio = aspect.ratio,
         legend.position = legend.position,
-        legend.direction = legend.direction
+        legend.direction = legend.direction,
+        legend_n = length(labels),
+        legend_nchar = max(nchar(labels))
     )
     if (is.null(dims)) {
         height <- width <- 4.5

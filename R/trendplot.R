@@ -170,7 +170,9 @@ TrendPlotAtomic <- function(
         n_x = length(xs),
         x_scale_factor = ifelse(length(xs) < 10, 0.8, 0.25),
         legend.position = legend.position,
-        legend.direction = legend.direction
+        legend.direction = legend.direction,
+        legend_n = length(group_vals),
+        legend_nchar = max(nchar(as.character(group_vals)), na.rm = TRUE)
     )
     if (is.null(dims)) {
         height = ifelse(length(xs) < 10, 4.5, 6.5)

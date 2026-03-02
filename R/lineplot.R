@@ -207,7 +207,9 @@ LinePlotSingle <- function(
         n_x = nlevels(data[[x]]),
         x_scale_factor = 0.8,
         legend.position = legend.position,
-        legend.direction = legend.direction
+        legend.direction = legend.direction,
+        legend_n = length(x_vals),
+        legend_nchar = max(nchar(as.character(x_vals)), na.rm = TRUE)
     )
     if (is.null(dims)) {
         height <- 4.5
@@ -404,7 +406,9 @@ LinePlotGrouped <- function(
         n_x = nlevels(data[[x]]),
         x_scale_factor = 0.8,
         legend.position = legend.position,
-        legend.direction = legend.direction
+        legend.direction = legend.direction,
+        legend_n = length(group_vals),
+        legend_nchar = max(nchar(as.character(group_vals)), na.rm = TRUE)
     )
     if (is.null(dims)) {
         height <- 4.5
