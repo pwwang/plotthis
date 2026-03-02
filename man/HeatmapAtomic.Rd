@@ -82,6 +82,7 @@ HeatmapAtomic(
   alpha = 1,
   seed = 8525,
   return_grob = FALSE,
+  padding = 15,
   layer_fun_callback = NULL,
   cell_type = "tile",
   cell_agg = NULL,
@@ -316,6 +317,16 @@ that are passed to \code{ComplexHeatmap::Heatmap()} directly.}
 
 \item{return_grob}{A logical value indicating whether to return the grob object of the heatmap.
 This is useful when merging multiple heatmaps using patchwork.}
+
+\item{padding}{A numeric vector of length 4 specifying the padding of the heatmap in the order of top, right, bottom, left.
+Like padding in css. Note that it is different than the \code{padding} argument in \code{ComplexHeatmap::draw()}, which is the padding
+in the order of bottom, left, top, right.
+It also support 1, 2, 3 values like css padding.
+When 1 element is provided, it will be used for all sides.
+When 2 elements are provided, the first one will be used for top and bottom, and the second one will be used for left and right.
+When 3 elements are provided, the first one will be used for top, the second one will be used for left and right, and the third one will be used for bottom.
+When 4 elements are provided, they will be used for top, right, bottom, and left respectively.
+If no unit is provided, the default unit will be "mm".}
 
 \item{layer_fun_callback}{A function to add additional layers to the heatmap.
 The function should have the following arguments: \code{j}, \code{i}, \code{x}, \code{y}, \code{w}, \code{h}, \code{fill}, \code{sr} and \code{sc}.

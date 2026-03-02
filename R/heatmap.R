@@ -1070,6 +1070,15 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
 #' @param alpha A numeric value between 0 and 1 specifying the transparency of the heatmap cells.
 #' @param return_grob A logical value indicating whether to return the grob object of the heatmap.
 #'  This is useful when merging multiple heatmaps using patchwork.
+#' @param padding A numeric vector of length 4 specifying the padding of the heatmap in the order of top, right, bottom, left.
+#' Like padding in css. Note that it is different than the `padding` argument in `ComplexHeatmap::draw()`, which is the padding
+#' in the order of bottom, left, top, right.
+#' It also support 1, 2, 3 values like css padding.
+#' When 1 element is provided, it will be used for all sides.
+#' When 2 elements are provided, the first one will be used for top and bottom, and the second one will be used for left and right.
+#' When 3 elements are provided, the first one will be used for top, the second one will be used for left and right, and the third one will be used for bottom.
+#' When 4 elements are provided, they will be used for top, right, bottom, and left respectively.
+#' If no unit is provided, the default unit will be "mm".
 #' @param ... Other arguments passed to [ComplexHeatmap::Heatmap()]
 #' When `row_names_max_width` is passed, a unit is expected. But you can also pass a numeric values,
 #' with a default unit "inches", or a string like "5inches" to specify the number and unit directly.
@@ -1124,7 +1133,7 @@ HeatmapAtomic <- function(
     row_annotation = NULL, row_annotation_side = "left", row_annotation_palette = "Paired", row_annotation_palcolor = NULL,
     row_annotation_type = "auto", row_annotation_params = list(), row_annotation_agg = NULL,
     # misc
-    flip = FALSE, alpha = 1, seed = 8525, return_grob = FALSE,
+    flip = FALSE, alpha = 1, seed = 8525, return_grob = FALSE, padding = 15,
     # cell customization
     layer_fun_callback = NULL, cell_type = "tile", cell_agg = NULL,
     ...
@@ -1136,6 +1145,7 @@ HeatmapAtomic <- function(
     if (isFALSE(row_title)) row_title <- NULL
     if (isTRUE(column_title)) column_title <- character(0)
     if (isTRUE(row_title)) row_title <- character(0)
+    stopifnot("[Heatmap] 'padding' should be a numeric vector of length 1, 2, 3, or 4." = length(padding) %in% 1:4)
 
     get_col_fun <- function(lower, upper, a = alpha) {
         # If the lower and upper cutoff are the same, we need to adjust the upper cutoff
@@ -1959,13 +1969,27 @@ HeatmapAtomic <- function(
         }
     }
 
-    if (isTRUE(flip)) {
-        width  <- body_width  + col_overhead + rownames_width
-        height <- body_height + row_overhead
-    } else {
-        width  <- body_width  + row_overhead + rownames_width
-        height <- body_height + col_overhead
+    padding <- if (inherits(padding, "unit")) padding else unit(padding, "mm")
+    if (length(padding) == 1) {
+        padding <- rep(padding, 4)
+    } else if (length(padding) == 2) {
+        # padding[1] -> top/bottom, padding[2] -> left/right
+        padding <- rep(padding, 2)
+    } else if (length(padding) == 3) {
+        # padding[1] -> top, padding[2] -> left/right, padding[3] -> bottom
+        padding <- c(padding, padding[2])
     }
+    if (isTRUE(flip)) {
+        width  <- body_width  + col_overhead + rownames_width + convertUnit(sum(padding[c(1, 3)]), "inches", valueOnly = TRUE)
+        height <- body_height + row_overhead + convertUnit(sum(padding[c(2, 4)]), "inches", valueOnly = TRUE)
+    } else {
+        width  <- body_width  + row_overhead + rownames_width + convertUnit(sum(padding[c(2, 4)]), "inches", valueOnly = TRUE)
+        height <- body_height + col_overhead + convertUnit(sum(padding[c(1, 3)]), "inches", valueOnly = TRUE)
+    }
+    # make padding from top, right, bottom, left to match the order in ComplexHeatmap::draw()
+    # which is bottom, left, top and right.
+    padding <- padding[c(3, 4, 1, 2)]
+
 
     if (cell_type == "pie") {
         sq <- max(width, height)
@@ -1997,11 +2021,13 @@ HeatmapAtomic <- function(
         if (identical(legend.position, "none")) {
             p <- grid.grabExpr(ComplexHeatmap::draw(p,
                 annotation_legend_list = legends,
+                padding = padding,
                 show_annotation_legend = FALSE, column_title = title
             ))
         } else {
             p <- grid.grabExpr(ComplexHeatmap::draw(p,
                 annotation_legend_list = legends,
+                padding = padding,
                 annotation_legend_side = legend.position, column_title = title
             ))
         }
@@ -2022,11 +2048,13 @@ HeatmapAtomic <- function(
         if (identical(legend.position, "none")) {
             p <- ComplexHeatmap::draw(p,
                 annotation_legend_list = legends,
+                padding = padding,
                 show_annotation_legend = FALSE, column_title = title
             )
         } else {
             p <- ComplexHeatmap::draw(p,
                 annotation_legend_list = legends,
+                padding = padding,
                 annotation_legend_side = legend.position, column_title = title
             )
         }
@@ -2290,7 +2318,7 @@ Heatmap <- function(
     row_annotation = NULL, row_annotation_side = "left", row_annotation_palette = "Paired", row_annotation_palcolor = NULL,
     row_annotation_type = "auto", row_annotation_params = list(), row_annotation_agg = NULL,
     # misc
-    flip = FALSE, alpha = 1, seed = 8525,
+    flip = FALSE, alpha = 1, seed = 8525, padding = 15,
     # cell customization
     layer_fun_callback = NULL, cell_type = c("tile", "bars", "label", "dot", "violin", "boxplot", "pie"), cell_agg = NULL,
     # subplots
