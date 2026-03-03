@@ -2020,17 +2020,75 @@ HeatmapAtomic <- function(
         width  <- sq
         height <- sq
     }
+
+    # ── Precise legend size contribution (mirrors calculate_plot_dimensions) ──
+    # Collect all candidate legend label strings to estimate max label width.
+    # Sources:
+    #   (a) main heatmap legend  – discrete item names, or formatted cutoff values
+    #   (b) name annotations – row/column labels shown as legends when show_*_names=FALSE,
+    #       and split annotations (rows_split_by / columns_split_by) which always show legends
+    #   (c) extra row / column annotation legends
+    .legend_label_cands <- character(0)
+    if (isTRUE(legend_discrete) && !is.null(legend_items)) {
+        .legend_label_cands <- c(.legend_label_cands, names(legend_items))
+    } else {
+        .legend_label_cands <- c(.legend_label_cands,
+            formatC(c(lower_cutoff, upper_cutoff), digits = 3, format = "g"))
+    }
+    # Helper: extract label strings from a column of `data`
+    .col_labels <- function(col) {
+        if (is.null(col) || !col %in% colnames(data)) return(character(0))
+        as.character(if (is.factor(data[[col]])) levels(data[[col]]) else unique(data[[col]]))
+    }
+    # Name-annotation legends:
+    #   – rows_by shows a legend when show_row_names=FALSE (and row_name_annotation=TRUE)
+    #   – columns_by shows a legend when show_column_names=FALSE (and column_name_annotation=TRUE)
+    #   – split_by annotations always show legends when present
+    if (!isTRUE(show_row_names) && isTRUE(row_name_annotation))
+        .legend_label_cands <- c(.legend_label_cands, .col_labels(rows_by))
+    if (!isTRUE(show_column_names) && isTRUE(column_name_annotation))
+        .legend_label_cands <- c(.legend_label_cands, .col_labels(columns_by))
+    .legend_label_cands <- c(.legend_label_cands,
+        .col_labels(rows_split_by),
+        .col_labels(columns_split_by))
+    # Extra row / column annotation legends
+    .scan_anno_labels <- function(anno) {
+        if (is.null(anno)) return(character(0))
+        cols <- if (is.list(anno)) unlist(anno) else as.character(anno)
+        unlist(lapply(cols[cols %in% colnames(data)], .col_labels))
+    }
+    .legend_label_cands <- c(.legend_label_cands,
+        .scan_anno_labels(row_annotation),
+        .scan_anno_labels(column_annotation))
+    legend_nchar <- if (length(.legend_label_cands) > 0) {
+        max(nchar(.legend_label_cands), na.rm = TRUE)
+    } else { 5L }
+    # Number of distinct legend blocks rendered by ComplexHeatmap
+    legend_n <- length(Filter(Negate(is.null), legends))
+
+    # Use the same per-character metrics as calculate_plot_dimensions()
+    legend_key_w  <- 0.30   # key swatch width + internal margin
+    legend_char_w <- 0.07   # inches per character of label text
+    legend_row_h  <- 0.30   # height of one stacked legend block
+    legend_pad    <- 0.35   # outer margin + optional title
+
     if (!identical(legend.position, "none")) {
         if (legend.position %in% c("right", "left")) {
-            if (legend.direction == "horizontal") {
-                width <- width + 3
-            } else {
-                width <- width + 1.5
-            }
+            # Vertical panel on the side; width driven by label length.
+            # When direction=="horizontal" the colorbar is rendered horizontally
+            # (wider), so add an extra 0.5 in to account for the larger key.
+            legend_extra <- if (legend.direction == "horizontal") 0.5 else 0
+            legend_width <- max(1.0, legend_key_w + legend_nchar * legend_char_w) + legend_extra
+            width <- width + legend_width
         } else if (legend.direction == "horizontal") {
-            height <- height + 3
+            # Each legend block goes on its own row at top / bottom.
+            n_legend_rows <- max(1L, legend_n)
+            legend_height <- max(1.0, legend_pad + n_legend_rows * legend_row_h)
+            height <- height + legend_height
         } else {
-            height <- height + 1.5
+            # Vertical blocks at top / bottom: add a legend-width column.
+            legend_width <- max(1.0, legend_key_w + legend_nchar * legend_char_w)
+            width <- width + legend_width
         }
     }
     unknown_args <- setdiff(names(hmargs), methods::formalArgs(ComplexHeatmap::Heatmap))
