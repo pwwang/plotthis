@@ -401,13 +401,9 @@ VelocityPlot <- function(
         legend.position = legend.position,
         legend.direction = legend.direction
     )
-    if (is.null(dims)) {
-        attr(p, "height") <- 6
-        attr(p, "width") <- 6
-    } else {
-        attr(p, "height") <- dims$height
-        attr(p, "width") <- dims$width
-    }
+
+    attr(p, "height") <- dims$height
+    attr(p, "width") <- dims$width
 
     return(p)
 }

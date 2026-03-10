@@ -111,11 +111,6 @@ ClustreePlotAtomic <- function(
         scale_x_continuous(expand = expand$x)
     })
 
-    # height driven by nres (resolution rows); width driven by max_clusters (node spread)
-    # keep old heuristics only as fallback
-    height_val <- nres * max_clusters / 20
-    width_val <- if (max_clusters > 20) 11 else if (max_clusters > 15) 9 else 7
-
     if (isTRUE(flip)) {
         # After flip: resolutions become x-axis columns, clusters become y-axis rows
         # Width driven by nres; height by max_clusters (or aspect.ratio applied to width)
@@ -133,8 +128,8 @@ ClustreePlotAtomic <- function(
             legend.position = legend.position,
             legend.direction = legend.direction
         )
-        attr(p, "height") <- if (is.null(dims)) width_val else dims$height
-        attr(p, "width") <- if (is.null(dims)) height_val else dims$width
+        attr(p, "height") <- dims$height
+        attr(p, "width") <- dims$width
         p <- suppressMessages({
             p + scale_y_reverse(breaks = nres:1, labels = resolutions, expand = expand$y) +
             coord_flip(clip = "off") +
@@ -162,8 +157,8 @@ ClustreePlotAtomic <- function(
             legend.position = legend.position,
             legend.direction = legend.direction
         )
-        attr(p, "height") <- if (is.null(dims)) height_val else dims$height
-        attr(p, "width") <- if (is.null(dims)) width_val else dims$width
+        attr(p, "height") <- dims$height
+        attr(p, "width") <- dims$width
         p <- suppressMessages({
             p + coord_cartesian(clip = "off") +
             scale_y_continuous(breaks = nres:1, labels = resolutions, expand = expand$y) +

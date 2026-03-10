@@ -170,29 +170,8 @@ DensityHistoPlotAtomic <- function(
         legend_nchar = max(nchar(as.character(group_vals)), na.rm = TRUE),
         flip = flip
     )
-    if (is.null(dims)) {
-        height <- 3.5
-        width <- 4
-        if (!identical(legend.position, "none")) {
-            if (legend.position %in% c("right", "left")) {
-                width <- width + 1
-            } else if (legend.direction == "horizontal") {
-                height <- height + 1
-            } else {
-                height <- height + 1
-            }
-        }
-        if (flip) {
-            attr(p, "height") <- width
-            attr(p, "width") <- height
-        } else {
-            attr(p, "height") <- height
-            attr(p, "width") <- width
-        }
-    } else {
-        attr(p, "height") <- dims$height
-        attr(p, "width") <- dims$width
-    }
+    attr(p, "height") <- dims$height
+    attr(p, "width") <- dims$width
 
     facet_plot(p,
         facet_by = facet_by, facet_scales = facet_scales, ncol = facet_ncol,
@@ -369,29 +348,8 @@ RidgePlotAtomic <- function(
         legend_nchar = max(nchar(as.character(group_vals)), na.rm = TRUE),
         flip = flip
     )
-    if (is.null(dims)) {
-        height <- 1 + nlevels(data[[group_by]]) * 1
-        width <- 3 + nlevels(data[[group_by]]) * 0.5
-        if (!identical(legend.position, "none")) {
-            if (legend.position %in% c("right", "left")) {
-                width <- width + 1
-            } else if (legend.direction == "horizontal") {
-                height <- height + 1
-            } else {
-                height <- height + 2
-            }
-        }
-        if (flip) {
-            attr(p, "height") <- width
-            attr(p, "width") <- height
-        } else {
-            attr(p, "height") <- height
-            attr(p, "width") <- width
-        }
-    } else {
-        attr(p, "height") <- dims$height
-        attr(p, "width") <- dims$width
-    }
+    attr(p, "height") <- dims$height
+    attr(p, "width") <- dims$width
 
     facet_plot(p,
         facet_by = facet_by, facet_scales = facet_scales, ncol = facet_ncol,

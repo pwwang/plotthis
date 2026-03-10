@@ -175,24 +175,9 @@ QQPlotAtomic <- function(
         legend_n = length(bands),
         legend_nchar = if (length(bands) > 0) max(nchar(bands)) else 5
     )
-    if (is.null(dims)) {
-        height <- width <- 4.5
-        if (!identical(legend.position, "none")) {
-            if (legend.position %in% c("right", "left")) {
-                width <- width + 1
-            } else if (legend.direction == "horizontal") {
-                height <- height + 1
-            } else {
-                width <- width + 2
-            }
-        }
-    } else {
-        height <- dims$height
-        width <- dims$width
-    }
 
-    attr(p, "height") <- height
-    attr(p, "width") <- width
+    attr(p, "height") <- dims$height
+    attr(p, "width") <- dims$width
 
     facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
         legend.position = legend.position, legend.direction = legend.direction)

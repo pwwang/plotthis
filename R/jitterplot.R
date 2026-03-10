@@ -429,23 +429,8 @@ JitterPlotAtomic <- function(
             legend_nchar = max(nchar(col_levels)),
             flip = TRUE
         )
-        if (is.null(dims)) {
-            height <- width <- 0
-            if (!identical(legend.position, "none")) {
-                if (legend.position %in% c("right", "left")) {
-                    width <- width + 1
-                } else if (legend.direction == "horizontal") {
-                    height <- height + 1
-                } else {
-                    height <- height + 2
-                }
-            }
-            width <- max(3, width + 2.2 + x_maxchars * 0.05)
-            height <- height + nx * nd * 0.3
-        } else {
-            height <- dims$height
-            width <- max(dims$width, label_min_width)
-        }
+        height <- dims$height
+        width <- max(dims$width, label_min_width)
     } else {
         label_min_height <- 2 + x_maxchars * 0.05
         dims <- calculate_plot_dimensions(
@@ -459,23 +444,8 @@ JitterPlotAtomic <- function(
             legend_nchar = max(nchar(col_levels)),
             flip = FALSE
         )
-        if (is.null(dims)) {
-            height <- width <- 0
-            if (!identical(legend.position, "none")) {
-                if (legend.position %in% c("right", "left")) {
-                    width <- width + 1
-                } else if (legend.direction == "horizontal") {
-                    height <- height + 1
-                } else {
-                    height <- height + 2
-                }
-            }
-            height <- max(3, height + 2 + x_maxchars * 0.05)
-            width <- width + nx * nd * 0.3
-        } else {
-            height <- max(dims$height, label_min_height)
-            width <- dims$width
-        }
+        height <- max(dims$height, label_min_height)
+        width <- dims$width
     }
 
     attr(p, "height") <- height

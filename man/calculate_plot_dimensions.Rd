@@ -50,7 +50,7 @@ calculate_plot_dimensions(
 \item{max_height}{Maximum height in inches. Default is 12.}
 }
 \value{
-A list with height and width components, or NULL if dimension calculation is disabled
+A list with height and width components
 }
 \description{
 This function calculates plot height and width taking into account:

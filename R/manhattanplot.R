@@ -288,13 +288,9 @@ ManhattanPlotAtomic <- function(
         x_scale_factor = 0.4,
         legend.position = "none"
     )
-    if (is.null(dims)) {
-        attr(p, "height") <- 4.5
-        attr(p, "width") <- 0.4 * n_chrom
-    } else {
-        attr(p, "height") <- dims$height
-        attr(p, "width") <- dims$width
-    }
+
+    attr(p, "height") <- dims$height
+    attr(p, "width") <- dims$width
 
     p
 }

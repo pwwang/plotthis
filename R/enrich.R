@@ -313,23 +313,9 @@ EnrichMapAtomic <- function(
         legend.position = legend.position,
         legend.direction = legend.direction
     )
-    if (is.null(dims)) {
-        height <- width <- 8
-        if (!identical(legend.position, "none")) {
-            if (legend.position %in% c("right", "left")) {
-                width <- width + 2
-            } else if (legend.direction == "horizontal") {
-                height <- height + 1
-            } else {
-                width <- width + 4
-            }
-        }
-        attr(p, "height") <- height
-        attr(p, "width") <- width
-    } else {
-        attr(p, "height") <- dims$height
-        attr(p, "width") <- dims$width
-    }
+    attr(p, "height") <- dims$height
+    attr(p, "width") <- dims$width
+
     p
 }
 
@@ -491,23 +477,9 @@ EnrichNetworkAtomic <- function(
         legend.position = legend.position,
         legend.direction = legend.direction
     )
-    if (is.null(dims)) {
-        height <- width <- 8
-        if (!identical(legend.position, "none")) {
-            if (legend.position %in% c("right", "left")) {
-                width <- width + 2
-            } else if (legend.direction == "horizontal") {
-                height <- height + 1
-            } else {
-                width <- width + 4
-            }
-        }
-        attr(p, "height") <- height
-        attr(p, "width") <- width
-    } else {
-        attr(p, "height") <- dims$height
-        attr(p, "width") <- dims$width
-    }
+    attr(p, "height") <- dims$height
+    attr(p, "width") <- dims$width
+
     p
 }
 

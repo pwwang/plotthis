@@ -296,24 +296,9 @@ UpsetPlotAtomic <- function(
         legend_n = n_sets,
         legend_nchar = maxchars
     )
-    if (is.null(dims)) {
-        height <- 4.5 + n_sets * 0.5
-        width <- n_intersections * (if (is.null(aspect.ratio)) 1 else aspect.ratio) + maxchars * 0.05
-        if (!identical(legend.position, "none")) {
-            if (legend.position %in% c("right", "left")) {
-                width <- width + 1
-            } else if (legend.direction == "horizontal") {
-                height <- height + 1
-            } else {
-                width <- width + 2
-            }
-        }
-        attr(p, "height") <- height
-        attr(p, "width") <- width
-    } else {
-        attr(p, "height") <- dims$height
-        attr(p, "width") <- dims$width + maxchars * 0.05
-    }
+
+    attr(p, "height") <- dims$height
+    attr(p, "width") <- dims$width + maxchars * 0.05
 
     p
 }

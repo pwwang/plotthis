@@ -268,24 +268,9 @@ VennDiagramAtomic <- function(
         legend.position = if (fill_mode == "set") "none" else legend.position,
         legend.direction = legend.direction
     )
-    if (is.null(dims)) {
-        height <- 5.5
-        width <- 6
-        if (fill_mode != "set") {
-            if (legend.position %in% c("right", "left")) {
-                width <- width + 1
-            } else if (legend.direction == "horizontal") {
-                height <- height + 1
-            } else {
-                width <- width + 2
-            }
-        }
-        attr(p, "height") <- height
-        attr(p, "width") <- width
-    } else {
-        attr(p, "height") <- dims$height
-        attr(p, "width") <- dims$width
-    }
+
+    attr(p, "height") <- dims$height
+    attr(p, "width") <- dims$width
 
     return(p)
 }

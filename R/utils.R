@@ -210,7 +210,7 @@ calc_just <- function(angle) {
 #' @param min_height Minimum height in inches. Default is 3.
 #' @param max_width Maximum width in inches. Default is 12.
 #' @param max_height Maximum height in inches. Default is 12.
-#' @return A list with height and width components, or NULL if dimension calculation is disabled
+#' @return A list with height and width components
 #' @keywords internal
 calculate_plot_dimensions <- function(
     base_height = 4.5,

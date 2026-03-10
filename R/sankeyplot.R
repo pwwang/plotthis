@@ -343,13 +343,8 @@ SankeyPlotAtomic <- function(
             legend_nchar = max(nchar(unique(c(levels(data[[stratum]]), levels(data[[links_fill_by]]))))),
             flip = TRUE
         )
-        if (is.null(dims)) {
-            attr(p, "height") <- nlevels(data[[x]]) * ifelse(nlevels(data[[x]]) < 5, 2, 1.5)
-            attr(p, "width") <- 6
-        } else {
-            attr(p, "height") <- dims$height
-            attr(p, "width") <- dims$width
-        }
+        attr(p, "height") <- dims$height
+        attr(p, "width") <- dims$width
     } else {
         dims <- calculate_plot_dimensions(
             base_height = 6,
@@ -361,13 +356,8 @@ SankeyPlotAtomic <- function(
             legend_n = length(unique(c(levels(data[[stratum]]), levels(data[[links_fill_by]])))),
             legend_nchar = max(nchar(unique(c(levels(data[[stratum]]), levels(data[[links_fill_by]])))))
         )
-        if (is.null(dims)) {
-            attr(p, "height") <- 6
-            attr(p, "width") <- nlevels(data[[x]]) * ifelse(nlevels(data[[x]]) < 5, 2, 1.5)
-        } else {
-            attr(p, "height") <- dims$height
-            attr(p, "width") <- dims$width
-        }
+        attr(p, "height") <- dims$height
+        attr(p, "width") <- dims$width
     }
 
     facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,

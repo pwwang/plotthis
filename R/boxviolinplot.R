@@ -1015,27 +1015,8 @@ BoxViolinPlotAtomic <- function(
             legend_nchar = if (is.null(group_by)) 5 else max(nchar(levels(data[[group_by]]))),
             flip = TRUE
         )
-        if (is.null(dims)) {
-            height <- width <- 0
-            if (!identical(legend.position, "none")) {
-                if (legend.position %in% c("right", "left")) {
-                    width <- width + 1
-                } else if (legend.direction == "horizontal") {
-                    height <- height + 1
-                } else {
-                    height <- height + 2
-                }
-            }
-            if (isTRUE(stack)) {
-                width <- max(3, width + 2 + x_maxchars * 0.05)
-            } else {
-                width <- max(3, width + 2.2 + x_maxchars * 0.05)
-            }
-            height <- height + nx * nd * 0.3
-        } else {
-            height <- dims$height
-            width <- max(dims$width, label_min_width)
-        }
+        height <- dims$height
+        width <- max(dims$width, label_min_width)
     } else {
         label_min_height <- if (isTRUE(stack)) 4 + x_maxchars * 0.05 else 2 + x_maxchars * 0.05
         dims <- calculate_plot_dimensions(
@@ -1049,27 +1030,8 @@ BoxViolinPlotAtomic <- function(
             legend_nchar = if (is.null(group_by)) 5 else max(nchar(levels(data[[group_by]]))),
             flip = FALSE
         )
-        if (is.null(dims)) {
-            height <- width <- 0
-            if (!identical(legend.position, "none")) {
-                if (legend.position %in% c("right", "left")) {
-                    width <- width + 1
-                } else if (legend.direction == "horizontal") {
-                    height <- height + 1
-                } else {
-                    height <- height + 2
-                }
-            }
-            if (isTRUE(stack)) {
-                height <- height + 4 + x_maxchars * 0.05
-            } else {
-                height <- max(3, height + 2 + x_maxchars * 0.05)
-            }
-            width <- width + nx * nd * 0.3
-        } else {
-            height <- max(dims$height, label_min_height)
-            width <- dims$width
-        }
+        height <- max(dims$height, label_min_height)
+        width <- dims$width
     }
 
     attr(p, "height") <- height

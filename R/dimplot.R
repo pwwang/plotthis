@@ -1276,23 +1276,9 @@ DimPlotAtomic <- function(
         legend_n = if (!is.null(group_by)) length(group_vals) else 1,
         legend_nchar = if (!is.null(group_by)) max(nchar(label_use)) else 5
     )
-    if (is.null(dims)) {
-        height <- width <- 5.5
-        if (!identical(legend.position, "none")) {
-            if (legend.position %in% c("right", "left")) {
-                width <- width + 1
-            } else if (legend.direction == "horizontal") {
-                height <- height + 1
-            } else {
-                width <- width + 2
-            }
-        }
-    } else {
-        height <- dims$height
-        width <- dims$width
-    }
-    attr(p, "height") <- height
-    attr(p, "width") <- width
+
+    attr(p, "height") <- dims$height
+    attr(p, "width") <- dims$width
 
     if (length(legend_list) == 0) {
         p <- facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,

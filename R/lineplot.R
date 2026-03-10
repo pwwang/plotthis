@@ -211,25 +211,10 @@ LinePlotSingle <- function(
         legend_n = length(x_vals),
         legend_nchar = max(nchar(as.character(x_vals)), na.rm = TRUE)
     )
-    if (is.null(dims)) {
-        height <- 4.5
-        width <- .5 + nlevels(data[[x]]) * .8
-        if (!identical(legend.position, "none")) {
-            if (legend.position %in% c("right", "left")) {
-                width <- width + 1
-            } else if (legend.direction == "horizontal") {
-                height <- height + 1
-            } else {
-                width <- width + 2
-            }
-        }
-    } else {
-        height <- dims$height
-        width <- dims$width
-    }
 
-    attr(p, "height") <- height
-    attr(p, "width") <- width
+    attr(p, "height") <- dims$height
+    attr(p, "width") <- dims$width
+
     p
 }
 
@@ -410,25 +395,9 @@ LinePlotGrouped <- function(
         legend_n = length(group_vals),
         legend_nchar = max(nchar(as.character(group_vals)), na.rm = TRUE)
     )
-    if (is.null(dims)) {
-        height <- 4.5
-        width <- .5 + nlevels(data[[x]]) * .8
-        if (!identical(legend.position, "none")) {
-            if (legend.position %in% c("right", "left")) {
-                width <- width + 1
-            } else if (legend.direction == "horizontal") {
-                height <- height + 1
-            } else {
-                width <- width + 2
-            }
-        }
-    } else {
-        height <- dims$height
-        width <- dims$width
-    }
 
-    attr(p, "height") <- height
-    attr(p, "width") <- width
+    attr(p, "height") <- dims$height
+    attr(p, "width") <- dims$width
 
     p
 }
