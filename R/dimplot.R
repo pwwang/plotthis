@@ -783,7 +783,7 @@ DimPlotAtomic <- function(
             data = net_df, mapping = aes(x = !!sym("x"), y = !!sym("y"), xend = !!sym("xend"),
                 yend = !!sym("yend"), linewidth = !!sym("value")),
             color = edge_color, alpha = edge_alpha, show.legend = FALSE
-        ) + scale_linewidth_continuous(range = edge_size)
+        ) + scale_linewidth_continuous(range = edge_size, guide = "none")
     }
 
     ## Adding the density plot
