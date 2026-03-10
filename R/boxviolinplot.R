@@ -481,9 +481,10 @@ BoxViolinPlotAtomic <- function(
                         yval1 <- group_data[[y]][group_data[[group_by]] == gs[1]]
                         yval2 <- group_data[[y]][group_data[[group_by]] == gs[2]]
                         # Check for zero variance or all NA
+
                         if (all(is.na(yval1)) || all(is.na(yval2)) ||
-                            (length(unique(yval1[!is.na(yval1)])) <= 1 &&
-                             length(unique(yval2[!is.na(yval2)])) <= 1)) {
+                            (length(unique(yval1[!is.na(yval1)])) <= 3 ||
+                             length(unique(yval2[!is.na(yval2)])) <= 3)) {
                             needs_fix <- TRUE
                             break
                         }
@@ -492,7 +493,7 @@ BoxViolinPlotAtomic <- function(
 
                 pwc_data <- data
                 if (needs_fix) {
-                    warning("Some pairwise comparisons may fail due to insufficient variability. Adjusting data to ensure valid comparisons.")
+                    warning("[Box/Violin/BeeswarmPlot] Some pairwise comparisons may fail due to insufficient data points or variability. Adjusting data to ensure valid comparisons.")
 
                     # Split by facet if present
                     if (!is.null(facet_by)) {
