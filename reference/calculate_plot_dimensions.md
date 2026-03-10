@@ -89,5 +89,4 @@ calculate_plot_dimensions(
 
 ## Value
 
-A list with height and width components, or NULL if dimension
-calculation is disabled
+A list with height and width components
