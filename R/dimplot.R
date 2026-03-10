@@ -716,8 +716,8 @@ DimPlotAtomic <- function(
             expand = mark_expand, alpha = mark_alpha, linetype = mark_linetype,
             show.legend = FALSE
         ) +
-            scale_fill_manual(values = colors[names(labels_tb)]) +
-            scale_color_manual(values = colors[names(labels_tb)]) +
+            scale_fill_manual(values = colors[names(labels_tb)], guide = "none") +
+            scale_color_manual(values = colors[names(labels_tb)], guide = "none") +
             new_scale_fill() +
             new_scale_color()
     }
