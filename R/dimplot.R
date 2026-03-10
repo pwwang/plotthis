@@ -1181,7 +1181,9 @@ DimPlotAtomic <- function(
         stat_args$theme <- theme
         stat_args$theme_args <- theme_args
         stat_args$title <- character(0)
-        stat_args$keep_empty <- keep_empty
+        # keep all levels so they appear in the legend, even if some levels have no data
+        # (in case some stat plots don't show all levels due to filtering)
+        stat_args$keep_empty <- TRUE
         stat_args$palette <- stat_palette
         if (stat_plot_type == "pie") {
             stat_args$x <- stat_by
