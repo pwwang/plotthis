@@ -1,3 +1,24 @@
+## Version 0.11.0
+
+- feat(palette): add tableau color palettes to palette list
+- feat(dimplot): add support for 3D plots using plotly for 3-component dimplots
+- feat(UpsetPlot): preserve group order in compmatrix (lower table)
+- feat(UpsetPlot): add combmatrix_gap parameter for row spacing in combination matrix
+- feat: implement calculate_plot_dimensions() across all plot functions
+- feat: enhance heatmap dimension calculations for row and column labels based on visibility settings
+- feat: add padding parameter to Heatmap for customizable heatmap spacing
+- fix(UpsetPlot): nudge label position in geom_text_repel for better visibility
+- fix(UpsetPlot): fix ytrans not working
+- fix(Heatmap): handle empty string cases for row and column name parameters in process_heatmap_data
+- fix(DimPlot): hide legend for fill and color scales for marks in dimension plot
+- fix(DimPlot): ensure all levels are included in the legend by keeping empty levels for stat plots
+- fix(DimPlot): disable legend for line width scale in dimension plot when graph is given
+- fix(Box/Violin/BeeswarmPlot): update variance check to allow more unique values for comparison
+- chore(VennDiagram): change default palette to 'Blues'
+- chore(UpsetPlot): change default palette to 'Blues'
+- chore(UpsetPlot): change segment colour of labels to NA (hiding segment lines)
+- ci: update ggrepel package version to 0.9.5 in dependencies (0.9.6 requires R 4.5)
+
 ## Version 0.10.1
 
 - BREAKING(Box/ViolinPlot): update sort_x parameter to accept expressions for x-axis ordering
