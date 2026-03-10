@@ -906,6 +906,7 @@ BoxPlot(
     comparisons = TRUE, pt_size = 3, pt_color = "red"
 )
 #> Warning: Forcing 'add_point' = TRUE when 'paired_by' is provided.
+#> Warning: [Box/Violin/BeeswarmPlot] Some pairwise comparisons may fail due to insufficient data points or variability. Adjusting data to ensure valid comparisons.
 
 
 # keep_na and keep_empty example
