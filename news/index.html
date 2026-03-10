@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">plotthis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.11.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,6 +36,27 @@
       <small>Source: <a href="https://github.com/pwwang/plotthis/blob/master/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.11.0" id="version-0110">Version 0.11.0<a class="anchor" aria-label="anchor" href="#version-0110"></a></h2>
+<ul><li>feat(palette): add tableau color palettes to palette list</li>
+<li>feat(dimplot): add support for 3D plots using plotly for 3-component dimplots</li>
+<li>feat(UpsetPlot): preserve group order in compmatrix (lower table)</li>
+<li>feat(UpsetPlot): add combmatrix_gap parameter for row spacing in combination matrix</li>
+<li>feat: implement calculate_plot_dimensions() across all plot functions</li>
+<li>feat: enhance heatmap dimension calculations for row and column labels based on visibility settings</li>
+<li>feat: add padding parameter to Heatmap for customizable heatmap spacing</li>
+<li>fix(UpsetPlot): nudge label position in geom_text_repel for better visibility</li>
+<li>fix(UpsetPlot): fix ytrans not working</li>
+<li>fix(Heatmap): handle empty string cases for row and column name parameters in process_heatmap_data</li>
+<li>fix(DimPlot): hide legend for fill and color scales for marks in dimension plot</li>
+<li>fix(DimPlot): ensure all levels are included in the legend by keeping empty levels for stat plots</li>
+<li>fix(DimPlot): disable legend for line width scale in dimension plot when graph is given</li>
+<li>fix(Box/Violin/BeeswarmPlot): update variance check to allow more unique values for comparison</li>
+<li>chore(VennDiagram): change default palette to ‘Blues’</li>
+<li>chore(UpsetPlot): change default palette to ‘Blues’</li>
+<li>chore(UpsetPlot): change segment colour of labels to NA (hiding segment lines)</li>
+<li>ci: update ggrepel package version to 0.9.5 in dependencies (0.9.6 requires R 4.5)</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.10.1" id="version-0101">Version 0.10.1<a class="anchor" aria-label="anchor" href="#version-0101"></a></h2>
 <ul><li>BREAKING(Box/ViolinPlot): update sort_x parameter to accept expressions for x-axis ordering</li>
