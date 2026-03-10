@@ -217,56 +217,85 @@ DotPlotAtomic <- function(
         ny <- nlevels(droplevels(data[[y]]))
     }
 
-    if (ny / nx > 10) {
-        if (aspect.ratio <= 1) {
-            message("Two many terms than groups, you may want to set a larger 'aspect.ratio'.")
-        }
-        height = ny * 0.2
-        width = nx * 2
-    } else if (ny / nx < 0.1) {
-        if (aspect.ratio >= 1) {
-            message("Two many groups than terms, you may want to set a smaller 'aspect.ratio'.")
-        }
-        height = ny * 2
-        width = nx * 0.4
+    y_label_len <- if (!y_is_numeric) {
+        max(sapply(strsplit(levels(data[[y]]), "\n"), function(x) max(nchar(x))))
     } else {
-        height = ny * 0.5
-        width = nx * 0.8
+        0
     }
+    legend_nchar <- max(nchar(c(
+        fill_name %||% fill_by,
+        if (!is.numeric(size_by)) size_name %||% size_by else character(0)
+    )), na.rm = TRUE, 5)
 
-    if (!y_is_numeric) {
-        y_label_len <- max(sapply(strsplit(levels(data[[y]]), "\n"), function(x) max(nchar(x))))
-        width <- width + y_label_len * 0.1
-    }
-    width <- max(width, 3)
-    height <- max(height, 3)
+    # Use aspect.ratio = NULL so that each axis is sized independently from its content:
+    #   - visual x-axis (groups when not flipped, terms when flipped) drives width via n_x
+    #   - visual y-axis (terms when not flipped, groups when flipped) drives height via n_y
+    # Scale factors: 0.9 per group (fewer categories, need more space),
+    #                0.6 per term (often many, needs a compact but readable size).
+    # min_width=5 ensures the plot is wide enough for a horizontal legend colorbar.
+    # min_height=4 prevents the flipped case from being too short for the group rows.
+    dims <- calculate_plot_dimensions(
+        base_height = 4.5,
+        aspect.ratio = NULL,
+        n_x = if (isTRUE(flip)) ny else nx,
+        x_scale_factor = if (isTRUE(flip)) 0.6 else 0.9,
+        n_y = if (isTRUE(flip)) nx else ny,
+        y_scale_factor = if (isTRUE(flip)) 0.9 else 0.6,
+        legend.position = legend.position,
+        legend.direction = legend.direction,
+        legend_n = 2,
+        legend_nchar = legend_nchar,
+        min_width = 5,
+        min_height = 4
+    )
 
-    # Apply aspect.ratio coupling: derive the smaller dimension from the larger one
-    ar <- if (isTRUE(flip)) 1 / aspect.ratio else aspect.ratio
-    coupled_height <- width * ar
-    if (abs(coupled_height - height) / max(height, 1) < 0.5) {
-        # Only apply coupling if the adjustment is less than 50% change
-        height <- coupled_height
-        height <- max(height, 3)
-    }
-
-    if (!identical(legend.position, "none")) {
-        if (legend.position %in% c("right", "left")) {
-            width <- width + 1
-        } else if (legend.direction == "horizontal") {
-            height <- height + 1
+    if (is.null(dims)) {
+        if (ny / nx > 10) {
+            height = ny * 0.2
+            width = nx * 2
+        } else if (ny / nx < 0.1) {
+            height = ny * 2
+            width = nx * 0.4
         } else {
-            width <- width + 2
+            height = ny * 0.5
+            width = nx * 0.8
         }
-    }
-    height <- max(height, 3)
-
-    if (isTRUE(flip)) {
-        attr(p, "height") <- width
-        attr(p, "width") <- height
+        width <- width + y_label_len * 0.1
+        width <- max(width, 3)
+        height <- max(height, 3)
+        ar <- if (isTRUE(flip)) 1 / aspect.ratio else aspect.ratio
+        coupled_height <- width * ar
+        if (abs(coupled_height - height) / max(height, 1) < 0.5) {
+            height <- coupled_height
+            height <- max(height, 3)
+        }
+        if (!identical(legend.position, "none")) {
+            if (legend.position %in% c("right", "left")) {
+                width <- width + 1
+            } else if (legend.direction == "horizontal") {
+                height <- height + 1
+            } else {
+                width <- width + 2
+            }
+        }
+        height <- max(height, 3)
+        if (isTRUE(flip)) {
+            attr(p, "height") <- width
+            attr(p, "width") <- height
+        } else {
+            attr(p, "height") <- height
+            attr(p, "width") <- width
+        }
     } else {
-        attr(p, "height") <- height
-        attr(p, "width") <- width
+        h <- dims$height
+        w <- dims$width + y_label_len * 0.1
+        # For dot-plot matrices rendered with a square panel (default aspect.ratio = 1),
+        # prevent extreme H/W ratios that leave large blank areas inside the figure.
+        # Neither dimension should be less than 50 % of the other.
+        h <- max(h, w * 0.5)
+        w <- max(w, h * 0.5)
+        attr(p, "height") <- min(h, 12)
+        attr(p, "width")  <- min(w, 12)
     }
 
     facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
