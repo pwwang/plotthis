@@ -1,7 +1,9 @@
-# Box / Violin Plot
+# Box / Violin / Bar Plot
 
-Box plot or violin plot with optional jitter points, trend line,
-statistical test, background, line, and highlight.
+Box plot, bar plot (mean values), or violin plot with optional jitter
+points, trend line, statistical test, background, line, and highlight.
+When `base = "bar"`, bars show the mean values with optional error bars
+(SEM, SD, or CI).
 
 ## Usage
 
@@ -11,6 +13,7 @@ BoxPlot(
   x,
   x_sep = "_",
   y = NULL,
+  base = c("box", "bar"),
   in_form = c("long", "wide"),
   split_by = NULL,
   split_by_sep = "_",
@@ -59,6 +62,10 @@ BoxPlot(
   stat_size = 1,
   stat_stroke = 1,
   stat_shape = 25,
+  add_errorbar = "SEM",
+  errorbar_color = "grey20",
+  errorbar_width = 0.4,
+  errorbar_linewidth = 0.6,
   add_bg = FALSE,
   bg_palette = "stripe",
   bg_palcolor = NULL,
@@ -314,6 +321,13 @@ BeeswarmPlot(
 
   A character string specifying the column name of the data frame to
   plot for the y-axis.
+
+- base:
+
+  A character string to specify the base plot type. Either "box",
+  "violin", "bar" or "none" (used by BeeswarmPlot). When "bar", bars
+  showing the mean values are plotted. This is mutually exclusive with
+  `add_box`.
 
 - in_form:
 
@@ -579,6 +593,36 @@ BeeswarmPlot(
 - stat_shape:
 
   A numeric value to specify the shape of the statistical test.
+
+- add_errorbar:
+
+  A character string to specify the type of error bars to add to bar
+  plots. Only available when `base = "bar"`. Case insensitive. Available
+  options are:
+
+  - "SEM" (default): Standard error of the mean.
+
+  - "SD": Standard deviation.
+
+  - "CI" or "CIXX" (e.g., "CI95"): Confidence interval. "CI" defaults to
+    "CI95" (95\\
+
+  - "none": No error bars.
+
+- errorbar_color:
+
+  A character string to specify the color of the error bars. Default is
+  "black".
+
+- errorbar_width:
+
+  A numeric value to specify the width of the error bar caps. Default is
+  0.5.
+
+- errorbar_linewidth:
+
+  A numeric value to specify the line width of the error bars. Default
+  is 0.75.
 
 - add_bg:
 
@@ -953,6 +997,24 @@ BoxPlot(data, x = "x", y = "y", group_by = "group2",
     keep_empty = list(x = TRUE, group2 = FALSE),
     title = "keep_na: x=FALSE, group2=TRUE\nkeep_empty: x=TRUE, group2=FALSE"
 )
+
+
+# Bar plot (base = "bar") shows mean values with error bars
+data$y <- abs(data$y)  # make y values positive for better bar plot visualization
+BoxPlot(data, x = "x", y = "y", base = "bar")
+
+BoxPlot(data, x = "x", y = "y", base = "bar", add_errorbar = "SD")
+
+BoxPlot(data, x = "x", y = "y", base = "bar", add_errorbar = "CI95")
+
+BoxPlot(data, x = "x", y = "y", base = "bar", add_errorbar = "none")
+
+BoxPlot(data, x = "x", y = "y", base = "bar", group_by = "group1")
+
+BoxPlot(data, x = "x", y = "y", base = "bar", add_point = TRUE)
+
+BoxPlot(data, x = "x", y = "y", base = "bar",
+    fill_mode = "mean", palette = "Blues")
 
 # }
 # \donttest{

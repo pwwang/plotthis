@@ -10,7 +10,7 @@ BoxViolinPlot(
   x,
   x_sep = "_",
   y = NULL,
-  base = c("box", "violin", "none"),
+  base = c("box", "violin", "bar", "none"),
   in_form = c("long", "wide"),
   split_by = NULL,
   split_by_sep = "_",
@@ -53,6 +53,10 @@ BoxViolinPlot(
   box_color = "black",
   box_width = 0.1,
   box_ptsize = 2.5,
+  add_errorbar = "SEM",
+  errorbar_color = "grey20",
+  errorbar_width = 0.4,
+  errorbar_linewidth = 0.6,
   add_trend = FALSE,
   trend_color = NULL,
   trend_linewidth = 1,
@@ -130,7 +134,9 @@ BoxViolinPlot(
 - base:
 
   A character string to specify the base plot type. Either "box",
-  "violin" or "none" (used by BeeswarmPlot).
+  "violin", "bar" or "none" (used by BeeswarmPlot). When "bar", bars
+  showing the mean values are plotted. This is mutually exclusive with
+  `add_box`.
 
 - in_form:
 
@@ -371,6 +377,36 @@ BoxViolinPlot(
 
   A numeric value to specify the size of the box plot points in the
   middle.
+
+- add_errorbar:
+
+  A character string to specify the type of error bars to add to bar
+  plots. Only available when `base = "bar"`. Case insensitive. Available
+  options are:
+
+  - "SEM" (default): Standard error of the mean.
+
+  - "SD": Standard deviation.
+
+  - "CI" or "CIXX" (e.g., "CI95"): Confidence interval. "CI" defaults to
+    "CI95" (95\\
+
+  - "none": No error bars.
+
+- errorbar_color:
+
+  A character string to specify the color of the error bars. Default is
+  "black".
+
+- errorbar_width:
+
+  A numeric value to specify the width of the error bar caps. Default is
+  0.5.
+
+- errorbar_linewidth:
+
+  A numeric value to specify the line width of the error bars. Default
+  is 0.75.
 
 - add_trend:
 
