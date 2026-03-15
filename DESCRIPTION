@@ -72,4 +72,5 @@ Suggests:
     proxyC,
     metR
 LazyData: true
+Additional_repositories: https://bioconductor.org/packages/release/bioc
 Config/Needs/website: rmarkdown
