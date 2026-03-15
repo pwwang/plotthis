@@ -9,7 +9,7 @@ BoxViolinPlotAtomic(
   x,
   x_sep = "_",
   y = NULL,
-  base = c("box", "violin", "none"),
+  base = c("box", "violin", "bar", "none"),
   in_form = c("long", "wide"),
   sort_x = NULL,
   flip = FALSE,
@@ -52,6 +52,10 @@ BoxViolinPlotAtomic(
   box_color = "black",
   box_width = 0.1,
   box_ptsize = 2.5,
+  add_errorbar = "SEM",
+  errorbar_color = "grey20",
+  errorbar_width = 0.4,
+  errorbar_linewidth = 0.6,
   add_trend = FALSE,
   trend_color = NULL,
   trend_linewidth = 1,
@@ -107,7 +111,8 @@ When \code{in_form} is "wide", \code{x} columns will not be concatenated.}
 \item{y}{A character string of the column name to plot on the y-axis. A numeric column is expected.
 When \code{in_form} is "wide", \code{y} is not required. The values under \code{x} columns will be used as y-values.}
 
-\item{base}{A character string to specify the base plot type. Either "box", "violin" or "none" (used by BeeswarmPlot).}
+\item{base}{A character string to specify the base plot type. Either "box", "violin", "bar" or "none" (used by BeeswarmPlot).
+When "bar", bars showing the mean values are plotted. This is mutually exclusive with \code{add_box}.}
 
 \item{in_form}{A character string to specify the input data type. Either "long" or "wide".}
 
@@ -237,6 +242,21 @@ Default is 0.9}
 \item{box_width}{A numeric value to specify the width of the box plot.}
 
 \item{box_ptsize}{A numeric value to specify the size of the box plot points in the middle.}
+
+\item{add_errorbar}{A character string to specify the type of error bars to add to bar plots.
+Only available when \code{base = "bar"}. Case insensitive. Available options are:
+\itemize{
+\item "SEM" (default): Standard error of the mean.
+\item "SD": Standard deviation.
+\item "CI" or "CIXX" (e.g., "CI95"): Confidence interval. "CI" defaults to "CI95" (95\\% CI).
+\item "none": No error bars.
+}}
+
+\item{errorbar_color}{A character string to specify the color of the error bars. Default is "black".}
+
+\item{errorbar_width}{A numeric value to specify the width of the error bar caps. Default is 0.5.}
+
+\item{errorbar_linewidth}{A numeric value to specify the line width of the error bars. Default is 0.75.}
 
 \item{add_trend}{A logical value to add trend line to the plot.}
 
