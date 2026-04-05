@@ -1991,6 +1991,42 @@ HeatmapAtomic <- function(
     }
     rm(left_annos)
 
+    ## Fix for ComplexHeatmap annotation name / legend overlap bug:
+    ## When show_row_names = FALSE but column annotations have names on the right side
+    ## (annotation_name_side = row_names_side = "right"), ComplexHeatmap does not allocate
+    ## space for those annotation name labels, causing them to overlap the right-side legend.
+    ## Inject a phantom invisible right annotation to reserve the required width.
+    phantom_right_width_in <- 0
+    if (!isTRUE(flip) &&
+        !isTRUE(hmargs$show_row_names) &&
+        hmargs$row_names_side == "right" &&
+        legend.position == "right") {
+        right_anno_names <- character(0)
+        if (col_name_anno_enabled && !is.null(columns_by)) {
+            right_anno_names <- c(right_anno_names, columns_by)
+        }
+        if (!is.null(columns_split_by) && !isFALSE(column_annotation_params[[columns_split_by]])) {
+            right_anno_names <- c(right_anno_names, columns_split_by)
+        }
+        if (!is.null(column_annotation) && length(column_annotation) > 0) {
+            col_anno_names <- if (is.list(column_annotation)) names(column_annotation) else as.character(column_annotation)
+            right_anno_names <- c(right_anno_names, col_anno_names)
+        }
+        if (length(right_anno_names) > 0) {
+            phantom_width <- ComplexHeatmap::max_text_width(right_anno_names)
+            phantom_right_width_in <- convertUnit(phantom_width, "inches", valueOnly = TRUE)
+            phantom_anno <- ComplexHeatmap::rowAnnotation(
+                .gap = ComplexHeatmap::anno_empty(border = FALSE, width = phantom_width),
+                show_annotation_name = FALSE
+            )
+            if (is.null(hmargs$right_annotation)) {
+                hmargs$right_annotation <- phantom_anno
+            } else {
+                hmargs$right_annotation <- hmargs$right_annotation + phantom_anno
+            }
+        }
+    }
+
     ## Set up the heatmap dimensions
     # Row names appear on left/right and add to width; only count when show_row_names is TRUE.
     # hmargs$show_row_names already accounts for flip (equals original show_column_names when
@@ -2026,7 +2062,7 @@ HeatmapAtomic <- function(
     # We strip out the show_*_names contribution (already captured by rownames_width /
     # colnames_height above) and reduce the per-item coefficient to avoid double-counting.
     row_overhead <- (if (isTRUE(cluster_rows))    0.5 else 0) +
-                    (nrow_annos - show_row_names * 4) * 0.15
+                    (nrow_annos - show_row_names * 4) * 0.15 + phantom_right_width_in
     col_overhead <- (if (isTRUE(cluster_columns)) 0.5 else 0) +
                     (ncol_annos - show_column_names * 4) * 0.15 + colnames_height
 
