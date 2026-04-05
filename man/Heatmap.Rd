@@ -32,14 +32,6 @@ Heatmap(
   rows_split_name = NULL,
   palette = "RdBu",
   palcolor = NULL,
-  rows_palette = "Paired",
-  rows_palcolor = NULL,
-  rows_split_palette = "simspec",
-  rows_split_palcolor = NULL,
-  columns_palette = "Paired",
-  columns_palcolor = NULL,
-  columns_split_palette = "simspec",
-  columns_split_palcolor = NULL,
   pie_size_name = "size",
   pie_size = NULL,
   pie_values = "length",
@@ -67,14 +59,10 @@ Heatmap(
   bg_alpha = 0.5,
   add_reticle = FALSE,
   reticle_color = "grey",
-  column_name_annotation = TRUE,
-  column_name_legend = NULL,
-  row_name_annotation = TRUE,
-  row_name_legend = NULL,
   cluster_columns = NULL,
   cluster_rows = NULL,
-  show_row_names = !row_name_annotation,
-  show_column_names = !column_name_annotation,
+  show_row_names = NULL,
+  show_column_names = NULL,
   border = TRUE,
   title = NULL,
   column_title = character(0),
@@ -214,26 +202,6 @@ This is applied before renaming columns_by to columns_name.}
 
 \item{palcolor}{A character vector of colors to override the palette of the heatmap cells.}
 
-\item{rows_palette}{A character string specifying the palette of the row group annotation.
-The default is "Paired".}
-
-\item{rows_palcolor}{A character vector of colors to override the palette of the row group annotation.}
-
-\item{rows_split_palette}{A character string specifying the palette of the row split annotation.
-The default is "simspec".}
-
-\item{rows_split_palcolor}{A character vector of colors to override the palette of the row split annotation.}
-
-\item{columns_palette}{A character string specifying the palette of the column group annotation.
-The default is "Paired".}
-
-\item{columns_palcolor}{A character vector of colors to override the palette of the column group annotation.}
-
-\item{columns_split_palette}{A character string specifying the palette of the column split annotation.
-The default is "simspec".}
-
-\item{columns_split_palcolor}{A character vector of colors to override the palette of the column split annotation.}
-
 \item{pie_size_name}{A character string specifying the name of the legend for the pie size.}
 
 \item{pie_size}{A numeric value or a function specifying the size of the pie chart.
@@ -303,16 +271,6 @@ Does not work with \code{cell_type = "bars"} or \code{cell_type = "tile"}.}
 
 \item{reticle_color}{A character string specifying the color of the reticle.}
 
-\item{column_name_annotation}{A logical value indicating whether to add the column annotation for the column names.
-which is a simple annotaion indicating the column names.}
-
-\item{column_name_legend}{A logical value indicating whether to show the legend of the column name annotation.}
-
-\item{row_name_annotation}{A logical value indicating whether to add the row annotation for the row names.
-which is a simple annotaion indicating the row names.}
-
-\item{row_name_legend}{A logical value indicating whether to show the legend of the row name annotation.}
-
 \item{cluster_columns}{A logical value indicating whether to cluster the columns.
 If TRUE and columns_split_by is provided, the clustering will only be applied to the columns within the same split.}
 
@@ -362,7 +320,10 @@ Could be a list with the keys as the names of the annotation and the values as t
 If the type is "auto", the type will be determined by the type and number of the column data.}
 
 \item{column_annotation_params}{A list of parameters passed to the annotation function.
-Could be a list with the keys as the names of the annotation and the values as the parameters passed to the annotation function. For the parameters for names (columns_by, rows_by, columns_split_by, rows_split_by), the key should be "name.(name)", where \code{(name)} is the name of the annotation.
+Could be a list with the keys as the names of the annotation and the values as the parameters.
+For the name/split annotations, use aliases: \code{.col}/\code{.column} for \code{columns_by}, \code{.col.split}/\code{.column.split}
+for \code{columns_split_by}. Setting a key to \code{FALSE} disables that annotation.
+\verb{$<key>$show_legend} controls the legend for that annotation.
 See \code{\link[=anno_pie]{anno_pie()}}, \code{\link[=anno_ring]{anno_ring()}}, \code{\link[=anno_bar]{anno_bar()}}, \code{\link[=anno_violin]{anno_violin()}}, \code{\link[=anno_boxplot]{anno_boxplot()}}, \code{\link[=anno_density]{anno_density()}}, \code{\link[=anno_simple]{anno_simple()}}, \code{\link[=anno_points]{anno_points()}} and \code{\link[=anno_lines]{anno_lines()}} for the parameters of each annotation function.}
 
 \item{column_annotation_agg}{A function to aggregate the values in the column annotation.}
@@ -387,7 +348,9 @@ If the type is "auto", the type will be determined by the type and number of the
 
 \item{row_annotation_params}{A list of parameters passed to the annotation function.
 Could be a list with the keys as the names of the annotation and the values as the parameters.
-Same as \code{column_annotation_params}.}
+For the name/split annotations, use aliases: \code{.row} for \code{rows_by}, \code{.rows.split} for \code{rows_split_by}.
+Setting a key to \code{FALSE} disables that annotation. \verb{$<key>$show_legend} controls the legend.
+Same structure as \code{column_annotation_params}.}
 
 \item{row_annotation_agg}{A function to aggregate the values in the row annotation.}
 
@@ -543,9 +506,11 @@ if (requireNamespace("cluster", quietly = TRUE)) {
 
     Heatmap(
         go,
-        # Do not cluster rows and columns and hide the annotations
+        # Do not cluster rows and columns and hide the name annotations
+        # Use .row/.col aliases (or the actual rows_name/columns_name) in annotation_params
         cluster_rows = FALSE, cluster_columns = FALSE,
-        row_name_annotation = FALSE, column_name_annotation = FALSE,
+        row_annotation_params = list(.row = FALSE),
+        column_annotation_params = list(.col = FALSE),
         show_row_names = FALSE, show_column_names = FALSE,
         # Set the legend items
         values_by = "Players", legend_discrete = TRUE,
@@ -560,11 +525,10 @@ if (requireNamespace("cluster", quietly = TRUE)) {
         width = ggplot2::unit(105, "mm"), height = ggplot2::unit(105, "mm"))
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-    # Make the row/column name annotation thicker
+    # Make the row/column name annotation thicker using the .row/.col aliases
     Heatmap(matrix_data,
-        # Use the "name." prefix
-        column_annotation_params = list(name.columns = list(height = 5)),
-        row_annotation_params = list(name.rows = list(width = 5)))
+        column_annotation_params = list(.col = list(height = 5)),
+        row_annotation_params = list(.row = list(width = 5)))
 }
 
 # Use long form data
