@@ -1878,6 +1878,13 @@ HeatmapAtomic <- function(
             param$palette <- annotation_palette[[aname]] %||% "Paired"
             param$palcolor <- annotation_palcolor[[aname]]
             param$legend.direction <- legend.direction
+            if (annotype == "simple") {
+                worh <- ifelse(param$which == "row", "width", "height")
+                param[[worh]] <- param[[worh]] %||% unit(2.5, "mm")
+                if (is.numeric(param[[worh]]) && !inherits(param[[worh]], "unit")) {
+                    param[[worh]] <- unit(param[[worh]], "mm")
+                }
+            }
             # swap width and height if flip is TRUE
             if (flip) {
                 pheight <- param$height
