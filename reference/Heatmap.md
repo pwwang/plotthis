@@ -41,14 +41,6 @@ Heatmap(
   rows_split_name = NULL,
   palette = "RdBu",
   palcolor = NULL,
-  rows_palette = "Paired",
-  rows_palcolor = NULL,
-  rows_split_palette = "simspec",
-  rows_split_palcolor = NULL,
-  columns_palette = "Paired",
-  columns_palcolor = NULL,
-  columns_split_palette = "simspec",
-  columns_split_palcolor = NULL,
   pie_size_name = "size",
   pie_size = NULL,
   pie_values = "length",
@@ -76,14 +68,10 @@ Heatmap(
   bg_alpha = 0.5,
   add_reticle = FALSE,
   reticle_color = "grey",
-  column_name_annotation = TRUE,
-  column_name_legend = NULL,
-  row_name_annotation = TRUE,
-  row_name_legend = NULL,
   cluster_columns = NULL,
   cluster_rows = NULL,
-  show_row_names = !row_name_annotation,
-  show_column_names = !column_name_annotation,
+  show_row_names = NULL,
+  show_column_names = NULL,
   border = TRUE,
   title = NULL,
   column_title = character(0),
@@ -313,46 +301,6 @@ Heatmap(
   A character vector of colors to override the palette of the heatmap
   cells.
 
-- rows_palette:
-
-  A character string specifying the palette of the row group annotation.
-  The default is "Paired".
-
-- rows_palcolor:
-
-  A character vector of colors to override the palette of the row group
-  annotation.
-
-- rows_split_palette:
-
-  A character string specifying the palette of the row split annotation.
-  The default is "simspec".
-
-- rows_split_palcolor:
-
-  A character vector of colors to override the palette of the row split
-  annotation.
-
-- columns_palette:
-
-  A character string specifying the palette of the column group
-  annotation. The default is "Paired".
-
-- columns_palcolor:
-
-  A character vector of colors to override the palette of the column
-  group annotation.
-
-- columns_split_palette:
-
-  A character string specifying the palette of the column split
-  annotation. The default is "simspec".
-
-- columns_split_palcolor:
-
-  A character vector of colors to override the palette of the column
-  split annotation.
-
 - pie_size_name:
 
   A character string specifying the name of the legend for the pie size.
@@ -483,27 +431,6 @@ Heatmap(
 
   A character string specifying the color of the reticle.
 
-- column_name_annotation:
-
-  A logical value indicating whether to add the column annotation for
-  the column names. which is a simple annotaion indicating the column
-  names.
-
-- column_name_legend:
-
-  A logical value indicating whether to show the legend of the column
-  name annotation.
-
-- row_name_annotation:
-
-  A logical value indicating whether to add the row annotation for the
-  row names. which is a simple annotaion indicating the row names.
-
-- row_name_legend:
-
-  A logical value indicating whether to show the legend of the row name
-  annotation.
-
 - cluster_columns:
 
   A logical value indicating whether to cluster the columns. If TRUE and
@@ -597,10 +524,10 @@ Heatmap(
 
   A list of parameters passed to the annotation function. Could be a
   list with the keys as the names of the annotation and the values as
-  the parameters passed to the annotation function. For the parameters
-  for names (columns_by, rows_by, columns_split_by, rows_split_by), the
-  key should be "name.(name)", where `(name)` is the name of the
-  annotation. See
+  the parameters. For the name/split annotations, use aliases:
+  `.col`/`.column` for `columns_by`, `.col.split`/`.column.split` for
+  `columns_split_by`. Setting a key to `FALSE` disables that annotation.
+  `$<key>$show_legend` controls the legend for that annotation. See
   [`anno_pie()`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md),
   [`anno_ring()`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md),
   [`anno_bar()`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md),
@@ -654,7 +581,10 @@ Heatmap(
 
   A list of parameters passed to the annotation function. Could be a
   list with the keys as the names of the annotation and the values as
-  the parameters. Same as `column_annotation_params`.
+  the parameters. For the name/split annotations, use aliases: `.row`
+  for `rows_by`, `.rows.split` for `rows_split_by`. Setting a key to
+  `FALSE` disables that annotation. `$<key>$show_legend` controls the
+  legend. Same structure as `column_annotation_params`.
 
 - row_annotation_agg:
 
@@ -892,9 +822,11 @@ if (requireNamespace("cluster", quietly = TRUE)) {
 
     Heatmap(
         go,
-        # Do not cluster rows and columns and hide the annotations
+        # Do not cluster rows and columns and hide the name annotations
+        # Use .row/.col aliases (or the actual rows_name/columns_name) in annotation_params
         cluster_rows = FALSE, cluster_columns = FALSE,
-        row_name_annotation = FALSE, column_name_annotation = FALSE,
+        row_annotation_params = list(.row = FALSE),
+        column_annotation_params = list(.col = FALSE),
         show_row_names = FALSE, show_column_names = FALSE,
         # Set the legend items
         values_by = "Players", legend_discrete = TRUE,
@@ -910,11 +842,10 @@ if (requireNamespace("cluster", quietly = TRUE)) {
 }
 
 if (requireNamespace("cluster", quietly = TRUE)) {
-    # Make the row/column name annotation thicker
+    # Make the row/column name annotation thicker using the .row/.col aliases
     Heatmap(matrix_data,
-        # Use the "name." prefix
-        column_annotation_params = list(name.columns = list(height = 5)),
-        row_annotation_params = list(name.rows = list(width = 5)))
+        column_annotation_params = list(.col = list(height = 5)),
+        row_annotation_params = list(.row = list(width = 5)))
 }
 
 

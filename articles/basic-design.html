@@ -143,11 +143,11 @@ palette to use. You can view all available palettes with
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Use the "Spectral" palette</span></span>
 <span><span class="fu"><a href="../reference/barplot.html">BarPlot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">iris</span>, x <span class="op">=</span> <span class="st">"Species"</span>, y <span class="op">=</span> <span class="st">"Petal.Length"</span>, palette <span class="op">=</span> <span class="st">"Spectral"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="basic-design_files/figure-html/unnamed-chunk-1-1.png" class="r-plt" alt="Example of using the palette argument" width="700"></p>
+<p><img src="basic-design_files/figure-html/unnamed-chunk-1-1.png" class="r-plt" alt="Example of using the palette argument"></p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Use the "nejm" palette from ggsci</span></span>
 <span><span class="fu"><a href="../reference/barplot.html">BarPlot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">iris</span>, x <span class="op">=</span> <span class="st">"Species"</span>, y <span class="op">=</span> <span class="st">"Petal.Length"</span>, palette <span class="op">=</span> <span class="st">"nejm"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="basic-design_files/figure-html/unnamed-chunk-2-1.png" class="r-plt" alt="Example of using the palette argument" width="700"></p>
+<p><img src="basic-design_files/figure-html/unnamed-chunk-2-1.png" class="r-plt" alt="Example of using the palette argument"></p>
 <p>The palette serves as the foundation for color generation. Colors are
 automatically assigned based on the number of categories or the range of
 continuous values in your data.</p>
@@ -173,7 +173,7 @@ and replace only the specified colors:</p>
 <span>    palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
 <span>    palcolor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"setosa"</span> <span class="op">=</span> <span class="st">"red"</span>, <span class="st">"versicolor"</span> <span class="op">=</span> <span class="st">"blue"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="basic-design_files/figure-html/unnamed-chunk-3-1.png" class="r-plt" alt="Example of using the palcolor argument for discrete colors" width="700"></p>
+<p><img src="basic-design_files/figure-html/unnamed-chunk-3-1.png" class="r-plt" alt="Example of using the palcolor argument for discrete colors"></p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># "virginica" will still use the color from the "Paired" palette</span></span></code></pre></div>
 </div>
@@ -198,7 +198,7 @@ distributed</strong> across the base palette colors:</p>
 <span>    <span class="co"># Notice that the 1st, 4th, 8th, and 11th colors in the palette are replaced</span></span>
 <span>    palcolor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"red"</span>, <span class="st">"pink"</span>, <span class="cn">NA</span>, <span class="st">"lightblue"</span>, <span class="st">"blue"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="basic-design_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="Example of using the palcolor argument for continuous colors" width="700"></p>
+<p><img src="basic-design_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="Example of using the palcolor argument for continuous colors"></p>
 <p>The positions are calculated evenly across the palette, so: - With 2
 values in <code>palcolor</code>: replaces first and last colors - With 3
 values: replaces first, middle, and last colors - With 4 values:
@@ -223,7 +223,7 @@ control the endpoints and key intermediate colors.</p>
 <span>    <span class="co"># NA values by default will be dropped</span></span>
 <span>    keep_na <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="basic-design_files/figure-html/unnamed-chunk-5-1.png" class="r-plt" alt="Example of customizing NA colors" width="700"></p>
+<p><img src="basic-design_files/figure-html/unnamed-chunk-5-1.png" class="r-plt" alt="Example of customizing NA colors"></p>
 </div>
 <div class="section level4">
 <h4 id="complete-example">Complete example<a class="anchor" aria-label="anchor" href="#complete-example"></a>
@@ -249,7 +249,7 @@ control the endpoints and key intermediate colors.</p>
 <span>    <span class="op">)</span>,</span>
 <span>    keep_na <span class="op">=</span> <span class="cn">TRUE</span>                        <span class="co"># Keep NA values in the plot</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="basic-design_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" alt="Use palette as base, override specific categories, and customize NA color" width="700"></p>
+<p><img src="basic-design_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" alt="Use palette as base, override specific categories, and customize NA color"></p>
 <p>This design gives you fine-grained control over your plot colors
 while maintaining the convenience of predefined palettes.</p>
 </div>
@@ -531,7 +531,7 @@ existing levels).</p>
 <span>    data <span class="op">=</span> <span class="va">data</span>,</span>
 <span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="basic-design_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" alt="Example of keeping NA values and unused levels of factors" width="700"></p>
+<p><img src="basic-design_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" alt="Example of keeping NA values and unused levels of factors"></p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Keep the unused level "C"</span></span>
 <span><span class="fu"><a href="../reference/barplot.html">BarPlot</a></span><span class="op">(</span></span>
@@ -539,7 +539,7 @@ existing levels).</p>
 <span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>,</span>
 <span>    keep_empty <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="basic-design_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" alt="Example of keeping NA values and unused levels of factors" width="700"></p>
+<p><img src="basic-design_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" alt="Example of keeping NA values and unused levels of factors"></p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Keep the unused level "C" for color assignment but not plotting</span></span>
 <span><span class="fu"><a href="../reference/barplot.html">BarPlot</a></span><span class="op">(</span></span>
@@ -547,7 +547,7 @@ existing levels).</p>
 <span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>,</span>
 <span>    keep_empty <span class="op">=</span> <span class="st">"level"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="basic-design_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" alt="Example of keeping NA values and unused levels of factors" width="700"></p>
+<p><img src="basic-design_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" alt="Example of keeping NA values and unused levels of factors"></p>
 </div>
 <div class="section level2">
 <h2 id="variable-level-control-of-keeping-na-values-and-unused-levels-of-factors">Variable-level control of keeping NA values and unused levels of
@@ -570,7 +570,7 @@ the data. For example:</p>
 <span>    keep_empty <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="cn">TRUE</span>, group <span class="op">=</span> <span class="st">"level"</span><span class="op">)</span>,</span>
 <span>    keep_na <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="cn">FALSE</span>, group <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="basic-design_files/figure-html/unnamed-chunk-12-1.png" class="r-plt" alt="Example of variable-level control of keeping NA values and unused levels of factors" width="700"></p>
+<p><img src="basic-design_files/figure-html/unnamed-chunk-12-1.png" class="r-plt" alt="Example of variable-level control of keeping NA values and unused levels of factors"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
