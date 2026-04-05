@@ -2,6 +2,9 @@ url: https://pwwang.github.io/plotthis/
 template:
   bootstrap: 5
   bootswatch: lumen
+figures:
+  dpi: 120
+  fig.retina: 1
 navbar:
   structure:
     left: [intro, reference, articles, news]

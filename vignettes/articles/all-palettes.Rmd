@@ -5,7 +5,8 @@ title: "All available palettes"
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  dpi = 120
 )
 ```
 

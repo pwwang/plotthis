@@ -3,6 +3,11 @@ title: "Basic Design Of The Plots"
 ---
 
 ```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  dpi = 120,
+  fig.width = 7,
+  fig.height = 7
+)
 library(plotthis)
 ```
 
