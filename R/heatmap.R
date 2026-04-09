@@ -147,6 +147,7 @@ process_heatmap_data <- function(
     if (identical(rows_by, columns_by) && !is.null(rows_by)) {
         stop("[Heatmap] 'rows_by' and 'columns_by' can not be the same.")
     }
+    stopifnot("[Heatmap] no data is presented (nrow == 0)." = nrow(data) > 0)
     # Infer in_form
     if (in_form == "auto") {
         if (is.matrix(data)) {
