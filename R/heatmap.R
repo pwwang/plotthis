@@ -1028,7 +1028,7 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
 #'  The function should have the following arguments: `j`, `i`, `x`, `y`, `w`, `h`, `fill`, `sr` and `sc`.
 #'  Please also refer to the `layer_fun` argument in `ComplexHeatmap::Heatmap`.
 #' @param cell_type A character string specifying the type of the heatmap cells.
-#'  The default is values. Other options are "bars", "label", "dot", "violin", "boxplot".
+#'  The default is "tile" Other options are "bars", "label", "dot", "violin", "boxplot" and "pie".
 #'  Note that for pie chart, the values under columns specified by `rows` will not be used directly. Instead, the values
 #'  will just be counted in different `pie_group_by` groups. `NA` values will not be counted.
 #' @param cell_agg A function to aggregate the values in the cell, for the cell type "tile" and "label".
@@ -1099,6 +1099,16 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
 #' When 3 elements are provided, the first one will be used for top, the second one will be used for left and right, and the third one will be used for bottom.
 #' When 4 elements are provided, they will be used for top, right, bottom, and left respectively.
 #' If no unit is provided, the default unit will be "mm".
+#' @param aspect.ratio A positive numeric scalar giving the height-to-width ratio of a single heatmap
+#' cell. When `NULL` (default), sensible per-`cell_type` defaults are used:
+#' * `tile`, `label`, `dot`: square cells (ratio = 1).
+#' * `bars`: wider-than-tall cells (ratio = 0.5) so individual bars are legible.
+#' * `violin`, `boxplot`, `pie`: square cells with a larger base size (0.5 in) so embedded
+#'   sub-plots have enough room.
+#' Provide an explicit value to override these defaults (e.g. `aspect.ratio = 2` for
+#' portrait cells, `aspect.ratio = 0.5` for landscape cells).
+#' Note that for `cell_type = "pie"` the cells are always drawn square by ComplexHeatmap
+#' regardless of this setting; use it primarily to budget the figure size.
 #' @param draw_opts A named list of additional arguments passed to [ComplexHeatmap::draw()]. Arguments already managed
 #' internally (`annotation_legend_list`, `padding`, `show_annotation_legend`, `annotation_legend_side`,
 #' `column_title`) take precedence over any values supplied here.
@@ -1153,7 +1163,7 @@ HeatmapAtomic <- function(
     row_annotation = NULL, row_annotation_side = "left", row_annotation_palette = "Paired", row_annotation_palcolor = NULL,
     row_annotation_type = "auto", row_annotation_params = list(), row_annotation_agg = NULL,
     # misc
-    flip = FALSE, alpha = 1, seed = 8525, return_grob = FALSE, padding = 15, draw_opts = list(),
+    flip = FALSE, alpha = 1, seed = 8525, return_grob = FALSE, padding = 15, aspect.ratio = NULL, draw_opts = list(),
     # cell customization
     layer_fun_callback = NULL, cell_type = "tile", cell_agg = NULL,
     ...
@@ -1404,7 +1414,6 @@ HeatmapAtomic <- function(
         }
     }
 
-    nrow_multiplier <- ncol_multiplier <- 1
     if (cell_type == "pie") {
         if (is.null(pie_group_by)) {
             stop("[Heatmap] Please provide 'pie_group_by' to use 'cell_type = 'pie'.")
@@ -1483,8 +1492,6 @@ HeatmapAtomic <- function(
                 border = TRUE, labels = pie_group_levels, legend_gp = gpar(fill = pie_colors)
             )
         }
-        nrow_multiplier <- 4
-        ncol_multiplier <- 6
     }
     else if (cell_type == "bars") {
         if (isTRUE(add_bg)) {
@@ -1513,7 +1520,6 @@ HeatmapAtomic <- function(
         }
         # Override the main legend
         legends$.heatmap <- get_main_legend(FALSE)
-        nrow_multiplier <- 0.5
     }
     else if (cell_type == "dot") {
         if (is.character(dot_size)) {
@@ -1725,14 +1731,32 @@ HeatmapAtomic <- function(
     if (!is.null(columns_split_by)) {
         .ncols <- .ncols * nlevels(data[[columns_split_by]])
     }
-    .ncols <- .ncols * ncol_multiplier
     .nrows <- nlevels(data[[rows_by]])
     if (!is.null(rows_split_by)) {
         .nrows <- .nrows * nlevels(data[[rows_split_by]])
     }
-    .nrows <- .nrows * nrow_multiplier
     nrows <- ifelse(flip, .ncols, .nrows)
     ncols <- ifelse(flip, .nrows, .ncols)
+
+    # ── Cell dimensions ──────────────────────────────────────────────────────
+    # cell_w / cell_h: width and height of one cell in the *non-flipped* orientation
+    # (inches).  cell_h = cell_w * effective_aspect_ratio.
+    # Defaults are chosen so embedded sub-plots (violin, boxplot, pie) have enough
+    # room, and bar cells are wider than they are tall.
+    cell_w <- switch(cell_type,
+        violin  = 0.5,
+        boxplot = 0.5,
+        pie     = 0.5,
+        bars    = 0.35,
+        0.25  # tile, label, dot
+    )
+    cell_h <- switch(cell_type,
+        bars = cell_w * 0.5,  # wider-than-tall by default
+        cell_w                # square by default for all other types
+    )
+    if (!is.null(aspect.ratio)) {
+        cell_h <- cell_w * aspect.ratio
+    }
 
     ## Set up the top annotations
     setup_name_annos <- function(
@@ -2075,19 +2099,21 @@ HeatmapAtomic <- function(
         # Cap the cell body to prevent runaway sizes for large heatmaps
         max_body <- 8
         if (isTRUE(flip)) {
-            body_width  <- min(nrows * 0.25, max_body)
-            body_height <- min(ncols * 0.25, max_body)
+            # After transposing, original columns become display rows and vice versa,
+            # so cell_w (horizontal dim) now contributes to height, and cell_h to width.
+            body_width  <- min(ncols * cell_h, max_body)
+            body_height <- min(nrows * cell_w, max_body)
         } else {
-            body_width  <- min(ncols * 0.25, max_body)
-            body_height <- min(nrows * 0.25, max_body)
+            body_width  <- min(ncols * cell_w, max_body)
+            body_height <- min(nrows * cell_h, max_body)
         }
     } else {
         if (isTRUE(flip)) {
-            body_width  <- nrows * 0.25
-            body_height <- ncols * 0.25
+            body_width  <- ncols * cell_h
+            body_height <- nrows * cell_w
         } else {
-            body_width  <- ncols * 0.25
-            body_height <- nrows * 0.25
+            body_width  <- ncols * cell_w
+            body_height <- nrows * cell_h
         }
     }
 
@@ -2112,12 +2138,6 @@ HeatmapAtomic <- function(
     # which is bottom, left, top and right.
     padding <- padding[c(3, 4, 1, 2)]
 
-
-    if (cell_type == "pie") {
-        sq <- max(width, height)
-        width  <- sq
-        height <- sq
-    }
 
     # ── Precise legend size contribution (mirrors calculate_plot_dimensions) ──
     # Collect all candidate legend label strings to estimate max label width.
@@ -2189,6 +2209,14 @@ HeatmapAtomic <- function(
             width <- width + legend_width
         }
     }
+    # Fix body dimensions so ComplexHeatmap honours aspect.ratio regardless of canvas size.
+    # Only set when the caller has not already provided explicit width/height via `...`.
+    if (is.null(hmargs$width)) {
+        hmargs$width  <- unit(body_width,  "inches")
+    }
+    if (is.null(hmargs$height)) {
+        hmargs$height <- unit(body_height, "inches")
+    }
     unknown_args <- setdiff(names(hmargs), methods::formalArgs(ComplexHeatmap::Heatmap))
     if (length(unknown_args) > 0) {
         warning("[Heatmap] Unknown arguments to ComplexHeatmap::Heatmap(): ",
@@ -2218,6 +2246,8 @@ HeatmapAtomic <- function(
         # to the graphics device. To prevent unwanted output during assignment while
         # still allowing proper display when explicitly printed, we capture to a
         # null device first, then return the HeatmapList which can be drawn later.
+        # Size the null device to the full computed dimensions so ComplexHeatmap
+        # builds layout at the right proportions.
         current_dev <- grDevices::dev.cur()
         null_dev <- grDevices::pdf(NULL)
         on.exit({
@@ -2485,7 +2515,7 @@ Heatmap <- function(
     row_annotation = NULL, row_annotation_side = "left", row_annotation_palette = "Paired", row_annotation_palcolor = NULL,
     row_annotation_type = "auto", row_annotation_params = list(), row_annotation_agg = NULL,
     # misc
-    flip = FALSE, alpha = 1, seed = 8525, padding = 15, draw_opts = list(),
+    flip = FALSE, alpha = 1, seed = 8525, padding = 15, aspect.ratio = NULL, draw_opts = list(),
     # cell customization
     layer_fun_callback = NULL, cell_type = c("tile", "bars", "label", "dot", "violin", "boxplot", "pie"), cell_agg = NULL,
     # subplots
@@ -2578,7 +2608,7 @@ Heatmap <- function(
                 row_annotation_type = row_annotation_type, row_annotation_params = row_annotation_params,
                 row_annotation_agg = row_annotation_agg,
 
-                flip = flip, alpha = alpha, seed = seed, return_grob = return_grob, draw_opts = draw_opts,
+                flip = flip, alpha = alpha, seed = seed, return_grob = return_grob, aspect.ratio = aspect.ratio, draw_opts = draw_opts,
                 layer_fun_callback = layer_fun_callback, cell_type = cell_type, cell_agg = cell_agg,
 
                 ...

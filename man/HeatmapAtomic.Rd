@@ -71,6 +71,7 @@ HeatmapAtomic(
   seed = 8525,
   return_grob = FALSE,
   padding = 15,
+  aspect.ratio = NULL,
   draw_opts = list(),
   layer_fun_callback = NULL,
   cell_type = "tile",
@@ -292,6 +293,19 @@ When 3 elements are provided, the first one will be used for top, the second one
 When 4 elements are provided, they will be used for top, right, bottom, and left respectively.
 If no unit is provided, the default unit will be "mm".}
 
+\item{aspect.ratio}{A positive numeric scalar giving the height-to-width ratio of a single heatmap
+cell. When \code{NULL} (default), sensible per-\code{cell_type} defaults are used:
+\itemize{
+\item \code{tile}, \code{label}, \code{dot}: square cells (ratio = 1).
+\item \code{bars}: wider-than-tall cells (ratio = 0.5) so individual bars are legible.
+\item \code{violin}, \code{boxplot}, \code{pie}: square cells with a larger base size (0.5 in) so embedded
+sub-plots have enough room.
+Provide an explicit value to override these defaults (e.g. \code{aspect.ratio = 2} for
+portrait cells, \code{aspect.ratio = 0.5} for landscape cells).
+Note that for \code{cell_type = "pie"} the cells are always drawn square by ComplexHeatmap
+regardless of this setting; use it primarily to budget the figure size.
+}}
+
 \item{draw_opts}{A named list of additional arguments passed to \code{\link[ComplexHeatmap:draw-dispatch]{ComplexHeatmap::draw()}}. Arguments already managed
 internally (\code{annotation_legend_list}, \code{padding}, \code{show_annotation_legend}, \code{annotation_legend_side},
 \code{column_title}) take precedence over any values supplied here.
@@ -302,7 +316,7 @@ The function should have the following arguments: \code{j}, \code{i}, \code{x}, 
 Please also refer to the \code{layer_fun} argument in \code{ComplexHeatmap::Heatmap}.}
 
 \item{cell_type}{A character string specifying the type of the heatmap cells.
-The default is values. Other options are "bars", "label", "dot", "violin", "boxplot".
+The default is "tile" Other options are "bars", "label", "dot", "violin", "boxplot" and "pie".
 Note that for pie chart, the values under columns specified by \code{rows} will not be used directly. Instead, the values
 will just be counted in different \code{pie_group_by} groups. \code{NA} values will not be counted.}
 
