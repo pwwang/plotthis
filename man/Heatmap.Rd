@@ -88,6 +88,7 @@ Heatmap(
   alpha = 1,
   seed = 8525,
   padding = 15,
+  draw_opts = list(),
   layer_fun_callback = NULL,
   cell_type = c("tile", "bars", "label", "dot", "violin", "boxplot", "pie"),
   cell_agg = NULL,
@@ -372,6 +373,11 @@ When 2 elements are provided, the first one will be used for top and bottom, and
 When 3 elements are provided, the first one will be used for top, the second one will be used for left and right, and the third one will be used for bottom.
 When 4 elements are provided, they will be used for top, right, bottom, and left respectively.
 If no unit is provided, the default unit will be "mm".}
+
+\item{draw_opts}{A named list of additional arguments passed to \code{\link[ComplexHeatmap:draw-dispatch]{ComplexHeatmap::draw()}}. Arguments already managed
+internally (\code{annotation_legend_list}, \code{padding}, \code{show_annotation_legend}, \code{annotation_legend_side},
+\code{column_title}) take precedence over any values supplied here.
+See \url{https://jokergoo.github.io/ComplexHeatmap/reference/draw-HeatmapList-method.html} for available options.}
 
 \item{layer_fun_callback}{A function to add additional layers to the heatmap.
 The function should have the following arguments: \code{j}, \code{i}, \code{x}, \code{y}, \code{w}, \code{h}, \code{fill}, \code{sr} and \code{sc}.

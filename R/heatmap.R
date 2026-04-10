@@ -1099,6 +1099,10 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
 #' When 3 elements are provided, the first one will be used for top, the second one will be used for left and right, and the third one will be used for bottom.
 #' When 4 elements are provided, they will be used for top, right, bottom, and left respectively.
 #' If no unit is provided, the default unit will be "mm".
+#' @param draw_opts A named list of additional arguments passed to [ComplexHeatmap::draw()]. Arguments already managed
+#' internally (`annotation_legend_list`, `padding`, `show_annotation_legend`, `annotation_legend_side`,
+#' `column_title`) take precedence over any values supplied here.
+#' See <https://jokergoo.github.io/ComplexHeatmap/reference/draw-HeatmapList-method.html> for available options.
 #' @param ... Other arguments passed to [ComplexHeatmap::Heatmap()]
 #' When `row_names_max_width` is passed, a unit is expected. But you can also pass a numeric values,
 #' with a default unit "inches", or a string like "5inches" to specify the number and unit directly.
@@ -1149,7 +1153,7 @@ HeatmapAtomic <- function(
     row_annotation = NULL, row_annotation_side = "left", row_annotation_palette = "Paired", row_annotation_palcolor = NULL,
     row_annotation_type = "auto", row_annotation_params = list(), row_annotation_agg = NULL,
     # misc
-    flip = FALSE, alpha = 1, seed = 8525, return_grob = FALSE, padding = 15,
+    flip = FALSE, alpha = 1, seed = 8525, return_grob = FALSE, padding = 15, draw_opts = list(),
     # cell customization
     layer_fun_callback = NULL, cell_type = "tile", cell_agg = NULL,
     ...
@@ -2193,20 +2197,22 @@ HeatmapAtomic <- function(
     }
     p <- do.call(ComplexHeatmap::Heatmap, hmargs)
     mat <- p@matrix
+    draw_args_fixed <- list(
+        annotation_legend_list = legends,
+        padding = draw_opts$padding %||% padding,
+        column_title = title
+    )
+    if (identical(legend.position, "none")) {
+        draw_args_fixed$show_annotation_legend <- draw_opts$show_annotation_legend %||% FALSE
+        draw_args_fixed$show_heatmap_legend <- draw_opts$show_heatmap_legend %||% FALSE
+    } else {
+        draw_args_fixed$annotation_legend_side <- draw_opts$annotation_legend_side %||% legend.position
+        draw_args_fixed$heatmap_legend_side <- draw_opts$heatmap_legend_side %||% legend.position
+    }
+    draw_args <- utils::modifyList(draw_opts, draw_args_fixed)
+
     if (isTRUE(return_grob)) {
-        if (identical(legend.position, "none")) {
-            p <- grid.grabExpr(ComplexHeatmap::draw(p,
-                annotation_legend_list = legends,
-                padding = padding,
-                show_annotation_legend = FALSE, column_title = title
-            ))
-        } else {
-            p <- grid.grabExpr(ComplexHeatmap::draw(p,
-                annotation_legend_list = legends,
-                padding = padding,
-                annotation_legend_side = legend.position, column_title = title
-            ))
-        }
+        p <- grid.grabExpr(do.call(ComplexHeatmap::draw, c(list(p), draw_args)))
     } else {
         # When return_grob = FALSE (ggplot2 v4), ComplexHeatmap::draw() will render
         # to the graphics device. To prevent unwanted output during assignment while
@@ -2221,19 +2227,7 @@ HeatmapAtomic <- function(
             }
         }, add = TRUE)
 
-        if (identical(legend.position, "none")) {
-            p <- ComplexHeatmap::draw(p,
-                annotation_legend_list = legends,
-                padding = padding,
-                show_annotation_legend = FALSE, column_title = title
-            )
-        } else {
-            p <- ComplexHeatmap::draw(p,
-                annotation_legend_list = legends,
-                padding = padding,
-                annotation_legend_side = legend.position, column_title = title
-            )
-        }
+        p <- do.call(ComplexHeatmap::draw, c(list(p), draw_args))
     }
 
     attr(p, "height") <- max(min(height, 15), 4)
@@ -2491,7 +2485,7 @@ Heatmap <- function(
     row_annotation = NULL, row_annotation_side = "left", row_annotation_palette = "Paired", row_annotation_palcolor = NULL,
     row_annotation_type = "auto", row_annotation_params = list(), row_annotation_agg = NULL,
     # misc
-    flip = FALSE, alpha = 1, seed = 8525, padding = 15,
+    flip = FALSE, alpha = 1, seed = 8525, padding = 15, draw_opts = list(),
     # cell customization
     layer_fun_callback = NULL, cell_type = c("tile", "bars", "label", "dot", "violin", "boxplot", "pie"), cell_agg = NULL,
     # subplots
@@ -2584,7 +2578,7 @@ Heatmap <- function(
                 row_annotation_type = row_annotation_type, row_annotation_params = row_annotation_params,
                 row_annotation_agg = row_annotation_agg,
 
-                flip = flip, alpha = alpha, seed = seed, return_grob = return_grob,
+                flip = flip, alpha = alpha, seed = seed, return_grob = return_grob, draw_opts = draw_opts,
                 layer_fun_callback = layer_fun_callback, cell_type = cell_type, cell_agg = cell_agg,
 
                 ...
