@@ -23,6 +23,8 @@ HeatmapAtomic(
   bars_sample = 100,
   label = identity,
   label_size = 10,
+  label_color = "black",
+  label_name = "label",
   violin_fill = NULL,
   boxplot_fill = NULL,
   dot_size = 8,
@@ -127,15 +129,35 @@ This is used to create pie charts in the heatmap when \code{cell_type} is \code{
 \item{bars_sample}{An integer specifying the number of samples to draw the bars.}
 
 \item{label}{A function to calculate the labels for the heatmap cells.
-It can take either 1, 3, or 5 arguments. The first argument is the aggregated values.
-If it takes 3 arguments, the second and third arguments are the row and column indices.
+It can take either 1, 3, or 5 arguments. The first argument is the aggregated value for a single cell.
+If it takes 3 arguments, the second and third arguments are the row and column indices of that cell.
 If it takes 5 arguments, the second and third arguments are the row and column indices,
-the fourth and fifth arguments are the row and column names.
-The function should return a character vector of the same length as the aggregated values.
-If the function returns NA, no label will be shown for that cell.
-For the indices, if you have the same dimension of data (same order of rows and columns) as the heatmap, you need to use \code{ComplexHeatmap::pindex()} to get the correct values.}
+and the fourth and fifth arguments are the row and column names.
+The function should return one of:
+\itemize{
+\item \code{NA} — no label is drawn for this cell.
+\item A character scalar — used as the label text; \code{label_size} and \code{label_color} are used for size and color.
+\item A named list with any of the following fields:
+\itemize{
+\item \code{label}: character scalar for the label text.
+\item \code{size}: numeric pt size (overrides \code{label_size}).
+\item \code{color}: character color string (overrides \code{label_color}).
+\item \code{legend}: character string used as the legend entry for this cell's color/label combination.
+\item \code{order}: integer controlling the position of this legend entry — smaller values appear first (top) in the legend.
+Entries without an \code{order} are appended after all explicitly ordered entries.
+For the indices, if you have the same dimension of data (same order of rows and columns) as the heatmap, you need to use \code{ComplexHeatmap::pindex()} to get the correct values.
+}
+}}
 
-\item{label_size}{A numeric value specifying the size of the labels when \code{cell_type = "label"}.}
+\item{label_size}{A numeric value specifying the default size (pt) of the labels when \code{cell_type = "label"}.
+Used as fallback when the \code{label} function does not return a \code{size} field.}
+
+\item{label_color}{A character string specifying the default color of the labels when \code{cell_type = "label"}.
+Used as fallback when the \code{label} function does not return a \code{color} field. Default is \code{"black"}.}
+
+\item{label_name}{A character string specifying the title of the label legend. Default is \code{"label"}.
+The legend is shown automatically when the \code{label} function returns a list with a \code{legend} field for at least
+one cell — no extra configuration needed. Set \code{legend.position = "none"} to suppress all legends.}
 
 \item{violin_fill}{A character vector of colors to override the fill color of the violin plot.
 If NULL, the fill color will be the same as the annotion.}

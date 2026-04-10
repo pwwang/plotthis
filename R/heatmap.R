@@ -1015,15 +1015,29 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
 #' @param pie_size A numeric value or a function specifying the size of the pie chart.
 #'  If it is a function, the function should take `count` as the argument and return the size.
 #' @param pie_size_name A character string specifying the name of the legend for the pie size.
-#' @param label_size A numeric value specifying the size of the labels when `cell_type = "label"`.
+#' @param label_size A numeric value specifying the default size (pt) of the labels when `cell_type = "label"`.
+#'  Used as fallback when the `label` function does not return a `size` field.
+#' @param label_color A character string specifying the default color of the labels when `cell_type = "label"`.
+#'  Used as fallback when the `label` function does not return a `color` field. Default is `"black"`.
+#' @param label_name A character string specifying the title of the label legend. Default is `"label"`.
+#'  The legend is shown automatically when the `label` function returns a list with a `legend` field for at least
+#'  one cell — no extra configuration needed. Set `legend.position = "none"` to suppress all legends.
 #' @param label A function to calculate the labels for the heatmap cells.
-#' It can take either 1, 3, or 5 arguments. The first argument is the aggregated values.
-#' If it takes 3 arguments, the second and third arguments are the row and column indices.
-#' If it takes 5 arguments, the second and third arguments are the row and column indices,
-#' the fourth and fifth arguments are the row and column names.
-#' The function should return a character vector of the same length as the aggregated values.
-#' If the function returns NA, no label will be shown for that cell.
-#' For the indices, if you have the same dimension of data (same order of rows and columns) as the heatmap, you need to use `ComplexHeatmap::pindex()` to get the correct values.
+#'  It can take either 1, 3, or 5 arguments. The first argument is the aggregated value for a single cell.
+#'  If it takes 3 arguments, the second and third arguments are the row and column indices of that cell.
+#'  If it takes 5 arguments, the second and third arguments are the row and column indices,
+#'  and the fourth and fifth arguments are the row and column names.
+#'  The function should return one of:
+#'  * `NA` — no label is drawn for this cell.
+#'  * A character scalar — used as the label text; `label_size` and `label_color` are used for size and color.
+#'  * A named list with any of the following fields:
+#'    - `label`: character scalar for the label text.
+#'    - `size`: numeric pt size (overrides `label_size`).
+#'    - `color`: character color string (overrides `label_color`).
+#'    - `legend`: character string used as the legend entry for this cell's color/label combination.
+#'    - `order`: integer controlling the position of this legend entry — smaller values appear first (top) in the legend.
+#'      Entries without an `order` are appended after all explicitly ordered entries.
+#'  For the indices, if you have the same dimension of data (same order of rows and columns) as the heatmap, you need to use `ComplexHeatmap::pindex()` to get the correct values.
 #' @param layer_fun_callback A function to add additional layers to the heatmap.
 #'  The function should have the following arguments: `j`, `i`, `x`, `y`, `w`, `h`, `fill`, `sr` and `sc`.
 #'  Please also refer to the `layer_fun` argument in `ComplexHeatmap::Heatmap`.
@@ -1138,7 +1152,7 @@ HeatmapAtomic <- function(
     # cell_type: bars
     bars_sample = 100,
     # cell_type: label
-    label = identity, label_size = 10,
+    label = identity, label_size = 10, label_color = "black", label_name = "label",
     # cell_type: violin
     violin_fill = NULL,
     # cell_type: boxplot
@@ -1696,29 +1710,100 @@ HeatmapAtomic <- function(
         if (isTRUE(add_reticle)) {
             stop("[Heatmap] Cannot use 'add_reticle' with 'cell_type = 'tile'.")
         }
-        hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
-            labels <- ComplexHeatmap::pindex(hmargs$matrix, i, j)
-            if (is.function(label)) {
-                nargs <- length(formalArgs(label))
-                if (nargs == 1) {
-                    labels <- label(labels)
-                } else if (nargs == 3) {
-                    labels <- label(labels, i, j)
-                } else if (nargs == 5) {
-                    labels <- label(labels, i, j, rownames(hmargs$matrix)[i], colnames(hmargs$matrix)[j])
-                } else {
-                    stop("[Heatmap] 'label' function should take 1, 3 or 5 arguments.")
+        # Helper: call label() for a single cell value, dispatching by nargs
+        .call_label <- if (is.function(label)) {
+            nargs_label <- length(formalArgs(label))
+            rnames <- rownames(hmargs$matrix)
+            cnames <- colnames(hmargs$matrix)
+            if (nargs_label == 1 || is.primitive(label)) {
+                function(val, ri, ci) label(val)
+            } else if (nargs_label == 3) {
+                function(val, ri, ci) label(val, ri, ci)
+            } else if (nargs_label == 5) {
+                function(val, ri, ci) label(val, ri, ci, rnames[ri], cnames[ci])
+            } else {
+                stop("[Heatmap] 'label' function should take 1, 3 or 5 arguments.")
+            }
+        } else {
+            function(val, ri, ci) val
+        }
+
+        # Helper: extract label text, supporting unnamed first list element
+        .extract_lbl <- function(r) {
+            if (!is.list(r)) return(if (length(r) == 1 && is.na(r)) NA_character_ else as.character(r))
+            if (!is.null(r$label)) return(as.character(r$label))
+            nms <- names(r)
+            unnamed_idx <- which(is.null(nms) | nms == "")
+            if (length(unnamed_idx) > 0) return(as.character(r[[unnamed_idx[1]]]))
+            NA_character_
+        }
+
+        # Pre-compute over whole matrix to auto-detect legend entries
+        if (!identical(legend.position, "none")) {
+            lgnd_seen <- list()  # named list: legend_key -> list(text, color)
+            for (ri in seq_len(nrow(hmargs$matrix))) {
+                for (ci in seq_len(ncol(hmargs$matrix))) {
+                    r <- .call_label(hmargs$matrix[ri, ci], ri, ci)
+                    if (is.list(r) && !is.null(r$legend) && !is.na(r$legend)) {
+                        key <- r$legend
+                        if (is.null(lgnd_seen[[key]])) {
+                            lbl_txt <- .extract_lbl(r)
+                            lgnd_seen[[key]] <- list(
+                                text  = if (!is.na(lbl_txt)) lbl_txt else key,
+                                color = r$color %||% label_color,
+                                order = r$order %||% NA_integer_
+                            )
+                        }
+                    }
                 }
             }
-            inds <- !is.na(labels)
-            if (any(inds)) {
-                theta <- seq(pi / 8, 2 * pi, length.out = 16)
-                lapply(theta, function(a) {
-                    x_out <- x[inds] + unit(cos(a) * label_size / 30, "mm")
-                    y_out <- y[inds] + unit(sin(a) * label_size / 30, "mm")
-                    grid.text(labels[inds], x = x_out, y = y_out, gp = gpar(fontsize = label_size, col = "white"))
+
+            if (length(lgnd_seen) > 0) {
+                # Sort by order field if any entries carry it
+                orders <- sapply(lgnd_seen, function(e) e$order %||% NA_integer_)
+                if (!all(is.na(orders))) {
+                    # Entries without order are placed after explicitly ordered ones
+                    orders[is.na(orders)] <- max(orders, na.rm = TRUE) + seq_len(sum(is.na(orders)))
+                    lgnd_seen <- lgnd_seen[order(orders)]
+                }
+                lgnd_graphics <- lapply(lgnd_seen, function(entry) {
+                    txt <- entry$text
+                    col <- entry$color
+                    sz  <- label_size
+                    function(x, y, w, h, fill) {
+                        grid.text(txt, x, y, gp = gpar(fontsize = sz, col = col, fontface = "bold"))
+                    }
                 })
-                grid.text(labels[inds], x[inds], y[inds], gp = gpar(fontsize = label_size, col = "black"))
+                legends$.label <- ComplexHeatmap::Legend(
+                    title    = label_name,
+                    labels   = names(lgnd_seen),
+                    graphics = lgnd_graphics,
+                    direction = legend.direction
+                )
+            }
+        }
+
+        hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
+            raw_vals <- ComplexHeatmap::pindex(hmargs$matrix, i, j)
+            results <- lapply(seq_along(i), function(k) .call_label(raw_vals[k], i[k], j[k]))
+
+            lbl   <- sapply(results, .extract_lbl)
+            sizes  <- sapply(results, function(r) if (is.list(r)) r$size  %||% label_size else label_size)
+            colors <- sapply(results, function(r) if (is.list(r)) r$color %||% label_color else label_color)
+
+            inds <- which(!is.na(lbl))
+            if (length(inds) > 0) {
+                theta <- seq(pi / 8, 2 * pi, length.out = 16)
+                for (k in inds) {
+                    sz <- sizes[k]
+                    lapply(theta, function(a) {
+                        grid.text(lbl[k],
+                            x = x[k] + unit(cos(a) * sz / 30, "mm"),
+                            y = y[k] + unit(sin(a) * sz / 30, "mm"),
+                            gp = gpar(fontsize = sz, col = "white"))
+                    })
+                    grid.text(lbl[k], x[k], y[k], gp = gpar(fontsize = sz, col = colors[k]))
+                }
             }
             if (is.function(layer_fun_callback)) {
                 layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
@@ -2238,6 +2323,10 @@ HeatmapAtomic <- function(
     }
     p <- do.call(ComplexHeatmap::Heatmap, hmargs)
     mat <- p@matrix
+    # Move the label legend to the end so it appears last
+    if (!is.null(legends$.label)) {
+        legends <- c(legends[names(legends) != ".label"], legends[".label"])
+    }
     draw_args_fixed <- list(
         annotation_legend_list = legends,
         padding = draw_opts$padding %||% padding,
@@ -2359,6 +2448,24 @@ HeatmapAtomic <- function(
 #'             ifelse(pv < 0.01, "***",
 #'             ifelse(pv < 0.05, "**",
 #'             ifelse(pv < 0.1, "*", NA)))
+#'         }
+#'     )
+#' }
+#' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     # Set label color, size, legend and order
+#'     pvalues <- matrix(runif(60, 0, 0.5), nrow = 6, ncol = 10)
+#'     Heatmap(matrix_data, rows_data = rows_data,
+#'         rows_split_by = "group", cell_type = "label",
+#'         label_name = "Significance",
+#'         label = function(x, i, j) {
+#'             pv <- ComplexHeatmap::pindex(pvalues, i, j)
+#'             if (pv < 0.01)
+#'                list("***", color = "red", size = 12, legend = "p < 0.01", order = 1)
+#'             else if (pv < 0.05)
+#'                list("**", color = "orange", size = 10, legend = "p < 0.05", order = 3)
+#'             else if (pv < 0.1)
+#'                list("*", color = "yellow", size = 8, legend = "p < 0.1", order = 2)
+#'             else NA
 #'         }
 #'     )
 #' }
@@ -2505,7 +2612,7 @@ Heatmap <- function(
     # cell_type: bars
     bars_sample = 100,
     # cell_type: label
-    label = identity, label_size = 10,
+    label = identity, label_size = 10, label_color = "black", label_name = "label",
     # cell_type: violin
     violin_fill = NULL,
     # cell_type: boxplot
@@ -2596,7 +2703,7 @@ Heatmap <- function(
                 pie_group_by = hmdata$pie_group_by, pie_palette = pie_palette[[nm]], pie_palcolor = pie_palcolor[[nm]],
 
                 bars_sample = bars_sample,
-                label = label, label_size = label_size,
+                label = label, label_size = label_size, label_color = label_color, label_name = label_name,
                 violin_fill = violin_fill,
                 boxplot_fill = boxplot_fill,
                 dot_size = dot_size, dot_size_name = dot_size_name,
