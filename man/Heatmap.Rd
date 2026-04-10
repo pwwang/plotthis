@@ -94,6 +94,7 @@ Heatmap(
   alpha = 1,
   seed = 8525,
   padding = 15,
+  base_size = 1,
   aspect.ratio = NULL,
   draw_opts = list(),
   layer_fun_callback = NULL,
@@ -447,6 +448,10 @@ When 3 elements are provided, the first one will be used for top, the second one
 When 4 elements are provided, they will be used for top, right, bottom, and left respectively.
 If no unit is provided, the default unit will be "mm".}
 
+\item{base_size}{A positive numeric scalar used as a scaling factor for the overall heatmap size.
+Default is \code{1} (no scaling). Values greater than 1 enlarge the heatmap; values less than 1 shrink it.
+Internally, all calculated cell dimensions are multiplied by this factor.}
+
 \item{aspect.ratio}{A positive numeric scalar giving the height-to-width ratio of a single heatmap
 cell. When \code{NULL} (default), sensible per-\code{cell_type} defaults are used:
 \itemize{
@@ -574,6 +579,7 @@ if (requireNamespace("cluster", quietly = TRUE)) {
     # add labels to the heatmap
     Heatmap(matrix_data, rows_data = rows_data,
         rows_split_by = "group", cell_type = "label",
+        base_size = 0.8,
         label = function(x) ifelse(
             x > 0, scales::number(x, accuracy = 0.01), NA
         )
@@ -584,6 +590,7 @@ if (requireNamespace("cluster", quietly = TRUE)) {
     pvalues <- matrix(runif(60, 0, 0.5), nrow = 6, ncol = 10)
     Heatmap(matrix_data, rows_data = rows_data,
         rows_split_by = "group", cell_type = "label",
+        base_size = 0.8,
         label = function(x, i, j) {
             pv <- ComplexHeatmap::pindex(pvalues, i, j)
             ifelse(pv < 0.01, "***",
@@ -597,6 +604,7 @@ if (requireNamespace("cluster", quietly = TRUE)) {
     pvalues <- matrix(runif(60, 0, 0.5), nrow = 6, ncol = 10)
     Heatmap(matrix_data, rows_data = rows_data,
         rows_split_by = "group", cell_type = "label",
+        base_size = 0.6,
         label_name = "Significance",
         label = function(x, i, j) {
             pv <- ComplexHeatmap::pindex(pvalues, i, j)

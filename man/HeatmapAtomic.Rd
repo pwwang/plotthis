@@ -77,6 +77,7 @@ HeatmapAtomic(
   seed = 8525,
   return_grob = FALSE,
   padding = 15,
+  base_size = 1,
   aspect.ratio = NULL,
   draw_opts = list(),
   layer_fun_callback = NULL,
@@ -364,6 +365,10 @@ When 2 elements are provided, the first one will be used for top and bottom, and
 When 3 elements are provided, the first one will be used for top, the second one will be used for left and right, and the third one will be used for bottom.
 When 4 elements are provided, they will be used for top, right, bottom, and left respectively.
 If no unit is provided, the default unit will be "mm".}
+
+\item{base_size}{A positive numeric scalar used as a scaling factor for the overall heatmap size.
+Default is \code{1} (no scaling). Values greater than 1 enlarge the heatmap; values less than 1 shrink it.
+Internally, all calculated cell dimensions are multiplied by this factor.}
 
 \item{aspect.ratio}{A positive numeric scalar giving the height-to-width ratio of a single heatmap
 cell. When \code{NULL} (default), sensible per-\code{cell_type} defaults are used:

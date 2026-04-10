@@ -1137,6 +1137,9 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
 #' When 3 elements are provided, the first one will be used for top, the second one will be used for left and right, and the third one will be used for bottom.
 #' When 4 elements are provided, they will be used for top, right, bottom, and left respectively.
 #' If no unit is provided, the default unit will be "mm".
+#' @param base_size A positive numeric scalar used as a scaling factor for the overall heatmap size.
+#' Default is `1` (no scaling). Values greater than 1 enlarge the heatmap; values less than 1 shrink it.
+#' Internally, all calculated cell dimensions are multiplied by this factor.
 #' @param aspect.ratio A positive numeric scalar giving the height-to-width ratio of a single heatmap
 #' cell. When `NULL` (default), sensible per-`cell_type` defaults are used:
 #' * `tile`, `label`, `dot`: square cells (ratio = 1).
@@ -1203,7 +1206,7 @@ HeatmapAtomic <- function(
     row_annotation = NULL, row_annotation_side = "left", row_annotation_palette = "Paired", row_annotation_palcolor = NULL,
     row_annotation_type = "auto", row_annotation_params = list(), row_annotation_agg = NULL,
     # misc
-    flip = FALSE, alpha = 1, seed = 8525, return_grob = FALSE, padding = 15, aspect.ratio = NULL, draw_opts = list(),
+    flip = FALSE, alpha = 1, seed = 8525, return_grob = FALSE, padding = 15, base_size = 1, aspect.ratio = NULL, draw_opts = list(),
     # cell customization
     layer_fun_callback = NULL, cell_type = "tile", cell_agg = NULL,
     ...
@@ -1979,8 +1982,8 @@ HeatmapAtomic <- function(
                     hw <- wv * 0.5; hh <- hv * 0.5
                     for (k in seq_len(n)) {
                         grid::grid.polygon(
-                            x = unit.c(xv[k], xv[k] + hw[k], xv[k], xv[k] - hw[k]),
-                            y = unit.c(yv[k] + hh[k], yv[k], yv[k] - hh[k], yv[k]),
+                            x = grid::unit.c(xv[k], xv[k] + hw[k], xv[k], xv[k] - hw[k]),
+                            y = grid::unit.c(yv[k] + hh[k], yv[k], yv[k] - hh[k], yv[k]),
                             gp = gpar(col = col[k], fill = NA, lwd = lwd[k]))
                     }
                 }
@@ -2084,6 +2087,7 @@ HeatmapAtomic <- function(
         mark    = 0.25,
         0.25  # tile, dot
     )
+    cell_w <- cell_w * base_size
     aspect.ratio <- aspect.ratio %||% switch(cell_type,
         violin  = 2,    # taller to accommodate violin shape
         boxplot = 2,  # slightly taller to accommodate boxplot shape
@@ -2691,6 +2695,7 @@ HeatmapAtomic <- function(
 #'     # add labels to the heatmap
 #'     Heatmap(matrix_data, rows_data = rows_data,
 #'         rows_split_by = "group", cell_type = "label",
+#'         base_size = 0.8,
 #'         label = function(x) ifelse(
 #'             x > 0, scales::number(x, accuracy = 0.01), NA
 #'         )
@@ -2701,6 +2706,7 @@ HeatmapAtomic <- function(
 #'     pvalues <- matrix(runif(60, 0, 0.5), nrow = 6, ncol = 10)
 #'     Heatmap(matrix_data, rows_data = rows_data,
 #'         rows_split_by = "group", cell_type = "label",
+#'         base_size = 0.8,
 #'         label = function(x, i, j) {
 #'             pv <- ComplexHeatmap::pindex(pvalues, i, j)
 #'             ifelse(pv < 0.01, "***",
@@ -2714,6 +2720,7 @@ HeatmapAtomic <- function(
 #'     pvalues <- matrix(runif(60, 0, 0.5), nrow = 6, ncol = 10)
 #'     Heatmap(matrix_data, rows_data = rows_data,
 #'         rows_split_by = "group", cell_type = "label",
+#'         base_size = 0.6,
 #'         label_name = "Significance",
 #'         label = function(x, i, j) {
 #'             pv <- ComplexHeatmap::pindex(pvalues, i, j)
@@ -2915,7 +2922,7 @@ Heatmap <- function(
     row_annotation = NULL, row_annotation_side = "left", row_annotation_palette = "Paired", row_annotation_palcolor = NULL,
     row_annotation_type = "auto", row_annotation_params = list(), row_annotation_agg = NULL,
     # misc
-    flip = FALSE, alpha = 1, seed = 8525, padding = 15, aspect.ratio = NULL, draw_opts = list(),
+    flip = FALSE, alpha = 1, seed = 8525, padding = 15, base_size = 1, aspect.ratio = NULL, draw_opts = list(),
     # cell customization
     layer_fun_callback = NULL, cell_type = c("tile", "bars", "label", "mark", "dot", "violin", "boxplot", "pie"), cell_agg = NULL,
     # subplots
@@ -3009,7 +3016,7 @@ Heatmap <- function(
                 row_annotation_type = row_annotation_type, row_annotation_params = row_annotation_params,
                 row_annotation_agg = row_annotation_agg,
 
-                flip = flip, alpha = alpha, seed = seed, return_grob = return_grob, aspect.ratio = aspect.ratio, draw_opts = draw_opts,
+                flip = flip, alpha = alpha, seed = seed, return_grob = return_grob, base_size = base_size, aspect.ratio = aspect.ratio, draw_opts = draw_opts,
                 layer_fun_callback = layer_fun_callback, cell_type = cell_type, cell_agg = cell_agg,
 
                 ...
