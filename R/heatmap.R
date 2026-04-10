@@ -2241,7 +2241,9 @@ HeatmapAtomic <- function(
     draw_args_fixed <- list(
         annotation_legend_list = legends,
         padding = draw_opts$padding %||% padding,
-        column_title = title
+        column_title = title,
+        align_heatmap_legend = draw_opts$align_heatmap_legend %||% "heatmap_center",
+        align_annotation_legend = draw_opts$align_annotation_legend %||% "heatmap_center"
     )
     if (identical(legend.position, "none")) {
         draw_args_fixed$show_annotation_legend <- draw_opts$show_annotation_legend %||% FALSE
