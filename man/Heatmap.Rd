@@ -45,6 +45,10 @@ Heatmap(
   label_size = 10,
   label_color = "black",
   label_name = "label",
+  mark = identity,
+  mark_color = "black",
+  mark_size = 1,
+  mark_name = "mark",
   violin_fill = NULL,
   boxplot_fill = NULL,
   dot_size = 8,
@@ -93,7 +97,7 @@ Heatmap(
   aspect.ratio = NULL,
   draw_opts = list(),
   layer_fun_callback = NULL,
-  cell_type = c("tile", "bars", "label", "dot", "violin", "boxplot", "pie"),
+  cell_type = c("tile", "bars", "label", "mark", "dot", "violin", "boxplot", "pie"),
   cell_agg = NULL,
   combine = TRUE,
   nrow = NULL,
@@ -260,6 +264,52 @@ Used as fallback when the \code{label} function does not return a \code{color} f
 The legend is shown automatically when the \code{label} function returns a list with a \code{legend} field for at least
 one cell — no extra configuration needed. Set \code{legend.position = "none"} to suppress all legends.}
 
+\item{mark}{A function to calculate the marks drawn on top of heatmap cells when \code{cell_type = "mark"}.
+Same dispatch rules as \code{label} (1, 3, or 5 arguments).
+The function should return one of:
+\itemize{
+\item \code{NA} — no mark is drawn for this cell.
+\item A character scalar — the mark type string; \code{mark_color} and \code{mark_size} are used for appearance.
+\item A named list with any of the following fields:
+\itemize{
+\item \code{mark} (or first unnamed element): character scalar, the mark type string.
+\item \code{size}: numeric stroke width (lwd), overrides \code{mark_size}.
+\item \code{color}: character color string, overrides \code{mark_color}.
+\item \code{legend}: character string used as the legend entry key.
+\item \code{order}: integer controlling legend entry position (smaller = higher).
+\strong{Supported mark types:}
+}
+\item Primitives: \code{-} (h-line), \code{|} (v-line), \code{+} (cross), \code{/} (l-diag), \verb{\\} (r-diag),
+\code{x} (both diags), \code{o} (circle with gap), \verb{()} (circle touching edge), \verb{<>} (diamond).
+\item With rectangular border: \verb{[]}, \verb{[-]}, \verb{[|]}, \verb{[+]}, \verb{[/]}, \verb{[\]}, \verb{[x]}, \verb{[o]}, \verb{[()]}, \verb{[<>]}.
+\item With full circle: \verb{(-)}, \verb{(|)}, \verb{(+)}, \verb{(/)}, \verb{(\\)}, \code{(x)}, \code{(o)}, \verb{(<>)}.
+\item With diamond: \verb{<->}, \verb{<|>}, \verb{<+>}, \verb{</>}, \verb{<\\>}, \verb{<x>}, \verb{<o>}.
+\item Combinations: e.g. \verb{[(|)]}, \verb{[(-)]}, \verb{[(+)]}, \verb{[(/)]}, \verb{[(\\)]}, \verb{[(x)]}, \verb{[(o)]}, \verb{[(<>)]}.
+}
+
+[]: R:\%5C
+[x]: R:x
+[o]: R:o
+[()]: R:()
+[<>]: R:\%3C\%3E
+[(|)]: R:(\%7C)
+[(-)]: R:(-)
+[(+)]: R:(+)
+[(/)]: R:(/)
+[(\)]: R:(\%5C\%5C)
+[(x)]: R:(x)
+[(o)]: R:(o)
+[(<>)]: R:(\%3C\%3E)}
+
+\item{mark_color}{A character string specifying the default color of the marks when \code{cell_type = "mark"}.
+Used as fallback when the \code{mark} function does not return a \code{color} field. Default is \code{"black"}.}
+
+\item{mark_size}{A numeric value specifying the default stroke width (lwd) of the marks when \code{cell_type = "mark"}.
+Used as fallback when the \code{mark} function does not return a \code{size} field. Default is \code{1}.}
+
+\item{mark_name}{A character string specifying the title of the mark legend. Default is \code{"mark"}.
+The legend is shown automatically when the \code{mark} function returns a list with a \code{legend} field.}
+
 \item{violin_fill}{A character vector of colors to override the fill color of the violin plot.
 If NULL, the fill color will be the same as the annotion.}
 
@@ -420,7 +470,7 @@ The function should have the following arguments: \code{j}, \code{i}, \code{x}, 
 Please also refer to the \code{layer_fun} argument in \code{ComplexHeatmap::Heatmap}.}
 
 \item{cell_type}{A character string specifying the type of the heatmap cells.
-The default is "tile" Other options are "bars", "label", "dot", "violin", "boxplot" and "pie".
+The default is "tile" Other options are "bars", "label", "mark", "dot", "violin", "boxplot" and "pie".
 Note that for pie chart, the values under columns specified by \code{rows} will not be used directly. Instead, the values
 will just be counted in different \code{pie_group_by} groups. \code{NA} values will not be counted.}
 
@@ -556,6 +606,24 @@ if (requireNamespace("cluster", quietly = TRUE)) {
                list("**", color = "orange", size = 10, legend = "p < 0.05", order = 3)
             else if (pv < 0.1)
                list("*", color = "yellow", size = 8, legend = "p < 0.1", order = 2)
+            else NA
+        }
+    )
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # add marks
+    Heatmap(matrix_data, rows_data = rows_data,
+        rows_split_by = "group", cell_type = "mark",
+        mark = function(x, i, j) {
+            pv <- ComplexHeatmap::pindex(pvalues, i, j)
+            if(pv < 0.01) list("[x]", legend = "p < 0.01")
+            else if (pv < 0.02) list("[o]", legend = "p < 0.02")
+            else if (pv < 0.03) list("[-]", legend = "p < 0.03")
+            else if (pv < 0.05) list("[()]", legend = "p < 0.05")
+            else if (pv < 0.06) list("+", legend = "p < 0.06")
+            else if (pv < 0.07) list("x", legend = "p < 0.07")
+            else if (pv < 0.08) list("[/]", legend = "p < 0.08")
+            else if (pv < 0.09) list("[\\\\]", legend = "p < 0.09")
             else NA
         }
     )
