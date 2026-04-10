@@ -1727,16 +1727,10 @@ HeatmapAtomic <- function(
         legends$.heatmap <- get_main_legend()
     }
 
-    .ncols <- nlevels(data[[columns_by]])
-    if (!is.null(columns_split_by)) {
-        .ncols <- .ncols * nlevels(data[[columns_split_by]])
-    }
-    .nrows <- nlevels(data[[rows_by]])
-    if (!is.null(rows_split_by)) {
-        .nrows <- .nrows * nlevels(data[[rows_split_by]])
-    }
-    nrows <- ifelse(flip, .ncols, .nrows)
-    ncols <- ifelse(flip, .nrows, .ncols)
+    # Use actual matrix dimensions: split_by groups partition their axis items,
+    # they don't multiply them. hmargs$matrix is already transposed when flip=TRUE.
+    nrows <- nrow(hmargs$matrix)
+    ncols <- ncol(hmargs$matrix)
 
     # ── Cell dimensions ──────────────────────────────────────────────────────
     # cell_w / cell_h: width and height of one cell in the *non-flipped* orientation
@@ -1748,15 +1742,18 @@ HeatmapAtomic <- function(
         boxplot = 0.5,
         pie     = 0.5,
         bars    = 0.35,
+        label   = 0.6,
         0.25  # tile, label, dot
     )
-    cell_h <- switch(cell_type,
-        bars = cell_w * 0.5,  # wider-than-tall by default
-        cell_w                # square by default for all other types
+    aspect.ratio <- aspect.ratio %||% switch(cell_type,
+        violin  = 2,    # taller to accommodate violin shape
+        boxplot = 2,  # slightly taller to accommodate boxplot shape
+        pie     = 1,    # square for pie charts
+        bars    = 0.5,  # wider-than-tall for bars
+        label   = 0.6,  # shorter to fit text better
+        1       # square by default for all other types
     )
-    if (!is.null(aspect.ratio)) {
-        cell_h <- cell_w * aspect.ratio
-    }
+    cell_h <- cell_w * aspect.ratio
 
     ## Set up the top annotations
     setup_name_annos <- function(
