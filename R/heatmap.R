@@ -1150,6 +1150,7 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
 #' portrait cells, `aspect.ratio = 0.5` for landscape cells).
 #' Note that for `cell_type = "pie"` the cells are always drawn square by ComplexHeatmap
 #' regardless of this setting; use it primarily to budget the figure size.
+#' Note that the aspect ratio is not guaranteed to be perfectly preserved; it will also be restricted by the size and height/width ratio of the entire plot itself.
 #' @param draw_opts A named list of additional arguments passed to [ComplexHeatmap::draw()]. Arguments already managed
 #' internally (`annotation_legend_list`, `padding`, `show_annotation_legend`, `annotation_legend_side`,
 #' `column_title`) take precedence over any values supplied here.
@@ -2459,26 +2460,12 @@ HeatmapAtomic <- function(
     col_overhead <- (if (isTRUE(cluster_columns)) 0.5 else 0) +
                     (ncol_annos - show_column_names * 4) * 0.15 + colnames_height
 
-    if (getOption("plotthis.dimcalc.enabled", TRUE)) {
-        # Cap the cell body to prevent runaway sizes for large heatmaps
-        max_body <- 8
-        if (isTRUE(flip)) {
-            # After transposing, original columns become display rows and vice versa,
-            # so cell_w (horizontal dim) now contributes to height, and cell_h to width.
-            body_width  <- min(ncols * cell_h, max_body)
-            body_height <- min(nrows * cell_w, max_body)
-        } else {
-            body_width  <- min(ncols * cell_w, max_body)
-            body_height <- min(nrows * cell_h, max_body)
-        }
+    if (isTRUE(flip)) {
+        body_width  <- ncols * cell_h
+        body_height <- nrows * cell_w
     } else {
-        if (isTRUE(flip)) {
-            body_width  <- ncols * cell_h
-            body_height <- nrows * cell_w
-        } else {
-            body_width  <- ncols * cell_w
-            body_height <- nrows * cell_h
-        }
+        body_width  <- ncols * cell_w
+        body_height <- nrows * cell_h
     }
 
     padding <- if (inherits(padding, "unit")) padding else unit(padding, "mm")
@@ -2575,12 +2562,13 @@ HeatmapAtomic <- function(
     }
     # Fix body dimensions so ComplexHeatmap honours aspect.ratio regardless of canvas size.
     # Only set when the caller has not already provided explicit width/height via `...`.
-    if (is.null(hmargs$width)) {
-        hmargs$width  <- unit(body_width,  "inches")
-    }
-    if (is.null(hmargs$height)) {
-        hmargs$height <- unit(body_height, "inches")
-    }
+    # Do NOT set the width and height so that the plot won't be truncated due to the device size limit; instead, we will set the width and height attributes on the returned object so that the downstream display method can choose how to handle it (e.g. scaling to fit the device).
+    # if (is.null(hmargs$width)) {
+    #     hmargs$width  <- unit(body_width,  "inches")
+    # }
+    # if (is.null(hmargs$height)) {
+    #     hmargs$height <- unit(body_height, "inches")
+    # }
     unknown_args <- setdiff(names(hmargs), methods::formalArgs(ComplexHeatmap::Heatmap))
     if (length(unknown_args) > 0) {
         warning("[Heatmap] Unknown arguments to ComplexHeatmap::Heatmap(): ",
@@ -2633,8 +2621,27 @@ HeatmapAtomic <- function(
         p <- do.call(ComplexHeatmap::draw, c(list(p), draw_args))
     }
 
-    attr(p, "height") <- max(min(height, 15), 4)
-    attr(p, "width") <- max(min(width, 15), 4)
+    min_size_in <- 4
+    max_size_in <- 64
+    attr(p, "height") <- max(min(height, max_size_in), min_size_in)
+    attr(p, "width") <- max(min(width, max_size_in), min_size_in)
+
+    # keep the ratio
+    ratio <- height / width
+    if (ratio > 1) {
+        if (attr(p, "height") == max_size_in) {
+            attr(p, "width") <- attr(p, "height") / ratio
+        } else if (attr(p, "width") == min_size_in) {
+            attr(p, "height") <- attr(p, "width") * ratio
+        }
+    } else if (ratio < 1) {
+        if (attr(p, "width") == max_size_in) {
+            attr(p, "height") <- attr(p, "width") * ratio
+        } else if (attr(p, "height") == min_size_in) {
+            attr(p, "width") <- attr(p, "height") / ratio
+        }
+    }
+
     attr(p, "data") <- mat
     p
 }

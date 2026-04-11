@@ -311,7 +311,7 @@ If the type is "auto", the type will be determined by the type and number of the
 
 \item{column_annotation_params}{A list of parameters passed to the annotation function.
 Could be a list with the keys as the names of the annotation and the values as the parameters.
-For the name/split annotations, use aliases: \code{.col}/\code{.column} for \code{columns_by}, \code{.col.split}/\code{.column.split}
+For the name/split annotations, use aliases: \code{.col}/\code{.cols}/\code{.column}/\code{.columns} for \code{columns_by}, \code{.col.split}/\code{.cols.split}/\code{.column.split}/\code{.columns.split}
 for \code{columns_split_by}. Setting a key to \code{FALSE} disables that annotation.
 \verb{$<key>$show_legend} controls the legend for that annotation.
 See \code{\link[=anno_pie]{anno_pie()}}, \code{\link[=anno_ring]{anno_ring()}}, \code{\link[=anno_bar]{anno_bar()}}, \code{\link[=anno_violin]{anno_violin()}}, \code{\link[=anno_boxplot]{anno_boxplot()}}, \code{\link[=anno_density]{anno_density()}}, \code{\link[=anno_simple]{anno_simple()}}, \code{\link[=anno_points]{anno_points()}} and \code{\link[=anno_lines]{anno_lines()}} for the parameters of each annotation function.}
@@ -338,7 +338,7 @@ If the type is "auto", the type will be determined by the type and number of the
 
 \item{row_annotation_params}{A list of parameters passed to the annotation function.
 Could be a list with the keys as the names of the annotation and the values as the parameters.
-For the name/split annotations, use aliases: \code{.row} for \code{rows_by}, \code{.rows.split} for \code{rows_split_by}.
+For the name/split annotations, use aliases: \code{.row}/\code{.rows} for \code{rows_by}, \code{.rows.split}/\code{.row.split} for \code{rows_split_by}.
 Setting a key to \code{FALSE} disables that annotation. \verb{$<key>$show_legend} controls the legend.
 Same structure as \code{column_annotation_params}.}
 
@@ -381,6 +381,7 @@ Provide an explicit value to override these defaults (e.g. \code{aspect.ratio = 
 portrait cells, \code{aspect.ratio = 0.5} for landscape cells).
 Note that for \code{cell_type = "pie"} the cells are always drawn square by ComplexHeatmap
 regardless of this setting; use it primarily to budget the figure size.
+Note that the aspect ratio is not guaranteed to be perfectly preserved; it will also be restricted by the size and height/width ratio of the entire plot itself.
 }}
 
 \item{draw_opts}{A named list of additional arguments passed to \code{\link[ComplexHeatmap:draw-dispatch]{ComplexHeatmap::draw()}}. Arguments already managed
