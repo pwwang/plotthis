@@ -1097,7 +1097,7 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
 #'  If the type is "auto", the type will be determined by the type and number of the column data.
 #' @param column_annotation_params A list of parameters passed to the annotation function.
 #'  Could be a list with the keys as the names of the annotation and the values as the parameters.
-#'  For the name/split annotations, use aliases: `.col`/`.column` for `columns_by`, `.col.split`/`.column.split`
+#'  For the name/split annotations, use aliases: `.col`/`.cols`/`.column`/`.columns` for `columns_by`, `.col.split`/`.cols.split`/`.column.split`/`.columns.split`
 #'  for `columns_split_by`. Setting a key to `FALSE` disables that annotation.
 #'  `$<key>$show_legend` controls the legend for that annotation.
 #'  See [anno_pie()], [anno_ring()], [anno_bar()], [anno_violin()], [anno_boxplot()], [anno_density()], [anno_simple()], [anno_points()] and [anno_lines()] for the parameters of each annotation function.
@@ -1117,7 +1117,7 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
 #' If the type is "auto", the type will be determined by the type and number of the row data.
 #' @param row_annotation_params A list of parameters passed to the annotation function.
 #'  Could be a list with the keys as the names of the annotation and the values as the parameters.
-#'  For the name/split annotations, use aliases: `.row` for `rows_by`, `.rows.split` for `rows_split_by`.
+#'  For the name/split annotations, use aliases: `.row`/`.rows` for `rows_by`, `.rows.split`/`.row.split` for `rows_split_by`.
 #'  Setting a key to `FALSE` disables that annotation. `$<key>$show_legend` controls the legend.
 #'  Same structure as `column_annotation_params`.
 #' @param row_annotation_agg A function to aggregate the values in the row annotation.
@@ -1222,11 +1222,17 @@ HeatmapAtomic <- function(
         if (is.null(lst) || !is.list(lst)) return(lst)
         alias_map <- list(
             ".row"           = row_key,
+            ".rows"          = row_key,
             ".rows.split"    = rsplit_key,
+            ".row.split"     = rsplit_key,
             ".col"           = col_key,
+            ".cols"          = col_key,
             ".column"        = col_key,
+            ".columns"       = col_key,
             ".col.split"     = csplit_key,
-            ".column.split"  = csplit_key
+            ".cols.split"    = csplit_key,
+            ".column.split"  = csplit_key,
+            ".columns.split" = csplit_key
         )
         for (alias in names(alias_map)) {
             real <- alias_map[[alias]]
@@ -2088,6 +2094,7 @@ HeatmapAtomic <- function(
         0.25  # tile, dot
     )
     cell_w <- cell_w * base_size
+
     aspect.ratio <- aspect.ratio %||% switch(cell_type,
         violin  = 2,    # taller to accommodate violin shape
         boxplot = 2,  # slightly taller to accommodate boxplot shape
