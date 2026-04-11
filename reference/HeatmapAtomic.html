@@ -62,6 +62,12 @@
 <span>  bars_sample <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  label <span class="op">=</span> <span class="va">identity</span>,</span>
 <span>  label_size <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  label_color <span class="op">=</span> <span class="st">"black"</span>,</span>
+<span>  label_name <span class="op">=</span> <span class="st">"label"</span>,</span>
+<span>  mark <span class="op">=</span> <span class="va">identity</span>,</span>
+<span>  mark_color <span class="op">=</span> <span class="st">"black"</span>,</span>
+<span>  mark_size <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  mark_name <span class="op">=</span> <span class="st">"mark"</span>,</span>
 <span>  violin_fill <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  boxplot_fill <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  dot_size <span class="op">=</span> <span class="fl">8</span>,</span>
@@ -110,6 +116,9 @@
 <span>  seed <span class="op">=</span> <span class="fl">8525</span>,</span>
 <span>  return_grob <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  padding <span class="op">=</span> <span class="fl">15</span>,</span>
+<span>  base_size <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  aspect.ratio <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  draw_opts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  layer_fun_callback <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cell_type <span class="op">=</span> <span class="st">"tile"</span>,</span>
 <span>  cell_agg <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -201,17 +210,85 @@ This is used to create pie charts in the heatmap when <code>cell_type</code> is 
 
 <dt id="arg-label">label<a class="anchor" aria-label="anchor" href="#arg-label"></a></dt>
 <dd><p>A function to calculate the labels for the heatmap cells.
-It can take either 1, 3, or 5 arguments. The first argument is the aggregated values.
-If it takes 3 arguments, the second and third arguments are the row and column indices.
+It can take either 1, 3, or 5 arguments. The first argument is the aggregated value for a single cell.
+If it takes 3 arguments, the second and third arguments are the row and column indices of that cell.
 If it takes 5 arguments, the second and third arguments are the row and column indices,
-the fourth and fifth arguments are the row and column names.
-The function should return a character vector of the same length as the aggregated values.
-If the function returns NA, no label will be shown for that cell.
-For the indices, if you have the same dimension of data (same order of rows and columns) as the heatmap, you need to use <code><a href="https://rdrr.io/pkg/ComplexHeatmap/man/pindex.html" class="external-link">ComplexHeatmap::pindex()</a></code> to get the correct values.</p></dd>
+and the fourth and fifth arguments are the row and column names.
+The function should return one of:</p><ul><li><p><code>NA</code> — no label is drawn for this cell.</p></li>
+<li><p>A character scalar — used as the label text; <code>label_size</code> and <code>label_color</code> are used for size and color.</p></li>
+<li><p>A named list with any of the following fields:</p><ul><li><p><code>label</code>: character scalar for the label text.</p></li>
+<li><p><code>size</code>: numeric pt size (overrides <code>label_size</code>).</p></li>
+<li><p><code>color</code>: character color string (overrides <code>label_color</code>).</p></li>
+<li><p><code>legend</code>: character string used as the legend entry for this cell's color/label combination.</p></li>
+<li><p><code>order</code>: integer controlling the position of this legend entry — smaller values appear first (top) in the legend.
+Entries without an <code>order</code> are appended after all explicitly ordered entries.
+For the indices, if you have the same dimension of data (same order of rows and columns) as the heatmap, you need to use <code><a href="https://rdrr.io/pkg/ComplexHeatmap/man/pindex.html" class="external-link">ComplexHeatmap::pindex()</a></code> to get the correct values.</p></li>
+</ul></li>
+</ul></dd>
 
 
 <dt id="arg-label-size">label_size<a class="anchor" aria-label="anchor" href="#arg-label-size"></a></dt>
-<dd><p>A numeric value specifying the size of the labels when <code>cell_type = "label"</code>.</p></dd>
+<dd><p>A numeric value specifying the default size (pt) of the labels when <code>cell_type = "label"</code>.
+Used as fallback when the <code>label</code> function does not return a <code>size</code> field.</p></dd>
+
+
+<dt id="arg-label-color">label_color<a class="anchor" aria-label="anchor" href="#arg-label-color"></a></dt>
+<dd><p>A character string specifying the default color of the labels when <code>cell_type = "label"</code>.
+Used as fallback when the <code>label</code> function does not return a <code>color</code> field. Default is <code>"black"</code>.</p></dd>
+
+
+<dt id="arg-label-name">label_name<a class="anchor" aria-label="anchor" href="#arg-label-name"></a></dt>
+<dd><p>A character string specifying the title of the label legend. Default is <code>"label"</code>.
+The legend is shown automatically when the <code>label</code> function returns a list with a <code>legend</code> field for at least
+one cell — no extra configuration needed. Set <code>legend.position = "none"</code> to suppress all legends.</p></dd>
+
+
+<dt id="arg-mark">mark<a class="anchor" aria-label="anchor" href="#arg-mark"></a></dt>
+<dd><p>A function to calculate the marks drawn on top of heatmap cells when <code>cell_type = "mark"</code>.
+Same dispatch rules as <code>label</code> (1, 3, or 5 arguments).
+The function should return one of:</p><ul><li><p><code>NA</code> — no mark is drawn for this cell.</p></li>
+<li><p>A character scalar — the mark type string; <code>mark_color</code> and <code>mark_size</code> are used for appearance.</p></li>
+<li><p>A named list with any of the following fields:</p><ul><li><p><code>mark</code> (or first unnamed element): character scalar, the mark type string.</p></li>
+<li><p><code>size</code>: numeric stroke width (lwd), overrides <code>mark_size</code>.</p></li>
+<li><p><code>color</code>: character color string, overrides <code>mark_color</code>.</p></li>
+<li><p><code>legend</code>: character string used as the legend entry key.</p></li>
+<li><p><code>order</code>: integer controlling legend entry position (smaller = higher).
+<strong>Supported mark types:</strong></p></li>
+</ul></li>
+<li><p>Primitives: <code>-</code> (h-line), <code>|</code> (v-line), <code>+</code> (cross), <code>/</code> (l-diag), <code>\</code> (r-diag),
+<code>x</code> (both diags), <code>o</code> (circle with gap), <code>()</code> (circle touching edge), <code>&lt;&gt;</code> (diamond).</p></li>
+<li><p>With rectangular border: <code>[]</code>, <code>[-]</code>, <code>[|]</code>, <code>[+]</code>, <code>[/]</code>, <code>[\]</code>, <code>[x]</code>, <code>[o]</code>, <code>[()]</code>, <code>[&lt;&gt;]</code>.</p></li>
+<li><p>With full circle: <code>(-)</code>, <code>(|)</code>, <code>(+)</code>, <code>(/)</code>, <code>(\)</code>, <code>(x)</code>, <code>(o)</code>, <code>(&lt;&gt;)</code>.</p></li>
+<li><p>With diamond: <code>&lt;-&gt;</code>, <code>&lt;|&gt;</code>, <code>&lt;+&gt;</code>, <code>&lt;/&gt;</code>, <code>&lt;\&gt;</code>, <code>&lt;x&gt;</code>, <code>&lt;o&gt;</code>.</p></li>
+<li><p>Combinations: e.g. <code>[(|)]</code>, <code>[(-)]</code>, <code>[(+)]</code>, <code>[(/)]</code>, <code>[(\)]</code>, <code>[(x)]</code>, <code>[(o)]</code>, <code>[(&lt;&gt;)]</code>.</p></li>
+</ul><p>[]: R:%5C
+[x]: R:x
+[o]: R:o
+[()]: R:()
+[&lt;&gt;]: R:%3C%3E
+[(|)]: R:(%7C)
+[(-)]: R:(-)
+[(+)]: R:(+)
+[(/)]: R:(/)
+[(\)]: R:(%5C%5C)
+[(x)]: R:(x)
+[(o)]: R:(o)
+[(&lt;&gt;)]: R:(%3C%3E)</p></dd>
+
+
+<dt id="arg-mark-color">mark_color<a class="anchor" aria-label="anchor" href="#arg-mark-color"></a></dt>
+<dd><p>A character string specifying the default color of the marks when <code>cell_type = "mark"</code>.
+Used as fallback when the <code>mark</code> function does not return a <code>color</code> field. Default is <code>"black"</code>.</p></dd>
+
+
+<dt id="arg-mark-size">mark_size<a class="anchor" aria-label="anchor" href="#arg-mark-size"></a></dt>
+<dd><p>A numeric value specifying the default stroke width (lwd) of the marks when <code>cell_type = "mark"</code>.
+Used as fallback when the <code>mark</code> function does not return a <code>size</code> field. Default is <code>1</code>.</p></dd>
+
+
+<dt id="arg-mark-name">mark_name<a class="anchor" aria-label="anchor" href="#arg-mark-name"></a></dt>
+<dd><p>A character string specifying the title of the mark legend. Default is <code>"mark"</code>.
+The legend is shown automatically when the <code>mark</code> function returns a list with a <code>legend</code> field.</p></dd>
 
 
 <dt id="arg-violin-fill">violin_fill<a class="anchor" aria-label="anchor" href="#arg-violin-fill"></a></dt>
@@ -458,6 +535,32 @@ When 4 elements are provided, they will be used for top, right, bottom, and left
 If no unit is provided, the default unit will be "mm".</p></dd>
 
 
+<dt id="arg-base-size">base_size<a class="anchor" aria-label="anchor" href="#arg-base-size"></a></dt>
+<dd><p>A positive numeric scalar used as a scaling factor for the overall heatmap size.
+Default is <code>1</code> (no scaling). Values greater than 1 enlarge the heatmap; values less than 1 shrink it.
+Internally, all calculated cell dimensions are multiplied by this factor.</p></dd>
+
+
+<dt id="arg-aspect-ratio">aspect.ratio<a class="anchor" aria-label="anchor" href="#arg-aspect-ratio"></a></dt>
+<dd><p>A positive numeric scalar giving the height-to-width ratio of a single heatmap
+cell. When <code>NULL</code> (default), sensible per-<code>cell_type</code> defaults are used:</p><ul><li><p><code>tile</code>, <code>label</code>, <code>dot</code>: square cells (ratio = 1).</p></li>
+<li><p><code>bars</code>: wider-than-tall cells (ratio = 0.5) so individual bars are legible.</p></li>
+<li><p><code>violin</code>, <code>boxplot</code>, <code>pie</code>: square cells with a larger base size (0.5 in) so embedded
+sub-plots have enough room.
+Provide an explicit value to override these defaults (e.g. <code>aspect.ratio = 2</code> for
+portrait cells, <code>aspect.ratio = 0.5</code> for landscape cells).
+Note that for <code>cell_type = "pie"</code> the cells are always drawn square by ComplexHeatmap
+regardless of this setting; use it primarily to budget the figure size.</p></li>
+</ul></dd>
+
+
+<dt id="arg-draw-opts">draw_opts<a class="anchor" aria-label="anchor" href="#arg-draw-opts"></a></dt>
+<dd><p>A named list of additional arguments passed to <code><a href="https://rdrr.io/pkg/ComplexHeatmap/man/draw-dispatch.html" class="external-link">ComplexHeatmap::draw()</a></code>. Arguments already managed
+internally (<code>annotation_legend_list</code>, <code>padding</code>, <code>show_annotation_legend</code>, <code>annotation_legend_side</code>,
+<code>column_title</code>) take precedence over any values supplied here.
+See <a href="https://jokergoo.github.io/ComplexHeatmap/reference/draw-HeatmapList-method.html" class="external-link">https://jokergoo.github.io/ComplexHeatmap/reference/draw-HeatmapList-method.html</a> for available options.</p></dd>
+
+
 <dt id="arg-layer-fun-callback">layer_fun_callback<a class="anchor" aria-label="anchor" href="#arg-layer-fun-callback"></a></dt>
 <dd><p>A function to add additional layers to the heatmap.
 The function should have the following arguments: <code>j</code>, <code>i</code>, <code>x</code>, <code>y</code>, <code>w</code>, <code>h</code>, <code>fill</code>, <code>sr</code> and <code>sc</code>.
@@ -466,7 +569,7 @@ Please also refer to the <code>layer_fun</code> argument in <code><a href="https
 
 <dt id="arg-cell-type">cell_type<a class="anchor" aria-label="anchor" href="#arg-cell-type"></a></dt>
 <dd><p>A character string specifying the type of the heatmap cells.
-The default is values. Other options are "bars", "label", "dot", "violin", "boxplot".
+The default is "tile" Other options are "bars", "label", "mark", "dot", "violin", "boxplot" and "pie".
 Note that for pie chart, the values under columns specified by <code>rows</code> will not be used directly. Instead, the values
 will just be counted in different <code>pie_group_by</code> groups. <code>NA</code> values will not be counted.</p></dd>
 

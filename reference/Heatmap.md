@@ -52,6 +52,12 @@ Heatmap(
   bars_sample = 100,
   label = identity,
   label_size = 10,
+  label_color = "black",
+  label_name = "label",
+  mark = identity,
+  mark_color = "black",
+  mark_size = 1,
+  mark_name = "mark",
   violin_fill = NULL,
   boxplot_fill = NULL,
   dot_size = 8,
@@ -97,8 +103,11 @@ Heatmap(
   alpha = 1,
   seed = 8525,
   padding = 15,
+  base_size = 1,
+  aspect.ratio = NULL,
+  draw_opts = list(),
   layer_fun_callback = NULL,
-  cell_type = c("tile", "bars", "label", "dot", "violin", "boxplot", "pie"),
+  cell_type = c("tile", "bars", "label", "mark", "dot", "violin", "boxplot", "pie"),
   cell_agg = NULL,
   combine = TRUE,
   nrow = NULL,
@@ -350,21 +359,118 @@ Heatmap(
 
   A function to calculate the labels for the heatmap cells. It can take
   either 1, 3, or 5 arguments. The first argument is the aggregated
-  values. If it takes 3 arguments, the second and third arguments are
-  the row and column indices. If it takes 5 arguments, the second and
-  third arguments are the row and column indices, the fourth and fifth
-  arguments are the row and column names. The function should return a
-  character vector of the same length as the aggregated values. If the
-  function returns NA, no label will be shown for that cell. For the
-  indices, if you have the same dimension of data (same order of rows
-  and columns) as the heatmap, you need to use
-  [`ComplexHeatmap::pindex()`](https://rdrr.io/pkg/ComplexHeatmap/man/pindex.html)
-  to get the correct values.
+  value for a single cell. If it takes 3 arguments, the second and third
+  arguments are the row and column indices of that cell. If it takes 5
+  arguments, the second and third arguments are the row and column
+  indices, and the fourth and fifth arguments are the row and column
+  names. The function should return one of:
+
+  - `NA` — no label is drawn for this cell.
+
+  - A character scalar — used as the label text; `label_size` and
+    `label_color` are used for size and color.
+
+  - A named list with any of the following fields:
+
+    - `label`: character scalar for the label text.
+
+    - `size`: numeric pt size (overrides `label_size`).
+
+    - `color`: character color string (overrides `label_color`).
+
+    - `legend`: character string used as the legend entry for this
+      cell's color/label combination.
+
+    - `order`: integer controlling the position of this legend entry —
+      smaller values appear first (top) in the legend. Entries without
+      an `order` are appended after all explicitly ordered entries. For
+      the indices, if you have the same dimension of data (same order of
+      rows and columns) as the heatmap, you need to use
+      [`ComplexHeatmap::pindex()`](https://rdrr.io/pkg/ComplexHeatmap/man/pindex.html)
+      to get the correct values.
 
 - label_size:
 
-  A numeric value specifying the size of the labels when
-  `cell_type = "label"`.
+  A numeric value specifying the default size (pt) of the labels when
+  `cell_type = "label"`. Used as fallback when the `label` function does
+  not return a `size` field.
+
+- label_color:
+
+  A character string specifying the default color of the labels when
+  `cell_type = "label"`. Used as fallback when the `label` function does
+  not return a `color` field. Default is `"black"`.
+
+- label_name:
+
+  A character string specifying the title of the label legend. Default
+  is `"label"`. The legend is shown automatically when the `label`
+  function returns a list with a `legend` field for at least one cell —
+  no extra configuration needed. Set `legend.position = "none"` to
+  suppress all legends.
+
+- mark:
+
+  A function to calculate the marks drawn on top of heatmap cells when
+  `cell_type = "mark"`. Same dispatch rules as `label` (1, 3, or 5
+  arguments). The function should return one of:
+
+  - `NA` — no mark is drawn for this cell.
+
+  - A character scalar — the mark type string; `mark_color` and
+    `mark_size` are used for appearance.
+
+  - A named list with any of the following fields:
+
+    - `mark` (or first unnamed element): character scalar, the mark type
+      string.
+
+    - `size`: numeric stroke width (lwd), overrides `mark_size`.
+
+    - `color`: character color string, overrides `mark_color`.
+
+    - `legend`: character string used as the legend entry key.
+
+    - `order`: integer controlling legend entry position (smaller =
+      higher). **Supported mark types:**
+
+  - Primitives: `-` (h-line), `|` (v-line), `+` (cross), `/` (l-diag),
+    `\` (r-diag), `x` (both diags), `o` (circle with gap), `()` (circle
+    touching edge), `<>` (diamond).
+
+  - With rectangular border: `[]`, `[-]`, `[|]`, `[+]`, `[/]`, `[\]`,
+    `[x]`, `[o]`, `[()]`, `[<>]`.
+
+  - With full circle: `(-)`, `(|)`, `(+)`, `(/)`, `(\)`, `(x)`, `(o)`,
+    `(<>)`.
+
+  - With diamond: `<->`, `<|>`, `<+>`, `</>`, `<\>`, `<x>`, `<o>`.
+
+  - Combinations: e.g. `[(|)]`, `[(-)]`, `[(+)]`, `[(/)]`, `[(\)]`,
+    `[(x)]`, `[(o)]`, `[(<>)]`.
+
+  \[\]: R:%5C \[x\]: R:x \[o\]: R:o \[()\]: R:() \[\<\>\]: R:%3C%3E
+  \[(\|)\]: R:(%7C) \[(-)\]: R:(-) \[(+)\]: R:(+) \[(/)\]: R:(/)
+  \[(\\\]: R:(%5C%5C) \[(x)\]: R:(x) \[(o)\]: R:(o) \[(\<\>)\]:
+  R:(%3C%3E)
+
+- mark_color:
+
+  A character string specifying the default color of the marks when
+  `cell_type = "mark"`. Used as fallback when the `mark` function does
+  not return a `color` field. Default is `"black"`.
+
+- mark_size:
+
+  A numeric value specifying the default stroke width (lwd) of the marks
+  when `cell_type = "mark"`. Used as fallback when the `mark` function
+  does not return a `size` field. Default is `1`.
+
+- mark_name:
+
+  A character string specifying the title of the mark legend. Default is
+  `"mark"`. The legend is shown automatically when the `mark` function
+  returns a list with a `legend` field.
 
 - violin_fill:
 
@@ -624,6 +730,42 @@ Heatmap(
   they will be used for top, right, bottom, and left respectively. If no
   unit is provided, the default unit will be "mm".
 
+- base_size:
+
+  A positive numeric scalar used as a scaling factor for the overall
+  heatmap size. Default is `1` (no scaling). Values greater than 1
+  enlarge the heatmap; values less than 1 shrink it. Internally, all
+  calculated cell dimensions are multiplied by this factor.
+
+- aspect.ratio:
+
+  A positive numeric scalar giving the height-to-width ratio of a single
+  heatmap cell. When `NULL` (default), sensible per-`cell_type` defaults
+  are used:
+
+  - `tile`, `label`, `dot`: square cells (ratio = 1).
+
+  - `bars`: wider-than-tall cells (ratio = 0.5) so individual bars are
+    legible.
+
+  - `violin`, `boxplot`, `pie`: square cells with a larger base size
+    (0.5 in) so embedded sub-plots have enough room. Provide an explicit
+    value to override these defaults (e.g. `aspect.ratio = 2` for
+    portrait cells, `aspect.ratio = 0.5` for landscape cells). Note that
+    for `cell_type = "pie"` the cells are always drawn square by
+    ComplexHeatmap regardless of this setting; use it primarily to
+    budget the figure size.
+
+- draw_opts:
+
+  A named list of additional arguments passed to
+  [`ComplexHeatmap::draw()`](https://rdrr.io/pkg/ComplexHeatmap/man/draw-dispatch.html).
+  Arguments already managed internally (`annotation_legend_list`,
+  `padding`, `show_annotation_legend`, `annotation_legend_side`,
+  `column_title`) take precedence over any values supplied here. See
+  <https://jokergoo.github.io/ComplexHeatmap/reference/draw-HeatmapList-method.html>
+  for available options.
+
 - layer_fun_callback:
 
   A function to add additional layers to the heatmap. The function
@@ -635,11 +777,11 @@ Heatmap(
 - cell_type:
 
   A character string specifying the type of the heatmap cells. The
-  default is values. Other options are "bars", "label", "dot", "violin",
-  "boxplot". Note that for pie chart, the values under columns specified
-  by `rows` will not be used directly. Instead, the values will just be
-  counted in different `pie_group_by` groups. `NA` values will not be
-  counted.
+  default is "tile" Other options are "bars", "label", "mark", "dot",
+  "violin", "boxplot" and "pie". Note that for pie chart, the values
+  under columns specified by `rows` will not be used directly. Instead,
+  the values will just be counted in different `pie_group_by` groups.
+  `NA` values will not be counted.
 
 - cell_agg:
 
@@ -796,6 +938,7 @@ if (requireNamespace("cluster", quietly = TRUE)) {
     # add labels to the heatmap
     Heatmap(matrix_data, rows_data = rows_data,
         rows_split_by = "group", cell_type = "label",
+        base_size = 0.8,
         label = function(x) ifelse(
             x > 0, scales::number(x, accuracy = 0.01), NA
         )
@@ -807,11 +950,51 @@ if (requireNamespace("cluster", quietly = TRUE)) {
     pvalues <- matrix(runif(60, 0, 0.5), nrow = 6, ncol = 10)
     Heatmap(matrix_data, rows_data = rows_data,
         rows_split_by = "group", cell_type = "label",
+        base_size = 0.8,
         label = function(x, i, j) {
             pv <- ComplexHeatmap::pindex(pvalues, i, j)
             ifelse(pv < 0.01, "***",
             ifelse(pv < 0.05, "**",
             ifelse(pv < 0.1, "*", NA)))
+        }
+    )
+}
+
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # Set label color, size, legend and order
+    pvalues <- matrix(runif(60, 0, 0.5), nrow = 6, ncol = 10)
+    Heatmap(matrix_data, rows_data = rows_data,
+        rows_split_by = "group", cell_type = "label",
+        base_size = 0.6,
+        label_name = "Significance",
+        label = function(x, i, j) {
+            pv <- ComplexHeatmap::pindex(pvalues, i, j)
+            if (pv < 0.01)
+               list("***", color = "red", size = 12, legend = "p < 0.01", order = 1)
+            else if (pv < 0.05)
+               list("**", color = "orange", size = 10, legend = "p < 0.05", order = 3)
+            else if (pv < 0.1)
+               list("*", color = "yellow", size = 8, legend = "p < 0.1", order = 2)
+            else NA
+        }
+    )
+}
+
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # add marks
+    Heatmap(matrix_data, rows_data = rows_data,
+        rows_split_by = "group", cell_type = "mark",
+        mark = function(x, i, j) {
+            pv <- ComplexHeatmap::pindex(pvalues, i, j)
+            if(pv < 0.01) list("[x]", legend = "p < 0.01")
+            else if (pv < 0.02) list("[o]", legend = "p < 0.02")
+            else if (pv < 0.03) list("[-]", legend = "p < 0.03")
+            else if (pv < 0.05) list("[()]", legend = "p < 0.05")
+            else if (pv < 0.06) list("+", legend = "p < 0.06")
+            else if (pv < 0.07) list("x", legend = "p < 0.07")
+            else if (pv < 0.08) list("[/]", legend = "p < 0.08")
+            else if (pv < 0.09) list("[\\]", legend = "p < 0.09")
+            else NA
         }
     )
 }
