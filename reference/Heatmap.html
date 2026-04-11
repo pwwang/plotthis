@@ -572,7 +572,7 @@ If the type is "auto", the type will be determined by the type and number of the
 <dt id="arg-column-annotation-params">column_annotation_params<a class="anchor" aria-label="anchor" href="#arg-column-annotation-params"></a></dt>
 <dd><p>A list of parameters passed to the annotation function.
 Could be a list with the keys as the names of the annotation and the values as the parameters.
-For the name/split annotations, use aliases: <code>.col</code>/<code>.column</code> for <code>columns_by</code>, <code>.col.split</code>/<code>.column.split</code>
+For the name/split annotations, use aliases: <code>.col</code>/<code>.cols</code>/<code>.column</code>/<code>.columns</code> for <code>columns_by</code>, <code>.col.split</code>/<code>.cols.split</code>/<code>.column.split</code>/<code>.columns.split</code>
 for <code>columns_split_by</code>. Setting a key to <code>FALSE</code> disables that annotation.
 <code>$&lt;key&gt;$show_legend</code> controls the legend for that annotation.
 See <code><a href="heatmap-anno.html">anno_pie()</a></code>, <code><a href="heatmap-anno.html">anno_ring()</a></code>, <code><a href="heatmap-anno.html">anno_bar()</a></code>, <code><a href="heatmap-anno.html">anno_violin()</a></code>, <code><a href="heatmap-anno.html">anno_boxplot()</a></code>, <code><a href="heatmap-anno.html">anno_density()</a></code>, <code><a href="heatmap-anno.html">anno_simple()</a></code>, <code><a href="heatmap-anno.html">anno_points()</a></code> and <code><a href="heatmap-anno.html">anno_lines()</a></code> for the parameters of each annotation function.</p></dd>
@@ -613,7 +613,7 @@ If the type is "auto", the type will be determined by the type and number of the
 <dt id="arg-row-annotation-params">row_annotation_params<a class="anchor" aria-label="anchor" href="#arg-row-annotation-params"></a></dt>
 <dd><p>A list of parameters passed to the annotation function.
 Could be a list with the keys as the names of the annotation and the values as the parameters.
-For the name/split annotations, use aliases: <code>.row</code> for <code>rows_by</code>, <code>.rows.split</code> for <code>rows_split_by</code>.
+For the name/split annotations, use aliases: <code>.row</code>/<code>.rows</code> for <code>rows_by</code>, <code>.rows.split</code>/<code>.row.split</code> for <code>rows_split_by</code>.
 Setting a key to <code>FALSE</code> disables that annotation. <code>$&lt;key&gt;$show_legend</code> controls the legend.
 Same structure as <code>column_annotation_params</code>.</p></dd>
 
@@ -664,7 +664,8 @@ sub-plots have enough room.
 Provide an explicit value to override these defaults (e.g. <code>aspect.ratio = 2</code> for
 portrait cells, <code>aspect.ratio = 0.5</code> for landscape cells).
 Note that for <code>cell_type = "pie"</code> the cells are always drawn square by ComplexHeatmap
-regardless of this setting; use it primarily to budget the figure size.</p></li>
+regardless of this setting; use it primarily to budget the figure size.
+Note that the aspect ratio is not guaranteed to be perfectly preserved; it will also be restricted by the size and height/width ratio of the entire plot itself.</p></li>
 </ul></dd>
 
 

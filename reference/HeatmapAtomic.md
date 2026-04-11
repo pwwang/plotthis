@@ -479,7 +479,8 @@ HeatmapAtomic(
   A list of parameters passed to the annotation function. Could be a
   list with the keys as the names of the annotation and the values as
   the parameters. For the name/split annotations, use aliases:
-  `.col`/`.column` for `columns_by`, `.col.split`/`.column.split` for
+  `.col`/`.cols`/`.column`/`.columns` for `columns_by`,
+  `.col.split`/`.cols.split`/`.column.split`/`.columns.split` for
   `columns_split_by`. Setting a key to `FALSE` disables that annotation.
   `$<key>$show_legend` controls the legend for that annotation. See
   [`anno_pie()`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md),
@@ -535,10 +536,11 @@ HeatmapAtomic(
 
   A list of parameters passed to the annotation function. Could be a
   list with the keys as the names of the annotation and the values as
-  the parameters. For the name/split annotations, use aliases: `.row`
-  for `rows_by`, `.rows.split` for `rows_split_by`. Setting a key to
-  `FALSE` disables that annotation. `$<key>$show_legend` controls the
-  legend. Same structure as `column_annotation_params`.
+  the parameters. For the name/split annotations, use aliases:
+  `.row`/`.rows` for `rows_by`, `.rows.split`/`.row.split` for
+  `rows_split_by`. Setting a key to `FALSE` disables that annotation.
+  `$<key>$show_legend` controls the legend. Same structure as
+  `column_annotation_params`.
 
 - row_annotation_agg:
 
@@ -608,7 +610,9 @@ HeatmapAtomic(
     portrait cells, `aspect.ratio = 0.5` for landscape cells). Note that
     for `cell_type = "pie"` the cells are always drawn square by
     ComplexHeatmap regardless of this setting; use it primarily to
-    budget the figure size.
+    budget the figure size. Note that the aspect ratio is not guaranteed
+    to be perfectly preserved; it will also be restricted by the size
+    and height/width ratio of the entire plot itself.
 
 - draw_opts:
 
