@@ -98,7 +98,8 @@ Heatmap(
   aspect.ratio = NULL,
   draw_opts = list(),
   layer_fun_callback = NULL,
-  cell_type = c("tile", "bars", "label", "mark", "dot", "violin", "boxplot", "pie"),
+  cell_type = c("tile", "bars", "label", "mark", "label+mark", "mark+label", "dot",
+    "violin", "boxplot", "pie"),
   cell_agg = NULL,
   combine = TRUE,
   nrow = NULL,
@@ -476,7 +477,10 @@ The function should have the following arguments: \code{j}, \code{i}, \code{x}, 
 Please also refer to the \code{layer_fun} argument in \code{ComplexHeatmap::Heatmap}.}
 
 \item{cell_type}{A character string specifying the type of the heatmap cells.
-The default is "tile" Other options are "bars", "label", "mark", "dot", "violin", "boxplot" and "pie".
+The default is "tile" Other options are "bars", "label", "mark", "label+mark" (or equivalently "mark+label"),
+"dot", "violin", "boxplot" and "pie".
+Use "label+mark" to render both marks (drawn first, as background) and text labels (drawn on top)
+in each cell simultaneously, combining all \verb{label_*} and \verb{mark_*} parameters.
 Note that for pie chart, the values under columns specified by \code{rows} will not be used directly. Instead, the values
 will just be counted in different \code{pie_group_by} groups. \code{NA} values will not be counted.}
 

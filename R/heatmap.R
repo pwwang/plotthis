@@ -1066,7 +1066,10 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
 #'  The function should have the following arguments: `j`, `i`, `x`, `y`, `w`, `h`, `fill`, `sr` and `sc`.
 #'  Please also refer to the `layer_fun` argument in `ComplexHeatmap::Heatmap`.
 #' @param cell_type A character string specifying the type of the heatmap cells.
-#'  The default is "tile" Other options are "bars", "label", "mark", "dot", "violin", "boxplot" and "pie".
+#'  The default is "tile" Other options are "bars", "label", "mark", "label+mark" (or equivalently "mark+label"),
+#'  "dot", "violin", "boxplot" and "pie".
+#'  Use "label+mark" to render both marks (drawn first, as background) and text labels (drawn on top)
+#'  in each cell simultaneously, combining all `label_*` and `mark_*` parameters.
 #'  Note that for pie chart, the values under columns specified by `rows` will not be used directly. Instead, the values
 #'  will just be counted in different `pie_group_by` groups. `NA` values will not be counted.
 #' @param cell_agg A function to aggregate the values in the cell, for the cell type "tile" and "label".
@@ -1180,7 +1183,7 @@ HeatmapAtomic <- function(
     # cell_type: bars
     bars_sample = 100,
     # cell_type: label
-    label = identity, label_size = 10, label_color = "black", label_name = "label",
+    label = scales::label_number_auto(), label_size = 10, label_color = "black", label_name = "label",
     # cell_type: mark
     mark = identity, mark_color = "black", mark_size = 1, mark_name = "mark",
     # cell_type: violin
@@ -2074,6 +2077,309 @@ HeatmapAtomic <- function(
         }
         legends$.heatmap <- get_main_legend()
     }
+    else if (cell_type == "label+mark") {
+        if (isTRUE(add_bg)) {
+            stop("[Heatmap] Cannot use 'add_bg' with 'cell_type = \"label+mark\"'.")
+        }
+        if (isTRUE(add_reticle)) {
+            stop("[Heatmap] Cannot use 'add_reticle' with 'cell_type = \"label+mark\"'.")
+        }
+        # ── Label dispatch helper ────────────────────────────────────────────
+        .call_label <- if (is.function(label)) {
+            nargs_label <- length(formalArgs(label))
+            rnames <- rownames(hmargs$matrix)
+            cnames <- colnames(hmargs$matrix)
+            if (nargs_label == 1 || is.primitive(label)) {
+                function(val, ri, ci) label(val)
+            } else if (nargs_label == 3) {
+                function(val, ri, ci) label(val, ri, ci)
+            } else if (nargs_label == 5) {
+                function(val, ri, ci) label(val, ri, ci, rnames[ri], cnames[ci])
+            } else {
+                stop("[Heatmap] 'label' function should take 1, 3 or 5 arguments.")
+            }
+        } else {
+            function(val, ri, ci) val
+        }
+
+        # Helper: extract label text, supporting unnamed first list element
+        .extract_lbl <- function(r) {
+            if (!is.list(r)) return(if (length(r) == 1 && is.na(r)) NA_character_ else as.character(r))
+            if (!is.null(r$label)) return(as.character(r$label))
+            nms <- names(r)
+            unnamed_idx <- which(is.null(nms) | nms == "")
+            if (length(unnamed_idx) > 0) return(as.character(r[[unnamed_idx[1]]]))
+            NA_character_
+        }
+
+        # ── Mark dispatch helper ─────────────────────────────────────────────
+        .call_mark <- if (is.function(mark)) {
+            nargs_mark <- length(formalArgs(mark))
+            rnames <- rownames(hmargs$matrix)
+            cnames <- colnames(hmargs$matrix)
+            if (nargs_mark == 1 || is.primitive(mark)) {
+                function(val, ri, ci) mark(val)
+            } else if (nargs_mark == 3) {
+                function(val, ri, ci) mark(val, ri, ci)
+            } else if (nargs_mark == 5) {
+                function(val, ri, ci) mark(val, ri, ci, rnames[ri], cnames[ci])
+            } else {
+                stop("[Heatmap] 'mark' function should take 1, 3 or 5 arguments.")
+            }
+        } else {
+            function(val, ri, ci) val
+        }
+
+        # ── Extract mark type string ────────────────────────────────────────
+        .extract_mark <- function(r) {
+            if (!is.list(r)) return(if (length(r) == 1 && is.na(r)) NA_character_ else as.character(r))
+            if (!is.null(r$mark)) return(as.character(r$mark))
+            nms <- names(r)
+            unnamed_idx <- which(is.null(nms) | nms == "")
+            if (length(unnamed_idx) > 0) return(as.character(r[[unnamed_idx[1]]]))
+            NA_character_
+        }
+
+        # ── Mark type parser ────────────────────────────────────────────────
+        .parse_mark_type <- function(m) {
+            if (is.na(m) || m == "" || m == "NA") return(character(0))
+            prims <- character(0)
+            repeat {
+                if (nchar(m) >= 2 && startsWith(m, "[") && endsWith(m, "]")) {
+                    prims <- c(prims, "rect")
+                    m <- substr(m, 2L, nchar(m) - 1L)
+                } else if (nchar(m) >= 3 && startsWith(m, "(") && endsWith(m, ")")) {
+                    prims <- c(prims, "circle_full")
+                    m <- substr(m, 2L, nchar(m) - 1L)
+                } else if (nchar(m) >= 3 && startsWith(m, "<") && endsWith(m, ">")) {
+                    prims <- c(prims, "diamond")
+                    m <- substr(m, 2L, nchar(m) - 1L)
+                } else {
+                    break
+                }
+            }
+            inner <- if (m == "") {
+                character(0)
+            } else {
+                switch(m,
+                    "-"  = "hline",
+                    "|"  = "vline",
+                    "+"  = c("hline", "vline"),
+                    "/"  = "ldiag",
+                    "\\" = "rdiag",
+                    "x"  = c("ldiag", "rdiag"),
+                    "o"  = "circle_gap",
+                    "()" = "circle_full",
+                    "<>" = "diamond",
+                    stop(paste0("[Heatmap] Unknown mark type: '", m, "'"))
+                )
+            }
+            c(prims, inner)
+        }
+
+        # ── Vectorized primitive renderer ───────────────────────────────────
+        .draw_mark_prim <- function(prim, xv, yv, wv, hv, col, lwd) {
+            switch(prim,
+                rect = grid::grid.rect(
+                    x = xv, y = yv, width = wv, height = hv,
+                    gp = gpar(col = col, fill = NA, lwd = lwd)),
+
+                hline = grid::grid.segments(
+                    x0 = xv - wv * 0.5, y0 = yv,
+                    x1 = xv + wv * 0.5, y1 = yv,
+                    gp = gpar(col = col, lwd = lwd)),
+
+                vline = grid::grid.segments(
+                    x0 = xv, y0 = yv - hv * 0.5,
+                    x1 = xv, y1 = yv + hv * 0.5,
+                    gp = gpar(col = col, lwd = lwd)),
+
+                ldiag = grid::grid.segments(
+                    x0 = xv - wv * 0.5, y0 = yv - hv * 0.5,
+                    x1 = xv + wv * 0.5, y1 = yv + hv * 0.5,
+                    gp = gpar(col = col, lwd = lwd)),
+
+                rdiag = grid::grid.segments(
+                    x0 = xv - wv * 0.5, y0 = yv + hv * 0.5,
+                    x1 = xv + wv * 0.5, y1 = yv - hv * 0.5,
+                    gp = gpar(col = col, lwd = lwd)),
+
+                circle_gap = {
+                    .r_mm <- min(
+                        convertUnit(wv[1L], "mm", valueOnly = TRUE),
+                        convertUnit(hv[1L], "mm", valueOnly = TRUE)
+                    ) * 0.25
+                    grid::grid.circle(
+                        x = xv, y = yv,
+                        r = unit(.r_mm, "mm"),
+                        gp = gpar(col = col, fill = NA, lwd = lwd))
+                },
+
+                circle_full = {
+                    .theta  <- seq(0, 2 * pi, length.out = 65L)[seq_len(64L)]
+                    .cos_t  <- cos(.theta)
+                    .sin_t  <- sin(.theta)
+                    for (k in seq_along(xv)) {
+                        grid::grid.polygon(
+                            x = xv[k] + wv[k] * 0.5 * .cos_t,
+                            y = yv[k] + hv[k] * 0.5 * .sin_t,
+                            gp = gpar(
+                                col  = if (length(col) == 1L) col else col[k],
+                                fill = NA,
+                                lwd  = if (length(lwd) == 1L) lwd else lwd[k]))
+                    }
+                },
+
+                diamond = {
+                    n <- length(xv)
+                    hw <- wv * 0.5; hh <- hv * 0.5
+                    for (k in seq_len(n)) {
+                        grid::grid.polygon(
+                            x = grid::unit.c(xv[k], xv[k] + hw[k], xv[k], xv[k] - hw[k]),
+                            y = grid::unit.c(yv[k] + hh[k], yv[k], yv[k] - hh[k], yv[k]),
+                            gp = gpar(col = col[k], fill = NA, lwd = lwd[k]))
+                    }
+                }
+            )
+        }
+
+        # ── Legend icon builder ─────────────────────────────────────────────
+        .mark_legend_icon <- function(mark_str, col, lwd) {
+            prims <- .parse_mark_type(mark_str)
+            function(x, y, w, h, fill) {
+                for (p in prims) {
+                    .draw_mark_prim(p, x, y, w, h, col, lwd)
+                }
+            }
+        }
+
+        # ── Pre-scan for label legend entries ───────────────────────────────
+        if (!identical(legend.position, "none")) {
+            lgnd_seen <- list()
+            for (ri in seq_len(nrow(hmargs$matrix))) {
+                for (ci in seq_len(ncol(hmargs$matrix))) {
+                    r <- .call_label(hmargs$matrix[ri, ci], ri, ci)
+                    if (is.list(r) && !is.null(r$legend) && !is.na(r$legend)) {
+                        key <- r$legend
+                        if (is.null(lgnd_seen[[key]])) {
+                            lbl_txt <- .extract_lbl(r)
+                            lgnd_seen[[key]] <- list(
+                                text  = if (!is.na(lbl_txt)) lbl_txt else key,
+                                color = r$color %||% label_color,
+                                order = r$order %||% NA_integer_
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (length(lgnd_seen) > 0) {
+                orders <- sapply(lgnd_seen, function(e) e$order %||% NA_integer_)
+                if (!all(is.na(orders))) {
+                    orders[is.na(orders)] <- max(orders, na.rm = TRUE) + seq_len(sum(is.na(orders)))
+                    lgnd_seen <- lgnd_seen[order(orders)]
+                }
+                lgnd_graphics <- lapply(lgnd_seen, function(entry) {
+                    txt <- entry$text
+                    col <- entry$color
+                    sz  <- label_size
+                    function(x, y, w, h, fill) {
+                        grid.text(txt, x, y, gp = gpar(fontsize = sz, col = col, fontface = "bold"))
+                    }
+                })
+                legends$.label <- ComplexHeatmap::Legend(
+                    title    = label_name,
+                    labels   = names(lgnd_seen),
+                    graphics = lgnd_graphics,
+                    direction = legend.direction
+                )
+            }
+
+            # ── Pre-scan for mark legend entries ─────────────────────────────
+            mkl_seen <- list()
+            for (ri in seq_len(nrow(hmargs$matrix))) {
+                for (ci in seq_len(ncol(hmargs$matrix))) {
+                    r <- .call_mark(hmargs$matrix[ri, ci], ri, ci)
+                    if (is.list(r) && !is.null(r$legend) && !is.na(r$legend)) {
+                        key <- r$legend
+                        if (is.null(mkl_seen[[key]])) {
+                            mk_str <- .extract_mark(r)
+                            mkl_seen[[key]] <- list(
+                                mark  = if (!is.na(mk_str)) mk_str else key,
+                                color = r$color %||% mark_color,
+                                size  = r$size  %||% mark_size,
+                                order = r$order %||% NA_integer_
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (length(mkl_seen) > 0) {
+                orders <- sapply(mkl_seen, function(e) e$order %||% NA_integer_)
+                if (!all(is.na(orders))) {
+                    orders[is.na(orders)] <- max(orders, na.rm = TRUE) + seq_len(sum(is.na(orders)))
+                    mkl_seen <- mkl_seen[order(orders)]
+                }
+                mkl_graphics <- lapply(mkl_seen, function(entry) {
+                    .mark_legend_icon(entry$mark, entry$color, entry$size)
+                })
+                legends$.mark <- ComplexHeatmap::Legend(
+                    title       = mark_name,
+                    labels      = names(mkl_seen),
+                    graphics    = mkl_graphics,
+                    direction   = legend.direction,
+                    row_gap     = unit(1, "mm")
+                )
+            }
+        }
+
+        # ── layer_fun: marks first (background), then labels (foreground) ───
+        hmargs$layer_fun <- function(j, i, x, y, w, h, fill, sr, sc) {
+            raw_vals <- ComplexHeatmap::pindex(hmargs$matrix, i, j)
+
+            # Draw marks
+            mk_results  <- lapply(seq_along(i), function(k) .call_mark(raw_vals[k], i[k], j[k]))
+            marks_vec   <- sapply(mk_results, .extract_mark)
+            mk_colors   <- sapply(mk_results, function(r) if (is.list(r)) r$color %||% mark_color else mark_color)
+            mk_sizes    <- sapply(mk_results, function(r) if (is.list(r)) r$size  %||% mark_size  else mark_size)
+
+            unique_marks <- unique(marks_vec[!is.na(marks_vec)])
+            for (mk in unique_marks) {
+                km   <- which(marks_vec == mk)
+                prms <- .parse_mark_type(mk)
+                for (prim in prms) {
+                    .draw_mark_prim(prim, x[km], y[km], w[km], h[km], mk_colors[km], mk_sizes[km])
+                }
+            }
+
+            # Draw labels on top
+            lbl_results <- lapply(seq_along(i), function(k) .call_label(raw_vals[k], i[k], j[k]))
+            lbl   <- sapply(lbl_results, .extract_lbl)
+            sizes  <- sapply(lbl_results, function(r) if (is.list(r)) r$size  %||% label_size else label_size)
+            colors <- sapply(lbl_results, function(r) if (is.list(r)) r$color %||% label_color else label_color)
+
+            inds <- which(!is.na(lbl))
+            if (length(inds) > 0) {
+                theta <- seq(pi / 8, 2 * pi, length.out = 16)
+                for (k in inds) {
+                    sz <- sizes[k]
+                    lapply(theta, function(a) {
+                        grid.text(lbl[k],
+                            x = x[k] + unit(cos(a) * sz / 30, "mm"),
+                            y = y[k] + unit(sin(a) * sz / 30, "mm"),
+                            gp = gpar(fontsize = sz, col = "white"))
+                    })
+                    grid.text(lbl[k], x[k], y[k], gp = gpar(fontsize = sz, col = colors[k]))
+                }
+            }
+
+            if (is.function(layer_fun_callback)) {
+                layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
+            }
+        }
+        legends$.heatmap <- get_main_legend()
+    }
 
     # Use actual matrix dimensions: split_by groups partition their axis items,
     # they don't multiply them. hmargs$matrix is already transposed when flip=TRUE.
@@ -2086,23 +2392,25 @@ HeatmapAtomic <- function(
     # Defaults are chosen so embedded sub-plots (violin, boxplot, pie) have enough
     # room, and bar cells are wider than they are tall.
     cell_w <- switch(cell_type,
-        violin  = 0.5,
-        boxplot = 0.5,
-        pie     = 0.5,
-        bars    = 0.35,
-        label   = 0.6,
-        mark    = 0.25,
+        violin      = 0.5,
+        boxplot     = 0.5,
+        pie         = 0.5,
+        bars        = 0.35,
+        label       = 0.6,
+        mark        = 0.25,
+        `label+mark` = 0.6,
         0.25  # tile, dot
     )
     cell_w <- cell_w * base_size
 
     aspect.ratio <- aspect.ratio %||% switch(cell_type,
-        violin  = 2,    # taller to accommodate violin shape
-        boxplot = 2,  # slightly taller to accommodate boxplot shape
-        pie     = 1,    # square for pie charts
-        bars    = 0.5,  # wider-than-tall for bars
-        label   = 0.6,  # shorter to fit text better
-        mark    = 1,    # square for marks
+        violin       = 2,    # taller to accommodate violin shape
+        boxplot      = 2,    # slightly taller to accommodate boxplot shape
+        pie          = 1,    # square for pie charts
+        bars         = 0.5,  # wider-than-tall for bars
+        label        = 0.6,  # shorter to fit text better
+        mark         = 1,    # square for marks
+        `label+mark` = 0.6,  # same as label
         1       # square by default for all other types
     )
     cell_h <- cell_w * aspect.ratio
@@ -2938,7 +3246,7 @@ Heatmap <- function(
     # misc
     flip = FALSE, alpha = 1, seed = 8525, padding = 15, base_size = 1, aspect.ratio = NULL, draw_opts = list(),
     # cell customization
-    layer_fun_callback = NULL, cell_type = c("tile", "bars", "label", "mark", "dot", "violin", "boxplot", "pie"), cell_agg = NULL,
+    layer_fun_callback = NULL, cell_type = c("tile", "bars", "label", "mark", "label+mark", "mark+label", "dot", "violin", "boxplot", "pie"), cell_agg = NULL,
     # subplots
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
     ...
@@ -2946,6 +3254,7 @@ Heatmap <- function(
     validate_common_args(seed)
     in_form <- match.arg(in_form)
     cell_type <- match.arg(cell_type)
+    cell_type <- sub("mark+label", "label+mark", cell_type, fixed = TRUE)
 
     if (!is.null(rows_orderby)) {
         cluster_rows <- cluster_rows %||% FALSE
