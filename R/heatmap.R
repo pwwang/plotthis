@@ -1045,6 +1045,7 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
 #'  * With rectangular border: `[]`, `[-]`, `[|]`, `[+]`, `[/]`, `[\]`, `[x]`, `[o]`, `[()]`, `[<>]`.
 #'  * With full circle: `(-)`, `(|)`, `(+)`, `(/)`, `(\)`, `(x)`, `(o)`, `(<>)`.
 #'  * With diamond: `<->`, `<|>`, `<+>`, `</>`, `<\>`, `<x>`, `<o>`.
+#'  * Octagon (standalone or wrapper): `{}`, `{-}`, `{|}`, `{+}`, `{/}`, `{\\}`, `{x}`, `{o}`, `{()}`, `{<>}`.
 #'  * Combinations: e.g. `[(|)]`, `[(-)]`, `[(+)]`, `[(/)]`, `[(\)]`, `[(x)]`, `[(o)]`, `[(<>)]`.
 #' @param label A function to calculate the labels for the heatmap cells.
 #'  It can take either 1, 3, or 5 arguments. The first argument is the aggregated value for a single cell.
@@ -1906,6 +1907,10 @@ HeatmapAtomic <- function(
                     # "<->" wrapper, but "<>" alone is a primitive — handled below
                     prims <- c(prims, "diamond")
                     m <- substr(m, 2L, nchar(m) - 1L)
+                } else if (nchar(m) >= 3 && startsWith(m, "{") && endsWith(m, "}")) {
+                    # "{-}" wrapper, but "{}" alone is a primitive — handled below
+                    prims <- c(prims, "octagon")
+                    m <- substr(m, 2L, nchar(m) - 1L)
                 } else {
                     break
                 }
@@ -1923,6 +1928,7 @@ HeatmapAtomic <- function(
                     "o"  = "circle_gap",
                     "()" = "circle_full",
                     "<>" = "diamond",
+                    "{}" = "octagon",
                     stop(paste0("[Heatmap] Unknown mark type: '", m, "'"))
                 )
             }
@@ -1994,6 +2000,32 @@ HeatmapAtomic <- function(
                         grid::grid.polygon(
                             x = grid::unit.c(xv[k], xv[k] + hw[k], xv[k], xv[k] - hw[k]),
                             y = grid::unit.c(yv[k] + hh[k], yv[k], yv[k] - hh[k], yv[k]),
+                            gp = gpar(col = col[k], fill = NA, lwd = lwd[k]))
+                    }
+                },
+
+                # octagon: 4 sides on the cell edges, 4 small corner cuts (cut factor = 0.2)
+                # The corner cuts are closer to the actual corners than a regular octagon would be
+                octagon = {
+                    n  <- length(xv)
+                    hw <- wv * 0.5; hh <- hv * 0.5
+                    f  <- 0.2  # corner cut factor (0 = full rectangle, 0.5 = diamond)
+                    for (k in seq_len(n)) {
+                        cx <- xv[k]; cy <- yv[k]
+                        dx <- hw[k] * f; dy <- hh[k] * f
+                        grid::grid.polygon(
+                            x = grid::unit.c(
+                                cx - hw[k] + dx, cx + hw[k] - dx,  # top edge: left → right
+                                cx + hw[k],       cx + hw[k],       # right edge: top → bottom
+                                cx + hw[k] - dx, cx - hw[k] + dx,  # bottom edge: right → left
+                                cx - hw[k],       cx - hw[k]        # left edge: bottom → top
+                            ),
+                            y = grid::unit.c(
+                                cy + hh[k],       cy + hh[k],       # top edge
+                                cy + hh[k] - dy,  cy - hh[k] + dy,  # right edge
+                                cy - hh[k],       cy - hh[k],       # bottom edge
+                                cy - hh[k] + dy,  cy + hh[k] - dy   # left edge
+                            ),
                             gp = gpar(col = col[k], fill = NA, lwd = lwd[k]))
                     }
                 }
@@ -2154,6 +2186,10 @@ HeatmapAtomic <- function(
                 } else if (nchar(m) >= 3 && startsWith(m, "<") && endsWith(m, ">")) {
                     prims <- c(prims, "diamond")
                     m <- substr(m, 2L, nchar(m) - 1L)
+                } else if (nchar(m) >= 3 && startsWith(m, "{") && endsWith(m, "}")) {
+                    # "{-}" wrapper, but "{}" alone is a primitive — handled below
+                    prims <- c(prims, "octagon")
+                    m <- substr(m, 2L, nchar(m) - 1L)
                 } else {
                     break
                 }
@@ -2171,6 +2207,7 @@ HeatmapAtomic <- function(
                     "o"  = "circle_gap",
                     "()" = "circle_full",
                     "<>" = "diamond",
+                    "{}" = "octagon",
                     stop(paste0("[Heatmap] Unknown mark type: '", m, "'"))
                 )
             }
@@ -2237,6 +2274,32 @@ HeatmapAtomic <- function(
                         grid::grid.polygon(
                             x = grid::unit.c(xv[k], xv[k] + hw[k], xv[k], xv[k] - hw[k]),
                             y = grid::unit.c(yv[k] + hh[k], yv[k], yv[k] - hh[k], yv[k]),
+                            gp = gpar(col = col[k], fill = NA, lwd = lwd[k]))
+                    }
+                },
+
+                # octagon: 4 sides on the cell edges, 4 small corner cuts (cut factor = 0.2)
+                # The corner cuts are closer to the actual corners than a regular octagon would be
+                octagon = {
+                    n  <- length(xv)
+                    hw <- wv * 0.5; hh <- hv * 0.5
+                    f  <- 0.5  # corner cut factor (0 = full rectangle, 0.5 = diamond)
+                    for (k in seq_len(n)) {
+                        cx <- xv[k]; cy <- yv[k]
+                        dx <- hw[k] * f; dy <- hh[k] * f
+                        grid::grid.polygon(
+                            x = grid::unit.c(
+                                cx - hw[k] + dx, cx + hw[k] - dx,  # top edge: left → right
+                                cx + hw[k],       cx + hw[k],       # right edge: top → bottom
+                                cx + hw[k] - dx, cx - hw[k] + dx,  # bottom edge: right → left
+                                cx - hw[k],       cx - hw[k]        # left edge: bottom → top
+                            ),
+                            y = grid::unit.c(
+                                cy + hh[k],       cy + hh[k],       # top edge
+                                cy + hh[k] - dy,  cy - hh[k] + dy,  # right edge
+                                cy - hh[k],       cy - hh[k],       # bottom edge
+                                cy - hh[k] + dy,  cy + hh[k] - dy   # left edge
+                            ),
                             gp = gpar(col = col[k], fill = NA, lwd = lwd[k]))
                     }
                 }
@@ -3072,6 +3135,20 @@ HeatmapAtomic <- function(
 #'             else if (pv < 0.09) list("[\\]", legend = "p < 0.09")
 #'             else NA
 #'         }
+#'     )
+#' }
+#' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     # add labels and marks
+#'     Heatmap(matrix_data, rows_data = rows_data,
+#'         rows_split_by = "group", cell_type = "mark+label",
+#'         label = scales::label_number(accuracy = 0.01),
+#'         mark = function(x, i, j) {
+#'             pv <- ComplexHeatmap::pindex(pvalues, i, j)
+#'             if(pv < 0.01) list("{}", legend = "p < 0.01")
+#'             else if(pv < 0.05) list("[]", legend = "p < 0.05")
+#'             else NA
+#'         },
+#'         mark_size = 1.5, mark_color = "red"
 #'     )
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {

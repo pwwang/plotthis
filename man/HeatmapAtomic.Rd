@@ -184,6 +184,7 @@ The function should return one of:
 \item With rectangular border: \verb{[]}, \verb{[-]}, \verb{[|]}, \verb{[+]}, \verb{[/]}, \verb{[\]}, \verb{[x]}, \verb{[o]}, \verb{[()]}, \verb{[<>]}.
 \item With full circle: \verb{(-)}, \verb{(|)}, \verb{(+)}, \verb{(/)}, \verb{(\\)}, \code{(x)}, \code{(o)}, \verb{(<>)}.
 \item With diamond: \verb{<->}, \verb{<|>}, \verb{<+>}, \verb{</>}, \verb{<\\>}, \verb{<x>}, \verb{<o>}.
+\item Octagon (standalone or wrapper): \code{{}}, \verb{\{-\}}, \verb{\{|\}}, \verb{\{+\}}, \verb{\{/\}}, \verb{\{\\\\\}}, \code{{x}}, \code{{o}}, \verb{\{()\}}, \verb{\{<>\}}.
 \item Combinations: e.g. \verb{[(|)]}, \verb{[(-)]}, \verb{[(+)]}, \verb{[(/)]}, \verb{[(\\)]}, \verb{[(x)]}, \verb{[(o)]}, \verb{[(<>)]}.
 }
 

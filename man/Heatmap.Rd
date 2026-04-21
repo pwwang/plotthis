@@ -286,6 +286,7 @@ The function should return one of:
 \item With rectangular border: \verb{[]}, \verb{[-]}, \verb{[|]}, \verb{[+]}, \verb{[/]}, \verb{[\]}, \verb{[x]}, \verb{[o]}, \verb{[()]}, \verb{[<>]}.
 \item With full circle: \verb{(-)}, \verb{(|)}, \verb{(+)}, \verb{(/)}, \verb{(\\)}, \code{(x)}, \code{(o)}, \verb{(<>)}.
 \item With diamond: \verb{<->}, \verb{<|>}, \verb{<+>}, \verb{</>}, \verb{<\\>}, \verb{<x>}, \verb{<o>}.
+\item Octagon (standalone or wrapper): \code{{}}, \verb{\{-\}}, \verb{\{|\}}, \verb{\{+\}}, \verb{\{/\}}, \verb{\{\\\\\}}, \code{{x}}, \code{{o}}, \verb{\{()\}}, \verb{\{<>\}}.
 \item Combinations: e.g. \verb{[(|)]}, \verb{[(-)]}, \verb{[(+)]}, \verb{[(/)]}, \verb{[(\\)]}, \verb{[(x)]}, \verb{[(o)]}, \verb{[(<>)]}.
 }
 
@@ -639,6 +640,20 @@ if (requireNamespace("cluster", quietly = TRUE)) {
             else if (pv < 0.09) list("[\\\\]", legend = "p < 0.09")
             else NA
         }
+    )
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # add labels and marks
+    Heatmap(matrix_data, rows_data = rows_data,
+        rows_split_by = "group", cell_type = "mark+label",
+        label = scales::label_number(accuracy = 0.01),
+        mark = function(x, i, j) {
+            pv <- ComplexHeatmap::pindex(pvalues, i, j)
+            if(pv < 0.01) list("{}", legend = "p < 0.01")
+            else if(pv < 0.05) list("[]", legend = "p < 0.05")
+            else NA
+        },
+        mark_size = 1.5, mark_color = "red"
     )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
