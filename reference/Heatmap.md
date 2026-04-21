@@ -107,7 +107,8 @@ Heatmap(
   aspect.ratio = NULL,
   draw_opts = list(),
   layer_fun_callback = NULL,
-  cell_type = c("tile", "bars", "label", "mark", "dot", "violin", "boxplot", "pie"),
+  cell_type = c("tile", "bars", "label", "mark", "label+mark", "mark+label", "dot",
+    "violin", "boxplot", "pie"),
   cell_agg = NULL,
   combine = TRUE,
   nrow = NULL,
@@ -446,6 +447,10 @@ Heatmap(
 
   - With diamond: `<->`, `<|>`, `<+>`, `</>`, `<\>`, `<x>`, `<o>`.
 
+  - Octagon (standalone or wrapper):
+    [`{}`](https://rdrr.io/r/base/Paren.html), `{-}`, `{|}`, `{+}`,
+    `{/}`, `{\\}`, `{x}`, `{o}`, `{()}`, `{<>}`.
+
   - Combinations: e.g. `[(|)]`, `[(-)]`, `[(+)]`, `[(/)]`, `[(\)]`,
     `[(x)]`, `[(o)]`, `[(<>)]`.
 
@@ -781,11 +786,14 @@ Heatmap(
 - cell_type:
 
   A character string specifying the type of the heatmap cells. The
-  default is "tile" Other options are "bars", "label", "mark", "dot",
-  "violin", "boxplot" and "pie". Note that for pie chart, the values
-  under columns specified by `rows` will not be used directly. Instead,
-  the values will just be counted in different `pie_group_by` groups.
-  `NA` values will not be counted.
+  default is "tile" Other options are "bars", "label", "mark",
+  "label+mark" (or equivalently "mark+label"), "dot", "violin",
+  "boxplot" and "pie". Use "label+mark" to render both marks (drawn
+  first, as background) and text labels (drawn on top) in each cell
+  simultaneously, combining all `label_*` and `mark_*` parameters. Note
+  that for pie chart, the values under columns specified by `rows` will
+  not be used directly. Instead, the values will just be counted in
+  different `pie_group_by` groups. `NA` values will not be counted.
 
 - cell_agg:
 
@@ -1000,6 +1008,21 @@ if (requireNamespace("cluster", quietly = TRUE)) {
             else if (pv < 0.09) list("[\\]", legend = "p < 0.09")
             else NA
         }
+    )
+}
+
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # add labels and marks
+    Heatmap(matrix_data, rows_data = rows_data,
+        rows_split_by = "group", cell_type = "mark+label",
+        label = scales::label_number(accuracy = 0.01),
+        mark = function(x, i, j) {
+            pv <- ComplexHeatmap::pindex(pvalues, i, j)
+            if(pv < 0.01) list("{}", legend = "p < 0.01")
+            else if(pv < 0.05) list("[]", legend = "p < 0.05")
+            else NA
+        },
+        mark_size = 1.5, mark_color = "red"
     )
 }
 

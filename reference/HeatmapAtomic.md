@@ -22,7 +22,7 @@ HeatmapAtomic(
   pie_palette = "Spectral",
   pie_palcolor = NULL,
   bars_sample = 100,
-  label = identity,
+  label = scales::label_number_auto(),
   label_size = 10,
   label_color = "black",
   label_name = "label",
@@ -268,6 +268,10 @@ HeatmapAtomic(
     `(<>)`.
 
   - With diamond: `<->`, `<|>`, `<+>`, `</>`, `<\>`, `<x>`, `<o>`.
+
+  - Octagon (standalone or wrapper):
+    [`{}`](https://rdrr.io/r/base/Paren.html), `{-}`, `{|}`, `{+}`,
+    `{/}`, `{\\}`, `{x}`, `{o}`, `{()}`, `{<>}`.
 
   - Combinations: e.g. `[(|)]`, `[(-)]`, `[(+)]`, `[(/)]`, `[(\)]`,
     `[(x)]`, `[(o)]`, `[(<>)]`.
@@ -635,11 +639,14 @@ HeatmapAtomic(
 - cell_type:
 
   A character string specifying the type of the heatmap cells. The
-  default is "tile" Other options are "bars", "label", "mark", "dot",
-  "violin", "boxplot" and "pie". Note that for pie chart, the values
-  under columns specified by `rows` will not be used directly. Instead,
-  the values will just be counted in different `pie_group_by` groups.
-  `NA` values will not be counted.
+  default is "tile" Other options are "bars", "label", "mark",
+  "label+mark" (or equivalently "mark+label"), "dot", "violin",
+  "boxplot" and "pie". Use "label+mark" to render both marks (drawn
+  first, as background) and text labels (drawn on top) in each cell
+  simultaneously, combining all `label_*` and `mark_*` parameters. Note
+  that for pie chart, the values under columns specified by `rows` will
+  not be used directly. Instead, the values will just be counted in
+  different `pie_group_by` groups. `NA` values will not be counted.
 
 - cell_agg:
 

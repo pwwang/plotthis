@@ -242,9 +242,6 @@ data <- data.frame(
 )
 
 ClustreePlot(data, prefix = "p")
-#> Registered S3 method overwritten by 'gglogger':
-#>   method from   
-#>   +.gg   ggplot2
 
 ClustreePlot(data, prefix = "p", flip = TRUE)
 

@@ -60,7 +60,7 @@
 <span>  pie_palette <span class="op">=</span> <span class="st">"Spectral"</span>,</span>
 <span>  pie_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  bars_sample <span class="op">=</span> <span class="fl">100</span>,</span>
-<span>  label <span class="op">=</span> <span class="va">identity</span>,</span>
+<span>  label <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/label_number_auto.html" class="external-link">label_number_auto</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  label_size <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  label_color <span class="op">=</span> <span class="st">"black"</span>,</span>
 <span>  label_name <span class="op">=</span> <span class="st">"label"</span>,</span>
@@ -260,6 +260,7 @@ The function should return one of:</p><ul><li><p><code>NA</code> — no mark is 
 <li><p>With rectangular border: <code>[]</code>, <code>[-]</code>, <code>[|]</code>, <code>[+]</code>, <code>[/]</code>, <code>[\]</code>, <code>[x]</code>, <code>[o]</code>, <code>[()]</code>, <code>[&lt;&gt;]</code>.</p></li>
 <li><p>With full circle: <code>(-)</code>, <code>(|)</code>, <code>(+)</code>, <code>(/)</code>, <code>(\)</code>, <code>(x)</code>, <code>(o)</code>, <code>(&lt;&gt;)</code>.</p></li>
 <li><p>With diamond: <code>&lt;-&gt;</code>, <code>&lt;|&gt;</code>, <code>&lt;+&gt;</code>, <code>&lt;/&gt;</code>, <code>&lt;\&gt;</code>, <code>&lt;x&gt;</code>, <code>&lt;o&gt;</code>.</p></li>
+<li><p>Octagon (standalone or wrapper): <code><a href="https://rdrr.io/r/base/Paren.html" class="external-link">{}</a></code>, <code>{-}</code>, <code>{|}</code>, <code>{+}</code>, <code>{/}</code>, <code>{\\}</code>, <code>{x}</code>, <code>{o}</code>, <code>{()}</code>, <code>{&lt;&gt;}</code>.</p></li>
 <li><p>Combinations: e.g. <code>[(|)]</code>, <code>[(-)]</code>, <code>[(+)]</code>, <code>[(/)]</code>, <code>[(\)]</code>, <code>[(x)]</code>, <code>[(o)]</code>, <code>[(&lt;&gt;)]</code>.</p></li>
 </ul><p>[]: R:%5C
 [x]: R:x
@@ -570,7 +571,10 @@ Please also refer to the <code>layer_fun</code> argument in <code><a href="https
 
 <dt id="arg-cell-type">cell_type<a class="anchor" aria-label="anchor" href="#arg-cell-type"></a></dt>
 <dd><p>A character string specifying the type of the heatmap cells.
-The default is "tile" Other options are "bars", "label", "mark", "dot", "violin", "boxplot" and "pie".
+The default is "tile" Other options are "bars", "label", "mark", "label+mark" (or equivalently "mark+label"),
+"dot", "violin", "boxplot" and "pie".
+Use "label+mark" to render both marks (drawn first, as background) and text labels (drawn on top)
+in each cell simultaneously, combining all <code>label_*</code> and <code>mark_*</code> parameters.
 Note that for pie chart, the values under columns specified by <code>rows</code> will not be used directly. Instead, the values
 will just be counted in different <code>pie_group_by</code> groups. <code>NA</code> values will not be counted.</p></dd>
 

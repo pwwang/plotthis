@@ -322,13 +322,6 @@ how the plot is created.
 options(plotthis.gglogger.enabled = TRUE)
 
 p <- BarPlot(data = iris, x = "Species")
-```
-
-    ## Registered S3 method overwritten by 'gglogger':
-    ##   method from   
-    ##   +.gg   ggplot2
-
-``` r
 p$logs
 ```
 
