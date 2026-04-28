@@ -63,7 +63,7 @@ JitterPlotAtomic <- function(
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
     flip = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
     x_text_angle = 0, order_by = "-({y}^2 + {size_by}^2)",
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     shape = 21, border = "black",
     size_by = 2, size_name = NULL, size_trans = NULL, y_nbreaks = 4,
@@ -186,7 +186,7 @@ JitterPlotAtomic <- function(
     keep_empty_col <- if (color_col == x) keep_empty_x else keep_empty_group
     col_levels <- levels(data[[color_col]])
     if (anyNA(data[[color_col]])) col_levels <- c(col_levels, NA)
-    colors <- palette_this(col_levels, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+    colors <- palette_this(col_levels, palette = palette, palcolor = palcolor, NA_keep = TRUE, reverse = palreverse)
     if (anyNA(col_levels)) {
         # To prevent ggrepel text segments being too long
         # It seem it thinks the NA is an empty area for it to place labels
@@ -524,7 +524,7 @@ JitterPlot <- function(
     sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
     flip = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
     x_text_angle = 0, order_by = "-({y}^2 + {size_by}^2)",
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     shape = 21, border = "black",
     size_by = 2, size_name = NULL, size_trans = NULL, y_nbreaks = 4,
@@ -571,7 +571,7 @@ JitterPlot <- function(
                 datas[[nm]],
                 x = x, x_sep = x_sep, y = y, in_form = in_form, keep_na = keep_na, keep_empty = keep_empty,
                 sort_x = sort_x, flip = flip, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
-                x_text_angle = x_text_angle, theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
+                x_text_angle = x_text_angle, theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, alpha = alpha,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                 shape = shape, border = border, order_by = order_by,
                 size_by = size_by, size_name = size_name, size_trans = size_trans, y_nbreaks = y_nbreaks,

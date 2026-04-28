@@ -26,6 +26,7 @@ JitterPlot(
   theme_args = list(),
   palette = "Paired",
   palcolor = NULL,
+  palreverse = FALSE,
   alpha = 1,
   aspect.ratio = NULL,
   legend.position = "right",
