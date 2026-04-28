@@ -376,7 +376,16 @@ palette_this <- function(
 
     if (isTRUE(reverse)) {
         if (!is.null(names(color))) {
-            color <- setNames(rev(color), names(color))
+            # Isolate NA-named entries so they don't misalign during reversal
+            na_idx <- is.na(names(color)) | names(color) == "NA"
+            if (any(na_idx)) {
+                na_entries <- color[na_idx]
+                non_na <- color[!na_idx]
+                non_na <- setNames(rev(unname(non_na)), names(non_na))
+                color <- c(non_na, na_entries)
+            } else {
+                color <- setNames(rev(unname(color)), names(color))
+            }
         } else {
             color <- rev(color)
         }
