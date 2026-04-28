@@ -16,7 +16,7 @@ DimPlotAtomic3D <- function(
     graph = NULL, edge_size = c(0.05, 0.5), edge_alpha = 0.1, edge_color = "grey40",
     lineages = NULL, lineages_trim = c(0.01, 0.99), lineages_span = 0.75,
     lineages_palette = "Dark2", lineages_palcolor = NULL,
-    palette = "Spectral", palcolor = NULL,
+    palette = "Spectral", palcolor = NULL, palreverse = FALSE,
     n_sampled = NULL) {
 
     if (!requireNamespace("plotly", quietly = TRUE)) {
@@ -136,7 +136,7 @@ DimPlotAtomic3D <- function(
         }
     } else {
         # Feature mode: continuous coloring
-        feat_colors <- palette_this(palette = palette, palcolor = palcolor, type = "continuous")
+        feat_colors <- palette_this(palette = palette, palcolor = palcolor, type = "continuous", reverse = palreverse)
         n_colors <- length(feat_colors)
         plotly_colorscale <- lapply(seq_len(n_colors), function(i) {
             list((i - 1) / (n_colors - 1), feat_colors[i])
@@ -230,7 +230,7 @@ DimPlotAtomic3D <- function(
     ## Lineages
     if (!is.null(lineages)) {
         lineages <- unique(check_columns(data, lineages, force_factor = FALSE, allow_multi = TRUE))
-        lineage_colors <- palette_this(lineages, palette = lineages_palette, palcolor = lineages_palcolor)
+        lineage_colors <- palette_this(lineages, palette = lineages_palette, palcolor = lineages_palcolor, reverse = palreverse)
 
         for (l in lineages) {
             trim_pass <- (
@@ -482,7 +482,7 @@ DimPlotAtomic <- function(
     theme = "theme_this", theme_args = list(), aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     raster = NULL, raster_dpi = c(512, 512),
     hex = FALSE, hex_linewidth = 0.5, hex_count = !is.null(group_by), hex_bins = 50, hex_binwidth = NULL,
-    palette = ifelse(is.null(features), "Paired", "Spectral"), palcolor = NULL, seed = 8525, ...) {
+    palette = ifelse(is.null(features), "Paired", "Spectral"), palcolor = NULL, palreverse = FALSE, seed = 8525, ...) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
     } else {
@@ -539,7 +539,7 @@ DimPlotAtomic <- function(
         group_vals <- levels(data[[group_by]])
         if (anyNA(data[[group_by]])) group_vals <- c(group_vals, NA)
 
-        colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+        colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE, reverse = palreverse)
         names(colors)[is.na(names(colors))] <- "NA"
         group_vals[is.na(group_vals)] <- "NA"
         labels_tb <- table(data[[group_by]], useNA = "ifany")
@@ -686,7 +686,7 @@ DimPlotAtomic <- function(
             graph = graph, edge_size = edge_size, edge_alpha = edge_alpha, edge_color = edge_color,
             lineages = lineages, lineages_trim = lineages_trim, lineages_span = lineages_span,
             lineages_palette = lineages_palette, lineages_palcolor = lineages_palcolor,
-            palette = palette, palcolor = palcolor,
+            palette = palette, palcolor = palcolor, palreverse = palreverse,
             n_sampled = n_sampled
         ))
     }
@@ -789,7 +789,7 @@ DimPlotAtomic <- function(
     ## Adding the density plot
     if (isTRUE(add_density)) {
         if (isTRUE(density_filled)) {
-            filled_color <- palette_this(palette = density_filled_palette, palcolor = density_filled_palcolor)
+            filled_color <- palette_this(palette = density_filled_palette, palcolor = density_filled_palcolor, reverse = palreverse)
             p <- p +
                 stat_density_2d(
                     geom = "raster", aes(x = !!sym(dims[1]), y = !!sym(dims[2]), fill = after_stat(!!sym("density"))),
@@ -1018,7 +1018,7 @@ DimPlotAtomic <- function(
     } else {  # features
         p <- p + scale_color_gradientn(
             name = color_name,
-            colors = palette_this(palette = palette, palcolor = palcolor, type = "continuous"),
+            colors = palette_this(palette = palette, palcolor = palcolor, type = "continuous", reverse = palreverse),
             values = rescale(feat_colors_value),
             limits = range(feat_colors_value),
             na.value = bg_color,
@@ -1027,7 +1027,7 @@ DimPlotAtomic <- function(
         if (has_fill) {
             p <- p + scale_fill_gradientn(
                 name = color_name,
-                colors = palette_this(palette = palette, palcolor = palcolor, type = "continuous"),
+                colors = palette_this(palette = palette, palcolor = palcolor, type = "continuous", reverse = palreverse),
                 values = rescale(feat_colors_value),
                 limits = range(feat_colors_value),
                 na.value = bg_color,
@@ -1048,7 +1048,7 @@ DimPlotAtomic <- function(
             stop("'lineages' is not supported when 'facet_by' is not NULL.")
         }
         lineages <- unique(check_columns(data, lineages, force_factor = FALSE, allow_multi = TRUE))
-        lineage_colors <- palette_this(lineages, palette = lineages_palette, palcolor = lineages_palcolor)
+        lineage_colors <- palette_this(lineages, palette = lineages_palette, palcolor = lineages_palcolor, reverse = palreverse)
         lineage_layers <- lapply(lineages, function(l) {
             trim_pass <- (
                 data[[l]] > quantile(data[[l]], lineages_trim[1], na.rm = TRUE) &
@@ -1391,7 +1391,7 @@ DimPlot <- function(
     theme = "theme_this", theme_args = list(), aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     raster = NULL, raster_dpi = c(512, 512),
     hex = FALSE, hex_linewidth = 0.5, hex_count = TRUE, hex_bins = 50, hex_binwidth = NULL,
-    palette = "Paired", palcolor = NULL, seed = 8525,
+    palette = "Paired", palcolor = NULL, palreverse = FALSE, seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
     ...) {
 
@@ -1466,7 +1466,7 @@ DimPlot <- function(
                 theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                 raster = raster, raster_dpi = raster_dpi,
                 hex = hex, hex_linewidth = hex_linewidth, hex_count = hex_count, hex_bins = hex_bins, hex_binwidth = hex_binwidth,
-                palette = palette[[nm]], palcolor = palcolor[[nm]], seed = seed, ...
+                palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, seed = seed, ...
             )
         }
     )
@@ -1542,7 +1542,7 @@ FeatureDimPlot <- function(
     theme = "theme_this", theme_args = list(), aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     raster = NULL, raster_dpi = c(512, 512),
     hex = FALSE, hex_linewidth = 0.5, hex_count = FALSE, hex_bins = 50, hex_binwidth = NULL,
-    palette = "Spectral", palcolor = NULL, seed = 8525,
+    palette = "Spectral", palcolor = NULL, palreverse = FALSE, seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
     ...) {
 
@@ -1584,7 +1584,7 @@ FeatureDimPlot <- function(
                 theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
                 raster = raster, raster_dpi = raster_dpi,
                 hex = hex, hex_linewidth = hex_linewidth, hex_count = hex_count, hex_bins = hex_bins, hex_binwidth = hex_binwidth,
-                palette = palette, palcolor = palcolor, seed = seed, ...
+                palette = palette, palcolor = palcolor, palreverse = palreverse, seed = seed, ...
             )
         )
     } else {
@@ -1657,7 +1657,7 @@ FeatureDimPlot <- function(
                     theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                     raster = raster, raster_dpi = raster_dpi,
                     hex = hex, hex_linewidth = hex_linewidth, hex_count = hex_count, hex_bins = hex_bins, hex_binwidth = hex_binwidth,
-                    palette = palette[[nm]], palcolor = palcolor[[nm]], seed = seed, ...
+                    palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, seed = seed, ...
                 )
             }
         )

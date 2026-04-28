@@ -117,6 +117,7 @@ DimPlotAtomic(
   hex_binwidth = NULL,
   palette = ifelse(is.null(features), "Paired", "Spectral"),
   palcolor = NULL,
+  palreverse = FALSE,
   seed = 8525,
   ...
 )

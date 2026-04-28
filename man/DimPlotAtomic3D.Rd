@@ -45,6 +45,7 @@ DimPlotAtomic3D(
   lineages_palcolor = NULL,
   palette = "Spectral",
   palcolor = NULL,
+  palreverse = FALSE,
   n_sampled = NULL
 )
 }
