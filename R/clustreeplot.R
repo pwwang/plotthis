@@ -17,7 +17,8 @@
 #' @keywords internal
 ClustreePlotAtomic <- function(
     data, prefix, flip = FALSE, alpha = 0.85,
-    palette = "Paired", palcolor = NULL, edge_palette = "Spectral", edge_palcolor = NULL,
+    palette = "Paired", palcolor = NULL, palreverse = FALSE,
+    edge_palette = "Spectral", edge_palcolor = NULL,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(0.1, 0.1),
     theme = "theme_this", theme_args = list(),
@@ -90,12 +91,12 @@ ClustreePlotAtomic <- function(
         geom_text(aes(label = !!sym("cluster"), x = !!sym("x"), y = !!sym("y")),
             size = clustree_args$node_text_size, color = clustree_args$node_text_colour) +
         scale_color_manual(
-            values = palette_this(n = nres, palette = palette, palcolor = palcolor, keep_names = FALSE),
+            values = palette_this(n = nres, palette = palette, palcolor = palcolor, keep_names = FALSE, reverse = palreverse),
             guide = "none") +
         ggraph::scale_edge_color_gradientn(
             name = "count",
             n.breaks = 5,
-            colors = palette_this(palette = edge_palette, palcolor = edge_palcolor),
+            colors = palette_this(palette = edge_palette, palcolor = edge_palcolor, reverse = palreverse),
             na.value = "grey80",
             guide = ggraph::guide_edge_colorbar()) +
         do.call(theme, theme_args) +
@@ -204,7 +205,8 @@ ClustreePlotAtomic <- function(
 #' }
 ClustreePlot <- function(
     data, prefix, flip = FALSE, split_by = NULL, split_by_sep = "_",
-    palette = "Paired", palcolor = NULL, edge_palette = "Spectral", edge_palcolor = NULL,
+    palette = "Paired", palcolor = NULL, palreverse = FALSE,
+    edge_palette = "Spectral", edge_palcolor = NULL,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(0.1, 0.1),
     theme = "theme_this", theme_args = list(),
@@ -239,7 +241,7 @@ ClustreePlot <- function(
                 title <- title %||% default_title
             }
             ClustreePlotAtomic(datas[[nm]],
-                prefix = prefix, flip = flip, palette = palette[[nm]], palcolor = palcolor[[nm]],
+                prefix = prefix, flip = flip, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse,
                 edge_palette = edge_palette, edge_palcolor = edge_palcolor, expand = expand,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]],
                 legend.direction = legend.direction[[nm]],

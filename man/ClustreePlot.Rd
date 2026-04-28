@@ -12,6 +12,7 @@ ClustreePlot(
   split_by_sep = "_",
   palette = "Paired",
   palcolor = NULL,
+  palreverse = FALSE,
   edge_palette = "Spectral",
   edge_palcolor = NULL,
   aspect.ratio = 1,

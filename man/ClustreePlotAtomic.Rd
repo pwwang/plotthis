@@ -11,6 +11,7 @@ ClustreePlotAtomic(
   alpha = 0.85,
   palette = "Paired",
   palcolor = NULL,
+  palreverse = FALSE,
   edge_palette = "Spectral",
   edge_palcolor = NULL,
   aspect.ratio = 1,
