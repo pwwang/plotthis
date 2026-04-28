@@ -17,6 +17,7 @@ UpsetPlotAtomic(
   label_bg_r = 0.1,
   palette = "material-indigo",
   palcolor = NULL,
+  palreverse = FALSE,
   alpha = 1,
   specific = TRUE,
   combmatrix_gap = 6,

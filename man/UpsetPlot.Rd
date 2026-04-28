@@ -19,6 +19,7 @@ UpsetPlot(
   label_bg_r = 0.1,
   palette = "Blues",
   palcolor = NULL,
+  palreverse = FALSE,
   alpha = 1,
   specific = TRUE,
   theme = "theme_this",

@@ -183,7 +183,7 @@ prepare_upset_data <- function(data, in_form = "auto", group_by = NULL, group_by
 UpsetPlotAtomic <- function(
     data, in_form = "auto", group_by = NULL, group_by_sep = "_", id_by = NULL,
     label = TRUE, label_fg = "black", label_size = NULL, label_bg = "white", label_bg_r = 0.1,
-    palette = "material-indigo", palcolor = NULL, alpha = 1, specific = TRUE, combmatrix_gap = 6,
+    palette = "material-indigo", palcolor = NULL, palreverse = FALSE, alpha = 1, specific = TRUE, combmatrix_gap = 6,
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     aspect.ratio = 0.6, legend.position = "right", legend.direction = "vertical", levels = NULL, ...) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
@@ -202,7 +202,7 @@ UpsetPlotAtomic <- function(
         geom_bar(aes(fill = after_stat(!!sym("count"))), alpha = alpha, color = "black", width = 0.5) +
         scale_fill_gradientn(
             n.breaks = 3,
-            colors = palette_this(palette = palette, palcolor = palcolor),
+            colors = palette_this(palette = palette, palcolor = palcolor, reverse = palreverse),
             na.value = "grey80",
             guide = guide_colorbar(
                 title = "", alpha = alpha,
@@ -344,7 +344,7 @@ UpsetPlotAtomic <- function(
 UpsetPlot <- function(
     data, in_form = c("auto", "long", "wide", "list", "upset"), split_by = NULL, split_by_sep = "_",
     group_by = NULL, group_by_sep = "_", id_by = NULL, label = TRUE, label_fg = "black",
-    label_size = NULL, label_bg = "white", label_bg_r = 0.1, palette = "Blues", palcolor = NULL,
+    label_size = NULL, label_bg = "white", label_bg_r = 0.1, palette = "Blues", palcolor = NULL, palreverse = FALSE,
     alpha = 1, specific = TRUE, theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL,
     xlab = NULL, ylab = NULL, aspect.ratio = 0.6, legend.position = "right", legend.direction = "vertical",
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525, combmatrix_gap = 6,
@@ -385,7 +385,7 @@ UpsetPlot <- function(
             UpsetPlotAtomic(datas[[nm]],
                 in_form = in_form, group_by = group_by, group_by_sep = group_by_sep, id_by = id_by, combmatrix_gap = combmatrix_gap,
                 label = label, label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
-                palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha, specific = specific,
+                palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, alpha = alpha, specific = specific,
                 theme = theme, theme_args = theme_args, title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                 ...
