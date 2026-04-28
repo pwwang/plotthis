@@ -44,7 +44,7 @@ CorPlotAtomic <- function(
     anno_items = c("eq", "r2", "p"), anno_size = 3, anno_fg = "black", anno_bg = "white", anno_bg_r = 0.1,
     anno_position = c("topleft", "topright", "bottomleft", "bottomright", "tl", "tr", "bl", "br"),
     add_smooth = TRUE, smooth_color = "red2", smooth_width = 1.5, smooth_se = FALSE,
-    theme = "theme_this", theme_args = list(), palette = ifelse(is.null(group_by), "Spectral", "Paired"), palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = ifelse(is.null(group_by), "Spectral", "Paired"), palcolor = NULL, palreverse = FALSE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical", seed = 8525,
@@ -224,7 +224,7 @@ CorPlotAtomic <- function(
         ) +
         scale_color_manual(
             name = group_name %||% group_by,
-            values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor)
+            values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor, reverse = palreverse)
         ) +
         labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
         do.call(theme, theme_args) +
@@ -273,7 +273,7 @@ CorPlot <- function(
     anno_items = c("eq", "r2", "p"), anno_size = 3, anno_fg = "black", anno_bg = "white", anno_bg_r = 0.1,
     anno_position = c("topleft", "topright", "bottomleft", "bottomright", "tl", "tr", "bl", "br"),
     add_smooth = TRUE, smooth_color = "red2", smooth_width = 1.5, smooth_se = FALSE,
-    theme = "theme_this", theme_args = list(), palette = ifelse(is.null(group_by), "Spectral", "Paired"), palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = ifelse(is.null(group_by), "Spectral", "Paired"), palcolor = NULL, palreverse = FALSE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical", seed = 8525,
@@ -313,7 +313,7 @@ CorPlot <- function(
                 highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha, highlight_stroke = highlight_stroke,
                 anno_items = anno_items, anno_size = anno_size, anno_fg = anno_fg, anno_bg = anno_bg, anno_bg_r = anno_bg_r,
                 anno_position = anno_position, add_smooth = add_smooth, smooth_color = smooth_color, smooth_width = smooth_width, smooth_se = smooth_se,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, alpha = alpha,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]], seed = seed,
@@ -369,7 +369,7 @@ CorPairsPlotAtomic <- function(
     diag_type = NULL, diag_args = list(), layout = c(".\\", "\\.", "/.", "./"),
     cor_method = c("pearson", "spearman", "kendall"), cor_palette = "RdBu", cor_palcolor = NULL,
     cor_size = 3, cor_format = "corr: {round(corr, 2)}", cor_fg = "black", cor_bg = "white", cor_bg_r = 0.1,
-    theme = "theme_this", theme_args = list(), palette = ifelse(is.null(group_by), "Spectral", "Paired"), palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = ifelse(is.null(group_by), "Spectral", "Paired"), palcolor = NULL, palreverse = FALSE,
     title = NULL, subtitle = NULL,
     facet_by = NULL, legend.position = "right", legend.direction = "vertical", seed = 8525,
     ...
@@ -541,7 +541,7 @@ CorPairsPlotAtomic <- function(
                     color = cor_fg, bg.color = cor_bg, bg.r = cor_bg_r,
                     size = text_size_scale * cor_size, seed = seed) +
                 scale_fill_gradientn(
-                    colors = palette_this(c(-1, 1), palette = cor_palette, palcolor = cor_palcolor),
+                    colors = palette_this(c(-1, 1), palette = cor_palette, palcolor = cor_palcolor, reverse = palreverse),
                     limits = c(-1, 1), breaks = c(-1, 0, 1), labels = scales::number_format(accuracy = 0.1),
                     guide = guide_colorbar(frame.colour = "black", ticks.colour = "black", title.hjust = 0)
                 ) +
@@ -669,7 +669,7 @@ CorPairsPlot <- function(
     diag_type = NULL, diag_args = list(), layout = c(".\\", "\\.", "/.", "./"),
     cor_method = c("pearson", "spearman", "kendall"), cor_palette = "RdBu", cor_palcolor = NULL,
     cor_size = 3, cor_format = "corr: {round(corr, 2)}", cor_fg = "black", cor_bg = "white", cor_bg_r = 0.1,
-    theme = "theme_this", theme_args = list(), palette = ifelse(is.null(group_by), "Spectral", "Paired"), palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = ifelse(is.null(group_by), "Spectral", "Paired"), palcolor = NULL, palreverse = FALSE,
     title = NULL, subtitle = NULL, facet_by = NULL, legend.position = "right", legend.direction = "vertical", seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
     ...
@@ -709,7 +709,7 @@ CorPairsPlot <- function(
                 diag_type = diag_type, diag_args = diag_args, layout = layout,
                 cor_method = cor_method, cor_palette = cor_palette, cor_palcolor = cor_palcolor,
                 cor_size = cor_size, cor_format = cor_format, cor_fg = cor_fg, cor_bg = cor_bg, cor_bg_r = cor_bg_r,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse,
                 title = title, subtitle = subtitle, legend.position = legend.position[[nm]],
                 legend.direction = legend.direction[[nm]], seed = seed, ...
             )

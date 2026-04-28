@@ -25,6 +25,7 @@ CorPairsPlotAtomic(
   theme_args = list(),
   palette = ifelse(is.null(group_by), "Spectral", "Paired"),
   palcolor = NULL,
+  palreverse = FALSE,
   title = NULL,
   subtitle = NULL,
   facet_by = NULL,
