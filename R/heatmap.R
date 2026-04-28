@@ -1129,7 +1129,7 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
 #' @param reticle_color A character string specifying the color of the reticle.
 #' @param palette A character string specifying the palette of the heatmap cells.
 #' @param palcolor A character vector of colors to override the palette of the heatmap cells.
-#' @param palette_reverse A logical value indicating whether to reverse the palette colors. Default is FALSE.
+#' @param palreverse A logical value indicating whether to reverse the palette colors. Default is FALSE.
 #' @param alpha A numeric value between 0 and 1 specifying the transparency of the heatmap cells.
 #' @param return_grob A logical value indicating whether to return the grob object of the heatmap.
 #'  This is useful when merging multiple heatmaps using patchwork.
@@ -1178,7 +1178,7 @@ HeatmapAtomic <- function(
     rows_by = NULL, rows_split_by = NULL,
     columns_by = NULL, columns_split_by = NULL,
     # palettes
-    palette = "RdBu", palcolor = NULL, palette_reverse = FALSE,
+    palette = "RdBu", palcolor = NULL, palreverse = FALSE,
     # cell_type: pies
     pie_size_name = "size", pie_size = NULL, pie_values = "length",
     pie_group_by = NULL, pie_palette = "Spectral", pie_palcolor = NULL,
@@ -1288,7 +1288,7 @@ HeatmapAtomic <- function(
         }
         colorRamp2(
             seq(lower, upper, length = 100),
-            palette_this(palette = palette, palcolor = palcolor, alpha = a, reverse = palette_reverse, transparent = FALSE)
+            palette_this(palette = palette, palcolor = palcolor, alpha = a, reverse = palreverse, transparent = FALSE)
         )
     }
 
@@ -3288,7 +3288,7 @@ Heatmap <- function(
     columns_name = NULL, columns_split_name = NULL,
     rows_name = NULL, rows_split_name = NULL,
     # palettes
-    palette = "RdBu", palcolor = NULL, palette_reverse = FALSE,
+    palette = "RdBu", palcolor = NULL, palreverse = FALSE,
     # cell_type: pies
     pie_size_name = "size", pie_size = NULL, pie_values = "length", pie_name = NULL,
     pie_group_by = NULL, pie_group_by_sep = "_", pie_palette = "Spectral", pie_palcolor = NULL,
@@ -3383,7 +3383,7 @@ Heatmap <- function(
                 rows_by = hmdata$rows_by, rows_split_by = hmdata$rows_split_by,
                 columns_by = hmdata$columns_by, columns_split_by = hmdata$columns_split_by,
 
-                palette = palette[[nm]], palcolor = palcolor[[nm]], palette_reverse = palette_reverse,
+                palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse,
 
                 pie_size_name = pie_size_name, pie_size = pie_size, pie_values = pie_values,
                 pie_group_by = hmdata$pie_group_by, pie_palette = pie_palette[[nm]], pie_palcolor = pie_palcolor[[nm]],

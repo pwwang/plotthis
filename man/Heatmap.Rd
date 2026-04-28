@@ -32,7 +32,7 @@ Heatmap(
   rows_split_name = NULL,
   palette = "RdBu",
   palcolor = NULL,
-  palette_reverse = FALSE,
+  palreverse = FALSE,
   pie_size_name = "size",
   pie_size = NULL,
   pie_values = "length",
@@ -213,7 +213,7 @@ This is applied before renaming columns_by to columns_name.}
 
 \item{palcolor}{A character vector of colors to override the palette of the heatmap cells.}
 
-\item{palette_reverse}{A logical value indicating whether to reverse the palette colors. Default is FALSE.}
+\item{palreverse}{A logical value indicating whether to reverse the palette colors. Default is FALSE.}
 
 \item{pie_size_name}{A character string specifying the name of the legend for the pie size.}
 
