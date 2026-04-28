@@ -43,7 +43,7 @@ RadarPlotAtomic <- function(
     data, x, x_sep = "_", group_by = NULL, group_by_sep = "_", y = NULL, group_name = NULL, groups = NULL,
     scale_y = c("group", "global", "x", "none"), y_min = 0, y_max = NULL, y_nbreaks = 4,
     polygon = FALSE, fill = TRUE, linewidth = 1, pt_size = 4, max_charwidth = 16, bg_color = "grey80", bg_alpha = 0.1,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     alpha = 0.2, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
     keep_na = FALSE, keep_empty = FALSE, title = NULL, subtitle = NULL, ...) {
@@ -151,7 +151,7 @@ RadarPlotAtomic <- function(
     if (anyNA(data[[group_by]])) {
         group_vals <- c(group_vals, NA)
     }
-    group_colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+    group_colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE, reverse = palreverse)
 
     # Add background (circle or polygon based on polygon parameter)
     x_levels <- levels(data[[x]])
@@ -331,7 +331,7 @@ RadarPlot <- function(
     data, x, x_sep = "_", group_by = NULL, group_by_sep = "_", y = NULL, group_name = NULL, groups = NULL,
     scale_y = c("group", "global", "x", "none"), y_min = 0, y_max = NULL, y_nbreaks = 4, bg_color = "grey80", bg_alpha = 0.1,
     fill = TRUE, linewidth = 1, pt_size = 4, max_charwidth = 16, split_by = NULL, split_by_sep = "_",
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     alpha = 0.2, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
     keep_na = FALSE, keep_empty = FALSE, title = NULL, subtitle = NULL, seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
@@ -371,7 +371,7 @@ RadarPlot <- function(
                 x = x, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, y = y, group_name = group_name, groups = groups,
                 scale_y = scale_y, y_min = y_min, y_max = y_max, y_nbreaks = y_nbreaks, polygon = FALSE,
                 fill = fill, linewidth = linewidth, pt_size = pt_size, max_charwidth = max_charwidth, bg_color = bg_color, bg_alpha = bg_alpha,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 alpha = alpha, aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                 keep_na = keep_na, keep_empty = keep_empty, title = title, subtitle = subtitle, ...
@@ -426,7 +426,7 @@ SpiderPlot <- function(
     data, x, x_sep = "_", group_by = NULL, group_by_sep = "_", y = NULL, group_name = NULL, groups = NULL,
     scale_y = c("group", "global", "x", "none"), y_min = 0, y_max = NULL, y_nbreaks = 4, bg_color = "grey80", bg_alpha = 0.1,
     fill = TRUE, linewidth = 1, pt_size = 4, max_charwidth = 16, split_by = NULL, split_by_sep = "_",
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     alpha = 0.2, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
     keep_na = FALSE, keep_empty = FALSE, title = NULL, subtitle = NULL, seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
@@ -466,7 +466,7 @@ SpiderPlot <- function(
                 x = x, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, y = y, group_name = group_name, groups = groups,
                 scale_y = scale_y, y_min = y_min, y_max = y_max, y_nbreaks = y_nbreaks, polygon = TRUE, bg_color = bg_color, bg_alpha = bg_alpha,
                 fill = fill, linewidth = linewidth, pt_size = pt_size, max_charwidth = max_charwidth,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 alpha = alpha, aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                 keep_na = keep_na, keep_empty = keep_empty, title = title, subtitle = subtitle, ...
