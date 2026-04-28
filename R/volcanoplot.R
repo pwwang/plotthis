@@ -54,7 +54,7 @@ VolcanoPlotAtomic <- function(
     pt_size = 2, pt_alpha = 0.5, nlabel = 5, labels = NULL, label_by = NULL, label_size = 3, label_fg = "black", label_bg = "white",
     label_bg_r = 0.1, highlight = NULL, highlight_color = "red", highlight_size = 2, highlight_alpha = 1,
     highlight_stroke = 0.5, facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, palreverse = FALSE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical", seed = 8525,
     ...
@@ -174,14 +174,14 @@ VolcanoPlotAtomic <- function(
         geom_point(data = outlier_data, size = pt_size, alpha = pt_alpha, position = jitter)
 
     if (color_type == "discrete") {
-        colors <- palette_this(levels(data[[color_by]]), palette = palette, palcolor = palcolor)
+        colors <- palette_this(levels(data[[color_by]]), palette = palette, palcolor = palcolor, reverse = palreverse)
         if (is.null(palcolor)) {
             colors['insig'] <- "grey"
         }
         p <- p + scale_color_manual(values = colors, guide = "none")
     } else {
         p <- p + scale_color_gradientn(
-            colors = palette_this(palette = palette, palcolor = palcolor),
+            colors = palette_this(palette = palette, palcolor = palcolor, reverse = palreverse),
             values = scales::rescale(unique(c(
                 min(c(unlist(data[[color_by]]), 0), na.rm = TRUE), 0,
                 max(unlist(data[[color_by]]), na.rm = TRUE)))),
@@ -389,7 +389,7 @@ VolcanoPlot <- function(
     label_bg_r = 0.1, highlight = NULL, highlight_color = "red", highlight_size = 2, highlight_alpha = 1,
     highlight_stroke = 0.5, trim = c(0, 1),
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, palreverse = FALSE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical", seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
@@ -431,7 +431,7 @@ VolcanoPlot <- function(
                 label_bg_r = label_bg_r, highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha,
                 highlight_stroke = highlight_stroke,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]], seed = seed, ...
             )

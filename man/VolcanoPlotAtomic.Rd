@@ -47,6 +47,7 @@ VolcanoPlotAtomic(
   theme_args = list(),
   palette = "Spectral",
   palcolor = NULL,
+  palreverse = FALSE,
   title = NULL,
   subtitle = NULL,
   xlab = NULL,
