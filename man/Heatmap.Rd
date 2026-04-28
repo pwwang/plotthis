@@ -213,7 +213,7 @@ This is applied before renaming columns_by to columns_name.}
 
 \item{palcolor}{A character vector of colors to override the palette of the heatmap cells.}
 
-\item{palreverse}{A logical value indicating whether to reverse the palette colors. Default is FALSE.}
+\item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
 \item{pie_size_name}{A character string specifying the name of the legend for the pie size.}
 

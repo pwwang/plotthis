@@ -98,7 +98,7 @@ If some values are missing, the values from the palette will be used (palcolor w
 
 \item{alpha}{A numeric value specifying the transparency of the plot.}
 
-\item{palreverse}{A logical value to reverse the palette colors.}
+\item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 

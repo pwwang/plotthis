@@ -39,6 +39,7 @@
 #' @param palcolor A character string specifying the color to use in the palette.
 #'   A named list can be used to specify the colors for different `split_by` values.
 #'   If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).
+#' @param palreverse A logical value indicating whether to reverse the palette. Default is FALSE.
 #' @param alpha A numeric value specifying the transparency of the plot.
 #' @param x_text_angle A numeric value specifying the angle of the x-axis text.
 #' @param aspect.ratio A numeric value specifying the aspect ratio of the plot.

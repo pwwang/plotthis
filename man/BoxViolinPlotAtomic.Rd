@@ -158,6 +158,8 @@ additional comparison of the significance labels.}
 
 \item{fill_mode}{A character string to specify the fill mode. Either "dodge", "x", "mean", "median".}
 
+\item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
+
 \item{symnum_args}{A list of arguments to pass to the function \code{symnum} for symbolic number coding of p-values.
 For example, \code{symnum_args <- list(cutpoints = c(0, 0.0001, 0.001, 0.01, 0.05, Inf), symbols = c("****", "***", "**", "*", "ns"))}.
 In other words, we use the following convention for symbols indicating statistical significance:

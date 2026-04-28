@@ -70,7 +70,6 @@
 #' @param thin_bins Number of bins to partition the data. Defaults to 200.
 #' @param rescale A logical value indicating whether to rescale the plot (default: TRUE).
 #' @param rescale_ratio_threshold A numeric value to specify the ratio threshold for rescaling.
-#' @param palreverse A logical value indicating whether to reverse the palette for chromosomes (default: FALSE).
 #' @param alpha Alias of `pt_alpha`.
 #' @keywords internal
 #' @importFrom utils getFromNamespace

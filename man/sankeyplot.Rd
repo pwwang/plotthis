@@ -233,6 +233,8 @@ Use a special value ".fill" to use the same color as the fill.}
 
 \item{links_palcolor}{A character vector to specify the colors of links fill.}
 
+\item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
+
 \item{links_alpha}{A numeric value to specify the transparency of links fill.}
 
 \item{legend.box}{A character string to specify the box of the legend, either "vertical" or "horizontal".}

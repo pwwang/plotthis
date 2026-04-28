@@ -109,6 +109,8 @@ A named list or vector can be used to specify the palettes for different \code{s
 A named list can be used to specify the colors for different \code{split_by} values.
 If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).}
 
+\item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
+
 \item{alpha}{A numeric value specifying the transparency of the plot.}
 
 \item{labels_rot}{A logical value to rotate the labels by 90 degrees.}

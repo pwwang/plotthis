@@ -177,6 +177,8 @@ A named list or vector can be used to specify the palettes for different \code{s
 A named list can be used to specify the colors for different \code{split_by} values.
 If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).}
 
+\item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
+
 \item{link_palette}{A character string specifying the palette of the links.
 When \code{link_color_by} is "from" or "to", the palette of the links defaults to the palette of the nodes.}
 

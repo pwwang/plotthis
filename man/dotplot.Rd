@@ -155,6 +155,8 @@ By default, the fill direction is "up". If TRUE, the fill direction is "down".
 When the direction is "up", the values less than the cutoff will be filled with grey.
 When the direction is "down", the values greater than the cutoff will be filled with grey.}
 
+\item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
+
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
 

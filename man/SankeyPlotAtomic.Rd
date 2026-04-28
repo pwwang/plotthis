@@ -95,6 +95,8 @@ Use a special value ".fill" to use the same color as the fill.}
 
 \item{nodes_palcolor}{A character vector to specify the colors of nodes fill.}
 
+\item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
+
 \item{nodes_alpha}{A numeric value to specify the transparency of nodes fill.}
 
 \item{nodes_label}{A logical value to show the labels on the nodes.}

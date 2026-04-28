@@ -19,7 +19,6 @@
 #' @param minchar A numeric value specifying the minimum number of characters for the word.
 #' @param word_size A numeric vector specifying the range of the word size.
 #' @param top_words A numeric value specifying the number of top words to show.
-#' @param palreverse A logical value to reverse the palette colors.
 #' @return A ggplot object
 #' @keywords internal
 #' @importFrom tidyr unnest

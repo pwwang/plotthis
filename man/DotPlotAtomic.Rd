@@ -78,6 +78,8 @@ By default, the fill direction is "up". If TRUE, the fill direction is "down".
 When the direction is "up", the values less than the cutoff will be filled with grey.
 When the direction is "down", the values greater than the cutoff will be filled with grey.}
 
+\item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
+
 \item{size_name}{A character vector specifying the name for the size legend.}
 
 \item{fill_name}{A character vector specifying the name for the fill legend.}

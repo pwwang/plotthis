@@ -187,6 +187,8 @@ A named list or vector can be used to specify the palettes for different \code{s
 A named list can be used to specify the colors for different \code{split_by} values.
 If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).}
 
+\item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
+
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}

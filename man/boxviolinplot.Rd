@@ -371,6 +371,8 @@ additional comparison of the significance labels.}
 
 \item{fill_mode}{A character string to specify the fill mode. Either "dodge", "x", "mean", "median".}
 
+\item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
+
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
 

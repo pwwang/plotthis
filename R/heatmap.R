@@ -1129,7 +1129,6 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
 #' @param reticle_color A character string specifying the color of the reticle.
 #' @param palette A character string specifying the palette of the heatmap cells.
 #' @param palcolor A character vector of colors to override the palette of the heatmap cells.
-#' @param palreverse A logical value indicating whether to reverse the palette colors. Default is FALSE.
 #' @param alpha A numeric value between 0 and 1 specifying the transparency of the heatmap cells.
 #' @param return_grob A logical value indicating whether to return the grob object of the heatmap.
 #'  This is useful when merging multiple heatmaps using patchwork.

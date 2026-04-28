@@ -155,6 +155,8 @@ Only used when \code{link_color_by} is a column name.}
 
 \item{palcolor}{A character vector specifying the colors of the node palette.}
 
+\item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
+
 \item{link_palette}{A character string specifying the palette of the links.
 When \code{link_color_by} is "from" or "to", the palette of the links defaults to the palette of the nodes.}
 

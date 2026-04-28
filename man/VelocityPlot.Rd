@@ -124,6 +124,8 @@ Alias: \code{levels}}
 
 \item{streamline_palcolor}{An optional character vector specifying the colors to use for the velocity streamlines. If NULL, the colors will be generated from the streamline_palette.}
 
+\item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
+
 \item{streamline_bg_color}{A character string specifying the background color of the velocity streamlines. Default is "white".}
 
 \item{streamline_bg_stroke}{A numeric value specifying the background stroke width of the velocity streamlines. Default is 0.5.}

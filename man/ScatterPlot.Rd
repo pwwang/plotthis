@@ -70,6 +70,8 @@ For shapes 21-25, the color is applied to the fill color.}
 
 \item{color_name}{A character vector specifying the name for the color legend.}
 
+\item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
+
 \item{split_by}{The column(s) to split data by and plot separately.}
 
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}

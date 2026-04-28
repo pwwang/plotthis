@@ -103,6 +103,8 @@ A named list or vector can be used to specify the palettes for different \code{s
 A named list can be used to specify the colors for different \code{split_by} values.
 If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).}
 
+\item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
+
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
 and combine them into one using \code{patchwork::wrap_plots}}

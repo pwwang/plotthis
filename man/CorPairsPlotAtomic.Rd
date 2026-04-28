@@ -88,6 +88,8 @@ Default is "theme_this".}
 
 \item{palcolor}{Custom colors used to create a color palette for the scatter plots and diagonal plots.}
 
+\item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
+
 \item{title}{A character string specifying the title of the plot.
 A function can be used to generate the title based on the default title.
 This is useful when split_by is used and the title needs to be dynamic.}

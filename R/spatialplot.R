@@ -213,7 +213,6 @@
 #' @param palette A character string specifying the color palette to use.
 #' For `SpatImagePlot`, if the data has 3 channels (RGB), it will be used as a color identity and
 #' this argument will be ignored.
-#' @param palreverse Whether to reverse the color palette. Default is FALSE.
 #' @param fill_by A character string or vector specifying the column(s) to fill the shapes in `SpatShapesPlot`.
 #' @param fill_name A character string for the fill legend title.
 #' @param color_by A character string specifying the column to color the points in `SpatPointsPlot`.

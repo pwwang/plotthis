@@ -112,6 +112,8 @@ Possible values are "count", "set", "count_rev".
 "count_rev" indicates the fill color is based on the count of the intersection in reverse order.
 The palette will be continuous for "count" and "count_rev". The palette will be discrete for "set".}
 
+\item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
+
 \item{fill_name}{A character string to name the legend of colorbar.}
 
 \item{palette}{A character string specifying the palette to use.
