@@ -21,3 +21,5 @@
 ^brain\.qs2$
 ^\.vscode\/.*
 ^\.vscode$
+^\.claude\/.*
+^\.claude$
