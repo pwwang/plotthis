@@ -56,7 +56,7 @@ SankeyPlotAtomic <- function(
     data, in_form = c("auto", "long", "lodes", "wide", "alluvia", "counts"), x, x_sep = "_", y = NULL,
     stratum = NULL, stratum_sep = "_", alluvium = NULL, alluvium_sep = "_", flow = FALSE,
     nodes_color = "grey30", links_fill_by = NULL, links_fill_by_sep = "_", links_name = NULL, links_color = "gray80",
-    nodes_palette = "Paired", nodes_palcolor = NULL, nodes_alpha = 1, nodes_label = FALSE, nodes_width = 0.25,  nodes_label_miny = 0,
+    nodes_palette = "Paired", nodes_palcolor = NULL, palreverse = FALSE, nodes_alpha = 1, nodes_label = FALSE, nodes_width = 0.25,  nodes_label_miny = 0,
     nodes_legend = c("auto", "separate", "merge", "none"), expand = c(0, 0, 0, 0), links_palette = "Paired", links_palcolor = NULL,
     links_alpha = 0.6, legend.box = "vertical", keep_empty = TRUE, x_text_angle = 0, aspect.ratio = 1, legend.position = "right",
     legend.direction = "vertical", flip = FALSE, theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL,
@@ -176,8 +176,8 @@ SankeyPlotAtomic <- function(
         }
     }
 
-    nodes_colors <- palette_this(levels(data[[stratum]]), palette = nodes_palette, palcolor = nodes_palcolor)
-    links_colors <- palette_this(levels(data[[links_fill_by]]), palette = links_palette, palcolor = links_palcolor)
+    nodes_colors <- palette_this(levels(data[[stratum]]), palette = nodes_palette, palcolor = nodes_palcolor, reverse = palreverse)
+    links_colors <- palette_this(levels(data[[links_fill_by]]), palette = links_palette, palcolor = links_palcolor, reverse = palreverse)
     links_guide = guide_legend(order = 1, override.aes = list(alpha = min(links_alpha + 0.2, 1), color = "transparent"))
     if (is_flowcounts) {
         if (identical(nodes_colors[names(links_colors)], links_colors)) {
@@ -188,7 +188,7 @@ SankeyPlotAtomic <- function(
             # the first column of nodes have different colors as the links. It is probably because nodes_palette
             # does not have enough colors. Please use a palette with more colors for both
             # nodes_palette and links_palette.
-            nodes_colors1 <- palette_this(levels(data[[links_fill_by]]), palette = nodes_palette, palcolor = nodes_palcolor)
+            nodes_colors1 <- palette_this(levels(data[[links_fill_by]]), palette = nodes_palette, palcolor = nodes_palcolor, reverse = palreverse)
             nodes_colors <- c(nodes_colors1, nodes_colors[setdiff(names(nodes_colors), names(nodes_colors1))])
         }
     }
@@ -478,7 +478,7 @@ SankeyPlot <- function(
     nodes_legend = c("auto", "separate", "merge", "none"), nodes_color = "grey30", links_fill_by = NULL,
     links_fill_by_sep = "_", links_name = NULL, links_color = "gray80", nodes_palette = "Paired", nodes_palcolor = NULL,
     nodes_alpha = 1, nodes_label = FALSE, nodes_label_miny = 0, nodes_width = 0.25, links_palette = "Paired",
-    links_palcolor = NULL, links_alpha = 0.6, legend.box = "vertical", x_text_angle = 0, aspect.ratio = 1,
+    links_palcolor = NULL, palreverse = FALSE, links_alpha = 0.6, legend.box = "vertical", x_text_angle = 0, aspect.ratio = 1,
     legend.position = "right", legend.direction = "vertical", flip = FALSE, theme = "theme_this", theme_args = list(),
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
@@ -514,7 +514,7 @@ SankeyPlot <- function(
                 links_name = links_name, links_color = links_color, expand = expand, nodes_label_miny = nodes_label_miny,
                 nodes_palette = nodes_palette, nodes_palcolor = nodes_palcolor, nodes_alpha = nodes_alpha,
                 nodes_label = nodes_label, nodes_width = nodes_width, flow = flow,
-                links_palette = links_palette, links_palcolor = links_palcolor, links_alpha = links_alpha,
+                links_palette = links_palette, links_palcolor = links_palcolor, palreverse = palreverse, links_alpha = links_alpha,
                 legend.box = legend.box, x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
                 legend.position = legend.position, legend.direction = legend.direction, flip = flip,
                 theme = theme, theme_args = theme_args, title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
