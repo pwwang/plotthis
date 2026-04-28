@@ -31,6 +31,7 @@ GSEASummaryPlot(
   theme_args = list(),
   palette = "Spectral",
   palcolor = NULL,
+  palreverse = FALSE,
   seed = 8525,
   ...
 )

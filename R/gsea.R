@@ -109,7 +109,7 @@ GSEASummaryPlot <- function(
     metric_name = metric, nonsig_name = "Insignificant", linewidth = 0.2,
     line_by = c("prerank", "running_score"), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     alpha = 0.6, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, palreverse = FALSE,
     seed = 8525, ...) {
     set.seed(seed)
     in_form <- match.arg(in_form)
@@ -198,7 +198,7 @@ GSEASummaryPlot <- function(
     colors <- palette_this(
         sig_metrics,
         n = sum(data$.signif), palette = palette, palcolor = palcolor,
-        alpha = alpha, type = "continuous", transparent = FALSE
+        alpha = alpha, type = "continuous", transparent = FALSE, reverse = palreverse
     )
     line_plot_list <- list()
 
