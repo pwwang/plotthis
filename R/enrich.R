@@ -108,7 +108,7 @@ EnrichMapAtomic <- function(
     cluster = "fast_greedy", show_keyword = FALSE, nlabel = 4, character_width = 50,
     words_excluded = plotthis::words_excluded,
     mark = "ellipse", label = c("term", "feature"), labelsize = 5, expand = c(0.4, 0.4),
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 1,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525, ...
 ) {
@@ -287,7 +287,7 @@ EnrichMapAtomic <- function(
         guides(linewidth = guide_legend(override.aes = list(alpha = 1, color = "grey"), order = 2)) +
         scale_fill_manual(
             name = switch(label, "term" = "Feature", "feature" = "Term"),
-            values = palette_this(levels(df_nodes$clusters), palette = palette, palcolor = palcolor),
+            values = palette_this(levels(df_nodes$clusters), palette = palette, palcolor = palcolor, reverse = palreverse),
             labels = if (label == "term") df_keyword2[levels(df_nodes$clusters), "label"] else df_keyword1[levels(df_nodes$clusters), "label"],
             na.value = "grey80",
             aesthetics = c("colour", "fill")
@@ -336,7 +336,7 @@ EnrichMapAtomic <- function(
 EnrichNetworkAtomic <- function(
     data, top_term = 6, metric = "p.adjust", character_width = 50,
     layout = "fr", layoutadjust = TRUE, adjscale = 60, adjiter = 100, blendmode = "blend", labelsize = 5,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 1,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     ...
@@ -411,7 +411,7 @@ EnrichNetworkAtomic <- function(
     df_edges$to_dim1 <- df_nodes[df_edges$to, "dim1"]
     df_edges$to_dim2 <- df_nodes[df_edges$to, "dim2"]
 
-    colors <- palette_this(levels(data$Description), palette = palette, palcolor = palcolor)
+    colors <- palette_this(levels(data$Description), palette = palette, palcolor = palcolor, reverse = palreverse)
     df_edges$color <- colors[df_edges$from]
     node_colors <- aggregate(
         df_unnest$Description,
@@ -599,7 +599,7 @@ EnrichMap <- function(
     split_by_sep = "_", top_term = 10, metric = "p.adjust", layout = "fr", minchar = 2,
     cluster = "fast_greedy", show_keyword = FALSE, nlabel = 4, character_width = 50,
     mark = "ellipse", label = c("term", "feature"), labelsize = 5, expand = c(0.4, 0.4),
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 1,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
@@ -653,7 +653,7 @@ EnrichMap <- function(
                 top_term = top_term, metric = metric, layout = layout, minchar = minchar,
                 cluster = cluster, show_keyword = show_keyword, nlabel = nlabel, character_width = character_width,
                 mark = mark, label = label, labelsize = labelsize, expand = expand,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, alpha = alpha,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, ...
             )
@@ -693,7 +693,7 @@ EnrichNetwork <- function(
     data, in_form = c("auto", "clusterProfiler", "clusterprofiler", "enrichr"),
     split_by = NULL, split_by_sep = "_", top_term = 10, metric = "p.adjust", character_width = 50,
     layout = "fr", layoutadjust = TRUE, adjscale = 60, adjiter = 100, blendmode = "blend", labelsize = 5,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 1,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
@@ -746,7 +746,7 @@ EnrichNetwork <- function(
                 datas[[nm]],
                 top_term = top_term, metric = metric, character_width = character_width,
                 layout = layout, layoutadjust = layoutadjust, adjscale = adjscale, adjiter = adjiter, blendmode = blendmode,
-                labelsize = labelsize, theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
+                labelsize = labelsize, theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, alpha = alpha,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, ...
             )
