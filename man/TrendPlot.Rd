@@ -19,6 +19,7 @@ TrendPlot(
   theme_args = list(),
   palette = "Paired",
   palcolor = NULL,
+  palreverse = FALSE,
   alpha = 1,
   facet_by = NULL,
   facet_scales = "fixed",

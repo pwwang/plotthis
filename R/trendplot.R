@@ -22,7 +22,7 @@
 #' @importFrom ggplot2 waiver
 TrendPlotAtomic <- function(
     data, x, y = NULL, x_sep = "_", group_by = NULL, group_by_sep = "_", group_name = NULL, scale_y = FALSE,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     x_text_angle = 0, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, keep_na = FALSE, ...
@@ -115,7 +115,7 @@ TrendPlotAtomic <- function(
 
     group_vals <- levels(data[[group_by]])
     if (anyNA(data[[group_by]])) group_vals <- c(group_vals, NA)
-    group_cols <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+    group_cols <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE, reverse = palreverse)
 
     position <- position_stack(vjust = 0.5)
 
@@ -216,7 +216,7 @@ TrendPlotAtomic <- function(
 TrendPlot <- function(
     data, x, y = NULL, x_sep = "_", split_by = NULL, split_by_sep = "_",
     group_by = NULL, group_by_sep = "_", group_name = NULL, scale_y = FALSE,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     x_text_angle = 0, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_na = FALSE, keep_empty = FALSE, seed = 8525,
@@ -255,7 +255,7 @@ TrendPlot <- function(
             }
             TrendPlotAtomic(datas[[nm]],
                 x = x, y = y, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name, scale_y = scale_y,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, alpha = alpha,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]],
                 legend.direction = legend.direction[[nm]], title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
