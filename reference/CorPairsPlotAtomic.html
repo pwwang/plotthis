@@ -64,6 +64,7 @@
 <span>  theme_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">group_by</span><span class="op">)</span>, <span class="st">"Spectral"</span>, <span class="st">"Paired"</span><span class="op">)</span>,</span>
 <span>  palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  palreverse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  title <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  subtitle <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  facet_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -166,6 +167,10 @@ Default is "theme_this".</p></dd>
 
 <dt id="arg-palcolor">palcolor<a class="anchor" aria-label="anchor" href="#arg-palcolor"></a></dt>
 <dd><p>Custom colors used to create a color palette for the scatter plots and diagonal plots.</p></dd>
+
+
+<dt id="arg-palreverse">palreverse<a class="anchor" aria-label="anchor" href="#arg-palreverse"></a></dt>
+<dd><p>A logical value indicating whether to reverse the palette. Default is FALSE.</p></dd>
 
 
 <dt id="arg-title">title<a class="anchor" aria-label="anchor" href="#arg-title"></a></dt>

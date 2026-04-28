@@ -118,6 +118,7 @@ DimPlotAtomic(
   hex_binwidth = NULL,
   palette = ifelse(is.null(features), "Paired", "Spectral"),
   palcolor = NULL,
+  palreverse = FALSE,
   seed = 8525,
   ...
 )
@@ -666,6 +667,11 @@ DimPlotAtomic(
   list can be used to specify the colors for different `split_by`
   values. If some values are missing, the values from the palette will
   be used (palcolor will be NULL for those values).
+
+- palreverse:
+
+  A logical value indicating whether to reverse the palette. Default is
+  FALSE.
 
 - seed:
 

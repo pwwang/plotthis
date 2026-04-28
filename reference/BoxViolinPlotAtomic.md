@@ -23,7 +23,7 @@ BoxViolinPlotAtomic(
   x_text_angle = ifelse(isTRUE(flip), 0, 45),
   step_increase = 0.1,
   fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
-  fill_reverse = FALSE,
+  palreverse = FALSE,
   symnum_args = NULL,
   theme = "theme_this",
   theme_args = list(),
@@ -211,10 +211,10 @@ BoxViolinPlotAtomic(
   A character string to specify the fill mode. Either "dodge", "x",
   "mean", "median".
 
-- fill_reverse:
+- palreverse:
 
-  A logical value to reverse the fill colors for gradient fill
-  (mean/median).
+  A logical value indicating whether to reverse the palette. Default is
+  FALSE.
 
 - symnum_args:
 

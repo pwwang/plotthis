@@ -20,7 +20,7 @@ SpatImagePlot(
   flip_y = TRUE,
   palette = "turbo",
   palcolor = NULL,
-  palette_reverse = FALSE,
+  palreverse = FALSE,
   alpha = 1,
   fill_name = NULL,
   return_layer = FALSE,
@@ -45,7 +45,7 @@ SpatMasksPlot(
   border_alpha = 1,
   palette = "turbo",
   palcolor = NULL,
-  palette_reverse = FALSE,
+  palreverse = FALSE,
   alpha = 1,
   fill_name = NULL,
   return_layer = FALSE,
@@ -73,7 +73,7 @@ SpatShapesPlot(
   border_alpha = 1,
   palette = NULL,
   palcolor = NULL,
-  palette_reverse = FALSE,
+  palreverse = FALSE,
   alpha = 1,
   fill_name = NULL,
   highlight = NULL,
@@ -111,7 +111,7 @@ SpatShapesPlot(
   border_alpha = 1,
   palette = NULL,
   palcolor = NULL,
-  palette_reverse = FALSE,
+  palreverse = FALSE,
   alpha = 1,
   fill_name = NULL,
   highlight = NULL,
@@ -149,7 +149,7 @@ SpatShapesPlot(
   border_alpha = 1,
   palette = NULL,
   palcolor = NULL,
-  palette_reverse = FALSE,
+  palreverse = FALSE,
   alpha = 1,
   fill_name = NULL,
   highlight = NULL,
@@ -189,7 +189,7 @@ SpatPointsPlot(
   upper_cutoff = NULL,
   palette = NULL,
   palcolor = NULL,
-  palette_reverse = FALSE,
+  palreverse = FALSE,
   alpha = 1,
   color_name = NULL,
   size_name = NULL,
@@ -285,9 +285,10 @@ SpatPointsPlot(
   values. If some values are missing, the values from the palette will
   be used (palcolor will be NULL for those values).
 
-- palette_reverse:
+- palreverse:
 
-  Whether to reverse the color palette. Default is FALSE.
+  A logical value indicating whether to reverse the palette. Default is
+  FALSE.
 
 - alpha:
 
@@ -624,7 +625,7 @@ m <- terra::rast(
 SpatMasksPlot(m, border_color = "red")
 
 SpatMasksPlot(m, ext = c(0, 15, 0, 20), add_border = FALSE,
-    palette_reverse = TRUE, fill_name = "value")
+    palreverse = TRUE, fill_name = "value")
 #> Warning: Raster pixels are placed at uneven horizontal intervals and will be shifted
 #> ℹ Consider using `geom_tile()` instead.
 

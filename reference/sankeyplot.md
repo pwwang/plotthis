@@ -35,6 +35,7 @@ SankeyPlot(
   nodes_width = 0.25,
   links_palette = "Paired",
   links_palcolor = NULL,
+  palreverse = FALSE,
   links_alpha = 0.6,
   legend.box = "vertical",
   x_text_angle = 0,
@@ -94,6 +95,7 @@ AlluvialPlot(
   nodes_width = 0.25,
   links_palette = "Paired",
   links_palcolor = NULL,
+  palreverse = FALSE,
   links_alpha = 0.6,
   legend.box = "vertical",
   x_text_angle = 0,
@@ -321,6 +323,11 @@ AlluvialPlot(
 - links_palcolor:
 
   A character vector to specify the colors of links fill.
+
+- palreverse:
+
+  A logical value indicating whether to reverse the palette. Default is
+  FALSE.
 
 - links_alpha:
 

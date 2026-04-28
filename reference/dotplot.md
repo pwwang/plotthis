@@ -28,7 +28,7 @@ DotPlot(
   size_by = NULL,
   fill_by = NULL,
   fill_cutoff = NULL,
-  fill_reverse = FALSE,
+  palreverse = FALSE,
   theme = "theme_this",
   theme_args = list(),
   palette = "Spectral",
@@ -75,7 +75,7 @@ LollipopPlot(
   size_by = NULL,
   fill_by = NULL,
   fill_cutoff = NULL,
-  fill_reverse = FALSE,
+  palreverse = FALSE,
   theme = "theme_this",
   theme_args = list(),
   palette = "Spectral",
@@ -200,15 +200,16 @@ LollipopPlot(
 
 - fill_cutoff:
 
-  A numeric value specifying the cutoff for the fill column.
+  A numeric value specifying the cutoff for the fill column. By default,
+  the fill direction is "up". If TRUE, the fill direction is "down".
+  When the direction is "up", the values less than the cutoff will be
+  filled with grey. When the direction is "down", the values greater
+  than the cutoff will be filled with grey.
 
-- fill_reverse:
+- palreverse:
 
-  A logical value indicating whether to reverse the fill direction.
-  Default is FALSE. By default, the fill direction is "up". If TRUE, the
-  fill direction is "down". When the direction is "up", the values less
-  than the cutoff will be filled with grey. When the direction is
-  "down", the values greater than the cutoff will be filled with grey.
+  A logical value indicating whether to reverse the palette. Default is
+  FALSE.
 
 - theme:
 

@@ -22,6 +22,7 @@ QQPlot(
   theme_args = list(),
   palette = "Spectral",
   palcolor = NULL,
+  palreverse = FALSE,
   facet_by = NULL,
   facet_scales = "fixed",
   facet_ncol = NULL,
@@ -140,6 +141,11 @@ QQPlot(
   list can be used to specify the colors for different `split_by`
   values. If some values are missing, the values from the palette will
   be used (palcolor will be NULL for those values).
+
+- palreverse:
+
+  A logical value indicating whether to reverse the palette. Default is
+  FALSE.
 
 - facet_by:
 

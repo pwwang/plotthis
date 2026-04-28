@@ -23,6 +23,7 @@ SankeyPlotAtomic(
   links_color = "gray80",
   nodes_palette = "Paired",
   nodes_palcolor = NULL,
+  palreverse = FALSE,
   nodes_alpha = 1,
   nodes_label = FALSE,
   nodes_width = 0.25,
@@ -138,6 +139,11 @@ SankeyPlotAtomic(
 - nodes_palcolor:
 
   A character vector to specify the colors of nodes fill.
+
+- palreverse:
+
+  A logical value indicating whether to reverse the palette. Default is
+  FALSE.
 
 - nodes_alpha:
 

@@ -153,7 +153,8 @@ WordCloudPlotAtomic(
 
 - palreverse:
 
-  A logical value to reverse the palette colors.
+  A logical value indicating whether to reverse the palette. Default is
+  FALSE.
 
 - aspect.ratio:
 

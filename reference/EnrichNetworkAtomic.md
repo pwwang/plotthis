@@ -20,6 +20,7 @@ EnrichNetworkAtomic(
   theme_args = list(),
   palette = "Paired",
   palcolor = NULL,
+  palreverse = FALSE,
   alpha = 1,
   aspect.ratio = 1,
   legend.position = "right",
@@ -79,6 +80,11 @@ EnrichNetworkAtomic(
   list can be used to specify the colors for different `split_by`
   values. If some values are missing, the values from the palette will
   be used (palcolor will be NULL for those values).
+
+- palreverse:
+
+  A logical value indicating whether to reverse the palette. Default is
+  FALSE.
 
 - alpha:
 

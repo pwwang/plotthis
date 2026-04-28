@@ -35,6 +35,7 @@ VelocityPlot(
   streamline_color = NULL,
   streamline_palette = "RdYlBu",
   streamline_palcolor = NULL,
+  palreverse = FALSE,
   streamline_bg_color = "white",
   streamline_bg_stroke = 0.5,
   aspect.ratio = 1,
@@ -215,6 +216,11 @@ VelocityPlot(
   An optional character vector specifying the colors to use for the
   velocity streamlines. If NULL, the colors will be generated from the
   streamline_palette.
+
+- palreverse:
+
+  A logical value indicating whether to reverse the palette. Default is
+  FALSE.
 
 - streamline_bg_color:
 

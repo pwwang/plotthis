@@ -13,7 +13,7 @@ ScatterPlotAtomic(
   size_name = NULL,
   color_by = NULL,
   color_name = NULL,
-  color_reverse = FALSE,
+  palreverse = FALSE,
   theme = "theme_this",
   theme_args = list(),
   alpha = ifelse(shape %in% 21:25, 0.65, 1),
@@ -80,10 +80,10 @@ ScatterPlotAtomic(
 
   A character vector specifying the name for the color legend.
 
-- color_reverse:
+- palreverse:
 
-  A logical value indicating whether to reverse the color direction.
-  Default is FALSE.
+  A logical value indicating whether to reverse the palette. Default is
+  FALSE.
 
 - theme:
 

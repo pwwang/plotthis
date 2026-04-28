@@ -19,6 +19,7 @@ VennDiagram(
   label_bg = "white",
   label_bg_r = 0.1,
   fill_mode = "count",
+  palreverse = FALSE,
   fill_name = NULL,
   palette = ifelse(fill_mode == "set", "Paired", "Blues"),
   palcolor = NULL,
@@ -139,6 +140,11 @@ VennDiagram(
   indicates the fill color is based on the count of the intersection in
   reverse order. The palette will be continuous for "count" and
   "count_rev". The palette will be discrete for "set".
+
+- palreverse:
+
+  A logical value indicating whether to reverse the palette. Default is
+  FALSE.
 
 - fill_name:
 

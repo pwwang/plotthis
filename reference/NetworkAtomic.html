@@ -76,6 +76,7 @@
 <span>  link_color_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
 <span>  palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  palreverse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  link_palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">link_color_by</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"from"</span>, <span class="st">"to"</span><span class="op">)</span>, <span class="va">palette</span>, <span class="st">"Set1"</span><span class="op">)</span>,</span>
 <span>  link_palcolor <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="va">link_color_by</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"from"</span>, <span class="st">"to"</span><span class="op">)</span><span class="op">)</span> <span class="va">palcolor</span> <span class="kw">else</span> <span class="cn">NULL</span>,</span>
 <span>  directed <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -257,6 +258,10 @@ Only used when <code>link_color_by</code> is a column name.</p></dd>
 
 <dt id="arg-palcolor">palcolor<a class="anchor" aria-label="anchor" href="#arg-palcolor"></a></dt>
 <dd><p>A character vector specifying the colors of the node palette.</p></dd>
+
+
+<dt id="arg-palreverse">palreverse<a class="anchor" aria-label="anchor" href="#arg-palreverse"></a></dt>
+<dd><p>A logical value indicating whether to reverse the palette. Default is FALSE.</p></dd>
 
 
 <dt id="arg-link-palette">link_palette<a class="anchor" aria-label="anchor" href="#arg-link-palette"></a></dt>

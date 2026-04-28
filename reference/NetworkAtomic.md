@@ -38,6 +38,7 @@ NetworkAtomic(
   link_color_name = NULL,
   palette = "Paired",
   palcolor = NULL,
+  palreverse = FALSE,
   link_palette = ifelse(link_color_by %in% c("from", "to"), palette, "Set1"),
   link_palcolor = if (link_color_by %in% c("from", "to")) palcolor else NULL,
   directed = TRUE,
@@ -235,6 +236,11 @@ NetworkAtomic(
 - palcolor:
 
   A character vector specifying the colors of the node palette.
+
+- palreverse:
+
+  A logical value indicating whether to reverse the palette. Default is
+  FALSE.
 
 - link_palette:
 

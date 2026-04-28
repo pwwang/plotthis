@@ -69,7 +69,7 @@ When x-axis and y-axis are both numeric, the plot works as a scatter plot.
 <span>  size_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fill_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fill_cutoff <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  fill_reverse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  palreverse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  theme <span class="op">=</span> <span class="st">"theme_this"</span>,</span>
 <span>  theme_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  palette <span class="op">=</span> <span class="st">"Spectral"</span>,</span>
@@ -116,7 +116,7 @@ When x-axis and y-axis are both numeric, the plot works as a scatter plot.
 <span>  size_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fill_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fill_cutoff <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  fill_reverse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  palreverse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  theme <span class="op">=</span> <span class="st">"theme_this"</span>,</span>
 <span>  theme_args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  palette <span class="op">=</span> <span class="st">"Spectral"</span>,</span>
@@ -233,14 +233,14 @@ If not provided, all dots will be filled with the same color at the middle of th
 
 
 <dt id="arg-fill-cutoff">fill_cutoff<a class="anchor" aria-label="anchor" href="#arg-fill-cutoff"></a></dt>
-<dd><p>A numeric value specifying the cutoff for the fill column.</p></dd>
-
-
-<dt id="arg-fill-reverse">fill_reverse<a class="anchor" aria-label="anchor" href="#arg-fill-reverse"></a></dt>
-<dd><p>A logical value indicating whether to reverse the fill direction. Default is FALSE.
+<dd><p>A numeric value specifying the cutoff for the fill column.
 By default, the fill direction is "up". If TRUE, the fill direction is "down".
 When the direction is "up", the values less than the cutoff will be filled with grey.
 When the direction is "down", the values greater than the cutoff will be filled with grey.</p></dd>
+
+
+<dt id="arg-palreverse">palreverse<a class="anchor" aria-label="anchor" href="#arg-palreverse"></a></dt>
+<dd><p>A logical value indicating whether to reverse the palette. Default is FALSE.</p></dd>
 
 
 <dt id="arg-theme">theme<a class="anchor" aria-label="anchor" href="#arg-theme"></a></dt>

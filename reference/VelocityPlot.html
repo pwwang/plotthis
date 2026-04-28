@@ -72,6 +72,7 @@
 <span>  streamline_color <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  streamline_palette <span class="op">=</span> <span class="st">"RdYlBu"</span>,</span>
 <span>  streamline_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  palreverse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  streamline_bg_color <span class="op">=</span> <span class="st">"white"</span>,</span>
 <span>  streamline_bg_stroke <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  aspect.ratio <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -218,6 +219,10 @@ Alias: <code>levels</code></p></li>
 
 <dt id="arg-streamline-palcolor">streamline_palcolor<a class="anchor" aria-label="anchor" href="#arg-streamline-palcolor"></a></dt>
 <dd><p>An optional character vector specifying the colors to use for the velocity streamlines. If NULL, the colors will be generated from the streamline_palette.</p></dd>
+
+
+<dt id="arg-palreverse">palreverse<a class="anchor" aria-label="anchor" href="#arg-palreverse"></a></dt>
+<dd><p>A logical value indicating whether to reverse the palette. Default is FALSE.</p></dd>
 
 
 <dt id="arg-streamline-bg-color">streamline_bg_color<a class="anchor" aria-label="anchor" href="#arg-streamline-bg-color"></a></dt>

@@ -41,6 +41,7 @@ Heatmap(
   rows_split_name = NULL,
   palette = "RdBu",
   palcolor = NULL,
+  palreverse = FALSE,
   pie_size_name = "size",
   pie_size = NULL,
   pie_values = "length",
@@ -310,6 +311,11 @@ Heatmap(
 
   A character vector of colors to override the palette of the heatmap
   cells.
+
+- palreverse:
+
+  A logical value indicating whether to reverse the palette. Default is
+  FALSE.
 
 - pie_size_name:
 

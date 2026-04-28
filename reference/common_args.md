@@ -88,6 +88,11 @@ Common arguments for plots
   values. If some values are missing, the values from the palette will
   be used (palcolor will be NULL for those values).
 
+- palreverse:
+
+  A logical value indicating whether to reverse the palette. Default is
+  FALSE.
+
 - alpha:
 
   A numeric value specifying the transparency of the plot.

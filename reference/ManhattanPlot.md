@@ -240,8 +240,8 @@ ManhattanPlot(
 
 - palreverse:
 
-  A logical value indicating whether to reverse the palette for
-  chromosomes (default: FALSE).
+  A logical value indicating whether to reverse the palette. Default is
+  FALSE.
 
 - alpha:
 

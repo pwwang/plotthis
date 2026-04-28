@@ -26,6 +26,7 @@ CorPairsPlotAtomic(
   theme_args = list(),
   palette = ifelse(is.null(group_by), "Spectral", "Paired"),
   palcolor = NULL,
+  palreverse = FALSE,
   title = NULL,
   subtitle = NULL,
   facet_by = NULL,
@@ -132,6 +133,11 @@ CorPairsPlotAtomic(
 
   Custom colors used to create a color palette for the scatter plots and
   diagonal plots.
+
+- palreverse:
+
+  A logical value indicating whether to reverse the palette. Default is
+  FALSE.
 
 - title:
 

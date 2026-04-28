@@ -13,7 +13,7 @@ ScatterPlot(
   size_name = NULL,
   color_by = NULL,
   color_name = NULL,
-  color_reverse = FALSE,
+  palreverse = FALSE,
   split_by = NULL,
   split_by_sep = "_",
   shape = 21,
@@ -89,10 +89,10 @@ ScatterPlot(
 
   A character vector specifying the name for the color legend.
 
-- color_reverse:
+- palreverse:
 
-  A logical value indicating whether to reverse the color direction.
-  Default is FALSE.
+  A logical value indicating whether to reverse the palette. Default is
+  FALSE.
 
 - split_by:
 

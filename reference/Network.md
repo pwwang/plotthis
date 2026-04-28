@@ -41,6 +41,7 @@ Network(
   link_color_name = NULL,
   palette = "Paired",
   palcolor = NULL,
+  palreverse = FALSE,
   link_palette = ifelse(link_color_by %in% c("from", "to"), palette, "Set1"),
   link_palcolor = if (link_color_by %in% c("from", "to")) palcolor else NULL,
   directed = TRUE,
@@ -265,6 +266,11 @@ Network(
   list can be used to specify the colors for different `split_by`
   values. If some values are missing, the values from the palette will
   be used (palcolor will be NULL for those values).
+
+- palreverse:
+
+  A logical value indicating whether to reverse the palette. Default is
+  FALSE.
 
 - link_palette:
 
