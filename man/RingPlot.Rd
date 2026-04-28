@@ -23,6 +23,7 @@ RingPlot(
   theme_args = list(),
   palette = "Paired",
   palcolor = NULL,
+  palreverse = FALSE,
   alpha = 1,
   aspect.ratio = 1,
   keep_na = FALSE,

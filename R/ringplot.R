@@ -23,7 +23,7 @@ RingPlotAtomic <- function(
     data, x = NULL, y = NULL, group_by = NULL, group_by_sep = "_",  group_name = NULL,
     label = NULL, clockwise = TRUE, keep_na = FALSE, keep_empty = FALSE,
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE,
     alpha = 1, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
     seed = 8525, ...
@@ -97,7 +97,7 @@ RingPlotAtomic <- function(
         }
     }
     data <- data[order(data[[group_by]]), , drop = FALSE]
-    colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+    colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE, reverse = palreverse)
 
     p = ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(group_by))) +
         geom_col(width = 0.9, color = "white", alpha = alpha, show.legend = TRUE) +
@@ -206,7 +206,7 @@ RingPlot <- function(
     data, x = NULL, y = NULL, group_by = NULL, group_by_sep = "_", group_name = NULL,
     label = NULL, split_by = NULL, split_by_sep = "_",
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE,
     alpha = 1, aspect.ratio = 1, keep_na = FALSE, keep_empty = FALSE,
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
@@ -247,7 +247,7 @@ RingPlot <- function(
             RingPlotAtomic(datas[[nm]],
                 x = x, y = y, label = label, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse,
                 alpha = alpha, aspect.ratio = aspect.ratio, keep_na = keep_na, keep_empty = keep_empty,
                 legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
