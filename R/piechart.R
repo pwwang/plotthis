@@ -16,7 +16,7 @@
 #' @importFrom ggrepel geom_label_repel
 PieChartAtomic <- function(
     data, x, y = NULL, label = y, clockwise = TRUE, keep_na = FALSE, keep_empty = FALSE,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 1,
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, ...
@@ -88,7 +88,7 @@ PieChartAtomic <- function(
     if (isTRUE(clockwise)) x_vals <- rev(x_vals)
     if (anyNA(data[[x]])) x_vals <- c(x_vals, NA)
 
-    colors <- palette_this(x_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+    colors <- palette_this(x_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE, reverse = palreverse)
 
     p <- ggplot(data, aes(x = "", y = !!sym(y), fill = !!sym(x))) +
         geom_col(width = 1, alpha = alpha, color = "white", show.legend = TRUE) +
@@ -190,7 +190,7 @@ PieChartAtomic <- function(
 PieChart <- function(
     data, x, y = NULL, label = y, split_by = NULL, split_by_sep = "_", clockwise = TRUE,
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE,
     alpha = 1, aspect.ratio = 1, keep_na = FALSE, keep_empty = FALSE,
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
@@ -234,7 +234,7 @@ PieChart <- function(
                 x = x, y = y, label = label, split_by = split_by, clockwise = clockwise,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow,
                 facet_byrow = facet_byrow, keep_na = keep_na, keep_empty = keep_empty,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse,
                 alpha = alpha, aspect.ratio = aspect.ratio,
                 legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, ...
