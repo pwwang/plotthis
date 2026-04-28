@@ -98,7 +98,7 @@ ClustreePlotAtomic <- function(
             n.breaks = 5,
             colors = palette_this(palette = edge_palette, palcolor = edge_palcolor, reverse = palreverse),
             na.value = "grey80",
-            guide = ggraph::guide_edge_colorbar()) +
+            guide = ggraph::guide_edge_colorbar(frame.colour = "black", ticks.colour = "black", title.hjust = 0)) +
         do.call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
