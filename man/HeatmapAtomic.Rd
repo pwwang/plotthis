@@ -14,6 +14,7 @@ HeatmapAtomic(
   columns_split_by = NULL,
   palette = "RdBu",
   palcolor = NULL,
+  palette_reverse = FALSE,
   pie_size_name = "size",
   pie_size = NULL,
   pie_values = "length",
@@ -113,6 +114,8 @@ which will be concatenated by \code{columns_by_sep} into a single column.}
 \item{palette}{A character string specifying the palette of the heatmap cells.}
 
 \item{palcolor}{A character vector of colors to override the palette of the heatmap cells.}
+
+\item{palette_reverse}{A logical value indicating whether to reverse the palette colors. Default is FALSE.}
 
 \item{pie_size_name}{A character string specifying the name of the legend for the pie size.}
 
