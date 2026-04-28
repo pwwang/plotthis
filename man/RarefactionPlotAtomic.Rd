@@ -16,6 +16,7 @@ RarefactionPlotAtomic(
   theme_args = list(),
   palette = "Spectral",
   palcolor = NULL,
+  palreverse = FALSE,
   alpha = 0.2,
   facet_by = NULL,
   facet_scales = "fixed",

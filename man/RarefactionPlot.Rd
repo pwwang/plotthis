@@ -17,6 +17,7 @@ RarefactionPlot(
   theme_args = list(),
   palette = "Spectral",
   palcolor = NULL,
+  palreverse = FALSE,
   alpha = 0.2,
   pt_size = 3,
   line_width = 1,

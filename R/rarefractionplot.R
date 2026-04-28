@@ -23,7 +23,7 @@
 #' @importFrom ggplot2 element_line element_text scale_shape_discrete unit
 RarefactionPlotAtomic <- function(
     data, type = 1, se = TRUE, group_by = "group", group_name = NULL, pt_size = 3, line_width = 1,
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 0.2,
+    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, palreverse = FALSE, alpha = 0.2,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, ...
@@ -58,7 +58,7 @@ RarefactionPlotAtomic <- function(
         geom_point(aes(shape = !!sym(group_by)), size = pt_size, data = data[data$Method == "Observed", , drop = FALSE]) +
         scale_color_manual(
             name = group_name,
-            values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor),
+            values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor, reverse = palreverse),
             guide = ifelse(identical(group_by, ".group"), "none", "legend")
         ) +
         scale_shape_discrete(name = group_name, guide = ifelse(identical(group_by, ".group"), "none", "legend")) +
@@ -80,7 +80,7 @@ RarefactionPlotAtomic <- function(
             color = "transparent", alpha = alpha) +
             scale_fill_manual(
                 name = group_name,
-                values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor),
+                values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor, reverse = palreverse),
                 guide = ifelse(identical(group_by, ".group"), "none", "legend")
             )
     }
@@ -132,7 +132,7 @@ RarefactionPlotAtomic <- function(
 #' }
 RarefactionPlot <- function(
     data, type = 1, se = NULL, group_by = "group", group_by_sep = "_", group_name = NULL, split_by = NULL, split_by_sep = "_",
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 0.2, pt_size = 3, line_width = 1,
+    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, palreverse = FALSE, alpha = 0.2, pt_size = 3, line_width = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
@@ -217,7 +217,7 @@ RarefactionPlot <- function(
                 title <- title %||% default_title
             }
             RarefactionPlotAtomic(datas[[nm]], type = type, se = se, group_by = group_by, group_name = group_name, pt_size = pt_size,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], line_width = line_width,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, line_width = line_width,
                 alpha = alpha, facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol,
                 facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
