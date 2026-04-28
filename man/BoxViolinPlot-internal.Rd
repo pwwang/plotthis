@@ -25,7 +25,7 @@ BoxViolinPlot(
   x_text_angle = ifelse(isTRUE(flip), 0, 45),
   step_increase = 0.1,
   fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
-  fill_reverse = FALSE,
+  palreverse = FALSE,
   theme = "theme_this",
   theme_args = list(),
   palette = "Paired",
@@ -180,8 +180,6 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 additional comparison of the significance labels.}
 
 \item{fill_mode}{A character string to specify the fill mode. Either "dodge", "x", "mean", "median".}
-
-\item{fill_reverse}{A logical value to reverse the fill colors for gradient fill (mean/median).}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}

@@ -22,7 +22,7 @@ BoxViolinPlotAtomic(
   x_text_angle = ifelse(isTRUE(flip), 0, 45),
   step_increase = 0.1,
   fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
-  fill_reverse = FALSE,
+  palreverse = FALSE,
   symnum_args = NULL,
   theme = "theme_this",
   theme_args = list(),
@@ -157,8 +157,6 @@ for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.}
 additional comparison of the significance labels.}
 
 \item{fill_mode}{A character string to specify the fill mode. Either "dodge", "x", "mean", "median".}
-
-\item{fill_reverse}{A logical value to reverse the fill colors for gradient fill (mean/median).}
 
 \item{symnum_args}{A list of arguments to pass to the function \code{symnum} for symbolic number coding of p-values.
 For example, \code{symnum_args <- list(cutpoints = c(0, 0.0001, 0.001, 0.01, 0.05, Inf), symbols = c("****", "***", "**", "*", "ns"))}.

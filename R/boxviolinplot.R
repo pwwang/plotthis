@@ -28,7 +28,6 @@
 #' @param group_name A character string to name the legend of dodge.
 #' @param paired_by A character string of the column name identifying paired observations for paired tests.
 #' @param fill_mode A character string to specify the fill mode. Either "dodge", "x", "mean", "median".
-#' @param fill_reverse A logical value to reverse the fill colors for gradient fill (mean/median).
 #' @param add_point A logical value to add (jitter) points to the plot.
 #' @param pt_color A character string to specify the color of the points.
 #' @param pt_size A numeric value to specify the size of the points.
@@ -127,7 +126,7 @@ BoxViolinPlotAtomic <- function(
     data, x, x_sep = "_", y = NULL, base = c("box", "violin", "bar", "none"), in_form = c("long", "wide"), sort_x = NULL,
     flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
     paired_by = NULL, x_text_angle = ifelse(isTRUE(flip), 0, 45), step_increase = 0.1,
-    fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE, symnum_args = NULL,
+    fill_mode = ifelse(!is.null(group_by), "dodge", "x"), palreverse = FALSE, symnum_args = NULL,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     add_point = FALSE, pt_color = if (isTRUE(add_beeswarm)) NULL else "grey30", pt_size = NULL, pt_alpha = 1, y_nbreaks = 4,
@@ -476,7 +475,7 @@ BoxViolinPlotAtomic <- function(
     if (fill_mode == "dodge") {
         group_vals <- levels(data[[group_by]])
         if (anyNA(data[[group_by]])) group_vals <- c(group_vals, NA)
-        group_colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+        group_colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, reverse = palreverse, NA_keep = TRUE)
 
         if (isTRUE(keep_empty_group)) {
             p <- p + scale_fill_manual(
@@ -493,7 +492,7 @@ BoxViolinPlotAtomic <- function(
     } else if (fill_mode == "x") {
         x_vals <- levels(data[[x]])
         if (anyNA(data[[x]])) x_vals <- c(x_vals, NA)
-        x_colors <- palette_this(x_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+        x_colors <- palette_this(x_vals, palette = palette, palcolor = palcolor, reverse = palreverse, NA_keep = TRUE)
 
         if (isTRUE(keep_empty_x)) {
             p <- p + scale_fill_manual(
@@ -511,7 +510,7 @@ BoxViolinPlotAtomic <- function(
         p <- p + scale_fill_gradientn(
             name = paste0(y, " (", fill_mode, ")"),
             n.breaks = 3,
-            colors = palette_this(palette = palette, palcolor = palcolor, reverse = fill_reverse),
+            colors = palette_this(palette = palette, palcolor = palcolor, reverse = palreverse),
             na.value = "grey80",
             guide = guide_colorbar(frame.colour = "black", ticks.colour = "black", title.hjust = 0)
         )
@@ -902,7 +901,7 @@ BoxViolinPlotAtomic <- function(
                         show.legend = FALSE
                     )
             } else {
-                colors <- palette_this(levels(data[[fill_by]]), palette = palette, palcolor = palcolor)
+                colors <- palette_this(levels(data[[fill_by]]), palette = palette, palcolor = palcolor, reverse = palreverse)
                 p <- p +
                     ggbeeswarm::geom_beeswarm(
                         aes(color = !!sym(fill_by)),
@@ -963,7 +962,7 @@ BoxViolinPlotAtomic <- function(
             if (!is.null(group_by)) {
                 group_vals <- levels(data[[group_by]])
                 if (anyNA(data[[group_by]])) group_vals <- c(group_vals, NA)
-                group_colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+                group_colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, reverse = palreverse, NA_keep = TRUE)
 
                 if (isTRUE(keep_empty_group)) {
                     p <- p + scale_color_manual(
@@ -1152,7 +1151,7 @@ BoxViolinPlot <- function(
     split_by = NULL, split_by_sep = "_", symnum_args = NULL, sort_x = NULL,
     flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
     paired_by = NULL, x_text_angle = ifelse(isTRUE(flip), 0, 45), step_increase = 0.1,
-    fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
+    fill_mode = ifelse(!is.null(group_by), "dodge", "x"), palreverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     add_point = FALSE, pt_color = if(isTRUE(add_beeswarm)) NULL else "grey30", pt_size = NULL, pt_alpha = 1,
@@ -1210,7 +1209,7 @@ BoxViolinPlot <- function(
             BoxViolinPlotAtomic(datas[[nm]],
                 x = x, x_sep = x_sep, y = y, base = base, in_form = in_form,
                 sort_x = sort_x, flip = flip, keep_empty = keep_empty, keep_na = keep_na, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
-                paired_by = paired_by, x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse, step_increase = step_increase,
+                paired_by = paired_by, x_text_angle = x_text_angle, fill_mode = fill_mode, palreverse = palreverse, step_increase = step_increase,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                 add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha, symnum_args = symnum_args,
@@ -1367,7 +1366,7 @@ BoxPlot <- function(
     split_by = NULL, split_by_sep = "_", symnum_args = NULL, sort_x = NULL,
     flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
     paired_by = NULL, x_text_angle = ifelse(isTRUE(flip), 0, 45), step_increase = 0.1,
-    fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
+    fill_mode = ifelse(!is.null(group_by), "dodge", "x"), palreverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     add_point = FALSE, pt_color = if(isTRUE(add_beeswarm)) NULL else "grey30", pt_size = NULL, pt_alpha = 1,
@@ -1392,7 +1391,7 @@ BoxPlot <- function(
         data = data, x = x, x_sep = x_sep, y = y, base = base, in_form = in_form,
         split_by = split_by, split_by_sep = split_by_sep,
         sort_x = sort_x, flip = flip, keep_empty = keep_empty, keep_na = keep_na, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
-        paired_by = paired_by, x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse, step_increase = step_increase,
+        paired_by = paired_by, x_text_angle = x_text_angle, fill_mode = fill_mode, palreverse = palreverse, step_increase = step_increase,
         theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
         aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
         add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha, symnum_args = symnum_args,
@@ -1460,7 +1459,7 @@ ViolinPlot <- function(
     split_by = NULL, split_by_sep = "_", symnum_args = NULL, sort_x = NULL,
     flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
     paired_by = NULL, x_text_angle = ifelse(isTRUE(flip), 0, 45), step_increase = 0.1,
-    fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
+    fill_mode = ifelse(!is.null(group_by), "dodge", "x"), palreverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     add_point = FALSE, pt_color = if(isTRUE(add_beeswarm)) NULL else "grey30", pt_size = NULL, pt_alpha = 1,
@@ -1484,7 +1483,7 @@ ViolinPlot <- function(
         data = data, x = x, x_sep = x_sep, y = y, base = "violin", in_form = in_form,
         split_by = split_by, split_by_sep = split_by_sep,
         sort_x = sort_x, flip = flip, keep_empty = keep_empty, keep_na = keep_na, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
-        paired_by = paired_by, x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse, step_increase = step_increase,
+        paired_by = paired_by, x_text_angle = x_text_angle, fill_mode = fill_mode, palreverse = palreverse, step_increase = step_increase,
         theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
         aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
         add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha, symnum_args = symnum_args,
@@ -1534,7 +1533,7 @@ BeeswarmPlot <- function(
     split_by = NULL, split_by_sep = "_", symnum_args = NULL, sort_x = NULL,
     flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
     paired_by = NULL, x_text_angle = ifelse(isTRUE(flip), 0, 45), step_increase = 0.1,
-    fill_mode = ifelse(!is.null(group_by), "dodge", "x"), fill_reverse = FALSE,
+    fill_mode = ifelse(!is.null(group_by), "dodge", "x"), palreverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
     aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
     pt_color = NULL, pt_size = NULL, pt_alpha = 1,
@@ -1562,7 +1561,7 @@ BeeswarmPlot <- function(
         data = data, x = x, x_sep = x_sep, y = y, base = "none", in_form = in_form,
         split_by = split_by, split_by_sep = split_by_sep,
         sort_x = sort_x, flip = flip, keep_empty = keep_empty, keep_na = keep_na, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
-        paired_by = paired_by, x_text_angle = x_text_angle, fill_mode = fill_mode, fill_reverse = fill_reverse, step_increase = step_increase,
+        paired_by = paired_by, x_text_angle = x_text_angle, fill_mode = fill_mode, palreverse = palreverse, step_increase = step_increase,
         theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha,
         aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
         add_point = TRUE, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha, symnum_args = symnum_args,
