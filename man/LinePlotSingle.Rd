@@ -41,6 +41,7 @@ LinePlotSingle(
   theme_args = list(),
   palette = "Paired",
   palcolor = NULL,
+  palreverse = FALSE,
   x_text_angle = 0,
   aspect.ratio = 1,
   legend.position = "right",

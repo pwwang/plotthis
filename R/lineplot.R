@@ -52,7 +52,7 @@ LinePlotSingle <- function(
     pt_alpha = 1, pt_size = 5,
     add_hline = FALSE, hline_type = "solid", hline_width = 0.5, hline_color = "black", hline_alpha = 1,
     line_type = "solid", line_width = 1, line_alpha = .8,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE,
     x_text_angle = 0, aspect.ratio = 1,
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, keep_na = FALSE, ...
@@ -120,7 +120,7 @@ LinePlotSingle <- function(
 
     x_vals <- levels(data[[x]])
     if (anyNA(data[[x]])) x_vals <- c(x_vals, NA)
-    colors <- palette_this(x_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+    colors <- palette_this(x_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE, reverse = palreverse)
 
     if (isTRUE(color_line_by_x)) {
         p <- p + geom_line(
@@ -239,7 +239,7 @@ LinePlotGrouped <- function(
     pt_alpha = 1, pt_size = 5,
     add_hline = FALSE, hline_type = "solid", hline_width = 0.5, hline_color = "black", hline_alpha = 1,
     line_type = "solid", line_width = 1, line_alpha = .8,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE,
     x_text_angle = 0, aspect.ratio = 1,
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, keep_na = FALSE, ...
@@ -305,7 +305,7 @@ LinePlotGrouped <- function(
     group_vals <- levels(data[[group_by]])
     if (anyNA(data[[group_by]])) group_vals <- c(group_vals, NA)
 
-    colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+    colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE, reverse = palreverse)
 
     if (!is.null(add_hline) && !isFALSE(add_hline)) {
         if (isTRUE(hline_color)) {
@@ -424,7 +424,7 @@ LinePlotAtomic <- function(
     pt_alpha = 1, pt_size = 5,
     add_hline = FALSE, hline_type = "solid", hline_width = 0.5, hline_color = "black", hline_alpha = 1,
     line_type = "solid", line_width = 1, line_alpha = .8,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE,
     x_text_angle = 0, aspect.ratio = 1,
     legend.position = "right", legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_empty = FALSE, keep_na = FALSE,
@@ -445,7 +445,7 @@ LinePlotAtomic <- function(
             add_hline = add_hline, hline_type = hline_type, hline_width = hline_width,
             hline_color = hline_color, hline_alpha = hline_alpha,
             line_type = line_type, line_width = line_width, line_alpha = line_alpha,
-            theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
+            theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, palreverse = palreverse,
             x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
             legend.position = legend.position, legend.direction = legend.direction,
             title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, keep_na = keep_na, ...
@@ -462,7 +462,7 @@ LinePlotAtomic <- function(
             add_hline = add_hline, hline_type = hline_type, hline_width = hline_width,
             hline_color = hline_color, hline_alpha = hline_alpha,
             line_type = line_type, line_width = line_width, line_alpha = line_alpha,
-            theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
+            theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, palreverse = palreverse,
             x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
             legend.position = legend.position, legend.direction = legend.direction,
             title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_empty = keep_empty, keep_na = keep_na, ...
@@ -543,7 +543,7 @@ LinePlot <- function(
     pt_alpha = 1, pt_size = 5, keep_na = FALSE, keep_empty = FALSE,
     line_type = "solid", line_width = 1, line_alpha = .8,
     add_hline = FALSE, hline_type = "solid", hline_width = 0.5, hline_color = "black", hline_alpha = 1,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE,
     x_text_angle = 0, aspect.ratio = 1,
     legend.position = "right", legend.direction = "vertical",
     facet_by = NULL, facet_scales = "fixed",
@@ -599,7 +599,7 @@ LinePlot <- function(
                 line_type = line_type, line_width = line_width, line_alpha = line_alpha,
                 add_hline = add_hline, hline_type = hline_type, hline_width = hline_width,
                 hline_color = hline_color, hline_alpha = hline_alpha,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse,
                 x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
                 legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]], facet_args = facet_args,
                 facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
