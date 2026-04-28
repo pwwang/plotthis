@@ -13,7 +13,6 @@
 #' @param fill_by Which column to use as the fill the dots. It must be a numeric column.
 #'   If not provided, all dots will be filled with the same color at the middle of the palette.
 #' @param fill_cutoff A numeric value specifying the cutoff for the fill column.
-#' @param fill_reverse A logical value indicating whether to reverse the fill direction. Default is FALSE.
 #'   By default, the fill direction is "up". If TRUE, the fill direction is "down".
 #'   When the direction is "up", the values less than the cutoff will be filled with grey.
 #'   When the direction is "down", the values greater than the cutoff will be filled with grey.
@@ -37,7 +36,7 @@
 #' @importFrom ggnewscale new_scale_color
 DotPlotAtomic <- function(
     data, x, y, x_sep = "_", y_sep = "_", flip = FALSE, lollipop = FALSE,
-    size_by = NULL, fill_by = NULL, fill_cutoff = NULL, fill_reverse = FALSE,
+    size_by = NULL, fill_by = NULL, fill_cutoff = NULL, palreverse = FALSE, fill_reverse = FALSE,
     size_name = NULL, fill_name = NULL, fill_cutoff_name = NULL,
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
@@ -150,7 +149,7 @@ DotPlotAtomic <- function(
             scale_x_continuous(expand = c(0, 0, 0.05, 0)) +
             scale_color_gradientn(
                 n.breaks = 5,
-                colors = palette_this(palette = palette, palcolor = palcolor, reverse = fill_reverse),
+                colors = palette_this(palette = palette, palcolor = palcolor, reverse = palreverse),
                 na.value = "grey80",
                 guide = "none"
             ) +
@@ -169,7 +168,7 @@ DotPlotAtomic <- function(
     p <- p +
         scale_fill_gradientn(
             n.breaks = 5,
-            colors = palette_this(palette = palette, palcolor = palcolor, reverse = fill_reverse),
+            colors = palette_this(palette = palette, palcolor = palcolor, reverse = palreverse),
             na.value = "grey80",
             guide = if (isTRUE(fill_legend)) {
                 guide_colorbar(
@@ -350,7 +349,7 @@ DotPlot <- function(
     data, x, y, x_sep = "_", y_sep = "_", flip = FALSE,
     split_by = NULL, split_by_sep = "_", size_name = NULL, fill_name = NULL, fill_cutoff_name = NULL,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2, bg_direction = c("vertical", "horizontal", "v", "h"),
-    size_by = NULL, fill_by = NULL, fill_cutoff = NULL, fill_reverse = FALSE,
+    size_by = NULL, fill_by = NULL, fill_cutoff = NULL, palreverse = FALSE, fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     x_text_angle = 0, seed = 8525, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
@@ -390,7 +389,7 @@ DotPlot <- function(
             }
             DotPlotAtomic(datas[[nm]],
                 x = x, y = y, x_sep = x_sep, y_sep = y_sep, flip = flip, bg_direction = bg_direction,
-                size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, fill_reverse = fill_reverse,
+                size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, palreverse = palreverse, fill_reverse = fill_reverse,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 x_text_angle = x_text_angle, size_name = size_name, fill_name = fill_name, fill_cutoff_name = fill_cutoff_name,
@@ -425,7 +424,7 @@ DotPlot <- function(
 LollipopPlot <- function(
     data, x, y, y_sep = NULL, flip = FALSE,
     split_by = NULL, split_by_sep = "_", size_name = NULL, fill_name = NULL, fill_cutoff_name = NULL,
-    size_by = NULL, fill_by = NULL, fill_cutoff = NULL, fill_reverse = FALSE,
+    size_by = NULL, fill_by = NULL, fill_cutoff = NULL, palreverse = FALSE, fill_reverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     x_text_angle = 0, seed = 8525, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
@@ -465,7 +464,7 @@ LollipopPlot <- function(
             }
             DotPlotAtomic(datas[[nm]], lollipop = TRUE,
                 x = x, y = y, x_sep = NULL, y_sep = y_sep, flip = flip,
-                size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, fill_reverse = fill_reverse,
+                size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, palreverse = palreverse, fill_reverse = fill_reverse,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 x_text_angle = x_text_angle, size_name = size_name, fill_name = fill_name, fill_cutoff_name = fill_cutoff_name,

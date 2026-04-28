@@ -15,6 +15,7 @@ DotPlotAtomic(
   size_by = NULL,
   fill_by = NULL,
   fill_cutoff = NULL,
+  palreverse = FALSE,
   fill_reverse = FALSE,
   size_name = NULL,
   fill_name = NULL,
@@ -72,9 +73,7 @@ For 'ScatterPlot', it can be a single numeric value to specify the size of the d
 \item{fill_by}{Which column to use as the fill the dots. It must be a numeric column.
 If not provided, all dots will be filled with the same color at the middle of the palette.}
 
-\item{fill_cutoff}{A numeric value specifying the cutoff for the fill column.}
-
-\item{fill_reverse}{A logical value indicating whether to reverse the fill direction. Default is FALSE.
+\item{fill_cutoff}{A numeric value specifying the cutoff for the fill column.
 By default, the fill direction is "up". If TRUE, the fill direction is "down".
 When the direction is "up", the values less than the cutoff will be filled with grey.
 When the direction is "down", the values greater than the cutoff will be filled with grey.}
