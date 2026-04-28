@@ -212,7 +212,7 @@ ROCCurveAtomic <- function(data, truth_by, score_by, pos_label = NULL,
     n_cuts = 0, cutoffs_at = NULL, cutoffs_labels = NULL, cutoffs_accuracy = 0.01, cutoffs_pt_size = 5, cutoffs_pt_shape = 4,
     cutoffs_pt_stroke = 1, cutoffs_labal_fg = "black", cutoffs_label_size = 4, cutoffs_label_bg = "white", cutoffs_label_bg_r = 0.1,
     show_auc = c("auto", "none", "legend", "plot"), auc_accuracy = 0.01, auc_size = 4, increasing = TRUE,
-    theme = "theme_this", theme_args = list(),  palette = "Spectral", palcolor = NULL, alpha = 1,
+    theme = "theme_this", theme_args = list(),  palette = "Spectral", palcolor = NULL, palreverse = FALSE, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical", title = NULL, subtitle = NULL,
     xlab = ifelse(x_axis_reverse, "Specificity", "1 - Specificity"), ylab = "Sensitivity", ...) {
@@ -351,7 +351,7 @@ ROCCurveAtomic <- function(data, truth_by, score_by, pos_label = NULL,
         geom_abline(intercept = 0, slope = ifelse(x_axis_reverse, -1, 1), linetype = "dashed", color = "grey50") +
         scale_color_manual(
             name = group_name %||% group_by,
-            values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor, alpha = alpha),
+            values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor, alpha = alpha, reverse = palreverse),
             labels = labels
         )
 
@@ -446,7 +446,7 @@ ROCCurve <- function(data, truth_by, score_by, pos_label = NULL, split_by = NULL
     cutoffs_at = NULL, cutoffs_labels = NULL, cutoffs_accuracy = 0.001, cutoffs_pt_size = 5, cutoffs_pt_shape = 4,
     cutoffs_pt_stroke = 1, cutoffs_labal_fg = "black", cutoffs_label_size = 4, cutoffs_label_bg = "white", cutoffs_label_bg_r = 0.1,
     show_auc = c("auto", "none", "legend", "plot"), auc_accuracy = 0.01, auc_size = 4,
-    theme = "theme_this", theme_args = list(),  palette = "Spectral", palcolor = NULL, alpha = 1,
+    theme = "theme_this", theme_args = list(),  palette = "Spectral", palcolor = NULL, palreverse = FALSE, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical", title = NULL, subtitle = NULL,
     xlab = ifelse(x_axis_reverse, "Specificity", "1 - Specificity"), ylab = "Sensitivity",
@@ -489,7 +489,7 @@ ROCCurve <- function(data, truth_by, score_by, pos_label = NULL, split_by = NULL
                 cutoffs_pt_size = cutoffs_pt_size, cutoffs_pt_shape = cutoffs_pt_shape, cutoffs_pt_stroke = cutoffs_pt_stroke,
                 cutoffs_labal_fg = cutoffs_labal_fg, cutoffs_label_size = cutoffs_label_size, cutoffs_label_bg = cutoffs_label_bg,
                 cutoffs_label_bg_r = cutoffs_label_bg_r, show_auc = show_auc, auc_accuracy = auc_accuracy, auc_size = auc_size,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, alpha = alpha,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, ...)

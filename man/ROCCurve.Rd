@@ -35,6 +35,7 @@ ROCCurve(
   theme_args = list(),
   palette = "Spectral",
   palcolor = NULL,
+  palreverse = FALSE,
   alpha = 1,
   facet_by = NULL,
   facet_scales = "fixed",
