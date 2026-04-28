@@ -27,6 +27,7 @@ RidgePlot(
   theme_args = list(),
   palette = "Paired",
   palcolor = NULL,
+  palreverse = FALSE,
   title = NULL,
   subtitle = NULL,
   xlab = NULL,

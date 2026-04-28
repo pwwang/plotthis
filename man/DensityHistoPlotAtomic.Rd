@@ -31,6 +31,7 @@ DensityHistoPlotAtomic(
   trend_skip_zero = FALSE,
   palette = "Paired",
   palcolor = NULL,
+  palreverse = FALSE,
   alpha = 0.5,
   theme = "theme_this",
   theme_args = list(),

@@ -38,7 +38,7 @@ DensityHistoPlotAtomic <- function(
     type = c("density", "histogram"), bins = NULL, binwidth = NULL, flip = FALSE, keep_na = FALSE, keep_empty = FALSE,
     add_bars = FALSE, bar_height = 0.025, bar_alpha = 1, bar_width = .1, position = "identity",
     use_trend = FALSE, add_trend = FALSE, trend_alpha = 1, trend_linewidth = 0.8, trend_pt_size = 1.5, trend_skip_zero = FALSE,
-    palette = "Paired", palcolor = NULL, alpha = .5, theme = "theme_this", theme_args = list(), aspect.ratio = 1,
+    palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = .5, theme = "theme_this", theme_args = list(), aspect.ratio = 1,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(bottom = 0, left = 0, right = 0),
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     legend.position = ifelse(is.null(group_by), "none", "right"), legend.direction = "vertical", ...) {
@@ -89,7 +89,7 @@ DensityHistoPlotAtomic <- function(
     }
     group_vals <- levels(data[[group_by]])
     if (anyNA(data[[group_by]])) group_vals <- c(group_vals, NA)
-    group_colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+    group_colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE, reverse = palreverse)
 
     p <- ggplot(data, aes(x = !!sym(x), fill = !!sym(group_by), color = !!sym(group_by)))
     if (isTRUE(keep_empty_group)) {
@@ -215,7 +215,7 @@ DensityHistoPlotAtomic <- function(
 RidgePlotAtomic <- function(
     data, x = NULL, in_form = c("long", "wide"), group_by = NULL, group_by_sep = "_", group_name = NULL,
     add_vline = NULL, vline_type = "solid", vline_color = TRUE, vline_width = 0.5, vline_alpha = 1,
-    flip = FALSE, alpha = 0.8, scale = NULL, theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
+    flip = FALSE, alpha = 0.8, scale = NULL, theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, x_text_angle = 90, keep_na = FALSE, keep_empty = FALSE, reverse = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = "none", legend.direction = "vertical", ...) {
@@ -251,7 +251,7 @@ RidgePlotAtomic <- function(
     group_vals <- levels(data[[group_by]])
     if (anyNA(data[[group_by]])) group_vals <- c(group_vals, NA)
 
-    colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+    colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE, reverse = palreverse)
     if (anyNA(group_vals) && reverse) {
         names(colors)[is.na(names(colors))] <- "NA"
         group_vals[is.na(group_vals)] <- "NA"
@@ -404,7 +404,7 @@ RidgePlot <- function(
     data, x = NULL, in_form = c("long", "wide"), split_by = NULL, split_by_sep = "_",
     group_by = NULL, group_by_sep = "_", group_name = NULL, scale = NULL, keep_na = FALSE, keep_empty = FALSE,
     add_vline = NULL, vline_type = "solid", vline_color = TRUE, vline_width = 0.5, vline_alpha = 1,
-    flip = FALSE, alpha = 0.8, theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
+    flip = FALSE, alpha = 0.8, theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, x_text_angle = 90, reverse = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = "none", legend.direction = "vertical",
@@ -446,7 +446,7 @@ RidgePlot <- function(
             RidgePlotAtomic(datas[[nm]],
                 x = x, in_form = in_form, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name, scale = scale,
                 add_vline = add_vline, vline_type = vline_type, vline_color = vline_color, vline_width = vline_width, vline_alpha = vline_alpha,
-                flip = flip, alpha = alpha, theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
+                flip = flip, alpha = alpha, theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, x_text_angle = x_text_angle, keep_na = keep_na, keep_empty = keep_empty,
                 reverse = reverse, facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]], ...
@@ -487,7 +487,7 @@ RidgePlot <- function(
 DensityPlot <- function(
     data, x, group_by = NULL, group_by_sep = "_", group_name = NULL, xtrans = "identity", ytrans = "identity",
     split_by = NULL, split_by_sep = "_", flip = FALSE, position = "identity",
-    palette = "Paired", palcolor = NULL, alpha = .5, theme = "theme_this", theme_args = list(),
+    palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = .5, theme = "theme_this", theme_args = list(),
     add_bars = FALSE, bar_height = 0.025, bar_alpha = 1, bar_width = .1, keep_na = FALSE, keep_empty = FALSE,
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(bottom = 0, left = 0, right = 0),
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE, aspect.ratio = 1,
@@ -528,7 +528,7 @@ DensityPlot <- function(
                 x = x, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
                 type = "density", flip = flip, xtrans = xtrans, ytrans = ytrans, position = position, aspect.ratio = aspect.ratio,
                 add_bars = add_bars, bar_height = bar_height, bar_alpha = bar_alpha, bar_width = bar_width,
-                palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha, theme = theme, theme_args = theme_args,
+                palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, alpha = alpha, theme = theme, theme_args = theme_args,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, expand = expand, keep_na = keep_na, keep_empty = keep_empty,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]], ...
@@ -567,7 +567,7 @@ Histogram <- function(
     split_by = NULL, split_by_sep = "_", flip = FALSE, bins = NULL, binwidth = NULL, trend_skip_zero = FALSE,
     add_bars = FALSE, bar_height = 0.025, bar_alpha = 1, bar_width = .1, position = "identity", keep_na = FALSE, keep_empty = FALSE,
     use_trend = FALSE, add_trend = FALSE, trend_alpha = 1, trend_linewidth = 0.8, trend_pt_size = 1.5,
-    palette = "Paired", palcolor = NULL, alpha = .5, theme = "theme_this", theme_args = list(),
+    palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = .5, theme = "theme_this", theme_args = list(),
     title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(bottom = 0, left = 0, right = 0),
     facet_by = NULL, facet_scales = "free_y", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE, aspect.ratio = 1,
     legend.position = ifelse(is.null(group_by), "none", "right"), legend.direction = "vertical", seed = 8525,
@@ -610,7 +610,7 @@ Histogram <- function(
                 add_trend = add_trend, trend_alpha = trend_alpha, trend_linewidth = trend_linewidth, trend_pt_size = trend_pt_size,
                 add_bars = add_bars, bar_height = bar_height, bar_alpha = bar_alpha, bar_width = bar_width,
                 bins = bins, binwidth = binwidth, expand = expand, position = position, keep_na = keep_na, keep_empty = keep_empty,
-                palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha, theme = theme, theme_args = theme_args,
+                palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, alpha = alpha, theme = theme, theme_args = theme_args,
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, aspect.ratio = aspect.ratio,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]], ...
