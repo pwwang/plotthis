@@ -40,7 +40,7 @@ BarPlotSingle <- function(
     data, x, x_sep = "_", y = NULL, flip = FALSE, facet_by = NULL, facet_scales = "fixed", label = NULL, label_nudge = 0.02,
     label_fg = "black", label_size = 4, label_bg = "white", label_bg_r = 0.1,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
-    theme = "theme_this", theme_args = list(), palette = NULL, palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = NULL, palcolor = NULL, palreverse = FALSE,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1, y_min = NULL, y_max = NULL,
     legend.position = "right", legend.direction = "vertical",
     add_line = NULL, line_color = "red2", line_width = .6, line_type = 2, line_name = NULL,
@@ -114,9 +114,9 @@ BarPlotSingle <- function(
     if (!fill_is_numeric) {
         fill_vals <- levels(data[[fill_by]])
         if (anyNA(data[[fill_by]])) fill_vals <- c(fill_vals, NA)
-        colors <- palette_this(fill_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+        colors <- palette_this(fill_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE, reverse = palreverse)
     } else {
-        colors <- palette_this(palette = palette, palcolor = palcolor)
+        colors <- palette_this(palette = palette, palcolor = palcolor, reverse = palreverse)
     }
 
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(fill_by)))
@@ -264,7 +264,7 @@ BarPlotSingle <- function(
 #' @importFrom ggplot2 aes geom_bar scale_fill_manual labs position_dodge2 coord_flip guide_legend scale_color_manual
 BarPlotGrouped <- function(
     data, x, x_sep = "_", y = NULL, scale_y = FALSE, flip = FALSE, group_by, group_by_sep = "_", group_name = NULL,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE,
     label = NULL, label_nudge = 0.02, label_fg = "black", label_size = 4, label_bg = "white", label_bg_r = 0.1,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1,
@@ -326,7 +326,7 @@ BarPlotGrouped <- function(
         p <- p + bg_layer(data, x, isTRUE(keep_empty_x), bg_palette, bg_palcolor, bg_alpha, facet_by)
     }
 
-    colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+    colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE, reverse = palreverse)
     just <- calc_just(x_text_angle)
     if (position == "auto") {
         position <- if (length(colors) <= 5) {
@@ -503,7 +503,7 @@ BarPlotAtomic <- function(
     fill_by = TRUE,  fill_name = NULL, label_nudge = 0.02,
     label = NULL, label_fg = "black", label_size = 4, label_bg = "white", label_bg_r = 0.1,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
-    theme = "theme_this", theme_args = list(), palette = NULL, palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = NULL, palcolor = NULL, palreverse = FALSE,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1,
     add_line = NULL, line_color = "red2", line_width = .6, line_type = 2, line_name = NULL,
     add_trend = FALSE, trend_color = "black", trend_linewidth = 1, trend_ptsize = 2,
@@ -518,7 +518,7 @@ BarPlotAtomic <- function(
             label = label, label_nudge = label_nudge,
             label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
             facet_by = facet_by, facet_scales = facet_scales, flip = flip, line_name = line_name,
-            theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor,
+            theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, palreverse = palreverse,
             alpha = alpha, x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, add_bg = add_bg,
             add_line = add_line, line_color = line_color, line_width = line_width, line_type = line_type,
             add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
@@ -535,7 +535,7 @@ BarPlotAtomic <- function(
             scale_y = scale_y, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
             facet_by = facet_by, facet_scales = facet_scales, flip = flip, line_name = line_name,
             add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
-            theme = theme, theme_args = theme_args, palette = palette %||% "Paired", palcolor = palcolor,
+            theme = theme, theme_args = theme_args, palette = palette %||% "Paired", palcolor = palcolor, palreverse = palreverse,
             alpha = alpha, x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
             position = position, position_dodge_preserve = position_dodge_preserve, y_min = y_min, y_max = y_max,
             add_line = add_line, line_color = line_color, line_width = line_width, line_type = line_type,
@@ -678,7 +678,7 @@ BarPlot <- function(
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
     add_line = NULL, line_color = "red2", line_width = .6, line_type = 2,
     add_trend = FALSE, trend_color = "black", trend_linewidth = 1, trend_ptsize = 2,
-    theme = "theme_this", theme_args = list(), palette = NULL, palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = NULL, palcolor = NULL, palreverse = FALSE,
     alpha = 1, x_text_angle = 0, aspect.ratio = 1, y_min = NULL, y_max = NULL,
     position = "auto", position_dodge_preserve = "total",
     legend.position = "right", legend.direction = "vertical",
@@ -719,7 +719,7 @@ BarPlot <- function(
                 label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
                 x = x, x_sep = x_sep, y = y, flip = flip, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
                 fill_by = fill_by, fill_name = fill_name,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, alpha = alpha,
                 add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
                 x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, line_name = line_name,
                 add_line = add_line, line_color = line_color, line_width = line_width, line_type = line_type,
@@ -779,7 +779,7 @@ SplitBarPlotAtomic <- function(
     order_y = list("+" = c("x_desc", "alpha_desc"), "-" = c("x_desc", "alpha_asc")), bar_height = 0.9,
     lineheight = 0.5, max_charwidth = 80, fill_by = NULL, fill_by_sep = "_",
     fill_name = NULL, direction_name = "direction", direction_pos_name = "positive", direction_neg_name = "negative",
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, palreverse = FALSE,
     facet_by = NULL, facet_scales = "free_y", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, x_min = NULL, x_max = NULL,
     legend.position = "right", legend.direction = "vertical",
@@ -938,7 +938,7 @@ SplitBarPlotAtomic <- function(
         } else {
             c(levels(data[[fill_by]]), NA)
         }
-        fill_colors <- palette_this(fill_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE)
+        fill_colors <- palette_this(fill_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE, reverse = palreverse)
 
         if (isTRUE(keep_empty_fill)) {
             p <- p +
@@ -960,7 +960,7 @@ SplitBarPlotAtomic <- function(
         p <- p + scale_fill_gradientn(
             name = fill_name %||% fill_by,
             n.breaks = 3,
-            colors = palette_this(palette = palette, palcolor = palcolor),
+            colors = palette_this(palette = palette, palcolor = palcolor, reverse = palreverse),
             na.value = "grey80",
             guide = guide_colorbar(frame.colour = "black", ticks.colour = "black", title.hjust = 0)
         )
@@ -1094,7 +1094,7 @@ SplitBarPlot <- function(
     order_y = list("+" = c("x_desc", "alpha_desc"), "-" = c("x_desc", "alpha_asc")), bar_height = 0.9,
     lineheight = 0.5, max_charwidth = 80, fill_by = NULL, fill_by_sep = "_",
     fill_name = NULL, direction_name = "direction", direction_pos_name = "positive", direction_neg_name = "negative",
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, palreverse = FALSE,
     facet_by = NULL, facet_scales = "free_y", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, x_min = NULL, x_max = NULL,
     legend.position = "right", legend.direction = "vertical",
@@ -1139,7 +1139,7 @@ SplitBarPlot <- function(
                 order_y = order_y, bar_height = bar_height, lineheight = lineheight, max_charwidth = max_charwidth,
                 fill_by = fill_by, fill_by_sep = fill_by_sep, fill_name = fill_name,
                 direction_name = direction_name, direction_pos_name = direction_pos_name, direction_neg_name = direction_neg_name,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse,
                 facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
                 aspect.ratio = aspect.ratio, x_min = x_min, x_max = x_max,
                 legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],

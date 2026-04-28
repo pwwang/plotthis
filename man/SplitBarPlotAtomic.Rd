@@ -27,6 +27,7 @@ SplitBarPlotAtomic(
   theme_args = list(),
   palette = "Spectral",
   palcolor = NULL,
+  palreverse = FALSE,
   facet_by = NULL,
   facet_scales = "free_y",
   facet_nrow = NULL,

@@ -18,6 +18,7 @@ BarPlotGrouped(
   theme_args = list(),
   palette = "Paired",
   palcolor = NULL,
+  palreverse = FALSE,
   label = NULL,
   label_nudge = 0.02,
   label_fg = "black",

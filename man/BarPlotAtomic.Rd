@@ -30,6 +30,7 @@ BarPlotAtomic(
   theme_args = list(),
   palette = NULL,
   palcolor = NULL,
+  palreverse = FALSE,
   alpha = 1,
   x_text_angle = 0,
   aspect.ratio = 1,
