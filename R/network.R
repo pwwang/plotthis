@@ -95,7 +95,7 @@ NetworkAtomic <- function(
     node_shape_by = 21, node_shape_name = NULL, node_fill_by = "grey20", node_fill_name = NULL,
     link_alpha = 1, node_alpha = 0.95, node_stroke = 1.5, cluster_scale = c("fill", "color", "shape"),
     node_size_range = c(5, 20), link_weight_range = c(0.5, 5), link_arrow_offset = 20,
-    link_curvature = 0, link_color_by = "from", link_color_name = NULL, palette = "Paired", palcolor = NULL,
+    link_curvature = 0, link_color_by = "from", link_color_name = NULL, palette = "Paired", palcolor = NULL, palreverse = FALSE,
     link_palette = ifelse(link_color_by %in% c("from", "to"), palette, "Set1"),
     link_palcolor = if (link_color_by %in% c("from", "to")) palcolor else NULL,
     directed = TRUE, layout = "circle", cluster = "none", add_mark = FALSE, mark_expand = ggplot2::unit(10, "mm"),
@@ -229,7 +229,7 @@ NetworkAtomic <- function(
                 link_layer_args$mapping[[length(link_layer_args$mapping) + 1]] <- aes(color = I(!!sym(paste0("node.", node_fill_by))))
                 # map node_fill_by from nodes data to links data
                 df_edges[[paste0("node.", node_fill_by)]] <- palette_this(
-                    levels(df_nodes[[node_fill_by]]), palette = link_palette, palcolor = link_palcolor
+                    levels(df_nodes[[node_fill_by]]), palette = link_palette, palcolor = link_palcolor, reverse = palreverse
                 )[df_nodes[df_edges[[link_color_by]], node_fill_by]]
                 graph <- igraph::graph_from_data_frame(d = df_edges, vertices = df_nodes, directed = directed)
             }
@@ -240,7 +240,7 @@ NetworkAtomic <- function(
                 link_layer_args$mapping[[length(link_layer_args$mapping) + 1]] <- aes(color = I(!!sym(paste0("node.", node_color_by))))
                 # map node_color_by from nodes data to links data
                 df_edges[[paste0("node.", node_color_by)]] <- palette_this(
-                    levels(df_nodes[[node_color_by]]), palette = link_palette, palcolor = link_palcolor
+                    levels(df_nodes[[node_color_by]]), palette = link_palette, palcolor = link_palcolor, reverse = palreverse
                 )[df_nodes[df_edges[[link_color_by]], node_color_by]]
                 graph <- igraph::graph_from_data_frame(d = df_edges, vertices = df_nodes, directed = directed)
             }
@@ -318,8 +318,8 @@ NetworkAtomic <- function(
             expand = mark_expand, alpha = mark_alpha, linetype = mark_linetype,
             show.legend = FALSE
         ) +
-            scale_fill_manual(values = palette_this(levels(df_nodes$cluster), palette = palette, palcolor = palcolor)) +
-            scale_color_manual(values = palette_this(levels(df_nodes$cluster), palette = palette, palcolor = palcolor)) +
+            scale_fill_manual(values = palette_this(levels(df_nodes$cluster), palette = palette, palcolor = palcolor, reverse = palreverse)) +
+            scale_color_manual(values = palette_this(levels(df_nodes$cluster), palette = palette, palcolor = palcolor, reverse = palreverse)) +
             new_scale_fill() +
             new_scale_color()
     }
@@ -345,7 +345,7 @@ NetworkAtomic <- function(
         if (is.numeric(df_edges[[link_color_by]])) {
             p <- p + ggraph::scale_edge_color_gradientn(
                 n.breaks = 5,
-                colors = palette_this(palette = link_palette, palcolor = link_palcolor),
+                colors = palette_this(palette = link_palette, palcolor = link_palcolor, reverse = palreverse),
                 na.value = "grey80",
                 guide = ggraph::guide_edge_colorbar(
                     title = link_color_name %||% link_color_by,
@@ -359,7 +359,7 @@ NetworkAtomic <- function(
                 unique(df_edges[[link_color_by]])
             }
             p <- p + ggraph::scale_edge_color_manual(
-                values = palette_this(lc_values, palette = link_palette, palcolor = link_palcolor),
+                values = palette_this(lc_values, palette = link_palette, palcolor = link_palcolor, reverse = palreverse),
                 guide = guide_legend(title = link_color_name %||% link_color_by, order = 12)
             )
         }
@@ -379,7 +379,7 @@ NetworkAtomic <- function(
 
     if (node_color_by_guide == "guide") {
         p <- p + scale_color_manual(
-            values = palette_this(levels(df_nodes[[node_color_by]]), palette = palette, palcolor = palcolor),
+            values = palette_this(levels(df_nodes[[node_color_by]]), palette = palette, palcolor = palcolor, reverse = palreverse),
             guide = guide_legend(title = node_color_name %||% node_color_by, order = 2,
                 override.aes = list(size = 4))
         )
@@ -394,7 +394,7 @@ NetworkAtomic <- function(
 
     if (node_fill_by_guide == "guide") {
         p <- p + scale_fill_manual(
-            values = palette_this(levels(df_nodes[[node_fill_by]]), palette = palette, palcolor = palcolor, alpha = node_alpha),
+            values = palette_this(levels(df_nodes[[node_fill_by]]), palette = palette, palcolor = palcolor, alpha = node_alpha, reverse = palreverse),
             guide = guide_legend(title = node_fill_name %||% node_fill_by, order = 4,
                 override.aes = list(size = 4))
         )
@@ -480,7 +480,7 @@ Network <- function(
     node_shape_by = 21, node_shape_name = NULL, node_fill_by = "grey20", node_fill_name = NULL,
     link_alpha = 1, node_alpha = 0.95, node_stroke = 1.5, cluster_scale = c("fill", "color", "shape"),
     node_size_range = c(5, 20), link_weight_range = c(0.5, 5), link_arrow_offset = 20,
-    link_curvature = 0, link_color_by = "from", link_color_name = NULL, palette = "Paired", palcolor = NULL,
+    link_curvature = 0, link_color_by = "from", link_color_name = NULL, palette = "Paired", palcolor = NULL, palreverse = FALSE,
     link_palette = ifelse(link_color_by %in% c("from", "to"), palette, "Set1"),
     link_palcolor = if (link_color_by %in% c("from", "to")) palcolor else NULL,
     directed = TRUE, layout = "circle", cluster = "none", add_mark = FALSE, mark_expand = ggplot2::unit(10, "mm"),
@@ -561,7 +561,7 @@ Network <- function(
             cluster_scale = cluster_scale, node_size_range = node_size_range,
             link_weight_range = link_weight_range, link_arrow_offset = link_arrow_offset,
             link_curvature = link_curvature, link_color_by = link_color_by, link_color_name = link_color_name,
-            palette = palette, palcolor = palcolor, link_palette = link_palette, link_palcolor = link_palcolor,
+            palette = palette, palcolor = palcolor, palreverse = palreverse, link_palette = link_palette, link_palcolor = link_palcolor,
             directed = directed, layout = layout, cluster = cluster, add_mark = add_mark, mark_expand = mark_expand,
             mark_type = mark_type, mark_alpha = mark_alpha, mark_linetype = mark_linetype,
             add_label = add_label, label_size = label_size, label_fg = label_fg,
