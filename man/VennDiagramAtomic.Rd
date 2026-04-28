@@ -16,6 +16,7 @@ VennDiagramAtomic(
   label_bg = "white",
   label_bg_r = 0.1,
   fill_mode = "count",
+  palreverse = FALSE,
   fill_name = NULL,
   aspect.ratio = 1,
   palette = ifelse(fill_mode == "set", "Paired", "Spectral"),

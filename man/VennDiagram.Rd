@@ -18,6 +18,7 @@ VennDiagram(
   label_bg = "white",
   label_bg_r = 0.1,
   fill_mode = "count",
+  palreverse = FALSE,
   fill_name = NULL,
   palette = ifelse(fill_mode == "set", "Paired", "Blues"),
   palcolor = NULL,

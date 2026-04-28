@@ -146,7 +146,7 @@ prepare_venn_data <- function(data, in_form = "auto", group_by = NULL, group_by_
 VennDiagramAtomic <- function(
     data, in_form = "auto", group_by = NULL, group_by_sep = "_", id_by = NULL,
     label = "count", label_fg = "black", label_size = NULL, label_bg = "white", label_bg_r = 0.1,
-    fill_mode = "count", fill_name = NULL, aspect.ratio = 1,
+    fill_mode = "count", palreverse = FALSE, fill_name = NULL, aspect.ratio = 1,
     palette = ifelse(fill_mode == "set", "Paired", "Spectral"), palcolor = NULL, alpha = 1,
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL,
     legend.position = "right", legend.direction = "vertical", ...
@@ -174,7 +174,7 @@ VennDiagramAtomic <- function(
     # Calculate the fill colors for the regions when fill_mode is set
     if (fill_mode == "set") {
         # 1: red 2: blue 3: green 4: purple
-        colors <- palette_this(data$setLabel$id, palette = palette, palcolor = palcolor)
+        colors <- palette_this(data$setLabel$id, palette = palette, palcolor = palcolor, reverse = palreverse)
         ids <- unique(data_regionedge$id)
         # 1: red 2: blue 3: green 4: purple
         # 1/2: blend(red, blue) 1/3: blend(red, green) 1/4: blend(red, purple)
@@ -218,7 +218,7 @@ VennDiagramAtomic <- function(
             geom_polygon(data = data_regionedge, aes(!!sym("X"), !!sym("Y"), fill = !!sym("count"), group = !!sym("id")), alpha = alpha) +
             scale_fill_gradientn(
                 n.breaks = 3,
-                colors = palette_this(palette = palette, palcolor = palcolor, reverse = grepl("rev", fill_mode)),
+                colors = palette_this(palette = palette, palcolor = palcolor, reverse = palreverse),
                 na.value = "grey80",
                 guide = guide_colorbar(
                     title = fill_name %||% "",
@@ -302,7 +302,7 @@ VennDiagramAtomic <- function(
 VennDiagram <- function(
     data, in_form = c("auto", "long", "wide", "list", "venn"), split_by = NULL, split_by_sep = "_",
     group_by = NULL, group_by_sep = "_", id_by = NULL, label = "count", label_fg = "black",
-    label_size = NULL, label_bg = "white", label_bg_r = 0.1, fill_mode = "count", fill_name = NULL,
+    label_size = NULL, label_bg = "white", label_bg_r = 0.1, fill_mode = "count", palreverse = FALSE, fill_name = NULL,
     palette = ifelse(fill_mode == "set", "Paired", "Blues"), palcolor = NULL, alpha = 1,
     theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL,
     legend.position = "right", legend.direction = "vertical", aspect.ratio = 1,
@@ -345,7 +345,7 @@ VennDiagram <- function(
             VennDiagramAtomic(datas[[nm]],
                 in_form = in_form, group_by = group_by, group_by_sep = group_by_sep, id_by = id_by,
                 label = label, label_fg = label_fg, label_size = label_size, label_bg = label_bg, label_bg_r = label_bg_r,
-                fill_mode = fill_mode, fill_name = fill_name, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
+                fill_mode = fill_mode, palreverse = palreverse, fill_name = fill_name, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 theme = theme, theme_args = theme_args, title = title, subtitle = subtitle, aspect.ratio = aspect.ratio,
                 legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]], ...
             )
