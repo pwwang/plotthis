@@ -40,7 +40,7 @@
 QQPlotAtomic <- function(
     data, val, val_trans = NULL, type = c("qq", "pp"),
     band = NULL, line = list(), point = list(), fill_name = "Bands", band_alpha = 0.5,
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, palreverse = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
     title = NULL, subtitle = NULL, seed = 8525, xlim = NULL, ylim = NULL,
@@ -148,7 +148,7 @@ QQPlotAtomic <- function(
         p <- p +
             scale_fill_manual(
                 name = fill_name,
-                values = palette_this(bands, palette = palette, palcolor = palcolor)
+                values = palette_this(bands, palette = palette, palcolor = palcolor, reverse = palreverse)
             )
     }
     if (!is.null(xlim)) {
@@ -242,7 +242,7 @@ QQPlotAtomic <- function(
 QQPlot <- function(
     data, val, val_trans = NULL, type = c("qq", "pp"), split_by = NULL, split_by_sep = "_",
     band = NULL, line = list(), point = list(), fill_name = "Bands", band_alpha = 0.5,
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL,
+    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, palreverse = FALSE,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
     title = NULL, subtitle = NULL, xlim = NULL, ylim = NULL,
@@ -281,7 +281,7 @@ QQPlot <- function(
             QQPlotAtomic(
                 datas[[nm]], val = val, val_trans = val_trans, type = type,
                 band = band, line = line, point = point, fill_name = fill_name, band_alpha = band_alpha,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]],
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
                 title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, xlim = xlim, ylim = ylim,

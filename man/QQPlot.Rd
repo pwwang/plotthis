@@ -20,6 +20,7 @@ QQPlot(
   theme_args = list(),
   palette = "Spectral",
   palcolor = NULL,
+  palreverse = FALSE,
   facet_by = NULL,
   facet_scales = "fixed",
   facet_ncol = NULL,
