@@ -16,7 +16,6 @@ DotPlotAtomic(
   fill_by = NULL,
   fill_cutoff = NULL,
   palreverse = FALSE,
-  fill_reverse = FALSE,
   size_name = NULL,
   fill_name = NULL,
   fill_cutoff_name = NULL,

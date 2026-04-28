@@ -36,7 +36,7 @@
 #' @importFrom ggnewscale new_scale_color
 DotPlotAtomic <- function(
     data, x, y, x_sep = "_", y_sep = "_", flip = FALSE, lollipop = FALSE,
-    size_by = NULL, fill_by = NULL, fill_cutoff = NULL, palreverse = FALSE, fill_reverse = FALSE,
+    size_by = NULL, fill_by = NULL, fill_cutoff = NULL, palreverse = FALSE,
     size_name = NULL, fill_name = NULL, fill_cutoff_name = NULL,
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
@@ -104,7 +104,7 @@ DotPlotAtomic <- function(
 
     if (!is.null(fill_by) && !is.null(fill_cutoff)) {
         # Add a column to indicate the fill cutoff
-        if (isFALSE(fill_reverse)) {
+        if (isFALSE(palreverse)) {
             fill_cutoff_label <- paste0(fill_by, " < ", fill_cutoff)
             data[[fill_by]][data[[fill_by]] < fill_cutoff] <- NA
         } else {
@@ -349,7 +349,7 @@ DotPlot <- function(
     data, x, y, x_sep = "_", y_sep = "_", flip = FALSE,
     split_by = NULL, split_by_sep = "_", size_name = NULL, fill_name = NULL, fill_cutoff_name = NULL,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2, bg_direction = c("vertical", "horizontal", "v", "h"),
-    size_by = NULL, fill_by = NULL, fill_cutoff = NULL, palreverse = FALSE, fill_reverse = FALSE,
+    size_by = NULL, fill_by = NULL, fill_cutoff = NULL, palreverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     x_text_angle = 0, seed = 8525, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
@@ -389,7 +389,7 @@ DotPlot <- function(
             }
             DotPlotAtomic(datas[[nm]],
                 x = x, y = y, x_sep = x_sep, y_sep = y_sep, flip = flip, bg_direction = bg_direction,
-                size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, palreverse = palreverse, fill_reverse = fill_reverse,
+                size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, palreverse = palreverse,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 x_text_angle = x_text_angle, size_name = size_name, fill_name = fill_name, fill_cutoff_name = fill_cutoff_name,
@@ -424,7 +424,7 @@ DotPlot <- function(
 LollipopPlot <- function(
     data, x, y, y_sep = NULL, flip = FALSE,
     split_by = NULL, split_by_sep = "_", size_name = NULL, fill_name = NULL, fill_cutoff_name = NULL,
-    size_by = NULL, fill_by = NULL, fill_cutoff = NULL, palreverse = FALSE, fill_reverse = FALSE,
+    size_by = NULL, fill_by = NULL, fill_cutoff = NULL, palreverse = FALSE,
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     x_text_angle = 0, seed = 8525, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
@@ -464,7 +464,7 @@ LollipopPlot <- function(
             }
             DotPlotAtomic(datas[[nm]], lollipop = TRUE,
                 x = x, y = y, x_sep = NULL, y_sep = y_sep, flip = flip,
-                size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, palreverse = palreverse, fill_reverse = fill_reverse,
+                size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, palreverse = palreverse,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 x_text_angle = x_text_angle, size_name = size_name, fill_name = fill_name, fill_cutoff_name = fill_cutoff_name,
