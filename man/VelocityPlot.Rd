@@ -33,6 +33,7 @@ VelocityPlot(
   streamline_color = NULL,
   streamline_palette = "RdYlBu",
   streamline_palcolor = NULL,
+  palreverse = FALSE,
   streamline_bg_color = "white",
   streamline_bg_stroke = 0.5,
   aspect.ratio = 1,

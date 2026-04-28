@@ -143,7 +143,7 @@ VelocityPlot <- function(
     n_neighbors = NULL, density = 1, smooth = 0.5, scale = 1, min_mass = 1, cutoff_perc = 5,
     arrow_angle = 20, arrow_color = "black", arrow_alpha = 1, keep_na = FALSE, keep_empty = FALSE,
     streamline_l = 5, streamline_minl = 1, streamline_res = 1, streamline_n = 15,
-    streamline_width = c(0, 0.8), streamline_alpha = 1, streamline_color = NULL, streamline_palette = "RdYlBu", streamline_palcolor = NULL,
+    streamline_width = c(0, 0.8), streamline_alpha = 1, streamline_color = NULL, streamline_palette = "RdYlBu", streamline_palcolor = NULL, palreverse = FALSE,
     streamline_bg_color = "white", streamline_bg_stroke = 0.5,
     aspect.ratio = 1, title = "Cell velocity", subtitle = NULL, xlab = NULL, ylab = NULL,
     legend.position = "right", legend.direction = "vertical",
@@ -226,7 +226,7 @@ VelocityPlot <- function(
             if (anyNA(group_by)) {
                 group_vals <- c(group_vals, NA)
             }
-            group_cols <- palette_this(group_vals, palette = group_palette, palcolor = group_palcolor, NA_keep = TRUE)
+            group_cols <- palette_this(group_vals, palette = group_palette, palcolor = group_palcolor, NA_keep = TRUE, reverse = palreverse)
             velocity_layer <- list(
                 geom_segment(
                     data = df,
@@ -372,7 +372,7 @@ VelocityPlot <- function(
                 ),
                 scale_color_gradientn(
                     name = "Velocity", n.breaks = 4,
-                    colors = palette_this(palette = streamline_palette, palcolor = streamline_palcolor),
+                    colors = palette_this(palette = streamline_palette, palcolor = streamline_palcolor, reverse = palreverse),
                     guide = guide_colorbar(frame.colour = "black", ticks.colour = "black", title.hjust = 0, order = 1)
                 ),
                 scale_size(range = range(streamline_width), guide = "none")
