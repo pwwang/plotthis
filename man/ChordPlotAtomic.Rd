@@ -17,6 +17,7 @@ ChordPlotAtomic(
   theme_args = list(),
   palette = "Paired",
   palcolor = NULL,
+  palreverse = FALSE,
   alpha = 0.5,
   labels_rot = FALSE,
   title = NULL,

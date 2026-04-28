@@ -17,7 +17,7 @@
 #' @keywords internal
 ChordPlotAtomic <- function(
     data, y = NULL, from = NULL, from_sep = "_", to = NULL, to_sep = "_", flip = FALSE, links_color = c("from", "to"),
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 0.5,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 0.5,
     labels_rot = FALSE, title = NULL, subtitle = NULL, keep_na = FALSE, keep_empty = FALSE, ...
 ) {
     # if (!requireNamespace("circlize", quietly = TRUE)) {
@@ -58,7 +58,7 @@ ChordPlotAtomic <- function(
     to_vals <- levels(data$to)
     if (anyNA(data$to)) to_vals <- c(to_vals, NA)
 
-    grid_cols <- palette_this(unique(c(from_vals, to_vals)), palette = palette, palcolor = palcolor, NA_keep = TRUE)
+    grid_cols <- palette_this(unique(c(from_vals, to_vals)), palette = palette, palcolor = palcolor, NA_keep = TRUE, reverse = palreverse)
     names(grid_cols)[is.na(names(grid_cols))] <- "NA"
     if (anyNA(from_vals)) {
         from_vals[is.na(from_vals)] <- "NA"
@@ -203,7 +203,7 @@ ChordPlotAtomic <- function(
 ChordPlot <- function(
     data, y = NULL, from = NULL, from_sep = "_", to = NULL, to_sep = "_",
     split_by = NULL, split_by_sep = "_", flip = FALSE, links_color = c("from", "to"),
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 0.5,
+    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 0.5,
     labels_rot = FALSE, title = NULL, subtitle = NULL, seed = 8525,
     keep_na = FALSE, keep_empty = FALSE,
     combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
@@ -240,7 +240,7 @@ ChordPlot <- function(
             }
             ChordPlotAtomic(datas[[nm]],
                 y = y, from = from, from_sep = from_sep, to = to, to_sep = to_sep, flip = flip, links_color = links_color,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
+                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, alpha = alpha,
                 labels_rot = labels_rot, title = title, subtitle = subtitle, keep_na = keep_na, keep_empty = keep_empty, ...
             )
         }
