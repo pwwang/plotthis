@@ -213,7 +213,7 @@
 #' @param palette A character string specifying the color palette to use.
 #' For `SpatImagePlot`, if the data has 3 channels (RGB), it will be used as a color identity and
 #' this argument will be ignored.
-#' @param palette_reverse Whether to reverse the color palette. Default is FALSE.
+#' @param palreverse Whether to reverse the color palette. Default is FALSE.
 #' @param fill_by A character string or vector specifying the column(s) to fill the shapes in `SpatShapesPlot`.
 #' @param fill_name A character string for the fill legend title.
 #' @param color_by A character string specifying the column to color the points in `SpatPointsPlot`.
@@ -312,7 +312,7 @@
 #' )
 #' SpatMasksPlot(m, border_color = "red")
 #' SpatMasksPlot(m, ext = c(0, 15, 0, 20), add_border = FALSE,
-#'     palette_reverse = TRUE, fill_name = "value")
+#'     palreverse = TRUE, fill_name = "value")
 #'
 #' # --- SpatShapesPlot ---
 #' polygons <- data.frame(
@@ -408,7 +408,7 @@
 SpatImagePlot <- function(
     data,
     ext = NULL, raster = NULL, raster_dpi = NULL, flip_y = TRUE,
-    palette = "turbo", palcolor = NULL, palette_reverse = FALSE,
+    palette = "turbo", palcolor = NULL, palreverse = FALSE,
     alpha = 1, fill_name = NULL, return_layer = FALSE,
     theme = "theme_box", theme_args = list(),
     legend.position = ifelse(return_layer, "none", "right"), legend.direction = "vertical",
@@ -474,7 +474,7 @@ SpatImagePlot <- function(
             scale_fill_gradientn(
                 name = fill_name %||% names(data)[1],
                 n.breaks = 4,
-                colors = palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor),
+                colors = palette_this(palette = palette, n = 256, reverse = palreverse, palcolor = palcolor),
                 guide = if (identical(legend.position, "none")) "none" else guide_colorbar(
                     frame.colour = "black", ticks.colour = "black", title.hjust = 0,
                     alpha = alpha
@@ -505,7 +505,7 @@ SpatMasksPlot <- function(
     data,
     ext = NULL, flip_y = TRUE, add_border = TRUE, border_color = "black",
     border_size = 0.5, border_alpha = 1,
-    palette = "turbo", palcolor = NULL, palette_reverse = FALSE,
+    palette = "turbo", palcolor = NULL, palreverse = FALSE,
     alpha = 1, fill_name = NULL, return_layer = FALSE,
     theme = "theme_box", theme_args = list(),
     legend.position = "right", legend.direction = "vertical",
@@ -562,7 +562,7 @@ SpatMasksPlot <- function(
         list(scale_fill_gradientn(
             name = fill_name %||% names(data)[1],
             n.breaks = 4,
-            colors = palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor),
+            colors = palette_this(palette = palette, n = 256, reverse = palreverse, palcolor = palcolor),
             guide = if (identical(legend.position, "none")) "none" else guide_colorbar(
                 frame.colour = "black", ticks.colour = "black", title.hjust = 0
             ),
@@ -590,7 +590,7 @@ SpatMasksPlot <- function(
 SpatShapesPlot <- function(data, x = NULL, y = NULL, group = NULL,
     ext = NULL, flip_y = TRUE,
     fill_by = NULL, border_color = "black", border_size = 0.5, border_alpha = 1,
-    palette = NULL, palcolor = NULL, palette_reverse = FALSE,
+    palette = NULL, palcolor = NULL, palreverse = FALSE,
     alpha = 1, fill_name = NULL,
     highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
     facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
@@ -608,7 +608,7 @@ SpatShapesPlot.SpatVector <- function(
     data, x = NULL, y = NULL, group = NULL,
     ext = NULL, flip_y = TRUE,
     fill_by = NULL, border_color = "black", border_size = 0.5, border_alpha = 1,
-    palette = NULL, palcolor = NULL, palette_reverse = FALSE,
+    palette = NULL, palcolor = NULL, palreverse = FALSE,
     alpha = 1, fill_name = NULL,
     highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
     facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
@@ -762,7 +762,7 @@ SpatShapesPlot.SpatVector <- function(
                 scale_fill_gradientn(
                     name = fill_name %||% fill_by,
                     n.breaks = 4,
-                    colors = palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor),
+                    colors = palette_this(palette = palette, n = 256, reverse = palreverse, palcolor = palcolor),
                     guide = if (identical(legend.position, "none")) "none" else guide_colorbar(
                         frame.colour = "black", ticks.colour = "black", title.hjust = 0
                     ),
@@ -774,7 +774,7 @@ SpatShapesPlot.SpatVector <- function(
             layers <- c(layers, list(
                 ggplot2::scale_fill_manual(
                     name = fill_name %||% fill_by,
-                    values = palette_this(levels(data_sf[[fill_by]]), palette = palette, reverse = palette_reverse, palcolor = palcolor),
+                    values = palette_this(levels(data_sf[[fill_by]]), palette = palette, reverse = palreverse, palcolor = palcolor),
                     guide = if (identical(legend.position, "none")) "none" else "legend",
                     na.value = "transparent"
                 )
@@ -789,7 +789,7 @@ SpatShapesPlot.SpatVector <- function(
             layers <- c(layers, list(
                 scale_color_gradientn(
                     n.breaks = 4,
-                    colors = palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor, alpha = border_alpha),
+                    colors = palette_this(palette = palette, n = 256, reverse = palreverse, palcolor = palcolor, alpha = border_alpha),
                     guide = if (identical(legend.position, "none")) "none" else guide_colorbar(
                         frame.colour = "black", ticks.colour = "black", title.hjust = 0
                     ),
@@ -800,7 +800,7 @@ SpatShapesPlot.SpatVector <- function(
             # Categorical data - use manual/discrete scale
             layers <- c(layers, list(
                 ggplot2::scale_color_manual(
-                    values = palette_this(levels(data_sf[[fill_by]]), palette = palette, reverse = palette_reverse, palcolor = palcolor),
+                    values = palette_this(levels(data_sf[[fill_by]]), palette = palette, reverse = palreverse, palcolor = palcolor),
                     guide = "none",  # Always hide guide for border color
                     na.value = "transparent"
                 )
@@ -876,7 +876,7 @@ SpatShapesPlot.data.frame <- function(
     data, x, y, group,
     ext = NULL, flip_y = TRUE,
     fill_by = "grey90", border_color = "black", border_size = 0.5, border_alpha = 1,
-    palette = NULL, palcolor = NULL, palette_reverse = FALSE,
+    palette = NULL, palcolor = NULL, palreverse = FALSE,
     alpha = 1, fill_name = NULL,
     highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
     facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
@@ -1030,7 +1030,7 @@ SpatShapesPlot.data.frame <- function(
                 scale_fill_gradientn(
                     name = fill_name %||% fill_by,
                     n.breaks = 4,
-                    colors = palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor),
+                    colors = palette_this(palette = palette, n = 256, reverse = palreverse, palcolor = palcolor),
                     guide = if (identical(legend.position, "none")) "none" else guide_colorbar(
                         frame.colour = "black", ticks.colour = "black", title.hjust = 0
                     ),
@@ -1042,7 +1042,7 @@ SpatShapesPlot.data.frame <- function(
             layers <- c(layers, list(
                 ggplot2::scale_fill_manual(
                     name = fill_name %||% fill_by,
-                    values = palette_this(levels(data[[fill_by]]), palette = palette, reverse = palette_reverse, palcolor = palcolor),
+                    values = palette_this(levels(data[[fill_by]]), palette = palette, reverse = palreverse, palcolor = palcolor),
                     guide = if (identical(legend.position, "none")) "none" else "legend",
                     na.value = "transparent"
                 )
@@ -1057,7 +1057,7 @@ SpatShapesPlot.data.frame <- function(
             layers <- c(layers, list(
                 scale_color_gradientn(
                     n.breaks = 4,
-                    colors = palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor, alpha = border_alpha),
+                    colors = palette_this(palette = palette, n = 256, reverse = palreverse, palcolor = palcolor, alpha = border_alpha),
                     guide = if (identical(legend.position, "none")) "none" else guide_colorbar(
                         frame.colour = "black", ticks.colour = "black", title.hjust = 0
                     ),
@@ -1068,7 +1068,7 @@ SpatShapesPlot.data.frame <- function(
             # Categorical data - use manual/discrete scale
             layers <- c(layers, list(
                 ggplot2::scale_color_manual(
-                    values = palette_this(levels(data[[fill_by]]), palette = palette, reverse = palette_reverse, palcolor = palcolor),
+                    values = palette_this(levels(data[[fill_by]]), palette = palette, reverse = palreverse, palcolor = palcolor),
                     guide = "none",  # Always hide guide for border color
                     na.value = "transparent"
                 )
@@ -1145,7 +1145,7 @@ SpatPointsPlot <- function(
     data, x = NULL, y = NULL,
     ext = NULL, flip_y = TRUE, color_by = NULL, size_by = NULL, size = NULL, fill_by = NULL,
     lower_quantile = 0, upper_quantile = 0.99, lower_cutoff = NULL, upper_cutoff = NULL,
-    palette = NULL, palcolor = NULL, palette_reverse = FALSE,
+    palette = NULL, palcolor = NULL, palreverse = FALSE,
     alpha = 1, color_name = NULL, size_name = NULL, shape = 16,
     border_color = "black", border_size = 0.5, border_alpha = 1,
     raster = NULL, raster_dpi = c(512, 512),
@@ -1560,7 +1560,7 @@ SpatPointsPlot <- function(
                     scale_fill_gradientn(
                         name = color_name %||% color_by,
                         n.breaks = 4,
-                        colors = palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor),
+                        colors = palette_this(palette = palette, n = 256, reverse = palreverse, palcolor = palcolor),
                         guide = if (identical(legend.position, "none")) "none" else guide_colorbar(
                             frame.colour = "black", ticks.colour = "black", title.hjust = 0
                         ),
@@ -1571,7 +1571,7 @@ SpatPointsPlot <- function(
                 layers <- c(layers, list(
                     ggplot2::scale_fill_manual(
                         name = color_name %||% color_by,
-                        values = palette_this(levels(data[[color_by]]), palette = palette, reverse = palette_reverse, palcolor = palcolor),
+                        values = palette_this(levels(data[[color_by]]), palette = palette, reverse = palreverse, palcolor = palcolor),
                         guide = if (identical(legend.position, "none")) "none" else ggplot2::guide_legend(
                             override.aes = list(size = legend_point_size)
                         ),
@@ -1583,10 +1583,10 @@ SpatPointsPlot <- function(
         if ("color" %in% scales_used) {
             if (is.numeric(data[[color_by]])) {
                 if (has_border && border_aes == "same_as_fill") {
-                    colors <- palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor,
+                    colors <- palette_this(palette = palette, n = 256, reverse = palreverse, palcolor = palcolor,
                         alpha = border_alpha, transparent = FALSE)
                 } else {
-                    colors <- palette_this(palette = palette, n = 256, reverse = palette_reverse, palcolor = palcolor)
+                    colors <- palette_this(palette = palette, n = 256, reverse = palreverse, palcolor = palcolor)
                 }
                 layers <- c(layers, list(
                     scale_color_gradientn(
@@ -1602,10 +1602,10 @@ SpatPointsPlot <- function(
             } else {
                 if (has_border && border_aes == "same_as_fill") {
                     # Use same colors as fill
-                    colors <- palette_this(levels(data[[color_by]]), palette = palette, reverse = palette_reverse, palcolor = palcolor,
+                    colors <- palette_this(levels(data[[color_by]]), palette = palette, reverse = palreverse, palcolor = palcolor,
                         alpha = border_alpha, transparent = FALSE)
                 } else {
-                    colors <- palette_this(levels(data[[color_by]]), palette = palette, reverse = palette_reverse, palcolor = palcolor)
+                    colors <- palette_this(levels(data[[color_by]]), palette = palette, reverse = palreverse, palcolor = palcolor)
                 }
                 layers <- c(layers, list(
                     ggplot2::scale_color_manual(
