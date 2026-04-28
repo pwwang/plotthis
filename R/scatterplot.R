@@ -13,7 +13,6 @@
 #'  It could be a numeric column or a factor/character column.
 #'  For shapes 21-25, the color is applied to the fill color.
 #' @param color_name A character vector specifying the name for the color legend.
-#' @param color_reverse A logical value indicating whether to reverse the color direction. Default is FALSE.
 #' @param border_color A character vector specifying the color for the border of the points.
 #'  Or TRUE to use the fill color as the border color.
 #' @param highlight A vector of indexes or rownames to select the points to highlight.
@@ -34,7 +33,7 @@
 #' @importFrom ggplot2 aes geom_point scale_size_area scale_fill_gradientn scale_color_gradientn labs
 #' @importFrom ggplot2 guide_colorbar guide_legend guides guide_none scale_size
 ScatterPlotAtomic <- function(
-    data, x, y, size_by = 2, size_name = NULL, color_by = NULL, color_name = NULL, color_reverse = FALSE,
+    data, x, y, size_by = 2, size_name = NULL, color_by = NULL, color_name = NULL, palreverse = FALSE,
     theme = "theme_this", theme_args = list(), alpha = ifelse(shape %in% 21:25, 0.65, 1),
     shape = 21, border_color = "black", xtrans = "identity", ytrans = "identity",
     highlight = NULL, highlight_shape = 16, highlight_size = 3, highlight_color = "red", highlight_alpha = 1,
@@ -115,7 +114,7 @@ ScatterPlotAtomic <- function(
         if (is.numeric(data[[color_by]])) {
             p <- p + scale_fill_gradientn(
                 n.breaks = 5,
-                colors = palette_this(data[[color_by]], palette = palette, palcolor = palcolor, reverse = color_reverse, alpha = alpha),
+                colors = palette_this(data[[color_by]], palette = palette, palcolor = palcolor, reverse = palreverse, alpha = alpha),
                 na.value = "grey80",
                 guide = if (isTRUE(border_color) || isFALSE(color_legend)) {
                     # legend for border color will be added later
@@ -130,7 +129,7 @@ ScatterPlotAtomic <- function(
             if (isTRUE(border_color)) {
                 p <- p + scale_color_gradientn(
                     n.breaks = 5,
-                    colors = palette_this(palette = palette, palcolor = palcolor, reverse = color_reverse),
+                    colors = palette_this(palette = palette, palcolor = palcolor, reverse = palreverse),
                     na.value = "grey80",
                     guide = if (isTRUE(border_color) && isTRUE(color_legend)) {
                         guide_colorbar(
@@ -143,7 +142,7 @@ ScatterPlotAtomic <- function(
             }
         } else {  # factor/character
             p <- p + scale_fill_manual(
-                values = palette_this(levels(data[[color_by]]), palette = palette, palcolor = palcolor, alpha = alpha),
+                values = palette_this(levels(data[[color_by]]), palette = palette, palcolor = palcolor, reverse = palreverse, alpha = alpha),
                 na.value = "grey80",
                 guide = if (isTRUE(border_color) || isFALSE(color_legend)) {
                     guide_none()
@@ -157,7 +156,7 @@ ScatterPlotAtomic <- function(
             )
             if (isTRUE(border_color)) {
                 p <- p + scale_color_manual(
-                    values = palette_this(levels(data[[color_by]]), palette = palette, palcolor = palcolor),
+                    values = palette_this(levels(data[[color_by]]), palette = palette, palcolor = palcolor, reverse = palreverse),
                     na.value = "black",
                     guide = if (isTRUE(border_color) && isTRUE(color_legend)) {
                         guide_legend(title = color_name %||% color_by, order = 3)
@@ -171,7 +170,7 @@ ScatterPlotAtomic <- function(
         if (is.numeric(data[[color_by]])) {
             p <- p + scale_color_gradientn(
                 n.breaks = 5,
-                colors = palette_this(data[[color_by]], palette = palette, palcolor = palcolor, reverse = color_reverse, alpha = alpha),
+                colors = palette_this(data[[color_by]], palette = palette, palcolor = palcolor, reverse = palreverse, alpha = alpha),
                 na.value = "grey80",
                 guide = if (isTRUE(color_legend)) {
                     guide_colorbar(
@@ -183,7 +182,7 @@ ScatterPlotAtomic <- function(
             )
         } else {  # factor/character
             p <- p + scale_color_manual(
-                values = palette_this(levels(data[[color_by]]), palette = palette, palcolor = palcolor, alpha = alpha),
+                values = palette_this(levels(data[[color_by]]), palette = palette, palcolor = palcolor, reverse = palreverse, alpha = alpha),
                 na.value = "grey80",
                 guide = if (isTRUE(color_legend)) {
                     guide_legend(
@@ -281,7 +280,7 @@ ScatterPlotAtomic <- function(
 #' ScatterPlot(data, x = "x", y = "y", split_by = "t",
 #'             palcolor = list(A = "blue", B = "red"))
 ScatterPlot <- function(
-    data, x, y, size_by = 2, size_name = NULL, color_by = NULL, color_name = NULL, color_reverse = FALSE,
+    data, x, y, size_by = 2, size_name = NULL, color_by = NULL, color_name = NULL, palreverse = FALSE,
     split_by = NULL, split_by_sep = "_", shape = 21, alpha = ifelse(shape %in% 21:25, 0.65, 1), border_color = "black",
     highlight = NULL, highlight_shape = 16, highlight_size = 3, highlight_color = "red", highlight_alpha = 1,
     theme = "theme_this", theme_args = list(),
@@ -323,7 +322,7 @@ ScatterPlot <- function(
                 datas[[nm]], x = x, y = y, size_by = size_by, size_name = size_name, color_by = color_by,
                 highlight = highlight, highlight_shape = highlight_shape, highlight_size = highlight_size,
                 highlight_color = highlight_color, highlight_alpha = highlight_alpha,
-                color_name = color_name, color_reverse = color_reverse, theme = theme, theme_args = theme_args,
+                color_name = color_name, palreverse = palreverse, theme = theme, theme_args = theme_args,
                 alpha = alpha, shape = shape, border_color = border_color, palette = palette[[nm]], palcolor = palcolor[[nm]],
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
                 aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],

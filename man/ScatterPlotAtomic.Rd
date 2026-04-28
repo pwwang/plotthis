@@ -12,7 +12,7 @@ ScatterPlotAtomic(
   size_name = NULL,
   color_by = NULL,
   color_name = NULL,
-  color_reverse = FALSE,
+  palreverse = FALSE,
   theme = "theme_this",
   theme_args = list(),
   alpha = ifelse(shape \%in\% 21:25, 0.65, 1),
@@ -62,8 +62,6 @@ It could be a numeric column or a factor/character column.
 For shapes 21-25, the color is applied to the fill color.}
 
 \item{color_name}{A character vector specifying the name for the color legend.}
-
-\item{color_reverse}{A logical value indicating whether to reverse the color direction. Default is FALSE.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}

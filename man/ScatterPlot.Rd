@@ -12,7 +12,7 @@ ScatterPlot(
   size_name = NULL,
   color_by = NULL,
   color_name = NULL,
-  color_reverse = FALSE,
+  palreverse = FALSE,
   split_by = NULL,
   split_by_sep = "_",
   shape = 21,
@@ -69,8 +69,6 @@ It could be a numeric column or a factor/character column.
 For shapes 21-25, the color is applied to the fill color.}
 
 \item{color_name}{A character vector specifying the name for the color legend.}
-
-\item{color_reverse}{A logical value indicating whether to reverse the color direction. Default is FALSE.}
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
