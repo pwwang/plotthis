@@ -763,6 +763,9 @@ check_palcolor <- function(palcolor, datas_name) {
         palcolor <- list(palcolor)
         names(palcolor) <- datas_name
     }
+    if (!identical(datas_name, "...") && all(sapply(palcolor, is.character))) {
+        palcolor <- list(palcolor)
+    }
     if (length(palcolor) == 1 && length(datas_name) > 1) {
         palcolor <- rep(palcolor, length(datas_name))
     }
