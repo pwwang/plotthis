@@ -21,6 +21,7 @@ BoxViolinPlotAtomic(
   paired_by = NULL,
   x_text_angle = ifelse(isTRUE(flip), 0, 45),
   step_increase = 0.1,
+  position_dodge_preserve = "total",
   fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
   palreverse = FALSE,
   symnum_args = NULL,
@@ -155,6 +156,8 @@ for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.}
 
 \item{step_increase}{A numeric value to specify the step increase in fraction of total height for every
 additional comparison of the significance labels.}
+
+\item{position_dodge_preserve}{Should dodging preserve the "total" width of all elements at a position, or the width of a "single" element?}
 
 \item{fill_mode}{A character string to specify the fill mode. Either "dodge", "x", "mean", "median".}
 
