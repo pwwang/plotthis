@@ -395,16 +395,23 @@ Could be a list with the keys as the names of the annotation and the values as t
 Could be a list with the keys as the names of the annotation and the values as the palcolors.}
 
 \item{column_annotation_type}{A character string specifying the type of the column annotation.
-The default is "auto". Other options are "simple", "pie", "ring", "bar", "violin", "boxplot", "density".
+The default is "auto". Other options are "simple", "pie", "ring", "bar", "violin", "boxplot", "density",
+"block", "label".
 Could be a list with the keys as the names of the annotation and the values as the types.
-If the type is "auto", the type will be determined by the type and number of the column data.}
+If the type is "auto", the type will be determined by the type and number of the column data.
+For split or name annotations, use aliases (e.g. \code{.col.split}, \code{.col}) to set the type.
+\itemize{
+\item \code{"block"} — slice-level block annotation via \code{\link[=anno_block]{anno_block()}} (split annotations only).
+\item \code{"label"} — simple annotation with text labels via \code{\link[=anno_simple]{anno_simple()}} (works for both
+split and name annotations; uses \code{pch} to display text on colored cells).
+}}
 
 \item{column_annotation_params}{A list of parameters passed to the annotation function.
 Could be a list with the keys as the names of the annotation and the values as the parameters.
 For the name/split annotations, use aliases: \code{.col}/\code{.cols}/\code{.column}/\code{.columns} for \code{columns_by}, \code{.col.split}/\code{.cols.split}/\code{.column.split}/\code{.columns.split}
 for \code{columns_split_by}. Setting a key to \code{FALSE} disables that annotation.
 \verb{$<key>$show_legend} controls the legend for that annotation.
-See \code{\link[=anno_pie]{anno_pie()}}, \code{\link[=anno_ring]{anno_ring()}}, \code{\link[=anno_bar]{anno_bar()}}, \code{\link[=anno_violin]{anno_violin()}}, \code{\link[=anno_boxplot]{anno_boxplot()}}, \code{\link[=anno_density]{anno_density()}}, \code{\link[=anno_simple]{anno_simple()}}, \code{\link[=anno_points]{anno_points()}} and \code{\link[=anno_lines]{anno_lines()}} for the parameters of each annotation function.}
+See \code{\link[=anno_pie]{anno_pie()}}, \code{\link[=anno_ring]{anno_ring()}}, \code{\link[=anno_bar]{anno_bar()}}, \code{\link[=anno_violin]{anno_violin()}}, \code{\link[=anno_boxplot]{anno_boxplot()}}, \code{\link[=anno_density]{anno_density()}}, \code{\link[=anno_simple]{anno_simple()}}, \code{\link[=anno_points]{anno_points()}}, \code{\link[=anno_lines]{anno_lines()}} and \code{\link[=anno_block]{anno_block()}} for the parameters of each annotation function.}
 
 \item{column_annotation_agg}{A function to aggregate the values in the column annotation.}
 
@@ -422,9 +429,16 @@ Could be a list with the keys as the names of the annotation and the values as t
 Could be a list with the keys as the names of the annotation and the values as the palcolors.}
 
 \item{row_annotation_type}{A character string specifying the type of the row annotation.
-The default is "auto". Other options are "simple", "pie", "ring", "bar", "violin", "boxplot", "density".
+The default is "auto". Other options are "simple", "pie", "ring", "bar", "violin", "boxplot", "density",
+"block", "label".
 Could be a list with the keys as the names of the annotation and the values as the types.
-If the type is "auto", the type will be determined by the type and number of the row data.}
+If the type is "auto", the type will be determined by the type and number of the row data.
+For split or name annotations, use aliases (e.g. \code{.rows.split}, \code{.row}) to set the type.
+\itemize{
+\item \code{"block"} — slice-level block annotation via \code{\link[=anno_block]{anno_block()}} (split annotations only).
+\item \code{"label"} — simple annotation with text labels via \code{\link[=anno_simple]{anno_simple()}} (works for both
+split and name annotations; uses \code{pch} to display text on colored cells).
+}}
 
 \item{row_annotation_params}{A list of parameters passed to the annotation function.
 Could be a list with the keys as the names of the annotation and the values as the parameters.
@@ -582,6 +596,23 @@ if (requireNamespace("cluster", quietly = TRUE)) {
 if (requireNamespace("cluster", quietly = TRUE)) {
     Heatmap(matrix_data, rows_data = rows_data,
         rows_split_by = "group"
+    )
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # use block annotation for split groups (shows group labels inside colored blocks)
+    Heatmap(matrix_data, rows_data = rows_data,
+        row_split_by = "group",
+        row_annotation_type = list(.rows.split = "block")
+    )
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # block annotation with custom styling for split groups
+    Heatmap(matrix_data, rows_data = rows_data,
+        row_split_by = "group",
+        row_annotation_type = list(.rows.split = "block"),
+        row_annotation_params = list(.rows.split = list(
+            labels_gp = grid::gpar(col = "white", fontsize = 12)
+        ))
     )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {

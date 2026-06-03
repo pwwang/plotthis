@@ -819,6 +819,29 @@ anno_lines <- function(x, split_by = NULL, group_by, column, title, which = "row
     list(anno = anno, legend = NULL)
 }
 
+#' @rdname heatmap-anno
+#' @param gp A `grid::gpar()` object controlling the graphical parameters of the blocks (fill and border).
+#'  The length of `fill` should match the number of slices.
+#' @param labels A character vector of labels to display in each block. For block annotations used
+#'  with split annotations, labels are automatically derived from split/group levels.
+#' @param labels_gp A `grid::gpar()` object controlling the graphical parameters of the labels.
+#' @keywords internal
+anno_block <- function(gp = NULL, labels = NULL, labels_gp = NULL,
+                       which = NULL, width = NULL, height = NULL, ...) {
+    if (!is.null(width) && !is.numeric(width) && !inherits(width, "unit")) {
+        width <- unit(width, "mm")
+    }
+    if (!is.null(height) && !is.numeric(height) && !inherits(height, "unit")) {
+        height <- unit(height, "mm")
+    }
+    args <- list(gp = gp, labels = labels, labels_gp = labels_gp, ...)
+    if (!is.null(which)) args$which <- which
+    if (!is.null(width)) args$width <- width
+    if (!is.null(height)) args$height <- height
+    anno <- do.call(ComplexHeatmap::anno_block, args)
+    list(anno = anno, legend = NULL)
+}
+
 #' Heatmap layer functions used to draw on the heatmap cells
 #'
 #' @rdname heatmap-layer
@@ -960,6 +983,260 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
     }
 }
 
+#' Row label annotation: anno_simple-style colored cells + rotated text
+#' @noRd
+#' @keywords internal
+.row_label_anno <- function(x, which, width = NULL, height = NULL, rot = -90, ...) {
+    ComplexHeatmap::AnnotationFunction(
+        fun = function(index, k, n) {
+            n <- length(index)
+            for (i in seq_len(n)) {
+                idx <- index[i]
+                y_pos <- (n - i + 0.5) / n
+                grid.rect(x = 0.5, y = y_pos, width = 0.9, height = 1 / n,
+                    gp = gpar(fill = x$colors[idx], col = "black"),
+                    default.units = "npc")
+                grid.text(x$labels[idx], x = 0.5, y = y_pos,
+                    rot = rot, default.units = "npc")
+            }
+        },
+        var_import = list(x = x, rot = rot),
+        n = length(x$labels), which = which,
+        subsettable = TRUE, width = width, height = height, ...
+    )
+}
+
+#' Unified annotation builder for built-in (split/name) and user-defined annotations
+#' @noRd
+#' @keywords internal
+setup_annos <- function(
+    which, names_side, anno_title, show_names,
+    annotation, annotation_type, annotation_palette, annotation_palcolor,
+    annotation_agg, annotation_params,
+    split_by, splits, by, by_labels,
+    flip, legend.direction, legend.position, data
+) {
+    .legends <- list()
+
+    # --- 1. Normalize inputs ---
+    if (is.null(annotation)) annotation <- list()
+    if (!is.list(annotation)) {
+        annotation <- as.list(annotation)
+        names(annotation) <- unlist(annotation)
+    }
+    if (!is.list(annotation_palette)) {
+        annotation_palette <- as.list(rep(
+            if (is.character(annotation_palette)) annotation_palette else "Paired",
+            length(annotation)))
+        names(annotation_palette) <- names(annotation)
+    }
+    if (!is.list(annotation_palcolor)) {
+        annotation_palcolor <- rep(list(annotation_palcolor), length(annotation))
+        names(annotation_palcolor) <- names(annotation)
+    }
+    if (is.character(annotation_type) && !identical(annotation_type, "auto")) {
+        annotation_type <- as.list(rep(annotation_type, length(annotation)))
+        names(annotation_type) <- names(annotation)
+    } else if (identical(annotation_type, "auto")) {
+        annotation_type <- as.list(rep("auto", length(annotation)))
+        names(annotation_type) <- names(annotation)
+    } else if (!is.list(annotation_type)) {
+        annotation_type <- as.list(rep("simple", length(annotation)))
+        names(annotation_type) <- names(annotation)
+    }
+
+    # Add built-in split annotation
+    if (!is.null(split_by)) {
+        annotation[[split_by]] <- split_by
+        annotation_type[[split_by]] <- annotation_type[[split_by]] %||% "simple"
+        annotation_palette[[split_by]] <- annotation_palette[[split_by]] %||% "simspec"
+        annotation_palcolor[[split_by]] <- annotation_palcolor[[split_by]]
+    }
+    # Add built-in name annotation
+    by_name_annotation <- !is.null(by) && !isFALSE(annotation_params[[by]] %||% TRUE)
+    if (by_name_annotation) {
+        annotation[[by]] <- by
+        annotation_type[[by]] <- annotation_type[[by]] %||% "simple"
+        annotation_palette[[by]] <- annotation_palette[[by]] %||% "Paired"
+        annotation_palcolor[[by]] <- annotation_palcolor[[by]]
+    }
+    annotation_agg <- annotation_agg %||% list()
+    annotation_params <- annotation_params %||% list()
+
+    annos <- list(
+        annotation_name_side = names_side,
+        show_annotation_name = list()
+    )
+
+    # --- 2. Process each annotation ---
+    for (aname in names(annotation)) {
+        if (aname %in% formalArgs(ComplexHeatmap::HeatmapAnnotation)) {
+            annos[[aname]] <- annotation[[aname]]
+            next
+        }
+        if (isFALSE(annotation_params[[aname]])) {
+            annos[[aname]] <- NULL
+            next
+        }
+        is_builtin <- identical(aname, split_by) || identical(aname, by)
+        annotype <- annotation_type[[aname]] %||% "simple"
+        param <- annotation_params[[aname]] %||% list()
+
+        if (is_builtin) {
+            # Built-in: use pre-computed splits/by_labels
+            param$x <- if (identical(aname, split_by)) splits else by_labels
+            param$title <- aname
+            param$which <- ifelse(flip, setdiff(c("column", "row"), which), which)
+            worh <- ifelse(param$which == "row", "width", "height")
+            param$palette <- annotation_palette[[aname]]
+            param$palcolor <- annotation_palcolor[[aname]]
+
+            if (annotype == "block") {
+                def_dim <- param[[worh]] %||% unit(8, "mm")
+                if (is.numeric(def_dim) && !is.unit(def_dim)) def_dim <- unit(def_dim, "mm")
+                block_param <- list(
+                    which = param$which,
+                    labels = levels(param$x),
+                    labels_gp = param$labels_gp
+                )
+                if (is.null(param$gp)) {
+                    block_colors <- palette_this(
+                        block_param$labels, palette = param$palette, palcolor = param$palcolor)
+                    block_param$gp <- gpar(fill = block_colors)
+                } else {
+                    block_param$gp <- param$gp
+                }
+                block_param[[worh]] <- def_dim
+                anno_legend <- do.call(anno_block, block_param)
+                annos$show_annotation_name[[aname]] <- FALSE
+            } else {
+                def_dim <- if (annotype == "label") unit(8, "mm") else unit(2.5, "mm")
+                param[[worh]] <- param[[worh]] %||% def_dim
+                if (is.numeric(param[[worh]]) && !is.unit(param[[worh]]))
+                    param[[worh]] <- unit(param[[worh]], "mm")
+                annos$show_annotation_name[[aname]] <- annotype != "label"
+                param$border <- param$border %||% TRUE
+                param$legend.direction <- legend.direction
+                param$show_legend <- is.null(anno_title) && !identical(legend.position, "none")
+                if (!identical(aname, split_by)) {
+                    by_name_legend <- param$show_legend
+                    param$show_legend <- !identical(legend.position, "none") &&
+                        (isTRUE(by_name_legend) || (is.null(by_name_legend) && !show_names))
+                }
+                if (annotype == "label") {
+                    if (param$which == "row") {
+                        lab_levels <- levels(param$x)
+                        lab_colors <- palette_this(
+                            lab_levels, palette = param$palette, palcolor = param$palcolor)
+                        lgd <- if (isTRUE(param$show_legend)) ComplexHeatmap::Legend(
+                            title = param$title, labels = lab_levels,
+                            legend_gp = gpar(fill = lab_colors), border = TRUE,
+                            nrow = if (legend.direction == "horizontal") 1 else NULL
+                        )
+                        anno_legend <- list(
+                            anno = .row_label_anno(
+                                list(labels = as.character(param$x),
+                                     colors = lab_colors[as.numeric(param$x)]),
+                                which = param$which,
+                                width = param$width, height = param$height
+                            ),
+                            legend = lgd
+                        )
+                    } else {
+                        param$pch <- levels(param$x)
+                        anno_legend <- do.call(anno_simple, param)
+                    }
+                } else {
+                    anno_legend <- do.call(anno_simple, param)
+                }
+            }
+            annos[[aname]] <- anno_legend$anno
+            if (isTRUE(param$show_legend))
+                .legends[[aname]] <- anno_legend$legend
+        } else {
+            # User-defined: extract and aggregate data
+            annocol <- annotation[[aname]]
+            annoagg <- annotation_agg[[aname]]
+            param <- annotation_params[[aname]] %||% list()
+            annodata <- param$x %||% data
+            annocol <- check_columns(annodata, annocol)
+            if (annotype == "auto") {
+                all_ones <- annodata %>%
+                    group_by(!!!syms(unique(c(split_by, by)))) %>%
+                    summarise(n = n(), .groups = "drop") %>%
+                    pull("n")
+                all_ones <- all(all_ones == 1)
+                if (is.character(annodata[[annocol]]) || is.factor(annodata[[annocol]]) || is.logical(annodata[[annocol]])) {
+                    annotype <- ifelse(all_ones, "pie", "simple")
+                } else if (is.numeric(annodata[[annocol]])) {
+                    annotype <- ifelse(all_ones, "points", "violin")
+                } else {
+                    stop("[Heatmap] Don't know how to handle ", which, " annotation type for column: ", annocol)
+                }
+            }
+            if (annotype %in% c("simple", "points", "lines") && is.null(annoagg)) {
+                warning("[Heatmap] Assuming '", which, "_annotation_agg[\"", aname, "\"] = dplyr::first' for the simple annotation")
+                annoagg <- dplyr::first
+            }
+            if (annotype == "block" && is.null(annoagg))
+                annoagg <- function(x) paste(unique(x), collapse = ", ")
+            if (is.null(annoagg)) {
+                annodata <- annodata %>% select(!!!syms(unique(c(split_by, by, annocol))))
+            } else if (annotype == "block") {
+                grp_cols <- if (!is.null(split_by)) split_by else character(0)
+                annodata <- annodata %>%
+                    group_by(!!!syms(grp_cols)) %>%
+                    summarise(!!sym(annocol) := annoagg(!!sym(annocol)), .groups = "drop")
+            } else {
+                annodata <- annodata %>%
+                    group_by(!!!syms(unique(c(split_by, by)))) %>%
+                    summarise(!!sym(annocol) := annoagg(!!sym(annocol)), .groups = "drop")
+            }
+            param$x <- annodata
+            param$split_by <- split_by
+            param$group_by <- by
+            param$column <- annocol
+            param$title <- aname
+            param$which <- ifelse(flip, setdiff(c("column", "row"), which), which)
+            param$palette <- annotation_palette[[aname]] %||% "Paired"
+            param$palcolor <- annotation_palcolor[[aname]]
+            param$legend.direction <- legend.direction
+            if (annotype == "simple") {
+                worh <- ifelse(param$which == "row", "width", "height")
+                param[[worh]] <- param[[worh]] %||% unit(2.5, "mm")
+                if (is.numeric(param[[worh]]) && !inherits(param[[worh]], "unit"))
+                    param[[worh]] <- unit(param[[worh]], "mm")
+            }
+            if (flip) {
+                pheight <- param$height; param$height <- param$width; param$width <- pheight
+            }
+            if (legend.position == "none") param$show_legend <- FALSE
+            if (annotype == "block") {
+                block_labels <- as.character(annodata[[annocol]])
+                worh <- ifelse(param$which == "row", "width", "height")
+                block_w <- param[[worh]] %||% unit(8, "mm")
+                if (is.numeric(block_w) && !inherits(block_w, "unit"))
+                    block_w <- unit(block_w, "mm")
+                block_gp <- param$gp %||% gpar(
+                    fill = palette_this(block_labels, palette = param$palette, palcolor = param$palcolor))
+                block_args <- list(which = param$which, gp = block_gp,
+                    labels = block_labels, labels_gp = param$labels_gp)
+                block_args[[worh]] <- block_w
+                anno <- do.call(anno_block, block_args)
+                annos[[aname]] <- anno$anno
+                next
+            }
+            if (!exists(paste0("anno_", annotype)))
+                stop("[Heatmap] Unsupported annotation type: ", annotype)
+            anno <- do.call(paste0("anno_", annotype), param)
+            annos[[aname]] <- anno$anno
+            .legends[[paste0(which, ".", aname)]] <- anno$legend
+        }
+    }
+
+    list(annos = annos, legends = .legends)
+}
+
 #' Atomic heatmap without split
 #'
 #' @inheritParams process_heatmap_data
@@ -1096,15 +1373,22 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
 #' @param column_annotation_palcolor A character vector of colors to override the palette of the column annotation.
 #'  Could be a list with the keys as the names of the annotation and the values as the palcolors.
 #' @param column_annotation_type A character string specifying the type of the column annotation.
-#'  The default is "auto". Other options are "simple", "pie", "ring", "bar", "violin", "boxplot", "density".
+#'  The default is "auto". Other options are "simple", "pie", "ring", "bar", "violin", "boxplot", "density",
+#'  "block", "label".
 #'  Could be a list with the keys as the names of the annotation and the values as the types.
 #'  If the type is "auto", the type will be determined by the type and number of the column data.
+#'  For split or name annotations, use aliases (e.g. `.col.split`, `.col`) to set the type.
+#'  \itemize{
+#'    \item \code{"block"} — slice-level block annotation via [anno_block()] (split annotations only).
+#'    \item \code{"label"} — simple annotation with text labels via [anno_simple()] (works for both
+#'          split and name annotations; uses \code{pch} to display text on colored cells).
+#'  }
 #' @param column_annotation_params A list of parameters passed to the annotation function.
 #'  Could be a list with the keys as the names of the annotation and the values as the parameters.
 #'  For the name/split annotations, use aliases: `.col`/`.cols`/`.column`/`.columns` for `columns_by`, `.col.split`/`.cols.split`/`.column.split`/`.columns.split`
 #'  for `columns_split_by`. Setting a key to `FALSE` disables that annotation.
 #'  `$<key>$show_legend` controls the legend for that annotation.
-#'  See [anno_pie()], [anno_ring()], [anno_bar()], [anno_violin()], [anno_boxplot()], [anno_density()], [anno_simple()], [anno_points()] and [anno_lines()] for the parameters of each annotation function.
+#'  See [anno_pie()], [anno_ring()], [anno_bar()], [anno_violin()], [anno_boxplot()], [anno_density()], [anno_simple()], [anno_points()], [anno_lines()] and [anno_block()] for the parameters of each annotation function.
 #' @param column_annotation_agg A function to aggregate the values in the column annotation.
 #' @param row_annotation A character string/vector of the column name(s) to use as the row annotation.
 #' Or a list with the keys as the names of the annotation and the values as the column names.
@@ -1116,9 +1400,16 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
 #' @param row_annotation_palcolor A character vector of colors to override the palette of the row annotation.
 #' Could be a list with the keys as the names of the annotation and the values as the palcolors.
 #' @param row_annotation_type A character string specifying the type of the row annotation.
-#' The default is "auto". Other options are "simple", "pie", "ring", "bar", "violin", "boxplot", "density".
+#' The default is "auto". Other options are "simple", "pie", "ring", "bar", "violin", "boxplot", "density",
+#' "block", "label".
 #' Could be a list with the keys as the names of the annotation and the values as the types.
 #' If the type is "auto", the type will be determined by the type and number of the row data.
+#' For split or name annotations, use aliases (e.g. `.rows.split`, `.row`) to set the type.
+#' \itemize{
+#'   \item \code{"block"} — slice-level block annotation via [anno_block()] (split annotations only).
+#'   \item \code{"label"} — simple annotation with text labels via [anno_simple()] (works for both
+#'         split and name annotations; uses \code{pch} to display text on colored cells).
+#' }
 #' @param row_annotation_params A list of parameters passed to the annotation function.
 #'  Could be a list with the keys as the names of the annotation and the values as the parameters.
 #'  For the name/split annotations, use aliases: `.row`/`.rows` for `rows_by`, `.rows.split`/`.row.split` for `rows_split_by`.
@@ -1246,6 +1537,8 @@ HeatmapAtomic <- function(
                 lst[[alias]] <- NULL
             } else if (!is.null(real) && alias %in% names(lst)) {
                 lst[[alias]] <- NULL  # real key wins; drop alias
+            } else if (is.null(real) && alias %in% names(lst)) {
+                lst[[alias]] <- NULL  # alias maps to NULL; drop
             }
         }
         lst
@@ -1262,6 +1555,8 @@ HeatmapAtomic <- function(
     column_annotation_palcolor <- resolve_anno_aliases(column_annotation_palcolor, rows_by, rows_split_by, columns_by, columns_split_by)
     column_annotation_type    <- resolve_anno_aliases(column_annotation_type,      rows_by, rows_split_by, columns_by, columns_split_by)
     column_annotation_agg     <- resolve_anno_aliases(column_annotation_agg,       rows_by, rows_split_by, columns_by, columns_split_by)
+    row_annotation_side      <- resolve_anno_aliases(row_annotation_side,        rows_by, rows_split_by, columns_by, columns_split_by)
+    column_annotation_side   <- resolve_anno_aliases(column_annotation_side,     rows_by, rows_split_by, columns_by, columns_split_by)
 
     # Determine whether the name annotations are enabled (FALSE param key disables them)
     row_name_anno_enabled <- is.null(rows_by) || !isFALSE(row_annotation_params[[rows_by]] %||% TRUE)
@@ -2478,217 +2773,47 @@ HeatmapAtomic <- function(
     )
     cell_h <- cell_w * aspect.ratio
 
-    ## Set up the top annotations
-    setup_name_annos <- function(
-        names_side, anno_title, show_names, params, annotation_palette, annotation_palcolor, which,
-        split_by, splits,
-        by, by_labels
-    ) {
-        annos <- list(
-            annotation_name_side = names_side,
-            show_annotation_name = list()
-        )
-        if (!is.null(split_by)) {
-            param <- params[[split_by]] %||% list()
-            if (isFALSE(param)) {
-                annos[[split_by]] <- NULL
-            } else {
-                param$x <- splits
-                param$title <- split_by
-                split_pal <- if (is.list(annotation_palette)) annotation_palette[[split_by]] else NULL
-                split_palcol <- if (is.list(annotation_palcolor)) annotation_palcolor[[split_by]] else NULL
-                param$palette <- split_pal %||% param$palette %||% "simspec"
-                param$palcolor <- split_palcol %||% param$palcolor
-                param$border <- param$border %||% TRUE
-                param$legend.direction <- legend.direction
-                param$which <- ifelse(flip, setdiff(c("column", "row"), which), which)
-                param$show_legend <- is.null(anno_title) && !identical(legend.position, "none")
-                worh <- ifelse(param$which == "row", "width", "height")
-                param[[worh]] <- param[[worh]] %||% unit(2.5, "mm")
-                if (is.numeric(param[[worh]]) && !is.unit(param[[worh]])) {
-                    param[[worh]] <- unit(param[[worh]], "mm")
-                }
-                annos$show_annotation_name[[split_by]] <- TRUE
-                anno_legend <- do.call(anno_simple, param)
-                annos[[split_by]] <- anno_legend$anno
-
-                if (isTRUE(param$show_legend)) {
-                    legends[[split_by]] <<- anno_legend$legend
-                }
-            }
-        }
-
-        by_name_annotation <- !is.null(by) && !isFALSE(params[[by]] %||% TRUE)
-        if (by_name_annotation) {
-            param <- params[[by]] %||% list()
-            by_name_legend <- param$show_legend
-            if (isFALSE(param)) {
-                annos[[by]] <- NULL
-                return(annos)
-            } else {
-                param$x <- by_labels
-                param$title <- by
-                by_pal <- if (is.list(annotation_palette)) annotation_palette[[by]] else NULL
-                by_palcol <- if (is.list(annotation_palcolor)) annotation_palcolor[[by]] else NULL
-                param$palette <- by_pal %||% param$palette %||% "Paired"
-                param$palcolor <- by_palcol %||% param$palcolor
-                param$border <- param$border %||% TRUE
-                param$legend.direction <- legend.direction
-                param$which <- ifelse(flip, setdiff(c("column", "row"), which), which)
-                param$show_legend <- !identical(legend.position, "none") &&
-                    (isTRUE(by_name_legend) || (is.null(by_name_legend) && !show_names))
-                worh <- ifelse(param$which == "row", "width", "height")
-                param[[worh]] <- param[[worh]] %||% unit(2.5, "mm")
-                if (is.numeric(param[[worh]]) && !is.unit(param[[worh]])) {
-                    param[[worh]] <- unit(param[[worh]], "mm")
-                }
-
-                annos$show_annotation_name[[by]] <- TRUE
-                anno_legend <- do.call(anno_simple, param)
-                annos[[by]] <- anno_legend$anno
-                if (isTRUE(param$show_legend)) {
-                    legends[[by]] <<- anno_legend$legend
-                }
-            }
-        }
-
-        return(annos)
-    }
-
-    setup_annos <- function(
-        which, names_side,
-        annotation, annotation_type,
-        annotation_palette, annotation_palcolor,
-        annotation_agg, annotation_params,
-        split_by, by
-    ) {
-        annos <- list()
-        if (!is.list(annotation)) {
-            annotation <- as.list(annotation)
-            names(annotation) <- unlist(annotation)
-        }
-        if (is.character(annotation_type) && identical(annotation_type, "auto")) {
-            annotation_type <- as.list(rep("auto", length(annotation)))
-            names(annotation_type) <- names(annotation)
-        }
-        if (is.character(annotation_palette) && length(annotation_palette) == 1) {
-            annotation_palette <- as.list(rep(annotation_palette, length(annotation)))
-            names(annotation_palette) <- names(annotation)
-        }
-        if (!is.list(annotation_palcolor)) {
-            annotation_palcolor <- list(annotation_palcolor)
-            annotation_palcolor <- rep(annotation_palcolor, length(annotation))
-            names(annotation_palcolor) <- names(annotation)
-        }
-        annotation_agg <- annotation_agg %||% list()
-        annotation_params <- annotation_params %||% list()
-        for (aname in names(annotation)) {
-            if (aname %in% formalArgs(ComplexHeatmap::HeatmapAnnotation)) {
-                annos[[aname]] <- annotation[[aname]]
-                next
-            }
-            annocol <- annotation[[aname]]
-            annoagg <- annotation_agg[[aname]]
-            annotype <- annotation_type[[aname]] %||% "auto"
-            param <- annotation_params[[aname]] %||% list()
-            annodata <- param$x %||% data # TODO: order in param$x
-            annocol <- check_columns(annodata, annocol)
-            if (annotype == "auto") {
-                all_ones <- annodata %>%
-                    group_by(!!!syms(unique(c(split_by, by)))) %>%
-                    summarise(n = n(), .groups = "drop") %>%
-                    pull("n")
-                all_ones <- all(all_ones == 1)
-                if (is.character(annodata[[annocol]]) || is.factor(annodata[[annocol]]) || is.logical(annodata[[annocol]])) {
-                    annotype <- ifelse(all_ones, "pie", "simple")
-                } else if (is.numeric(annodata[[annocol]])) {
-                    annotype <- ifelse(all_ones, "points", "violin")
-                } else {
-                    stop("[Heatmap] Don't know how to handle ", which, " annotation type for column: ", annocol)
-                }
-            }
-            if (annotype %in% c("simple", "points", "lines") && is.null(annoagg)) {
-                warning("[Heatmap] Assuming '", which, "_annotation_agg[\"", aname, "\"] = dplyr::first' for the simple annotation")
-                annoagg <- dplyr::first
-            }
-            if (is.null(annoagg)) {
-                annodata <- annodata %>% select(!!!syms(unique(c(split_by, by, annocol))))
-            } else {
-                annodata <- annodata %>%
-                    group_by(!!!syms(unique(c(split_by, by)))) %>%
-                    summarise(!!sym(annocol) := annoagg(!!sym(annocol)), .groups = "drop")
-            }
-            param$x <- annodata
-            param$split_by <- split_by
-            param$group_by <- by
-            param$column <- annocol
-            param$title <- aname
-            param$which <- ifelse(flip, setdiff(c("column", "row"), which), which)
-            param$palette <- annotation_palette[[aname]] %||% "Paired"
-            param$palcolor <- annotation_palcolor[[aname]]
-            param$legend.direction <- legend.direction
-            if (annotype == "simple") {
-                worh <- ifelse(param$which == "row", "width", "height")
-                param[[worh]] <- param[[worh]] %||% unit(2.5, "mm")
-                if (is.numeric(param[[worh]]) && !inherits(param[[worh]], "unit")) {
-                    param[[worh]] <- unit(param[[worh]], "mm")
-                }
-            }
-            # swap width and height if flip is TRUE
-            if (flip) {
-                pheight <- param$height
-                param$height <- param$width
-                param$width <- pheight
-            }
-            if (legend.position == "none") {
-                param$show_legend <- FALSE
-            }
-            if (!exists(paste0("anno_", annotype))) {
-                stop("[Heatmap] Unsupported annotation type: ", annotype)
-            }
-            anno <- do.call(paste0("anno_", annotype), param)
-            annos[[aname]] <- anno$anno
-            legends[[paste0(which, ".", aname)]] <<- anno$legend
-        }
-
-        if (length(annos) > 0) {
-            annos$annotation_name_side <- names_side
-        }
-
-        return(annos)
-    }
-
     ncol_annos <- sum(cluster_columns, show_column_names) * 4
     ncol_annos <- ncol_annos +
         ifelse(is.null(columns_split_by) || isFALSE(column_annotation_params[[columns_split_by]]), 0, 1) +
         ifelse(!col_name_anno_enabled, 0, 1)
-    top_annos <- setup_name_annos(
-        names_side = ifelse(flip, column_names_side, row_names_side), anno_title = column_title,
-        show_names = show_column_names, params = column_annotation_params,
-        annotation_palette = column_annotation_palette, annotation_palcolor = column_annotation_palcolor,
-        which = "column",
-        split_by = columns_split_by, splits = if (flip) hmargs$row_split else hmargs$column_split,
-        by = columns_by,
-        by_labels = if (flip) hmargs$row_labels else hmargs$column_labels
-    )
-    column_annos <- setup_annos(
+    res <- setup_annos(
         which = "column", names_side = ifelse(flip, column_names_side, row_names_side),
+        anno_title = column_title, show_names = show_column_names,
         annotation = column_annotation, annotation_type = column_annotation_type,
         annotation_palette = column_annotation_palette, annotation_palcolor = column_annotation_palcolor,
         annotation_agg = column_annotation_agg, annotation_params = column_annotation_params,
-        split_by = columns_split_by, by = columns_by
+        split_by = columns_split_by, splits = if (flip) hmargs$row_split else hmargs$column_split,
+        by = columns_by,
+        by_labels = if (flip) hmargs$row_labels else hmargs$column_labels,
+        flip = flip, legend.direction = legend.direction,
+        legend.position = legend.position, data = data
     )
-
-    if (column_annotation_side == "top") {
-        column_annos$annotation_name_side <- NULL
-        top_annos <- c(top_annos, column_annos)
-    } else if (length(column_annos) > 0) {
-        if (isTRUE(flip)) {
-            hmargs$right_annotation <- do.call(ComplexHeatmap::rowAnnotation, column_annos)
+    column_annos <- res$annos
+    legends <- c(legends, res$legends)
+    # Dispatch annotations to sides based on per-annotation column_annotation_side
+    all_keys <- names(column_annos)
+    all_keys <- setdiff(all_keys, c("annotation_name_side", "show_annotation_name"))
+    builtin_keys <- unique(c(columns_split_by, columns_by))
+    side_list <- column_annotation_side  # already alias-resolved
+    def_side <- if (is.list(side_list)) side_list[[".default"]] %||% "top" else "top"
+    sna <- column_annos$show_annotation_name
+    names_side <- column_annos$annotation_name_side
+    top_annos <- list(annotation_name_side = names_side, show_annotation_name = list())
+    bottom_annos <- list(annotation_name_side = names_side, show_annotation_name = list())
+    for (k in all_keys) {
+        if (is.list(side_list)) {
+            side <- side_list[[k]] %||% def_side
         } else {
-            hmargs$bottom_annotation <- do.call(ComplexHeatmap::HeatmapAnnotation, column_annos)
+            side <- if (is.character(side_list)) side_list else def_side
         }
-        rm(column_annos)
+        if (side == "bottom") {
+            bottom_annos[[k]] <- column_annos[[k]]
+            if (!is.null(sna[[k]])) bottom_annos$show_annotation_name[[k]] <- sna[[k]]
+        } else {
+            top_annos[[k]] <- column_annos[[k]]
+            if (!is.null(sna[[k]])) top_annos$show_annotation_name[[k]] <- sna[[k]]
+        }
     }
     if (any(sapply(top_annos, inherits, "AnnotationFunction"))) {
         if (isTRUE(flip)) {
@@ -2697,48 +2822,75 @@ HeatmapAtomic <- function(
             hmargs$top_annotation <- do.call(ComplexHeatmap::HeatmapAnnotation, top_annos)
         }
     }
-    rm(top_annos)
+    if (any(sapply(bottom_annos, inherits, "AnnotationFunction"))) {
+        if (isTRUE(flip)) {
+            hmargs$right_annotation <- do.call(ComplexHeatmap::rowAnnotation, bottom_annos)
+        } else {
+            hmargs$bottom_annotation <- do.call(ComplexHeatmap::HeatmapAnnotation, bottom_annos)
+        }
+    }
+    rm(top_annos, bottom_annos, column_annos)
 
     nrow_annos <- sum(cluster_rows, show_row_names) * 4
     nrow_annos <- nrow_annos +
         ifelse(is.null(rows_split_by) || isFALSE(row_annotation_params[[rows_split_by]]), 0, 1) +
         ifelse(!row_name_anno_enabled, 0, 1)
-    left_annos <- setup_name_annos(
-        names_side = ifelse(flip, row_names_side, column_names_side), anno_title = row_title,
-        show_names = show_row_names, params = row_annotation_params,
-        annotation_palette = row_annotation_palette, annotation_palcolor = row_annotation_palcolor,
-        which = "row",
-        split_by = rows_split_by, splits = if (flip) hmargs$column_split else hmargs$row_split,
-        by = rows_by,
-        by_labels = if (flip) hmargs$column_labels else hmargs$row_labels
-    )
-    row_annos <- setup_annos(
+    res <- setup_annos(
         which = "row", names_side = ifelse(flip, row_names_side, column_names_side),
+        anno_title = row_title, show_names = show_row_names,
         annotation = row_annotation, annotation_type = row_annotation_type,
         annotation_palette = row_annotation_palette, annotation_palcolor = row_annotation_palcolor,
         annotation_agg = row_annotation_agg, annotation_params = row_annotation_params,
-        split_by = rows_split_by, by = rows_by
+        split_by = rows_split_by, splits = if (flip) hmargs$column_split else hmargs$row_split,
+        by = rows_by,
+        by_labels = if (flip) hmargs$column_labels else hmargs$row_labels,
+        flip = flip, legend.direction = legend.direction,
+        legend.position = legend.position, data = data
     )
-
-    if (row_annotation_side == "left") {
-        row_annos$annotation_name_side <- NULL
-        left_annos <- c(left_annos, row_annos)
-    } else if (length(row_annos) > 0) {
-        if (isTRUE(flip)) {
-            hmargs$bottom_annotation <- do.call(ComplexHeatmap::HeatmapAnnotation, row_annos)
+    row_annos <- res$annos
+    legends <- c(legends, res$legends)
+    # Dispatch annotations to sides based on per-annotation row_annotation_side
+    all_keys <- names(row_annos)
+    all_keys <- setdiff(all_keys, c("annotation_name_side", "show_annotation_name"))
+    side_list <- row_annotation_side  # already alias-resolved
+    def_side <- if (is.list(side_list)) side_list[[".default"]] %||% "left" else "left"
+    sna <- row_annos$show_annotation_name
+    names_side <- row_annos$annotation_name_side
+    left_side <- list(annotation_name_side = names_side, show_annotation_name = list())
+    right_side <- list(annotation_name_side = names_side, show_annotation_name = list())
+    for (k in all_keys) {
+        side <- if (is.list(side_list)) side_list[[k]] %||% def_side
+                else if (is.character(side_list)) side_list else def_side
+        if (side == "right") {
+            right_side[[k]] <- row_annos[[k]]
+            if (!is.null(sna[[k]])) right_side$show_annotation_name[[k]] <- sna[[k]]
         } else {
-            hmargs$right_annotation <- do.call(ComplexHeatmap::rowAnnotation, row_annos)
+            left_side[[k]] <- row_annos[[k]]
+            if (!is.null(sna[[k]])) left_side$show_annotation_name[[k]] <- sna[[k]]
         }
-        rm(row_annos)
     }
-    if (any(sapply(left_annos, inherits, "AnnotationFunction"))) {
+    has_left  <- any(sapply(left_side, inherits, "AnnotationFunction"))
+    has_right <- any(sapply(right_side, inherits, "AnnotationFunction"))
+    # Fix: when row annotations are only on the right and row_names_side is "right",
+    # ComplexHeatmap width() fails. Swap row_names_side to "left" to avoid the conflict.
+    if (!has_left && has_right && !isTRUE(flip) && hmargs$row_names_side == "right") {
+        hmargs$row_names_side <- "left"
+    }
+    if (has_left) {
         if (isTRUE(flip)) {
-            hmargs$top_annotation <- do.call(ComplexHeatmap::HeatmapAnnotation, left_annos)
+            hmargs$top_annotation <- do.call(ComplexHeatmap::HeatmapAnnotation, left_side)
         } else {
-            hmargs$left_annotation <- do.call(ComplexHeatmap::rowAnnotation, left_annos)
+            hmargs$left_annotation <- do.call(ComplexHeatmap::rowAnnotation, left_side)
         }
     }
-    rm(left_annos)
+    if (has_right) {
+        if (isTRUE(flip)) {
+            hmargs$bottom_annotation <- do.call(ComplexHeatmap::HeatmapAnnotation, right_side)
+        } else {
+            hmargs$right_annotation <- do.call(ComplexHeatmap::rowAnnotation, right_side)
+        }
+    }
+    rm(row_annos, left_side, right_side, has_left, has_right)
 
     ## Fix for ComplexHeatmap annotation name / legend overlap bug:
     ## When show_row_names = FALSE but annotations have names on the right side
@@ -3074,6 +3226,23 @@ HeatmapAtomic <- function(
 #' if (requireNamespace("cluster", quietly = TRUE)) {
 #'     Heatmap(matrix_data, rows_data = rows_data,
 #'         rows_split_by = "group"
+#'     )
+#' }
+#' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     # use block annotation for split groups (shows group labels inside colored blocks)
+#'     Heatmap(matrix_data, rows_data = rows_data,
+#'         row_split_by = "group",
+#'         row_annotation_type = list(.rows.split = "block")
+#'     )
+#' }
+#' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     # block annotation with custom styling for split groups
+#'     Heatmap(matrix_data, rows_data = rows_data,
+#'         row_split_by = "group",
+#'         row_annotation_type = list(.rows.split = "block"),
+#'         row_annotation_params = list(.rows.split = list(
+#'             labels_gp = grid::gpar(col = "white", fontsize = 12)
+#'         ))
 #'     )
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
