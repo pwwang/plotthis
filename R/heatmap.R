@@ -1006,6 +1006,24 @@ layer_boxviolin <- function(j, i, x, y, w, h, fill, flip, data, colors, fn) {
     )
 }
 
+#' Reorder annotation list so name annotation (by) is closest to heatmap body
+#' and split annotation (split_by) is farthest away. User annotations stay in between.
+#' @noRd
+#' @keywords internal
+.reorder_anno_side <- function(x, by, split_by) {
+    keys <- setdiff(names(x), c("annotation_name_side", "show_annotation_name"))
+    name_key <- if (!is.null(by) && by %in% keys) by else character(0)
+    split_key <- if (!is.null(split_by) && split_by %in% keys) split_by else character(0)
+    new_order <- c(name_key, setdiff(keys, c(name_key, split_key)), split_key)
+    if (!length(new_order)) return(x)
+    result <- x[c("annotation_name_side", "show_annotation_name", new_order)]
+    if (!is.null(x$show_annotation_name)) {
+        result$show_annotation_name <- x$show_annotation_name[
+            intersect(new_order, names(x$show_annotation_name))]
+    }
+    result
+}
+
 #' Unified annotation builder for built-in (split/name) and user-defined annotations
 #' @noRd
 #' @keywords internal
@@ -1365,8 +1383,21 @@ setup_annos <- function(
 #' If NULL, the dot size legend will not be shown.
 #' @param column_annotation A character string/vector of the column name(s) to use as the column annotation.
 #'  Or a list with the keys as the names of the annotation and the values as the column names.
-#' @param column_annotation_side A character string specifying the side of the column annotation.
-#'  Could be a list with the keys as the names of the annotation and the values as the sides.
+#' @param column_annotation_side A character string or named list specifying which side each column
+#'  annotation is placed on. Accepts \code{"top"} (default) or \code{"bottom"}.
+#'  \itemize{
+#'    \item \strong{String:} All column annotations go to that side (e.g. \code{"bottom"}).
+#'    \item \strong{Named list:} Per-annotation side control. Keys are annotation names or aliases
+#'          (\code{.col}, \code{.col.split}, etc.). Values are \code{"top"} or \code{"bottom"}.
+#'          Use the special \code{.default} key to set the side for unspecified annotations
+#'          (e.g. \code{list(.default = "top", my_anno = "bottom")}).
+#'    \item \strong{Ordering within each side:} Name annotations (\code{columns_by}) are always
+#'          placed closest to the heatmap body; split annotations (\code{columns_split_by}) are
+#'          placed farthest away; user-defined annotations sit in between.
+#'  }
+#'  \strong{Note:} Placing column annotations on \code{"bottom"} conflicts with
+#'  \code{legend.position = "bottom"} — the legend may overlap the annotation names.
+#'  Consider using a different legend position in that case.
 #' @param column_annotation_palette A character string specifying the palette of the column annotation.
 #'  The default is "Paired".
 #'  Could be a list with the keys as the names of the annotation and the values as the palettes.
@@ -1379,21 +1410,44 @@ setup_annos <- function(
 #'  If the type is "auto", the type will be determined by the type and number of the column data.
 #'  For split or name annotations, use aliases (e.g. `.col.split`, `.col`) to set the type.
 #'  \itemize{
-#'    \item \code{"block"} — slice-level block annotation via [anno_block()] (split annotations only).
-#'    \item \code{"label"} — simple annotation with text labels via [anno_simple()] (works for both
-#'          split and name annotations; uses \code{pch} to display text on colored cells).
+#'    \item \code{"block"} — Slice-level block annotation via [anno_block()]. Only valid for split
+#'          annotations (e.g. \code{.col.split}); not supported for name or user-defined annotations.
+#'          Displays colored rectangular blocks with group-level text labels.
+#'    \item \code{"label"} — Text label annotation via [anno_simple()] (for split/name annotations)
+#'          or \code{pch}-based rendering. For column annotations, labels are shown as text characters
+#'          in colored cells using \code{pch}. For row (name) annotations, labels are rendered with
+#'          rotated text on colored background rectangles via \code{AnnotationFunction}.
+#'          Works for both split and name annotations. Automatically hides the annotation name
+#'          (since the label itself is the annotation) and uses wider default dimensions to
+#'          accommodate text.
 #'  }
 #' @param column_annotation_params A list of parameters passed to the annotation function.
 #'  Could be a list with the keys as the names of the annotation and the values as the parameters.
 #'  For the name/split annotations, use aliases: `.col`/`.cols`/`.column`/`.columns` for `columns_by`, `.col.split`/`.cols.split`/`.column.split`/`.columns.split`
 #'  for `columns_split_by`. Setting a key to `FALSE` disables that annotation.
 #'  `$<key>$show_legend` controls the legend for that annotation.
+#'  For \code{"label"} type annotations, use \code{labels_gp} to style the label text
+#'  (e.g. \code{labels_gp = grid::gpar(col = "white", fontsize = 12)}).
 #'  See [anno_pie()], [anno_ring()], [anno_bar()], [anno_violin()], [anno_boxplot()], [anno_density()], [anno_simple()], [anno_points()], [anno_lines()] and [anno_block()] for the parameters of each annotation function.
-#' @param column_annotation_agg A function to aggregate the values in the column annotation.
+#' @param column_annotation_agg A function or named list of functions to aggregate values for
+#'  each column annotation. If a single function, it applies to all annotations. If a named list,
+#'  keys are annotation names. Defaults vary by annotation type: \code{dplyr::first} for
+#'  \code{"simple"}/\code{"points"}/\code{"lines"}, \code{function(x) paste(unique(x), collapse = ", ")}
+#'  for \code{"block"}, and no aggregation for others (e.g. \code{"pie"}, \code{"violin"}).
 #' @param row_annotation A character string/vector of the column name(s) to use as the row annotation.
 #' Or a list with the keys as the names of the annotation and the values as the column names.
-#' @param row_annotation_side A character string specifying the side of the row annotation.
-#' Could be a list with the keys as the names of the annotation and the values as the sides.
+#' @param row_annotation_side A character string or named list specifying which side each row
+#'  annotation is placed on. Accepts \code{"left"} (default) or \code{"right"}.
+#'  \itemize{
+#'    \item \strong{String:} All row annotations go to that side (e.g. \code{"right"}).
+#'    \item \strong{Named list:} Per-annotation side control. Keys are annotation names or aliases
+#'          (\code{.row}, \code{.rows.split}, etc.). Values are \code{"left"} or \code{"right"}.
+#'          Use the special \code{.default} key to set the side for unspecified annotations
+#'          (e.g. \code{list(.default = "left", .row = "right")}).
+#'    \item \strong{Ordering within each side:} Name annotations (\code{rows_by}) are always
+#'          placed closest to the heatmap body; split annotations (\code{rows_split_by}) are
+#'          placed farthest away; user-defined annotations sit in between.
+#'  }
 #' @param row_annotation_palette A character string specifying the palette of the row annotation.
 #' The default is "Paired".
 #' Could be a list with the keys as the names of the annotation and the values as the palettes.
@@ -1406,16 +1460,27 @@ setup_annos <- function(
 #' If the type is "auto", the type will be determined by the type and number of the row data.
 #' For split or name annotations, use aliases (e.g. `.rows.split`, `.row`) to set the type.
 #' \itemize{
-#'   \item \code{"block"} — slice-level block annotation via [anno_block()] (split annotations only).
-#'   \item \code{"label"} — simple annotation with text labels via [anno_simple()] (works for both
-#'         split and name annotations; uses \code{pch} to display text on colored cells).
+#'   \item \code{"block"} — Slice-level block annotation via [anno_block()]. Only valid for split
+#'         annotations (e.g. \code{.rows.split}); not supported for name or user-defined annotations.
+#'         Displays colored rectangular blocks with group-level text labels.
+#'   \item \code{"label"} — Text label annotation via [anno_simple()] (for split/name annotations)
+#'         or \code{AnnotationFunction}-based rendering. For row (name) annotations, labels are rendered
+#'         with rotated text (\code{-90}° on left side, \code{90}° on right side) on colored background
+#'         rectangles. For column (name) annotations, labels use \code{pch} for text in colored cells.
+#'         Works for both split and name annotations. Automatically hides the annotation name
+#'         (since the label itself is the annotation) and uses wider default dimensions to
+#'         accommodate text.
 #' }
 #' @param row_annotation_params A list of parameters passed to the annotation function.
 #'  Could be a list with the keys as the names of the annotation and the values as the parameters.
 #'  For the name/split annotations, use aliases: `.row`/`.rows` for `rows_by`, `.rows.split`/`.row.split` for `rows_split_by`.
 #'  Setting a key to `FALSE` disables that annotation. `$<key>$show_legend` controls the legend.
-#'  Same structure as `column_annotation_params`.
-#' @param row_annotation_agg A function to aggregate the values in the row annotation.
+#'  For \code{"label"} type row (name) annotations, use \code{label_rot} to control text rotation
+#'  (default \code{-90} on the left side, \code{90} on the right side).
+#'  For \code{"block"} type, use \code{labels_gp} to style the label text.
+#'  Same structure as \code{column_annotation_params}.
+#' @param row_annotation_agg A function or named list of functions to aggregate values for
+#'  each row annotation. Same behavior as \code{column_annotation_agg}.
 #' @param add_reticle A logical value indicating whether to add a reticle to the heatmap.
 #' @param reticle_color A character string specifying the color of the reticle.
 #' @param palette A character string specifying the palette of the heatmap cells.
@@ -2815,6 +2880,9 @@ HeatmapAtomic <- function(
             if (!is.null(sna[[k]])) top_annos$show_annotation_name[[k]] <- sna[[k]]
         }
     }
+    # Reorder: name annotation closest to heatmap body, split annotation farthest
+    top_annos <- .reorder_anno_side(top_annos, columns_by, columns_split_by)
+    bottom_annos <- .reorder_anno_side(bottom_annos, columns_by, columns_split_by)
     if (any(sapply(top_annos, inherits, "AnnotationFunction"))) {
         if (isTRUE(flip)) {
             hmargs$left_annotation <- do.call(ComplexHeatmap::rowAnnotation, top_annos)
@@ -2869,6 +2937,9 @@ HeatmapAtomic <- function(
             if (!is.null(sna[[k]])) left_side$show_annotation_name[[k]] <- sna[[k]]
         }
     }
+    # Reorder: name annotation closest to heatmap body, split annotation farthest
+    left_side <- .reorder_anno_side(left_side, rows_by, rows_split_by)
+    right_side <- .reorder_anno_side(right_side, rows_by, rows_split_by)
     has_left  <- any(sapply(left_side, inherits, "AnnotationFunction"))
     has_right <- any(sapply(right_side, inherits, "AnnotationFunction"))
     # Fix: when row annotations are only on the right and row_names_side is "right",
