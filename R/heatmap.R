@@ -1627,10 +1627,11 @@ HeatmapAtomic <- function(
     nrow_annos <- nrow_annos +
         ifelse(is.null(rows_split_by) || isFALSE(row_annotation_params[[rows_split_by]]), 0, 1) +
         ifelse(!row_name_anno_enabled, 0, 1)
-    res <- setup_annos(
+    res <- .setup_annos(
         which = "row", names_side = ifelse(flip, row_names_side, column_names_side),
         anno_title = row_title, show_names = show_row_names,
         annotation = row_annotation, annotation_type = row_annotation_type,
+        annotation_side = row_annotation_side,
         annotation_palette = row_annotation_palette, annotation_palcolor = row_annotation_palcolor,
         annotation_agg = row_annotation_agg, annotation_params = row_annotation_params,
         split_by = rows_split_by, splits = if (flip) hmargs$column_split else hmargs$row_split,
@@ -2046,21 +2047,16 @@ HeatmapAtomic <- function(
 #'         column_annotation_type = list(.col.split = "label")
 #'     )
 #' }
+#' rownames(matrix_data)[1] <- "R12345"
 #' if (requireNamespace("cluster", quietly = TRUE)) {
 #'     # label annotation for name annotations: show row/column names as colored labels
 #'     Heatmap(matrix_data, rows_data = rows_data,
 #'         row_annotation_type = list(.row = "label"),
-#'         row_annotation_palette = list(.row = "Set2")
-#'     )
-#' }
-#' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     # label annotation for both row name and column name
-#'     Heatmap(matrix_data, rows_data = rows_data,
-#'         columns_data = columns_data,
-#'         row_annotation_type = list(.row = "label"),
 #'         column_annotation_type = list(.col = "label"),
+#'         column_annotation_params = list(.col = list(labels_rot = 90)),
 #'         row_annotation_palette = list(.row = "Set2"),
-#'         column_annotation_palette = list(.col = "Paired")
+#'         row_annotation_side = list(.row = "right"),
+#'         row_annotation_params = list(.row = list(labels_rot = 150))
 #'     )
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
