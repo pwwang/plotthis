@@ -345,7 +345,7 @@ See \code{\link[=anno_pie]{anno_pie()}}, \code{\link[=anno_ring]{anno_ring()}}, 
 each column annotation. If a single function, it applies to all annotations. If a named list,
 keys are annotation names. Defaults vary by annotation type: \code{dplyr::first} for
 \code{"simple"}/\code{"points"}/\code{"lines"}, \code{function(x) paste(unique(x), collapse = ", ")}
-for \code{"block"}, and no aggregation for others (e.g. \code{"pie"}, \code{"violin"}).}
+for \code{"label"}, and no aggregation for others (e.g. \code{"pie"}, \code{"violin"}).}
 
 \item{row_annotation}{A character string/vector of the column name(s) to use as the row annotation.
 Or a list with the keys as the names of the annotation and the values as the column names.}
@@ -388,7 +388,7 @@ For the name/split annotations, use aliases: \code{.row}/\code{.rows} for \code{
 Setting a key to \code{FALSE} disables that annotation. \verb{$<key>$show_legend} controls the legend.
 For \code{"label"} type row (name) annotations, use \code{label_rot} to control text rotation
 (default \code{-90} on the left side, \code{90} on the right side).
-For \code{"block"} type, use \code{labels_gp} to style the label text.
+For \code{"label"} type, use \code{labels_gp} to style the label text.
 Same structure as \code{column_annotation_params}.}
 
 \item{row_annotation_agg}{A function or named list of functions to aggregate values for

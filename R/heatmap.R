@@ -1081,7 +1081,7 @@ setup_annos <- function(
     # Add built-in name annotation
     by_name_annotation <- !is.null(by) && (
         !isFALSE(annotation_params[[by]] %||% TRUE) ||
-        annotation_type[[by]] %||% "simple" %in% c("block", "label")
+        annotation_type[[by]] %||% "simple" == "label"
     )
     if (by_name_annotation) {
         annotation[[by]] <- by
@@ -1114,7 +1114,7 @@ setup_annos <- function(
         param <- .ensure_unit(param)
 
         if (is_builtin) {
-            is_label <- annotype %in% c("block", "label")
+            is_label <- annotype == "label"
             # Built-in: use pre-computed splits/by_labels
             param$x <- if (identical(aname, split_by)) splits else by_labels
             param$title <- aname
@@ -1151,7 +1151,7 @@ setup_annos <- function(
                 annos$show_annotation_name[[aname]] <- annotype != "label"
                 param$border <- param$border %||% TRUE
                 param$legend.direction <- legend.direction
-                show_legend <- !identical(legend.position, "none") && !annotype %in% c("block", "label")
+                show_legend <- !identical(legend.position, "none") && annotype != "label"
                 if (is_split) {
                     show_legend <- show_legend && isFALSE(anno_title)
                 } else {
@@ -1212,11 +1212,11 @@ setup_annos <- function(
                 warning("[Heatmap] Assuming '", which, "_annotation_agg[\"", aname, "\"] = dplyr::first' for the simple annotation")
                 annoagg <- dplyr::first
             }
-            if (annotype == "block" && is.null(annoagg))
+            if (annotype == "label" && is.null(annoagg))
                 annoagg <- function(x) paste(unique(x), collapse = ", ")
             if (is.null(annoagg)) {
                 annodata <- annodata %>% select(!!!syms(unique(c(split_by, by, annocol))))
-            } else if (annotype == "block") {
+            } else if (annotype == "label") {
                 grp_cols <- if (!is.null(split_by)) split_by else character(0)
                 annodata <- annodata %>%
                     group_by(!!!syms(grp_cols)) %>%
@@ -1243,7 +1243,7 @@ setup_annos <- function(
                 pheight <- param$height; param$height <- param$width; param$width <- pheight
             }
             if (legend.position == "none") param$show_legend <- FALSE
-            if (annotype == "block") {
+            if (annotype == "label") {
                 block_labels <- as.character(annodata[[annocol]])
                 worh <- ifelse(param$which == "row", "width", "height")
                 block_w <- param[[worh]] %||% unit(8, "mm")
@@ -1446,7 +1446,7 @@ setup_annos <- function(
 #'  each column annotation. If a single function, it applies to all annotations. If a named list,
 #'  keys are annotation names. Defaults vary by annotation type: \code{dplyr::first} for
 #'  \code{"simple"}/\code{"points"}/\code{"lines"}, \code{function(x) paste(unique(x), collapse = ", ")}
-#'  for \code{"block"}, and no aggregation for others (e.g. \code{"pie"}, \code{"violin"}).
+#'  for \code{"label"}, and no aggregation for others (e.g. \code{"pie"}, \code{"violin"}).
 #' @param row_annotation A character string/vector of the column name(s) to use as the row annotation.
 #' Or a list with the keys as the names of the annotation and the values as the column names.
 #' @param row_annotation_side A character string or named list specifying which side each row
@@ -1483,7 +1483,7 @@ setup_annos <- function(
 #'  Setting a key to `FALSE` disables that annotation. `$<key>$show_legend` controls the legend.
 #'  For \code{"label"} type row (name) annotations, use \code{label_rot} to control text rotation
 #'  (default \code{-90} on the left side, \code{90} on the right side).
-#'  For \code{"block"} type, use \code{labels_gp} to style the label text.
+#'  For \code{"label"} type, use \code{labels_gp} to style the label text.
 #'  Same structure as \code{column_annotation_params}.
 #' @param row_annotation_agg A function or named list of functions to aggregate values for
 #'  each row annotation. Same behavior as \code{column_annotation_agg}.
@@ -1615,6 +1615,7 @@ HeatmapAtomic <- function(
         lst
     }
 
+    # Resolve annotation parameters, palettes, types, and aggregation functions with alias support.
     row_annotation_params  <- resolve_anno_aliases(row_annotation_params,    rows_by, rows_split_by, columns_by, columns_split_by)
     row_annotation_palette <- resolve_anno_aliases(row_annotation_palette,   rows_by, rows_split_by, columns_by, columns_split_by)
     row_annotation_palcolor <- resolve_anno_aliases(row_annotation_palcolor, rows_by, rows_split_by, columns_by, columns_split_by)
@@ -1630,15 +1631,15 @@ HeatmapAtomic <- function(
     column_annotation_side   <- resolve_anno_aliases(column_annotation_side,     rows_by, rows_split_by, columns_by, columns_split_by)
 
     # Determine whether the name annotations are enabled.
-    # A params entry of FALSE disables, but type "block" or "label" takes precedence
+    # A params entry of FALSE disables, but type "label" takes precedence
     # (setting the type implies the user wants the annotation visible).
     row_name_anno_enabled <- !is.null(rows_by) && (
         !isFALSE(row_annotation_params[[rows_by]] %||% TRUE) ||
-        (!identical(row_annotation_type, "auto") && row_annotation_type[[rows_by]] %||% "simple" %in% c("block", "label"))
+        (!identical(row_annotation_type, "auto") && row_annotation_type[[rows_by]] %||% "simple" == "label")
     )
     col_name_anno_enabled <- !is.null(columns_by) && (
         !isFALSE(column_annotation_params[[columns_by]] %||% TRUE) ||
-        (!identical(column_annotation_type, "auto") && column_annotation_type[[columns_by]] %||% "simple" %in% c("block", "label"))
+        (!identical(column_annotation_type, "auto") && column_annotation_type[[columns_by]] %||% "simple" == "label")
     )
     show_row_names    <- show_row_names    %||% !row_name_anno_enabled
     show_column_names <- show_column_names %||% !col_name_anno_enabled
