@@ -54,8 +54,8 @@ HeatmapAtomic(
   show_column_names = NULL,
   border = TRUE,
   title = NULL,
-  column_title = character(0),
-  row_title = character(0),
+  column_title = NULL,
+  row_title = NULL,
   na_col = "grey85",
   row_names_side = "right",
   column_names_side = "bottom",
@@ -323,21 +323,13 @@ Could be a list with the keys as the names of the annotation and the values as t
 
 \item{column_annotation_type}{A character string specifying the type of the column annotation.
 The default is "auto". Other options are "simple", "pie", "ring", "bar", "violin", "boxplot", "density",
-"block", "label".
+"label".
 Could be a list with the keys as the names of the annotation and the values as the types.
 If the type is "auto", the type will be determined by the type and number of the column data.
 For split or name annotations, use aliases (e.g. \code{.col.split}, \code{.col}) to set the type.
 \itemize{
-\item \code{"block"} — Slice-level block annotation via \code{\link[=anno_block]{anno_block()}}. Only valid for split
-annotations (e.g. \code{.col.split}); not supported for name or user-defined annotations.
-Displays colored rectangular blocks with group-level text labels.
-\item \code{"label"} — Text label annotation via \code{\link[=anno_simple]{anno_simple()}} (for split/name annotations)
-or \code{pch}-based rendering. For column annotations, labels are shown as text characters
-in colored cells using \code{pch}. For row (name) annotations, labels are rendered with
-rotated text on colored background rectangles via \code{AnnotationFunction}.
-Works for both split and name annotations. Automatically hides the annotation name
-(since the label itself is the annotation) and uses wider default dimensions to
-accommodate text.
+\item \code{"simple"} — simple annotation via \code{\link[=anno_simple]{anno_simple()}} (for split/name annotations)
+\item \code{"label"} — Text label annotation via \code{\link[=anno_simple]{anno_simple()}}/\code{\link[=anno_block]{anno_block()}} (for split/name annotations)
 }}
 
 \item{column_annotation_params}{A list of parameters passed to the annotation function.
@@ -380,21 +372,14 @@ Could be a list with the keys as the names of the annotation and the values as t
 
 \item{row_annotation_type}{A character string specifying the type of the row annotation.
 The default is "auto". Other options are "simple", "pie", "ring", "bar", "violin", "boxplot", "density",
-"block", "label".
+"label".
 Could be a list with the keys as the names of the annotation and the values as the types.
 If the type is "auto", the type will be determined by the type and number of the row data.
 For split or name annotations, use aliases (e.g. \code{.rows.split}, \code{.row}) to set the type.
 \itemize{
-\item \code{"block"} — Slice-level block annotation via \code{\link[=anno_block]{anno_block()}}. Only valid for split
-annotations (e.g. \code{.rows.split}); not supported for name or user-defined annotations.
-Displays colored rectangular blocks with group-level text labels.
-\item \code{"label"} — Text label annotation via \code{\link[=anno_simple]{anno_simple()}} (for split/name annotations)
-or \code{AnnotationFunction}-based rendering. For row (name) annotations, labels are rendered
-with rotated text (\code{-90}° on left side, \code{90}° on right side) on colored background
-rectangles. For column (name) annotations, labels use \code{pch} for text in colored cells.
-Works for both split and name annotations. Automatically hides the annotation name
-(since the label itself is the annotation) and uses wider default dimensions to
-accommodate text.
+\item \code{"simple"} — Simple annotation via \code{\link[=anno_simple]{anno_simple()}}. Only valid for row/column name and
+split label annotation
+\item \code{"label"} — Text label annotation via \code{\link[=anno_simple]{anno_simple()}}/\code{\link[=anno_block]{anno_block()}} (for split/name annotations)
 }}
 
 \item{row_annotation_params}{A list of parameters passed to the annotation function.

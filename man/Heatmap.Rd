@@ -72,8 +72,8 @@ Heatmap(
   show_column_names = NULL,
   border = TRUE,
   title = NULL,
-  column_title = character(0),
-  row_title = character(0),
+  column_title = NULL,
+  row_title = NULL,
   na_col = "grey85",
   row_names_side = "right",
   column_names_side = "bottom",
@@ -409,21 +409,13 @@ Could be a list with the keys as the names of the annotation and the values as t
 
 \item{column_annotation_type}{A character string specifying the type of the column annotation.
 The default is "auto". Other options are "simple", "pie", "ring", "bar", "violin", "boxplot", "density",
-"block", "label".
+"label".
 Could be a list with the keys as the names of the annotation and the values as the types.
 If the type is "auto", the type will be determined by the type and number of the column data.
 For split or name annotations, use aliases (e.g. \code{.col.split}, \code{.col}) to set the type.
 \itemize{
-\item \code{"block"} — Slice-level block annotation via \code{\link[=anno_block]{anno_block()}}. Only valid for split
-annotations (e.g. \code{.col.split}); not supported for name or user-defined annotations.
-Displays colored rectangular blocks with group-level text labels.
-\item \code{"label"} — Text label annotation via \code{\link[=anno_simple]{anno_simple()}} (for split/name annotations)
-or \code{pch}-based rendering. For column annotations, labels are shown as text characters
-in colored cells using \code{pch}. For row (name) annotations, labels are rendered with
-rotated text on colored background rectangles via \code{AnnotationFunction}.
-Works for both split and name annotations. Automatically hides the annotation name
-(since the label itself is the annotation) and uses wider default dimensions to
-accommodate text.
+\item \code{"simple"} — simple annotation via \code{\link[=anno_simple]{anno_simple()}} (for split/name annotations)
+\item \code{"label"} — Text label annotation via \code{\link[=anno_simple]{anno_simple()}}/\code{\link[=anno_block]{anno_block()}} (for split/name annotations)
 }}
 
 \item{column_annotation_params}{A list of parameters passed to the annotation function.
@@ -466,21 +458,14 @@ Could be a list with the keys as the names of the annotation and the values as t
 
 \item{row_annotation_type}{A character string specifying the type of the row annotation.
 The default is "auto". Other options are "simple", "pie", "ring", "bar", "violin", "boxplot", "density",
-"block", "label".
+"label".
 Could be a list with the keys as the names of the annotation and the values as the types.
 If the type is "auto", the type will be determined by the type and number of the row data.
 For split or name annotations, use aliases (e.g. \code{.rows.split}, \code{.row}) to set the type.
 \itemize{
-\item \code{"block"} — Slice-level block annotation via \code{\link[=anno_block]{anno_block()}}. Only valid for split
-annotations (e.g. \code{.rows.split}); not supported for name or user-defined annotations.
-Displays colored rectangular blocks with group-level text labels.
-\item \code{"label"} — Text label annotation via \code{\link[=anno_simple]{anno_simple()}} (for split/name annotations)
-or \code{AnnotationFunction}-based rendering. For row (name) annotations, labels are rendered
-with rotated text (\code{-90}° on left side, \code{90}° on right side) on colored background
-rectangles. For column (name) annotations, labels use \code{pch} for text in colored cells.
-Works for both split and name annotations. Automatically hides the annotation name
-(since the label itself is the annotation) and uses wider default dimensions to
-accommodate text.
+\item \code{"simple"} — Simple annotation via \code{\link[=anno_simple]{anno_simple()}}. Only valid for row/column name and
+split label annotation
+\item \code{"label"} — Text label annotation via \code{\link[=anno_simple]{anno_simple()}}/\code{\link[=anno_block]{anno_block()}} (for split/name annotations)
 }}
 
 \item{row_annotation_params}{A list of parameters passed to the annotation function.
@@ -646,20 +631,43 @@ if (requireNamespace("cluster", quietly = TRUE)) {
     )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-    # use block annotation for split groups (shows group labels inside colored blocks)
+    # use label annotation for split groups (shows group labels inside colored blocks)
     Heatmap(matrix_data, rows_data = rows_data,
-        row_split_by = "group",
-        row_annotation_type = list(.rows.split = "block")
+        rows_split_by = "group",
+        row_annotation_params = list(.rows.split = list(
+            border = FALSE,
+            labels_gp = grid::gpar(col = "white", fontsize = 12),
+            labels_rot = 0
+        )),
+        row_annotation_type = list(.rows.split = "label")
     )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
-    # block annotation with custom styling for split groups
+    # label annotation for column splits
+    columns_data <- data.frame(
+        columns = paste0("C", 1:10),
+        batch = rep(c("A", "B"), each = 5)
+    )
+    Heatmap(matrix_data, columns_data = columns_data,
+        columns_split_by = "batch",
+        column_annotation_type = list(.col.split = "label")
+    )
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # label annotation for name annotations: show row/column names as colored labels
     Heatmap(matrix_data, rows_data = rows_data,
-        row_split_by = "group",
-        row_annotation_type = list(.rows.split = "block"),
-        row_annotation_params = list(.rows.split = list(
-            labels_gp = grid::gpar(col = "white", fontsize = 12)
-        ))
+        row_annotation_type = list(.row = "label"),
+        row_annotation_palette = list(.row = "Set2")
+    )
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # label annotation for both row name and column name
+    Heatmap(matrix_data, rows_data = rows_data,
+        columns_data = columns_data,
+        row_annotation_type = list(.row = "label"),
+        column_annotation_type = list(.col = "label"),
+        row_annotation_palette = list(.row = "Set2"),
+        column_annotation_palette = list(.col = "Paired")
     )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
@@ -766,6 +774,48 @@ if (requireNamespace("cluster", quietly = TRUE)) {
     Heatmap(matrix_data,
         column_annotation_params = list(.col = list(height = 5)),
         row_annotation_params = list(.row = list(width = 5)))
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # Per-annotation side control: row name annotation on the right,
+    # all other row annotations on the left (.default)
+    rows_data2 <- data.frame(
+        rows = paste0("R", 1:6),
+        group = sample(c("X", "Y"), 6, replace = TRUE),
+        score = runif(6)
+    )
+    Heatmap(matrix_data, rows_data = rows_data2,
+        rows_split_by = "group",
+        row_annotation = list(Score = "score"),
+        row_annotation_side = list(.default = "left", .row = "right"),
+        show_row_names = TRUE
+    )
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # Move all row annotations to the right side
+    Heatmap(matrix_data, rows_data = rows_data2,
+        rows_split_by = "group",
+        row_annotation = list(Score = "score"),
+        row_annotation_side = "right",
+        show_row_names = TRUE
+    )
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # Split and name annotations on opposite sides:
+    # split annotation on the default left, name annotation on the right
+    Heatmap(matrix_data, rows_data = rows_data2,
+        rows_split_by = "group",
+        row_annotation_side = list(.default = "left", .row = "right"),
+        show_row_names = TRUE
+    )
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # Row name label annotation on the right side (text rotated 90° clockwise)
+    Heatmap(matrix_data, rows_data = rows_data2,
+        row_annotation_type = list(.row = "label"),
+        row_annotation_palette = list(.row = "Set2"),
+        row_annotation_side = list(.row = "right"),
+        show_row_names = TRUE
+    )
 }
 
 # Use long form data

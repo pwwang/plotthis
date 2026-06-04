@@ -169,15 +169,7 @@ anno_lines(
   ...
 )
 
-anno_block(
-  gp = NULL,
-  labels = NULL,
-  labels_gp = NULL,
-  which = NULL,
-  width = NULL,
-  height = NULL,
-  ...
-)
+anno_block(labels = NULL, which = NULL, width = NULL, height = NULL, ...)
 }
 \arguments{
 \item{x}{A data frame}
@@ -213,13 +205,8 @@ The parameters passed to \code{row_annotation_params} and \code{column_annotatio
 
 \item{add_points}{A logical value indicating whether to add points to the annotation}
 
-\item{gp}{A \code{grid::gpar()} object controlling the graphical parameters of the blocks (fill and border).
-The length of \code{fill} should match the number of slices.}
-
 \item{labels}{A character vector of labels to display in each block. For block annotations used
 with split annotations, labels are automatically derived from split/group levels.}
-
-\item{labels_gp}{A \code{grid::gpar()} object controlling the graphical parameters of the labels.}
 }
 \description{
 Heatmap annotation functions
