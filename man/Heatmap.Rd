@@ -653,21 +653,16 @@ if (requireNamespace("cluster", quietly = TRUE)) {
         column_annotation_type = list(.col.split = "label")
     )
 }
+rownames(matrix_data)[1] <- "R12345"
 if (requireNamespace("cluster", quietly = TRUE)) {
     # label annotation for name annotations: show row/column names as colored labels
     Heatmap(matrix_data, rows_data = rows_data,
         row_annotation_type = list(.row = "label"),
-        row_annotation_palette = list(.row = "Set2")
-    )
-}
-if (requireNamespace("cluster", quietly = TRUE)) {
-    # label annotation for both row name and column name
-    Heatmap(matrix_data, rows_data = rows_data,
-        columns_data = columns_data,
-        row_annotation_type = list(.row = "label"),
         column_annotation_type = list(.col = "label"),
+        column_annotation_params = list(.col = list(labels_rot = 90)),
         row_annotation_palette = list(.row = "Set2"),
-        column_annotation_palette = list(.col = "Paired")
+        row_annotation_side = list(.row = "right"),
+        row_annotation_params = list(.row = list(labels_rot = 150))
     )
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
