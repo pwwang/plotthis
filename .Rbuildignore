@@ -23,3 +23,5 @@
 ^\.vscode$
 ^\.claude\/.*
 ^\.claude$
+CLAUDE\.md$
+.+\.pdf$
