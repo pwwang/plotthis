@@ -552,29 +552,6 @@ process_heatmap_data <- function(
     return(param)
 }
 
-#' Row label annotation: anno_simple-style colored cells + rotated text
-#' @noRd
-#' @keywords internal
-.row_label_anno <- function(x, which, width = NULL, height = NULL, rot = -90, ...) {
-    ComplexHeatmap::AnnotationFunction(
-        fun = function(index, k, n) {
-            n <- length(index)
-            for (i in seq_len(n)) {
-                idx <- index[i]
-                y_pos <- (n - i + 0.5) / n
-                grid.rect(x = 0.5, y = y_pos, width = 0.9, height = 1 / n,
-                    gp = gpar(fill = x$colors[idx], col = "black"),
-                    default.units = "npc")
-                grid.text(x$labels[idx], x = 0.5, y = y_pos,
-                    rot = rot, default.units = "npc")
-            }
-        },
-        var_import = list(x = x, rot = rot),
-        n = length(x$labels), which = which,
-        subsettable = TRUE, width = width, height = height, ...
-    )
-}
-
 #' Reorder annotation list so split annotation (split_by) is farthest from heatmap body
 #' and name annotation (by) is closest. User annotations stay in between.
 #' For all annotation sides, ComplexHeatmap renders first-element = farthest,
@@ -835,6 +812,7 @@ process_heatmap_data <- function(
     clevels <- levels(x[[column]])
 
     if (!is.null(split_by)) {
+        x <- x %>% dplyr::arrange(!!!syms(c(split_by, group_by)))
         x <- x %>% unite("..split", split_by, group_by, remove = FALSE)
         plots <- .plotting(data = x, column = column, group_by = "..split", palette = palette, palcolor = palcolor)
         plots <- lapply(plots, .gggrob)
@@ -914,13 +892,9 @@ process_heatmap_data <- function(
     glevels <- levels(x[[group_by]])
     colors <- palette_this(glevels, palette = palette, palcolor = palcolor)
     if (!is.null(split_by)) {
+        x <- x %>% dplyr::arrange(!!!syms(c(split_by, group_by)))
         x <- x %>% unite("..split", split_by, group_by, remove = FALSE)
-        # We need to use show the original group_by in the legend
-        # but here we have united the split_by and group_by
-        x <- x %>% mutate(..palcolors = colors[as.numeric(x[[group_by]])])
-        palcolors <- x$..palcolors
-        names(palcolors) <- x$..split
-        plots <- .plotting(data = x, column = column, group_by = "..split", palette = palette, palcolor = as.list(palcolors))
+        plots <- .plotting(data = x, column = column, group_by = "..split", palette = palette, palcolor = as.list(colors))
         plots <- lapply(plots, .gggrob)
     } else {
         plots <- .plotting(data = x, column = column, group_by = group_by, palette = palette, palcolor = as.list(colors))
