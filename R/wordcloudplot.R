@@ -22,7 +22,7 @@
 #' @return A ggplot object
 #' @keywords internal
 #' @importFrom tidyr unnest
-#' @importFrom dplyr reframe slice_max distinct mutate group_by summarise n
+#' @importFrom dplyr all_of reframe slice_max distinct mutate group_by summarise n
 WordCloudPlotAtomic <- function(
     data, word_by = NULL, sentence_by = NULL, count_by = NULL, score_by = NULL,
     count_name = NULL, score_name = NULL,
@@ -95,7 +95,7 @@ WordCloudPlotAtomic <- function(
         }
     } else {
         word_by <- check_columns(data, word_by)
-        data <- data %>% unnest(cols = word_by)
+        data <- data %>% unnest(cols = all_of(word_by))
 
         if (length(facet_by) == 1) {
             data <- data %>%

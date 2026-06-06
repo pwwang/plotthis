@@ -132,7 +132,7 @@ join_heatmap_meta <- function(data, meta_data, by, cr_split_by, split_by, which)
 #' * `columns_split_by`: The name of the column containing the column split information.
 #' * `pie_group_by`: The name of the column containing the pie group information.
 #' @importFrom rlang sym syms %||% parse_expr
-#' @importFrom dplyr arrange group_by summarise pull
+#' @importFrom dplyr arrange group_by summarise pull all_of
 #' @keywords internal
 process_heatmap_data <- function(
     data, in_form, values_by, name,
@@ -302,7 +302,7 @@ process_heatmap_data <- function(
         rows_by <- rows_by %||% setdiff(colnames(data), c(columns_by, columns_split_by, pie_group_by))
         rows_name <- rows_name %||% ifelse("rows" %in% colnames(data), "rows.1", "rows")
         values_by <- values_by %||% ifelse("value" %in% colnames(data), "value.1", "value")
-        data <- tidyr::pivot_longer(data, cols = rows_by, names_to = rows_name, values_to = values_by)
+        data <- tidyr::pivot_longer(data, cols = all_of(rows_by), names_to = rows_name, values_to = values_by)
         data[[rows_name]] <- factor(data[[rows_name]], levels = unique(rows_by))
         data <- data[order(data[[rows_name]]), , drop = FALSE]
         rows_by <- rows_name
@@ -373,7 +373,7 @@ process_heatmap_data <- function(
         columns_by <- columns_by %||% setdiff(colnames(data), c(rows_by, rows_split_by, pie_group_by))
         columns_name <- columns_name %||% ifelse("columns" %in% colnames(data), "columns.1", "columns")
         values_by <- values_by %||% ifelse("value" %in% colnames(data), "value.1", "value")
-        data <- tidyr::pivot_longer(data, cols = columns_by, names_to = columns_name, values_to = values_by)
+        data <- tidyr::pivot_longer(data, cols = all_of(columns_by), names_to = columns_name, values_to = values_by)
         data[[columns_name]] <- factor(data[[columns_name]], levels = columns_by)
         data <- data[order(data[[columns_name]]), , drop = FALSE]
         columns_by <- columns_name

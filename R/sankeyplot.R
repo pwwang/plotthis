@@ -47,7 +47,7 @@
 #' @return A ggplot object
 #' @keywords internal
 #' @importFrom utils combn
-#' @importFrom rlang syms %||% dots_n
+#' @importFrom rlang sym syms %||% dots_n
 #' @importFrom dplyr %>% group_by summarise n ungroup cur_group_id mutate add_count
 #' @importFrom tidyr pivot_wider pivot_longer
 #' @importFrom ggnewscale new_scale_fill
@@ -152,7 +152,7 @@ SankeyPlotAtomic <- function(
         # make a copy of links_fill_by in case it's one of x or alluvium that gets transformed later
         if (!is.null(links_fill_by) && links_fill_by %in% x) {
             is_flowcounts <- identical(links_fill_by, x[1])
-            data <- ggalluvial::to_lodes_form(data, axes = x, diffuse = links_fill_by)
+            data <- ggalluvial::to_lodes_form(data, axes = x, diffuse = !!sym(links_fill_by))
         } else {
             data <- ggalluvial::to_lodes_form(data, axes = x)
         }

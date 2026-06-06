@@ -328,14 +328,14 @@ VelocityPlot <- function(
                 metR::geom_streamline(
                     data = df, aes(x = !!sym("x"), y = !!sym("y"), dx = !!sym("u"), dy = !!sym("v")),
                     L = streamline_l, min.L = streamline_minl, res = streamline_res,
-                    n = streamline_n, size = max(streamline_width, na.rm = TRUE) + streamline_bg_stroke, color = streamline_bg_color, alpha = streamline_alpha,
+                    n = streamline_n, linewidth = max(streamline_width, na.rm = TRUE) + streamline_bg_stroke, color = streamline_bg_color, alpha = streamline_alpha,
                     arrow.type = "closed", arrow.angle = arrow_angle,
                     lineend = "round", linejoin = "mitre", inherit.aes = FALSE
                 ),
                 metR::geom_streamline(
                     data = df, aes(x = !!sym("x"), y = !!sym("y"), dx = !!sym("u"), dy = !!sym("v")),
                     L = streamline_l, min.L = streamline_minl, res = streamline_res,
-                    n = streamline_n, size = max(streamline_width, na.rm = TRUE), color = streamline_color, alpha = streamline_alpha,
+                    n = streamline_n, linewidth = max(streamline_width, na.rm = TRUE), color = streamline_color, alpha = streamline_alpha,
                     arrow.type = "closed", arrow.angle = arrow_angle,
                     lineend = "round", linejoin = "mitre", inherit.aes = FALSE
                 ),
@@ -352,13 +352,13 @@ VelocityPlot <- function(
                 metR::geom_streamline(
                     data = df, aes(x = !!sym("x"), y = !!sym("y"), dx = !!sym("u"), dy = !!sym("v")),
                     L = streamline_l, min.L = streamline_minl, res = streamline_res,
-                    n = streamline_n, size = max(streamline_width, na.rm = TRUE) + streamline_bg_stroke, color = streamline_bg_color, alpha = streamline_alpha,
+                    n = streamline_n, linewidth = max(streamline_width, na.rm = TRUE) + streamline_bg_stroke, color = streamline_bg_color, alpha = streamline_alpha,
                     arrow.type = "closed", arrow.angle = arrow_angle,
                     lineend = "round", linejoin = "mitre", inherit.aes = FALSE
                 ),
                 metR::geom_streamline(
                     data = df, aes(x = !!sym("x"), y = !!sym("y"), dx = !!sym("u"), dy = !!sym("v"),
-                        size = after_stat(!!sym("step")), color = sqrt(after_stat(!!sym("dx"))^2 + after_stat(!!sym("dy"))^2)),
+                        linewidth = after_stat(!!sym("step")), color = sqrt(after_stat(!!sym("dx"))^2 + after_stat(!!sym("dy"))^2)),
                     L = streamline_l, min.L = streamline_minl, res = streamline_res,
                     n = streamline_n, alpha = streamline_alpha,
                     arrow = NULL, lineend = "round", linejoin = "mitre", inherit.aes = FALSE
