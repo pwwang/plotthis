@@ -90,7 +90,7 @@ DotPlotAtomic <- function(
                 group_by(!!!syms(unique(c(x, y, facet_by)))) %>%
                 summarise(.size = n(), .groups = "drop")
         } else {
-            warning("Using the first value of fill_by as size_by is calculated from the count of instances.", immediate. = TRUE)
+            warning("[DotPlot] Using the first value of fill_by.", immediate. = TRUE)
             data <- data %>%
                 group_by(!!!syms(unique(c(x, y, facet_by)))) %>%
                 summarise(!!sym(fill_by) := first(!!sym(fill_by)), .size = n(), .groups = "drop")
