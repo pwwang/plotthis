@@ -11,6 +11,7 @@ Heatmap annotation functions
   group_by,
   column,
   title,
+  side = "left",
   which = "row",
   palette,
   palcolor = NULL,
@@ -29,6 +30,7 @@ anno_pie(
   title,
   which = "row",
   palette,
+  side = "left",
   palcolor = NULL,
   border = TRUE,
   legend.direction,
@@ -44,6 +46,7 @@ anno_ring(
   title,
   which = "row",
   palette,
+  side = "left",
   palcolor = NULL,
   border = TRUE,
   legend.direction,
@@ -59,6 +62,7 @@ anno_bar(
   title,
   which = "row",
   palette,
+  side = "left",
   palcolor = NULL,
   border = TRUE,
   legend.direction,
@@ -74,6 +78,7 @@ anno_violin(
   title,
   which = "row",
   palette,
+  side = "left",
   palcolor = NULL,
   border = TRUE,
   legend.direction,
@@ -89,6 +94,7 @@ anno_boxplot(
   title,
   which = "row",
   palette,
+  side = "left",
   palcolor = NULL,
   border = TRUE,
   legend.direction,
@@ -104,6 +110,7 @@ anno_density(
   title,
   which = "row",
   palette,
+  side = "left",
   palcolor = NULL,
   border = TRUE,
   legend.direction,
@@ -118,6 +125,7 @@ anno_simple(
   column = NULL,
   title,
   which = "row",
+  side = "left",
   palette,
   palcolor = NULL,
   border = TRUE,
@@ -135,6 +143,7 @@ anno_points(
   title,
   which = "row",
   palette,
+  side = "left",
   palcolor = NULL,
   border = TRUE,
   legend.direction,
@@ -151,12 +160,47 @@ anno_lines(
   title,
   which = "row",
   palette,
+  side = "left",
   palcolor = NULL,
   border = TRUE,
   legend.direction,
   show_legend = TRUE,
   alpha = 1,
   add_points = TRUE,
+  ...
+)
+
+anno_block(
+  x,
+  split_by = NULL,
+  group_by = NULL,
+  column,
+  title,
+  which = "row",
+  side = "left",
+  palette,
+  palcolor = NULL,
+  border = TRUE,
+  legend.direction,
+  show_legend = FALSE,
+  alpha = 1,
+  ...
+)
+
+anno_text(
+  x,
+  split_by = NULL,
+  group_by,
+  column = NULL,
+  title,
+  which = "row",
+  palette,
+  side = "left",
+  palcolor = NULL,
+  border = TRUE,
+  legend.direction,
+  show_legend = FALSE,
+  alpha = 1,
   ...
 )
 ```
@@ -183,6 +227,11 @@ anno_lines(
 - title:
 
   A character string to name the legend
+
+- side:
+
+  A character string specifying the side of the annotation. Default is
+  "left".
 
 - which:
 

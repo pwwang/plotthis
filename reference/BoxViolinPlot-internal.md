@@ -27,6 +27,7 @@ BoxViolinPlot(
   step_increase = 0.1,
   fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
   palreverse = FALSE,
+  position_dodge_preserve = "total",
   theme = "theme_this",
   theme_args = list(),
   palette = "Paired",
@@ -248,6 +249,11 @@ BoxViolinPlot(
 
   A logical value indicating whether to reverse the palette. Default is
   FALSE.
+
+- position_dodge_preserve:
+
+  Should dodging preserve the "total" width of all elements at a
+  position, or the width of a "single" element?
 
 - theme:
 

@@ -1,5 +1,6 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://pwwang.github.io/plotthis/404.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/CLAUDE.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/LICENSE.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/articles/all-palettes.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/articles/basic-design.html</loc></url>
@@ -93,7 +94,11 @@
 <url><loc>https://pwwang.github.io/plotthis/reference/dimplot.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/dot-anno_ggcat.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/dot-compute_velocity_on_grid.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/dot-gggrob.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/dot-prepare_extent.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/dot-reorder_anno_side.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/dot-resolve_anno_aliases.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/dot-setup_annos.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/dot-wrap_spatial_layers.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/dot_flip_y.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/dotplot.html</loc></url>
@@ -103,7 +108,6 @@
 <url><loc>https://pwwang.github.io/plotthis/reference/enrichmap1.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/facet_plot.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/get_cutoffs_data.html</loc></url>
-<url><loc>https://pwwang.github.io/plotthis/reference/gggrob.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/gsea.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/gsea_example.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/gsea_running_score.html</loc></url>

@@ -30,6 +30,7 @@ BoxPlot(
   step_increase = 0.1,
   fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
   palreverse = FALSE,
+  position_dodge_preserve = "total",
   theme = "theme_this",
   theme_args = list(),
   palette = "Paired",
@@ -127,6 +128,7 @@ ViolinPlot(
   step_increase = 0.1,
   fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
   palreverse = FALSE,
+  position_dodge_preserve = "total",
   theme = "theme_this",
   theme_args = list(),
   palette = "Paired",
@@ -235,6 +237,7 @@ BeeswarmPlot(
   pt_color = NULL,
   pt_size = NULL,
   pt_alpha = 1,
+  position_dodge_preserve = "total",
   jitter_width = NULL,
   jitter_height = 0,
   stack = FALSE,
@@ -439,6 +442,11 @@ BeeswarmPlot(
 
   A logical value indicating whether to reverse the palette. Default is
   FALSE.
+
+- position_dodge_preserve:
+
+  Should dodging preserve the "total" width of all elements at a
+  position, or the width of a "single" element?
 
 - theme:
 

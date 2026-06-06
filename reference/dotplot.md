@@ -29,6 +29,8 @@ DotPlot(
   fill_by = NULL,
   fill_cutoff = NULL,
   palreverse = FALSE,
+  size_min = 1,
+  size_max = 10,
   theme = "theme_this",
   theme_args = list(),
   palette = "Spectral",
@@ -76,6 +78,8 @@ LollipopPlot(
   fill_by = NULL,
   fill_cutoff = NULL,
   palreverse = FALSE,
+  size_min = 1,
+  size_max = 10,
   theme = "theme_this",
   theme_args = list(),
   palette = "Spectral",
@@ -210,6 +214,15 @@ LollipopPlot(
 
   A logical value indicating whether to reverse the palette. Default is
   FALSE.
+
+- size_min:
+
+  A numeric value specifying the minimum size of the dots. Default is 1.
+
+- size_max:
+
+  A numeric value specifying the maximum size of the dots. Default is
+  10.
 
 - theme:
 

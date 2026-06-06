@@ -20,6 +20,8 @@ DotPlotAtomic(
   size_name = NULL,
   fill_name = NULL,
   fill_cutoff_name = NULL,
+  size_min = 1,
+  size_max = 10,
   theme = "theme_this",
   theme_args = list(),
   palette = "Spectral",
@@ -125,6 +127,15 @@ DotPlotAtomic(
 - fill_cutoff_name:
 
   A character vector specifying the name for the fill cutoff legend.
+
+- size_min:
+
+  A numeric value specifying the minimum size of the dots. Default is 1.
+
+- size_max:
+
+  A numeric value specifying the maximum size of the dots. Default is
+  10.
 
 - theme:
 

@@ -81,8 +81,8 @@ Heatmap(
   show_column_names = NULL,
   border = TRUE,
   title = NULL,
-  column_title = character(0),
-  row_title = character(0),
+  column_title = NULL,
+  row_title = NULL,
   na_col = "grey85",
   row_names_side = "right",
   column_names_side = "bottom",
@@ -612,9 +612,26 @@ Heatmap(
 
 - column_annotation_side:
 
-  A character string specifying the side of the column annotation. Could
-  be a list with the keys as the names of the annotation and the values
-  as the sides.
+  A character string or named list specifying which side each column
+  annotation is placed on. Accepts `"top"` (default) or `"bottom"`.
+
+  - **String:** All column annotations go to that side (e.g.
+    `"bottom"`).
+
+  - **Named list:** Per-annotation side control. Keys are annotation
+    names or aliases (`.col`, `.col.split`, etc.). Values are `"top"` or
+    `"bottom"`. Use the special `.default` key to set the side for
+    unspecified annotations (e.g.
+    `list(.default = "top", my_anno = "bottom")`).
+
+  - **Ordering within each side:** Name annotations (`columns_by`) are
+    always placed closest to the heatmap body; split annotations
+    (`columns_split_by`) are placed farthest away; user-defined
+    annotations sit in between.
+
+  **Note:** Placing column annotations on `"bottom"` conflicts with
+  `legend.position = "bottom"` — the legend may overlap the annotation
+  names. Consider using a different legend position in that case.
 
 - column_annotation_palette:
 
@@ -632,10 +649,19 @@ Heatmap(
 
   A character string specifying the type of the column annotation. The
   default is "auto". Other options are "simple", "pie", "ring", "bar",
-  "violin", "boxplot", "density". Could be a list with the keys as the
-  names of the annotation and the values as the types. If the type is
-  "auto", the type will be determined by the type and number of the
-  column data.
+  "violin", "boxplot", "density", "label". Could be a list with the keys
+  as the names of the annotation and the values as the types. If the
+  type is "auto", the type will be determined by the type and number of
+  the column data. For split or name annotations, use aliases (e.g.
+  `.col.split`, `.col`) to set the type.
+
+  - `"simple"` — simple annotation via
+    [`anno_simple()`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md)
+    (for split/name annotations)
+
+  - `"label"` — Text label annotation via
+    [`anno_simple()`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md)/[`anno_block()`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md)
+    (for split/name annotations)
 
 - column_annotation_params:
 
@@ -645,7 +671,9 @@ Heatmap(
   `.col`/`.cols`/`.column`/`.columns` for `columns_by`,
   `.col.split`/`.cols.split`/`.column.split`/`.columns.split` for
   `columns_split_by`. Setting a key to `FALSE` disables that annotation.
-  `$<key>$show_legend` controls the legend for that annotation. See
+  `$<key>$show_legend` controls the legend for that annotation. For
+  `"label"` type annotations, use `labels_gp` to style the label text
+  (e.g. `labels_gp = grid::gpar(col = "white", fontsize = 12)`). See
   [`anno_pie()`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md),
   [`anno_ring()`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md),
   [`anno_bar()`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md),
@@ -653,14 +681,22 @@ Heatmap(
   [`anno_boxplot()`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md),
   [`anno_density()`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md),
   [`anno_simple()`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md),
-  [`anno_points()`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md)
-  and
+  [`anno_points()`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md),
   [`anno_lines()`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md)
+  and
+  [`anno_block()`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md)
   for the parameters of each annotation function.
 
 - column_annotation_agg:
 
-  A function to aggregate the values in the column annotation.
+  A function or named list of functions to aggregate values for each
+  column annotation. If a single function, it applies to all
+  annotations. If a named list, keys are annotation names. Defaults vary
+  by annotation type:
+  [`dplyr::first`](https://dplyr.tidyverse.org/reference/nth.html) for
+  `"simple"`/`"points"`/`"lines"`,
+  `function(x) paste(unique(x), collapse = ", ")` for `"label"`, and no
+  aggregation for others (e.g. `"pie"`, `"violin"`).
 
 - row_annotation:
 
@@ -670,9 +706,21 @@ Heatmap(
 
 - row_annotation_side:
 
-  A character string specifying the side of the row annotation. Could be
-  a list with the keys as the names of the annotation and the values as
-  the sides.
+  A character string or named list specifying which side each row
+  annotation is placed on. Accepts `"left"` (default) or `"right"`.
+
+  - **String:** All row annotations go to that side (e.g. `"right"`).
+
+  - **Named list:** Per-annotation side control. Keys are annotation
+    names or aliases (`.row`, `.rows.split`, etc.). Values are `"left"`
+    or `"right"`. Use the special `.default` key to set the side for
+    unspecified annotations (e.g.
+    `list(.default = "left", .row = "right")`).
+
+  - **Ordering within each side:** Name annotations (`rows_by`) are
+    always placed closest to the heatmap body; split annotations
+    (`rows_split_by`) are placed farthest away; user-defined annotations
+    sit in between.
 
 - row_annotation_palette:
 
@@ -690,10 +738,19 @@ Heatmap(
 
   A character string specifying the type of the row annotation. The
   default is "auto". Other options are "simple", "pie", "ring", "bar",
-  "violin", "boxplot", "density". Could be a list with the keys as the
-  names of the annotation and the values as the types. If the type is
-  "auto", the type will be determined by the type and number of the row
-  data.
+  "violin", "boxplot", "density", "label". Could be a list with the keys
+  as the names of the annotation and the values as the types. If the
+  type is "auto", the type will be determined by the type and number of
+  the row data. For split or name annotations, use aliases (e.g.
+  `.rows.split`, `.row`) to set the type.
+
+  - `"simple"` — Simple annotation via
+    [`anno_simple()`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md).
+    Only valid for row/column name and split label annotation
+
+  - `"label"` — Text label annotation via
+    [`anno_simple()`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md)/[`anno_block()`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md)
+    (for split/name annotations)
 
 - row_annotation_params:
 
@@ -702,12 +759,16 @@ Heatmap(
   the parameters. For the name/split annotations, use aliases:
   `.row`/`.rows` for `rows_by`, `.rows.split`/`.row.split` for
   `rows_split_by`. Setting a key to `FALSE` disables that annotation.
-  `$<key>$show_legend` controls the legend. Same structure as
+  `$<key>$show_legend` controls the legend. For `"label"` type row
+  (name) annotations, use `label_rot` to control text rotation (default
+  `-90` on the left side, `90` on the right side). For `"label"` type,
+  use `labels_gp` to style the label text. Same structure as
   `column_annotation_params`.
 
 - row_annotation_agg:
 
-  A function to aggregate the values in the row annotation.
+  A function or named list of functions to aggregate values for each row
+  annotation. Same behavior as `column_annotation_agg`.
 
 - flip:
 
@@ -953,6 +1014,44 @@ if (requireNamespace("cluster", quietly = TRUE)) {
 }
 
 if (requireNamespace("cluster", quietly = TRUE)) {
+    # use label annotation for split groups (shows group labels inside colored blocks)
+    Heatmap(matrix_data, rows_data = rows_data,
+        rows_split_by = "group",
+        row_annotation_params = list(.rows.split = list(
+            border = FALSE,
+            labels_gp = grid::gpar(col = "white", fontsize = 12),
+            labels_rot = 0
+        )),
+        row_annotation_type = list(.rows.split = "label")
+    )
+}
+
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # label annotation for column splits
+    columns_data <- data.frame(
+        columns = paste0("C", 1:10),
+        batch = rep(c("A", "B"), each = 5)
+    )
+    Heatmap(matrix_data, columns_data = columns_data,
+        columns_split_by = "batch",
+        column_annotation_type = list(.col.split = "label")
+    )
+}
+
+rownames(matrix_data)[1] <- "R12345"
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # label annotation for name annotations: show row/column names as colored labels
+    Heatmap(matrix_data, rows_data = rows_data,
+        row_annotation_type = list(.row = "label"),
+        column_annotation_type = list(.col = "label"),
+        column_annotation_params = list(.col = list(labels_rot = 90)),
+        row_annotation_palette = list(.row = "Set2"),
+        row_annotation_side = list(.row = "right"),
+        row_annotation_params = list(.row = list(labels_rot = 150))
+    )
+}
+
+if (requireNamespace("cluster", quietly = TRUE)) {
     # add labels to the heatmap
     Heatmap(matrix_data, rows_data = rows_data,
         rows_split_by = "group", cell_type = "label",
@@ -1062,6 +1161,52 @@ if (requireNamespace("cluster", quietly = TRUE)) {
     Heatmap(matrix_data,
         column_annotation_params = list(.col = list(height = 5)),
         row_annotation_params = list(.row = list(width = 5)))
+}
+
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # Per-annotation side control: row name annotation on the right,
+    # all other row annotations on the left (.default)
+    rows_data2 <- data.frame(
+        rows = paste0("R", 1:6),
+        group = sample(c("X", "Y"), 6, replace = TRUE),
+        score = runif(6)
+    )
+    Heatmap(matrix_data, rows_data = rows_data2,
+        rows_split_by = "group",
+        row_annotation = list(Score = "score"),
+        row_annotation_side = list(.default = "left", .row = "right"),
+        show_row_names = TRUE
+    )
+}
+
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # Move all row annotations to the right side
+    Heatmap(matrix_data, rows_data = rows_data2,
+        rows_split_by = "group",
+        row_annotation = list(Score = "score"),
+        row_annotation_side = "right",
+        show_row_names = TRUE
+    )
+}
+
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # Split and name annotations on opposite sides:
+    # split annotation on the default left, name annotation on the right
+    Heatmap(matrix_data, rows_data = rows_data2,
+        rows_split_by = "group",
+        row_annotation_side = list(.default = "left", .row = "right"),
+        show_row_names = TRUE
+    )
+}
+
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # Row name label annotation on the right side (text rotated 90° clockwise)
+    Heatmap(matrix_data, rows_data = rows_data2,
+        row_annotation_type = list(.row = "label"),
+        row_annotation_palette = list(.row = "Set2"),
+        row_annotation_side = list(.row = "right"),
+        show_row_names = TRUE
+    )
 }
 
 

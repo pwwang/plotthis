@@ -11,6 +11,7 @@ Heatmap annotation function for categorical data
   group_by,
   column,
   title,
+  side = "left",
   which = "row",
   palette,
   palcolor = NULL,
@@ -43,6 +44,10 @@ Heatmap annotation function for categorical data
 - title:
 
   A character string to name the legend
+
+- side:
+
+  A character string showing where the annotation is.
 
 - which:
 

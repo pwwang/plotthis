@@ -74,9 +74,9 @@ palette_this(
 - transparent:
 
   Whether to make the colors transparent when alpha \< 1. When `TRUE`,
-  [`ggplot2::alpha()`](https://ggplot2.tidyverse.org/reference/reexports.html)
-  is used to make the colors transparent. Otherwise, `adjcolors` is used
-  to adjust the colors based on the alpha. The color will be not be
+  [`ggplot2::alpha()`](https://scales.r-lib.org/reference/alpha.html) is
+  used to make the colors transparent. Otherwise, `adjcolors` is used to
+  adjust the colors based on the alpha. The color will be not be
   actually transparent. For example,
   `ggplot2::alpha("red", 0.5) == "#FF000080"`; while
   `adjcolors("red", 0.5) == "#FF8080"`.
