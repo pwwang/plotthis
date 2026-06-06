@@ -52,7 +52,7 @@ test_that("ManhattanPlot with label_by works", {
 })
 
 test_that("ManhattanPlot with highlight works", {
-    highlights <- mhtn_data$pval < 1e-5
+    highlights <- mhtn_data$pval < 1e-3
     if (any(highlights)) {
         p <- ManhattanPlot(mhtn_data, chr_by = "chr", pos_by = "pos", pval_by = "pval",
                            highlight = which(highlights))
