@@ -10,6 +10,8 @@
 #' @param size_by Which column to use as the size of the dots. It must be a numeric column.
 #'   If not provided, the size will be the count of the instances for each 'y' in 'x'.
 #'   For 'ScatterPlot', it can be a single numeric value to specify the size of the dots.
+#' @param size_min A numeric value specifying the minimum size of the dots. Default is 1.
+#' @param size_max A numeric value specifying the maximum size of the dots. Default is 10.
 #' @param fill_by Which column to use as the fill the dots. It must be a numeric column.
 #'   If not provided, all dots will be filled with the same color at the middle of the palette.
 #' @param fill_cutoff A numeric value specifying the cutoff for the fill column.
@@ -37,7 +39,7 @@
 DotPlotAtomic <- function(
     data, x, y, x_sep = "_", y_sep = "_", flip = FALSE, lollipop = FALSE,
     size_by = NULL, fill_by = NULL, fill_cutoff = NULL, palreverse = FALSE,
-    size_name = NULL, fill_name = NULL, fill_cutoff_name = NULL,
+    size_name = NULL, fill_name = NULL, fill_cutoff_name = NULL, size_min = 1, size_max = 10,
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     x_text_angle = 0, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
@@ -159,7 +161,8 @@ DotPlotAtomic <- function(
         p <- p + geom_point(aes(fill = !!sym(fill_by), color = ""), size = size_by, shape = 21, alpha = alpha)
     } else {
         p <- p + geom_point(aes(size = !!sym(size_by), fill = !!sym(fill_by), color = ""), shape = 21, alpha = alpha) +
-            scale_size_area(max_size = 6, n.breaks = 4) +
+            # scale_size_area(max_size = 6, n.breaks = 4) +
+            scale_size(range = c(size_min, size_max)) +
             guides(size = guide_legend(
                 title = size_name %||% size_by,
                 override.aes = list(fill = "transparent", shape = 21), order = 1))
@@ -349,7 +352,7 @@ DotPlot <- function(
     data, x, y, x_sep = "_", y_sep = "_", flip = FALSE,
     split_by = NULL, split_by_sep = "_", size_name = NULL, fill_name = NULL, fill_cutoff_name = NULL,
     add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2, bg_direction = c("vertical", "horizontal", "v", "h"),
-    size_by = NULL, fill_by = NULL, fill_cutoff = NULL, palreverse = FALSE,
+    size_by = NULL, fill_by = NULL, fill_cutoff = NULL, palreverse = FALSE, size_min = 1, size_max = 10,
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     x_text_angle = 0, seed = 8525, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
@@ -388,7 +391,7 @@ DotPlot <- function(
                 title <- title %||% default_title
             }
             DotPlotAtomic(datas[[nm]],
-                x = x, y = y, x_sep = x_sep, y_sep = y_sep, flip = flip, bg_direction = bg_direction,
+                x = x, y = y, x_sep = x_sep, y_sep = y_sep, flip = flip, bg_direction = bg_direction, size_min = size_min, size_max = size_max, lollipop = FALSE,
                 size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, palreverse = palreverse,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
@@ -424,7 +427,7 @@ DotPlot <- function(
 LollipopPlot <- function(
     data, x, y, y_sep = NULL, flip = FALSE,
     split_by = NULL, split_by_sep = "_", size_name = NULL, fill_name = NULL, fill_cutoff_name = NULL,
-    size_by = NULL, fill_by = NULL, fill_cutoff = NULL, palreverse = FALSE,
+    size_by = NULL, fill_by = NULL, fill_cutoff = NULL, palreverse = FALSE, size_min = 1, size_max = 10,
     theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 1,
     facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
     x_text_angle = 0, seed = 8525, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
@@ -463,7 +466,7 @@ LollipopPlot <- function(
                 title <- title %||% default_title
             }
             DotPlotAtomic(datas[[nm]], lollipop = TRUE,
-                x = x, y = y, x_sep = NULL, y_sep = y_sep, flip = flip,
+                x = x, y = y, x_sep = NULL, y_sep = y_sep, flip = flip, size_min = size_min, size_max = size_max,
                 size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, palreverse = palreverse,
                 theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
                 facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,

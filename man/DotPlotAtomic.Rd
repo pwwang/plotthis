@@ -19,6 +19,8 @@ DotPlotAtomic(
   size_name = NULL,
   fill_name = NULL,
   fill_cutoff_name = NULL,
+  size_min = 1,
+  size_max = 10,
   theme = "theme_this",
   theme_args = list(),
   palette = "Spectral",
@@ -84,6 +86,10 @@ When the direction is "down", the values greater than the cutoff will be filled 
 \item{fill_name}{A character vector specifying the name for the fill legend.}
 
 \item{fill_cutoff_name}{A character vector specifying the name for the fill cutoff legend.}
+
+\item{size_min}{A numeric value specifying the minimum size of the dots. Default is 1.}
+
+\item{size_max}{A numeric value specifying the maximum size of the dots. Default is 10.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
