@@ -744,16 +744,17 @@ process_heatmap_data <- function(
                 warning("[Heatmap] Assuming '", which, "_annotation_agg[\"", aname, "\"] = dplyr::first' for the simple annotation")
                 annoagg <- dplyr::first
             }
-            if (annotype == "label" && is.null(annoagg)) {
-                warning("[Heatmap] Assuming '", which, "_annotation_agg[\"", aname, "\"] = function(x) paste(unique(x), collapse = \",\")' for the label annotation")
+            if (annotype == "block" && is.null(annoagg)) {
+                warning("[Heatmap] Assuming '", which, "_annotation_agg[\"", aname, "\"] = function(x) paste(unique(x), collapse = \",\")' for the block annotation")
                 annoagg <- function(x) paste(unique(x), collapse = ", ")
             }
             if (is.null(annoagg)) {
                 annodata <- annodata %>% select(!!!syms(unique(c(split_by, by, annocol))))
             } else {
                 annodata <- annodata %>%
-                    group_by(!!!syms(unique(c(split_by, by)))) %>%
-                    summarise(!!sym(annocol) := annoagg(!!sym(annocol)), .groups = "drop")
+                    group_by(!!sym(split_by)) %>%
+                    summarise(!!sym(annocol) := annoagg(!!sym(annocol)), .groups = "keep") %>%
+                    arrange(!!sym(split_by))
             }
             param$x <- annodata
             param$split_by <- split_by
@@ -1053,7 +1054,8 @@ anno_density <- function(x, split_by = NULL, group_by, column, title, which = "r
 anno_simple <- function(
     x, split_by = NULL, group_by = NULL, column = NULL, title, which = "row", side = "left",
     palette, palcolor = NULL, border = TRUE, legend.direction, show_legend = TRUE,
-    alpha = 1, ...) {
+    alpha = 1, ...
+) {
     if (!is.null(split_by)) {
         x <- do.call(rbind, split(x, x[[split_by]]))
     }
@@ -1123,6 +1125,12 @@ anno_block <- function(
     palette, palcolor = NULL, border = TRUE, legend.direction, show_legend = FALSE, alpha = 1,
     ...
 ) {
+    if (is.null(split_by)) {
+        stop("[Heatmap] ", which, "annotation type 'block' must work with ", which, "s_split_by.")
+    }
+    if (!is.null(column)) {
+        x <- x[[column]]
+    }
     args <- list(
         labels = x,
         which = which,
