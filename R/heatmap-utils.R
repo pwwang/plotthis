@@ -733,6 +733,7 @@ process_heatmap_data <- function(
                 block_param$x <- levels(param$x)
                 block_param$which <- param$which
                 block_param$side <- side
+                block_param$split_by <- split_by
                 anno_legend <- do.call(anno_block, block_param)
                 # annos$show_annotation_name[[aname]] <- FALSE
                 param$show_legend = FALSE
@@ -787,11 +788,14 @@ process_heatmap_data <- function(
             }
             if (is.null(annoagg)) {
                 annodata <- annodata %>% select(!!!syms(unique(c(split_by, by, annocol))))
-            } else {
+            } else if (annotype == "block") {
                 annodata <- annodata %>%
                     group_by(!!sym(split_by)) %>%
-                    summarise(!!sym(annocol) := annoagg(!!sym(annocol)), .groups = "keep") %>%
-                    arrange(!!sym(split_by))
+                    summarise(!!sym(annocol) := annoagg(!!sym(annocol)), .groups = "drop")
+            } else {
+                annodata <- annodata %>%
+                    group_by(!!!syms(unique(c(split_by, by)))) %>%
+                    summarise(!!sym(annocol) := annoagg(!!sym(annocol)), .groups = "drop")
             }
             param$x <- annodata
             param$split_by <- split_by
@@ -1158,12 +1162,12 @@ anno_lines <- function(x, split_by = NULL, group_by, column, title, which = "row
 #' @rdname heatmap-anno
 #' @keywords internal
 anno_block <- function(
-    x, split_by = NULL, group_by = NULL, column, title, which = "row", side = "left",
+    x, split_by = NULL, group_by = NULL, column = NULL, title, which = "row", side = "left",
     palette, palcolor = NULL, border = TRUE, legend.direction, show_legend = FALSE, alpha = 1,
     ...
 ) {
     if (is.null(split_by)) {
-        stop("[Heatmap] ", which, "annotation type 'block' must work with ", which, "s_split_by.")
+        stop("[Heatmap] ", which, " annotation type 'block' for ", title, " must work with ", which, "s_split_by.")
     }
     if (!is.null(column)) {
         x <- x[[column]]
