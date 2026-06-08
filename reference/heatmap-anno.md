@@ -174,7 +174,7 @@ anno_block(
   x,
   split_by = NULL,
   group_by = NULL,
-  column,
+  column = NULL,
   title,
   which = "row",
   side = "left",
