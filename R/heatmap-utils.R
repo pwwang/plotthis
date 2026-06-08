@@ -474,6 +474,43 @@ process_heatmap_data <- function(
     )
 }
 
+#' Check the annotation specification
+#' The annotations should not be any of by or split_by, and the columns must exist in the data
+#'
+#' @param data The data for Heatmap plot
+#' @param annotation The annotation mappings
+#' @param by The column for rows or columns
+#' @param split_by The column for row or column splitting
+#' @param which If the annotation is for row or column
+#' @keywords internal
+.check_annotation <- function(data, annotation, by, split_by, which) {
+    forbidden_keys <- c(
+        ".row",
+        ".rows",
+        ".rows.split",
+        ".row.split",
+        ".col",
+        ".cols",
+        ".column",
+        ".columns",
+        ".col.split",
+        ".cols.split",
+        ".column.split",
+        ".columns.split",
+        by,
+        split_by
+    )
+    for (fkey in forbidden_keys) {
+        if (fkey %in% names(annotation)) {
+            stop("[Heatmap] annotation key '", fkey, "' is taken by name/split annotation.")
+        }
+    }
+    for (key in names(annotation)) {
+        col <- annotation[[key]]
+        check_columns(data, col)
+    }
+}
+
 #' Resolve annotation aliases:
 #'   .row         -> rows_by
 #'   .rows.split  -> rows_split_by

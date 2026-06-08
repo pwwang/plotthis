@@ -309,19 +309,23 @@ HeatmapAtomic <- function(
     if (is.character(column_annotation_side)) {
         column_annotation_side <- list(.default = column_annotation_side)
     }
-    row_annotation_params  <- .resolve_anno_aliases(row_annotation_params,    rows_by, rows_split_by, columns_by, columns_split_by)
-    row_annotation_palette <- .resolve_anno_aliases(row_annotation_palette,   rows_by, rows_split_by, columns_by, columns_split_by)
-    row_annotation_palcolor <- .resolve_anno_aliases(row_annotation_palcolor, rows_by, rows_split_by, columns_by, columns_split_by)
-    row_annotation_type    <- .resolve_anno_aliases(row_annotation_type,      rows_by, rows_split_by, columns_by, columns_split_by)
-    row_annotation_agg     <- .resolve_anno_aliases(row_annotation_agg,       rows_by, rows_split_by, columns_by, columns_split_by)
 
-    column_annotation_params  <- .resolve_anno_aliases(column_annotation_params,    rows_by, rows_split_by, columns_by, columns_split_by)
-    column_annotation_palette <- .resolve_anno_aliases(column_annotation_palette,   rows_by, rows_split_by, columns_by, columns_split_by)
-    column_annotation_palcolor <- .resolve_anno_aliases(column_annotation_palcolor, rows_by, rows_split_by, columns_by, columns_split_by)
-    column_annotation_type    <- .resolve_anno_aliases(column_annotation_type,      rows_by, rows_split_by, columns_by, columns_split_by)
-    column_annotation_agg     <- .resolve_anno_aliases(column_annotation_agg,       rows_by, rows_split_by, columns_by, columns_split_by)
-    row_annotation_side      <- .resolve_anno_aliases(row_annotation_side,        rows_by, rows_split_by, columns_by, columns_split_by)
-    column_annotation_side   <- .resolve_anno_aliases(column_annotation_side,     rows_by, rows_split_by, columns_by, columns_split_by)
+    .check_annotation(data, row_annotation, rows_by, rows_split_by, which = "row")
+    .check_annotation(data, column_annotation, rows_by, rows_split_by, which = "column")
+
+    row_annotation_params   <- .resolve_anno_aliases(row_annotation_params,   rows_by, rows_split_by, columns_by, columns_split_by)
+    row_annotation_palette  <- .resolve_anno_aliases(row_annotation_palette,  rows_by, rows_split_by, columns_by, columns_split_by)
+    row_annotation_palcolor <- .resolve_anno_aliases(row_annotation_palcolor, rows_by, rows_split_by, columns_by, columns_split_by)
+    row_annotation_type     <- .resolve_anno_aliases(row_annotation_type,     rows_by, rows_split_by, columns_by, columns_split_by)
+    row_annotation_agg      <- .resolve_anno_aliases(row_annotation_agg,      rows_by, rows_split_by, columns_by, columns_split_by)
+
+    column_annotation_params   <- .resolve_anno_aliases(column_annotation_params,    rows_by, rows_split_by, columns_by, columns_split_by)
+    column_annotation_palette  <- .resolve_anno_aliases(column_annotation_palette,   rows_by, rows_split_by, columns_by, columns_split_by)
+    column_annotation_palcolor <- .resolve_anno_aliases(column_annotation_palcolor,  rows_by, rows_split_by, columns_by, columns_split_by)
+    column_annotation_type     <- .resolve_anno_aliases(column_annotation_type,      rows_by, rows_split_by, columns_by, columns_split_by)
+    column_annotation_agg      <- .resolve_anno_aliases(column_annotation_agg,       rows_by, rows_split_by, columns_by, columns_split_by)
+    row_annotation_side        <- .resolve_anno_aliases(row_annotation_side,         rows_by, rows_split_by, columns_by, columns_split_by)
+    column_annotation_side     <- .resolve_anno_aliases(column_annotation_side,      rows_by, rows_split_by, columns_by, columns_split_by)
 
     # Determine whether the name annotations are enabled.
     # A params entry of FALSE disables, but type "label" takes precedence
