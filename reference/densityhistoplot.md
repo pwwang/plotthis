@@ -447,6 +447,7 @@ A ggplot object or wrap_plots object or a list of ggplot objects
 ## Examples
 
 ``` r
+# \donttest{
 set.seed(8525)
 data <- data.frame(
     x = c(rnorm(500, -1), rnorm(500, 1)),
@@ -471,6 +472,7 @@ DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE)
 DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE,
     palette = c(F1 = "Set1", F2 = "Set2"))
 
+# }
 set.seed(8525)
 data <- data.frame(
     x = sample(setdiff(1:100, c(30:36, 50:55, 70:77)), 1000, replace = TRUE),

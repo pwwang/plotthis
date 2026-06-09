@@ -365,6 +365,7 @@ A ggplot object or a list of ggplot objects if `combine` is `FALSE`.
 ## Examples
 
 ``` r
+# \donttest{
 data(iris)
 CorPlot(iris, "Sepal.Length", "Sepal.Width", group_by = "Species")
 
@@ -376,4 +377,6 @@ CorPlot(iris, "Sepal.Length", "Sepal.Width", facet_by = "Species", facet_scales 
 
 CorPlot(iris, "Sepal.Length", "Sepal.Width", split_by = "Species",
         palette = c(setosa = "Set1", versicolor = "Dark2", virginica = "Paired"))
+
+# }
 ```
