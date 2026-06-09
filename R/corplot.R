@@ -258,6 +258,7 @@ CorPlotAtomic <- function(
 #' @return A ggplot object or a list of ggplot objects if `combine` is `FALSE`.
 #' @export
 #' @examples
+#' \donttest{
 #' data(iris)
 #' CorPlot(iris, "Sepal.Length", "Sepal.Width", group_by = "Species")
 #' CorPlot(iris, "Sepal.Length", "Sepal.Width", group_by = "Species",
@@ -266,6 +267,7 @@ CorPlotAtomic <- function(
 #' CorPlot(iris, "Sepal.Length", "Sepal.Width", facet_by = "Species", facet_scales = "free")
 #' CorPlot(iris, "Sepal.Length", "Sepal.Width", split_by = "Species",
 #'         palette = c(setosa = "Set1", versicolor = "Dark2", virginica = "Paired"))
+#' }
 CorPlot <- function(
     data, x, y, group_by = NULL, group_by_sep = "_", group_name = NULL, split_by = NULL, split_by_sep = "_",
     pt_size = 2, pt_shape = 16, raster = FALSE, alpha = 1, raster_dpi = c(512, 512),

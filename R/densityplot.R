@@ -467,6 +467,7 @@ RidgePlot <- function(
 #' @return A ggplot object or wrap_plots object or a list of ggplot objects
 #' @export
 #' @examples
+#' \donttest{
 #' set.seed(8525)
 #' data <- data.frame(
 #'     x = c(rnorm(500, -1), rnorm(500, 1)),
@@ -484,6 +485,7 @@ RidgePlot <- function(
 #' DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE)
 #' DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE,
 #'     palette = c(F1 = "Set1", F2 = "Set2"))
+#' }
 DensityPlot <- function(
     data, x, group_by = NULL, group_by_sep = "_", group_name = NULL, xtrans = "identity", ytrans = "identity",
     split_by = NULL, split_by_sep = "_", flip = FALSE, position = "identity",

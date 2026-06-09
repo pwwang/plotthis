@@ -223,6 +223,7 @@ A ggplot object or a list of ggplot objects if \code{combine} is \code{FALSE}.
 Generate scatter correlation plot for two variables.
 }
 \examples{
+\donttest{
 data(iris)
 CorPlot(iris, "Sepal.Length", "Sepal.Width", group_by = "Species")
 CorPlot(iris, "Sepal.Length", "Sepal.Width", group_by = "Species",
@@ -231,4 +232,5 @@ CorPlot(iris, "Sepal.Length", "Sepal.Width", group_by = "Species",
 CorPlot(iris, "Sepal.Length", "Sepal.Width", facet_by = "Species", facet_scales = "free")
 CorPlot(iris, "Sepal.Length", "Sepal.Width", split_by = "Species",
         palette = c(setosa = "Set1", versicolor = "Dark2", virginica = "Paired"))
+}
 }
