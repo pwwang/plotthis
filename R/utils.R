@@ -424,6 +424,7 @@ facet_plot <- function(plot, facet_by, facet_scales, nrow, ncol, byrow,
 #' @keywords internal
 #' @param plots A list of plots
 #' @param combine Whether to combine the plots into one
+#' @param split_by The column name to split the plots by. Used to compose the data for the combined plot.
 #' @param nrow The number of rows in the combined plot
 #' @param ncol The number of columns in the combined plot
 #' @param byrow Whether to fill the plots by row
@@ -433,7 +434,9 @@ facet_plot <- function(plot, facet_by, facet_scales, nrow, ncol, byrow,
 #' @importFrom rlang %||%
 #' @importFrom ggplot2 wrap_dims
 combine_plots <- function(
-    plots, combine = TRUE,
+    plots,
+    combine = TRUE,
+    split_by = NULL,
     nrow = NULL,
     ncol = NULL,
     byrow = NULL,
@@ -451,7 +454,9 @@ combine_plots <- function(
         nrow <- d[1]
         ncol <- d[2]
         p <- combine_plots(
-            plots, TRUE,
+            plots,
+            combine = TRUE,
+            split_by = split_by,
             nrow = nrow,
             ncol = ncol,
             byrow = byrow,
@@ -462,18 +467,18 @@ combine_plots <- function(
             recalc_size = FALSE
         )
         # Allow to work with external plots
-        tryCatch({
+        try({
             attr(p, "height") <- nrow * max(sapply(plots, function(x) attr(x, "height")))
             attr(p, "width") <- ncol * max(sapply(plots, function(x) attr(x, "width")))
-        }, error = function(e) {})
+        }, silent = TRUE)
         return(p)
     }
-    # When it's gTree, also run wrap_plots to convert it to a patchwork object
-    if (length(plots) == 1 && !inherits(plots[[1]], "gTree")) {
-        return(plots[[1]])
-    }
+    # # When it's gTree, also run wrap_plots to convert it to a patchwork object
+    # if (length(plots) == 1 && !inherits(plots[[1]], "gTree")) {
+    #     return(plots[[1]])
+    # }
 
-    wrap_plots(
+    p <- wrap_plots(
         plots,
         nrow = nrow,
         ncol = ncol,
@@ -483,6 +488,14 @@ combine_plots <- function(
         guides = guides,
         design = design
     )
+    p$data <- do.call(rbind, lapply(names(plots), function(nm) {
+        p <- plots[[nm]]
+        d <- p$data
+        d[[split_by]] <- nm
+        return(d)
+    }))
+
+    p
 }
 
 
