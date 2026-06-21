@@ -270,7 +270,7 @@ ManhattanPlotAtomic <- function(
             linetype = 'dashed',
             color = mpdata$signif.col
         ) +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             panel.grid.major = ggplot2::element_blank(),
             panel.grid.minor = ggplot2::element_blank(),

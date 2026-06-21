@@ -285,7 +285,7 @@ DensityHistoPlotAtomic <- function(
     p <- p +
         scale_x_continuous(expand = expand$x, transform = xtrans) +
         scale_y_continuous(expand = expand$y, transform = ytrans) +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         labs(
             title = title,
             subtitle = subtitle,
@@ -571,7 +571,7 @@ RidgePlotAtomic <- function(
     }
 
     p <- p +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,

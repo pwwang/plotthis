@@ -240,7 +240,7 @@ ChordPlotAtomic <- function(
             plot_annotation(
                 title = title,
                 subtitle = subtitle,
-                theme = do.call(theme, theme_args)
+                theme = do_call(theme, theme_args)
             )
     }
     # allow to access data from the plot object

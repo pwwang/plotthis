@@ -425,7 +425,7 @@ RadarPlotAtomic <- function(
         # ) +
         coord_radar(start = -pi / nlevels(data[[x]])) +
         labs(title = title, subtitle = subtitle) +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             axis.text.y = element_blank(),
             axis.ticks = element_blank(),

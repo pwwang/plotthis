@@ -205,7 +205,7 @@ DimPlotAtomic3D <- function(
                     paste0("Cell: ", rownames(grp_data), "\nGroup: ", grp)
                 }
             }
-            p <- do.call(plotly::add_trace, trace_args)
+            p <- do_call(plotly::add_trace, trace_args)
         }
     } else {
         # Feature mode: continuous coloring
@@ -243,7 +243,7 @@ DimPlotAtomic3D <- function(
             if (!large_data) {
                 na_trace_args$text <- paste0("Cell: ", rownames(data_na))
             }
-            p <- do.call(plotly::add_trace, na_trace_args)
+            p <- do_call(plotly::add_trace, na_trace_args)
         }
         # Plot non-NA points with colorscale
         data_valid <- data[!na_mask, , drop = FALSE]
@@ -279,7 +279,7 @@ DimPlotAtomic3D <- function(
                     round(data_valid[[features]], 3)
                 )
             }
-            p <- do.call(plotly::add_trace, feat_trace_args)
+            p <- do_call(plotly::add_trace, feat_trace_args)
         }
     }
 
@@ -329,7 +329,7 @@ DimPlotAtomic3D <- function(
             if (!large_data) {
                 hi_trace_args$text <- paste0("Cell: ", rownames(hi_df))
             }
-            p <- do.call(plotly::add_trace, hi_trace_args)
+            p <- do_call(plotly::add_trace, hi_trace_args)
         }
     }
 
@@ -1128,7 +1128,7 @@ DimPlotAtomic <- function(
         }
 
         if (!is.null(facet_by)) {
-            net_df <- do.call(
+            net_df <- do_call(
                 rbind,
                 lapply(split(data, data[, facet_by]), function(d) {
                     d <- handle_single_facet_value(net_mat[
@@ -1202,7 +1202,7 @@ DimPlotAtomic <- function(
         labs(title = title, subtitle = subtitle, x = xlab, y = ylab) +
         scale_x_continuous(limits = c(x_min, x_max)) +
         scale_y_continuous(limits = c(y_min, y_max)) +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,
@@ -1791,16 +1791,16 @@ DimPlotAtomic <- function(
         stat_args$palette <- stat_palette
         if (stat_plot_type == "pie") {
             stat_args$x <- stat_by
-            stat_plots <- do.call(PieChart, stat_args)
+            stat_plots <- do_call(PieChart, stat_args)
         } else if (stat_plot_type == "ring") {
             stat_args$group_by <- stat_by
-            stat_plots <- do.call(RingPlot, stat_args)
+            stat_plots <- do_call(RingPlot, stat_args)
         } else if (stat_plot_type == "bar") {
             stat_args$x <- stat_by
-            stat_plots <- do.call(BarPlot, stat_args)
+            stat_plots <- do_call(BarPlot, stat_args)
         } else if (stat_plot_type == "line") {
             stat_args$x <- stat_by
-            stat_plots <- do.call(LinePlot, stat_args)
+            stat_plots <- do_call(LinePlot, stat_args)
         }
 
         coord_df <- aggregate(
@@ -1910,9 +1910,9 @@ DimPlotAtomic <- function(
     if (length(legend_list) > 0) {
         legend_list <- legend_list[!sapply(legend_list, is.null)]
         if (legend.direction == "vertical") {
-            legend <- do.call(cbind, c(list(base = legend_base), legend_list))
+            legend <- do_call(cbind, c(list(base = legend_base), legend_list))
         } else {
-            legend <- do.call(rbind, c(list(base = legend_base), legend_list))
+            legend <- do_call(rbind, c(list(base = legend_base), legend_list))
         }
         gtable <- ggplotGrob(p + ggplot2::theme(legend.position = "none"))
         gtable <- add_grob(gtable, legend, legend.position)

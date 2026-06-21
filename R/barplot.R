@@ -262,7 +262,7 @@ BarPlotSingle <- function(
         ) +
         scale_x_discrete(expand = expand$x, drop = !isTRUE(keep_empty_x)) +
         scale_y_continuous(expand = expand$y) +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,
@@ -611,7 +611,7 @@ BarPlotGrouped <- function(
         ) +
         scale_x_discrete(expand = expand$x, drop = !isTRUE(keep_empty_x)) +
         scale_y_continuous(expand = expand$y) +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,
@@ -1004,7 +1004,7 @@ BarPlotAtomic <- function(
     facet_args["byrow"] <- list(facet_byrow)
     facet_args["legend.position"] <- list(legend.position)
     facet_args["legend.direction"] <- list(legend.direction)
-    do.call(facet_plot, facet_args)
+    do_call(facet_plot, facet_args)
 }
 
 #' Bar Plot
@@ -1490,7 +1490,7 @@ SplitBarPlotAtomic <- function(
                     order_list[[dir]] <- -df[[alpha_by]]
                 }
             }
-            df[do.call(order, order_list), , drop = FALSE]
+            df[do_call(order, order_list), , drop = FALSE]
         }
         if (length(order_y) == 1) {
             # *
@@ -1592,7 +1592,7 @@ SplitBarPlotAtomic <- function(
             }
             facet_data
         })
-        data <- do.call(rbind, data_list)
+        data <- do_call(rbind, data_list)
         rownames(data) <- NULL
     }
 
@@ -1728,7 +1728,7 @@ SplitBarPlotAtomic <- function(
         ) +
         # scale_x_continuous(expand = expand$x) +
         scale_y_discrete() +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,

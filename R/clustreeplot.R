@@ -86,7 +86,7 @@ ClustreePlotAtomic <- function(
         "black"
     clustree <- gglogger::register(clustree::clustree)
 
-    p <- suppressMessages(do.call(clustree, clustree_args))
+    p <- suppressMessages(do_call(clustree, clustree_args))
 
     # make glow effect
     # ggrepel::geom_text_repel with bg.colour is not working well with coord_flip
@@ -138,7 +138,7 @@ ClustreePlotAtomic <- function(
                     title.hjust = 0
                 )
             ) +
-            do.call(theme, theme_args) +
+            do_call(theme, theme_args) +
             ggplot2::theme(
                 aspect.ratio = aspect.ratio,
                 axis.title.x = element_text(),

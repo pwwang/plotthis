@@ -176,10 +176,10 @@ get_cutoffs_data <- function(
         }
     }
     splits <- split(data, data[[cat_by]])
-    do.call(
+    do_call(
         rbind,
         lapply(names(splits), function(ns) {
-            df <- do.call(
+            df <- do_call(
                 rbind,
                 lapply(seq_along(cutoffs_at), function(i) {
                     co <- get_cutoff(
@@ -498,7 +498,7 @@ ROCCurveAtomic <- function(
     cutoffs_df$sensitivity <- cutoffs_df$y
 
     if (!is.null(ci)) {
-        p <- p + do.call(plotROC::geom_rocci, ci)
+        p <- p + do_call(plotROC::geom_rocci, ci)
     }
 
     if (show_auc == "plot") {
@@ -615,7 +615,7 @@ ROCCurveAtomic <- function(
 
     p <- p +
         labs(title = title, subtitle = subtitle, x = xlab, y = ylab) +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,
@@ -868,7 +868,7 @@ ROCCurve <- function(
     if (!combine) {
         return(p)
     } else {
-        attr(p, "auc") <- do.call(
+        attr(p, "auc") <- do_call(
             rbind,
             lapply(seq_along(plots), function(i) {
                 df <- attr(plots[[i]], "auc")
@@ -878,7 +878,7 @@ ROCCurve <- function(
                 df
             })
         )
-        attr(p, "cutoffs") <- do.call(
+        attr(p, "cutoffs") <- do_call(
             rbind,
             lapply(seq_along(plots), function(i) {
                 df <- attr(plots[[i]], "cutoffs")

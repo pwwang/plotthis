@@ -359,7 +359,7 @@ VennDiagramAtomic <- function(
         ) +
         labs(title = title, subtitle = subtitle) +
         coord_equal() +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,

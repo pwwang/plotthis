@@ -188,7 +188,7 @@
             x = xlab,
             y = ylab
         ) +
-        do.call(process_theme(theme), theme_args) +
+        do_call(process_theme(theme), theme_args) +
         ggplot2::theme(
             legend.position = legend.position,
             legend.direction = legend.direction
@@ -820,7 +820,7 @@ SpatShapesPlot.SpatVector <- function(
         }
 
         # Combine all facet data
-        data_sf <- do.call(rbind, facet_data_list)
+        data_sf <- do_call(rbind, facet_data_list)
 
         # Convert .facet_var to factor with levels in original fill_by order
         data_sf$.facet_var <- factor(data_sf$.facet_var, levels = fill_by)
@@ -912,7 +912,7 @@ SpatShapesPlot.SpatVector <- function(
         }
     }
 
-    geom_layer <- do.call(ggplot2::geom_sf, geom_params)
+    geom_layer <- do_call(ggplot2::geom_sf, geom_params)
     layers <- list(geom_layer)
 
     # Add appropriate scales
@@ -1204,7 +1204,7 @@ SpatShapesPlot.data.frame <- function(
         }
 
         # Combine all facet data
-        data <- do.call(rbind, facet_data_list)
+        data <- do_call(rbind, facet_data_list)
 
         # Convert .facet_var to factor with levels in original fill_by order
         data$.facet_var <- factor(data$.facet_var, levels = fill_by)
@@ -1296,7 +1296,7 @@ SpatShapesPlot.data.frame <- function(
         }
     }
 
-    geom_layer <- do.call(ggplot2::geom_polygon, geom_params)
+    geom_layer <- do_call(ggplot2::geom_polygon, geom_params)
     layers <- list(geom_layer)
 
     # Add appropriate scales
@@ -1705,7 +1705,7 @@ SpatPointsPlot <- function(
         }
 
         # Combine all facet data
-        data <- do.call(rbind, facet_data_list)
+        data <- do_call(rbind, facet_data_list)
 
         # Convert .facet_var to factor with levels in original color_by order
         data$.facet_var <- factor(data$.facet_var, levels = color_by)
@@ -1919,7 +1919,7 @@ SpatPointsPlot <- function(
             }
 
             if (!is.null(facet_by)) {
-                net_mat <- do.call(
+                net_mat <- do_call(
                     rbind,
                     lapply(split(data, data[, facet_by]), function(d) {
                         d <- handle_single_facet_value(net_mat[
@@ -2144,7 +2144,7 @@ SpatPointsPlot <- function(
             }
         }
 
-        geom_layer <- do.call(ggplot2::geom_point, geom_params)
+        geom_layer <- do_call(ggplot2::geom_point, geom_params)
     }
 
     if (inherits(geom_layer, c("gg", "Layer"))) {

@@ -107,7 +107,7 @@ theme_this <- function(
         args1[[n]] <- args2[[n]]
     }
     args <- args1[names(args1) %in% formalArgs(theme)]
-    do.call(what = theme, args = args)
+    do_call(what = theme, args = args)
 }
 
 #' Blank theme
@@ -176,7 +176,7 @@ theme_blank <- function(
         args1[[n]] <- args2[[n]]
     }
     args <- args1[names(args1) %in% formalArgs(theme)]
-    out <- do.call(
+    out <- do_call(
         what = theme,
         args = args
     )
@@ -291,7 +291,7 @@ theme_box <- function(
         args1[[n]] <- args2[[n]]
     }
     args <- args1[names(args1) %in% formalArgs(theme)]
-    out <- do.call(
+    out <- do_call(
         what = theme,
         args = args
     )

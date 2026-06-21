@@ -430,7 +430,7 @@ EnrichMapAtomic <- function(
         guides(color = guide_none()) +
         scale_x_continuous(expand = expand$x) +
         scale_y_continuous(expand = expand$y) +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,
@@ -692,7 +692,7 @@ EnrichNetworkAtomic <- function(
             x = xlab %||% "",
             y = ylab %||% ""
         ) +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,
@@ -745,7 +745,7 @@ prepare_enrichr_result <- function(data, dbname = "Database", n_input = NULL) {
             df[[dbname]] <- x
             df
         })
-        return(do.call(rbind, data))
+        return(do_call(rbind, data))
     }
     # Calculate GeneRatio and BgRatio
     A_B <- strsplit(data$Overlap, "/", fixed = TRUE)

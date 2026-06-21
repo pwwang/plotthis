@@ -324,7 +324,7 @@ DotPlotAtomic <- function(
             x = xlab %||% x,
             y = ylab %||% y
         ) +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,

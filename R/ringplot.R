@@ -170,7 +170,7 @@ RingPlotAtomic <- function(
         ) +
         coord_polar("y", start = 0) +
         scale_x_discrete(limits = c(" ", rings), drop = !isTRUE(keep_empty_x)) +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,

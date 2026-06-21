@@ -1010,10 +1010,10 @@ BoxViolinPlotAtomic <- function(
                                 }
                                 xdata[[xval]] <- df
                             }
-                            do.call(rbind, xdata)
+                            do_call(rbind, xdata)
                         }
                     )
-                    pwc_data <- do.call(rbind, fixed_data_list)
+                    pwc_data <- do_call(rbind, fixed_data_list)
                 }
 
                 # Now call geom_pwc once with the preprocessed data
@@ -1040,7 +1040,7 @@ BoxViolinPlotAtomic <- function(
                     )
                 }
 
-                p <- p + do.call(ggpubr::geom_pwc, pwc_call)
+                p <- p + do_call(ggpubr::geom_pwc, pwc_call)
 
                 y_max_use <- layer_scales(p)$y$range$range[2]
             }
@@ -1162,9 +1162,9 @@ BoxViolinPlotAtomic <- function(
                         df[[y]] <- yval
                         xdata[[xval]] <- df
                     }
-                    do.call(rbind, xdata)
+                    do_call(rbind, xdata)
                 })
-                pwc_data <- do.call(rbind, fixed_data_list)
+                pwc_data <- do_call(rbind, fixed_data_list)
             }
 
             # Add paired test support when paired_by is provided
@@ -1569,7 +1569,7 @@ BoxViolinPlotAtomic <- function(
     }
 
     p <- p +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             axis.text.x = element_text(

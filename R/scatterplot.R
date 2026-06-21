@@ -138,7 +138,7 @@ ScatterPlotAtomic <- function(
     }
     modify_list <- getFromNamespace("modify_list", "ggplot2")
     point_layer_args$mapping <- Reduce(modify_list, mapping)
-    point_layer <- do.call(geom_point, point_layer_args)
+    point_layer <- do_call(geom_point, point_layer_args)
 
     p <- p + point_layer
     if (!is.numeric(size_by)) {
@@ -332,7 +332,7 @@ ScatterPlotAtomic <- function(
             x = xlab %||% x,
             y = ylab %||% y
         ) +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,

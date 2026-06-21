@@ -675,7 +675,7 @@ SankeyPlotAtomic <- function(
     p <- p +
         scale_x_discrete(expand = expand$x) +
         scale_y_continuous(expand = expand$y) +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         labs(
             title = title,
             subtitle = subtitle,

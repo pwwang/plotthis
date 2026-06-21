@@ -152,7 +152,7 @@ PieChartAtomic <- function(
         # scale_fill_manual(name = x, drop = !keep_empty, values = colors, guide = guide_legend(reverse = clockwise)) +
         labs(title = title, subtitle = subtitle, x = xlab, y = ylab) +
         coord_polar(theta = "y") +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,

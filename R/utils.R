@@ -64,7 +64,7 @@ check_columns <- function(
                         unique(df[[col]])
                     }
                 })
-                all_levels <- do.call(expand_grid, all_levels)
+                all_levels <- do_call(expand_grid, all_levels)
                 all_levels <- apply(all_levels, 1, paste, collapse = concat_sep)
                 df[[new_col]] <- droplevels(factor(
                     df[[new_col]],
@@ -513,7 +513,7 @@ facet_plot <- function(
         args$rows <- vars(!!sym(facet_by[[1]]))
         args$cols <- vars(!!sym(facet_by[[2]]))
         args$scales <- facet_scales
-        plot <- plot + do.call(ggplot2::facet_grid, args)
+        plot <- plot + do_call(ggplot2::facet_grid, args)
     }
 
     return(plot)
@@ -597,7 +597,7 @@ combine_plots <- function(
         design = design
     )
     if (!is.null(split_by)) {
-        p$data <- do.call(
+        p$data <- do_call(
             rbind,
             lapply(names(plots), function(nm) {
                 p <- plots[[nm]]
@@ -1178,4 +1178,63 @@ process_keep_na_empty <- function(
         }
     }
     return(data)
+}
+
+#' Call a function with a list of arguments
+#'
+#' A faster alternative to \code{\link[base]{do.call}}, especially when there are
+#' large objects in the argument list. Named arguments are looked up by symbol
+#' in the evaluation environment rather than being copied into the call, which
+#' avoids the copying overhead of \code{base::do.call}. Unnamed arguments are
+#' embedded in the call directly and do not benefit from this optimization.
+#' Borrowed from \code{Gmisc::fastDoCall}.
+#'
+#' @inheritParams base::do.call
+#' @return The result of the function call
+#' @keywords internal
+do_call <- function(what, args, quote = FALSE, envir = parent.frame()) {
+    # source: Gmisc
+    # author: Max Gordon <max@gforge.se>
+
+    if (quote) {
+        args <- lapply(args, enquote) # nocov
+    }
+
+    if (
+        is.null(names(args)) ||
+            is.data.frame(args)
+    ) {
+        argn <- args
+        args <- list()
+    } else {
+        # Add all the named arguments
+        argn <- lapply(names(args)[names(args) != ""], as.name)
+        names(argn) <- names(args)[names(args) != ""]
+        # Add the unnamed arguments
+        argn <- c(argn, args[names(args) == ""])
+        args <- args[names(args) != ""]
+    }
+
+    if (is.character(what)) {
+        fn <- strsplit(what, "[:]{2,3}")[[1]]
+        what <- if (length(fn) == 1) {
+            get(fn[[1]], envir = envir, mode = "function")
+        } else {
+            get(fn[[2]], envir = asNamespace(fn[[1]]), mode = "function")
+        }
+        call <- as.call(c(list(what), argn))
+    } else if (is.function(what)) {
+        f_name <- deparse1(substitute(what))
+        call <- as.call(c(list(as.name(f_name)), argn))
+        args[[f_name]] <- what
+    } else if (is.name(what)) {
+        call <- as.call(c(list(what), argn))
+    } else {
+        stop(
+            "'what' must be a function, a character string, or a name, not ",
+            class(what)[[1]]
+        )
+    }
+
+    eval(call, envir = args, enclos = envir)
 }

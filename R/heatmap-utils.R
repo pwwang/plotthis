@@ -1049,7 +1049,7 @@ process_heatmap_data <- function(
                 block_param$which <- param$which
                 block_param$side <- side
                 block_param$split_by <- split_by
-                anno_legend <- do.call(anno_block, block_param)
+                anno_legend <- do_call(anno_block, block_param)
                 # annos$show_annotation_name[[aname]] <- FALSE
                 param$show_legend <- FALSE
             } else {
@@ -1065,10 +1065,10 @@ process_heatmap_data <- function(
                 param$show_legend <- param$show_legend %||% show_legend
                 param$side <- side
                 if (annotype == "label") {
-                    anno_legend <- do.call(anno_text, param)
+                    anno_legend <- do_call(anno_text, param)
                 } else {
                     param[[worh]] <- param[[worh]] %||% unit(2.5, "mm")
-                    anno_legend <- do.call(anno_simple, param)
+                    anno_legend <- do_call(anno_simple, param)
                 }
             }
             annos[[aname]] <- anno_legend$anno
@@ -1176,7 +1176,7 @@ process_heatmap_data <- function(
             if (!exists(paste0("anno_", annotype))) {
                 stop("[Heatmap] Unsupported annotation type: ", annotype)
             }
-            anno <- do.call(paste0("anno_", annotype), param)
+            anno <- do_call(paste0("anno_", annotype), param)
             annos[[aname]] <- anno$anno
             .legends[[paste0(which, ".", aname)]] <- anno$legend
         }
@@ -1777,7 +1777,7 @@ anno_simple <- function(
     ...
 ) {
     if (!is.null(split_by)) {
-        x <- do.call(rbind, split(x, x[[split_by]]))
+        x <- do_call(rbind, split(x, x[[split_by]]))
     }
     if (!is.null(column)) {
         x <- x[[column]]
@@ -1855,7 +1855,7 @@ anno_points <- function(
     ...
 ) {
     if (!is.null(split_by)) {
-        x <- do.call(rbind, split(x, x[[split_by]]))
+        x <- do_call(rbind, split(x, x[[split_by]]))
     }
 
     anno <- ComplexHeatmap::anno_points(
@@ -1975,7 +1975,7 @@ anno_block <- function(
             )
         args$height <- args$height %||% max_height * 1.2
     }
-    anno <- do.call(ComplexHeatmap::anno_block, args)
+    anno <- do_call(ComplexHeatmap::anno_block, args)
     list(anno = anno, legend = NULL)
 }
 
@@ -1998,7 +1998,7 @@ anno_text <- function(
     ...
 ) {
     if (!is.null(split_by)) {
-        x <- do.call(rbind, split(x, x[[split_by]]))
+        x <- do_call(rbind, split(x, x[[split_by]]))
     }
     if (!is.null(column)) {
         x <- x[[column]]
@@ -2055,7 +2055,7 @@ anno_text <- function(
     }
     args$location <- args$location %||% max_height * 0.55
     args$just <- args$just %||% c("center", "center")
-    anno <- do.call(ComplexHeatmap::anno_text, args)
+    anno <- do_call(ComplexHeatmap::anno_text, args)
     list(anno = anno, legend = NULL)
 }
 

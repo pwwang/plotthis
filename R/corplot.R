@@ -365,7 +365,7 @@ CorPlotAtomic <- function(
             x = xlab %||% x,
             y = ylab %||% y
         ) +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,
@@ -841,7 +841,7 @@ CorPairsPlotAtomic <- function(
             args$add_bars <- args$add_bars %||% FALSE
             args$palette <- args$palette %||% palette
             args$palcolor <- args$palcolor %||% palcolor
-            p <- do.call(DensityPlot, args)
+            p <- do_call(DensityPlot, args)
             if (
                 is.null(group_by) ||
                     (identical(args$palette, palette) &&
@@ -861,7 +861,7 @@ CorPairsPlotAtomic <- function(
             args$y <- x
             args$palette <- args$palette %||% palette
             args$palcolor <- args$palcolor %||% palcolor
-            p <- do.call(ViolinPlot, args)
+            p <- do_call(ViolinPlot, args)
             if (
                 identical(args$palette, palette) &&
                     identical(args$palcolor, palcolor)
@@ -875,7 +875,7 @@ CorPairsPlotAtomic <- function(
             args$group_by <- group_by
             args$palette <- args$palette %||% palette
             args$palcolor <- args$palcolor %||% palcolor
-            p <- do.call(Histogram, args)
+            p <- do_call(Histogram, args)
             if (
                 is.null(group_by) ||
                     (identical(args$palette, palette) &&
@@ -895,7 +895,7 @@ CorPairsPlotAtomic <- function(
             args$y <- x
             args$palette <- args$palette %||% palette
             args$palcolor <- args$palcolor %||% palcolor
-            p <- do.call(BoxPlot, args)
+            p <- do_call(BoxPlot, args)
             if (
                 identical(args$palette, palette) &&
                     identical(args$palcolor, palcolor)
@@ -957,7 +957,7 @@ CorPairsPlotAtomic <- function(
                 scale_x_continuous(expand = expand) +
                 scale_y_continuous(expand = expand)
         }
-        p <- p + do.call(theme, theme_args)
+        p <- p + do_call(theme, theme_args)
 
         suppressMessages({
             # place the axis and labels

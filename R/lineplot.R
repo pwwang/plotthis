@@ -333,7 +333,7 @@ LinePlotSingle <- function(
             x = xlab %||% x,
             y = ylab %||% y
         ) +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,
@@ -652,7 +652,7 @@ LinePlotGrouped <- function(
             x = xlab %||% x,
             y = ylab %||% y
         ) +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,
@@ -881,7 +881,7 @@ LinePlotAtomic <- function(
     facet_args["byrow"] <- list(facet_byrow)
     facet_args["legend.position"] <- list(legend.position)
     facet_args["legend.direction"] <- list(legend.direction)
-    do.call(facet_plot, facet_args)
+    do_call(facet_plot, facet_args)
 }
 
 #' Line Plot

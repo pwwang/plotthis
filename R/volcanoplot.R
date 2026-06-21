@@ -425,7 +425,7 @@ VolcanoPlotAtomic <- function(
         coord_cartesian(clip = "off")
 
     p <- p +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,

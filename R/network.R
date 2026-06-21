@@ -496,8 +496,8 @@ NetworkAtomic <- function(
 
     ## Combine link layer
     p <- p +
-        do.call(ggraph::geom_edge_arc, link_layer_args) +
-        do.call(ggraph::geom_edge_loop, link_loop_layer_args)
+        do_call(ggraph::geom_edge_arc, link_layer_args) +
+        do_call(ggraph::geom_edge_loop, link_loop_layer_args)
 
     if (link_weight_by_guide == "guide") {
         p <- p +
@@ -565,7 +565,7 @@ NetworkAtomic <- function(
     # Compose node layer
     node_layer_args$data <- df_nodes
     node_layer_args$mapping <- Reduce(modify_list, node_layer_args$mapping)
-    p <- p + do.call(geom_point, node_layer_args)
+    p <- p + do_call(geom_point, node_layer_args)
 
     if (node_size_by_guide == "guide") {
         p <- p +
@@ -660,7 +660,7 @@ NetworkAtomic <- function(
             x = xlab %||% "",
             y = ylab %||% ""
         ) +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,

@@ -2323,12 +2323,12 @@ HeatmapAtomic <- function(
     )
     if (any(sapply(top_annos, inherits, "AnnotationFunction"))) {
         if (isTRUE(flip)) {
-            hmargs$left_annotation <- do.call(
+            hmargs$left_annotation <- do_call(
                 ComplexHeatmap::rowAnnotation,
                 top_annos
             )
         } else {
-            hmargs$top_annotation <- do.call(
+            hmargs$top_annotation <- do_call(
                 ComplexHeatmap::HeatmapAnnotation,
                 top_annos
             )
@@ -2336,12 +2336,12 @@ HeatmapAtomic <- function(
     }
     if (any(sapply(bottom_annos, inherits, "AnnotationFunction"))) {
         if (isTRUE(flip)) {
-            hmargs$right_annotation <- do.call(
+            hmargs$right_annotation <- do_call(
                 ComplexHeatmap::rowAnnotation,
                 bottom_annos
             )
         } else {
-            hmargs$bottom_annotation <- do.call(
+            hmargs$bottom_annotation <- do_call(
                 ComplexHeatmap::HeatmapAnnotation,
                 bottom_annos
             )
@@ -2450,12 +2450,12 @@ HeatmapAtomic <- function(
     }
     if (has_left) {
         if (isTRUE(flip)) {
-            hmargs$top_annotation <- do.call(
+            hmargs$top_annotation <- do_call(
                 ComplexHeatmap::HeatmapAnnotation,
                 left_side
             )
         } else {
-            hmargs$left_annotation <- do.call(
+            hmargs$left_annotation <- do_call(
                 ComplexHeatmap::rowAnnotation,
                 left_side
             )
@@ -2463,12 +2463,12 @@ HeatmapAtomic <- function(
     }
     if (has_right) {
         if (isTRUE(flip)) {
-            hmargs$bottom_annotation <- do.call(
+            hmargs$bottom_annotation <- do_call(
                 ComplexHeatmap::HeatmapAnnotation,
                 right_side
             )
         } else {
-            hmargs$right_annotation <- do.call(
+            hmargs$right_annotation <- do_call(
                 ComplexHeatmap::rowAnnotation,
                 right_side
             )
@@ -2762,7 +2762,7 @@ HeatmapAtomic <- function(
         )
         hmargs <- hmargs[setdiff(names(hmargs), unknown_args)]
     }
-    p <- do.call(ComplexHeatmap::Heatmap, hmargs)
+    p <- do_call(ComplexHeatmap::Heatmap, hmargs)
     mat <- p@matrix
     # Move label/mark legends to the end so they appear last
     if (!is.null(legends$.label)) {
@@ -2793,7 +2793,7 @@ HeatmapAtomic <- function(
     }
     draw_args <- utils::modifyList(draw_opts, draw_args_fixed)
 
-    p <- grid::grid.grabExpr(do.call(
+    p <- grid::grid.grabExpr(do_call(
         ComplexHeatmap::draw,
         c(list(p), draw_args)
     ))

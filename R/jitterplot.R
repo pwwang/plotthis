@@ -406,7 +406,7 @@ JitterPlotAtomic <- function(
     point_args$mapping <- Reduce(modify_list, mapping)
     point_args$data <- data
     point_args$show.legend <- TRUE
-    p <- p + do.call(geom_point, point_args)
+    p <- p + do_call(geom_point, point_args)
 
     # Discrete color/fill scales by x
     if (has_fill) {
@@ -605,7 +605,7 @@ JitterPlotAtomic <- function(
     }
 
     p <- p +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             axis.text.x = element_text(

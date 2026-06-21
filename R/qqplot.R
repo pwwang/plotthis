@@ -159,7 +159,7 @@ QQPlotAtomic <- function(
             bnd$alpha <- bnd$alpha %||% band_alpha
             bands <- c(bands, as_name(eval_tidy(bnd$mapping)$fill))
 
-            p <- p + do.call(band_fn, bnd)
+            p <- p + do_call(band_fn, bnd)
         }
     }
 
@@ -183,7 +183,7 @@ QQPlotAtomic <- function(
         } else {
             qqplotr::stat_pp_line
         }
-        p <- p + do.call(line_fn, line)
+        p <- p + do_call(line_fn, line)
     }
 
     if (!is.null(point)) {
@@ -192,7 +192,7 @@ QQPlotAtomic <- function(
         } else {
             qqplotr::stat_pp_point
         }
-        p <- p + do.call(point_fn, point)
+        p <- p + do_call(point_fn, point)
     }
 
     if (length(bands) > 0) {
@@ -220,7 +220,7 @@ QQPlotAtomic <- function(
             x = xlab %||% val,
             y = ylab %||% val
         ) +
-        do.call(theme, theme_args) +
+        do_call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             panel.grid.major = element_line(colour = "grey80", linetype = 2),
