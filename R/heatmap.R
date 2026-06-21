@@ -2229,7 +2229,7 @@ HeatmapAtomic <- function(
 #'     p
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
-#'     dot_size_data <- p@data
+#'     dot_size_data <- as.matrix(p$data)
 #'     # Make it big so we can see if we get the right indexing
 #'     # for dot_size function
 #'     dot_size_data["A", "a"] <- max(dot_size_data) * 2

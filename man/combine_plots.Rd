@@ -7,6 +7,7 @@
 combine_plots(
   plots,
   combine = TRUE,
+  split_by = NULL,
   nrow = NULL,
   ncol = NULL,
   byrow = NULL,
@@ -21,6 +22,8 @@ combine_plots(
 \item{plots}{A list of plots}
 
 \item{combine}{Whether to combine the plots into one}
+
+\item{split_by}{The column name to split the plots by. Used to compose the data for the combined plot.}
 
 \item{nrow}{The number of rows in the combined plot}
 

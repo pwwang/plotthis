@@ -496,7 +496,7 @@ SankeyPlot <- function(
         datas <- datas[levels(data[[split_by]])]
     } else {
         datas <- list(data)
-        names(datas) <- "..."
+        split_by <- names(datas) <- "..."
     }
 
     plots <- lapply(
@@ -524,7 +524,9 @@ SankeyPlot <- function(
         }
     )
 
-    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+    names(plots) <- names(datas)
+
+    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
         axes = axes, axis_titles = axis_titles, guides = guides, design = design)
 }
 

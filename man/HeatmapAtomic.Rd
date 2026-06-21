@@ -76,7 +76,6 @@ HeatmapAtomic(
   flip = FALSE,
   alpha = 1,
   seed = 8525,
-  return_grob = FALSE,
   padding = 15,
   base_size = 1,
   aspect.ratio = NULL,
@@ -403,9 +402,6 @@ that are passed to \code{ComplexHeatmap::Heatmap()} directly.}
 
 \item{seed}{The random seed to use. Default is 8525.}
 
-\item{return_grob}{A logical value indicating whether to return the grob object of the heatmap.
-This is useful when merging multiple heatmaps using patchwork.}
-
 \item{padding}{A numeric vector of length 4 specifying the padding of the heatmap in the order of top, right, bottom, left.
 Like padding in css. Note that it is different than the \code{padding} argument in \code{ComplexHeatmap::draw()}, which is the padding
 in the order of bottom, left, top, right.
@@ -460,7 +456,7 @@ with a default unit "inches", or a string like "5inches" to specify the number a
 Unmatched arguments will be warned and ignored.}
 }
 \value{
-A drawn HeatmapList object if \code{return_grob = FALSE}. Otherwise, a grob/gTree object.
+An object of heatmap that is wrapped by \code{patchwork::wrap_plots()}
 }
 \description{
 Atomic heatmap without split

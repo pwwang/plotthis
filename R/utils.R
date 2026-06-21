@@ -473,10 +473,11 @@ combine_plots <- function(
         }, silent = TRUE)
         return(p)
     }
-    # # When it's gTree, also run wrap_plots to convert it to a patchwork object
-    # if (length(plots) == 1 && !inherits(plots[[1]], "gTree")) {
-    #     return(plots[[1]])
-    # }
+    # When it's gTree, also run wrap_plots to convert it to a patchwork object
+    # CorPairsPlot
+    if (length(plots) == 1 && !inherits(plots[[1]], "gTree")) {
+        return(plots[[1]])
+    }
 
     p <- wrap_plots(
         plots,
@@ -488,12 +489,14 @@ combine_plots <- function(
         guides = guides,
         design = design
     )
-    p$data <- do.call(rbind, lapply(names(plots), function(nm) {
-        p <- plots[[nm]]
-        d <- p$data
-        d[[split_by]] <- nm
-        return(d)
-    }))
+    if (!is.null(split_by)) {
+        p$data <- do.call(rbind, lapply(names(plots), function(nm) {
+            p <- plots[[nm]]
+            d <- p$data
+            d[[split_by]] <- nm
+            return(d)
+        }))
+    }
 
     p
 }

@@ -1421,7 +1421,7 @@ DimPlot <- function(
         }
     } else {
         datas <- list(data)
-        names(datas) <- "..."
+        split_by <- names(datas) <- "..."
     }
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
@@ -1471,7 +1471,9 @@ DimPlot <- function(
         }
     )
 
-    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+    names(plots) <- names(datas)
+
+    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
         axes = axes, axis_titles = axis_titles, guides = guides, design = design)
 }
 
@@ -1587,6 +1589,8 @@ FeatureDimPlot <- function(
                 palette = palette, palcolor = palcolor, palreverse = palreverse, seed = seed, ...
             )
         )
+        names(plots) <- features
+        split_by <- ".features"
     } else {
         keep_na <- check_keep_na(keep_na, c(facet_by, stat_by))
         keep_empty <- check_keep_empty(keep_empty, c(facet_by, stat_by))
@@ -1611,7 +1615,7 @@ FeatureDimPlot <- function(
             }
         } else {
             datas <- list(data)
-            names(datas) <- "..."
+            split_by <- names(datas) <- "..."
         }
         palette <- check_palette(palette, names(datas))
         palcolor <- check_palcolor(palcolor, names(datas))
@@ -1661,8 +1665,9 @@ FeatureDimPlot <- function(
                 )
             }
         )
+        names(plots) <- names(datas)
     }
 
-    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
         axes = axes, axis_titles = axis_titles, guides = guides, design = design)
 }
