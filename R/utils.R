@@ -525,7 +525,8 @@ facet_plot <- function(
 #' @keywords internal
 #' @param plots A list of plots
 #' @param combine Whether to combine the plots into one
-#' @param split_by The column name to split the plots by. Used to compose the data for the combined plot.
+#' @param split_by The column name to split the plots by. When provided,
+#' the combined data from all sub-plots is available via \code{p$data}.
 #' @param nrow The number of rows in the combined plot
 #' @param ncol The number of columns in the combined plot
 #' @param byrow Whether to fill the plots by row
@@ -586,6 +587,38 @@ combine_plots <- function(
         return(plots[[1]])
     }
 
+    if (!is.null(split_by)) {
+        # Build the row-bound combined data from all sub-plots.
+        # Some plot types (e.g. Heatmap) may have sub-plots with different
+        # column names, so we align columns before rbinding.
+        split_dfs <- lapply(names(plots), function(nm) {
+            d <- plots[[nm]]$data
+            d[[split_by]] <- nm
+            return(d)
+        })
+        if (all(vapply(split_dfs, is.data.frame, logical(1)))) {
+            all_cols <- unique(unlist(lapply(split_dfs, names)))
+            split_dfs <- lapply(split_dfs, function(d) {
+                missing <- setdiff(all_cols, names(d))
+                for (col in missing) d[[col]] <- NA
+                d[, all_cols, drop = FALSE]
+            })
+            combined_data <- do_call(rbind, split_dfs)
+        } else {
+            combined_data <- do_call(rbind, split_dfs)
+        }
+
+        # For standard ggplot plots, wrap_plots uses the last sub-plot as
+        # the rendering base. We set the combined data on it and give each
+        # layer explicit per-split data so rendering is unaffected.
+        last_idx <- length(plots)
+        last_orig_data <- plots[[last_idx]]$data
+        plots[[last_idx]]$data <- combined_data
+        for (i in seq_along(plots[[last_idx]]$layers)) {
+            plots[[last_idx]]$layers[[i]]$data <- last_orig_data
+        }
+    }
+
     p <- wrap_plots(
         plots,
         nrow = nrow,
@@ -596,16 +629,12 @@ combine_plots <- function(
         guides = guides,
         design = design
     )
+
+    # For non-ggplot sub-plots (e.g. wrap_elements / grid grobs),
+    # wrap_plots creates a waiver() $data instead of inheriting from
+    # the last sub-plot. Set it explicitly so p$data always works.
     if (!is.null(split_by)) {
-        p$data <- do_call(
-            rbind,
-            lapply(names(plots), function(nm) {
-                p <- plots[[nm]]
-                d <- p$data
-                d[[split_by]] <- nm
-                return(d)
-            })
-        )
+        p$data <- combined_data
     }
 
     p

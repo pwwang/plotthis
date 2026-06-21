@@ -322,7 +322,7 @@ p <- BarPlot(data = iris, x = "Species")
 head(p$data)
 ```
 
-When `split_by` is used, `combine_plots()` **row-binds** the individual data frames from each sub-plot and adds a column named after the `split_by` variable, with values identifying which split each row came from:
+When `split_by` is used, `combine_plots()` **row-binds** the individual data frames from each sub-plot. The combined data is stored on the last sub-plot (which `patchwork::wrap_plots()` uses as the rendering base), with each layer retaining its original per-split data explicitly so that rendering is unaffected. The result is that `p$data` returns the combined data uniformly for both simple and split plots:
 
 ```{r}
 p <- BarPlot(
@@ -331,17 +331,16 @@ p <- BarPlot(
     split_by = "Species"
 )
 unique(p$data[["Species"]])  # shows the split levels
-table(p$data[["Species"]])   # one row per split level
+table(p$data[["Species"]])   # counts per split level
 ```
 
-This makes it straightforward to verify what data went into each sub-plot, or to extract the combined data for further analysis:
+To inspect the data for a specific split level:
 
 ```r
-# Inspect the data for a specific split level
 subset(p$data, Species == "setosa")
 ```
 
-Note that when `split_by` is used, the `p$data` is **reconstructed** from the individual sub-plot data — it may differ from the original input data due to per-split processing (`keep_na`, `keep_empty`, aggregation, etc.).
+Note that when `split_by` is used, the combined `p$data` is **reconstructed** from the individual sub-plot data — it may differ from the original input data due to per-split processing (`keep_na`, `keep_empty`, aggregation, etc.).
 
 ## Tracing the ggplot calls for debugging
 
