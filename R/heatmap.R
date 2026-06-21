@@ -214,8 +214,6 @@
 #' @param palette A character string specifying the palette of the heatmap cells.
 #' @param palcolor A character vector of colors to override the palette of the heatmap cells.
 #' @param alpha A numeric value between 0 and 1 specifying the transparency of the heatmap cells.
-#' @param return_grob A logical value indicating whether to return the grob object of the heatmap.
-#'  This is useful when merging multiple heatmaps using patchwork.
 #' @param padding A numeric vector of length 4 specifying the padding of the heatmap in the order of top, right, bottom, left.
 #' Like padding in css. Note that it is different than the `padding` argument in `ComplexHeatmap::draw()`, which is the padding
 #' in the order of bottom, left, top, right.
@@ -253,7 +251,7 @@
 #' @importFrom ggplot2 ggplotGrob theme_void
 #' @importFrom grid grid.rect grid.text grid.lines grid.points viewport gpar unit grid.draw is.unit
 #' @importFrom grid convertUnit grid.grabExpr
-#' @return A drawn HeatmapList object if `return_grob = FALSE`. Otherwise, a grob/gTree object.
+#' @return An object of heatmap that is wrapped by `patchwork::wrap_plots()`
 #' @keywords internal
 HeatmapAtomic <- function(
     data, values_by, values_fill = NA,
@@ -295,7 +293,7 @@ HeatmapAtomic <- function(
     row_annotation = NULL, row_annotation_side = "left", row_annotation_palette = "Paired", row_annotation_palcolor = NULL,
     row_annotation_type = "auto", row_annotation_params = list(), row_annotation_agg = NULL,
     # misc
-    flip = FALSE, alpha = 1, seed = 8525, return_grob = FALSE, padding = 15, base_size = 1, aspect.ratio = NULL, draw_opts = list(),
+    flip = FALSE, alpha = 1, seed = 8525, padding = 15, base_size = 1, aspect.ratio = NULL, draw_opts = list(),
     # cell customization
     layer_fun_callback = NULL, cell_type = "tile", cell_agg = NULL,
     ...
@@ -1923,26 +1921,8 @@ HeatmapAtomic <- function(
     }
     draw_args <- utils::modifyList(draw_opts, draw_args_fixed)
 
-    if (isTRUE(return_grob)) {
-        p <- grid::grid.grabExpr(do.call(ComplexHeatmap::draw, c(list(p), draw_args)))
-    } else {
-        # When return_grob = FALSE (ggplot2 v4), ComplexHeatmap::draw() will render
-        # to the graphics device. To prevent unwanted output during assignment while
-        # still allowing proper display when explicitly printed, we capture to a
-        # null device first, then return the HeatmapList which can be drawn later.
-        # Size the null device to the full computed dimensions so ComplexHeatmap
-        # builds layout at the right proportions.
-        current_dev <- grDevices::dev.cur()
-        null_dev <- grDevices::pdf(NULL)
-        on.exit({
-            grDevices::dev.off()  # Close the null device
-            if (current_dev > 1) {
-                grDevices::dev.set(current_dev)  # Restore the previous device if it wasn't null
-            }
-        }, add = TRUE)
-
-        p <- do.call(ComplexHeatmap::draw, c(list(p), draw_args))
-    }
+    p <- grid::grid.grabExpr(do.call(ComplexHeatmap::draw, c(list(p), draw_args)))
+    p <- patchwork::wrap_plots(p)
 
     min_size_in <- 4
     max_size_in <- 64
@@ -1964,8 +1944,7 @@ HeatmapAtomic <- function(
             attr(p, "width") <- attr(p, "height") / ratio
         }
     }
-
-    attr(p, "data") <- mat
+    p$data <- as.data.frame(mat)
     p
 }
 
@@ -1979,6 +1958,8 @@ HeatmapAtomic <- function(
 #' FALSE to remove NA groups; TRUE to keep NA groups.
 #' A vector of column names can also be provided to specify which columns to keep NA groups.
 #' Note that the record will be removed if any of the grouping columns has NA and is not specified to keep NA.
+#' @return A patchwork wrapped heatmap object if `combine` is `TRUE`;
+#' otherwise a list of heatmap objects if `combine` is `FALSE` and `split_by` is specified.
 #' @export
 #' @importFrom patchwork wrap_plots
 #' @seealso \code{\link{anno_simple}}, \code{\link{anno_points}}, \code{\link{anno_lines}}, \code{\link{anno_pie}}, \code{\link{anno_violin}}, \code{\link{anno_boxplot}}, \code{\link{anno_density}}
@@ -2386,6 +2367,7 @@ Heatmap <- function(
         pie_group_by = pie_group_by, pie_group_by_sep = pie_group_by_sep, pie_name = pie_name,
         rows_data = rows_data, columns_data = columns_data, keep_na = keep_na, keep_empty = keep_empty
     )
+    split_by <- split_by %||% "..."
 
     palette <- check_palette(palette, names(hmdata$data))
     palcolor <- check_palcolor(palcolor, names(hmdata$data))
@@ -2393,9 +2375,6 @@ Heatmap <- function(
     pie_palcolor <- check_palcolor(pie_palcolor, names(hmdata$data))
     legend.direction <- check_legend(legend.direction, names(hmdata$data), "legend.direction")
     legend.position <- check_legend(legend.position, names(hmdata$data), "legend.position")
-
-    ggplot2_v4 <- utils::compareVersion(as.character(utils::packageVersion("ggplot2")), "4") >= 0
-    return_grob <- !ggplot2_v4 || length(hmdata$data) > 1
 
     plots <- lapply(
         names(hmdata$data), function(nm) {
@@ -2445,21 +2424,19 @@ Heatmap <- function(
                 row_annotation_type = row_annotation_type, row_annotation_params = row_annotation_params,
                 row_annotation_agg = row_annotation_agg,
 
-                flip = flip, alpha = alpha, seed = seed, return_grob = return_grob, base_size = base_size, aspect.ratio = aspect.ratio, draw_opts = draw_opts,
+                flip = flip, alpha = alpha, seed = seed, base_size = base_size, aspect.ratio = aspect.ratio, draw_opts = draw_opts,
                 layer_fun_callback = layer_fun_callback, cell_type = cell_type, cell_agg = cell_agg,
 
                 ...
             )
         }
     )
+    names(plots) <- names(hmdata$data)
 
     p <- combine_plots(plots,
-        combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
+        combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
         axes = axes, axis_titles = axis_titles, guides = guides, design = design
     )
-    if (length(plots) == 1) {
-        attr(p, "data") <- attr(plots[[1]], "data")
-    }
 
     # Return the plot object
     # When return_grob = FALSE, p is a HeatmapList object with auto-printing behavior
