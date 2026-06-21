@@ -21,21 +21,65 @@
 #' @importFrom ggplot2 geom_area scale_x_discrete scale_y_continuous scale_fill_manual
 #' @importFrom ggplot2 labs theme element_line element_text position_stack waiver
 AreaPlotAtomic <- function(
-    data, x, y = NULL, x_sep = "_", group_by = NULL, group_by_sep = "_", group_name = NULL, scale_y = FALSE,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 1,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    x_text_angle = 0, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_na = FALSE, keep_empty = FALSE, ...
+    data,
+    x,
+    y = NULL,
+    x_sep = "_",
+    group_by = NULL,
+    group_by_sep = "_",
+    group_name = NULL,
+    scale_y = FALSE,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Paired",
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 1,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    x_text_angle = 0,
+    aspect.ratio = 1,
+    legend.position = waiver(),
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    keep_na = FALSE,
+    keep_empty = FALSE,
+    ...
 ) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
     } else {
         ggplot2::ggplot
     }
-    x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
+    x <- check_columns(
+        data,
+        x,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = x_sep
+    )
     y <- check_columns(data, y)
-    group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
-    facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
+    group_by <- check_columns(
+        data,
+        group_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = group_by_sep
+    )
+    facet_by <- check_columns(
+        data,
+        facet_by,
+        force_factor = TRUE,
+        allow_multi = TRUE
+    )
     data <- process_keep_na_empty(data, keep_na, keep_empty)
     # TRUE: unused levels will be kept on X axis
     # FALSE/level: unused levels will be dropped
@@ -47,10 +91,18 @@ AreaPlotAtomic <- function(
     # TRUE: unused levels will be kept in facet_by
     # FALSE/level: unused levels will be dropped
     # 2-column facet_by is not supported yet
-    keep_empty_facet <- if (!is.null(facet_by)) keep_empty[[facet_by[1]]] else NULL
+    keep_empty_facet <- if (!is.null(facet_by)) {
+        keep_empty[[facet_by[1]]]
+    } else {
+        NULL
+    }
     if (length(facet_by) > 1) {
-        stopifnot("[AreaPlot] `keep_empty` for `facet_by` variables must be identical." =
-            identical(keep_empty_facet, keep_empty[[facet_by[2]]]))
+        stopifnot(
+            "[AreaPlot] `keep_empty` for `facet_by` variables must be identical." = identical(
+                keep_empty_facet,
+                keep_empty[[facet_by[2]]]
+            )
+        )
     }
 
     orig_data <- data
@@ -61,7 +113,10 @@ AreaPlotAtomic <- function(
             summarise(.count = n(), .groups = "drop")
         # keep the levels
         for (col in unique(c(x, group_by, facet_by))) {
-            data[[col]] <- factor(data[[col]], levels = levels(orig_data[[col]]))
+            data[[col]] <- factor(
+                data[[col]],
+                levels = levels(orig_data[[col]])
+            )
         }
     }
 
@@ -72,7 +127,10 @@ AreaPlotAtomic <- function(
             ungroup()
         # keep the levels
         for (col in unique(c(x, group_by, facet_by))) {
-            data[[col]] <- factor(data[[col]], levels = levels(orig_data[[col]]))
+            data[[col]] <- factor(
+                data[[col]],
+                levels = levels(orig_data[[col]])
+            )
         }
     }
     rm(orig_data)
@@ -80,16 +138,26 @@ AreaPlotAtomic <- function(
     if (is.null(group_by)) {
         data$.fill <- factor("")
         group_by <- ".fill"
-        legend.position <- ifelse(inherits(legend.position, "waiver"), "none", "right")
+        legend.position <- ifelse(
+            inherits(legend.position, "waiver"),
+            "none",
+            "right"
+        )
     } else {
-        legend.position <- ifelse(inherits(legend.position, "waiver"), "right", legend.position)
+        legend.position <- ifelse(
+            inherits(legend.position, "waiver"),
+            "right",
+            legend.position
+        )
     }
     if (!isTRUE(keep_empty_x)) {
         data[[x]] <- droplevels(data[[x]])
     }
 
     x_vals <- levels(data[[x]])
-    if (anyNA(data[[x]])) x_vals <- c(x_vals, NA)
+    if (anyNA(data[[x]])) {
+        x_vals <- c(x_vals, NA)
+    }
 
     # group_by_vals <- if (!isTRUE(keep_empty_group) || !anyNA(data[[group_by]])) {
     #     levels(data[[group_by]])
@@ -97,8 +165,16 @@ AreaPlotAtomic <- function(
     #     c(levels(data[[group_by]]), NA)
     # }
     group_by_vals <- levels(data[[group_by]])
-    if (anyNA(data[[group_by]])) group_by_vals <- c(group_by_vals, NA)
-    group_colors <- palette_this(group_by_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE, reverse = palreverse)
+    if (anyNA(data[[group_by]])) {
+        group_by_vals <- c(group_by_vals, NA)
+    }
+    group_colors <- palette_this(
+        group_by_vals,
+        palette = palette,
+        palcolor = palcolor,
+        NA_keep = TRUE,
+        reverse = palreverse
+    )
 
     just <- calc_just(x_text_angle)
 
@@ -112,42 +188,76 @@ AreaPlotAtomic <- function(
     # Restore factor levels that complete() may have altered
     for (col in complete_vars) {
         if (is.factor(data[[col]])) {
-            data_complete[[col]] <- factor(data_complete[[col]], levels = levels(data[[col]]))
+            data_complete[[col]] <- factor(
+                data_complete[[col]],
+                levels = levels(data[[col]])
+            )
         }
     }
 
     # Convert x to numeric, handling NA values by assigning them the next position
     data_complete$.x_numeric <- as.numeric(data_complete[[x]])
     if (anyNA(data_complete[[x]])) {
-        data_complete$.x_numeric[is.na(data_complete[[x]])] <- length(levels(data_complete[[x]])) + 1
+        data_complete$.x_numeric[is.na(data_complete[[
+            x
+        ]])] <- length(levels(data_complete[[x]])) + 1
     }
 
-    p <- ggplot(data_complete, aes(x = !!sym(".x_numeric"), y = !!sym(y), fill = !!sym(group_by))) +
-        geom_area(alpha = alpha, color = "grey50", position = position_stack(vjust = 0.5), show.legend = TRUE) +
-        scale_x_discrete(expand = c(0, 0), breaks = x_vals, limits = x_vals, drop = isFALSE(keep_empty_x)) +
-        scale_y_continuous(expand = c(0, 0), labels = if (isFALSE(scale_y)) scales::number else scales::percent) +
-        labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
+    p <- ggplot(
+        data_complete,
+        aes(x = !!sym(".x_numeric"), y = !!sym(y), fill = !!sym(group_by))
+    ) +
+        geom_area(
+            alpha = alpha,
+            color = "grey50",
+            position = position_stack(vjust = 0.5),
+            show.legend = TRUE
+        ) +
+        scale_x_discrete(
+            expand = c(0, 0),
+            breaks = x_vals,
+            limits = x_vals,
+            drop = isFALSE(keep_empty_x)
+        ) +
+        scale_y_continuous(
+            expand = c(0, 0),
+            labels = if (isFALSE(scale_y)) scales::number else scales::percent
+        ) +
+        labs(
+            title = title,
+            subtitle = subtitle,
+            x = xlab %||% x,
+            y = ylab %||% y
+        ) +
         do.call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,
             legend.direction = legend.direction,
             panel.grid.major = element_line(colour = "grey80", linetype = 2),
-            axis.text.x = element_text(angle = x_text_angle, hjust = just$h, vjust = just$v)
+            axis.text.x = element_text(
+                angle = x_text_angle,
+                hjust = just$h,
+                vjust = just$v
+            )
         )
 
     if (isTRUE(keep_empty_group)) {
         p <- p +
             scale_fill_manual(
                 name = group_name %||% group_by,
-                values = group_colors, na.value = group_colors["NA"] %||% "grey80",
-                breaks = group_by_vals, limits = group_by_vals, drop = FALSE
+                values = group_colors,
+                na.value = group_colors["NA"] %||% "grey80",
+                breaks = group_by_vals,
+                limits = group_by_vals,
+                drop = FALSE
             )
     } else {
         p <- p +
             scale_fill_manual(
                 name = group_name %||% group_by,
-                values = group_colors, na.value = group_colors["NA"] %||% "grey80"
+                values = group_colors,
+                na.value = group_colors["NA"] %||% "grey80"
             )
     }
 
@@ -167,9 +277,17 @@ AreaPlotAtomic <- function(
     attr(p, "height") <- dims$height
     attr(p, "width") <- dims$width
 
-    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-        legend.position = legend.position, legend.direction = legend.direction,
-        drop = !isTRUE(keep_empty_facet))
+    facet_plot(
+        p,
+        facet_by,
+        facet_scales,
+        facet_nrow,
+        facet_ncol,
+        facet_byrow,
+        legend.position = legend.position,
+        legend.direction = legend.direction,
+        drop = !isTRUE(keep_empty_facet)
+    )
 }
 
 #' Area plot
@@ -218,20 +336,63 @@ AreaPlotAtomic <- function(
 #'     keep_na = list(x = FALSE, group = TRUE), keep_empty = list(x = TRUE, group = FALSE))
 #' }
 AreaPlot <- function(
-    data, x, y = NULL, x_sep = "_", split_by = NULL, split_by_sep = "_",
-    group_by = NULL, group_by_sep = "_", group_name = NULL, scale_y = FALSE,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 1,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    x_text_angle = 0, aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_na = FALSE, keep_empty = FALSE, seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL,
-    design = NULL, ...
-){
+    data,
+    x,
+    y = NULL,
+    x_sep = "_",
+    split_by = NULL,
+    split_by_sep = "_",
+    group_by = NULL,
+    group_by_sep = "_",
+    group_name = NULL,
+    scale_y = FALSE,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Paired",
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 1,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    x_text_angle = 0,
+    aspect.ratio = 1,
+    legend.position = waiver(),
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    keep_na = FALSE,
+    keep_empty = FALSE,
+    seed = 8525,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
+    ...
+) {
     validate_common_args(seed, facet_by = facet_by)
     keep_na <- check_keep_na(keep_na, c(x, split_by, group_by, facet_by))
-    keep_empty <- check_keep_empty(keep_empty, c(x, split_by, group_by, facet_by))
+    keep_empty <- check_keep_empty(
+        keep_empty,
+        c(x, split_by, group_by, facet_by)
+    )
     theme <- process_theme(theme)
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
+    split_by <- check_columns(
+        data,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
 
     if (!is.null(split_by)) {
         data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
@@ -246,12 +407,25 @@ AreaPlot <- function(
     }
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
-    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
-    legend.position <- check_legend(legend.position, names(datas), "legend.position")
+    legend.direction <- check_legend(
+        legend.direction,
+        names(datas),
+        "legend.direction"
+    )
+    legend.position <- check_legend(
+        legend.position,
+        names(datas),
+        "legend.position"
+    )
 
     plots <- lapply(
-        names(datas), function(nm) {
-            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+        names(datas),
+        function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) {
+                NULL
+            } else {
+                nm
+            }
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
@@ -259,17 +433,51 @@ AreaPlot <- function(
             }
             AreaPlotAtomic(
                 datas[[nm]],
-                x = x, y = y, x_sep = x_sep, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name, scale_y = scale_y,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, alpha = alpha,
-                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                x_text_angle = x_text_angle, aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_na = keep_na, keep_empty = keep_empty, ...
+                x = x,
+                y = y,
+                x_sep = x_sep,
+                group_by = group_by,
+                group_by_sep = group_by_sep,
+                group_name = group_name,
+                scale_y = scale_y,
+                theme = theme,
+                theme_args = theme_args,
+                palette = palette[[nm]],
+                palcolor = palcolor[[nm]],
+                palreverse = palreverse,
+                alpha = alpha,
+                facet_by = facet_by,
+                facet_scales = facet_scales,
+                facet_ncol = facet_ncol,
+                facet_nrow = facet_nrow,
+                facet_byrow = facet_byrow,
+                x_text_angle = x_text_angle,
+                aspect.ratio = aspect.ratio,
+                legend.position = legend.position[[nm]],
+                legend.direction = legend.direction[[nm]],
+                title = title,
+                subtitle = subtitle,
+                xlab = xlab,
+                ylab = ylab,
+                keep_na = keep_na,
+                keep_empty = keep_empty,
+                ...
             )
         }
     )
 
     names(plots) <- names(datas)
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }

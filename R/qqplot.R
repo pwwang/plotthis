@@ -38,12 +38,33 @@
 #' @importFrom utils modifyList
 #' @importFrom ggplot2 aes waiver scale_fill_manual labs
 QQPlotAtomic <- function(
-    data, val, val_trans = NULL, type = c("qq", "pp"),
-    band = NULL, line = list(), point = list(), fill_name = "Bands", band_alpha = 0.5,
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, palreverse = FALSE,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
-    title = NULL, subtitle = NULL, seed = 8525, xlim = NULL, ylim = NULL,
+    data,
+    val,
+    val_trans = NULL,
+    type = c("qq", "pp"),
+    band = NULL,
+    line = list(),
+    point = list(),
+    fill_name = "Bands",
+    band_alpha = 0.5,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Spectral",
+    palcolor = NULL,
+    palreverse = FALSE,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    aspect.ratio = 1,
+    legend.position = waiver(),
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    seed = 8525,
+    xlim = NULL,
+    ylim = NULL,
     xlab = ifelse(type == "qq", "Theoretical Quantiles", "Probability Points"),
     ylab = ifelse(type == "qq", "Sample Quantiles", "Cumulative Probability"),
     ...
@@ -55,11 +76,31 @@ QQPlotAtomic <- function(
         ggplot2::ggplot
     }
     type <- match.arg(type)
-    stopifnot("[QQPlot] 'band' must be TRUE, a list or NULL" = isTRUE(band) || is.list(band) || is.null(band))
-    stopifnot("[QQPlot] 'line' must be a list or NULL" = is.list(line) || is.null(line))
-    stopifnot("[QQPlot] 'point' must be a list or NULL" = is.list(point) || is.null(point))
-    stopifnot("[QQPlot] 'xlim' must be a numeric vector of length 2 or NULL" = is.null(xlim) || (is.numeric(xlim) && length(xlim) == 2))
-    stopifnot("[QQPlot] 'ylim' must be a numeric vector of length 2 or NULL" = is.null(ylim) || (is.numeric(ylim) && length(ylim) == 2))
+    stopifnot(
+        "[QQPlot] 'band' must be TRUE, a list or NULL" = isTRUE(band) ||
+            is.list(band) ||
+            is.null(band)
+    )
+    stopifnot(
+        "[QQPlot] 'line' must be a list or NULL" = is.list(line) ||
+            is.null(line)
+    )
+    stopifnot(
+        "[QQPlot] 'point' must be a list or NULL" = is.list(point) ||
+            is.null(point)
+    )
+    stopifnot(
+        "[QQPlot] 'xlim' must be a numeric vector of length 2 or NULL" = is.null(
+            xlim
+        ) ||
+            (is.numeric(xlim) && length(xlim) == 2)
+    )
+    stopifnot(
+        "[QQPlot] 'ylim' must be a numeric vector of length 2 or NULL" = is.null(
+            ylim
+        ) ||
+            (is.numeric(ylim) && length(ylim) == 2)
+    )
 
     val <- check_columns(data, val)
 
@@ -69,7 +110,7 @@ QQPlotAtomic <- function(
 
     p <- ggplot(data, aes(sample = !!sym(val)))
 
-    bands = c()
+    bands <- c()
     if (!is.null(band)) {
         band_fn <- if (type == "qq") {
             qqplotr::stat_qq_band
@@ -77,37 +118,39 @@ QQPlotAtomic <- function(
             qqplotr::stat_pp_band
         }
         if (isTRUE(band)) {
-            band = list()
+            band <- list()
         }
         if (length(band) == 0 || !is.null(names(band))) {
             # single band
-            band = list(band)
+            band <- list(band)
         }
         for (i in seq_along(band)) {
             bnd <- band[[i]]
             if (i == 1) {
                 # Using paste, aes does not evaluate eagerly, is there a better way?
-                default_bnd_fill = aes(fill = "Band_1")
+                default_bnd_fill <- aes(fill = "Band_1")
             } else if (i == 2) {
-                default_bnd_fill = aes(fill = "Band_2")
+                default_bnd_fill <- aes(fill = "Band_2")
             } else if (i == 3) {
-                default_bnd_fill = aes(fill = "Band_3")
+                default_bnd_fill <- aes(fill = "Band_3")
             } else if (i == 4) {
-                default_bnd_fill = aes(fill = "Band_4")
+                default_bnd_fill <- aes(fill = "Band_4")
             } else if (i == 5) {
-                default_bnd_fill = aes(fill = "Band_5")
+                default_bnd_fill <- aes(fill = "Band_5")
             } else if (i == 6) {
-                default_bnd_fill = aes(fill = "Band_6")
+                default_bnd_fill <- aes(fill = "Band_6")
             } else if (i == 7) {
-                default_bnd_fill = aes(fill = "Band_7")
+                default_bnd_fill <- aes(fill = "Band_7")
             } else if (i == 8) {
-                default_bnd_fill = aes(fill = "Band_8")
+                default_bnd_fill <- aes(fill = "Band_8")
             } else if (i == 9) {
-                default_bnd_fill = aes(fill = "Band_9")
+                default_bnd_fill <- aes(fill = "Band_9")
             } else if (i == 10) {
-                default_bnd_fill = aes(fill = "Band_10")
+                default_bnd_fill <- aes(fill = "Band_10")
             } else {
-                stop("[QQPlot] Too many bands! Please specify the fill aesthetic manually.")
+                stop(
+                    "[QQPlot] Too many bands! Please specify the fill aesthetic manually."
+                )
             }
             bnd$mapping <- bnd$mapping %||% default_bnd_fill
             if (is.null(bnd$mapping$fill)) {
@@ -121,9 +164,17 @@ QQPlotAtomic <- function(
     }
 
     if (length(bands) == 0 || all(startsWith(bands, "Band_"))) {
-        legend.position <- ifelse(inherits(legend.position, "waiver"), "none", legend.position)
+        legend.position <- ifelse(
+            inherits(legend.position, "waiver"),
+            "none",
+            legend.position
+        )
     } else {
-        legend.position <- ifelse(inherits(legend.position, "waiver"), "right", legend.position)
+        legend.position <- ifelse(
+            inherits(legend.position, "waiver"),
+            "right",
+            legend.position
+        )
     }
 
     if (!is.null(line)) {
@@ -148,7 +199,12 @@ QQPlotAtomic <- function(
         p <- p +
             scale_fill_manual(
                 name = fill_name,
-                values = palette_this(bands, palette = palette, palcolor = palcolor, reverse = palreverse)
+                values = palette_this(
+                    bands,
+                    palette = palette,
+                    palcolor = palcolor,
+                    reverse = palreverse
+                )
             )
     }
     if (!is.null(xlim)) {
@@ -158,7 +214,12 @@ QQPlotAtomic <- function(
         p <- p + ggplot2::ylim(ylim[1], ylim[2])
     }
     p <- p +
-        labs(title = title, subtitle = subtitle, x = xlab %||% val, y = ylab %||% val) +
+        labs(
+            title = title,
+            subtitle = subtitle,
+            x = xlab %||% val,
+            y = ylab %||% val
+        ) +
         do.call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
@@ -179,8 +240,16 @@ QQPlotAtomic <- function(
     attr(p, "height") <- dims$height
     attr(p, "width") <- dims$width
 
-    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-        legend.position = legend.position, legend.direction = legend.direction)
+    facet_plot(
+        p,
+        facet_by,
+        facet_scales,
+        facet_nrow,
+        facet_ncol,
+        facet_byrow,
+        legend.position = legend.position,
+        legend.direction = legend.direction
+    )
 }
 
 
@@ -240,21 +309,57 @@ QQPlotAtomic <- function(
 #'    ylim = c(-.5, .5)
 #' )
 QQPlot <- function(
-    data, val, val_trans = NULL, type = c("qq", "pp"), split_by = NULL, split_by_sep = "_",
-    band = NULL, line = list(), point = list(), fill_name = "Bands", band_alpha = 0.5,
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, palreverse = FALSE,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlim = NULL, ylim = NULL,
+    data,
+    val,
+    val_trans = NULL,
+    type = c("qq", "pp"),
+    split_by = NULL,
+    split_by_sep = "_",
+    band = NULL,
+    line = list(),
+    point = list(),
+    fill_name = "Bands",
+    band_alpha = 0.5,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Spectral",
+    palcolor = NULL,
+    palreverse = FALSE,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    aspect.ratio = 1,
+    legend.position = waiver(),
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlim = NULL,
+    ylim = NULL,
     xlab = ifelse(type == "qq", "Theoretical Quantiles", "Probability Points"),
     ylab = ifelse(type == "qq", "Sample Quantiles", "Cumulative Probability"),
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525,
-    axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    seed = 8525,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
     ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
     theme <- process_theme(theme)
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
+    split_by <- check_columns(
+        data,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
 
     if (!is.null(split_by)) {
         data[[split_by]] <- droplevels(data[[split_by]])
@@ -267,24 +372,60 @@ QQPlot <- function(
     }
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
-    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
-    legend.position <- check_legend(legend.position, names(datas), "legend.position")
+    legend.direction <- check_legend(
+        legend.direction,
+        names(datas),
+        "legend.direction"
+    )
+    legend.position <- check_legend(
+        legend.position,
+        names(datas),
+        "legend.position"
+    )
 
     plots <- lapply(
-        names(datas), function(nm) {
-            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+        names(datas),
+        function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) {
+                NULL
+            } else {
+                nm
+            }
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
                 title <- title %||% default_title
             }
             QQPlotAtomic(
-                datas[[nm]], val = val, val_trans = val_trans, type = type,
-                band = band, line = line, point = point, fill_name = fill_name, band_alpha = band_alpha,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse,
-                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, xlim = xlim, ylim = ylim,
+                datas[[nm]],
+                val = val,
+                val_trans = val_trans,
+                type = type,
+                band = band,
+                line = line,
+                point = point,
+                fill_name = fill_name,
+                band_alpha = band_alpha,
+                theme = theme,
+                theme_args = theme_args,
+                palette = palette[[nm]],
+                palcolor = palcolor[[nm]],
+                palreverse = palreverse,
+                facet_by = facet_by,
+                facet_scales = facet_scales,
+                facet_ncol = facet_ncol,
+                facet_nrow = facet_nrow,
+                facet_byrow = facet_byrow,
+                aspect.ratio = aspect.ratio,
+                legend.position = legend.position[[nm]],
+                legend.direction = legend.direction[[nm]],
+                title = title,
+                subtitle = subtitle,
+                xlab = xlab,
+                ylab = ylab,
+                seed = seed,
+                xlim = xlim,
+                ylim = ylim,
                 ...
             )
         }
@@ -292,6 +433,16 @@ QQPlot <- function(
 
     names(plots) <- names(datas)
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }

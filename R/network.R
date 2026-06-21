@@ -88,22 +88,67 @@
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom ggnewscale new_scale_color
 NetworkAtomic <- function(
-    links, nodes = NULL, from = NULL, from_sep = "_", to = NULL, to_sep = "_",
-    node_by = NULL, node_by_sep = "_", link_weight_by = 2, link_weight_name = NULL,
-    link_type_by = "solid", link_type_name = NULL,
-    node_size_by = 15, node_size_name = NULL, node_color_by = "black", node_color_name = NULL,
-    node_shape_by = 21, node_shape_name = NULL, node_fill_by = "grey20", node_fill_name = NULL,
-    link_alpha = 1, node_alpha = 0.95, node_stroke = 1.5, cluster_scale = c("fill", "color", "shape"),
-    node_size_range = c(5, 20), link_weight_range = c(0.5, 5), link_arrow_offset = 20,
-    link_curvature = 0, link_color_by = "from", link_color_name = NULL, palette = "Paired", palcolor = NULL, palreverse = FALSE,
+    links,
+    nodes = NULL,
+    from = NULL,
+    from_sep = "_",
+    to = NULL,
+    to_sep = "_",
+    node_by = NULL,
+    node_by_sep = "_",
+    link_weight_by = 2,
+    link_weight_name = NULL,
+    link_type_by = "solid",
+    link_type_name = NULL,
+    node_size_by = 15,
+    node_size_name = NULL,
+    node_color_by = "black",
+    node_color_name = NULL,
+    node_shape_by = 21,
+    node_shape_name = NULL,
+    node_fill_by = "grey20",
+    node_fill_name = NULL,
+    link_alpha = 1,
+    node_alpha = 0.95,
+    node_stroke = 1.5,
+    cluster_scale = c("fill", "color", "shape"),
+    node_size_range = c(5, 20),
+    link_weight_range = c(0.5, 5),
+    link_arrow_offset = 20,
+    link_curvature = 0,
+    link_color_by = "from",
+    link_color_name = NULL,
+    palette = "Paired",
+    palcolor = NULL,
+    palreverse = FALSE,
     link_palette = ifelse(link_color_by %in% c("from", "to"), palette, "Set1"),
     link_palcolor = if (link_color_by %in% c("from", "to")) palcolor else NULL,
-    directed = TRUE, layout = "circle", cluster = "none", add_mark = FALSE, mark_expand = ggplot2::unit(10, "mm"),
-    mark_type = c("hull", "ellipse", "rect", "circle"), mark_alpha = 0.1, mark_linetype = 1, add_label = TRUE,
-    label_size = 3, label_fg = "white", label_bg = "black", label_bg_r = 0.1,
-    arrow = ggplot2::arrow(type = "closed", length = ggplot2::unit(0.1, "inches")),
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, aspect.ratio = 1,
-    theme = "theme_this", theme_args = list(), legend.position = "right", legend.direction = "vertical",
+    directed = TRUE,
+    layout = "circle",
+    cluster = "none",
+    add_mark = FALSE,
+    mark_expand = ggplot2::unit(10, "mm"),
+    mark_type = c("hull", "ellipse", "rect", "circle"),
+    mark_alpha = 0.1,
+    mark_linetype = 1,
+    add_label = TRUE,
+    label_size = 3,
+    label_fg = "white",
+    label_bg = "black",
+    label_bg_r = 0.1,
+    arrow = ggplot2::arrow(
+        type = "closed",
+        length = ggplot2::unit(0.1, "inches")
+    ),
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    aspect.ratio = 1,
+    theme = "theme_this",
+    theme_args = list(),
+    legend.position = "right",
+    legend.direction = "vertical",
     ...
 ) {
     cluster_scale <- match.arg(cluster_scale)
@@ -135,26 +180,49 @@ NetworkAtomic <- function(
         }
     }
 
-    from <- check_columns(links, from, force_factor = TRUE, allow_multi = TRUE,
-        concat_multi = TRUE, concat_sep = from_sep)
-    to <- check_columns(links, to, force_factor = TRUE, allow_multi = TRUE,
-        concat_multi = TRUE, concat_sep = to_sep)
+    from <- check_columns(
+        links,
+        from,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = from_sep
+    )
+    to <- check_columns(
+        links,
+        to,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = to_sep
+    )
     links <- links %>%
         rename(from = from, to = to) %>%
         relocate(!!sym("from"), !!sym("to"))
 
     if (!is.null(nodes)) {
-        node_by <- check_columns(nodes, node_by, force_factor = TRUE, allow_multi = TRUE,
-            concat_multi = TRUE, concat_sep = node_by_sep)
+        node_by <- check_columns(
+            nodes,
+            node_by,
+            force_factor = TRUE,
+            allow_multi = TRUE,
+            concat_multi = TRUE,
+            concat_sep = node_by_sep
+        )
         nodes <- nodes %>% rename(name = node_by) %>% relocate(!!sym("name"))
     }
 
-    graph <- igraph::graph_from_data_frame(d = links, vertices = nodes, directed = directed)
+    graph <- igraph::graph_from_data_frame(
+        d = links,
+        vertices = nodes,
+        directed = directed
+    )
     if (inherits(layout, "igraph_layout_spec")) {
         layout <- igraph::layout_(graph, layout)
     } else {
         if (layout %in% c("circle", "tree", "grid")) {
-            layout <- switch(layout,
+            layout <- switch(
+                layout,
                 "circle" = igraph::layout_in_circle(graph),
                 "tree" = igraph::layout_as_tree(graph),
                 "grid" = igraph::layout_on_grid(graph)
@@ -173,14 +241,18 @@ NetworkAtomic <- function(
     rm(df)
 
     ## NODES
-    node_layer_args <- list(mapping = list(aes(x = !!sym("x"), y = !!sym("y"))),
-        stroke = node_stroke)
+    node_layer_args <- list(
+        mapping = list(aes(x = !!sym("x"), y = !!sym("y"))),
+        stroke = node_stroke
+    )
 
     if (is.numeric(node_size_by)) {
         node_layer_args$size <- node_size_by
         node_size_by_guide <- "none"
     } else {
-        node_layer_args$mapping[[length(node_layer_args$mapping) + 1]] <- aes(size = !!sym(node_size_by))
+        node_layer_args$mapping[[length(node_layer_args$mapping) + 1]] <- aes(
+            size = !!sym(node_size_by)
+        )
         node_size_by_guide <- "guide"
     }
 
@@ -188,8 +260,14 @@ NetworkAtomic <- function(
         node_layer_args$color <- node_color_by
         node_color_by_guide <- "none"
     } else {
-        node_color_by <- check_columns(df_nodes, node_color_by, force_factor = TRUE)
-        node_layer_args$mapping[[length(node_layer_args$mapping) + 1]] <- aes(color = !!sym(node_color_by))
+        node_color_by <- check_columns(
+            df_nodes,
+            node_color_by,
+            force_factor = TRUE
+        )
+        node_layer_args$mapping[[length(node_layer_args$mapping) + 1]] <- aes(
+            color = !!sym(node_color_by)
+        )
         node_color_by_guide <- "guide"
     }
 
@@ -197,8 +275,14 @@ NetworkAtomic <- function(
         node_layer_args$shape <- node_shape_by
         node_shape_by_guide <- "none"
     } else {
-        node_shape_by <- check_columns(df_nodes, node_shape_by, force_factor = TRUE)
-        node_layer_args$mapping[[length(node_layer_args$mapping) + 1]] <- aes(shape = as.factor(!!sym(node_shape_by)))
+        node_shape_by <- check_columns(
+            df_nodes,
+            node_shape_by,
+            force_factor = TRUE
+        )
+        node_layer_args$mapping[[length(node_layer_args$mapping) + 1]] <- aes(
+            shape = as.factor(!!sym(node_shape_by))
+        )
         node_shape_by_guide <- "guide"
     }
 
@@ -206,43 +290,77 @@ NetworkAtomic <- function(
         node_layer_args$fill <- node_fill_by
         node_fill_by_guide <- "none"
     } else {
-        node_fill_by <- check_columns(df_nodes, node_fill_by, force_factor = TRUE)
-        node_layer_args$mapping[[length(node_layer_args$mapping) + 1]] <- aes(fill = !!sym(node_fill_by))
+        node_fill_by <- check_columns(
+            df_nodes,
+            node_fill_by,
+            force_factor = TRUE
+        )
+        node_layer_args$mapping[[length(node_layer_args$mapping) + 1]] <- aes(
+            fill = !!sym(node_fill_by)
+        )
         node_fill_by_guide <- "guide"
     }
 
     # LINKS
-    link_layer_args <- list(alpha = link_alpha, check_overlap = TRUE, mapping = list())
+    link_layer_args <- list(
+        alpha = link_alpha,
+        check_overlap = TRUE,
+        mapping = list()
+    )
     if (isTRUE(directed)) {
         link_layer_args$arrow <- arrow
     }
 
-    if (link_color_by %in% colnames(df_edges) && !link_color_by %in% c("from", "to")) {
+    if (
+        link_color_by %in%
+            colnames(df_edges) &&
+            !link_color_by %in% c("from", "to")
+    ) {
         link_color_by_guide <- "guide"
-        link_layer_args$mapping[[length(link_layer_args$mapping) + 1]] <- aes(color = !!sym(link_color_by))
+        link_layer_args$mapping[[length(link_layer_args$mapping) + 1]] <- aes(
+            color = !!sym(link_color_by)
+        )
     } else {
         link_color_by_guide <- "none"
         if (node_shape_by %in% 21:25) {
             if (node_fill_by_guide == "none") {
                 link_layer_args$color <- node_fill_by
             } else {
-                link_layer_args$mapping[[length(link_layer_args$mapping) + 1]] <- aes(color = I(!!sym(paste0("node.", node_fill_by))))
+                link_layer_args$mapping[[
+                    length(link_layer_args$mapping) + 1
+                ]] <- aes(color = I(!!sym(paste0("node.", node_fill_by))))
                 # map node_fill_by from nodes data to links data
                 df_edges[[paste0("node.", node_fill_by)]] <- palette_this(
-                    levels(df_nodes[[node_fill_by]]), palette = link_palette, palcolor = link_palcolor, reverse = palreverse
+                    levels(df_nodes[[node_fill_by]]),
+                    palette = link_palette,
+                    palcolor = link_palcolor,
+                    reverse = palreverse
                 )[df_nodes[df_edges[[link_color_by]], node_fill_by]]
-                graph <- igraph::graph_from_data_frame(d = df_edges, vertices = df_nodes, directed = directed)
+                graph <- igraph::graph_from_data_frame(
+                    d = df_edges,
+                    vertices = df_nodes,
+                    directed = directed
+                )
             }
         } else {
             if (node_color_by_guide == "none") {
                 link_layer_args$color <- node_color_by
             } else {
-                link_layer_args$mapping[[length(link_layer_args$mapping) + 1]] <- aes(color = I(!!sym(paste0("node.", node_color_by))))
+                link_layer_args$mapping[[
+                    length(link_layer_args$mapping) + 1
+                ]] <- aes(color = I(!!sym(paste0("node.", node_color_by))))
                 # map node_color_by from nodes data to links data
                 df_edges[[paste0("node.", node_color_by)]] <- palette_this(
-                    levels(df_nodes[[node_color_by]]), palette = link_palette, palcolor = link_palcolor, reverse = palreverse
+                    levels(df_nodes[[node_color_by]]),
+                    palette = link_palette,
+                    palcolor = link_palcolor,
+                    reverse = palreverse
                 )[df_nodes[df_edges[[link_color_by]], node_color_by]]
-                graph <- igraph::graph_from_data_frame(d = df_edges, vertices = df_nodes, directed = directed)
+                graph <- igraph::graph_from_data_frame(
+                    d = df_edges,
+                    vertices = df_nodes,
+                    directed = directed
+                )
             }
         }
     }
@@ -251,7 +369,9 @@ NetworkAtomic <- function(
         link_layer_args$linewidth <- link_weight_by
         link_weight_by_guide <- "none"
     } else {
-        link_layer_args$mapping[[length(link_layer_args$mapping) + 1]] <- aes(linewidth = !!sym(link_weight_by))
+        link_layer_args$mapping[[length(link_layer_args$mapping) + 1]] <- aes(
+            linewidth = !!sym(link_weight_by)
+        )
         link_weight_by_guide <- "guide"
     }
 
@@ -259,12 +379,22 @@ NetworkAtomic <- function(
         link_layer_args$linetype <- link_type_by
         link_type_by_guide <- "none"
     } else {
-        if (utils::compareVersion(as.character(utils::packageVersion("ggplot2")), "4.0.0") != 0) {
+        if (
+            utils::compareVersion(
+                as.character(utils::packageVersion("ggplot2")),
+                "4.0.0"
+            ) !=
+                0
+        ) {
             # This is fixed in ggplot2 4.0.1
-            link_layer_args$mapping[[length(link_layer_args$mapping) + 1]] <- aes(linetype = factor(!!sym(link_type_by)))
+            link_layer_args$mapping[[
+                length(link_layer_args$mapping) + 1
+            ]] <- aes(linetype = factor(!!sym(link_type_by)))
             link_type_by_guide <- "guide"
         } else {
-            warning("Using `link_type_by` with ggplot2 == 4.0.0 (ggraph <= 2.2.2) is not supported. Set to 'solid'. See https://github.com/thomasp85/ggraph/issues/394 for details.")
+            warning(
+                "Using `link_type_by` with ggplot2 == 4.0.0 (ggraph <= 2.2.2) is not supported. Set to 'solid'. See https://github.com/thomasp85/ggraph/issues/394 for details."
+            )
             link_layer_args$linetype <- "solid"
             link_type_by_guide <- "none"
         }
@@ -274,52 +404,92 @@ NetworkAtomic <- function(
         link_layer_args$end_cap <- ggraph::circle(link_arrow_offset, "pt")
     }
     link_loop_layer_args <- link_layer_args
-    link_loop_layer_args$mapping[[length(link_loop_layer_args$mapping) + 1]] <- aes(direction = (!!sym("from") - 1) * 360 / length(graph))
+    link_loop_layer_args$mapping[[
+        length(link_loop_layer_args$mapping) + 1
+    ]] <- aes(direction = (!!sym("from") - 1) * 360 / length(graph))
     # link_layer_args$data <- df_edges[df_edges$from != df_edges$to, , drop = FALSE]
     link_layer_args$strength <- link_curvature
     link_layer_args$mapping <- Reduce(modify_list, link_layer_args$mapping)
-    link_loop_layer_args$mapping <- Reduce(modify_list, link_loop_layer_args$mapping)
+    link_loop_layer_args$mapping <- Reduce(
+        modify_list,
+        link_loop_layer_args$mapping
+    )
 
     # Start building the plot
-    p <- ggraph::ggraph(graph, layout = "manual", x = df_nodes$x, y = df_nodes$y)
+    p <- ggraph::ggraph(
+        graph,
+        layout = "manual",
+        x = df_nodes$x,
+        y = df_nodes$y
+    )
     if (cluster != "none") {
         clfun <- getFromNamespace(paste0("cluster_", cluster), "igraph")
         clusters <- clfun(graph)
         df_nodes$cluster <- factor(
             paste0("c", clusters$membership),
-            levels = paste0("c", unique(sort(clusters$membership))))
+            levels = paste0("c", unique(sort(clusters$membership)))
+        )
         if (cluster_scale == "fill") {
             if (!identical(node_fill_by, "grey20")) {
-                warning("`cluster_scale = 'fill'` overrides `node_fill_by` when 'cluster' is enabled")
+                warning(
+                    "`cluster_scale = 'fill'` overrides `node_fill_by` when 'cluster' is enabled"
+                )
             }
             node_fill_by <- "cluster"
         } else if (cluster_scale == "color") {
             if (!identical(node_color_by, "black")) {
-                warning("`cluster_scale = 'color'` overrides `node_color_by` when 'cluster' is enabled")
+                warning(
+                    "`cluster_scale = 'color'` overrides `node_color_by` when 'cluster' is enabled"
+                )
             }
             node_color_by <- "cluster"
         } else if (cluster_scale == "shape") {
             if (!identical(node_shape_by, 21)) {
-                warning("`cluster_scale = 'shape'` overrides `node_shape_by` when 'cluster' is enabled")
+                warning(
+                    "`cluster_scale = 'shape'` overrides `node_shape_by` when 'cluster' is enabled"
+                )
             }
             node_shape_by <- "cluster"
         }
 
         mark_type <- match.arg(mark_type)
-        mark_fun <- switch(mark_type,
+        mark_fun <- switch(
+            mark_type,
             hull = ggforce::geom_mark_hull,
             ellipse = ggforce::geom_mark_ellipse,
             rect = ggforce::geom_mark_rect,
             circle = ggforce::geom_mark_circle
         )
-        p <- p + mark_fun(
-            data = df_nodes,
-            mapping = aes(x = !!sym("x"), y = !!sym("y"), color = !!sym("cluster"), fill = !!sym("cluster")),
-            expand = mark_expand, alpha = mark_alpha, linetype = mark_linetype,
-            show.legend = FALSE
-        ) +
-            scale_fill_manual(values = palette_this(levels(df_nodes$cluster), palette = palette, palcolor = palcolor, reverse = palreverse)) +
-            scale_color_manual(values = palette_this(levels(df_nodes$cluster), palette = palette, palcolor = palcolor, reverse = palreverse)) +
+        p <- p +
+            mark_fun(
+                data = df_nodes,
+                mapping = aes(
+                    x = !!sym("x"),
+                    y = !!sym("y"),
+                    color = !!sym("cluster"),
+                    fill = !!sym("cluster")
+                ),
+                expand = mark_expand,
+                alpha = mark_alpha,
+                linetype = mark_linetype,
+                show.legend = FALSE
+            ) +
+            scale_fill_manual(
+                values = palette_this(
+                    levels(df_nodes$cluster),
+                    palette = palette,
+                    palcolor = palcolor,
+                    reverse = palreverse
+                )
+            ) +
+            scale_color_manual(
+                values = palette_this(
+                    levels(df_nodes$cluster),
+                    palette = palette,
+                    palcolor = palcolor,
+                    reverse = palreverse
+                )
+            ) +
             new_scale_fill() +
             new_scale_color()
     }
@@ -330,38 +500,65 @@ NetworkAtomic <- function(
         do.call(ggraph::geom_edge_loop, link_loop_layer_args)
 
     if (link_weight_by_guide == "guide") {
-        p <- p + ggraph::scale_edge_width_continuous(
-            range = link_weight_range, breaks = scales::pretty_breaks(n = 4),
-            guide = guide_legend(title = link_weight_name %||% link_weight_by, order = 10))
+        p <- p +
+            ggraph::scale_edge_width_continuous(
+                range = link_weight_range,
+                breaks = scales::pretty_breaks(n = 4),
+                guide = guide_legend(
+                    title = link_weight_name %||% link_weight_by,
+                    order = 10
+                )
+            )
     }
 
     if (link_type_by_guide == "guide") {
-        p <- p + ggraph::scale_edge_linetype_discrete(
-            guide = guide_legend(title = link_type_name %||% link_type_by, order = 11)
-        )
+        p <- p +
+            ggraph::scale_edge_linetype_discrete(
+                guide = guide_legend(
+                    title = link_type_name %||% link_type_by,
+                    order = 11
+                )
+            )
     }
 
     if (link_color_by_guide == "guide") {
         if (is.numeric(df_edges[[link_color_by]])) {
-            p <- p + ggraph::scale_edge_color_gradientn(
-                n.breaks = 5,
-                colors = palette_this(palette = link_palette, palcolor = link_palcolor, reverse = palreverse),
-                na.value = "grey80",
-                guide = ggraph::guide_edge_colorbar(
-                    title = link_color_name %||% link_color_by,
-                    frame.colour = "black", ticks.colour = "black", title.hjust = 0, order = 12
+            p <- p +
+                ggraph::scale_edge_color_gradientn(
+                    n.breaks = 5,
+                    colors = palette_this(
+                        palette = link_palette,
+                        palcolor = link_palcolor,
+                        reverse = palreverse
+                    ),
+                    na.value = "grey80",
+                    guide = ggraph::guide_edge_colorbar(
+                        title = link_color_name %||% link_color_by,
+                        frame.colour = "black",
+                        ticks.colour = "black",
+                        title.hjust = 0,
+                        order = 12
+                    )
                 )
-            )
         } else {
             lc_values <- if (is.factor(df_edges[[link_color_by]])) {
                 levels(df_edges[[link_color_by]])
             } else {
                 unique(df_edges[[link_color_by]])
             }
-            p <- p + ggraph::scale_edge_color_manual(
-                values = palette_this(lc_values, palette = link_palette, palcolor = link_palcolor, reverse = palreverse),
-                guide = guide_legend(title = link_color_name %||% link_color_by, order = 12)
-            )
+            p <- p +
+                ggraph::scale_edge_color_manual(
+                    values = palette_this(
+                        lc_values,
+                        palette = link_palette,
+                        palcolor = link_palcolor,
+                        reverse = palreverse
+                    ),
+                    guide = guide_legend(
+                        title = link_color_name %||% link_color_by,
+                        order = 12
+                    )
+                )
         }
     }
 
@@ -371,49 +568,98 @@ NetworkAtomic <- function(
     p <- p + do.call(geom_point, node_layer_args)
 
     if (node_size_by_guide == "guide") {
-        p <- p + scale_size_continuous(
-            range = node_size_range, breaks = scales::pretty_breaks(n = 4),
-            guide = guide_legend(title = node_size_name %||% node_size_by, order = 1,
-                override.aes = list(size = scales::rescale(sort(df_nodes[[node_size_by]]), c(1, 6)))))
+        p <- p +
+            scale_size_continuous(
+                range = node_size_range,
+                breaks = scales::pretty_breaks(n = 4),
+                guide = guide_legend(
+                    title = node_size_name %||% node_size_by,
+                    order = 1,
+                    override.aes = list(
+                        size = scales::rescale(
+                            sort(df_nodes[[node_size_by]]),
+                            c(1, 6)
+                        )
+                    )
+                )
+            )
     }
 
     if (node_color_by_guide == "guide") {
-        p <- p + scale_color_manual(
-            values = palette_this(levels(df_nodes[[node_color_by]]), palette = palette, palcolor = palcolor, reverse = palreverse),
-            guide = guide_legend(title = node_color_name %||% node_color_by, order = 2,
-                override.aes = list(size = 4))
-        )
+        p <- p +
+            scale_color_manual(
+                values = palette_this(
+                    levels(df_nodes[[node_color_by]]),
+                    palette = palette,
+                    palcolor = palcolor,
+                    reverse = palreverse
+                ),
+                guide = guide_legend(
+                    title = node_color_name %||% node_color_by,
+                    order = 2,
+                    override.aes = list(size = 4)
+                )
+            )
     }
 
     if (node_shape_by_guide == "guide") {
-        p <- p + scale_shape_manual(
-            guide = guide_legend(title = node_shape_name %||% node_shape_by, order = 3,
-                override.aes = list(size = 4))
-        )
+        p <- p +
+            scale_shape_manual(
+                guide = guide_legend(
+                    title = node_shape_name %||% node_shape_by,
+                    order = 3,
+                    override.aes = list(size = 4)
+                )
+            )
     }
 
     if (node_fill_by_guide == "guide") {
-        p <- p + scale_fill_manual(
-            values = palette_this(levels(df_nodes[[node_fill_by]]), palette = palette, palcolor = palcolor, alpha = node_alpha, reverse = palreverse),
-            guide = guide_legend(title = node_fill_name %||% node_fill_by, order = 4,
-                override.aes = list(size = 4))
-        )
+        p <- p +
+            scale_fill_manual(
+                values = palette_this(
+                    levels(df_nodes[[node_fill_by]]),
+                    palette = palette,
+                    palcolor = palcolor,
+                    alpha = node_alpha,
+                    reverse = palreverse
+                ),
+                guide = guide_legend(
+                    title = node_fill_name %||% node_fill_by,
+                    order = 4,
+                    override.aes = list(size = 4)
+                )
+            )
     }
 
     ## NODE LABELS
     if (isTRUE(add_label)) {
-        p <- p + geom_text_repel(
-            data = df_nodes, mapping = aes(x = !!sym("x"), y = !!sym("y"), label = !!sym("name")),
-            segment.color = "transparent",
-            point.size = NA, max.overlaps = 100, color = label_fg, bg.color = label_bg, bg.r = label_bg_r,
-            size = label_size * text_size_scale
-        )
+        p <- p +
+            geom_text_repel(
+                data = df_nodes,
+                mapping = aes(
+                    x = !!sym("x"),
+                    y = !!sym("y"),
+                    label = !!sym("name")
+                ),
+                segment.color = "transparent",
+                point.size = NA,
+                max.overlaps = 100,
+                color = label_fg,
+                bg.color = label_bg,
+                bg.r = label_bg_r,
+                size = label_size * text_size_scale
+            )
     }
 
     p <- p +
         scale_x_continuous(expand = c(0, .4)) +
         scale_y_continuous(expand = c(0, .4)) +
-        labs(title = title, subtitle = subtitle, x = xlab %||% "", y = ylab %||% "") +
+        labs(
+            title = title,
+            subtitle = subtitle,
+            x = xlab %||% "",
+            y = ylab %||% ""
+        ) +
         do.call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
@@ -472,48 +718,121 @@ NetworkAtomic <- function(
 #' Network(relations, actors, split_by = "type")
 #' }
 Network <- function(
-    links, nodes = NULL, split_by = NULL, split_by_sep = "_", split_nodes = FALSE,
-    from = NULL, from_sep = "_", to = NULL, to_sep = "_",
-    node_by = NULL, node_by_sep = "_", link_weight_by = 2, link_weight_name = NULL,
-    link_type_by = "solid", link_type_name = NULL,
-    node_size_by = 15, node_size_name = NULL, node_color_by = "black", node_color_name = NULL,
-    node_shape_by = 21, node_shape_name = NULL, node_fill_by = "grey20", node_fill_name = NULL,
-    link_alpha = 1, node_alpha = 0.95, node_stroke = 1.5, cluster_scale = c("fill", "color", "shape"),
-    node_size_range = c(5, 20), link_weight_range = c(0.5, 5), link_arrow_offset = 20,
-    link_curvature = 0, link_color_by = "from", link_color_name = NULL, palette = "Paired", palcolor = NULL, palreverse = FALSE,
+    links,
+    nodes = NULL,
+    split_by = NULL,
+    split_by_sep = "_",
+    split_nodes = FALSE,
+    from = NULL,
+    from_sep = "_",
+    to = NULL,
+    to_sep = "_",
+    node_by = NULL,
+    node_by_sep = "_",
+    link_weight_by = 2,
+    link_weight_name = NULL,
+    link_type_by = "solid",
+    link_type_name = NULL,
+    node_size_by = 15,
+    node_size_name = NULL,
+    node_color_by = "black",
+    node_color_name = NULL,
+    node_shape_by = 21,
+    node_shape_name = NULL,
+    node_fill_by = "grey20",
+    node_fill_name = NULL,
+    link_alpha = 1,
+    node_alpha = 0.95,
+    node_stroke = 1.5,
+    cluster_scale = c("fill", "color", "shape"),
+    node_size_range = c(5, 20),
+    link_weight_range = c(0.5, 5),
+    link_arrow_offset = 20,
+    link_curvature = 0,
+    link_color_by = "from",
+    link_color_name = NULL,
+    palette = "Paired",
+    palcolor = NULL,
+    palreverse = FALSE,
     link_palette = ifelse(link_color_by %in% c("from", "to"), palette, "Set1"),
     link_palcolor = if (link_color_by %in% c("from", "to")) palcolor else NULL,
-    directed = TRUE, layout = "circle", cluster = "none", add_mark = FALSE, mark_expand = ggplot2::unit(10, "mm"),
-    mark_type = c("hull", "ellipse", "rect", "circle"), mark_alpha = 0.1, mark_linetype = 1, add_label = TRUE,
-    label_size = 3, label_fg = "white", label_bg = "black", label_bg_r = 0.1,
-    arrow = ggplot2::arrow(type = "closed", length = ggplot2::unit(0.1, "inches")),
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, aspect.ratio = 1,
-    theme = "theme_this", theme_args = list(), legend.position = "right", legend.direction = "vertical",
-    seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
-    axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...
+    directed = TRUE,
+    layout = "circle",
+    cluster = "none",
+    add_mark = FALSE,
+    mark_expand = ggplot2::unit(10, "mm"),
+    mark_type = c("hull", "ellipse", "rect", "circle"),
+    mark_alpha = 0.1,
+    mark_linetype = 1,
+    add_label = TRUE,
+    label_size = 3,
+    label_fg = "white",
+    label_bg = "black",
+    label_bg_r = 0.1,
+    arrow = ggplot2::arrow(
+        type = "closed",
+        length = ggplot2::unit(0.1, "inches")
+    ),
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    aspect.ratio = 1,
+    theme = "theme_this",
+    theme_args = list(),
+    legend.position = "right",
+    legend.direction = "vertical",
+    seed = 8525,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
+    ...
 ) {
     validate_common_args(seed = seed)
     theme <- process_theme(theme)
-    if (is.null(split_by)) { split_nodes <- FALSE }
+    if (is.null(split_by)) {
+        split_nodes <- FALSE
+    }
 
-    l_split_by <- check_columns(links, split_by, force_factor = TRUE, allow_multi = TRUE,
-        concat_multi = TRUE, concat_sep = split_by_sep)
+    l_split_by <- check_columns(
+        links,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
     if (!is.null(l_split_by)) {
         links[[l_split_by]] <- droplevels(links[[l_split_by]])
     }
 
     if (isTRUE(split_nodes) && !is.null(nodes)) {
-        if (is.character(nodes) && length(nodes) == 1 && startsWith(nodes, "@")) {
+        if (
+            is.character(nodes) && length(nodes) == 1 && startsWith(nodes, "@")
+        ) {
             nodes <- attr(links, substring(nodes, 2))
         }
-        n_split_by <- check_columns(nodes, split_by, force_factor = TRUE, allow_multi = TRUE,
-            concat_multi = TRUE, concat_sep = split_by_sep)
+        n_split_by <- check_columns(
+            nodes,
+            split_by,
+            force_factor = TRUE,
+            allow_multi = TRUE,
+            concat_multi = TRUE,
+            concat_sep = split_by_sep
+        )
         if (!is.null(n_split_by)) {
             nodes[[n_split_by]] <- droplevels(nodes[[n_split_by]])
         }
 
         if (!identical(l_split_by, n_split_by)) {
-            stop("The `split_by` columns in `links` and `nodes` must be the same.")
+            stop(
+                "The `split_by` columns in `links` and `nodes` must be the same."
+            )
         }
     }
 
@@ -522,11 +841,12 @@ Network <- function(
         if (isTRUE(split_nodes) && !is.null(nodes)) {
             nodess <- split(nodes, nodes[[n_split_by]])
             nms <- names(nodess)
-            linkss < lapply(nms, function(nm) {
-                dat <- linkss[[nm]]
-                attr(dat, "nodes") <- nodess[[nm]]
-                dat
-            })
+            linkss <
+                lapply(nms, function(nm) {
+                    dat <- linkss[[nm]]
+                    attr(dat, "nodes") <- nodess[[nm]]
+                    dat
+                })
             names(linkss) <- nms
         } else {
             linkss <- linkss[levels(links[[l_split_by]])]
@@ -541,7 +861,11 @@ Network <- function(
     }
 
     plots <- lapply(names(linkss), function(nm) {
-        default_title <- if (length(linkss) == 1 && identical(nm, "...")) NULL else nm
+        default_title <- if (length(linkss) == 1 && identical(nm, "...")) {
+            NULL
+        } else {
+            nm
+        }
         if (is.function(title)) {
             title <- title(default_title)
         } else {
@@ -549,31 +873,80 @@ Network <- function(
         }
 
         NetworkAtomic(
-            links = linkss[[nm]], nodes = nodes, from = from, from_sep = from_sep,
-            to = to, to_sep = to_sep, node_by = node_by, node_by_sep = node_by_sep,
-            link_weight_by = link_weight_by, link_weight_name = link_weight_name,
-            link_type_by = link_type_by, link_type_name = link_type_name,
-            node_size_by = node_size_by, node_size_name = node_size_name,
-            node_color_by = node_color_by, node_color_name = node_color_name,
-            node_shape_by = node_shape_by, node_shape_name = node_shape_name,
-            node_fill_by = node_fill_by, node_fill_name = node_fill_name,
-            link_alpha = link_alpha, node_alpha = node_alpha, node_stroke = node_stroke,
-            cluster_scale = cluster_scale, node_size_range = node_size_range,
-            link_weight_range = link_weight_range, link_arrow_offset = link_arrow_offset,
-            link_curvature = link_curvature, link_color_by = link_color_by, link_color_name = link_color_name,
-            palette = palette, palcolor = palcolor, palreverse = palreverse, link_palette = link_palette, link_palcolor = link_palcolor,
-            directed = directed, layout = layout, cluster = cluster, add_mark = add_mark, mark_expand = mark_expand,
-            mark_type = mark_type, mark_alpha = mark_alpha, mark_linetype = mark_linetype,
-            add_label = add_label, label_size = label_size, label_fg = label_fg,
-            label_bg = label_bg, label_bg_r = label_bg_r, arrow = arrow,
-            title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
-            aspect.ratio = aspect.ratio, theme = theme, theme_args = theme_args,
-            legend.position = legend.position, legend.direction = legend.direction, ...
+            links = linkss[[nm]],
+            nodes = nodes,
+            from = from,
+            from_sep = from_sep,
+            to = to,
+            to_sep = to_sep,
+            node_by = node_by,
+            node_by_sep = node_by_sep,
+            link_weight_by = link_weight_by,
+            link_weight_name = link_weight_name,
+            link_type_by = link_type_by,
+            link_type_name = link_type_name,
+            node_size_by = node_size_by,
+            node_size_name = node_size_name,
+            node_color_by = node_color_by,
+            node_color_name = node_color_name,
+            node_shape_by = node_shape_by,
+            node_shape_name = node_shape_name,
+            node_fill_by = node_fill_by,
+            node_fill_name = node_fill_name,
+            link_alpha = link_alpha,
+            node_alpha = node_alpha,
+            node_stroke = node_stroke,
+            cluster_scale = cluster_scale,
+            node_size_range = node_size_range,
+            link_weight_range = link_weight_range,
+            link_arrow_offset = link_arrow_offset,
+            link_curvature = link_curvature,
+            link_color_by = link_color_by,
+            link_color_name = link_color_name,
+            palette = palette,
+            palcolor = palcolor,
+            palreverse = palreverse,
+            link_palette = link_palette,
+            link_palcolor = link_palcolor,
+            directed = directed,
+            layout = layout,
+            cluster = cluster,
+            add_mark = add_mark,
+            mark_expand = mark_expand,
+            mark_type = mark_type,
+            mark_alpha = mark_alpha,
+            mark_linetype = mark_linetype,
+            add_label = add_label,
+            label_size = label_size,
+            label_fg = label_fg,
+            label_bg = label_bg,
+            label_bg_r = label_bg_r,
+            arrow = arrow,
+            title = title,
+            subtitle = subtitle,
+            xlab = xlab,
+            ylab = ylab,
+            aspect.ratio = aspect.ratio,
+            theme = theme,
+            theme_args = theme_args,
+            legend.position = legend.position,
+            legend.direction = legend.direction,
+            ...
         )
     })
 
     names(plots) <- names(linkss)
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }

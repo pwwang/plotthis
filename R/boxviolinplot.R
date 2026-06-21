@@ -124,27 +124,100 @@
 #' @importFrom ggplot2 labs theme element_line element_text position_dodge position_jitter coord_flip layer_scales
 #' @importFrom ggplot2 position_jitterdodge scale_shape_identity scale_size_manual scale_alpha_manual scale_y_continuous
 BoxViolinPlotAtomic <- function(
-    data, x, x_sep = "_", y = NULL, base = c("box", "violin", "bar", "none"), in_form = c("long", "wide"), sort_x = NULL,
-    flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    paired_by = NULL, x_text_angle = ifelse(isTRUE(flip), 0, 45), step_increase = 0.1, position_dodge_preserve = "total",
-    fill_mode = ifelse(!is.null(group_by), "dodge", "x"), palreverse = FALSE, symnum_args = NULL,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
-    aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
-    add_point = FALSE, pt_color = if (isTRUE(add_beeswarm)) NULL else "grey30", pt_size = NULL, pt_alpha = 1, y_nbreaks = 4,
-    jitter_width = NULL, jitter_height = 0, stack = FALSE, y_max = NULL, y_min = NULL, y_trans = "identity",
-    add_beeswarm = FALSE, beeswarm_method = "swarm", beeswarm_cex = 1, beeswarm_priority = "ascending",
-    beeswarm_dodge = 0.9, add_box = FALSE, box_color = "black", box_width = 0.1, box_ptsize = 2.5,
-    add_errorbar = "SEM", errorbar_color = "grey20", errorbar_width = 0.4, errorbar_linewidth = 0.6,
-    add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
-    add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
-    add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
-    add_line = NULL, line_color = "red2", line_width = .6, line_type = 2,
-    highlight = NULL, highlight_color = "red2", highlight_size = 1, highlight_alpha = 1,
-    comparisons = NULL, ref_group = NULL, pairwise_method = "wilcox.test",
-    multiplegroup_comparisons = FALSE, multiple_method = "kruskal.test",
-    sig_label = "p.format", sig_labelsize = 3.5, hide_ns = FALSE,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525, ...) {
+    data,
+    x,
+    x_sep = "_",
+    y = NULL,
+    base = c("box", "violin", "bar", "none"),
+    in_form = c("long", "wide"),
+    sort_x = NULL,
+    flip = FALSE,
+    keep_empty = FALSE,
+    keep_na = FALSE,
+    group_by = NULL,
+    group_by_sep = "_",
+    group_name = NULL,
+    paired_by = NULL,
+    x_text_angle = ifelse(isTRUE(flip), 0, 45),
+    step_increase = 0.1,
+    position_dodge_preserve = "total",
+    fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
+    palreverse = FALSE,
+    symnum_args = NULL,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Paired",
+    palcolor = NULL,
+    alpha = 1,
+    aspect.ratio = NULL,
+    legend.position = "right",
+    legend.direction = "vertical",
+    add_point = FALSE,
+    pt_color = if (isTRUE(add_beeswarm)) NULL else "grey30",
+    pt_size = NULL,
+    pt_alpha = 1,
+    y_nbreaks = 4,
+    jitter_width = NULL,
+    jitter_height = 0,
+    stack = FALSE,
+    y_max = NULL,
+    y_min = NULL,
+    y_trans = "identity",
+    add_beeswarm = FALSE,
+    beeswarm_method = "swarm",
+    beeswarm_cex = 1,
+    beeswarm_priority = "ascending",
+    beeswarm_dodge = 0.9,
+    add_box = FALSE,
+    box_color = "black",
+    box_width = 0.1,
+    box_ptsize = 2.5,
+    add_errorbar = "SEM",
+    errorbar_color = "grey20",
+    errorbar_width = 0.4,
+    errorbar_linewidth = 0.6,
+    add_trend = FALSE,
+    trend_color = NULL,
+    trend_linewidth = 1,
+    trend_ptsize = 2,
+    add_stat = NULL,
+    stat_name = NULL,
+    stat_color = "black",
+    stat_size = 1,
+    stat_stroke = 1,
+    stat_shape = 25,
+    add_bg = FALSE,
+    bg_palette = "stripe",
+    bg_palcolor = NULL,
+    bg_alpha = 0.2,
+    add_line = NULL,
+    line_color = "red2",
+    line_width = .6,
+    line_type = 2,
+    highlight = NULL,
+    highlight_color = "red2",
+    highlight_size = 1,
+    highlight_alpha = 1,
+    comparisons = NULL,
+    ref_group = NULL,
+    pairwise_method = "wilcox.test",
+    multiplegroup_comparisons = FALSE,
+    multiple_method = "kruskal.test",
+    sig_label = "p.format",
+    sig_labelsize = 3.5,
+    hide_ns = FALSE,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    seed = 8525,
+    ...
+) {
     set.seed(seed)
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
@@ -153,31 +226,56 @@ BoxViolinPlotAtomic <- function(
     }
     in_form <- match.arg(in_form)
     if (in_form == "wide") {
-        data <- data %>% pivot_longer(cols = x, names_to = ".x", values_to = ".y")
+        data <- data %>%
+            pivot_longer(cols = x, names_to = ".x", values_to = ".y")
         x <- ".x"
         y <- ".y"
         # if all values in keep_na are FALSE that means it is default
         if (is.list(keep_na) && all(sapply(keep_na, isFALSE))) {
             keep_na <- NULL
-        } else if (is.list(keep_na) && length(setdiff(names(keep_na), c(x, y))) > 0) {
-            warning("[Box/Violin/BeeswarmPlot] Ignoring `keep_na` for columns other than `.x` and `.y` when `in_form` is 'wide'.")
+        } else if (
+            is.list(keep_na) && length(setdiff(names(keep_na), c(x, y))) > 0
+        ) {
+            warning(
+                "[Box/Violin/BeeswarmPlot] Ignoring `keep_na` for columns other than `.x` and `.y` when `in_form` is 'wide'."
+            )
             keep_na <- keep_na[names(keep_na) %in% c(x, y)]
         }
         if (is.list(keep_empty) && all(sapply(keep_empty, isFALSE))) {
             keep_empty <- NULL
-        } else if (is.list(keep_empty) && length(setdiff(names(keep_empty), x)) > 0) {
-            warning("[Box/Violin/BeeswarmPlot] Ignoring `keep_empty` for columns other than `.x` when `in_form` is 'wide'.")
+        } else if (
+            is.list(keep_empty) && length(setdiff(names(keep_empty), x)) > 0
+        ) {
+            warning(
+                "[Box/Violin/BeeswarmPlot] Ignoring `keep_empty` for columns other than `.x` when `in_form` is 'wide'."
+            )
             keep_empty <- keep_empty[names(keep_empty) %in% x]
         }
     }
-    x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
+    x <- check_columns(
+        data,
+        x,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = x_sep
+    )
     y <- check_columns(data, y)
 
-    group_by <- check_columns(data, group_by,
+    group_by <- check_columns(
+        data,
+        group_by,
         force_factor = TRUE,
-        allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = group_by_sep
     )
-    facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
+    facet_by <- check_columns(
+        data,
+        facet_by,
+        force_factor = TRUE,
+        allow_multi = TRUE
+    )
     paired_by <- check_columns(data, paired_by, force_factor = TRUE)
     base_size <- theme_args$base_size %||% 12
     sig_labelsize <- sig_labelsize * base_size / 12
@@ -185,20 +283,32 @@ BoxViolinPlotAtomic <- function(
     data <- process_keep_na_empty(data, keep_na, keep_empty)
     keep_empty_x <- keep_empty[[x]]
     keep_empty_group <- if (!is.null(group_by)) keep_empty[[group_by]] else NULL
-    keep_empty_facet <- if (!is.null(facet_by)) keep_empty[[facet_by[1]]] else NULL
+    keep_empty_facet <- if (!is.null(facet_by)) {
+        keep_empty[[facet_by[1]]]
+    } else {
+        NULL
+    }
     if (length(facet_by) > 1) {
-        stopifnot("[Box/Violin/BeeswarmPlot] `keep_empty` for `facet_by` variables must be identical." =
-            identical(keep_empty_facet, keep_empty[[facet_by[2]]]))
+        stopifnot(
+            "[Box/Violin/BeeswarmPlot] `keep_empty` for `facet_by` variables must be identical." = identical(
+                keep_empty_facet,
+                keep_empty[[facet_by[2]]]
+            )
+        )
     }
 
     # Validate beeswarm parameters
     if (isTRUE(add_beeswarm)) {
         if (!requireNamespace("ggbeeswarm", quietly = TRUE)) {
-            stop("Package 'ggbeeswarm' is required for beeswarm plots. Please install it with: install.packages('ggbeeswarm')")
+            stop(
+                "Package 'ggbeeswarm' is required for beeswarm plots. Please install it with: install.packages('ggbeeswarm')"
+            )
         }
         add_point <- TRUE
         if (!is.null(paired_by)) {
-            warning("'add_beeswarm' is not fully compatible with 'paired_by'. Using jittered points instead for paired data.")
+            warning(
+                "'add_beeswarm' is not fully compatible with 'paired_by'. Using jittered points instead for paired data."
+            )
             add_beeswarm <- FALSE
         }
     }
@@ -210,7 +320,9 @@ BoxViolinPlotAtomic <- function(
         }
 
         if (any(is.na(data[[paired_by]]))) {
-            warning("'paired_by' contains missing values, removing corresponding rows.")
+            warning(
+                "'paired_by' contains missing values, removing corresponding rows."
+            )
             data <- data[!is.na(data[[paired_by]]), , drop = FALSE]
         }
         n_total_col <- paste0(".n_total_", paired_by)
@@ -222,25 +334,52 @@ BoxViolinPlotAtomic <- function(
             problem_groups <- data %>%
                 dplyr::group_by(!!!syms(c(x, paired_by, group_by))) %>%
                 dplyr::summarise(.n = dplyr::n(), .groups = "drop") %>%
-                dplyr::add_count(!!!syms(c(x, paired_by)), name = n_total_col) %>%
+                dplyr::add_count(
+                    !!!syms(c(x, paired_by)),
+                    name = n_total_col
+                ) %>%
                 dplyr::filter(!!sym(".n") != 1 | !!sym_ntc != 2) %>%
                 dplyr::mutate(
-                    .n = ifelse(!!sym(".n") == 1, !!sym(".n"), paste0(!!sym(".n"), " (expecting 1)")),
-                    !!sym_ntc := ifelse(!!sym_ntc == 2, !!sym_ntc, paste0(!!sym_ntc, " (expecting 2)"))
+                    .n = ifelse(
+                        !!sym(".n") == 1,
+                        !!sym(".n"),
+                        paste0(!!sym(".n"), " (expecting 1)")
+                    ),
+                    !!sym_ntc := ifelse(
+                        !!sym_ntc == 2,
+                        !!sym_ntc,
+                        paste0(!!sym_ntc, " (expecting 2)")
+                    )
                 )
             # If not, indicate which group (x, paired_by) has the problem
             if (nrow(problem_groups) > 0) {
-                stop("When 'paired_by' and 'group_by' are both provided, each combination of 'x' and 'paired_by' must have exactly two observations, one for each group in 'group_by'. The following combinations do not satisfy this requirement:\n",
+                stop(
+                    "When 'paired_by' and 'group_by' are both provided, each combination of 'x' and 'paired_by' must have exactly two observations, one for each group in 'group_by'. The following combinations do not satisfy this requirement:\n",
                     paste0(
-                        apply(problem_groups[, c(x, paired_by, group_by, ".n", n_total_col)], 1, function(row) {
-                            paste(paste(names(row), row, sep = "="), collapse = ", ")
-                        }),
+                        apply(
+                            problem_groups[, c(
+                                x,
+                                paired_by,
+                                group_by,
+                                ".n",
+                                n_total_col
+                            )],
+                            1,
+                            function(row) {
+                                paste(
+                                    paste(names(row), row, sep = "="),
+                                    collapse = ", "
+                                )
+                            }
+                        ),
                         collapse = "\n"
                     )
                 )
             }
         } else if (dplyr::n_distinct(data[[x]], na.rm = TRUE) != 2) {
-            stop("Exactly two unique values of 'x' are required when 'paired_by' is provided without 'group_by'.")
+            stop(
+                "Exactly two unique values of 'x' are required when 'paired_by' is provided without 'group_by'."
+            )
         } else {
             problem_groups <- data %>%
                 dplyr::group_by(!!!syms(c(x, paired_by))) %>%
@@ -248,15 +387,36 @@ BoxViolinPlotAtomic <- function(
                 dplyr::add_count(!!!syms(paired_by), name = n_total_col) %>%
                 dplyr::filter(!!sym(".n") != 1 | !!sym_ntc != 2) %>%
                 dplyr::mutate(
-                    .n = ifelse(!!sym(".n") == 1, !!sym(".n"), paste0(!!sym(".n"), " (expecting 1)")),
-                    !!sym_ntc := ifelse(!!sym_ntc == 2, !!sym_ntc, paste0(!!sym_ntc, " (expecting 2)"))
+                    .n = ifelse(
+                        !!sym(".n") == 1,
+                        !!sym(".n"),
+                        paste0(!!sym(".n"), " (expecting 1)")
+                    ),
+                    !!sym_ntc := ifelse(
+                        !!sym_ntc == 2,
+                        !!sym_ntc,
+                        paste0(!!sym_ntc, " (expecting 2)")
+                    )
                 )
             if (nrow(problem_groups) > 0) {
-                stop("When 'paired_by' is provided without 'group_by', each combination of 'x' and 'paired_by' must have exactly two observations, one for each value of 'x'. The following combinations do not satisfy this requirement:\n",
+                stop(
+                    "When 'paired_by' is provided without 'group_by', each combination of 'x' and 'paired_by' must have exactly two observations, one for each value of 'x'. The following combinations do not satisfy this requirement:\n",
                     paste0(
-                        apply(problem_groups[, c(x, paired_by, ".n", n_total_col)], 1, function(row) {
-                            paste(paste(names(row), row, sep = "="), collapse = ", ")
-                        }),
+                        apply(
+                            problem_groups[, c(
+                                x,
+                                paired_by,
+                                ".n",
+                                n_total_col
+                            )],
+                            1,
+                            function(row) {
+                                paste(
+                                    paste(names(row), row, sep = "="),
+                                    collapse = ", "
+                                )
+                            }
+                        ),
                         collapse = "\n"
                     )
                 )
@@ -265,7 +425,8 @@ BoxViolinPlotAtomic <- function(
 
         # For paired tests, ensure data is sorted by paired_by so that
         # corresponding observations across groups are in the same order
-        data <- data %>% dplyr::arrange(!!!syms(unique(c(paired_by, x, group_by))))
+        data <- data %>%
+            dplyr::arrange(!!!syms(unique(c(paired_by, x, group_by))))
     }
     if (isTRUE(comparisons) && is.null(group_by)) {
         # stop("'group_by' must be provided to when 'comparisons' is TRUE.")
@@ -277,13 +438,15 @@ BoxViolinPlotAtomic <- function(
         }
         ncomp <- sapply(comparisons, length)
         if (any(ncomp) > 2) {
-            stop("'comparisons' must be a list in which all elements must be vectors of length 2")
+            stop(
+                "'comparisons' must be a list in which all elements must be vectors of length 2"
+            )
         }
     }
     if (!isFALSE(multiplegroup_comparisons)) {
         stopifnot(
-            "'sig_label' must be 'p.format' or 'p.signif' when 'multiplegroup_comparisons' is TRUE." =
-            sig_label %in% c("p.format", "p.signif")
+            "'sig_label' must be 'p.format' or 'p.signif' when 'multiplegroup_comparisons' is TRUE." = sig_label %in%
+                c("p.format", "p.signif")
         )
     }
 
@@ -324,7 +487,9 @@ BoxViolinPlotAtomic <- function(
         } else if (is.character(highlight) && length(highlight) == 1) {
             data <- mutate(data, .highlight = !!parse_expr(highlight))
         } else if (is.null(rownames(data))) {
-            stop("No row names in the data, please provide a vector of indexes to highlight.")
+            stop(
+                "No row names in the data, please provide a vector of indexes to highlight."
+            )
         } else {
             data$.highlight <- rownames(data) %in% highlight
         }
@@ -335,12 +500,18 @@ BoxViolinPlotAtomic <- function(
     } else {
         data$.highlight <- FALSE
     }
-    data$.highlight <- factor(as.character(data$.highlight), levels = c("TRUE", "FALSE"))
+    data$.highlight <- factor(
+        as.character(data$.highlight),
+        levels = c("TRUE", "FALSE")
+    )
 
     if (!is.null(sort_x)) {
         x_levels <- data %>%
             dplyr::group_by(!!sym(x)) %>%
-            dplyr::summarise(.sort_x = !!rlang::parse_expr(sort_x), .groups = "drop") %>%
+            dplyr::summarise(
+                .sort_x = !!rlang::parse_expr(sort_x),
+                .groups = "drop"
+            ) %>%
             dplyr::arrange(!!sym(".sort_x")) %>%
             dplyr::pull(!!sym(x)) %>%
             as.character()
@@ -377,8 +548,15 @@ BoxViolinPlotAtomic <- function(
         if (add_errorbar == "CI") {
             add_errorbar <- "CI95"
         }
-        if (!add_errorbar %in% c("SEM", "SD") && !grepl("^CI\\d+$", add_errorbar)) {
-            stop("'add_errorbar' must be one of 'SEM', 'SD', 'CI', 'CIXX' (e.g., 'CI95'), or 'none'. Got: '", add_errorbar, "'.")
+        if (
+            !add_errorbar %in% c("SEM", "SD") &&
+                !grepl("^CI\\d+$", add_errorbar)
+        ) {
+            stop(
+                "'add_errorbar' must be one of 'SEM', 'SD', 'CI', 'CIXX' (e.g., 'CI95'), or 'none'. Got: '",
+                add_errorbar,
+                "'."
+            )
         }
     }
 
@@ -396,12 +574,21 @@ BoxViolinPlotAtomic <- function(
         if (add_errorbar == "NONE") {
             bar_max <- max(grp_stats$.mean, na.rm = TRUE)
         } else if (add_errorbar == "SEM") {
-            bar_max <- max(grp_stats$.mean + grp_stats$.sd / sqrt(grp_stats$.n), na.rm = TRUE)
+            bar_max <- max(
+                grp_stats$.mean + grp_stats$.sd / sqrt(grp_stats$.n),
+                na.rm = TRUE
+            )
         } else if (add_errorbar == "SD") {
             bar_max <- max(grp_stats$.mean + grp_stats$.sd, na.rm = TRUE)
         } else {
             ci_level <- as.numeric(sub("^CI", "", add_errorbar)) / 100
-            bar_max <- max(grp_stats$.mean + qt((1 + ci_level) / 2, df = pmax(grp_stats$.n - 1, 1)) * grp_stats$.sd / sqrt(grp_stats$.n), na.rm = TRUE)
+            bar_max <- max(
+                grp_stats$.mean +
+                    qt((1 + ci_level) / 2, df = pmax(grp_stats$.n - 1, 1)) *
+                        grp_stats$.sd /
+                        sqrt(grp_stats$.n),
+                na.rm = TRUE
+            )
         }
         if (is.null(y_max) || is.character(y_max)) {
             y_max_use <- bar_max
@@ -423,35 +610,69 @@ BoxViolinPlotAtomic <- function(
     }
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(fill_by)))
     if (isTRUE(add_bg)) {
-        p <- p + bg_layer(data, x, isTRUE(keep_empty_x), bg_palette, bg_palcolor, bg_alpha, facet_by)
+        p <- p +
+            bg_layer(
+                data,
+                x,
+                isTRUE(keep_empty_x),
+                bg_palette,
+                bg_palcolor,
+                bg_alpha,
+                facet_by
+            )
     }
 
     if (base == "box" || (base == "none" && isTRUE(add_box))) {
-        p <- p + geom_boxplot(
-            position = position_dodge(width = 0.9, preserve = position_dodge_preserve), color = "black",
-            width = 0.8, outlier.shape = NA, show.legend = TRUE
-        )
+        p <- p +
+            geom_boxplot(
+                position = position_dodge(
+                    width = 0.9,
+                    preserve = position_dodge_preserve
+                ),
+                color = "black",
+                width = 0.8,
+                outlier.shape = NA,
+                show.legend = TRUE
+            )
     } else if (base == "violin") {
-        p <- p + geom_violin(
-            # There is a bug in ggplot2 with preserve = "single" for violin plots
-            # See https://github.com/tidyverse/ggplot2/issues/2801
-            # There is a fix but not yet released
-            position = position_dodge(width = 0.9, preserve = position_dodge_preserve), scale = "width", trim = TRUE,
-            alpha = alpha, width = 0.8, show.legend = TRUE
-        )
+        p <- p +
+            geom_violin(
+                # There is a bug in ggplot2 with preserve = "single" for violin plots
+                # See https://github.com/tidyverse/ggplot2/issues/2801
+                # There is a fix but not yet released
+                position = position_dodge(
+                    width = 0.9,
+                    preserve = position_dodge_preserve
+                ),
+                scale = "width",
+                trim = TRUE,
+                alpha = alpha,
+                width = 0.8,
+                show.legend = TRUE
+            )
     } else if (base == "bar") {
-        p <- p + stat_summary(
-            fun = mean, geom = "col",
-            position = position_dodge(width = 0.9, preserve = position_dodge_preserve),
-            width = 0.8, alpha = alpha, color = "black", show.legend = TRUE
-        )
+        p <- p +
+            stat_summary(
+                fun = mean,
+                geom = "col",
+                position = position_dodge(
+                    width = 0.9,
+                    preserve = position_dodge_preserve
+                ),
+                width = 0.8,
+                alpha = alpha,
+                color = "black",
+                show.legend = TRUE
+            )
         if (add_errorbar != "NONE") {
             errorbar_fun <- function(y) {
                 y <- y[!is.na(y)]
                 m <- mean(y)
                 n <- length(y)
                 s <- sd(y)
-                if (n < 2 || is.na(s)) return(data.frame(y = m, ymin = m, ymax = m))
+                if (n < 2 || is.na(s)) {
+                    return(data.frame(y = m, ymin = m, ymax = m))
+                }
                 if (add_errorbar == "SEM") {
                     se <- s / sqrt(n)
                     data.frame(y = m, ymin = m - se, ymax = m + se)
@@ -465,56 +686,100 @@ BoxViolinPlotAtomic <- function(
                     data.frame(y = m, ymin = m - me, ymax = m + me)
                 }
             }
-            p <- p + stat_summary(
-                fun.data = errorbar_fun, geom = "errorbar",
-                position = position_dodge(width = 0.9, preserve = position_dodge_preserve),
-                width = errorbar_width, color = errorbar_color,
-                linewidth = errorbar_linewidth, show.legend = FALSE
-            )
+            p <- p +
+                stat_summary(
+                    fun.data = errorbar_fun,
+                    geom = "errorbar",
+                    position = position_dodge(
+                        width = 0.9,
+                        preserve = position_dodge_preserve
+                    ),
+                    width = errorbar_width,
+                    color = errorbar_color,
+                    linewidth = errorbar_linewidth,
+                    show.legend = FALSE
+                )
         }
     }
     if (fill_mode == "dodge") {
         group_vals <- levels(data[[group_by]])
-        if (anyNA(data[[group_by]])) group_vals <- c(group_vals, NA)
-        group_colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, reverse = palreverse, NA_keep = TRUE)
+        if (anyNA(data[[group_by]])) {
+            group_vals <- c(group_vals, NA)
+        }
+        group_colors <- palette_this(
+            group_vals,
+            palette = palette,
+            palcolor = palcolor,
+            reverse = palreverse,
+            NA_keep = TRUE
+        )
 
         if (isTRUE(keep_empty_group)) {
-            p <- p + scale_fill_manual(
-                name = group_name %||% group_by,
-                values = group_colors, na.value = group_colors['NA'] %||% "grey80",
-                breaks = group_vals, limits = group_vals, drop = FALSE
-            )
+            p <- p +
+                scale_fill_manual(
+                    name = group_name %||% group_by,
+                    values = group_colors,
+                    na.value = group_colors['NA'] %||% "grey80",
+                    breaks = group_vals,
+                    limits = group_vals,
+                    drop = FALSE
+                )
         } else {
-            p <- p + scale_fill_manual(
-                name = group_name %||% group_by,
-                values = group_colors, na.value = group_colors['NA'] %||% "grey80"
-            )
+            p <- p +
+                scale_fill_manual(
+                    name = group_name %||% group_by,
+                    values = group_colors,
+                    na.value = group_colors['NA'] %||% "grey80"
+                )
         }
     } else if (fill_mode == "x") {
         x_vals <- levels(data[[x]])
-        if (anyNA(data[[x]])) x_vals <- c(x_vals, NA)
-        x_colors <- palette_this(x_vals, palette = palette, palcolor = palcolor, reverse = palreverse, NA_keep = TRUE)
+        if (anyNA(data[[x]])) {
+            x_vals <- c(x_vals, NA)
+        }
+        x_colors <- palette_this(
+            x_vals,
+            palette = palette,
+            palcolor = palcolor,
+            reverse = palreverse,
+            NA_keep = TRUE
+        )
 
         if (isTRUE(keep_empty_x)) {
-            p <- p + scale_fill_manual(
-                name = x,
-                values = x_colors, na.value = x_colors['NA'] %||% "grey80",
-                breaks = x_vals, limits = x_vals, drop = FALSE
-            )
+            p <- p +
+                scale_fill_manual(
+                    name = x,
+                    values = x_colors,
+                    na.value = x_colors['NA'] %||% "grey80",
+                    breaks = x_vals,
+                    limits = x_vals,
+                    drop = FALSE
+                )
         } else {
-            p <- p + scale_fill_manual(
-                name = x,
-                values = x_colors, na.value = x_colors['NA'] %||% "grey80"
-            )
+            p <- p +
+                scale_fill_manual(
+                    name = x,
+                    values = x_colors,
+                    na.value = x_colors['NA'] %||% "grey80"
+                )
         }
     } else {
-        p <- p + scale_fill_gradientn(
-            name = paste0(y, " (", fill_mode, ")"),
-            n.breaks = 3,
-            colors = palette_this(palette = palette, palcolor = palcolor, reverse = palreverse),
-            na.value = "grey80",
-            guide = guide_colorbar(frame.colour = "black", ticks.colour = "black", title.hjust = 0)
-        )
+        p <- p +
+            scale_fill_gradientn(
+                name = paste0(y, " (", fill_mode, ")"),
+                n.breaks = 3,
+                colors = palette_this(
+                    palette = palette,
+                    palcolor = palcolor,
+                    reverse = palreverse
+                ),
+                na.value = "grey80",
+                guide = guide_colorbar(
+                    frame.colour = "black",
+                    ticks.colour = "black",
+                    title.hjust = 0
+                )
+            )
     }
 
     # when base is none, boxes are added as base
@@ -522,13 +787,28 @@ BoxViolinPlotAtomic <- function(
         p <- p +
             new_scale_fill() +
             geom_boxplot(
-                position = position_dodge(width = 0.9, preserve = position_dodge_preserve), fill = box_color, color = box_color,
-                width = box_width, show.legend = FALSE, outlier.shape = NA
+                position = position_dodge(
+                    width = 0.9,
+                    preserve = position_dodge_preserve
+                ),
+                fill = box_color,
+                color = box_color,
+                width = box_width,
+                show.legend = FALSE,
+                outlier.shape = NA
             ) +
             stat_summary(
-                fun = first, geom = "point", mapping = aes(y = !!sym(".y_median")),
-                position = position_dodge(width = 0.9, preserve = position_dodge_preserve), color = "black", fill = "white",
-                size = box_ptsize, shape = 21
+                fun = first,
+                geom = "point",
+                mapping = aes(y = !!sym(".y_median")),
+                position = position_dodge(
+                    width = 0.9,
+                    preserve = position_dodge_preserve
+                ),
+                color = "black",
+                fill = "white",
+                size = box_ptsize,
+                shape = 21
             )
     }
 
@@ -537,14 +817,18 @@ BoxViolinPlotAtomic <- function(
             # group_use <- names(which(rowSums(table(data[[x]], data[[group_by]]) >= 2) >= 2))
             # print(group_use)
             if (any(rowSums(table(data[[x]], data[[group_by]]) >= 2) >= 3)) {
-                message("Detected more than 2 groups. Use multiple_method for comparison")
+                message(
+                    "Detected more than 2 groups. Use multiple_method for comparison"
+                )
                 # method <- multiple_method
                 multiplegroup_comparisons <- TRUE
             } else {
                 method <- pairwise_method
 
                 if (!identical(fill_mode, "dodge")) {
-                    stop("`comparisons` can only be used with `fill_mode = 'dodge'`.")
+                    stop(
+                        "`comparisons` can only be used with `fill_mode = 'dodge'`."
+                    )
                 }
 
                 # Preprocess data to avoid test failures
@@ -558,25 +842,39 @@ BoxViolinPlotAtomic <- function(
 
                 # Create grouping key for x and facet combinations
                 if (length(grouping_vars) > 1) {
-                    split_key <- interaction(data[grouping_vars], drop = TRUE, sep = " // ")
+                    split_key <- interaction(
+                        data[grouping_vars],
+                        drop = TRUE,
+                        sep = " // "
+                    )
                 } else {
                     split_key <- data[[grouping_vars]]
                 }
 
-                data_groups <- split(data[, split_cols, drop = FALSE], split_key)
+                data_groups <- split(
+                    data[, split_cols, drop = FALSE],
+                    split_key
+                )
                 needs_fix <- FALSE
 
                 # Check if any group will cause test failures
                 for (group_data in data_groups) {
                     gs <- unique(as.character(group_data[[group_by]]))
                     if (length(gs) >= 2) {
-                        yval1 <- group_data[[y]][group_data[[group_by]] == gs[1]]
-                        yval2 <- group_data[[y]][group_data[[group_by]] == gs[2]]
+                        yval1 <- group_data[[y]][
+                            group_data[[group_by]] == gs[1]
+                        ]
+                        yval2 <- group_data[[y]][
+                            group_data[[group_by]] == gs[2]
+                        ]
                         # Check for zero variance or all NA
 
-                        if (all(is.na(yval1)) || all(is.na(yval2)) ||
-                            (length(unique(yval1[!is.na(yval1)])) <= 3 ||
-                             length(unique(yval2[!is.na(yval2)])) <= 3)) {
+                        if (
+                            all(is.na(yval1)) ||
+                                all(is.na(yval2)) ||
+                                (length(unique(yval1[!is.na(yval1)])) <= 3 ||
+                                    length(unique(yval2[!is.na(yval2)])) <= 3)
+                        ) {
                             needs_fix <- TRUE
                             break
                         }
@@ -585,91 +883,136 @@ BoxViolinPlotAtomic <- function(
 
                 pwc_data <- data
                 if (needs_fix) {
-                    warning("[Box/Violin/BeeswarmPlot] Some pairwise comparisons may fail due to insufficient data points or variability. Adjusting data to ensure valid comparisons.")
+                    warning(
+                        "[Box/Violin/BeeswarmPlot] Some pairwise comparisons may fail due to insufficient data points or variability. Adjusting data to ensure valid comparisons."
+                    )
 
                     # Split by facet if present
                     if (!is.null(facet_by)) {
-                        facet_key <- interaction(data[facet_by], drop = TRUE, sep = " // ")
-                        facet_splits <- split(data[, split_cols, drop = FALSE], facet_key)
+                        facet_key <- interaction(
+                            data[facet_by],
+                            drop = TRUE,
+                            sep = " // "
+                        )
+                        facet_splits <- split(
+                            data[, split_cols, drop = FALSE],
+                            facet_key
+                        )
                     } else {
                         facet_splits <- list(data[, split_cols, drop = FALSE])
                     }
 
-                    fixed_data_list <- lapply(facet_splits, function(facet_data) {
-                        xdata <- split(facet_data, facet_data[[x]])
-                        all_gs <- unique(as.character(facet_data[[group_by]]))[1:2]
+                    fixed_data_list <- lapply(
+                        facet_splits,
+                        function(facet_data) {
+                            xdata <- split(facet_data, facet_data[[x]])
+                            all_gs <- unique(as.character(facet_data[[
+                                group_by
+                            ]]))[1:2]
 
-                        for (xval in names(xdata)) {
-                            df <- xdata[[xval]]
-                            gs <- unique(as.character(df[[group_by]]))
+                            for (xval in names(xdata)) {
+                                df <- xdata[[xval]]
+                                gs <- unique(as.character(df[[group_by]]))
 
-                            if (length(gs) < 2) {
-                                # Create minimal data for both groups
-                                df <- data.frame(x = xval, y = c(0, 1), group_by = all_gs)
-                                colnames(df) <- c(x, y, group_by)
-                                if (!is.null(facet_by)) {
-                                    df[facet_by] <- unique(facet_data[facet_by])
-                                }
-                            } else {
-                                yval1 <- df[[y]][df[[group_by]] == gs[1]]
-                                yval2 <- df[[y]][df[[group_by]] == gs[2]]
+                                if (length(gs) < 2) {
+                                    # Create minimal data for both groups
+                                    df <- data.frame(
+                                        x = xval,
+                                        y = c(0, 1),
+                                        group_by = all_gs
+                                    )
+                                    colnames(df) <- c(x, y, group_by)
+                                    if (!is.null(facet_by)) {
+                                        df[facet_by] <- unique(facet_data[
+                                            facet_by
+                                        ])
+                                    }
+                                } else {
+                                    yval1 <- df[[y]][df[[group_by]] == gs[1]]
+                                    yval2 <- df[[y]][df[[group_by]] == gs[2]]
 
-                                # Handle all NA cases
-                                if (all(is.na(yval1))) {
-                                    yval1 <- c(0, rep(NA, length(yval1) - 1))
-                                }
-                                if (all(is.na(yval2))) {
-                                    yval2 <- c(1, rep(NA, length(yval2) - 1))
-                                }
+                                    # Handle all NA cases
+                                    if (all(is.na(yval1))) {
+                                        yval1 <- c(
+                                            0,
+                                            rep(NA, length(yval1) - 1)
+                                        )
+                                    }
+                                    if (all(is.na(yval2))) {
+                                        yval2 <- c(
+                                            1,
+                                            rep(NA, length(yval2) - 1)
+                                        )
+                                    }
 
-                                # Handle zero variance cases
-                                unique_y1 <- unique(yval1[!is.na(yval1)])
-                                unique_y2 <- unique(yval2[!is.na(yval2)])
+                                    # Handle zero variance cases
+                                    unique_y1 <- unique(yval1[!is.na(yval1)])
+                                    unique_y2 <- unique(yval2[!is.na(yval2)])
 
-                                if (length(unique_y1) == 1 && length(unique_y2) == 1) {
-                                    # Both groups have same single value - add minimal relative variance
-                                    # Calculate a small epsilon relative to the data scale
-                                    all_y <- c(yval1, yval2)
-                                    all_y_finite <- all_y[is.finite(all_y)]
+                                    if (
+                                        length(unique_y1) == 1 &&
+                                            length(unique_y2) == 1
+                                    ) {
+                                        # Both groups have same single value - add minimal relative variance
+                                        # Calculate a small epsilon relative to the data scale
+                                        all_y <- c(yval1, yval2)
+                                        all_y_finite <- all_y[is.finite(all_y)]
 
-                                    if (length(all_y_finite) > 0) {
-                                        y_abs <- abs(all_y_finite)
-                                        if (max(y_abs) > 0) {
-                                            epsilon <- max(y_abs) * 1e-10
+                                        if (length(all_y_finite) > 0) {
+                                            y_abs <- abs(all_y_finite)
+                                            if (max(y_abs) > 0) {
+                                                epsilon <- max(y_abs) * 1e-10
+                                            } else {
+                                                epsilon <- 1e-10
+                                            }
                                         } else {
                                             epsilon <- 1e-10
                                         }
-                                    } else {
-                                        epsilon <- 1e-10
+
+                                        # Add variance within each group while maintaining the same mean
+                                        # This ensures the test will return p ≈ 1 (no significant difference)
+                                        non_na_idx_1 <- which(!is.na(yval1))
+                                        non_na_idx_2 <- which(!is.na(yval2))
+
+                                        if (length(non_na_idx_1) >= 2) {
+                                            yval1[non_na_idx_1[1]] <- unique_y1[
+                                                1
+                                            ] -
+                                                epsilon
+                                            yval1[non_na_idx_1[2]] <- unique_y1[
+                                                1
+                                            ] +
+                                                epsilon
+                                        } else if (length(non_na_idx_1) == 1) {
+                                            yval1[non_na_idx_1[1]] <- unique_y1[
+                                                1
+                                            ]
+                                        }
+
+                                        if (length(non_na_idx_2) >= 2) {
+                                            yval2[non_na_idx_2[1]] <- unique_y2[
+                                                1
+                                            ] -
+                                                epsilon
+                                            yval2[non_na_idx_2[2]] <- unique_y2[
+                                                1
+                                            ] +
+                                                epsilon
+                                        } else if (length(non_na_idx_2) == 1) {
+                                            yval2[non_na_idx_2[1]] <- unique_y2[
+                                                1
+                                            ]
+                                        }
                                     }
 
-                                    # Add variance within each group while maintaining the same mean
-                                    # This ensures the test will return p ≈ 1 (no significant difference)
-                                    non_na_idx_1 <- which(!is.na(yval1))
-                                    non_na_idx_2 <- which(!is.na(yval2))
-
-                                    if (length(non_na_idx_1) >= 2) {
-                                        yval1[non_na_idx_1[1]] <- unique_y1[1] - epsilon
-                                        yval1[non_na_idx_1[2]] <- unique_y1[1] + epsilon
-                                    } else if (length(non_na_idx_1) == 1) {
-                                        yval1[non_na_idx_1[1]] <- unique_y1[1]
-                                    }
-
-                                    if (length(non_na_idx_2) >= 2) {
-                                        yval2[non_na_idx_2[1]] <- unique_y2[1] - epsilon
-                                        yval2[non_na_idx_2[2]] <- unique_y2[1] + epsilon
-                                    } else if (length(non_na_idx_2) == 1) {
-                                        yval2[non_na_idx_2[1]] <- unique_y2[1]
-                                    }
+                                    df[[y]][df[[group_by]] == gs[1]] <- yval1
+                                    df[[y]][df[[group_by]] == gs[2]] <- yval2
                                 }
-
-                                df[[y]][df[[group_by]] == gs[1]] <- yval1
-                                df[[y]][df[[group_by]] == gs[2]] <- yval2
+                                xdata[[xval]] <- df
                             }
-                            xdata[[xval]] <- df
+                            do.call(rbind, xdata)
                         }
-                        do.call(rbind, xdata)
-                    })
+                    )
                     pwc_data <- do.call(rbind, fixed_data_list)
                 }
 
@@ -691,7 +1034,10 @@ BoxViolinPlotAtomic <- function(
 
                 # Add paired test parameters if paired_by is provided
                 if (!is.null(paired_by)) {
-                    pwc_call$method.args <- c(pwc_call$method.args, list(paired = TRUE))
+                    pwc_call$method.args <- c(
+                        pwc_call$method.args,
+                        list(paired = TRUE)
+                    )
                 }
 
                 p <- p + do.call(ggpubr::geom_pwc, pwc_call)
@@ -724,7 +1070,11 @@ BoxViolinPlotAtomic <- function(
 
             # Create grouping key for x and facet combinations
             if (length(grouping_vars) > 1) {
-                split_key <- interaction(data[grouping_vars], drop = TRUE, sep = " // ")
+                split_key <- interaction(
+                    data[grouping_vars],
+                    drop = TRUE,
+                    sep = " // "
+                )
             } else {
                 split_key <- data[[grouping_vars]]
             }
@@ -737,7 +1087,9 @@ BoxViolinPlotAtomic <- function(
             for (group_data in data_groups) {
                 yval <- group_data[[y]]
                 # Check for zero variance or all NA
-                if (all(is.na(yval)) || length(unique(yval[!is.na(yval)])) <= 1) {
+                if (
+                    all(is.na(yval)) || length(unique(yval[!is.na(yval)])) <= 1
+                ) {
                     needs_fix <- TRUE
                     break
                 }
@@ -745,12 +1097,21 @@ BoxViolinPlotAtomic <- function(
 
             pwc_data <- data
             if (needs_fix) {
-                warning("Some pairwise comparisons may fail due to insufficient variability. Adjusting data to ensure valid comparisons.")
+                warning(
+                    "Some pairwise comparisons may fail due to insufficient variability. Adjusting data to ensure valid comparisons."
+                )
 
                 # Split by facet if present
                 if (!is.null(facet_by)) {
-                    facet_key <- interaction(data[facet_by], drop = TRUE, sep = " // ")
-                    facet_splits <- split(data[, split_cols, drop = FALSE], facet_key)
+                    facet_key <- interaction(
+                        data[facet_by],
+                        drop = TRUE,
+                        sep = " // "
+                    )
+                    facet_splits <- split(
+                        data[, split_cols, drop = FALSE],
+                        facet_key
+                    )
                 } else {
                     facet_splits <- list(data[, split_cols, drop = FALSE])
                 }
@@ -812,42 +1173,50 @@ BoxViolinPlotAtomic <- function(
                 method_args$paired <- TRUE
             }
 
-            p <- p + ggpubr::geom_pwc(
-                data = pwc_data,
-                label = sig_label,
-                label.size = sig_labelsize,
-                y.position = y_max_use,
-                step.increase = step_increase,
-                symnum.args = symnum_args,
-                tip.length = 0.03,
-                vjust = 0,
-                # comparisons = comparisons,
-                ref.group = ref_group,
-                method = pairwise_method,
-                method.args = method_args,
-                hide.ns = hide_ns
-            )
-            y_max_use <- layer_scales(p)$y$range$range[1] + (layer_scales(p)$y$range$range[2] - layer_scales(p)$y$range$range[1]) * 1.15
+            p <- p +
+                ggpubr::geom_pwc(
+                    data = pwc_data,
+                    label = sig_label,
+                    label.size = sig_labelsize,
+                    y.position = y_max_use,
+                    step.increase = step_increase,
+                    symnum.args = symnum_args,
+                    tip.length = 0.03,
+                    vjust = 0,
+                    # comparisons = comparisons,
+                    ref.group = ref_group,
+                    method = pairwise_method,
+                    method.args = method_args,
+                    hide.ns = hide_ns
+                )
+            y_max_use <- layer_scales(p)$y$range$range[1] +
+                (layer_scales(p)$y$range$range[2] -
+                    layer_scales(p)$y$range$range[1]) *
+                    1.15
         }
     }
 
     if (isTRUE(multiplegroup_comparisons)) {
-        p <- p + ggpubr::stat_compare_means(
-            mapping = if (!is.null(group_by)) {
-                aes(x = !!sym(x), y = !!sym(y), group = !!sym(group_by))
-            } else {
-                aes(x = !!sym(x), y = !!sym(y))
-            },
-            inherit.aes = FALSE,
-            method = multiple_method,
-            symnum.args = symnum_args,
-            label.y = y_max_use,
-            size = sig_labelsize,
-            label = sig_label,
-            vjust = -0.5,
-            hjust = ifelse(is.null(group_by), 0, 0.5)
-        )
-        y_max_use <- layer_scales(p)$y$range$range[1] + (layer_scales(p)$y$range$range[2] - layer_scales(p)$y$range$range[1]) * 1.15
+        p <- p +
+            ggpubr::stat_compare_means(
+                mapping = if (!is.null(group_by)) {
+                    aes(x = !!sym(x), y = !!sym(y), group = !!sym(group_by))
+                } else {
+                    aes(x = !!sym(x), y = !!sym(y))
+                },
+                inherit.aes = FALSE,
+                method = multiple_method,
+                symnum.args = symnum_args,
+                label.y = y_max_use,
+                size = sig_labelsize,
+                label = sig_label,
+                vjust = -0.5,
+                hjust = ifelse(is.null(group_by), 0, 0.5)
+            )
+        y_max_use <- layer_scales(p)$y$range$range[1] +
+            (layer_scales(p)$y$range$range[2] -
+                layer_scales(p)$y$range$range[1]) *
+                1.15
     }
     if (!is.null(y_max) && is.numeric(y_max)) {
         y_max_use <- max(y_max_use, y_max)
@@ -856,14 +1225,19 @@ BoxViolinPlotAtomic <- function(
     if (isTRUE(add_point)) {
         if (!is.null(paired_by)) {
             if (is.null(group_by)) {
-                p <- p + geom_line(
-                    data = data,
-                    mapping = aes(x = !!sym(x), y = !!sym(y), group = !!sym(paired_by)),
-                    color = pt_color,
-                    alpha = pt_alpha,
-                    linewidth = 0.3,
-                    inherit.aes = FALSE
-                )
+                p <- p +
+                    geom_line(
+                        data = data,
+                        mapping = aes(
+                            x = !!sym(x),
+                            y = !!sym(y),
+                            group = !!sym(paired_by)
+                        ),
+                        color = pt_color,
+                        alpha = pt_alpha,
+                        linewidth = 0.3,
+                        inherit.aes = FALSE
+                    )
             } else {
                 line_data <- data
                 # re-calculate x
@@ -873,18 +1247,27 @@ BoxViolinPlotAtomic <- function(
                 groups <- levels(line_data[[group_by]])
                 line_data$.x <- ifelse(
                     line_data[[group_by]] == groups[1],
-                    line_data$.xint - .225,  # n = 0.225 = 0.9 / 2 / 2
+                    line_data$.xint - .225, # n = 0.225 = 0.9 / 2 / 2
                     line_data$.xint + .225
                 )
-                line_data$.line_group <- paste(line_data[[paired_by]], line_data[[x]], sep = " // ")
-                p <- p + geom_line(
-                    data = line_data,
-                    mapping = aes(x = !!sym(".x"), y = !!sym(y), group = !!sym(".line_group")),
-                    color = pt_color,
-                    alpha = pt_alpha,
-                    linewidth = 0.3,
-                    inherit.aes = FALSE
+                line_data$.line_group <- paste(
+                    line_data[[paired_by]],
+                    line_data[[x]],
+                    sep = " // "
                 )
+                p <- p +
+                    geom_line(
+                        data = line_data,
+                        mapping = aes(
+                            x = !!sym(".x"),
+                            y = !!sym(y),
+                            group = !!sym(".line_group")
+                        ),
+                        color = pt_color,
+                        alpha = pt_alpha,
+                        linewidth = 0.3,
+                        inherit.aes = FALSE
+                    )
             }
         }
 
@@ -902,7 +1285,12 @@ BoxViolinPlotAtomic <- function(
                         show.legend = FALSE
                     )
             } else {
-                colors <- palette_this(levels(data[[fill_by]]), palette = palette, palcolor = palcolor, reverse = palreverse)
+                colors <- palette_this(
+                    levels(data[[fill_by]]),
+                    palette = palette,
+                    palcolor = palcolor,
+                    reverse = palreverse
+                )
                 p <- p +
                     ggbeeswarm::geom_beeswarm(
                         aes(color = !!sym(fill_by)),
@@ -925,11 +1313,17 @@ BoxViolinPlotAtomic <- function(
                         show.legend = FALSE
                     ) +
                     scale_size_manual(
-                        values = c("TRUE" = highlight_size, "FALSE" = pt_size %||% min(3000 / nrow(data), 0.6)),
+                        values = c(
+                            "TRUE" = highlight_size,
+                            "FALSE" = pt_size %||% min(3000 / nrow(data), 0.6)
+                        ),
                         guide = "none"
                     ) +
                     scale_alpha_manual(
-                        values = c("TRUE" = highlight_alpha, "FALSE" = pt_alpha),
+                        values = c(
+                            "TRUE" = highlight_alpha,
+                            "FALSE" = pt_alpha
+                        ),
                         guide = "none"
                     )
             }
@@ -937,95 +1331,182 @@ BoxViolinPlotAtomic <- function(
             # Use regular jittered points
             p <- p +
                 geom_point(
-                    aes(fill = !!sym(fill_by), color = !!sym(".highlight"), size = !!sym(".highlight"), alpha = !!sym(".highlight")),
+                    aes(
+                        fill = !!sym(fill_by),
+                        color = !!sym(".highlight"),
+                        size = !!sym(".highlight"),
+                        alpha = !!sym(".highlight")
+                    ),
                     position = position_jitterdodge(
-                        jitter.width = jitter_width %||% ifelse(!is.null(paired_by), 0, 0.5),
-                        jitter.height = jitter_height, dodge.width = 0.9, seed = seed
+                        jitter.width = jitter_width %||%
+                            ifelse(!is.null(paired_by), 0, 0.5),
+                        jitter.height = jitter_height,
+                        dodge.width = 0.9,
+                        seed = seed
                     ),
                     show.legend = FALSE
                 ) +
-                scale_color_manual(values = c("TRUE" = highlight_color, "FALSE" = pt_color), guide = "none") +
-                scale_size_manual(values = c("TRUE" = highlight_size, "FALSE" = pt_size %||% min(3000 / nrow(data), 0.6)), guide = "none") +
-                scale_alpha_manual(values = c("TRUE" = highlight_alpha, "FALSE" = pt_alpha), guide = "none")
+                scale_color_manual(
+                    values = c("TRUE" = highlight_color, "FALSE" = pt_color),
+                    guide = "none"
+                ) +
+                scale_size_manual(
+                    values = c(
+                        "TRUE" = highlight_size,
+                        "FALSE" = pt_size %||% min(3000 / nrow(data), 0.6)
+                    ),
+                    guide = "none"
+                ) +
+                scale_alpha_manual(
+                    values = c("TRUE" = highlight_alpha, "FALSE" = pt_alpha),
+                    guide = "none"
+                )
         }
     }
 
     if (isTRUE(add_trend)) {
         if (is.null(trend_color)) {
-            p <- p + stat_summary(
-                fun = first, geom = "line", mapping = if (!is.null(group_by)) {
-                    aes(y = !!sym(".y_median"), group = !!sym(group_by), color = !!sym(group_by))
-                } else {
-                    aes(y = !!sym(".y_median"), group = 1)
-                },
-                position = position_dodge(width = 0.9, preserve = position_dodge_preserve), linewidth = trend_linewidth
-            )
+            p <- p +
+                stat_summary(
+                    fun = first,
+                    geom = "line",
+                    mapping = if (!is.null(group_by)) {
+                        aes(
+                            y = !!sym(".y_median"),
+                            group = !!sym(group_by),
+                            color = !!sym(group_by)
+                        )
+                    } else {
+                        aes(y = !!sym(".y_median"), group = 1)
+                    },
+                    position = position_dodge(
+                        width = 0.9,
+                        preserve = position_dodge_preserve
+                    ),
+                    linewidth = trend_linewidth
+                )
             if (!is.null(group_by)) {
                 group_vals <- levels(data[[group_by]])
-                if (anyNA(data[[group_by]])) group_vals <- c(group_vals, NA)
-                group_colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, reverse = palreverse, NA_keep = TRUE)
+                if (anyNA(data[[group_by]])) {
+                    group_vals <- c(group_vals, NA)
+                }
+                group_colors <- palette_this(
+                    group_vals,
+                    palette = palette,
+                    palcolor = palcolor,
+                    reverse = palreverse,
+                    NA_keep = TRUE
+                )
 
                 if (isTRUE(keep_empty_group)) {
-                    p <- p + scale_color_manual(
-                        values = group_colors, na.value = group_colors['NA'] %||% "grey80",
-                        breaks = group_vals, limits = group_vals, drop = FALSE
-                    )
+                    p <- p +
+                        scale_color_manual(
+                            values = group_colors,
+                            na.value = group_colors['NA'] %||% "grey80",
+                            breaks = group_vals,
+                            limits = group_vals,
+                            drop = FALSE
+                        )
                 } else {
-                    p <- p + scale_color_manual(
-                        values = group_colors, na.value = group_colors['NA'] %||% "grey80"
-                    )
+                    p <- p +
+                        scale_color_manual(
+                            values = group_colors,
+                            na.value = group_colors['NA'] %||% "grey80"
+                        )
                 }
             }
         } else {
-            p <- p + stat_summary(
-                fun = first, geom = "line", mapping = if (!is.null(group_by)) {
+            p <- p +
+                stat_summary(
+                    fun = first,
+                    geom = "line",
+                    mapping = if (!is.null(group_by)) {
+                        aes(y = !!sym(".y_median"), group = !!sym(group_by))
+                    } else {
+                        aes(y = !!sym(".y_median"), group = 1)
+                    },
+                    position = position_dodge(
+                        width = 0.9,
+                        preserve = position_dodge_preserve
+                    ),
+                    color = trend_color,
+                    linewidth = trend_linewidth
+                )
+        }
+
+        p <- p +
+            stat_summary(
+                fun = first,
+                geom = "point",
+                mapping = if (!is.null(group_by)) {
                     aes(y = !!sym(".y_median"), group = !!sym(group_by))
                 } else {
                     aes(y = !!sym(".y_median"), group = 1)
                 },
-                position = position_dodge(width = 0.9, preserve = position_dodge_preserve), color = trend_color, linewidth = trend_linewidth
+                position = position_dodge(
+                    width = 0.9,
+                    preserve = position_dodge_preserve
+                ),
+                color = "black",
+                fill = "white",
+                size = trend_ptsize,
+                shape = 21
             )
-        }
-
-        p <- p + stat_summary(
-            fun = first, geom = "point", mapping = if (!is.null(group_by)) {
-                aes(y = !!sym(".y_median"), group = !!sym(group_by))
-            } else {
-                aes(y = !!sym(".y_median"), group = 1)
-            },
-            position = position_dodge(width = 0.9, preserve = position_dodge_preserve), color = "black", fill = "white",
-            size = trend_ptsize, shape = 21
-        )
     }
 
     if (!is.null(add_line)) {
-        p <- p + geom_hline(
-            yintercept = add_line,
-            color = line_color, linetype = line_type, linewidth = line_width
-        )
+        p <- p +
+            geom_hline(
+                yintercept = add_line,
+                color = line_color,
+                linetype = line_type,
+                linewidth = line_width
+            )
     }
 
     if (!is.null(add_stat)) {
-        p <- p + stat_summary(
-            fun = add_stat, geom = "point", mapping = if (!is.null(group_by)) {
-                aes(shape = !!sym("stat_shape"), group = !!sym(group_by))
-            } else {
-                aes(shape = !!sym("stat_shape"), group = 1)
-            },
-            position = position_dodge(width = 0.9, preserve = position_dodge_preserve), color = stat_color, fill = stat_color, size = stat_size, stroke = stat_stroke,
-        ) + scale_shape_identity(
-            labels = stat_name %||% paste0(y, " (", deparse(substitute(add_stat)), ")"),
-            guide = guide_legend(title = "", order = 2)
-        )
+        p <- p +
+            stat_summary(
+                fun = add_stat,
+                geom = "point",
+                mapping = if (!is.null(group_by)) {
+                    aes(shape = !!sym("stat_shape"), group = !!sym(group_by))
+                } else {
+                    aes(shape = !!sym("stat_shape"), group = 1)
+                },
+                position = position_dodge(
+                    width = 0.9,
+                    preserve = position_dodge_preserve
+                ),
+                color = stat_color,
+                fill = stat_color,
+                size = stat_size,
+                stroke = stat_stroke,
+            ) +
+            scale_shape_identity(
+                labels = stat_name %||%
+                    paste0(y, " (", deparse(substitute(add_stat)), ")"),
+                guide = guide_legend(title = "", order = 2)
+            )
     }
 
     just <- calc_just(x_text_angle)
     p <- p +
         scale_x_discrete(drop = !isTRUE(keep_empty_x)) +
-        labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y)
+        labs(
+            title = title,
+            subtitle = subtitle,
+            x = xlab %||% x,
+            y = ylab %||% y
+        )
 
     if (base == "bar") {
-        p <- p + scale_y_continuous(trans = y_trans, n.breaks = y_nbreaks, expand = expansion(mult = c(0, 0.05)))
+        p <- p +
+            scale_y_continuous(
+                trans = y_trans,
+                n.breaks = y_nbreaks,
+                expand = expansion(mult = c(0, 0.05))
+            )
     } else {
         p <- p + scale_y_continuous(trans = y_trans, n.breaks = y_nbreaks)
     }
@@ -1033,19 +1514,19 @@ BoxViolinPlotAtomic <- function(
     x_maxchars <- max(nchar(levels(data[[x]])))
     nx <- nlevels(data[[x]])
     nd <- ifelse(is.null(group_by), 1, nlevels(data[[group_by]]))
-    facet_free <- !is.null(facet_by) && (
-        identical(facet_scales, "free") ||
+    facet_free <- !is.null(facet_by) &&
+        (identical(facet_scales, "free") ||
             (!flip && identical(facet_scales, "free_y")) ||
-            (flip && identical(facet_scales, "free_x"))
-    )
+            (flip && identical(facet_scales, "free_x")))
     if (isTRUE(flip) && isTRUE(stack)) {
         facet_nrow <- facet_nrow %||% 1
         strip_position <- "top"
-        p <- p + ggplot2::theme(
-            # strip.text.x = element_text(angle = 90),
-            panel.grid.major.x = element_line(color = "grey", linetype = 2),
-            panel.spacing.x = unit(-1, "pt")
-        )
+        p <- p +
+            ggplot2::theme(
+                # strip.text.x = element_text(angle = 90),
+                panel.grid.major.x = element_line(color = "grey", linetype = 2),
+                panel.spacing.x = unit(-1, "pt")
+            )
         if (facet_free) {
             p <- p + coord_flip()
         } else {
@@ -1053,10 +1534,11 @@ BoxViolinPlotAtomic <- function(
         }
     } else if (isTRUE(flip) && isFALSE(stack)) {
         strip_position <- "top"
-        p <- p + ggplot2::theme(
-            strip.text.y = element_text(angle = 0),
-            panel.grid.major.x = element_line(color = "grey", linetype = 2),
-        )
+        p <- p +
+            ggplot2::theme(
+                strip.text.y = element_text(angle = 0),
+                panel.grid.major.x = element_line(color = "grey", linetype = 2),
+            )
         if (facet_free) {
             p <- p + coord_flip()
         } else {
@@ -1065,20 +1547,22 @@ BoxViolinPlotAtomic <- function(
     } else if (isTRUE(stack)) {
         facet_ncol <- facet_ncol %||% 1
         strip_position <- "right"
-        p <- p + ggplot2::theme(
-            panel.spacing.y = unit(-1, "pt"),
-            strip.text.y = element_text(angle = 0, hjust = 0),
-            panel.grid.major.y = element_line(color = "grey", linetype = 2),
-        )
+        p <- p +
+            ggplot2::theme(
+                panel.spacing.y = unit(-1, "pt"),
+                strip.text.y = element_text(angle = 0, hjust = 0),
+                panel.grid.major.y = element_line(color = "grey", linetype = 2),
+            )
         if (!facet_free) {
             p <- p + coord_cartesian(ylim = c(y_min_use, y_max_use))
         }
     } else {
         strip_position <- "top"
-        p <- p + ggplot2::theme(
-            strip.text.x = element_text(angle = 0),
-            panel.grid.major.x = element_line(color = "grey", linetype = 2),
-        )
+        p <- p +
+            ggplot2::theme(
+                strip.text.x = element_text(angle = 0),
+                panel.grid.major.x = element_line(color = "grey", linetype = 2),
+            )
         if (!facet_free) {
             p <- p + coord_cartesian(ylim = c(y_min_use, y_max_use))
         }
@@ -1088,7 +1572,11 @@ BoxViolinPlotAtomic <- function(
         do.call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
-            axis.text.x = element_text(angle = x_text_angle, hjust = just$h, vjust = just$v),
+            axis.text.x = element_text(
+                angle = x_text_angle,
+                hjust = just$h,
+                vjust = just$v
+            ),
             legend.position = legend.position,
             legend.direction = legend.direction,
         )
@@ -1099,7 +1587,11 @@ BoxViolinPlotAtomic <- function(
     # When not flipped: nx*nd categories land on the visual x-axis (width-driven);
     #                   x-axis label chars add to height.
     if (isTRUE(flip)) {
-        label_min_width <- if (isTRUE(stack)) max(3, 2 + x_maxchars * 0.05) else max(3, 2.2 + x_maxchars * 0.05)
+        label_min_width <- if (isTRUE(stack)) {
+            max(3, 2 + x_maxchars * 0.05)
+        } else {
+            max(3, 2.2 + x_maxchars * 0.05)
+        }
         dims <- calculate_plot_dimensions(
             base_height = label_min_width,
             aspect.ratio = aspect.ratio,
@@ -1108,13 +1600,21 @@ BoxViolinPlotAtomic <- function(
             legend.position = legend.position,
             legend.direction = legend.direction,
             legend_n = nd,
-            legend_nchar = if (is.null(group_by)) 5 else max(nchar(levels(data[[group_by]]))),
+            legend_nchar = if (is.null(group_by)) {
+                5
+            } else {
+                max(nchar(levels(data[[group_by]])))
+            },
             flip = TRUE
         )
         height <- dims$height
         width <- max(dims$width, label_min_width)
     } else {
-        label_min_height <- if (isTRUE(stack)) 4 + x_maxchars * 0.05 else 2 + x_maxchars * 0.05
+        label_min_height <- if (isTRUE(stack)) {
+            4 + x_maxchars * 0.05
+        } else {
+            2 + x_maxchars * 0.05
+        }
         dims <- calculate_plot_dimensions(
             base_height = label_min_height,
             aspect.ratio = aspect.ratio,
@@ -1123,7 +1623,11 @@ BoxViolinPlotAtomic <- function(
             legend.position = legend.position,
             legend.direction = legend.direction,
             legend_n = nd,
-            legend_nchar = if (is.null(group_by)) 5 else max(nchar(levels(data[[group_by]]))),
+            legend_nchar = if (is.null(group_by)) {
+                5
+            } else {
+                max(nchar(levels(data[[group_by]])))
+            },
             flip = FALSE
         )
         height <- max(dims$height, label_min_height)
@@ -1133,9 +1637,17 @@ BoxViolinPlotAtomic <- function(
     attr(p, "height") <- height
     attr(p, "width") <- max(width, height)
 
-    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-        strip.position = strip_position, legend.position = legend.position,
-        legend.direction = legend.direction, drop = !isTRUE(keep_empty_facet)
+    facet_plot(
+        p,
+        facet_by,
+        facet_scales,
+        facet_nrow,
+        facet_ncol,
+        facet_byrow,
+        strip.position = strip_position,
+        legend.position = legend.position,
+        legend.direction = legend.direction,
+        drop = !isTRUE(keep_empty_facet)
     )
 }
 
@@ -1148,35 +1660,126 @@ BoxViolinPlotAtomic <- function(
 #' @keywords internal
 #' @importFrom rlang %||%
 BoxViolinPlot <- function(
-    data, x, x_sep = "_", y = NULL, base = c("box", "violin", "bar", "none"), in_form = c("long", "wide"),
-    split_by = NULL, split_by_sep = "_", symnum_args = NULL, sort_x = NULL,
-    flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    paired_by = NULL, x_text_angle = ifelse(isTRUE(flip), 0, 45), step_increase = 0.1,
-    fill_mode = ifelse(!is.null(group_by), "dodge", "x"), palreverse = FALSE, position_dodge_preserve = "total",
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
-    aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
-    add_point = FALSE, pt_color = if(isTRUE(add_beeswarm)) NULL else "grey30", pt_size = NULL, pt_alpha = 1,
-    jitter_width = NULL, jitter_height = 0, stack = FALSE, y_max = NULL, y_min = NULL,
-    add_beeswarm = FALSE, beeswarm_method = "swarm", beeswarm_cex = 1, beeswarm_priority = "ascending",
-    beeswarm_dodge = 0.9, add_box = FALSE, box_color = "black", box_width = 0.1, box_ptsize = 2.5,
-    add_errorbar = "SEM", errorbar_color = "grey20", errorbar_width = 0.4, errorbar_linewidth = 0.6,
-    add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
-    add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
-    add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
-    add_line = NULL, line_color = "red2", line_width = .6, line_type = 2,
-    highlight = NULL, highlight_color = "red2", highlight_size = 1, highlight_alpha = 1,
-    comparisons = NULL, ref_group = NULL, pairwise_method = "wilcox.test",
-    multiplegroup_comparisons = FALSE, multiple_method = "kruskal.test",
-    sig_label = "p.format", sig_labelsize = 3.5, hide_ns = FALSE,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
-    axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...) {
+    data,
+    x,
+    x_sep = "_",
+    y = NULL,
+    base = c("box", "violin", "bar", "none"),
+    in_form = c("long", "wide"),
+    split_by = NULL,
+    split_by_sep = "_",
+    symnum_args = NULL,
+    sort_x = NULL,
+    flip = FALSE,
+    keep_empty = FALSE,
+    keep_na = FALSE,
+    group_by = NULL,
+    group_by_sep = "_",
+    group_name = NULL,
+    paired_by = NULL,
+    x_text_angle = ifelse(isTRUE(flip), 0, 45),
+    step_increase = 0.1,
+    fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
+    palreverse = FALSE,
+    position_dodge_preserve = "total",
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Paired",
+    palcolor = NULL,
+    alpha = 1,
+    aspect.ratio = NULL,
+    legend.position = "right",
+    legend.direction = "vertical",
+    add_point = FALSE,
+    pt_color = if (isTRUE(add_beeswarm)) NULL else "grey30",
+    pt_size = NULL,
+    pt_alpha = 1,
+    jitter_width = NULL,
+    jitter_height = 0,
+    stack = FALSE,
+    y_max = NULL,
+    y_min = NULL,
+    add_beeswarm = FALSE,
+    beeswarm_method = "swarm",
+    beeswarm_cex = 1,
+    beeswarm_priority = "ascending",
+    beeswarm_dodge = 0.9,
+    add_box = FALSE,
+    box_color = "black",
+    box_width = 0.1,
+    box_ptsize = 2.5,
+    add_errorbar = "SEM",
+    errorbar_color = "grey20",
+    errorbar_width = 0.4,
+    errorbar_linewidth = 0.6,
+    add_trend = FALSE,
+    trend_color = NULL,
+    trend_linewidth = 1,
+    trend_ptsize = 2,
+    add_stat = NULL,
+    stat_name = NULL,
+    stat_color = "black",
+    stat_size = 1,
+    stat_stroke = 1,
+    stat_shape = 25,
+    add_bg = FALSE,
+    bg_palette = "stripe",
+    bg_palcolor = NULL,
+    bg_alpha = 0.2,
+    add_line = NULL,
+    line_color = "red2",
+    line_width = .6,
+    line_type = 2,
+    highlight = NULL,
+    highlight_color = "red2",
+    highlight_size = 1,
+    highlight_alpha = 1,
+    comparisons = NULL,
+    ref_group = NULL,
+    pairwise_method = "wilcox.test",
+    multiplegroup_comparisons = FALSE,
+    multiple_method = "kruskal.test",
+    sig_label = "p.format",
+    sig_labelsize = 3.5,
+    hide_ns = FALSE,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    seed = 8525,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
+    ...
+) {
     validate_common_args(seed)
-    keep_na <- check_keep_na(keep_na, c(x, split_by, group_by, paired_by, facet_by))
-    keep_empty <- check_keep_empty(keep_empty, c(x, split_by, group_by, paired_by, facet_by))
+    keep_na <- check_keep_na(
+        keep_na,
+        c(x, split_by, group_by, paired_by, facet_by)
+    )
+    keep_empty <- check_keep_empty(
+        keep_empty,
+        c(x, split_by, group_by, paired_by, facet_by)
+    )
     theme <- process_theme(theme)
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
+    split_by <- check_columns(
+        data,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
 
     if (!is.null(split_by)) {
         data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
@@ -1193,49 +1796,144 @@ BoxViolinPlot <- function(
 
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
-    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
-    legend.position <- check_legend(legend.position, names(datas), "legend.position")
+    legend.direction <- check_legend(
+        legend.direction,
+        names(datas),
+        "legend.direction"
+    )
+    legend.position <- check_legend(
+        legend.position,
+        names(datas),
+        "legend.position"
+    )
 
-    stat_name <- stat_name %||% paste0(y, " (", deparse(substitute(add_stat)), ")")
+    stat_name <- stat_name %||%
+        paste0(y, " (", deparse(substitute(add_stat)), ")")
     base <- match.arg(base)
 
     plots <- lapply(
-        names(datas), function(nm) {
-            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+        names(datas),
+        function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) {
+                NULL
+            } else {
+                nm
+            }
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
                 title <- title %||% default_title
             }
-            BoxViolinPlotAtomic(datas[[nm]],
-                x = x, x_sep = x_sep, y = y, base = base, in_form = in_form,
-                sort_x = sort_x, flip = flip, keep_empty = keep_empty, keep_na = keep_na, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
-                paired_by = paired_by, x_text_angle = x_text_angle, fill_mode = fill_mode, palreverse = palreverse, step_increase = step_increase,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha, position_dodge_preserve = position_dodge_preserve,
-                aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha, symnum_args = symnum_args,
-                jitter_width = jitter_width, jitter_height = jitter_height, stack = stack, y_max = y_max, y_min = y_min,
-                add_beeswarm = add_beeswarm, beeswarm_method = beeswarm_method, beeswarm_cex = beeswarm_cex, beeswarm_priority = beeswarm_priority,
-                beeswarm_dodge = beeswarm_dodge, add_box = add_box, box_color = box_color, box_width = box_width, box_ptsize = box_ptsize,
-                add_errorbar = add_errorbar, errorbar_color = errorbar_color, errorbar_width = errorbar_width, errorbar_linewidth = errorbar_linewidth,
-                add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
-                add_stat = add_stat, stat_name = stat_name, stat_color = stat_color, stat_size = stat_size, stat_stroke = stat_stroke, stat_shape = stat_shape,
-                add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
-                add_line = add_line, line_color = line_color, line_width = line_width, line_type = line_type,
-                highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha,
-                comparisons = comparisons, ref_group = ref_group, pairwise_method = pairwise_method,
-                multiplegroup_comparisons = multiplegroup_comparisons, multiple_method = multiple_method,
-                sig_label = sig_label, sig_labelsize = sig_labelsize, hide_ns = hide_ns,
-                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, ...
+            BoxViolinPlotAtomic(
+                datas[[nm]],
+                x = x,
+                x_sep = x_sep,
+                y = y,
+                base = base,
+                in_form = in_form,
+                sort_x = sort_x,
+                flip = flip,
+                keep_empty = keep_empty,
+                keep_na = keep_na,
+                group_by = group_by,
+                group_by_sep = group_by_sep,
+                group_name = group_name,
+                paired_by = paired_by,
+                x_text_angle = x_text_angle,
+                fill_mode = fill_mode,
+                palreverse = palreverse,
+                step_increase = step_increase,
+                theme = theme,
+                theme_args = theme_args,
+                palette = palette[[nm]],
+                palcolor = palcolor[[nm]],
+                alpha = alpha,
+                position_dodge_preserve = position_dodge_preserve,
+                aspect.ratio = aspect.ratio,
+                legend.position = legend.position[[nm]],
+                legend.direction = legend.direction[[nm]],
+                add_point = add_point,
+                pt_color = pt_color,
+                pt_size = pt_size,
+                pt_alpha = pt_alpha,
+                symnum_args = symnum_args,
+                jitter_width = jitter_width,
+                jitter_height = jitter_height,
+                stack = stack,
+                y_max = y_max,
+                y_min = y_min,
+                add_beeswarm = add_beeswarm,
+                beeswarm_method = beeswarm_method,
+                beeswarm_cex = beeswarm_cex,
+                beeswarm_priority = beeswarm_priority,
+                beeswarm_dodge = beeswarm_dodge,
+                add_box = add_box,
+                box_color = box_color,
+                box_width = box_width,
+                box_ptsize = box_ptsize,
+                add_errorbar = add_errorbar,
+                errorbar_color = errorbar_color,
+                errorbar_width = errorbar_width,
+                errorbar_linewidth = errorbar_linewidth,
+                add_trend = add_trend,
+                trend_color = trend_color,
+                trend_linewidth = trend_linewidth,
+                trend_ptsize = trend_ptsize,
+                add_stat = add_stat,
+                stat_name = stat_name,
+                stat_color = stat_color,
+                stat_size = stat_size,
+                stat_stroke = stat_stroke,
+                stat_shape = stat_shape,
+                add_bg = add_bg,
+                bg_palette = bg_palette,
+                bg_palcolor = bg_palcolor,
+                bg_alpha = bg_alpha,
+                add_line = add_line,
+                line_color = line_color,
+                line_width = line_width,
+                line_type = line_type,
+                highlight = highlight,
+                highlight_color = highlight_color,
+                highlight_size = highlight_size,
+                highlight_alpha = highlight_alpha,
+                comparisons = comparisons,
+                ref_group = ref_group,
+                pairwise_method = pairwise_method,
+                multiplegroup_comparisons = multiplegroup_comparisons,
+                multiple_method = multiple_method,
+                sig_label = sig_label,
+                sig_labelsize = sig_labelsize,
+                hide_ns = hide_ns,
+                facet_by = facet_by,
+                facet_scales = facet_scales,
+                facet_ncol = facet_ncol,
+                facet_nrow = facet_nrow,
+                facet_byrow = facet_byrow,
+                title = title,
+                subtitle = subtitle,
+                xlab = xlab,
+                ylab = ylab,
+                seed = seed,
+                ...
             )
         }
     )
 
     names(plots) <- names(datas)
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }
 
 #' Box / Violin / Bar Plot
@@ -1365,53 +2063,203 @@ BoxViolinPlot <- function(
 #'     fill_mode = "mean", palette = "Blues")
 #' }
 BoxPlot <- function(
-    data, x, x_sep = "_", y = NULL, base = c("box", "bar"), in_form = c("long", "wide"),
-    split_by = NULL, split_by_sep = "_", symnum_args = NULL, sort_x = NULL,
-    flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    paired_by = NULL, x_text_angle = ifelse(isTRUE(flip), 0, 45), step_increase = 0.1,
-    fill_mode = ifelse(!is.null(group_by), "dodge", "x"), palreverse = FALSE, position_dodge_preserve = "total",
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
-    aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
-    add_point = FALSE, pt_color = if(isTRUE(add_beeswarm)) NULL else "grey30", pt_size = NULL, pt_alpha = 1,
-    jitter_width = NULL, jitter_height = 0, stack = FALSE, y_max = NULL, y_min = NULL,
-    add_beeswarm = FALSE, beeswarm_method = "swarm", beeswarm_cex = 1, beeswarm_priority = "ascending",
-    beeswarm_dodge = 0.9, add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
-    add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
-    add_errorbar = "SEM", errorbar_color = "grey20", errorbar_width = 0.4, errorbar_linewidth = 0.6,
-    add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
-    add_line = NULL, line_color = "red2", line_width = .6, line_type = 2,
-    highlight = NULL, highlight_color = "red2", highlight_size = 1, highlight_alpha = 1,
-    comparisons = NULL, ref_group = NULL, pairwise_method = "wilcox.test",
-    multiplegroup_comparisons = FALSE, multiple_method = "kruskal.test",
-    sig_label = "p.format", sig_labelsize = 3.5, hide_ns = FALSE,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
-    axes = NULL, axis_titles = axes, guides = NULL, ...) {
+    data,
+    x,
+    x_sep = "_",
+    y = NULL,
+    base = c("box", "bar"),
+    in_form = c("long", "wide"),
+    split_by = NULL,
+    split_by_sep = "_",
+    symnum_args = NULL,
+    sort_x = NULL,
+    flip = FALSE,
+    keep_empty = FALSE,
+    keep_na = FALSE,
+    group_by = NULL,
+    group_by_sep = "_",
+    group_name = NULL,
+    paired_by = NULL,
+    x_text_angle = ifelse(isTRUE(flip), 0, 45),
+    step_increase = 0.1,
+    fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
+    palreverse = FALSE,
+    position_dodge_preserve = "total",
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Paired",
+    palcolor = NULL,
+    alpha = 1,
+    aspect.ratio = NULL,
+    legend.position = "right",
+    legend.direction = "vertical",
+    add_point = FALSE,
+    pt_color = if (isTRUE(add_beeswarm)) NULL else "grey30",
+    pt_size = NULL,
+    pt_alpha = 1,
+    jitter_width = NULL,
+    jitter_height = 0,
+    stack = FALSE,
+    y_max = NULL,
+    y_min = NULL,
+    add_beeswarm = FALSE,
+    beeswarm_method = "swarm",
+    beeswarm_cex = 1,
+    beeswarm_priority = "ascending",
+    beeswarm_dodge = 0.9,
+    add_trend = FALSE,
+    trend_color = NULL,
+    trend_linewidth = 1,
+    trend_ptsize = 2,
+    add_stat = NULL,
+    stat_name = NULL,
+    stat_color = "black",
+    stat_size = 1,
+    stat_stroke = 1,
+    stat_shape = 25,
+    add_errorbar = "SEM",
+    errorbar_color = "grey20",
+    errorbar_width = 0.4,
+    errorbar_linewidth = 0.6,
+    add_bg = FALSE,
+    bg_palette = "stripe",
+    bg_palcolor = NULL,
+    bg_alpha = 0.2,
+    add_line = NULL,
+    line_color = "red2",
+    line_width = .6,
+    line_type = 2,
+    highlight = NULL,
+    highlight_color = "red2",
+    highlight_size = 1,
+    highlight_alpha = 1,
+    comparisons = NULL,
+    ref_group = NULL,
+    pairwise_method = "wilcox.test",
+    multiplegroup_comparisons = FALSE,
+    multiple_method = "kruskal.test",
+    sig_label = "p.format",
+    sig_labelsize = 3.5,
+    hide_ns = FALSE,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    seed = 8525,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    ...
+) {
     base <- match.arg(base)
-    stat_name <- stat_name %||% paste0(y, " (", deparse(substitute(add_stat)), ")")
+    stat_name <- stat_name %||%
+        paste0(y, " (", deparse(substitute(add_stat)), ")")
     BoxViolinPlot(
-        data = data, x = x, x_sep = x_sep, y = y, base = base, in_form = in_form,
-        split_by = split_by, split_by_sep = split_by_sep,
-        sort_x = sort_x, flip = flip, keep_empty = keep_empty, keep_na = keep_na, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
-        paired_by = paired_by, x_text_angle = x_text_angle, fill_mode = fill_mode, palreverse = palreverse, step_increase = step_increase,
-        theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha, position_dodge_preserve = position_dodge_preserve,
-        aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
-        add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha, symnum_args = symnum_args,
-        jitter_width = jitter_width, jitter_height = jitter_height, stack = stack, y_max = y_max, y_min = y_min,
-        add_beeswarm = add_beeswarm, beeswarm_method = beeswarm_method, beeswarm_cex = beeswarm_cex, beeswarm_priority = beeswarm_priority,
-        beeswarm_dodge = beeswarm_dodge, add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
-        add_stat = add_stat, stat_name = stat_name, stat_color = stat_color, stat_size = stat_size, stat_stroke = stat_stroke, stat_shape = stat_shape,
-        add_errorbar = add_errorbar, errorbar_color = errorbar_color, errorbar_width = errorbar_width, errorbar_linewidth = errorbar_linewidth,
-        add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
-        add_line = add_line, line_color = line_color, line_width = line_width, line_type = line_type,
-        highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha,
-        comparisons = comparisons, ref_group = ref_group, pairwise_method = pairwise_method,
-        multiplegroup_comparisons = multiplegroup_comparisons, multiple_method = multiple_method,
-        sig_label = sig_label, sig_labelsize = sig_labelsize, hide_ns = hide_ns,
-        facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, ...
+        data = data,
+        x = x,
+        x_sep = x_sep,
+        y = y,
+        base = base,
+        in_form = in_form,
+        split_by = split_by,
+        split_by_sep = split_by_sep,
+        sort_x = sort_x,
+        flip = flip,
+        keep_empty = keep_empty,
+        keep_na = keep_na,
+        group_by = group_by,
+        group_by_sep = group_by_sep,
+        group_name = group_name,
+        paired_by = paired_by,
+        x_text_angle = x_text_angle,
+        fill_mode = fill_mode,
+        palreverse = palreverse,
+        step_increase = step_increase,
+        theme = theme,
+        theme_args = theme_args,
+        palette = palette,
+        palcolor = palcolor,
+        alpha = alpha,
+        position_dodge_preserve = position_dodge_preserve,
+        aspect.ratio = aspect.ratio,
+        legend.position = legend.position,
+        legend.direction = legend.direction,
+        add_point = add_point,
+        pt_color = pt_color,
+        pt_size = pt_size,
+        pt_alpha = pt_alpha,
+        symnum_args = symnum_args,
+        jitter_width = jitter_width,
+        jitter_height = jitter_height,
+        stack = stack,
+        y_max = y_max,
+        y_min = y_min,
+        add_beeswarm = add_beeswarm,
+        beeswarm_method = beeswarm_method,
+        beeswarm_cex = beeswarm_cex,
+        beeswarm_priority = beeswarm_priority,
+        beeswarm_dodge = beeswarm_dodge,
+        add_trend = add_trend,
+        trend_color = trend_color,
+        trend_linewidth = trend_linewidth,
+        trend_ptsize = trend_ptsize,
+        add_stat = add_stat,
+        stat_name = stat_name,
+        stat_color = stat_color,
+        stat_size = stat_size,
+        stat_stroke = stat_stroke,
+        stat_shape = stat_shape,
+        add_errorbar = add_errorbar,
+        errorbar_color = errorbar_color,
+        errorbar_width = errorbar_width,
+        errorbar_linewidth = errorbar_linewidth,
+        add_bg = add_bg,
+        bg_palette = bg_palette,
+        bg_palcolor = bg_palcolor,
+        bg_alpha = bg_alpha,
+        add_line = add_line,
+        line_color = line_color,
+        line_width = line_width,
+        line_type = line_type,
+        highlight = highlight,
+        highlight_color = highlight_color,
+        highlight_size = highlight_size,
+        highlight_alpha = highlight_alpha,
+        comparisons = comparisons,
+        ref_group = ref_group,
+        pairwise_method = pairwise_method,
+        multiplegroup_comparisons = multiplegroup_comparisons,
+        multiple_method = multiple_method,
+        sig_label = sig_label,
+        sig_labelsize = sig_labelsize,
+        hide_ns = hide_ns,
+        facet_by = facet_by,
+        facet_scales = facet_scales,
+        facet_ncol = facet_ncol,
+        facet_nrow = facet_nrow,
+        facet_byrow = facet_byrow,
+        title = title,
+        subtitle = subtitle,
+        xlab = xlab,
+        ylab = ylab,
+        seed = seed,
+        combine = combine,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        ...
     )
 }
 
@@ -1458,52 +2306,201 @@ BoxPlot <- function(
 #' )
 #' }
 ViolinPlot <- function(
-    data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
-    split_by = NULL, split_by_sep = "_", symnum_args = NULL, sort_x = NULL,
-    flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    paired_by = NULL, x_text_angle = ifelse(isTRUE(flip), 0, 45), step_increase = 0.1,
-    fill_mode = ifelse(!is.null(group_by), "dodge", "x"), palreverse = FALSE, position_dodge_preserve = "total",
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
-    aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
-    add_point = FALSE, pt_color = if(isTRUE(add_beeswarm)) NULL else "grey30", pt_size = NULL, pt_alpha = 1,
-    jitter_width = NULL, jitter_height = 0, stack = FALSE, y_max = NULL, y_min = NULL,
-    add_beeswarm = FALSE, beeswarm_method = "swarm", beeswarm_cex = 1, beeswarm_priority = "ascending",
-    beeswarm_dodge = 0.9, add_box = FALSE, box_color = "black", box_width = 0.1, box_ptsize = 2.5,
-    add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
-    add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
-    add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
-    add_line = NULL, line_color = "red2", line_width = .6, line_type = 2,
-    highlight = NULL, highlight_color = "red2", highlight_size = 1, highlight_alpha = 1,
-    comparisons = NULL, ref_group = NULL, pairwise_method = "wilcox.test",
-    multiplegroup_comparisons = FALSE, multiple_method = "kruskal.test",
-    sig_label = "p.format", sig_labelsize = 3.5, hide_ns = FALSE,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
-    axes = NULL, axis_titles = axes, guides = NULL, ...) {
-    stat_name <- stat_name %||% paste0(y, " (", deparse(substitute(add_stat)), ")")
+    data,
+    x,
+    x_sep = "_",
+    y = NULL,
+    in_form = c("long", "wide"),
+    split_by = NULL,
+    split_by_sep = "_",
+    symnum_args = NULL,
+    sort_x = NULL,
+    flip = FALSE,
+    keep_empty = FALSE,
+    keep_na = FALSE,
+    group_by = NULL,
+    group_by_sep = "_",
+    group_name = NULL,
+    paired_by = NULL,
+    x_text_angle = ifelse(isTRUE(flip), 0, 45),
+    step_increase = 0.1,
+    fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
+    palreverse = FALSE,
+    position_dodge_preserve = "total",
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Paired",
+    palcolor = NULL,
+    alpha = 1,
+    aspect.ratio = NULL,
+    legend.position = "right",
+    legend.direction = "vertical",
+    add_point = FALSE,
+    pt_color = if (isTRUE(add_beeswarm)) NULL else "grey30",
+    pt_size = NULL,
+    pt_alpha = 1,
+    jitter_width = NULL,
+    jitter_height = 0,
+    stack = FALSE,
+    y_max = NULL,
+    y_min = NULL,
+    add_beeswarm = FALSE,
+    beeswarm_method = "swarm",
+    beeswarm_cex = 1,
+    beeswarm_priority = "ascending",
+    beeswarm_dodge = 0.9,
+    add_box = FALSE,
+    box_color = "black",
+    box_width = 0.1,
+    box_ptsize = 2.5,
+    add_trend = FALSE,
+    trend_color = NULL,
+    trend_linewidth = 1,
+    trend_ptsize = 2,
+    add_stat = NULL,
+    stat_name = NULL,
+    stat_color = "black",
+    stat_size = 1,
+    stat_stroke = 1,
+    stat_shape = 25,
+    add_bg = FALSE,
+    bg_palette = "stripe",
+    bg_palcolor = NULL,
+    bg_alpha = 0.2,
+    add_line = NULL,
+    line_color = "red2",
+    line_width = .6,
+    line_type = 2,
+    highlight = NULL,
+    highlight_color = "red2",
+    highlight_size = 1,
+    highlight_alpha = 1,
+    comparisons = NULL,
+    ref_group = NULL,
+    pairwise_method = "wilcox.test",
+    multiplegroup_comparisons = FALSE,
+    multiple_method = "kruskal.test",
+    sig_label = "p.format",
+    sig_labelsize = 3.5,
+    hide_ns = FALSE,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    seed = 8525,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    ...
+) {
+    stat_name <- stat_name %||%
+        paste0(y, " (", deparse(substitute(add_stat)), ")")
     BoxViolinPlot(
-        data = data, x = x, x_sep = x_sep, y = y, base = "violin", in_form = in_form,
-        split_by = split_by, split_by_sep = split_by_sep,
-        sort_x = sort_x, flip = flip, keep_empty = keep_empty, keep_na = keep_na, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
-        paired_by = paired_by, x_text_angle = x_text_angle, fill_mode = fill_mode, palreverse = palreverse, step_increase = step_increase,
-        theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha, position_dodge_preserve = position_dodge_preserve,
-        aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
-        add_point = add_point, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha, symnum_args = symnum_args,
-        jitter_width = jitter_width, jitter_height = jitter_height, stack = stack, y_max = y_max, y_min = y_min,
-        add_beeswarm = add_beeswarm, beeswarm_method = beeswarm_method, beeswarm_cex = beeswarm_cex, beeswarm_priority = beeswarm_priority,
-        beeswarm_dodge = beeswarm_dodge, add_box = add_box, box_color = box_color, box_width = box_width, box_ptsize = box_ptsize,
-        add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
-        add_stat = add_stat, stat_name = stat_name, stat_color = stat_color, stat_size = stat_size, stat_stroke = stat_stroke, stat_shape = stat_shape,
-        add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
-        add_line = add_line, line_color = line_color, line_width = line_width, line_type = line_type,
-        highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha,
-        comparisons = comparisons, ref_group = ref_group, pairwise_method = pairwise_method,
-        multiplegroup_comparisons = multiplegroup_comparisons, multiple_method = multiple_method,
-        sig_label = sig_label, sig_labelsize = sig_labelsize, hide_ns = hide_ns,
-        facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, ...
+        data = data,
+        x = x,
+        x_sep = x_sep,
+        y = y,
+        base = "violin",
+        in_form = in_form,
+        split_by = split_by,
+        split_by_sep = split_by_sep,
+        sort_x = sort_x,
+        flip = flip,
+        keep_empty = keep_empty,
+        keep_na = keep_na,
+        group_by = group_by,
+        group_by_sep = group_by_sep,
+        group_name = group_name,
+        paired_by = paired_by,
+        x_text_angle = x_text_angle,
+        fill_mode = fill_mode,
+        palreverse = palreverse,
+        step_increase = step_increase,
+        theme = theme,
+        theme_args = theme_args,
+        palette = palette,
+        palcolor = palcolor,
+        alpha = alpha,
+        position_dodge_preserve = position_dodge_preserve,
+        aspect.ratio = aspect.ratio,
+        legend.position = legend.position,
+        legend.direction = legend.direction,
+        add_point = add_point,
+        pt_color = pt_color,
+        pt_size = pt_size,
+        pt_alpha = pt_alpha,
+        symnum_args = symnum_args,
+        jitter_width = jitter_width,
+        jitter_height = jitter_height,
+        stack = stack,
+        y_max = y_max,
+        y_min = y_min,
+        add_beeswarm = add_beeswarm,
+        beeswarm_method = beeswarm_method,
+        beeswarm_cex = beeswarm_cex,
+        beeswarm_priority = beeswarm_priority,
+        beeswarm_dodge = beeswarm_dodge,
+        add_box = add_box,
+        box_color = box_color,
+        box_width = box_width,
+        box_ptsize = box_ptsize,
+        add_trend = add_trend,
+        trend_color = trend_color,
+        trend_linewidth = trend_linewidth,
+        trend_ptsize = trend_ptsize,
+        add_stat = add_stat,
+        stat_name = stat_name,
+        stat_color = stat_color,
+        stat_size = stat_size,
+        stat_stroke = stat_stroke,
+        stat_shape = stat_shape,
+        add_bg = add_bg,
+        bg_palette = bg_palette,
+        bg_palcolor = bg_palcolor,
+        bg_alpha = bg_alpha,
+        add_line = add_line,
+        line_color = line_color,
+        line_width = line_width,
+        line_type = line_type,
+        highlight = highlight,
+        highlight_color = highlight_color,
+        highlight_size = highlight_size,
+        highlight_alpha = highlight_alpha,
+        comparisons = comparisons,
+        ref_group = ref_group,
+        pairwise_method = pairwise_method,
+        multiplegroup_comparisons = multiplegroup_comparisons,
+        multiple_method = multiple_method,
+        sig_label = sig_label,
+        sig_labelsize = sig_labelsize,
+        hide_ns = hide_ns,
+        facet_by = facet_by,
+        facet_scales = facet_scales,
+        facet_ncol = facet_ncol,
+        facet_nrow = facet_nrow,
+        facet_byrow = facet_byrow,
+        title = title,
+        subtitle = subtitle,
+        xlab = xlab,
+        ylab = ylab,
+        seed = seed,
+        combine = combine,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        ...
     )
 }
 
@@ -1532,55 +2529,205 @@ ViolinPlot <- function(
 #' )
 #' }
 BeeswarmPlot <- function(
-    data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
-    split_by = NULL, split_by_sep = "_", symnum_args = NULL, sort_x = NULL,
-    flip = FALSE, keep_empty = FALSE, keep_na = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    paired_by = NULL, x_text_angle = ifelse(isTRUE(flip), 0, 45), step_increase = 0.1,
-    fill_mode = ifelse(!is.null(group_by), "dodge", "x"), palreverse = FALSE,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1,
-    aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
-    pt_color = NULL, pt_size = NULL, pt_alpha = 1, position_dodge_preserve = "total",
-    jitter_width = NULL, jitter_height = 0, stack = FALSE, y_max = NULL, y_min = NULL, add_violin = FALSE,
-    beeswarm_method = "swarm", beeswarm_cex = 1, beeswarm_priority = "ascending", beeswarm_dodge = 0.9,
-    add_box = FALSE, box_color = "black", box_width = 0.1, box_ptsize = 2.5,
-    add_trend = FALSE, trend_color = NULL, trend_linewidth = 1, trend_ptsize = 2,
-    add_stat = NULL, stat_name = NULL, stat_color = "black", stat_size = 1, stat_stroke = 1, stat_shape = 25,
-    add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
-    add_line = NULL, line_color = "red2", line_width = .6, line_type = 2,
-    highlight = NULL, highlight_color = "red2", highlight_size = 1, highlight_alpha = 1,
-    comparisons = NULL, ref_group = NULL, pairwise_method = "wilcox.test",
-    multiplegroup_comparisons = FALSE, multiple_method = "kruskal.test",
-    sig_label = "p.format", sig_labelsize = 3.5, hide_ns = FALSE,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
-    axes = NULL, axis_titles = axes, guides = NULL, ...) {
+    data,
+    x,
+    x_sep = "_",
+    y = NULL,
+    in_form = c("long", "wide"),
+    split_by = NULL,
+    split_by_sep = "_",
+    symnum_args = NULL,
+    sort_x = NULL,
+    flip = FALSE,
+    keep_empty = FALSE,
+    keep_na = FALSE,
+    group_by = NULL,
+    group_by_sep = "_",
+    group_name = NULL,
+    paired_by = NULL,
+    x_text_angle = ifelse(isTRUE(flip), 0, 45),
+    step_increase = 0.1,
+    fill_mode = ifelse(!is.null(group_by), "dodge", "x"),
+    palreverse = FALSE,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Paired",
+    palcolor = NULL,
+    alpha = 1,
+    aspect.ratio = NULL,
+    legend.position = "right",
+    legend.direction = "vertical",
+    pt_color = NULL,
+    pt_size = NULL,
+    pt_alpha = 1,
+    position_dodge_preserve = "total",
+    jitter_width = NULL,
+    jitter_height = 0,
+    stack = FALSE,
+    y_max = NULL,
+    y_min = NULL,
+    add_violin = FALSE,
+    beeswarm_method = "swarm",
+    beeswarm_cex = 1,
+    beeswarm_priority = "ascending",
+    beeswarm_dodge = 0.9,
+    add_box = FALSE,
+    box_color = "black",
+    box_width = 0.1,
+    box_ptsize = 2.5,
+    add_trend = FALSE,
+    trend_color = NULL,
+    trend_linewidth = 1,
+    trend_ptsize = 2,
+    add_stat = NULL,
+    stat_name = NULL,
+    stat_color = "black",
+    stat_size = 1,
+    stat_stroke = 1,
+    stat_shape = 25,
+    add_bg = FALSE,
+    bg_palette = "stripe",
+    bg_palcolor = NULL,
+    bg_alpha = 0.2,
+    add_line = NULL,
+    line_color = "red2",
+    line_width = .6,
+    line_type = 2,
+    highlight = NULL,
+    highlight_color = "red2",
+    highlight_size = 1,
+    highlight_alpha = 1,
+    comparisons = NULL,
+    ref_group = NULL,
+    pairwise_method = "wilcox.test",
+    multiplegroup_comparisons = FALSE,
+    multiple_method = "kruskal.test",
+    sig_label = "p.format",
+    sig_labelsize = 3.5,
+    hide_ns = FALSE,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    seed = 8525,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    ...
+) {
     if (isTRUE(add_violin)) {
-        stop("Adding violin to a beeswarm plot is not supported. Please use ViolinPlot(..., add_beeswarm = TRUE) instead.")
+        stop(
+            "Adding violin to a beeswarm plot is not supported. Please use ViolinPlot(..., add_beeswarm = TRUE) instead."
+        )
     }
-    stat_name <- stat_name %||% paste0(y, " (", deparse(substitute(add_stat)), ")")
+    stat_name <- stat_name %||%
+        paste0(y, " (", deparse(substitute(add_stat)), ")")
 
     BoxViolinPlot(
-        data = data, x = x, x_sep = x_sep, y = y, base = "none", in_form = in_form,
-        split_by = split_by, split_by_sep = split_by_sep,
-        sort_x = sort_x, flip = flip, keep_empty = keep_empty, keep_na = keep_na, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
-        paired_by = paired_by, x_text_angle = x_text_angle, fill_mode = fill_mode, palreverse = palreverse, step_increase = step_increase,
-        theme = theme, theme_args = theme_args, palette = palette, palcolor = palcolor, alpha = alpha, position_dodge_preserve = position_dodge_preserve,
-        aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
-        add_point = TRUE, pt_color = pt_color, pt_size = pt_size, pt_alpha = pt_alpha, symnum_args = symnum_args,
-        jitter_width = jitter_width, jitter_height = jitter_height, stack = stack, y_max = y_max, y_min = y_min,
-        add_beeswarm = TRUE, beeswarm_method = beeswarm_method, beeswarm_cex = beeswarm_cex, beeswarm_priority = beeswarm_priority,
-        beeswarm_dodge = beeswarm_dodge, add_box = add_box, box_color = box_color, box_width = box_width, box_ptsize = box_ptsize,
-        add_trend = add_trend, trend_color = trend_color, trend_linewidth = trend_linewidth, trend_ptsize = trend_ptsize,
-        add_stat = add_stat, stat_name = stat_name, stat_color = stat_color, stat_size = stat_size, stat_stroke = stat_stroke, stat_shape = stat_shape,
-        add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
-        add_line = add_line, line_color = line_color, line_width = line_width, line_type = line_type,
-        highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha,
-        comparisons = comparisons, ref_group = ref_group, pairwise_method = pairwise_method,
-        multiplegroup_comparisons = multiplegroup_comparisons, multiple_method = multiple_method,
-        sig_label = sig_label, sig_labelsize = sig_labelsize, hide_ns = hide_ns,
-        facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, ...
+        data = data,
+        x = x,
+        x_sep = x_sep,
+        y = y,
+        base = "none",
+        in_form = in_form,
+        split_by = split_by,
+        split_by_sep = split_by_sep,
+        sort_x = sort_x,
+        flip = flip,
+        keep_empty = keep_empty,
+        keep_na = keep_na,
+        group_by = group_by,
+        group_by_sep = group_by_sep,
+        group_name = group_name,
+        paired_by = paired_by,
+        x_text_angle = x_text_angle,
+        fill_mode = fill_mode,
+        palreverse = palreverse,
+        step_increase = step_increase,
+        theme = theme,
+        theme_args = theme_args,
+        palette = palette,
+        palcolor = palcolor,
+        alpha = alpha,
+        position_dodge_preserve = position_dodge_preserve,
+        aspect.ratio = aspect.ratio,
+        legend.position = legend.position,
+        legend.direction = legend.direction,
+        add_point = TRUE,
+        pt_color = pt_color,
+        pt_size = pt_size,
+        pt_alpha = pt_alpha,
+        symnum_args = symnum_args,
+        jitter_width = jitter_width,
+        jitter_height = jitter_height,
+        stack = stack,
+        y_max = y_max,
+        y_min = y_min,
+        add_beeswarm = TRUE,
+        beeswarm_method = beeswarm_method,
+        beeswarm_cex = beeswarm_cex,
+        beeswarm_priority = beeswarm_priority,
+        beeswarm_dodge = beeswarm_dodge,
+        add_box = add_box,
+        box_color = box_color,
+        box_width = box_width,
+        box_ptsize = box_ptsize,
+        add_trend = add_trend,
+        trend_color = trend_color,
+        trend_linewidth = trend_linewidth,
+        trend_ptsize = trend_ptsize,
+        add_stat = add_stat,
+        stat_name = stat_name,
+        stat_color = stat_color,
+        stat_size = stat_size,
+        stat_stroke = stat_stroke,
+        stat_shape = stat_shape,
+        add_bg = add_bg,
+        bg_palette = bg_palette,
+        bg_palcolor = bg_palcolor,
+        bg_alpha = bg_alpha,
+        add_line = add_line,
+        line_color = line_color,
+        line_width = line_width,
+        line_type = line_type,
+        highlight = highlight,
+        highlight_color = highlight_color,
+        highlight_size = highlight_size,
+        highlight_alpha = highlight_alpha,
+        comparisons = comparisons,
+        ref_group = ref_group,
+        pairwise_method = pairwise_method,
+        multiplegroup_comparisons = multiplegroup_comparisons,
+        multiple_method = multiple_method,
+        sig_label = sig_label,
+        sig_labelsize = sig_labelsize,
+        hide_ns = hide_ns,
+        facet_by = facet_by,
+        facet_scales = facet_scales,
+        facet_ncol = facet_ncol,
+        facet_nrow = facet_nrow,
+        facet_byrow = facet_byrow,
+        title = title,
+        subtitle = subtitle,
+        xlab = xlab,
+        ylab = ylab,
+        seed = seed,
+        combine = combine,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        ...
     )
 }

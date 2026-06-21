@@ -47,16 +47,57 @@
 #' @keywords internal
 #' @importFrom dplyr %>% case_when mutate arrange row_number group_by ungroup desc filter
 VolcanoPlotAtomic <- function(
-    data, x, y, ytrans = function(n) -log10(n), color_by = NULL, color_name = NULL,
-    flip_negatives = FALSE, x_cutoff = NULL, y_cutoff = 0.05, trim = c(0, 1), xlim = NULL,
-    x_cutoff_name = NULL, y_cutoff_name = NULL, x_cutoff_color = "red2", y_cutoff_color = "blue2",
-    x_cutoff_linetype = "dashed", y_cutoff_linetype = "dashed", x_cutoff_linewidth = 0.5, y_cutoff_linewidth = 0.5,
-    pt_size = 2, pt_alpha = 0.5, nlabel = 5, labels = NULL, label_by = NULL, label_size = 3, label_fg = "black", label_bg = "white",
-    label_bg_r = 0.1, highlight = NULL, highlight_color = "red", highlight_size = 2, highlight_alpha = 1,
-    highlight_stroke = 0.5, facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, palreverse = FALSE,
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
-    aspect.ratio = 1, legend.position = "right", legend.direction = "vertical", seed = 8525,
+    data,
+    x,
+    y,
+    ytrans = function(n) -log10(n),
+    color_by = NULL,
+    color_name = NULL,
+    flip_negatives = FALSE,
+    x_cutoff = NULL,
+    y_cutoff = 0.05,
+    trim = c(0, 1),
+    xlim = NULL,
+    x_cutoff_name = NULL,
+    y_cutoff_name = NULL,
+    x_cutoff_color = "red2",
+    y_cutoff_color = "blue2",
+    x_cutoff_linetype = "dashed",
+    y_cutoff_linetype = "dashed",
+    x_cutoff_linewidth = 0.5,
+    y_cutoff_linewidth = 0.5,
+    pt_size = 2,
+    pt_alpha = 0.5,
+    nlabel = 5,
+    labels = NULL,
+    label_by = NULL,
+    label_size = 3,
+    label_fg = "black",
+    label_bg = "white",
+    label_bg_r = 0.1,
+    highlight = NULL,
+    highlight_color = "red",
+    highlight_size = 2,
+    highlight_alpha = 1,
+    highlight_stroke = 0.5,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Spectral",
+    palcolor = NULL,
+    palreverse = FALSE,
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    seed = 8525,
     ...
 ) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
@@ -65,15 +106,28 @@ VolcanoPlotAtomic <- function(
         ggplot2::ggplot
     }
     stopifnot(
-        "[VolcanoPlot] 'trim' must be a numeric vector of length 2 and both values must be in the range [0, 1]." =
-            length(trim) == 2 && all(trim >= 0 & trim <= 1)
+        "[VolcanoPlot] 'trim' must be a numeric vector of length 2 and both values must be in the range [0, 1]." = length(
+            trim
+        ) ==
+            2 &&
+            all(trim >= 0 & trim <= 1)
     )
-    stopifnot("[VolcanoPlot] 'xlim' must be a numeric vector of length 2." = is.null(xlim) || length(xlim) == 2)
+    stopifnot(
+        "[VolcanoPlot] 'xlim' must be a numeric vector of length 2." = is.null(
+            xlim
+        ) ||
+            length(xlim) == 2
+    )
     trim <- sort(trim)
     x <- check_columns(data, x)
     y <- check_columns(data, y)
     color_by <- check_columns(data, color_by)
-    facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
+    facet_by <- check_columns(
+        data,
+        facet_by,
+        force_factor = TRUE,
+        allow_multi = TRUE
+    )
     label_by <- check_columns(data, label_by)
 
     data[[y]] <- ytrans(data[[y]])
@@ -81,27 +135,30 @@ VolcanoPlotAtomic <- function(
     y_cutoff <- ytrans(y_cutoff)
 
     if (!is.null(y_cutoff)) {
-        data <- data %>% mutate(
-            .category = factor(
-                case_when(
-                    !!sym(x) > x_cutoff & !!sym(y) > y_cutoff ~ "sig_pos_x",
-                    !!sym(x) < -x_cutoff & !!sym(y) > y_cutoff ~ "sig_neg_x",
-                    TRUE ~ "insig"
-                ),
-                levels = c("sig_neg_x", "insig", "sig_pos_x")
+        data <- data %>%
+            mutate(
+                .category = factor(
+                    case_when(
+                        !!sym(x) > x_cutoff & !!sym(y) > y_cutoff ~ "sig_pos_x",
+                        !!sym(x) < -x_cutoff &
+                            !!sym(y) > y_cutoff ~ "sig_neg_x",
+                        TRUE ~ "insig"
+                    ),
+                    levels = c("sig_neg_x", "insig", "sig_pos_x")
+                )
             )
-        )
     } else {
-        data <- data %>% mutate(
-            .category = factor(
-                case_when(
-                    !!sym(x) > x_cutoff ~ "sig_pos_x",
-                    !!sym(x) < -x_cutoff ~ "sig_neg_x",
-                    TRUE ~ "insig"
-                ),
-                levels = c("sig_neg_x", "insig", "sig_pos_x")
+        data <- data %>%
+            mutate(
+                .category = factor(
+                    case_when(
+                        !!sym(x) > x_cutoff ~ "sig_pos_x",
+                        !!sym(x) < -x_cutoff ~ "sig_neg_x",
+                        TRUE ~ "insig"
+                    ),
+                    levels = c("sig_neg_x", "insig", "sig_pos_x")
+                )
             )
-        )
     }
 
     if (is.null(color_by)) {
@@ -118,7 +175,6 @@ VolcanoPlotAtomic <- function(
     }
     data$.label <- if (is.null(label_by)) rownames(data) else data[[label_by]]
     data$.show_label <- FALSE
-
 
     x_upper <- quantile(data[[x]][is.finite(data[[x]])], c(trim[2], 1))
     x_lower <- quantile(data[[x]][is.finite(data[[x]])], c(trim[1], 0))
@@ -139,18 +195,23 @@ VolcanoPlotAtomic <- function(
         # calculate the distance to the origin
         data$.distance <- sqrt(data[[x]]^2 + data[[y]]^2)
         if (!is.null(facet_by)) {
-            data <- data %>% group_by(!!!syms(facet_by), sign(data[[x]])) %>%
+            data <- data %>%
+                group_by(!!!syms(facet_by), sign(data[[x]])) %>%
                 arrange(desc(!!sym(".distance"))) %>%
                 mutate(.show_label = row_number() <= nlabel) %>%
                 ungroup()
         } else {
-            data <- data %>% group_by(sign(data[[x]])) %>%
+            data <- data %>%
+                group_by(sign(data[[x]])) %>%
                 arrange(desc(!!sym(".distance"))) %>%
                 mutate(.show_label = row_number() <= nlabel) %>%
                 ungroup()
         }
     }
-    data <- data %>% mutate(.show_label = !!sym(".show_label") & !!sym(".category") != "insig") %>%
+    data <- data %>%
+        mutate(
+            .show_label = !!sym(".show_label") & !!sym(".category") != "insig"
+        ) %>%
         as.data.frame()
     # rownames(data) <- data$.label
 
@@ -168,47 +229,88 @@ VolcanoPlotAtomic <- function(
     neg_x_nudge <- diff(range(neg_data[[x]])) * 0.05
     jitter <- position_jitter(width = 0.2, height = 0.2, seed = seed)
 
-    p <- ggplot(mapping = aes(x = !!sym(x), y = !!sym(y), color = !!sym(color_by))) +
+    p <- ggplot(
+        mapping = aes(x = !!sym(x), y = !!sym(y), color = !!sym(color_by))
+    ) +
         geom_point(data = pos_data, size = pt_size, alpha = pt_alpha) +
         geom_point(data = neg_data, size = pt_size, alpha = pt_alpha) +
-        geom_point(data = outlier_data, size = pt_size, alpha = pt_alpha, position = jitter)
+        geom_point(
+            data = outlier_data,
+            size = pt_size,
+            alpha = pt_alpha,
+            position = jitter
+        )
 
     if (color_type == "discrete") {
-        colors <- palette_this(levels(data[[color_by]]), palette = palette, palcolor = palcolor, reverse = palreverse)
+        colors <- palette_this(
+            levels(data[[color_by]]),
+            palette = palette,
+            palcolor = palcolor,
+            reverse = palreverse
+        )
         if (is.null(palcolor)) {
             colors['insig'] <- "grey"
         }
         p <- p + scale_color_manual(values = colors, guide = "none")
     } else {
-        p <- p + scale_color_gradientn(
-            colors = palette_this(palette = palette, palcolor = palcolor, reverse = palreverse),
-            values = scales::rescale(unique(c(
-                min(c(unlist(data[[color_by]]), 0), na.rm = TRUE), 0,
-                max(unlist(data[[color_by]]), na.rm = TRUE)))),
-            guide = guide_colorbar(frame.colour = "black", ticks.colour = "black", title.hjust = 0, order = 1)
-        )
+        p <- p +
+            scale_color_gradientn(
+                colors = palette_this(
+                    palette = palette,
+                    palcolor = palcolor,
+                    reverse = palreverse
+                ),
+                values = scales::rescale(unique(c(
+                    min(c(unlist(data[[color_by]]), 0), na.rm = TRUE),
+                    0,
+                    max(unlist(data[[color_by]]), na.rm = TRUE)
+                ))),
+                guide = guide_colorbar(
+                    frame.colour = "black",
+                    ticks.colour = "black",
+                    title.hjust = 0,
+                    order = 1
+                )
+            )
     }
 
     if (!is.null(highlight)) {
-        p <- p + geom_point(
-            data = data[highlight, , drop = FALSE] %>% filter(!!sym(".outlier") == FALSE),
-            color = highlight_color, size = highlight_size, alpha = highlight_alpha, stroke = highlight_stroke
-        ) + geom_point(
-            data = data[highlight, , drop = FALSE] %>% filter(!!sym(".outlier")),
-            color = highlight_color, size = highlight_size, alpha = highlight_alpha, stroke = highlight_stroke, position = jitter
-        )
+        p <- p +
+            geom_point(
+                data = data[highlight, , drop = FALSE] %>%
+                    filter(!!sym(".outlier") == FALSE),
+                color = highlight_color,
+                size = highlight_size,
+                alpha = highlight_alpha,
+                stroke = highlight_stroke
+            ) +
+            geom_point(
+                data = data[highlight, , drop = FALSE] %>%
+                    filter(!!sym(".outlier")),
+                color = highlight_color,
+                size = highlight_size,
+                alpha = highlight_alpha,
+                stroke = highlight_stroke,
+                position = jitter
+            )
     }
 
     if (!is.null(x_cutoff) && x_cutoff != 0) {
         if (identical(x_cutoff_name, "none")) {
             guide <- guide_none()
         } else {
-            guide <- guide_legend(override.aes = list(alpha = 0.8, size = 5), order = 2,
-                theme = ggplot2::theme(legend.margin = margin(0, 0, -10, 4.5)))
+            guide <- guide_legend(
+                override.aes = list(alpha = 0.8, size = 5),
+                order = 2,
+                theme = ggplot2::theme(legend.margin = margin(0, 0, -10, 4.5))
+            )
         }
         vline_df <- data.frame(xintercept = c(-x_cutoff, x_cutoff))
         if (!is.null(facet_by)) {
-            vline_df <- expand_grid(vline_df, data[, facet_by, drop = FALSE] %>% distinct())
+            vline_df <- expand_grid(
+                vline_df,
+                data[, facet_by, drop = FALSE] %>% distinct()
+            )
         }
         p <- p +
             new_scale_color() +
@@ -216,10 +318,22 @@ VolcanoPlotAtomic <- function(
                 data = vline_df,
                 mapping = aes(
                     xintercept = !!sym("xintercept"),
-                    color = x_cutoff_name %||% paste0(x, " = +/-", scales::number(x_cutoff, accuracy = 0.01))),
-                alpha = 0.4, linetype = x_cutoff_linetype, linewidth = x_cutoff_linewidth,
+                    color = x_cutoff_name %||%
+                        paste0(
+                            x,
+                            " = +/-",
+                            scales::number(x_cutoff, accuracy = 0.01)
+                        )
+                ),
+                alpha = 0.4,
+                linetype = x_cutoff_linetype,
+                linewidth = x_cutoff_linewidth,
             ) +
-            scale_color_manual(name = NULL, values = x_cutoff_color, guide = guide)
+            scale_color_manual(
+                name = NULL,
+                values = x_cutoff_color,
+                guide = guide
+            )
     }
 
     if (!is.null(y_cutoff)) {
@@ -231,19 +345,34 @@ VolcanoPlotAtomic <- function(
         if (identical(y_cutoff_name, "none")) {
             guide <- guide_none()
         } else {
-            guide <- guide_legend(override.aes = list(alpha = 0.8, size = 5), order = 3)
+            guide <- guide_legend(
+                override.aes = list(alpha = 0.8, size = 5),
+                order = 3
+            )
         }
         hline_df <- data.frame(yintercept = yintercept)
         if (!is.null(facet_by)) {
-            hline_df <- expand_grid(hline_df, data[, facet_by, drop = FALSE] %>% distinct())
+            hline_df <- expand_grid(
+                hline_df,
+                data[, facet_by, drop = FALSE] %>% distinct()
+            )
         }
         p <- p +
             new_scale_color() +
             geom_hline(
                 data = hline_df,
-                mapping = aes(yintercept = !!sym("yintercept"),
-                    color = y_cutoff_name %||% paste0(ylab %||% y, " = ", scales::number(y_cutoff, accuracy = 0.01))),
-                alpha = 0.4, linetype = y_cutoff_linetype, linewidth = y_cutoff_linewidth
+                mapping = aes(
+                    yintercept = !!sym("yintercept"),
+                    color = y_cutoff_name %||%
+                        paste0(
+                            ylab %||% y,
+                            " = ",
+                            scales::number(y_cutoff, accuracy = 0.01)
+                        )
+                ),
+                alpha = 0.4,
+                linetype = y_cutoff_linetype,
+                linewidth = y_cutoff_linewidth
             ) +
             scale_color_manual(
                 name = NULL,
@@ -264,16 +393,35 @@ VolcanoPlotAtomic <- function(
     p <- p +
         geom_vline(xintercept = 0, color = "grey80", linetype = 2) +
         geom_text_repel(
-            data = pos_data[pos_data$.show_label, , drop = FALSE], aes(label = !!sym(".label")), nudge_x = pos_x_nudge, color = label_fg,
-            bg.color = label_bg, bg.r = label_bg_r, size = label_size, min.segment.length = 0, segment.color = "grey40",
+            data = pos_data[pos_data$.show_label, , drop = FALSE],
+            aes(label = !!sym(".label")),
+            nudge_x = pos_x_nudge,
+            color = label_fg,
+            bg.color = label_bg,
+            bg.r = label_bg_r,
+            size = label_size,
+            min.segment.length = 0,
+            segment.color = "grey40",
             max.overlaps = 100
         ) +
         geom_text_repel(
-            data = neg_data[neg_data$.show_label, , drop = FALSE], aes(label = !!sym(".label")), nudge_x = neg_x_nudge, color = label_fg,
-            bg.color = label_bg, bg.r = label_bg_r, size = label_size, min.segment.length = 0, segment.color = "grey40",
+            data = neg_data[neg_data$.show_label, , drop = FALSE],
+            aes(label = !!sym(".label")),
+            nudge_x = neg_x_nudge,
+            color = label_fg,
+            bg.color = label_bg,
+            bg.r = label_bg_r,
+            size = label_size,
+            min.segment.length = 0,
+            segment.color = "grey40",
             max.overlaps = 100
         ) +
-        labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
+        labs(
+            title = title,
+            subtitle = subtitle,
+            x = xlab %||% x,
+            y = ylab %||% y
+        ) +
         coord_cartesian(clip = "off")
 
     p <- p +
@@ -294,8 +442,16 @@ VolcanoPlotAtomic <- function(
     attr(p, "height") <- dims$height
     attr(p, "width") <- dims$width
 
-    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-        legend.position = legend.position, legend.direction = legend.direction)
+    facet_plot(
+        p,
+        facet_by,
+        facet_scales,
+        facet_nrow,
+        facet_ncol,
+        facet_byrow,
+        legend.position = legend.position,
+        legend.direction = legend.direction
+    )
 }
 
 #' Volcano plot
@@ -381,24 +537,79 @@ VolcanoPlotAtomic <- function(
 #'    palette = c(A = "Set1", B = "Dark2"))
 #' }
 VolcanoPlot <- function(
-    data, x, y, ytrans = function(n) -log10(n), color_by = NULL, color_name = NULL, xlim = NULL,
-    flip_negatives = FALSE, x_cutoff = NULL, y_cutoff = 0.05, split_by = NULL, split_by_sep = "_", label_by = NULL,
-    x_cutoff_name = NULL, y_cutoff_name = NULL, x_cutoff_color = "red2", y_cutoff_color = "blue2",
-    x_cutoff_linetype = "dashed", y_cutoff_linetype = "dashed", x_cutoff_linewidth = 0.5, y_cutoff_linewidth = 0.5,
-    pt_size = 2, pt_alpha = 0.5, nlabel = 5, labels = NULL, label_size = 3, label_fg = "black", label_bg = "white",
-    label_bg_r = 0.1, highlight = NULL, highlight_color = "red", highlight_size = 2, highlight_alpha = 1,
-    highlight_stroke = 0.5, trim = c(0, 1),
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, palreverse = FALSE,
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
-    aspect.ratio = 1, legend.position = "right", legend.direction = "vertical", seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
-    axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...
+    data,
+    x,
+    y,
+    ytrans = function(n) -log10(n),
+    color_by = NULL,
+    color_name = NULL,
+    xlim = NULL,
+    flip_negatives = FALSE,
+    x_cutoff = NULL,
+    y_cutoff = 0.05,
+    split_by = NULL,
+    split_by_sep = "_",
+    label_by = NULL,
+    x_cutoff_name = NULL,
+    y_cutoff_name = NULL,
+    x_cutoff_color = "red2",
+    y_cutoff_color = "blue2",
+    x_cutoff_linetype = "dashed",
+    y_cutoff_linetype = "dashed",
+    x_cutoff_linewidth = 0.5,
+    y_cutoff_linewidth = 0.5,
+    pt_size = 2,
+    pt_alpha = 0.5,
+    nlabel = 5,
+    labels = NULL,
+    label_size = 3,
+    label_fg = "black",
+    label_bg = "white",
+    label_bg_r = 0.1,
+    highlight = NULL,
+    highlight_color = "red",
+    highlight_size = 2,
+    highlight_alpha = 1,
+    highlight_stroke = 0.5,
+    trim = c(0, 1),
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Spectral",
+    palcolor = NULL,
+    palreverse = FALSE,
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    seed = 8525,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
+    ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
     theme <- process_theme(theme)
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE,
-        concat_multi = TRUE, concat_sep = split_by_sep)
+    split_by <- check_columns(
+        data,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
 
     if (!is.null(split_by)) {
         data[[split_by]] <- droplevels(data[[split_by]])
@@ -411,35 +622,99 @@ VolcanoPlot <- function(
     }
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
-    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
-    legend.position <- check_legend(legend.position, names(datas), "legend.position")
+    legend.direction <- check_legend(
+        legend.direction,
+        names(datas),
+        "legend.direction"
+    )
+    legend.position <- check_legend(
+        legend.position,
+        names(datas),
+        "legend.position"
+    )
 
     plots <- lapply(
-        names(datas), function(nm) {
-            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+        names(datas),
+        function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) {
+                NULL
+            } else {
+                nm
+            }
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
                 title <- title %||% default_title
             }
-            VolcanoPlotAtomic(datas[[nm]],
-                x = x, y = y, ytrans = ytrans, color_by = color_by, color_name = color_name,
-                flip_negatives = flip_negatives, x_cutoff = x_cutoff, y_cutoff = y_cutoff, trim = trim, xlim = xlim, label_by = label_by,
-                x_cutoff_name = x_cutoff_name, y_cutoff_name = y_cutoff_name, x_cutoff_color = x_cutoff_color, y_cutoff_color = y_cutoff_color,
-                x_cutoff_linetype = x_cutoff_linetype, y_cutoff_linetype = y_cutoff_linetype, x_cutoff_linewidth = x_cutoff_linewidth, y_cutoff_linewidth = y_cutoff_linewidth,
-                pt_size = pt_size, pt_alpha = pt_alpha, nlabel = nlabel, labels = labels, label_size = label_size, label_fg = label_fg, label_bg = label_bg,
-                label_bg_r = label_bg_r, highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha,
+            VolcanoPlotAtomic(
+                datas[[nm]],
+                x = x,
+                y = y,
+                ytrans = ytrans,
+                color_by = color_by,
+                color_name = color_name,
+                flip_negatives = flip_negatives,
+                x_cutoff = x_cutoff,
+                y_cutoff = y_cutoff,
+                trim = trim,
+                xlim = xlim,
+                label_by = label_by,
+                x_cutoff_name = x_cutoff_name,
+                y_cutoff_name = y_cutoff_name,
+                x_cutoff_color = x_cutoff_color,
+                y_cutoff_color = y_cutoff_color,
+                x_cutoff_linetype = x_cutoff_linetype,
+                y_cutoff_linetype = y_cutoff_linetype,
+                x_cutoff_linewidth = x_cutoff_linewidth,
+                y_cutoff_linewidth = y_cutoff_linewidth,
+                pt_size = pt_size,
+                pt_alpha = pt_alpha,
+                nlabel = nlabel,
+                labels = labels,
+                label_size = label_size,
+                label_fg = label_fg,
+                label_bg = label_bg,
+                label_bg_r = label_bg_r,
+                highlight = highlight,
+                highlight_color = highlight_color,
+                highlight_size = highlight_size,
+                highlight_alpha = highlight_alpha,
                 highlight_stroke = highlight_stroke,
-                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse,
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
-                aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]], seed = seed, ...
+                facet_by = facet_by,
+                facet_scales = facet_scales,
+                facet_ncol = facet_ncol,
+                facet_nrow = facet_nrow,
+                facet_byrow = facet_byrow,
+                theme = theme,
+                theme_args = theme_args,
+                palette = palette[[nm]],
+                palcolor = palcolor[[nm]],
+                palreverse = palreverse,
+                title = title,
+                subtitle = subtitle,
+                xlab = xlab,
+                ylab = ylab,
+                aspect.ratio = aspect.ratio,
+                legend.position = legend.position[[nm]],
+                legend.direction = legend.direction[[nm]],
+                seed = seed,
+                ...
             )
         }
     )
 
     names(plots) <- names(datas)
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }

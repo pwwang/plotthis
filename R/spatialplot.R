@@ -39,8 +39,10 @@
 
     # Create new extent with flipped y coordinates
     new_ext <- terra::ext(
-        ext_orig[1], ext_orig[2],  # keep x coordinates
-        -1 * ext_orig[4], -1 * ext_orig[3]  # flip y coordinates
+        ext_orig[1],
+        ext_orig[2], # keep x coordinates
+        -1 * ext_orig[4],
+        -1 * ext_orig[3] # flip y coordinates
     )
 
     # Set the new extent
@@ -58,7 +60,11 @@
     coords_list[, "y"] <- -coords_list[, "y"]
 
     # Recreate the SpatVector with flipped coordinates
-    data_flipped <- terra::vect(coords_list, type = terra::geomtype(data), atts = terra::values(data))
+    data_flipped <- terra::vect(
+        coords_list,
+        type = terra::geomtype(data),
+        atts = terra::values(data)
+    )
 
     return(data_flipped)
 }
@@ -86,7 +92,9 @@
         ext <- terra::ext(ext[1], ext[2], ext[3], ext[4])
     }
     if (!inherits(ext, "SpatExtent")) {
-        stop("'ext' must be a numeric vector of length 4 or a SpatExtent object.")
+        stop(
+            "'ext' must be a numeric vector of length 4 or a SpatExtent object."
+        )
     }
     return(ext)
 }
@@ -111,10 +119,17 @@
 #' @importFrom ggplot2 coord_sf labs scale_y_continuous
 #' @keywords internal
 .wrap_spatial_layers <- function(
-    layers, ext = NULL, flip_y = TRUE,
-    legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
-    theme = "theme_box", theme_args = list()
+    layers,
+    ext = NULL,
+    flip_y = TRUE,
+    legend.position = "right",
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    theme = "theme_box",
+    theme_args = list()
 ) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
@@ -144,11 +159,10 @@
 
         xlim <- c(ext[1], ext[2])
         if (flip_y) {
-            ylim <- c(-ext[4], -ext[3])  # Flip y-axis
+            ylim <- c(-ext[4], -ext[3]) # Flip y-axis
         } else {
             ylim <- c(ext[3], ext[4])
         }
-
     } else {
         # Default dimensions when no extent specified
         base_height <- 6
@@ -181,7 +195,10 @@
         )
 
     if (flip_y) {
-        p <- p + scale_y_continuous(labels = function(x) sub("-", "\u2212", as.character(-x)))
+        p <- p +
+            scale_y_continuous(labels = function(x) {
+                sub("-", "\u2212", as.character(-x))
+            })
     }
 
     attr(p, "height") <- base_height
@@ -406,21 +423,38 @@
 #' }
 SpatImagePlot <- function(
     data,
-    ext = NULL, raster = NULL, raster_dpi = NULL, flip_y = TRUE,
-    palette = "turbo", palcolor = NULL, palreverse = FALSE,
-    alpha = 1, fill_name = NULL, return_layer = FALSE,
-    theme = "theme_box", theme_args = list(),
-    legend.position = ifelse(return_layer, "none", "right"), legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525
+    ext = NULL,
+    raster = NULL,
+    raster_dpi = NULL,
+    flip_y = TRUE,
+    palette = "turbo",
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 1,
+    fill_name = NULL,
+    return_layer = FALSE,
+    theme = "theme_box",
+    theme_args = list(),
+    legend.position = ifelse(return_layer, "none", "right"),
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    seed = 8525
 ) {
     set.seed(seed)
-    stopifnot("'data' must be a SpatRaster object" = inherits(data, "SpatRaster"))
+    stopifnot(
+        "'data' must be a SpatRaster object" = inherits(data, "SpatRaster")
+    )
 
     ext <- .prepare_extent(ext)
     if (!is.null(ext)) {
         data <- terra::crop(data, ext)
         if (terra::ncell(data) == 0) {
-            stop("[SpatImagePlot] No data in the specified extent. Please check your extent.")
+            stop(
+                "[SpatImagePlot] No data in the specified extent. Please check your extent."
+            )
         }
     }
 
@@ -442,7 +476,9 @@ SpatImagePlot <- function(
         data <- terra::aggregate(data, fact = agg_factors, fun = "mean")
     }
 
-    if (flip_y) { data <- .flip_y(data) }
+    if (flip_y) {
+        data <- .flip_y(data)
+    }
 
     if (dim(data)[3] == 3) {
         names(data) <- c("red", "green", "blue")
@@ -469,18 +505,32 @@ SpatImagePlot <- function(
     if (fill_identity) {
         layers <- c(layers, list(ggplot2::scale_fill_identity(guide = "none")))
     } else {
-        layers <- c(layers, list(
-            scale_fill_gradientn(
-                name = fill_name %||% names(data)[1],
-                n.breaks = 4,
-                colors = palette_this(palette = palette, n = 256, reverse = palreverse, palcolor = palcolor),
-                guide = if (identical(legend.position, "none")) "none" else guide_colorbar(
-                    frame.colour = "black", ticks.colour = "black", title.hjust = 0,
-                    alpha = alpha
-                ),
-                na.value = "transparent"
+        layers <- c(
+            layers,
+            list(
+                scale_fill_gradientn(
+                    name = fill_name %||% names(data)[1],
+                    n.breaks = 4,
+                    colors = palette_this(
+                        palette = palette,
+                        n = 256,
+                        reverse = palreverse,
+                        palcolor = palcolor
+                    ),
+                    guide = if (identical(legend.position, "none")) {
+                        "none"
+                    } else {
+                        guide_colorbar(
+                            frame.colour = "black",
+                            ticks.colour = "black",
+                            title.hjust = 0,
+                            alpha = alpha
+                        )
+                    },
+                    na.value = "transparent"
+                )
             )
-        ))
+        )
     }
     # If we add another layers, we need the ggnewscale::new_scale_fill() to avoid conflicts
     attr(layers, "scales") <- "fill"
@@ -489,11 +539,18 @@ SpatImagePlot <- function(
         return(layers)
     }
 
-    .wrap_spatial_layers(layers,
-        ext = ext, flip_y = flip_y,
-        legend.position = legend.position, legend.direction = legend.direction,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
-        theme = theme, theme_args = theme_args
+    .wrap_spatial_layers(
+        layers,
+        ext = ext,
+        flip_y = flip_y,
+        legend.position = legend.position,
+        legend.direction = legend.direction,
+        title = title,
+        subtitle = subtitle,
+        xlab = xlab,
+        ylab = ylab,
+        theme = theme,
+        theme_args = theme_args
     )
 }
 
@@ -502,13 +559,27 @@ SpatImagePlot <- function(
 #' @export
 SpatMasksPlot <- function(
     data,
-    ext = NULL, flip_y = TRUE, add_border = TRUE, border_color = "black",
-    border_size = 0.5, border_alpha = 1,
-    palette = "turbo", palcolor = NULL, palreverse = FALSE,
-    alpha = 1, fill_name = NULL, return_layer = FALSE,
-    theme = "theme_box", theme_args = list(),
-    legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525
+    ext = NULL,
+    flip_y = TRUE,
+    add_border = TRUE,
+    border_color = "black",
+    border_size = 0.5,
+    border_alpha = 1,
+    palette = "turbo",
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 1,
+    fill_name = NULL,
+    return_layer = FALSE,
+    theme = "theme_box",
+    theme_args = list(),
+    legend.position = "right",
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    seed = 8525
 ) {
     set.seed(seed)
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
@@ -517,17 +588,23 @@ SpatMasksPlot <- function(
         ggplot2::ggplot
     }
 
-    stopifnot("'data' must be a SpatRaster object" = inherits(data, "SpatRaster"))
+    stopifnot(
+        "'data' must be a SpatRaster object" = inherits(data, "SpatRaster")
+    )
 
     ext <- .prepare_extent(ext)
     if (!is.null(ext)) {
         data <- terra::crop(data, ext)
         if (terra::ncell(data) == 0) {
-            stop("[SpatMasksPlot] No data in the specified extent. Please check your extent.")
+            stop(
+                "[SpatMasksPlot] No data in the specified extent. Please check your extent."
+            )
         }
     }
 
-    if (flip_y) { data <- .flip_y(data) }
+    if (flip_y) {
+        data <- .flip_y(data)
+    }
 
     # Set background (0 values) to NA for transparency
     data[data == 0] <- NA
@@ -535,7 +612,10 @@ SpatMasksPlot <- function(
     layers <- list(
         # Convert to data frame for proper transparency handling
         ggplot2::geom_raster(
-            data = stats::setNames(terra::as.data.frame(data, xy = TRUE), c("x", "y", "value")),
+            data = stats::setNames(
+                terra::as.data.frame(data, xy = TRUE),
+                c("x", "y", "value")
+            ),
             aes(x = !!sym("x"), y = !!sym("y"), fill = !!sym("value")),
             alpha = alpha
         )
@@ -561,10 +641,21 @@ SpatMasksPlot <- function(
         list(scale_fill_gradientn(
             name = fill_name %||% names(data)[1],
             n.breaks = 4,
-            colors = palette_this(palette = palette, n = 256, reverse = palreverse, palcolor = palcolor),
-            guide = if (identical(legend.position, "none")) "none" else guide_colorbar(
-                frame.colour = "black", ticks.colour = "black", title.hjust = 0
+            colors = palette_this(
+                palette = palette,
+                n = 256,
+                reverse = palreverse,
+                palcolor = palcolor
             ),
+            guide = if (identical(legend.position, "none")) {
+                "none"
+            } else {
+                guide_colorbar(
+                    frame.colour = "black",
+                    ticks.colour = "black",
+                    title.hjust = 0
+                )
+            },
             na.value = "transparent"
         ))
     )
@@ -575,28 +666,60 @@ SpatMasksPlot <- function(
         return(layers)
     }
 
-    .wrap_spatial_layers(layers,
-        ext = ext, flip_y = flip_y,
-        legend.position = legend.position, legend.direction = legend.direction,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
-        theme = theme, theme_args = theme_args
+    .wrap_spatial_layers(
+        layers,
+        ext = ext,
+        flip_y = flip_y,
+        legend.position = legend.position,
+        legend.direction = legend.direction,
+        title = title,
+        subtitle = subtitle,
+        xlab = xlab,
+        ylab = ylab,
+        theme = theme,
+        theme_args = theme_args
     )
 }
 
 #' @rdname spatialplots
 #' @concept spatial
 #' @export
-SpatShapesPlot <- function(data, x = NULL, y = NULL, group = NULL,
-    ext = NULL, flip_y = TRUE,
-    fill_by = NULL, border_color = "black", border_size = 0.5, border_alpha = 1,
-    palette = NULL, palcolor = NULL, palreverse = FALSE,
-    alpha = 1, fill_name = NULL,
-    highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
-    facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
+SpatShapesPlot <- function(
+    data,
+    x = NULL,
+    y = NULL,
+    group = NULL,
+    ext = NULL,
+    flip_y = TRUE,
+    fill_by = NULL,
+    border_color = "black",
+    border_size = 0.5,
+    border_alpha = 1,
+    palette = NULL,
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 1,
+    fill_name = NULL,
+    highlight = NULL,
+    highlight_alpha = 1,
+    highlight_size = 1,
+    highlight_color = "black",
+    highlight_stroke = 0.8,
+    facet_scales = "fixed",
+    facet_nrow = NULL,
+    facet_ncol = NULL,
+    facet_byrow = TRUE,
     return_layer = FALSE,
-    theme = "theme_box", theme_args = list(),
-    legend.position = ifelse(return_layer, "none", "right"), legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525) {
+    theme = "theme_box",
+    theme_args = list(),
+    legend.position = ifelse(return_layer, "none", "right"),
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    seed = 8525
+) {
     UseMethod("SpatShapesPlot", data)
 }
 
@@ -604,17 +727,40 @@ SpatShapesPlot <- function(data, x = NULL, y = NULL, group = NULL,
 #' @concept spatial
 #' @export
 SpatShapesPlot.SpatVector <- function(
-    data, x = NULL, y = NULL, group = NULL,
-    ext = NULL, flip_y = TRUE,
-    fill_by = NULL, border_color = "black", border_size = 0.5, border_alpha = 1,
-    palette = NULL, palcolor = NULL, palreverse = FALSE,
-    alpha = 1, fill_name = NULL,
-    highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
-    facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
+    data,
+    x = NULL,
+    y = NULL,
+    group = NULL,
+    ext = NULL,
+    flip_y = TRUE,
+    fill_by = NULL,
+    border_color = "black",
+    border_size = 0.5,
+    border_alpha = 1,
+    palette = NULL,
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 1,
+    fill_name = NULL,
+    highlight = NULL,
+    highlight_alpha = 1,
+    highlight_size = 1,
+    highlight_color = "black",
+    highlight_stroke = 0.8,
+    facet_scales = "fixed",
+    facet_nrow = NULL,
+    facet_ncol = NULL,
+    facet_byrow = TRUE,
     return_layer = FALSE,
-    theme = "theme_box", theme_args = list(),
-    legend.position = ifelse(return_layer, "none", "right"), legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525
+    theme = "theme_box",
+    theme_args = list(),
+    legend.position = ifelse(return_layer, "none", "right"),
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    seed = 8525
 ) {
     set.seed(seed)
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
@@ -627,11 +773,15 @@ SpatShapesPlot.SpatVector <- function(
     if (!is.null(ext)) {
         data <- terra::crop(data, ext)
         if (terra::nrow(data) == 0 || terra::ncol(data) == 0) {
-            stop("[SpatShapesPlot] No data in the specified extent. Please check your extent.")
+            stop(
+                "[SpatShapesPlot] No data in the specified extent. Please check your extent."
+            )
         }
     }
 
-    if (flip_y) { data <- .flip_y(data) }
+    if (flip_y) {
+        data <- .flip_y(data)
+    }
 
     # Convert to sf object for ggplot
     data_sf <- sf::st_as_sf(data)
@@ -641,12 +791,20 @@ SpatShapesPlot.SpatVector <- function(
         # Check that all fill_by columns exist and are numeric
         missing_cols <- fill_by[!fill_by %in% names(data_sf)]
         if (length(missing_cols) > 0) {
-            stop("Columns not found in data: ", paste(missing_cols, collapse = ", "))
+            stop(
+                "Columns not found in data: ",
+                paste(missing_cols, collapse = ", ")
+            )
         }
 
-        non_numeric_cols <- fill_by[!sapply(fill_by, function(col) is.numeric(data_sf[[col]]))]
+        non_numeric_cols <- fill_by[
+            !sapply(fill_by, function(col) is.numeric(data_sf[[col]]))
+        ]
         if (length(non_numeric_cols) > 0) {
-            stop("Multiple fill_by columns must be numeric. Non-numeric columns: ", paste(non_numeric_cols, collapse = ", "))
+            stop(
+                "Multiple fill_by columns must be numeric. Non-numeric columns: ",
+                paste(non_numeric_cols, collapse = ", ")
+            )
         }
 
         # Reshape data for faceting: convert to long format
@@ -670,10 +828,11 @@ SpatShapesPlot.SpatVector <- function(
         # Set fill_by to the new column name
         fill_by <- ".fill"
         facet_by <- ".facet_var"
-
     } else {
         # Single column case
-        if (!is.null(fill_by) && is.character(fill_by) && length(fill_by) == 1) {
+        if (
+            !is.null(fill_by) && is.character(fill_by) && length(fill_by) == 1
+        ) {
             if (fill_by %in% names(data_sf)) {
                 # It's a column name
                 fill_by <- check_columns(
@@ -697,7 +856,7 @@ SpatShapesPlot.SpatVector <- function(
             palette <- "Paired"
         }
     }
-    palette <- palette %||% "turbo"  # fallback default
+    palette <- palette %||% "turbo" # fallback default
 
     # Determine geometry type for appropriate geom
     # Assuming polygons
@@ -705,7 +864,10 @@ SpatShapesPlot.SpatVector <- function(
 
     # Build aesthetic mappings
     aes_mapping <- aes()
-    fill_by_is_column <- !is.null(fill_by) && is.character(fill_by) && length(fill_by) == 1 && fill_by %in% names(data_sf)
+    fill_by_is_column <- !is.null(fill_by) &&
+        is.character(fill_by) &&
+        length(fill_by) == 1 &&
+        fill_by %in% names(data_sf)
 
     if (fill_by_is_column) {
         aes_mapping$fill <- sym(fill_by)
@@ -757,27 +919,53 @@ SpatShapesPlot.SpatVector <- function(
     if (fill_by_is_column) {
         if (is.numeric(data_sf[[fill_by]])) {
             # Numeric data - use gradient scale
-            layers <- c(layers, list(
-                scale_fill_gradientn(
-                    name = fill_name %||% fill_by,
-                    n.breaks = 4,
-                    colors = palette_this(palette = palette, n = 256, reverse = palreverse, palcolor = palcolor),
-                    guide = if (identical(legend.position, "none")) "none" else guide_colorbar(
-                        frame.colour = "black", ticks.colour = "black", title.hjust = 0
-                    ),
-                    na.value = "transparent"
+            layers <- c(
+                layers,
+                list(
+                    scale_fill_gradientn(
+                        name = fill_name %||% fill_by,
+                        n.breaks = 4,
+                        colors = palette_this(
+                            palette = palette,
+                            n = 256,
+                            reverse = palreverse,
+                            palcolor = palcolor
+                        ),
+                        guide = if (identical(legend.position, "none")) {
+                            "none"
+                        } else {
+                            guide_colorbar(
+                                frame.colour = "black",
+                                ticks.colour = "black",
+                                title.hjust = 0
+                            )
+                        },
+                        na.value = "transparent"
+                    )
                 )
-            ))
+            )
         } else {
             # Categorical data - use manual/discrete scale
-            layers <- c(layers, list(
-                ggplot2::scale_fill_manual(
-                    name = fill_name %||% fill_by,
-                    values = palette_this(levels(data_sf[[fill_by]]), palette = palette, reverse = palreverse, palcolor = palcolor),
-                    guide = if (identical(legend.position, "none")) "none" else "legend",
-                    na.value = "transparent"
+            layers <- c(
+                layers,
+                list(
+                    ggplot2::scale_fill_manual(
+                        name = fill_name %||% fill_by,
+                        values = palette_this(
+                            levels(data_sf[[fill_by]]),
+                            palette = palette,
+                            reverse = palreverse,
+                            palcolor = palcolor
+                        ),
+                        guide = if (identical(legend.position, "none")) {
+                            "none"
+                        } else {
+                            "legend"
+                        },
+                        na.value = "transparent"
+                    )
                 )
-            ))
+            )
         }
     }
 
@@ -785,25 +973,48 @@ SpatShapesPlot.SpatVector <- function(
     if (border_aes == "same_as_fill") {
         if (is.numeric(data_sf[[fill_by]])) {
             # Numeric data - use gradient scale
-            layers <- c(layers, list(
-                scale_color_gradientn(
-                    n.breaks = 4,
-                    colors = palette_this(palette = palette, n = 256, reverse = palreverse, palcolor = palcolor, alpha = border_alpha),
-                    guide = if (identical(legend.position, "none")) "none" else guide_colorbar(
-                        frame.colour = "black", ticks.colour = "black", title.hjust = 0
-                    ),
-                    na.value = "transparent"
+            layers <- c(
+                layers,
+                list(
+                    scale_color_gradientn(
+                        n.breaks = 4,
+                        colors = palette_this(
+                            palette = palette,
+                            n = 256,
+                            reverse = palreverse,
+                            palcolor = palcolor,
+                            alpha = border_alpha
+                        ),
+                        guide = if (identical(legend.position, "none")) {
+                            "none"
+                        } else {
+                            guide_colorbar(
+                                frame.colour = "black",
+                                ticks.colour = "black",
+                                title.hjust = 0
+                            )
+                        },
+                        na.value = "transparent"
+                    )
                 )
-            ))
+            )
         } else {
             # Categorical data - use manual/discrete scale
-            layers <- c(layers, list(
-                ggplot2::scale_color_manual(
-                    values = palette_this(levels(data_sf[[fill_by]]), palette = palette, reverse = palreverse, palcolor = palcolor),
-                    guide = "none",  # Always hide guide for border color
-                    na.value = "transparent"
+            layers <- c(
+                layers,
+                list(
+                    ggplot2::scale_color_manual(
+                        values = palette_this(
+                            levels(data_sf[[fill_by]]),
+                            palette = palette,
+                            reverse = palreverse,
+                            palcolor = palcolor
+                        ),
+                        guide = "none", # Always hide guide for border color
+                        na.value = "transparent"
+                    )
                 )
-            ))
+            )
         }
     }
 
@@ -825,22 +1036,28 @@ SpatShapesPlot.SpatVector <- function(
                 stop("No highlight items found in the data (rownames).")
             }
             if (!all(highlight %in% all_inst)) {
-                warning("Not all highlight items found in the data (rownames).", immediate. = TRUE)
+                warning(
+                    "Not all highlight items found in the data (rownames).",
+                    immediate. = TRUE
+                )
             }
             hi_sf <- data_sf[intersect(highlight, all_inst), , drop = FALSE]
             rm(all_inst)
         }
         if (nrow(hi_sf) > 0) {
             # Add highlight border
-            layers <- c(layers, list(
-                ggplot2::geom_sf(
-                    data = hi_sf,
-                    fill = NA,
-                    color = highlight_color,
-                    linewidth = border_size + highlight_stroke,
-                    alpha = highlight_alpha
+            layers <- c(
+                layers,
+                list(
+                    ggplot2::geom_sf(
+                        data = hi_sf,
+                        fill = NA,
+                        color = highlight_color,
+                        linewidth = border_size + highlight_stroke,
+                        alpha = highlight_alpha
+                    )
                 )
-            ))
+            )
             scales_used <- c(scales_used, "color")
         }
     }
@@ -852,17 +1069,31 @@ SpatShapesPlot.SpatVector <- function(
         return(layers)
     }
 
-    p <- .wrap_spatial_layers(layers,
-        ext = ext, flip_y = flip_y,
-        legend.position = legend.position, legend.direction = legend.direction,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
-        theme = theme, theme_args = theme_args
+    p <- .wrap_spatial_layers(
+        layers,
+        ext = ext,
+        flip_y = flip_y,
+        legend.position = legend.position,
+        legend.direction = legend.direction,
+        title = title,
+        subtitle = subtitle,
+        xlab = xlab,
+        ylab = ylab,
+        theme = theme,
+        theme_args = theme_args
     )
 
     if (!is.null(facet_by)) {
-        p <- facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-                       legend.position = legend.position,
-                       legend.direction = legend.direction)
+        p <- facet_plot(
+            p,
+            facet_by,
+            facet_scales,
+            facet_nrow,
+            facet_ncol,
+            facet_byrow,
+            legend.position = legend.position,
+            legend.direction = legend.direction
+        )
     }
 
     p
@@ -872,17 +1103,40 @@ SpatShapesPlot.SpatVector <- function(
 #' @concept spatial
 #' @export
 SpatShapesPlot.data.frame <- function(
-    data, x, y, group,
-    ext = NULL, flip_y = TRUE,
-    fill_by = "grey90", border_color = "black", border_size = 0.5, border_alpha = 1,
-    palette = NULL, palcolor = NULL, palreverse = FALSE,
-    alpha = 1, fill_name = NULL,
-    highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
-    facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
+    data,
+    x,
+    y,
+    group,
+    ext = NULL,
+    flip_y = TRUE,
+    fill_by = "grey90",
+    border_color = "black",
+    border_size = 0.5,
+    border_alpha = 1,
+    palette = NULL,
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 1,
+    fill_name = NULL,
+    highlight = NULL,
+    highlight_alpha = 1,
+    highlight_size = 1,
+    highlight_color = "black",
+    highlight_stroke = 0.8,
+    facet_scales = "fixed",
+    facet_nrow = NULL,
+    facet_ncol = NULL,
+    facet_byrow = TRUE,
     return_layer = FALSE,
-    theme = "theme_box", theme_args = list(),
-    legend.position = ifelse(return_layer, "none", "right"), legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525
+    theme = "theme_box",
+    theme_args = list(),
+    legend.position = ifelse(return_layer, "none", "right"),
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    seed = 8525
 ) {
     set.seed(seed)
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
@@ -897,25 +1151,44 @@ SpatShapesPlot.data.frame <- function(
 
     ext <- .prepare_extent(ext)
     if (!is.null(ext)) {
-        data <- data[data[[x]] >= ext[1] & data[[x]] <= ext[2] & data[[y]] >= ext[3] & data[[y]] <= ext[4], , drop = FALSE]
+        data <- data[
+            data[[x]] >= ext[1] &
+                data[[x]] <= ext[2] &
+                data[[y]] >= ext[3] &
+                data[[y]] <= ext[4],
+            ,
+            drop = FALSE
+        ]
         if (nrow(data) == 0) {
-            stop("[SpatShapesPlot] No data in the specified extent. Please check your extent.")
+            stop(
+                "[SpatShapesPlot] No data in the specified extent. Please check your extent."
+            )
         }
     }
 
-    if (flip_y) { data <- .flip_y(data) }
+    if (flip_y) {
+        data <- .flip_y(data)
+    }
 
     # Handle multiple fill_by columns for faceting
     if (!is.null(fill_by) && length(fill_by) > 1) {
         # Check that all fill_by columns exist and are numeric
         missing_cols <- fill_by[!fill_by %in% names(data)]
         if (length(missing_cols) > 0) {
-            stop("[SpatShapesPlot] Columns not found in data: ", paste(missing_cols, collapse = ", "))
+            stop(
+                "[SpatShapesPlot] Columns not found in data: ",
+                paste(missing_cols, collapse = ", ")
+            )
         }
 
-        non_numeric_cols <- fill_by[!sapply(fill_by, function(col) is.numeric(data[[col]]))]
+        non_numeric_cols <- fill_by[
+            !sapply(fill_by, function(col) is.numeric(data[[col]]))
+        ]
         if (length(non_numeric_cols) > 0) {
-            stop("[SpatShapesPlot] Multiple fill_by columns must be numeric. Non-numeric columns: ", paste(non_numeric_cols, collapse = ", "))
+            stop(
+                "[SpatShapesPlot] Multiple fill_by columns must be numeric. Non-numeric columns: ",
+                paste(non_numeric_cols, collapse = ", ")
+            )
         }
 
         # Reshape data for faceting: convert to long format
@@ -939,14 +1212,16 @@ SpatShapesPlot.data.frame <- function(
         # Set fill_by to the new column name
         fill_by <- ".fill"
         facet_by <- ".facet_var"
-
     } else {
         # Single column case
-        if (!is.null(fill_by) && is.character(fill_by) && length(fill_by) == 1) {
+        if (
+            !is.null(fill_by) && is.character(fill_by) && length(fill_by) == 1
+        ) {
             if (fill_by %in% names(data)) {
                 # It's a column name
                 fill_by <- check_columns(
-                    data, fill_by,
+                    data,
+                    fill_by,
                     force_factor = !is.numeric(data[[fill_by]])
                 )
             } else {
@@ -965,7 +1240,7 @@ SpatShapesPlot.data.frame <- function(
             palette <- "Paired"
         }
     }
-    palette <- palette %||% "turbo"  # fallback default
+    palette <- palette %||% "turbo" # fallback default
 
     # Determine geometry type for appropriate geom
     # Assuming polygons
@@ -973,7 +1248,10 @@ SpatShapesPlot.data.frame <- function(
 
     # Build aesthetic mappings
     aes_mapping <- aes(x = !!sym(x), y = !!sym(y), group = !!sym(group))
-    fill_by_is_column <- !is.null(fill_by) && is.character(fill_by) && length(fill_by) == 1 && fill_by %in% names(data)
+    fill_by_is_column <- !is.null(fill_by) &&
+        is.character(fill_by) &&
+        length(fill_by) == 1 &&
+        fill_by %in% names(data)
 
     if (fill_by_is_column) {
         aes_mapping$fill <- sym(fill_by)
@@ -1025,27 +1303,53 @@ SpatShapesPlot.data.frame <- function(
     if (fill_by_is_column) {
         if (is.numeric(data[[fill_by]])) {
             # Numeric data - use gradient scale
-            layers <- c(layers, list(
-                scale_fill_gradientn(
-                    name = fill_name %||% fill_by,
-                    n.breaks = 4,
-                    colors = palette_this(palette = palette, n = 256, reverse = palreverse, palcolor = palcolor),
-                    guide = if (identical(legend.position, "none")) "none" else guide_colorbar(
-                        frame.colour = "black", ticks.colour = "black", title.hjust = 0
-                    ),
-                    na.value = "transparent"
+            layers <- c(
+                layers,
+                list(
+                    scale_fill_gradientn(
+                        name = fill_name %||% fill_by,
+                        n.breaks = 4,
+                        colors = palette_this(
+                            palette = palette,
+                            n = 256,
+                            reverse = palreverse,
+                            palcolor = palcolor
+                        ),
+                        guide = if (identical(legend.position, "none")) {
+                            "none"
+                        } else {
+                            guide_colorbar(
+                                frame.colour = "black",
+                                ticks.colour = "black",
+                                title.hjust = 0
+                            )
+                        },
+                        na.value = "transparent"
+                    )
                 )
-            ))
+            )
         } else {
             # Categorical data - use manual/discrete scale
-            layers <- c(layers, list(
-                ggplot2::scale_fill_manual(
-                    name = fill_name %||% fill_by,
-                    values = palette_this(levels(data[[fill_by]]), palette = palette, reverse = palreverse, palcolor = palcolor),
-                    guide = if (identical(legend.position, "none")) "none" else "legend",
-                    na.value = "transparent"
+            layers <- c(
+                layers,
+                list(
+                    ggplot2::scale_fill_manual(
+                        name = fill_name %||% fill_by,
+                        values = palette_this(
+                            levels(data[[fill_by]]),
+                            palette = palette,
+                            reverse = palreverse,
+                            palcolor = palcolor
+                        ),
+                        guide = if (identical(legend.position, "none")) {
+                            "none"
+                        } else {
+                            "legend"
+                        },
+                        na.value = "transparent"
+                    )
                 )
-            ))
+            )
         }
     }
 
@@ -1053,25 +1357,48 @@ SpatShapesPlot.data.frame <- function(
     if (border_aes == "same_as_fill") {
         if (is.numeric(data[[fill_by]])) {
             # Numeric data - use gradient scale
-            layers <- c(layers, list(
-                scale_color_gradientn(
-                    n.breaks = 4,
-                    colors = palette_this(palette = palette, n = 256, reverse = palreverse, palcolor = palcolor, alpha = border_alpha),
-                    guide = if (identical(legend.position, "none")) "none" else guide_colorbar(
-                        frame.colour = "black", ticks.colour = "black", title.hjust = 0
-                    ),
-                    na.value = "transparent"
+            layers <- c(
+                layers,
+                list(
+                    scale_color_gradientn(
+                        n.breaks = 4,
+                        colors = palette_this(
+                            palette = palette,
+                            n = 256,
+                            reverse = palreverse,
+                            palcolor = palcolor,
+                            alpha = border_alpha
+                        ),
+                        guide = if (identical(legend.position, "none")) {
+                            "none"
+                        } else {
+                            guide_colorbar(
+                                frame.colour = "black",
+                                ticks.colour = "black",
+                                title.hjust = 0
+                            )
+                        },
+                        na.value = "transparent"
+                    )
                 )
-            ))
+            )
         } else {
             # Categorical data - use manual/discrete scale
-            layers <- c(layers, list(
-                ggplot2::scale_color_manual(
-                    values = palette_this(levels(data[[fill_by]]), palette = palette, reverse = palreverse, palcolor = palcolor),
-                    guide = "none",  # Always hide guide for border color
-                    na.value = "transparent"
+            layers <- c(
+                layers,
+                list(
+                    ggplot2::scale_color_manual(
+                        values = palette_this(
+                            levels(data[[fill_by]]),
+                            palette = palette,
+                            reverse = palreverse,
+                            palcolor = palcolor
+                        ),
+                        guide = "none", # Always hide guide for border color
+                        na.value = "transparent"
+                    )
                 )
-            ))
+            )
         }
     }
 
@@ -1093,23 +1420,33 @@ SpatShapesPlot.data.frame <- function(
                 stop("No highlight items found in the data (rownames).")
             }
             if (!all(highlight %in% all_inst)) {
-                warning("Not all highlight items found in the data (rownames).", immediate. = TRUE)
+                warning(
+                    "Not all highlight items found in the data (rownames).",
+                    immediate. = TRUE
+                )
             }
             hi_data <- data[intersect(highlight, all_inst), , drop = FALSE]
             rm(all_inst)
         }
         if (nrow(hi_data) > 0) {
             # Add highlight border
-            layers <- c(layers, list(
-                ggplot2::geom_polygon(
-                    data = hi_data,
-                    mapping = aes(x = !!sym(x), y = !!sym(y), group = !!sym(group)),
-                    fill = NA,
-                    color = highlight_color,
-                    linewidth = border_size + highlight_stroke,
-                    alpha = highlight_alpha
+            layers <- c(
+                layers,
+                list(
+                    ggplot2::geom_polygon(
+                        data = hi_data,
+                        mapping = aes(
+                            x = !!sym(x),
+                            y = !!sym(y),
+                            group = !!sym(group)
+                        ),
+                        fill = NA,
+                        color = highlight_color,
+                        linewidth = border_size + highlight_stroke,
+                        alpha = highlight_alpha
+                    )
                 )
-            ))
+            )
             scales_used <- c(scales_used, "color")
         }
     }
@@ -1121,17 +1458,31 @@ SpatShapesPlot.data.frame <- function(
         return(layers)
     }
 
-    p <- .wrap_spatial_layers(layers,
-        ext = ext, flip_y = flip_y,
-        legend.position = legend.position, legend.direction = legend.direction,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
-        theme = theme, theme_args = theme_args
+    p <- .wrap_spatial_layers(
+        layers,
+        ext = ext,
+        flip_y = flip_y,
+        legend.position = legend.position,
+        legend.direction = legend.direction,
+        title = title,
+        subtitle = subtitle,
+        xlab = xlab,
+        ylab = ylab,
+        theme = theme,
+        theme_args = theme_args
     )
 
     if (!is.null(facet_by)) {
-        p <- facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-                       legend.position = legend.position,
-                       legend.direction = legend.direction)
+        p <- facet_plot(
+            p,
+            facet_by,
+            facet_scales,
+            facet_nrow,
+            facet_ncol,
+            facet_byrow,
+            legend.position = legend.position,
+            legend.direction = legend.direction
+        )
     }
 
     p
@@ -1141,25 +1492,85 @@ SpatShapesPlot.data.frame <- function(
 #' @concept spatial
 #' @export
 SpatPointsPlot <- function(
-    data, x = NULL, y = NULL,
-    ext = NULL, flip_y = TRUE, color_by = NULL, size_by = NULL, size = NULL, fill_by = NULL,
-    lower_quantile = 0, upper_quantile = 0.99, lower_cutoff = NULL, upper_cutoff = NULL,
-    palette = NULL, palcolor = NULL, palreverse = FALSE,
-    alpha = 1, color_name = NULL, size_name = NULL, shape = 16,
-    border_color = "black", border_size = 0.5, border_alpha = 1,
-    raster = NULL, raster_dpi = c(512, 512),
-    hex = FALSE, hex_linewidth = 0.5, hex_count = FALSE, hex_bins = 50, hex_binwidth = NULL,
-    label = FALSE, label_size = 4, label_fg = "white", label_bg = "black", label_bg_r = 0.1,
-    label_repel = FALSE, label_repulsion = 20, label_pt_size = 1, label_pt_color = "black",
-    label_segment_color = "black", label_insitu = FALSE,
-    label_pos = c("median", "mean", "max", "min", "first", "last", "center", "random"),
-    highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
-    graph = NULL, graph_x = NULL, graph_y = NULL, graph_xend = NULL, graph_yend = NULL, graph_value = NULL,
-    edge_size = c(0.05, 0.5), edge_alpha = 0.1, edge_color = "grey40",
-    facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
-    return_layer = FALSE, theme = "theme_box", theme_args = list(),
-    legend.position = ifelse(return_layer, "none", "right"), legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525
+    data,
+    x = NULL,
+    y = NULL,
+    ext = NULL,
+    flip_y = TRUE,
+    color_by = NULL,
+    size_by = NULL,
+    size = NULL,
+    fill_by = NULL,
+    lower_quantile = 0,
+    upper_quantile = 0.99,
+    lower_cutoff = NULL,
+    upper_cutoff = NULL,
+    palette = NULL,
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 1,
+    color_name = NULL,
+    size_name = NULL,
+    shape = 16,
+    border_color = "black",
+    border_size = 0.5,
+    border_alpha = 1,
+    raster = NULL,
+    raster_dpi = c(512, 512),
+    hex = FALSE,
+    hex_linewidth = 0.5,
+    hex_count = FALSE,
+    hex_bins = 50,
+    hex_binwidth = NULL,
+    label = FALSE,
+    label_size = 4,
+    label_fg = "white",
+    label_bg = "black",
+    label_bg_r = 0.1,
+    label_repel = FALSE,
+    label_repulsion = 20,
+    label_pt_size = 1,
+    label_pt_color = "black",
+    label_segment_color = "black",
+    label_insitu = FALSE,
+    label_pos = c(
+        "median",
+        "mean",
+        "max",
+        "min",
+        "first",
+        "last",
+        "center",
+        "random"
+    ),
+    highlight = NULL,
+    highlight_alpha = 1,
+    highlight_size = 1,
+    highlight_color = "black",
+    highlight_stroke = 0.8,
+    graph = NULL,
+    graph_x = NULL,
+    graph_y = NULL,
+    graph_xend = NULL,
+    graph_yend = NULL,
+    graph_value = NULL,
+    edge_size = c(0.05, 0.5),
+    edge_alpha = 0.1,
+    edge_color = "grey40",
+    facet_scales = "fixed",
+    facet_nrow = NULL,
+    facet_ncol = NULL,
+    facet_byrow = TRUE,
+    return_layer = FALSE,
+    theme = "theme_box",
+    theme_args = list(),
+    legend.position = ifelse(return_layer, "none", "right"),
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    seed = 8525
 ) {
     set.seed(seed)
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
@@ -1167,27 +1578,62 @@ SpatPointsPlot <- function(
     } else {
         ggplot2::ggplot
     }
-    stopifnot("'size_by' and 'size' should not be both specified" = is.null(size_by) || is.null(size))
-    stopifnot("'size' must be a single numeric value" = is.null(size) || (is.numeric(size) && length(size) == 1))
+    stopifnot(
+        "'size_by' and 'size' should not be both specified" = is.null(
+            size_by
+        ) ||
+            is.null(size)
+    )
+    stopifnot(
+        "'size' must be a single numeric value" = is.null(size) ||
+            (is.numeric(size) && length(size) == 1)
+    )
     size_by <- size_by %||% size
 
     stopifnot("'data' must be a data.frame" = is.data.frame(data))
     if (!is.null(fill_by) && !is.null(color_by) && fill_by != color_by) {
-        stop("Can't use both 'fill_by' and 'color_by'. Always use 'color_by' for points.")
+        stop(
+            "Can't use both 'fill_by' and 'color_by'. Always use 'color_by' for points."
+        )
     }
     color_by <- color_by %||% fill_by
 
     # Determine x and y columns
     if (is.null(x)) {
-        x_candidates <- c("x", "X", "sdimx", "coord_x", "spatial_x", "longitude", "lon", "lng")
+        x_candidates <- c(
+            "x",
+            "X",
+            "sdimx",
+            "coord_x",
+            "spatial_x",
+            "longitude",
+            "lon",
+            "lng"
+        )
         x <- x_candidates[x_candidates %in% names(data)][1]
-        if (is.na(x)) stop("Could not find x coordinate column. Please specify 'x' parameter.")
+        if (is.na(x)) {
+            stop(
+                "Could not find x coordinate column. Please specify 'x' parameter."
+            )
+        }
     }
 
     if (is.null(y)) {
-        y_candidates <- c("y", "Y", "sdimy", "coord_y", "spatial_y", "latitude", "lat")
+        y_candidates <- c(
+            "y",
+            "Y",
+            "sdimy",
+            "coord_y",
+            "spatial_y",
+            "latitude",
+            "lat"
+        )
         y <- y_candidates[y_candidates %in% names(data)][1]
-        if (is.na(y)) stop("Could not find y coordinate column. Please specify 'y' parameter.")
+        if (is.na(y)) {
+            stop(
+                "Could not find y coordinate column. Please specify 'y' parameter."
+            )
+        }
     }
     x <- check_columns(data, x)
     y <- check_columns(data, y)
@@ -1199,34 +1645,53 @@ SpatPointsPlot <- function(
     raster_is_null <- is.null(raster)
     raster <- raster %||% (nrow(data) > 1e6)
     if (isTRUE(raster) && raster_is_null) {
-        warning("[SpatPointsPlot] Rasterization is enabled by default for large datasets (nrow > 1e6). Set 'raster = FALSE' to disable.")
+        warning(
+            "[SpatPointsPlot] Rasterization is enabled by default for large datasets (nrow > 1e6). Set 'raster = FALSE' to disable."
+        )
     }
 
     # Apply extent cropping if specified
     ext <- .prepare_extent(ext)
     if (!is.null(ext)) {
         data <- data[
-            data[[x]] >= ext[1] & data[[x]] <= ext[2] &
-            data[[y]] >= ext[3] & data[[y]] <= ext[4], , drop = FALSE]
+            data[[x]] >= ext[1] &
+                data[[x]] <= ext[2] &
+                data[[y]] >= ext[3] &
+                data[[y]] <= ext[4],
+            ,
+            drop = FALSE
+        ]
         if (nrow(data) == 0) {
-            stop("[SpatPointsPlot] No data in the specified extent. Please check your extent.")
+            stop(
+                "[SpatPointsPlot] No data in the specified extent. Please check your extent."
+            )
         }
     }
 
     # Apply y-axis flipping
-    if (flip_y) { data <- .flip_y(data, y = y) }
+    if (flip_y) {
+        data <- .flip_y(data, y = y)
+    }
 
     # Handle multiple color_by columns for faceting
     if (!is.null(color_by) && length(color_by) > 1) {
         # Check that all color_by columns exist and are numeric
         missing_cols <- color_by[!color_by %in% names(data)]
         if (length(missing_cols) > 0) {
-            stop("Columns not found in data: ", paste(missing_cols, collapse = ", "))
+            stop(
+                "Columns not found in data: ",
+                paste(missing_cols, collapse = ", ")
+            )
         }
 
-        non_numeric_cols <- color_by[!sapply(color_by, function(col) is.numeric(data[[col]]))]
+        non_numeric_cols <- color_by[
+            !sapply(color_by, function(col) is.numeric(data[[col]]))
+        ]
         if (length(non_numeric_cols) > 0) {
-            stop("Multiple color_by columns must be numeric. Non-numeric columns: ", paste(non_numeric_cols, collapse = ", "))
+            stop(
+                "Multiple color_by columns must be numeric. Non-numeric columns: ",
+                paste(non_numeric_cols, collapse = ", ")
+            )
         }
 
         # Reshape data for faceting: convert to long format
@@ -1248,13 +1713,20 @@ SpatPointsPlot <- function(
         # Set color_by to the new column name
         color_by <- ".color"
         facet_by <- ".facet_var"
-
     } else {
         # Single column case
-        if (!is.null(color_by) && is.character(color_by) && length(color_by) == 1) {
+        if (
+            !is.null(color_by) &&
+                is.character(color_by) &&
+                length(color_by) == 1
+        ) {
             if (color_by %in% names(data)) {
                 # It's a column name
-                color_by <- check_columns(data, color_by, force_factor = !is.numeric(data[[color_by]]))
+                color_by <- check_columns(
+                    data,
+                    color_by,
+                    force_factor = !is.numeric(data[[color_by]])
+                )
             } else {
                 # It's a fixed color - don't treat as column
                 color_by <- color_by
@@ -1263,9 +1735,23 @@ SpatPointsPlot <- function(
         facet_by <- NULL
     }
 
-    if (!is.null(color_by) && color_by %in% names(data) && is.numeric(data[[color_by]])) {
-        lower_cutoff <- lower_cutoff %||% quantile(data[[color_by]][is.finite(data[[color_by]])], lower_quantile, na.rm = TRUE)
-        upper_cutoff <- upper_cutoff %||% quantile(data[[color_by]][is.finite(data[[color_by]])], upper_quantile, na.rm = TRUE)
+    if (
+        !is.null(color_by) &&
+            color_by %in% names(data) &&
+            is.numeric(data[[color_by]])
+    ) {
+        lower_cutoff <- lower_cutoff %||%
+            quantile(
+                data[[color_by]][is.finite(data[[color_by]])],
+                lower_quantile,
+                na.rm = TRUE
+            )
+        upper_cutoff <- upper_cutoff %||%
+            quantile(
+                data[[color_by]][is.finite(data[[color_by]])],
+                upper_quantile,
+                na.rm = TRUE
+            )
         if (upper_cutoff == lower_cutoff) {
             if (upper_cutoff == 0) {
                 upper_cutoff <- 1e-3
@@ -1285,11 +1771,17 @@ SpatPointsPlot <- function(
             palette <- "Paired"
         }
     }
-    palette <- palette %||% "turbo"  # fallback default
+    palette <- palette %||% "turbo" # fallback default
 
     # Check and prepare aesthetic columns
-    color_by_is_column <- !is.null(color_by) && is.character(color_by) && length(color_by) == 1 && color_by %in% names(data)
-    size_by_is_column <- !is.null(size_by) && is.character(size_by) && length(size_by) == 1 && size_by %in% names(data)
+    color_by_is_column <- !is.null(color_by) &&
+        is.character(color_by) &&
+        length(color_by) == 1 &&
+        color_by %in% names(data)
+    size_by_is_column <- !is.null(size_by) &&
+        is.character(size_by) &&
+        length(size_by) == 1 &&
+        size_by %in% names(data)
 
     scales_used <- c()
     # Build aesthetic mappings
@@ -1307,7 +1799,12 @@ SpatPointsPlot <- function(
     # Handle aesthetic mapping based on shape type
     if (has_border) {
         # For border shapes (21-25), color_by maps to fill when it's a column
-        if (color_by_is_column && !is.null(color_by) && color_by %in% names(data) && !isTRUE(raster)) {
+        if (
+            color_by_is_column &&
+                !is.null(color_by) &&
+                color_by %in% names(data) &&
+                !isTRUE(raster)
+        ) {
             aes_mapping$fill <- sym(color_by)
             scales_used <- c(scales_used, "fill")
 
@@ -1318,15 +1815,27 @@ SpatPointsPlot <- function(
                 border_aes <- "same_as_fill"
                 scales_used <- c(scales_used, "color")
             } else {
-                border_aes <- if (is.character(border_color)) "fixed_color" else "none"
+                border_aes <- if (is.character(border_color)) {
+                    "fixed_color"
+                } else {
+                    "none"
+                }
             }
         } else {
             # No column mapping for fill
-            border_aes <- if (is.character(border_color)) "fixed_color" else "none"
+            border_aes <- if (is.character(border_color)) {
+                "fixed_color"
+            } else {
+                "none"
+            }
         }
     } else {
         # For non-border shapes, color_by maps to color when it's a column
-        if (color_by_is_column && !is.null(color_by) && color_by %in% names(data)) {
+        if (
+            color_by_is_column &&
+                !is.null(color_by) &&
+                color_by %in% names(data)
+        ) {
             aes_mapping$colour <- sym(color_by)
             scales_used <- c(scales_used, "color")
         }
@@ -1338,10 +1847,15 @@ SpatPointsPlot <- function(
 
     ## Adding the graph/network
     if (!is.null(graph)) {
-        is_coord_graph <- !is.null(graph_x) && !is.null(graph_y) &&
-            !is.null(graph_xend) && !is.null(graph_yend) && !is.null(graph_value)
+        is_coord_graph <- !is.null(graph_x) &&
+            !is.null(graph_y) &&
+            !is.null(graph_xend) &&
+            !is.null(graph_yend) &&
+            !is.null(graph_value)
 
-        if (is.character(graph) && length(graph) == 1 && startsWith(graph, "@")) {
+        if (
+            is.character(graph) && length(graph) == 1 && startsWith(graph, "@")
+        ) {
             graph <- substring(graph, 2)
             net_mat <- attr(data, graph)
         } else if (is.matrix(graph) || is.data.frame(graph)) {
@@ -1352,7 +1866,9 @@ SpatPointsPlot <- function(
         } else if (is.character(graph)) {
             net_mat <- data[graph]
         } else {
-            stop("The 'graph' should be a matrix, data.frame, indexes, or column names.")
+            stop(
+                "The 'graph' should be a matrix, data.frame, indexes, or column names."
+            )
         }
         if (is_coord_graph) {
             graph_x <- check_columns(net_mat, graph_x)
@@ -1361,8 +1877,10 @@ SpatPointsPlot <- function(
             graph_yend <- check_columns(net_mat, graph_yend)
             graph_value <- check_columns(net_mat, graph_value)
             net_mat <- data.frame(
-                x = net_mat[[graph_x]], y = net_mat[[graph_y]],
-                xend = net_mat[[graph_xend]], yend = net_mat[[graph_yend]],
+                x = net_mat[[graph_x]],
+                y = net_mat[[graph_y]],
+                xend = net_mat[[graph_xend]],
+                yend = net_mat[[graph_yend]],
                 value = net_mat[[graph_value]]
             )
         } else {
@@ -1373,15 +1891,23 @@ SpatPointsPlot <- function(
             if (!is.null(rownames(net_mat)) && !is.null(colnames(net_mat))) {
                 net_mat <- net_mat[rownames(data), rownames(data)]
             } else if (nrow(net_mat) != ncol(net_mat)) {
-                stop("[SpatPointsPlot] The graph matrix should be square (same number of rows and columns).")
+                stop(
+                    "[SpatPointsPlot] The graph matrix should be square (same number of rows and columns)."
+                )
             } else if (nrow(net_mat) != nrow(data)) {
-                stop("[SpatPointsPlot] The graph matrix should have the same number of rows as the input data.")
+                stop(
+                    "[SpatPointsPlot] The graph matrix should have the same number of rows as the input data."
+                )
             }
             net_mat[net_mat == 0] <- NA
             net_mat[upper.tri(net_mat)] <- NA
 
             handle_single_facet_value <- function(mat) {
-                ndf <- reshape2::melt(mat, na.rm = TRUE, stringsAsFactors = FALSE)
+                ndf <- reshape2::melt(
+                    mat,
+                    na.rm = TRUE,
+                    stringsAsFactors = FALSE
+                )
                 ndf$value <- as.numeric(ndf$value)
                 ndf$Var1 <- as.character(ndf$Var1)
                 ndf$Var2 <- as.character(ndf$Var2)
@@ -1393,46 +1919,79 @@ SpatPointsPlot <- function(
             }
 
             if (!is.null(facet_by)) {
-                net_mat <- do.call(rbind, lapply(split(data, data[, facet_by]), function(d) {
-                    d <- handle_single_facet_value(net_mat[rownames(d), rownames(d)])
-                    d[, facet_by] <- d[1, facet_by]
-                    d
-                }))
+                net_mat <- do.call(
+                    rbind,
+                    lapply(split(data, data[, facet_by]), function(d) {
+                        d <- handle_single_facet_value(net_mat[
+                            rownames(d),
+                            rownames(d)
+                        ])
+                        d[, facet_by] <- d[1, facet_by]
+                        d
+                    })
+                )
             } else {
                 net_mat <- handle_single_facet_value(net_mat)
             }
         }
 
-        layers <- c(layers, list(
-            ggplot2::geom_segment(
-                data = net_mat,
-                mapping = aes(x = !!sym("x"), y = !!sym("y"), xend = !!sym("xend"),
-                    yend = !!sym("yend"), linewidth = !!sym("value")),
-                color = edge_color, alpha = edge_alpha, show.legend = FALSE
-            ),
-            ggplot2::scale_linewidth_continuous(range = edge_size)
-        ))
+        layers <- c(
+            layers,
+            list(
+                ggplot2::geom_segment(
+                    data = net_mat,
+                    mapping = aes(
+                        x = !!sym("x"),
+                        y = !!sym("y"),
+                        xend = !!sym("xend"),
+                        yend = !!sym("yend"),
+                        linewidth = !!sym("value")
+                    ),
+                    color = edge_color,
+                    alpha = edge_alpha,
+                    show.legend = FALSE
+                ),
+                ggplot2::scale_linewidth_continuous(range = edge_size)
+            )
+        )
     }
 
     # Create the main point layers
     if (isTRUE(hex)) {
         # Hex functionality - only for numeric color_by
         if (is.null(color_by)) {
-            stop("Hex plotting requires a 'color_by' column to aggregate values.")
+            stop(
+                "Hex plotting requires a 'color_by' column to aggregate values."
+            )
         }
-        if (!is.null(color_by) && color_by_is_column && !is.numeric(data[[color_by]])) {
-            stop("Hex plotting only works with numeric 'color_by' values. Use regular points for categorical data.")
+        if (
+            !is.null(color_by) &&
+                color_by_is_column &&
+                !is.numeric(data[[color_by]])
+        ) {
+            stop(
+                "Hex plotting only works with numeric 'color_by' values. Use regular points for categorical data."
+            )
         }
 
         if (isTRUE(hex_count)) {
             if (is.null(color_by) || !color_by_is_column) {
-                stop("Don't know how to count for the hex when 'color_by' is not provided.")
+                stop(
+                    "Don't know how to count for the hex when 'color_by' is not provided."
+                )
             }
             geom_layer <- ggplot2::geom_hex(
                 data = data,
-                mapping = aes(x = !!sym(x), y = !!sym(y), color = !!sym(color_by), fill = !!sym(color_by),
-                    alpha = after_stat(!!sym("count"))),
-                linewidth = hex_linewidth, bins = hex_bins, binwidth = hex_binwidth
+                mapping = aes(
+                    x = !!sym(x),
+                    y = !!sym(y),
+                    color = !!sym(color_by),
+                    fill = !!sym(color_by),
+                    alpha = after_stat(!!sym("count"))
+                ),
+                linewidth = hex_linewidth,
+                bins = hex_bins,
+                binwidth = hex_binwidth
             )
             scales_used <- c(scales_used, "fill", "color")
         } else {
@@ -1441,33 +2000,57 @@ SpatPointsPlot <- function(
             if (nrow(data_na) > 0) {
                 geom_layer <- list(
                     ggplot2::geom_hex(
-                        data = data_na, mapping = aes(x = !!sym(x), y = !!sym(y)),
-                        fill = "grey80", linewidth = hex_linewidth, bins = hex_bins,
-                        binwidth = hex_binwidth, alpha = alpha / 2
+                        data = data_na,
+                        mapping = aes(x = !!sym(x), y = !!sym(y)),
+                        fill = "grey80",
+                        linewidth = hex_linewidth,
+                        bins = hex_bins,
+                        binwidth = hex_binwidth,
+                        alpha = alpha / 2
                     ),
                     ggplot2::stat_summary_hex(
                         data = data[!is.na(data[[color_by]]), , drop = FALSE],
-                        mapping = aes(x = !!sym(x), y = !!sym(y), z = !!sym(color_by)),
-                        linewidth = hex_linewidth, bins = hex_bins, binwidth = hex_binwidth, alpha = alpha
+                        mapping = aes(
+                            x = !!sym(x),
+                            y = !!sym(y),
+                            z = !!sym(color_by)
+                        ),
+                        linewidth = hex_linewidth,
+                        bins = hex_bins,
+                        binwidth = hex_binwidth,
+                        alpha = alpha
                     )
                 )
             } else {
                 geom_layer <- ggplot2::stat_summary_hex(
                     data = data,
-                    mapping = aes(x = !!sym(x), y = !!sym(y), z = !!sym(color_by)),
-                    linewidth = hex_linewidth, bins = hex_bins, binwidth = hex_binwidth, alpha = alpha
+                    mapping = aes(
+                        x = !!sym(x),
+                        y = !!sym(y),
+                        z = !!sym(color_by)
+                    ),
+                    linewidth = hex_linewidth,
+                    bins = hex_bins,
+                    binwidth = hex_binwidth,
+                    alpha = alpha
                 )
                 scales_used <- c(scales_used, "fill")
             }
         }
     } else if (isTRUE(raster)) {
         if (raster_is_null && !identical(raster_dpi, c(512, 512))) {
-            message("[SpatPointsPlot] 'raster' is enabled. Point size (size_by) is ignored, try 'raster_dpi' to control resolution.")
+            message(
+                "[SpatPointsPlot] 'raster' is enabled. Point size (size_by) is ignored, try 'raster_dpi' to control resolution."
+            )
         }
         # Use scattermore for rasterized plotting
         if (!color_by_is_column) {
             # No color mapping - use fixed color
-            fixed_color <- if (!is.null(color_by) && is.character(color_by)) color_by else "black"
+            fixed_color <- if (!is.null(color_by) && is.character(color_by)) {
+                color_by
+            } else {
+                "black"
+            }
             geom_layer <- scattermore::geom_scattermore(
                 data = data,
                 mapping = aes(x = !!sym(x), y = !!sym(y)),
@@ -1481,13 +2064,21 @@ SpatPointsPlot <- function(
                 scattermore::geom_scattermore(
                     data = data,
                     mapping = aes(x = !!sym(x), y = !!sym(y)),
-                    color = if (border_aes == "fixed_color") adjcolors(border_color, border_alpha) else "black",
+                    color = if (border_aes == "fixed_color") {
+                        adjcolors(border_color, border_alpha)
+                    } else {
+                        "black"
+                    },
                     alpha = alpha,
                     pixels = raster_dpi
                 ),
                 scattermore::geom_scattermore(
                     data = data,
-                    mapping = aes(x = !!sym(x), y = !!sym(y), color = !!sym(color_by)),
+                    mapping = aes(
+                        x = !!sym(x),
+                        y = !!sym(y),
+                        color = !!sym(color_by)
+                    ),
                     alpha = alpha,
                     pixels = raster_dpi
                 )
@@ -1497,7 +2088,11 @@ SpatPointsPlot <- function(
             # Non-border shapes with color mapping
             geom_layer <- list(scattermore::geom_scattermore(
                 data = data,
-                mapping = aes(x = !!sym(x), y = !!sym(y), color = !!sym(color_by)),
+                mapping = aes(
+                    x = !!sym(x),
+                    y = !!sym(y),
+                    color = !!sym(color_by)
+                ),
                 alpha = alpha,
                 pixels = raster_dpi
             ))
@@ -1510,7 +2105,9 @@ SpatPointsPlot <- function(
             alpha = alpha,
             shape = shape
         )
-        if (has_border) geom_params$stroke <- border_size
+        if (has_border) {
+            geom_params$stroke <- border_size
+        }
 
         # Only add size parameter when not mapped
         if (!size_by_is_column && is.numeric(size_by)) {
@@ -1523,7 +2120,12 @@ SpatPointsPlot <- function(
                 geom_params$color <- adjcolors(border_color, border_alpha)
             } else if (has_border && border_aes == "none") {
                 geom_params$color <- NA
-            } else if (!has_border && !color_by_is_column && !is.null(color_by) && is.character(color_by)) {
+            } else if (
+                !has_border &&
+                    !color_by_is_column &&
+                    !is.null(color_by) &&
+                    is.character(color_by)
+            ) {
                 geom_params$color <- color_by
             } else if (!has_border && !color_by_is_column) {
                 geom_params$color <- "black"
@@ -1532,7 +2134,12 @@ SpatPointsPlot <- function(
 
         # Only add fill parameter when not mapped
         if (!("fill" %in% names(aes_mapping))) {
-            if (has_border && !color_by_is_column && !is.null(color_by) && is.character(color_by)) {
+            if (
+                has_border &&
+                    !color_by_is_column &&
+                    !is.null(color_by) &&
+                    is.character(color_by)
+            ) {
                 geom_params$fill <- color_by
             }
         }
@@ -1555,78 +2162,159 @@ SpatPointsPlot <- function(
     if (color_by_is_column && !is.null(color_by)) {
         if ("fill" %in% scales_used) {
             if (is.numeric(data[[color_by]])) {
-                layers <- c(layers, list(
-                    scale_fill_gradientn(
-                        name = color_name %||% color_by,
-                        n.breaks = 4,
-                        colors = palette_this(palette = palette, n = 256, reverse = palreverse, palcolor = palcolor),
-                        guide = if (identical(legend.position, "none")) "none" else guide_colorbar(
-                            frame.colour = "black", ticks.colour = "black", title.hjust = 0
-                        ),
-                        na.value = "transparent"
+                layers <- c(
+                    layers,
+                    list(
+                        scale_fill_gradientn(
+                            name = color_name %||% color_by,
+                            n.breaks = 4,
+                            colors = palette_this(
+                                palette = palette,
+                                n = 256,
+                                reverse = palreverse,
+                                palcolor = palcolor
+                            ),
+                            guide = if (identical(legend.position, "none")) {
+                                "none"
+                            } else {
+                                guide_colorbar(
+                                    frame.colour = "black",
+                                    ticks.colour = "black",
+                                    title.hjust = 0
+                                )
+                            },
+                            na.value = "transparent"
+                        )
                     )
-                ))
+                )
             } else {
-                layers <- c(layers, list(
-                    ggplot2::scale_fill_manual(
-                        name = color_name %||% color_by,
-                        values = palette_this(levels(data[[color_by]]), palette = palette, reverse = palreverse, palcolor = palcolor),
-                        guide = if (identical(legend.position, "none")) "none" else ggplot2::guide_legend(
-                            override.aes = list(size = legend_point_size)
-                        ),
-                        na.value = "transparent"
+                layers <- c(
+                    layers,
+                    list(
+                        ggplot2::scale_fill_manual(
+                            name = color_name %||% color_by,
+                            values = palette_this(
+                                levels(data[[color_by]]),
+                                palette = palette,
+                                reverse = palreverse,
+                                palcolor = palcolor
+                            ),
+                            guide = if (identical(legend.position, "none")) {
+                                "none"
+                            } else {
+                                ggplot2::guide_legend(
+                                    override.aes = list(
+                                        size = legend_point_size
+                                    )
+                                )
+                            },
+                            na.value = "transparent"
+                        )
                     )
-                ))
+                )
             }
         }
         if ("color" %in% scales_used) {
             if (is.numeric(data[[color_by]])) {
                 if (has_border && border_aes == "same_as_fill") {
-                    colors <- palette_this(palette = palette, n = 256, reverse = palreverse, palcolor = palcolor,
-                        alpha = border_alpha, transparent = FALSE)
-                } else {
-                    colors <- palette_this(palette = palette, n = 256, reverse = palreverse, palcolor = palcolor)
-                }
-                layers <- c(layers, list(
-                    scale_color_gradientn(
-                        name = color_name %||% color_by,
-                        n.breaks = 4,
-                        colors = colors,
-                        guide = if (identical(legend.position, "none") || "fill" %in% scales_used) "none" else guide_colorbar(
-                            frame.colour = "black", ticks.colour = "black", title.hjust = 0
-                        ),
-                        na.value = "transparent"
+                    colors <- palette_this(
+                        palette = palette,
+                        n = 256,
+                        reverse = palreverse,
+                        palcolor = palcolor,
+                        alpha = border_alpha,
+                        transparent = FALSE
                     )
-                ))
+                } else {
+                    colors <- palette_this(
+                        palette = palette,
+                        n = 256,
+                        reverse = palreverse,
+                        palcolor = palcolor
+                    )
+                }
+                layers <- c(
+                    layers,
+                    list(
+                        scale_color_gradientn(
+                            name = color_name %||% color_by,
+                            n.breaks = 4,
+                            colors = colors,
+                            guide = if (
+                                identical(legend.position, "none") ||
+                                    "fill" %in% scales_used
+                            ) {
+                                "none"
+                            } else {
+                                guide_colorbar(
+                                    frame.colour = "black",
+                                    ticks.colour = "black",
+                                    title.hjust = 0
+                                )
+                            },
+                            na.value = "transparent"
+                        )
+                    )
+                )
             } else {
                 if (has_border && border_aes == "same_as_fill") {
                     # Use same colors as fill
-                    colors <- palette_this(levels(data[[color_by]]), palette = palette, reverse = palreverse, palcolor = palcolor,
-                        alpha = border_alpha, transparent = FALSE)
-                } else {
-                    colors <- palette_this(levels(data[[color_by]]), palette = palette, reverse = palreverse, palcolor = palcolor)
-                }
-                layers <- c(layers, list(
-                    ggplot2::scale_color_manual(
-                        name = color_name %||% color_by,
-                        values = colors,
-                        guide = if (identical(legend.position, "none") || "fill" %in% scales_used) "none" else ggplot2::guide_legend(
-                            override.aes = list(size = legend_point_size)
-                        ),
-                        na.value = "transparent"
+                    colors <- palette_this(
+                        levels(data[[color_by]]),
+                        palette = palette,
+                        reverse = palreverse,
+                        palcolor = palcolor,
+                        alpha = border_alpha,
+                        transparent = FALSE
                     )
-                ))
+                } else {
+                    colors <- palette_this(
+                        levels(data[[color_by]]),
+                        palette = palette,
+                        reverse = palreverse,
+                        palcolor = palcolor
+                    )
+                }
+                layers <- c(
+                    layers,
+                    list(
+                        ggplot2::scale_color_manual(
+                            name = color_name %||% color_by,
+                            values = colors,
+                            guide = if (
+                                identical(legend.position, "none") ||
+                                    "fill" %in% scales_used
+                            ) {
+                                "none"
+                            } else {
+                                ggplot2::guide_legend(
+                                    override.aes = list(
+                                        size = legend_point_size
+                                    )
+                                )
+                            },
+                            na.value = "transparent"
+                        )
+                    )
+                )
             }
         }
     }
 
     if ("size" %in% scales_used) {
-        layers <- c(layers, list(
-            ggplot2::scale_size_continuous(
-                name = size_name %||% size_by,
-                guide = if (identical(legend.position, "none")) "none" else "legend"
+        layers <- c(
+            layers,
+            list(
+                ggplot2::scale_size_continuous(
+                    name = size_name %||% size_by,
+                    guide = if (identical(legend.position, "none")) {
+                        "none"
+                    } else {
+                        "legend"
+                    }
+                )
             )
-        ))
+        )
     }
 
     # Adding the highlight (similar to DimPlot)
@@ -1644,35 +2332,65 @@ SpatPointsPlot <- function(
                 stop("No highlight items found in the data (rownames).")
             }
             if (!all(highlight %in% all_inst)) {
-                warning("Not all highlight items found in the data (rownames).", immediate. = TRUE)
+                warning(
+                    "Not all highlight items found in the data (rownames).",
+                    immediate. = TRUE
+                )
             }
             hi_df <- data[intersect(highlight, all_inst), , drop = FALSE]
             rm(all_inst)
         }
         if (nrow(hi_df) > 0) {
             if (isTRUE(raster)) {
-                layers <- c(layers, list(
-                    scattermore::geom_scattermore(
-                        data = hi_df, aes(x = !!sym(x), y = !!sym(y)), color = highlight_color,
-                        pointsize = floor(highlight_size) + highlight_stroke, alpha = highlight_alpha, pixels = raster_dpi
-                    ),
-                    scattermore::geom_scattermore(
-                        data = hi_df, aes(x = !!sym(x), y = !!sym(y), color = !!sym(color_by)),
-                        pointsize = floor(highlight_size), alpha = highlight_alpha, pixels = raster_dpi
+                layers <- c(
+                    layers,
+                    list(
+                        scattermore::geom_scattermore(
+                            data = hi_df,
+                            aes(x = !!sym(x), y = !!sym(y)),
+                            color = highlight_color,
+                            pointsize = floor(highlight_size) +
+                                highlight_stroke,
+                            alpha = highlight_alpha,
+                            pixels = raster_dpi
+                        ),
+                        scattermore::geom_scattermore(
+                            data = hi_df,
+                            aes(
+                                x = !!sym(x),
+                                y = !!sym(y),
+                                color = !!sym(color_by)
+                            ),
+                            pointsize = floor(highlight_size),
+                            alpha = highlight_alpha,
+                            pixels = raster_dpi
+                        )
                     )
-                ))
+                )
                 scales_used <- c(scales_used, "color")
             } else {
-                layers <- c(layers, list(
-                    geom_point(
-                        data = hi_df, aes(x = !!sym(x), y = !!sym(y)), color = highlight_color,
-                        size = highlight_size + highlight_stroke, alpha = highlight_alpha
-                    ),
-                    geom_point(
-                        data = hi_df, aes(x = !!sym(x), y = !!sym(y), color = !!sym(color_by)),
-                        size = highlight_size, alpha = highlight_alpha
+                layers <- c(
+                    layers,
+                    list(
+                        geom_point(
+                            data = hi_df,
+                            aes(x = !!sym(x), y = !!sym(y)),
+                            color = highlight_color,
+                            size = highlight_size + highlight_stroke,
+                            alpha = highlight_alpha
+                        ),
+                        geom_point(
+                            data = hi_df,
+                            aes(
+                                x = !!sym(x),
+                                y = !!sym(y),
+                                color = !!sym(color_by)
+                            ),
+                            size = highlight_size,
+                            alpha = highlight_alpha
+                        )
                     )
-                ))
+                )
                 scales_used <- c(scales_used, "color")
             }
         }
@@ -1680,17 +2398,23 @@ SpatPointsPlot <- function(
 
     # Force label to be TRUE when label_repel or label_insitu is TRUE (similar to DimPlot)
     if ((isTRUE(label_repel) || isTRUE(label_insitu)) && !isTRUE(label)) {
-        message("Forcing label to be TRUE when label_repel or label_insitu is TRUE.")
+        message(
+            "Forcing label to be TRUE when label_repel or label_insitu is TRUE."
+        )
         label <- TRUE
     }
 
     # Adding the labels (similar to DimPlot)
     if (isTRUE(label)) {
         if (is.null(color_by) || !color_by_is_column) {
-            stop("Adding labels requires 'color_by' to be specified as a categorical column.")
+            stop(
+                "Adding labels requires 'color_by' to be specified as a categorical column."
+            )
         }
         if (is.numeric(data[[color_by]])) {
-            stop("Adding labels is not supported for numeric 'color_by' values. Use categorical data.")
+            stop(
+                "Adding labels is not supported for numeric 'color_by' values. Use categorical data."
+            )
         }
         if (isTRUE(hex)) {
             stop("Adding labels is not supported for hex plots.")
@@ -1715,15 +2439,25 @@ SpatPointsPlot <- function(
             } else if (label_pos == "max") {
                 label_pos <- function(x) max(x, na.rm = TRUE)
             } else {
-                stop("Invalid label position specified. Use 'median', 'mean', 'first', 'last', 'random', or 'center'.")
+                stop(
+                    "Invalid label position specified. Use 'median', 'mean', 'first', 'last', 'random', or 'center'."
+                )
             }
         }
 
         if (!is.null(facet_by)) {
-            label_df <- aggregate(data[, c(x, y)], by = list(data[[color_by]], data[[facet_by]]), FUN = label_pos)
+            label_df <- aggregate(
+                data[, c(x, y)],
+                by = list(data[[color_by]], data[[facet_by]]),
+                FUN = label_pos
+            )
             colnames(label_df)[1:2] <- c(".label", facet_by)
         } else {
-            label_df <- aggregate(data[, c(x, y)], by = list(data[[color_by]]), FUN = label_pos)
+            label_df <- aggregate(
+                data[, c(x, y)],
+                by = list(data[[color_by]]),
+                FUN = label_pos
+            )
             colnames(label_df)[1] <- ".label"
         }
         label_df <- label_df[!is.na(label_df[, ".label"]), , drop = FALSE]
@@ -1733,26 +2467,58 @@ SpatPointsPlot <- function(
         }
 
         if (isTRUE(label_repel)) {
-            layers <- c(layers, list(
-                geom_point(
-                    data = label_df, mapping = aes(x = !!sym(x), y = !!sym(y)),
-                    color = label_pt_color, size = label_pt_size
-                ),
-                ggrepel::geom_text_repel(
-                    data = label_df, aes(x = !!sym(x), y = !!sym(y), label = !!sym(".label")),
-                    point.size = label_pt_size, max.overlaps = 100, force = label_repulsion,
-                    color = label_fg, bg.color = label_bg, bg.r = label_bg_r, size = label_size, inherit.aes = FALSE
+            layers <- c(
+                layers,
+                list(
+                    geom_point(
+                        data = label_df,
+                        mapping = aes(x = !!sym(x), y = !!sym(y)),
+                        color = label_pt_color,
+                        size = label_pt_size
+                    ),
+                    ggrepel::geom_text_repel(
+                        data = label_df,
+                        aes(
+                            x = !!sym(x),
+                            y = !!sym(y),
+                            label = !!sym(".label")
+                        ),
+                        point.size = label_pt_size,
+                        max.overlaps = 100,
+                        force = label_repulsion,
+                        color = label_fg,
+                        bg.color = label_bg,
+                        bg.r = label_bg_r,
+                        size = label_size,
+                        inherit.aes = FALSE
+                    )
                 )
-            ))
+            )
         } else {
-            layers <- c(layers, list(
-                ggrepel::geom_text_repel(
-                    data = label_df, aes(x = !!sym(x), y = !!sym(y), label = !!sym(".label")),
-                    fontface = "bold", min.segment.length = 0, segment.color = label_segment_color,
-                    point.size = NA, max.overlaps = 100, force = 0,
-                    color = label_fg, bg.color = label_bg, bg.r = label_bg_r, size = label_size, inherit.aes = FALSE
+            layers <- c(
+                layers,
+                list(
+                    ggrepel::geom_text_repel(
+                        data = label_df,
+                        aes(
+                            x = !!sym(x),
+                            y = !!sym(y),
+                            label = !!sym(".label")
+                        ),
+                        fontface = "bold",
+                        min.segment.length = 0,
+                        segment.color = label_segment_color,
+                        point.size = NA,
+                        max.overlaps = 100,
+                        force = 0,
+                        color = label_fg,
+                        bg.color = label_bg,
+                        bg.r = label_bg_r,
+                        size = label_size,
+                        inherit.aes = FALSE
+                    )
                 )
-            ))
+            )
         }
     }
 
@@ -1763,17 +2529,31 @@ SpatPointsPlot <- function(
         return(layers)
     }
 
-    p <- .wrap_spatial_layers(layers,
-        ext = ext, flip_y = flip_y,
-        legend.position = legend.position, legend.direction = legend.direction,
-        title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
-        theme = theme, theme_args = theme_args
+    p <- .wrap_spatial_layers(
+        layers,
+        ext = ext,
+        flip_y = flip_y,
+        legend.position = legend.position,
+        legend.direction = legend.direction,
+        title = title,
+        subtitle = subtitle,
+        xlab = xlab,
+        ylab = ylab,
+        theme = theme,
+        theme_args = theme_args
     )
 
     if (!is.null(facet_by)) {
-        p <- facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-                       legend.position = legend.position,
-                       legend.direction = legend.direction)
+        p <- facet_plot(
+            p,
+            facet_by,
+            facet_scales,
+            facet_nrow,
+            facet_ncol,
+            facet_byrow,
+            legend.position = legend.position,
+            legend.direction = legend.direction
+        )
     }
 
     p

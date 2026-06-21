@@ -6,7 +6,12 @@
 #' @param hits_only A logical value to return only the running enrichment score of the hits
 #' @return A numeric vector of the running enrichment score
 #' @keywords internal
-gsea_running_score <- function(genes, gene_ranks, exponent = 1, hits_only = TRUE) {
+gsea_running_score <- function(
+    genes,
+    gene_ranks,
+    exponent = 1,
+    hits_only = TRUE
+) {
     genes <- intersect(genes, names(gene_ranks))
     N <- length(gene_ranks)
     Nh <- length(genes)
@@ -14,7 +19,9 @@ gsea_running_score <- function(genes, gene_ranks, exponent = 1, hits_only = TRUE
     hits <- names(gene_ranks) %in% genes
     Phit[hits] <- abs(gene_ranks[hits])^exponent
     NR <- sum(Phit)
-    if (NR == 0) NR <- 1e-3
+    if (NR == 0) {
+        NR <- 1e-3
+    }
     Phit <- cumsum(Phit) / NR
     Pmiss[!hits] <- 1 / (N - Nh)
     Pmiss <- cumsum(Pmiss)
@@ -104,13 +111,35 @@ prepare_fgsea_result <- function(data) {
 #' GSEASummaryPlot(gsea_example, cutoff = 0.01)
 #' }
 GSEASummaryPlot <- function(
-    data, in_form = c("auto", "dose", "fgsea"), gene_ranks = "@gene_ranks", gene_sets = "@gene_sets",
-    top_term = 10, metric = "p.adjust", cutoff = 0.05, character_width = 50, line_plot_size = 0.25,
-    metric_name = metric, nonsig_name = "Insignificant", linewidth = 0.2,
-    line_by = c("prerank", "running_score"), title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
-    alpha = 0.6, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, palreverse = FALSE,
-    seed = 8525, ...) {
+    data,
+    in_form = c("auto", "dose", "fgsea"),
+    gene_ranks = "@gene_ranks",
+    gene_sets = "@gene_sets",
+    top_term = 10,
+    metric = "p.adjust",
+    cutoff = 0.05,
+    character_width = 50,
+    line_plot_size = 0.25,
+    metric_name = metric,
+    nonsig_name = "Insignificant",
+    linewidth = 0.2,
+    line_by = c("prerank", "running_score"),
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    alpha = 0.6,
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Spectral",
+    palcolor = NULL,
+    palreverse = FALSE,
+    seed = 8525,
+    ...
+) {
     set.seed(seed)
     in_form <- match.arg(in_form)
     theme <- process_theme(theme)
@@ -124,7 +153,11 @@ GSEASummaryPlot <- function(
         data <- as.data.frame(data)
     }
 
-    if (is.character(gene_ranks) && length(gene_ranks) == 1 && startsWith(gene_ranks, "@")) {
+    if (
+        is.character(gene_ranks) &&
+            length(gene_ranks) == 1 &&
+            startsWith(gene_ranks, "@")
+    ) {
         gene_ranks <- attr(data, substring(gene_ranks, 2))
     }
     if (is.null(gene_ranks)) {
@@ -138,7 +171,11 @@ GSEASummaryPlot <- function(
     }
     gene_ranks <- gene_ranks[order(-gene_ranks)]
 
-    if (is.character(gene_sets) && length(gene_sets) == 1 && startsWith(gene_sets, "@")) {
+    if (
+        is.character(gene_sets) &&
+            length(gene_sets) == 1 &&
+            startsWith(gene_sets, "@")
+    ) {
         gene_sets <- attr(data, substring(gene_sets, 2))
     }
     if (is.null(gene_sets)) {
@@ -154,7 +191,9 @@ GSEASummaryPlot <- function(
         } else if ("core_enrichment" %in% colnames(data)) {
             in_form <- "dose"
         } else {
-            stop("Cannot detect the input format. Please set 'in_form' to 'fgsea' or 'dose'.")
+            stop(
+                "Cannot detect the input format. Please set 'in_form' to 'fgsea' or 'dose'."
+            )
         }
     }
     if (in_form == "fgsea") {
@@ -177,7 +216,10 @@ GSEASummaryPlot <- function(
     data$Description <- droplevels(data$Description)
     # data <- data[order(data$Description), , drop = FALSE]
     data$Description <- str_wrap(data$Description, width = character_width)
-    data$Description <- factor(data$Description, levels = unique(data$Description))
+    data$Description <- factor(
+        data$Description,
+        levels = unique(data$Description)
+    )
     data$y <- as.integer(data$Description)
     sig_metrics <- data$metric[data$.signif]
 
@@ -185,11 +227,13 @@ GSEASummaryPlot <- function(
         p <- ggplot(data, aes(x = !!sym("NES"), y = !!sym("y")))
     } else {
         p <- ggplot(data, aes(x = !!sym("NES"), y = !!sym("y"), fill = "")) +
-            guides(fill = guide_legend(
-                title = nonsig_name %||% "Insignificant",
-                override.aes = list(color = "grey80", shape = 15, size = 4),
-                order = 2
-            ))
+            guides(
+                fill = guide_legend(
+                    title = nonsig_name %||% "Insignificant",
+                    override.aes = list(color = "grey80", shape = 15, size = 4),
+                    order = 2
+                )
+            )
     }
     # need a layer to get the scales of the plot
     p <- p + geom_point(aes(color = !!sym("metric")), size = 0)
@@ -197,19 +241,29 @@ GSEASummaryPlot <- function(
     y_range <- diff(layer_scales(p)$y$range$range)
     colors <- palette_this(
         sig_metrics,
-        n = sum(data$.signif), palette = palette, palcolor = palcolor,
-        alpha = alpha, type = "continuous", transparent = FALSE, reverse = palreverse
+        n = sum(data$.signif),
+        palette = palette,
+        palcolor = palcolor,
+        alpha = alpha,
+        type = "continuous",
+        transparent = FALSE,
+        reverse = palreverse
     )
     line_plot_list <- list()
 
     for (i in seq_len(nrow(data))) {
         if (isTRUE(data$.signif[i])) {
             # since the values are continuous, number of colors is not equal to number of points
-            color <- colors[ceiling(data$metric[i] * length(colors) / max(sig_metrics))]
+            color <- colors[ceiling(
+                data$metric[i] * length(colors) / max(sig_metrics)
+            )]
         } else {
             color <- "grey80"
         }
-        hits <- intersect(gene_sets[[as.character(data$ID[i])]], names(gene_ranks))
+        hits <- intersect(
+            gene_sets[[as.character(data$ID[i])]],
+            names(gene_ranks)
+        )
         if (line_by == "running_score") {
             scores <- gsea_running_score(hits, gene_ranks)
         } else {
@@ -228,10 +282,16 @@ GSEASummaryPlot <- function(
 
         lp <- ggplot(df, aes(x = !!sym("x"), y = !!sym("y"))) +
             geom_rect(
-                xmin = x_min, xmax = x_max, ymin = -yr, ymax = yr,
+                xmin = x_min,
+                xmax = x_max,
+                ymin = -yr,
+                ymax = yr,
                 fill = color
             ) +
-            geom_linerange(aes(ymin = !!sym("ymin"), ymax = !!sym("ymax")), linewidth = linewidth) +
+            geom_linerange(
+                aes(ymin = !!sym("ymin"), ymax = !!sym("ymax")),
+                linewidth = linewidth
+            ) +
             ylim(-yr, yr) +
             theme_void() +
             ggplot2::theme(
@@ -259,20 +319,32 @@ GSEASummaryPlot <- function(
         # in case all terms are not significant
         p <- p + scale_color_gradientn(colors = "grey80", guide = "none")
     } else {
-        p <- p + scale_color_gradientn(
-            name = metric_name,
-            colors = colors,
-            breaks = pretty_breaks(n = 4),
-            labels = function(x) scientific(10^(-x), digits = 2),
-            guide = guide_colorbar(
-                frame.colour = "black", ticks.colour = "black", title.hjust = 0, order = 1
+        p <- p +
+            scale_color_gradientn(
+                name = metric_name,
+                colors = colors,
+                breaks = pretty_breaks(n = 4),
+                labels = function(x) scientific(10^(-x), digits = 2),
+                guide = guide_colorbar(
+                    frame.colour = "black",
+                    ticks.colour = "black",
+                    title.hjust = 0,
+                    order = 1
+                )
             )
-        )
     }
     p <- p +
-        scale_y_continuous(breaks = seq_len(nrow(data)), labels = data$Description) +
+        scale_y_continuous(
+            breaks = seq_len(nrow(data)),
+            labels = data$Description
+        ) +
         scale_x_continuous(expand = c(0.05, x_range * line_plot_size / 2)) +
-        labs(title = title, subtitle = subtitle, x = xlab %||% "NES", y = ylab %||% "") +
+        labs(
+            title = title,
+            subtitle = subtitle,
+            x = xlab %||% "NES",
+            y = ylab %||% ""
+        ) +
         do.call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
@@ -317,10 +389,27 @@ GSEASummaryPlot <- function(
 #' @importFrom ggplot2 ggtitle theme_classic annotate
 #' @importFrom patchwork plot_layout wrap_plots plot_spacer
 GSEAPlotAtomic <- function(
-    data, gene_ranks = "@gene_ranks", gs, genes, metric = "p.adjust", sample_coregenes = FALSE,
-    line_width = 1.5, line_alpha = 1, line_color = "#6BB82D", n_coregenes = 10, genes_label = NULL,
-    label_fg = "black", label_bg = "white", label_bg_r = 0.1, label_size = 4,
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, ...) {
+    data,
+    gene_ranks = "@gene_ranks",
+    gs,
+    genes,
+    metric = "p.adjust",
+    sample_coregenes = FALSE,
+    line_width = 1.5,
+    line_alpha = 1,
+    line_color = "#6BB82D",
+    n_coregenes = 10,
+    genes_label = NULL,
+    label_fg = "black",
+    label_bg = "white",
+    label_bg_r = 0.1,
+    label_size = 4,
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    ...
+) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
     } else {
@@ -332,7 +421,11 @@ GSEAPlotAtomic <- function(
     if (nrow(data) == 0) {
         stop("Gene set ", gs, " is not in the data")
     }
-    if (is.character(gene_ranks) && length(gene_ranks) == 1 && startsWith(gene_ranks, "@")) {
+    if (
+        is.character(gene_ranks) &&
+            length(gene_ranks) == 1 &&
+            startsWith(gene_ranks, "@")
+    ) {
         gene_ranks <- attr(data, substring(gene_ranks, 2))
     }
     if (is.null(gene_ranks)) {
@@ -354,11 +447,18 @@ GSEAPlotAtomic <- function(
         data[[metric]] <= 0.001 & data[[metric]] > 0.0001 ~ "***",
         data[[metric]] <= 0.0001 ~ "****"
     )
-    subtitle <- subtitle %||% paste0(
-        "(NES=", round(data$NES, 3), ", ",
-        metric, "=", format(data[[metric]], digits = 3, scientific = TRUE), ", ",
-        sig, ")"
-    )
+    subtitle <- subtitle %||%
+        paste0(
+            "(NES=",
+            round(data$NES, 3),
+            ", ",
+            metric,
+            "=",
+            format(data[[metric]], digits = 3, scientific = TRUE),
+            ", ",
+            sig,
+            ")"
+        )
 
     df <- data.frame(
         x = 1:length(gene_ranks),
@@ -383,27 +483,52 @@ GSEAPlotAtomic <- function(
         # background
         geom_rect(
             data = data.frame(
-                xmin = -Inf, xmax = Inf, ymin = c(0, -Inf), ymax = c(Inf, 0),
+                xmin = -Inf,
+                xmax = Inf,
+                ymin = c(0, -Inf),
+                ymax = c(Inf, 0),
                 fill = c(alpha("#C40003", 0.2), alpha("#1D008F", 0.2))
             ),
-            mapping = aes(xmin = !!sym("xmin"), xmax = !!sym("xmax"), ymin = !!sym("ymin"), ymax = !!sym("ymax"),
-                fill = I(!!sym("fill"))),
+            mapping = aes(
+                xmin = !!sym("xmin"),
+                xmax = !!sym("xmax"),
+                ymin = !!sym("ymin"),
+                ymax = !!sym("ymax"),
+                fill = I(!!sym("fill"))
+            ),
             inherit.aes = FALSE
         ) +
         geom_hline(yintercept = 0, linetype = 1, color = "grey40") +
         # running score
-        geom_line(aes(y = !!sym("runningScore")), color = line_color, linewidth = line_width, alpha = line_alpha) +
-        annotate(
-            geom = "segment", x = 0, xend = df$x[index_max],
-            y = df$runningScore[index_max], yend = df$runningScore[index_max], linetype = 2
+        geom_line(
+            aes(y = !!sym("runningScore")),
+            color = line_color,
+            linewidth = line_width,
+            alpha = line_alpha
         ) +
         annotate(
-            geom = "segment", x = df$x[index_max], xend = df$x[index_max],
-            y = 0, yend = df$runningScore[index_max], linetype = 2
+            geom = "segment",
+            x = 0,
+            xend = df$x[index_max],
+            y = df$runningScore[index_max],
+            yend = df$runningScore[index_max],
+            linetype = 2
         ) +
         annotate(
-            geom = "point", x = df$x[index_max], y = df$runningScore[index_max],
-            fill = ifelse(data$NES < 0, "#5E34F5", "#F52323"), color = "black", size = 2.5,
+            geom = "segment",
+            x = df$x[index_max],
+            xend = df$x[index_max],
+            y = 0,
+            yend = df$runningScore[index_max],
+            linetype = 2
+        ) +
+        annotate(
+            geom = "point",
+            x = df$x[index_max],
+            y = df$runningScore[index_max],
+            fill = ifelse(data$NES < 0, "#5E34F5", "#F52323"),
+            color = "black",
+            size = 2.5,
             shape = ifelse(data$NES < 0, 25, 24)
         ) +
         ggplot2::ylab("Enrichment Score") +
@@ -411,7 +536,11 @@ GSEAPlotAtomic <- function(
             axis.text.x = element_blank(),
             axis.ticks.x = element_blank(),
             axis.line = element_blank(),
-            panel.border = element_rect(color = "black", fill = "transparent", linewidth = 1),
+            panel.border = element_rect(
+                color = "black",
+                fill = "transparent",
+                linewidth = 1
+            ),
             plot.margin = margin(t = 0.2, r = 0.2, b = 0, l = 0.2, unit = "cm"),
             legend.position = "none",
             plot.subtitle = element_text(face = "italic")
@@ -419,38 +548,74 @@ GSEAPlotAtomic <- function(
         ggtitle(title, subtitle)
 
     # label the genes
-    if ((is.numeric(n_coregenes) && n_coregenes > 1) || length(genes_label) > 0) {
+    if (
+        (is.numeric(n_coregenes) && n_coregenes > 1) || length(genes_label) > 0
+    ) {
         if (length(genes_label) == 0) {
             genes_label_tmp <- unlist(strsplit(data$core_enrichment, "/"))
             n_coregenes <- min(n_coregenes, length(genes_label_tmp))
             if (isTRUE(sample_coregenes)) {
-                genes_label_tmp <- sample(genes_label_tmp, n_coregenes, replace = FALSE)
+                genes_label_tmp <- sample(
+                    genes_label_tmp,
+                    n_coregenes,
+                    replace = FALSE
+                )
             } else {
-                genes_label_tmp <- df$genes[df$genes %in% genes_label_tmp][1:n_coregenes]
+                genes_label_tmp <- df$genes[df$genes %in% genes_label_tmp][
+                    1:n_coregenes
+                ]
             }
         } else {
             genes_label_tmp <- genes_label
         }
-        df_gene <- df[df$position == 1 & df$genes %in% genes_label_tmp, , drop = FALSE]
+        df_gene <- df[
+            df$position == 1 & df$genes %in% genes_label_tmp,
+            ,
+            drop = FALSE
+        ]
         gene_drop <- genes_label_tmp[!genes_label_tmp %in% df_gene$genes]
         if (length(gene_drop) > 0) {
             if (identical(data$ID, data$Description)) {
-                warning("Gene ", paste(gene_drop, collapse = ","), " is not in the geneset ", data$ID, immediate. = TRUE)
+                warning(
+                    "Gene ",
+                    paste(gene_drop, collapse = ","),
+                    " is not in the geneset ",
+                    data$ID,
+                    immediate. = TRUE
+                )
             } else {
-                warning("Gene ", paste(gene_drop, collapse = ","), " is not in the geneset ", data$ID, ": ", data$Description, immediate. = TRUE)
+                warning(
+                    "Gene ",
+                    paste(gene_drop, collapse = ","),
+                    " is not in the geneset ",
+                    data$ID,
+                    ": ",
+                    data$Description,
+                    immediate. = TRUE
+                )
             }
         }
         x_nudge <- diff(range(df$x)) * 0.05
         y_nudge <- diff(range(df$runningScore)) * 0.05
-        p1 <- p1 + geom_point(
-            data = df_gene,
-            mapping = aes(y = !!sym("runningScore")), color = "black"
-        ) +
+        p1 <- p1 +
+            geom_point(
+                data = df_gene,
+                mapping = aes(y = !!sym("runningScore")),
+                color = "black"
+            ) +
             geom_text_repel(
                 data = df_gene,
-                mapping = aes(y = !!sym("runningScore"), label = !!sym("genes")),
-                min.segment.length = 0, max.overlaps = 100, segment.colour = "grey40",
-                color = label_fg, bg.color = label_bg, bg.r = label_bg_r, size = label_size,
+                mapping = aes(
+                    y = !!sym("runningScore"),
+                    label = !!sym("genes")
+                ),
+                min.segment.length = 0,
+                max.overlaps = 100,
+                segment.colour = "grey40",
+                color = label_fg,
+                bg.color = label_bg,
+                bg.r = label_bg_r,
+                size = label_size,
                 nudge_x = ifelse(df_gene$runningScore >= 0, x_nudge, -x_nudge),
                 nudge_y = ifelse(df_gene$runningScore > 0, -y_nudge, y_nudge)
             )
@@ -458,16 +623,32 @@ GSEAPlotAtomic <- function(
 
     ############# The Line Plot Panel #############
     p2 <- ggplot(df, aes(x = !!sym("x"))) +
-        geom_linerange(aes(ymax = !!sym("position")), ymin = 0, alpha = line_alpha) +
+        geom_linerange(
+            aes(ymax = !!sym("position")),
+            ymin = 0,
+            alpha = line_alpha
+        ) +
         ggplot2::xlab(NULL) +
         ggplot2::ylab(NULL) +
         theme_classic(base_size = 12) +
         ggplot2::theme(
             legend.position = "none",
-            plot.margin = margin(t = -0.1, b = 0, r = 0.2, l = 0.2, unit = "cm"),
-            panel.border = element_rect(color = "black", fill = "transparent", linewidth = 1),
-            axis.line.y = element_blank(), axis.line.x = element_blank(),
-            axis.ticks = element_blank(), axis.text = element_blank()
+            plot.margin = margin(
+                t = -0.1,
+                b = 0,
+                r = 0.2,
+                l = 0.2,
+                unit = "cm"
+            ),
+            panel.border = element_rect(
+                color = "black",
+                fill = "transparent",
+                linewidth = 1
+            ),
+            axis.line.y = element_blank(),
+            axis.line.x = element_blank(),
+            axis.ticks = element_blank(),
+            axis.text = element_blank()
         ) +
         scale_x_continuous(expand = c(0.01, 0)) +
         scale_y_continuous(expand = c(0, 0))
@@ -479,8 +660,13 @@ GSEAPlotAtomic <- function(
     col <- rep("white", length(y))
     y_pos <- which(y > 0)
     if (length(y_pos) > 0) {
-        y_pos_i <- cut(y[y_pos],
-            breaks = seq(min(y[y_pos], na.rm = TRUE), max(y[y_pos], na.rm = TRUE), len = 100),
+        y_pos_i <- cut(
+            y[y_pos],
+            breaks = seq(
+                min(y[y_pos], na.rm = TRUE),
+                max(y[y_pos], na.rm = TRUE),
+                len = 100
+            ),
             include.lowest = TRUE
         )
         col[y_pos] <- colorRampPalette(c("#F5DCDC", "#C40003"))(100)[y_pos_i]
@@ -488,56 +674,148 @@ GSEAPlotAtomic <- function(
 
     y_neg <- which(y < 0)
     if (length(y_neg) > 0) {
-        y_neg_i <- cut(y[y_neg],
-            breaks = seq(min(y[y_neg], na.rm = TRUE), max(y[y_neg], na.rm = TRUE), len = 100),
+        y_neg_i <- cut(
+            y[y_neg],
+            breaks = seq(
+                min(y[y_neg], na.rm = TRUE),
+                max(y[y_neg], na.rm = TRUE),
+                len = 100
+            ),
             include.lowest = TRUE
         )
         col[y_neg] <- colorRampPalette(c("#1D008F", "#DDDCF5"))(100)[y_neg_i]
     }
     xmin <- which(!duplicated(col))
     xmax <- xmin + as.numeric(table(col)[as.character(unique(col))])
-    d <- data.frame(ymin = 0, ymax = 0.3, xmin = xmin, xmax = xmax, col = unique(col))
+    d <- data.frame(
+        ymin = 0,
+        ymax = 0.3,
+        xmin = xmin,
+        xmax = xmax,
+        col = unique(col)
+    )
     p2 <- p2 +
         geom_rect(
-            aes(xmin = !!sym("xmin"), xmax = !!sym("xmax"), ymin = !!sym("ymin"), ymax = !!sym("ymax"), fill = I(!!sym("col"))),
+            aes(
+                xmin = !!sym("xmin"),
+                xmax = !!sym("xmax"),
+                ymin = !!sym("ymin"),
+                ymax = !!sym("ymax"),
+                fill = I(!!sym("col"))
+            ),
             data = d,
-            alpha = 0.95, inherit.aes = FALSE
+            alpha = 0.95,
+            inherit.aes = FALSE
         )
 
     ############# The gene ranking panel #############
     p3 <- p +
-        geom_segment(aes(x = !!sym("x"), xend = !!sym("x"), y = !!sym("ranks"), yend = 0), color = "grey30")
+        geom_segment(
+            aes(
+                x = !!sym("x"),
+                xend = !!sym("x"),
+                y = !!sym("ranks"),
+                yend = 0
+            ),
+            color = "grey30"
+        )
 
     cross_x <- median(df$x[which.min(abs(df$ranks))])
     if (max(df$ranks) > 0) {
-        p3 <- p3 + annotate(geom = "text", x = 0, y = Inf, vjust = 1.4, hjust = 0, color = "#C81A1F", size = 4, label = " Positively correlated")
+        p3 <- p3 +
+            annotate(
+                geom = "text",
+                x = 0,
+                y = Inf,
+                vjust = 1.4,
+                hjust = 0,
+                color = "#C81A1F",
+                size = 4,
+                label = " Positively correlated"
+            )
     }
     if (min(df$ranks) < 0) {
-        p3 <- p3 + annotate(geom = "text", x = Inf, y = -Inf, vjust = -0.5, hjust = 1.02, color = "#3C298C", size = 4, label = "Negtively correlated ")
+        p3 <- p3 +
+            annotate(
+                geom = "text",
+                x = Inf,
+                y = -Inf,
+                vjust = -0.5,
+                hjust = 1.02,
+                color = "#3C298C",
+                size = 4,
+                label = "Negtively correlated "
+            )
     }
     if (max(df$ranks) > 0 && min(df$ranks) < 0) {
-        p3 <- p3 + geom_vline(xintercept = cross_x, linetype = 2, color = "black") +
-            annotate(geom = "text", y = 0, x = cross_x, vjust = ifelse(diff(abs(range(df$ranks))) > 0, -0.3, 1.3), size = 4, label = paste0("Zero cross at ", cross_x))
+        p3 <- p3 +
+            geom_vline(xintercept = cross_x, linetype = 2, color = "black") +
+            annotate(
+                geom = "text",
+                y = 0,
+                x = cross_x,
+                vjust = ifelse(diff(abs(range(df$ranks))) > 0, -0.3, 1.3),
+                size = 4,
+                label = paste0("Zero cross at ", cross_x)
+            )
     }
-    p3 <- p3 + ggplot2::ylab("Ranked List Metric") + ggplot2::xlab(xlab %||% "Rank in Ordered Dataset") +
+    p3 <- p3 +
+        ggplot2::ylab("Ranked List Metric") +
+        ggplot2::xlab(xlab %||% "Rank in Ordered Dataset") +
         ggplot2::theme(
-            plot.margin = margin(t = -0.1, r = 0.2, b = 0.2, l = 0.2, unit = "cm"),
-            axis.line = element_blank(), axis.line.x = element_blank(),
-            panel.border = element_rect(color = "black", fill = "transparent", linewidth = 1)
+            plot.margin = margin(
+                t = -0.1,
+                r = 0.2,
+                b = 0.2,
+                l = 0.2,
+                unit = "cm"
+            ),
+            axis.line = element_blank(),
+            axis.line.x = element_blank(),
+            panel.border = element_rect(
+                color = "black",
+                fill = "transparent",
+                linewidth = 1
+            )
         )
 
     if (!is.null(ylab)) {
         p4 <- textGrob(label = ylab, rot = -90, hjust = 0.5)
 
-        p <- wrap_plots(p1, plot_spacer(), p2, plot_spacer(), p3, p4, heights = c(3.5, -0.19, 1, -0.24, 1.5), widths = c(12, .5)) +
+        p <- wrap_plots(
+            p1,
+            plot_spacer(),
+            p2,
+            plot_spacer(),
+            p3,
+            p4,
+            heights = c(3.5, -0.19, 1, -0.24, 1.5),
+            widths = c(12, .5)
+        ) +
             plot_layout(axes = "collect", design = "AF\nBF\nCF\nDF\nEF")
-        dims <- calculate_plot_dimensions(base_height = 6.5, aspect.ratio = NULL, legend.position = "none")
+        dims <- calculate_plot_dimensions(
+            base_height = 6.5,
+            aspect.ratio = NULL,
+            legend.position = "none"
+        )
         attr(p, "height") <- dims$height
         attr(p, "width") <- 8
     } else {
-        p <- wrap_plots(p1, plot_spacer(), p2, plot_spacer(), p3, ncol = 1, heights = c(3.5, -0.19, 1, -0.24, 1.5)) +
+        p <- wrap_plots(
+            p1,
+            plot_spacer(),
+            p2,
+            plot_spacer(),
+            p3,
+            ncol = 1,
+            heights = c(3.5, -0.19, 1, -0.24, 1.5)
+        ) +
             plot_layout(axes = "collect")
-        dims <- calculate_plot_dimensions(base_height = 6.5, aspect.ratio = NULL, legend.position = "none")
+        dims <- calculate_plot_dimensions(
+            base_height = 6.5,
+            aspect.ratio = NULL,
+            legend.position = "none"
+        )
         attr(p, "height") <- dims$height
         attr(p, "width") <- 7.5
     }
@@ -561,30 +839,72 @@ GSEAPlotAtomic <- function(
 #' GSEAPlot(gsea_example, gene_sets = attr(gsea_example, "gene_sets")[1:4])
 #' }
 GSEAPlot <- function(
-    data, in_form = c("auto", "dose", "fgsea"), gene_ranks = "@gene_ranks", gene_sets = "@gene_sets",
-    gs = NULL, sample_coregenes = FALSE, line_width = 1.5, line_alpha = 1, line_color = "#6BB82D",
-    n_coregenes = 10, genes_label = NULL, label_fg = "black", label_bg = "white",
-    label_bg_r = 0.1, label_size = 4, title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525,
-    axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...) {
+    data,
+    in_form = c("auto", "dose", "fgsea"),
+    gene_ranks = "@gene_ranks",
+    gene_sets = "@gene_sets",
+    gs = NULL,
+    sample_coregenes = FALSE,
+    line_width = 1.5,
+    line_alpha = 1,
+    line_color = "#6BB82D",
+    n_coregenes = 10,
+    genes_label = NULL,
+    label_fg = "black",
+    label_bg = "white",
+    label_bg_r = 0.1,
+    label_size = 4,
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    seed = 8525,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
+    ...
+) {
     set.seed(seed)
     in_form <- match.arg(in_form)
     if (inherits(data, "gseaResult")) {
         data <- as.data.frame(data)
     }
-    if (is.character(gene_ranks) && length(gene_ranks) == 1 && startsWith(gene_ranks, "@")) {
+    if (
+        is.character(gene_ranks) &&
+            length(gene_ranks) == 1 &&
+            startsWith(gene_ranks, "@")
+    ) {
         gene_ranks <- attr(data, substring(gene_ranks, 2))
     }
-    if (is.null(gene_ranks)) { stop("'gene_ranks' must be provided") }
-    if (is.null(names(gene_ranks))) { stop("'gene_ranks' must have names") }
-    if (!is.numeric(gene_ranks)) { stop("'gene_ranks' must be numeric") }
+    if (is.null(gene_ranks)) {
+        stop("'gene_ranks' must be provided")
+    }
+    if (is.null(names(gene_ranks))) {
+        stop("'gene_ranks' must have names")
+    }
+    if (!is.numeric(gene_ranks)) {
+        stop("'gene_ranks' must be numeric")
+    }
     gene_ranks <- gene_ranks[order(-gene_ranks)]
 
-    if (is.character(gene_sets) && length(gene_sets) == 1 && startsWith(gene_sets, "@")) {
+    if (
+        is.character(gene_sets) &&
+            length(gene_sets) == 1 &&
+            startsWith(gene_sets, "@")
+    ) {
         gene_sets <- attr(data, substring(gene_sets, 2))
     }
-    if (is.null(gene_sets)) { stop("'gene_sets' must be provided") }
-    if (!is.list(gene_sets)) { stop("'gene_sets' must be a list") }
+    if (is.null(gene_sets)) {
+        stop("'gene_sets' must be provided")
+    }
+    if (!is.list(gene_sets)) {
+        stop("'gene_sets' must be a list")
+    }
 
     if (in_form == "auto") {
         if ("leadingEdge" %in% colnames(data)) {
@@ -592,7 +912,9 @@ GSEAPlot <- function(
         } else if ("core_enrichment" %in% colnames(data)) {
             in_form <- "dose"
         } else {
-            stop("Cannot detect the input format. Please set 'in_form' to 'fgsea' or 'dose'.")
+            stop(
+                "Cannot detect the input format. Please set 'in_form' to 'fgsea' or 'dose'."
+            )
         }
     }
     if (in_form == "fgsea") {
@@ -607,15 +929,37 @@ GSEAPlot <- function(
     plots <- lapply(gs, function(g) {
         GSEAPlotAtomic(
             data,
-            gene_ranks = gene_ranks, gs = g, genes = gene_sets[[g]],
-            sample_coregenes = sample_coregenes, line_width = line_width, line_alpha = line_alpha,
-            line_color = line_color, n_coregenes = n_coregenes, genes_label = genes_label,
-            label_fg = label_fg, label_bg = label_bg, label_bg_r = label_bg_r, label_size = label_size,
-            title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, ...
+            gene_ranks = gene_ranks,
+            gs = g,
+            genes = gene_sets[[g]],
+            sample_coregenes = sample_coregenes,
+            line_width = line_width,
+            line_alpha = line_alpha,
+            line_color = line_color,
+            n_coregenes = n_coregenes,
+            genes_label = genes_label,
+            label_fg = label_fg,
+            label_bg = label_bg,
+            label_bg_r = label_bg_r,
+            label_size = label_size,
+            title = title,
+            subtitle = subtitle,
+            xlab = xlab,
+            ylab = ylab,
+            ...
         )
     })
     names(plots) <- gs
 
-    combine_plots(plots, combine = combine, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }

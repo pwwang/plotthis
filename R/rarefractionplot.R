@@ -22,11 +22,32 @@
 #' @importFrom ggplot2 fortify geom_point geom_line geom_ribbon scale_color_manual scale_linetype_manual
 #' @importFrom ggplot2 element_line element_text scale_shape_discrete unit
 RarefactionPlotAtomic <- function(
-    data, type = 1, se = TRUE, group_by = "group", group_name = NULL, pt_size = 3, line_width = 1,
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, palreverse = FALSE, alpha = 0.2,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, ...
+    data,
+    type = 1,
+    se = TRUE,
+    group_by = "group",
+    group_name = NULL,
+    pt_size = 3,
+    line_width = 1,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Spectral",
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 0.2,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    ...
 ) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
@@ -54,18 +75,38 @@ RarefactionPlotAtomic <- function(
     }
 
     group_name <- group_name %||% group_by
-    p <- ggplot(data, aes(x = !!sym("x"), y = !!sym("y"), color = !!sym(group_by))) +
-        geom_point(aes(shape = !!sym(group_by)), size = pt_size, data = data[data$Method == "Observed", , drop = FALSE]) +
+    p <- ggplot(
+        data,
+        aes(x = !!sym("x"), y = !!sym("y"), color = !!sym(group_by))
+    ) +
+        geom_point(
+            aes(shape = !!sym(group_by)),
+            size = pt_size,
+            data = data[data$Method == "Observed", , drop = FALSE]
+        ) +
         scale_color_manual(
             name = group_name,
-            values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor, reverse = palreverse),
+            values = palette_this(
+                levels(data[[group_by]]),
+                palette = palette,
+                palcolor = palcolor,
+                reverse = palreverse
+            ),
             guide = ifelse(identical(group_by, ".group"), "none", "legend")
         ) +
-        scale_shape_discrete(name = group_name, guide = ifelse(identical(group_by, ".group"), "none", "legend")) +
+        scale_shape_discrete(
+            name = group_name,
+            guide = ifelse(identical(group_by, ".group"), "none", "legend")
+        ) +
         geom_line(aes(linetype = !!sym("lty")), linewidth = line_width) +
-        scale_linetype_manual(name = "", values = c("solid", "dashed"),
+        scale_linetype_manual(
+            name = "",
+            values = c("solid", "dashed"),
             # make items wider
-            guide = guide_legend(theme = ggplot2::theme(legend.key.width = unit(1, "cm")))) +
+            guide = guide_legend(
+                theme = ggplot2::theme(legend.key.width = unit(1, "cm"))
+            )
+        ) +
         do.call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
@@ -76,11 +117,24 @@ RarefactionPlotAtomic <- function(
         labs(title = title, subtitle = subtitle, x = xlab, y = ylab)
 
     if (isTRUE(se)) {
-        p <- p + geom_ribbon(aes(ymin = !!sym("y.lwr"), ymax = !!sym("y.upr"), fill= !!sym(group_by)),
-            color = "transparent", alpha = alpha) +
+        p <- p +
+            geom_ribbon(
+                aes(
+                    ymin = !!sym("y.lwr"),
+                    ymax = !!sym("y.upr"),
+                    fill = !!sym(group_by)
+                ),
+                color = "transparent",
+                alpha = alpha
+            ) +
             scale_fill_manual(
                 name = group_name,
-                values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor, reverse = palreverse),
+                values = palette_this(
+                    levels(data[[group_by]]),
+                    palette = palette,
+                    palcolor = palcolor,
+                    reverse = palreverse
+                ),
                 guide = ifelse(identical(group_by, ".group"), "none", "legend")
             )
     }
@@ -96,8 +150,16 @@ RarefactionPlotAtomic <- function(
     attr(p, "height") <- dims$height
     attr(p, "width") <- dims$width
 
-    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-        legend.position = legend.position, legend.direction = legend.direction)
+    facet_plot(
+        p,
+        facet_by,
+        facet_scales,
+        facet_nrow,
+        facet_ncol,
+        facet_byrow,
+        legend.position = legend.position,
+        legend.direction = legend.direction
+    )
 }
 
 
@@ -131,40 +193,105 @@ RarefactionPlotAtomic <- function(
 #'  facet_by = "group", palette = "Set1", type = 3)
 #' }
 RarefactionPlot <- function(
-    data, type = 1, se = NULL, group_by = "group", group_by_sep = "_", group_name = NULL, split_by = NULL, split_by_sep = "_",
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, palreverse = FALSE, alpha = 0.2, pt_size = 3, line_width = 1,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
+    data,
+    type = 1,
+    se = NULL,
+    group_by = "group",
+    group_by_sep = "_",
+    group_name = NULL,
+    split_by = NULL,
+    split_by_sep = "_",
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Spectral",
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 0.2,
+    pt_size = 3,
+    line_width = 1,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    seed = 8525,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
     ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
     theme <- process_theme(theme)
-    stopifnot("Invalid 'type' value. It must be 1, 2, or 3 or combination of them." =
-        length(type) > 0 && length(setdiff(type, 1:3)) == 0)
+    stopifnot(
+        "Invalid 'type' value. It must be 1, 2, or 3 or combination of them." = length(
+            type
+        ) >
+            0 &&
+            length(setdiff(type, 1:3)) == 0
+    )
     # check group_by, split_by, facet_by.
     # If given, they should be "q" or "group". Only facet_by could be both.
-    stopifnot("Invalid 'group_by' value. It must be 'q' and/or 'group'." =
-        is.null(group_by) || all(group_by %in% c("q", "group")))
-    stopifnot("Invalid 'split_by' value. It must be 'q' and/or 'group'." =
-        is.null(split_by) || all(split_by %in% c("q", "group")))
-    stopifnot("Invalid 'facet_by' value. It must be 'q' and/or 'group'." =
-        is.null(facet_by) || all(facet_by %in% c("q", "group")))
+    stopifnot(
+        "Invalid 'group_by' value. It must be 'q' and/or 'group'." = is.null(
+            group_by
+        ) ||
+            all(group_by %in% c("q", "group"))
+    )
+    stopifnot(
+        "Invalid 'split_by' value. It must be 'q' and/or 'group'." = is.null(
+            split_by
+        ) ||
+            all(split_by %in% c("q", "group"))
+    )
+    stopifnot(
+        "Invalid 'facet_by' value. It must be 'q' and/or 'group'." = is.null(
+            facet_by
+        ) ||
+            all(facet_by %in% c("q", "group"))
+    )
     # They should not overlap with each other.
     # If they are not NULL, they should be different.
-    stopifnot("Invalid 'group_by'/'split_by'. They should not overlap." =
-        is.null(group_by) || is.null(split_by) || length(intersect(group_by, split_by)) == 0)
-    stopifnot("Invalid 'group_by'/'facet_by'. They should not overlap." =
-        is.null(group_by) || is.null(facet_by) || length(intersect(group_by, facet_by)) == 0)
-    stopifnot("Invalid 'split_by'/'facet_by'. They should not overlap." =
-        is.null(split_by) || is.null(facet_by) || length(intersect(split_by, facet_by)) == 0)
+    stopifnot(
+        "Invalid 'group_by'/'split_by'. They should not overlap." = is.null(
+            group_by
+        ) ||
+            is.null(split_by) ||
+            length(intersect(group_by, split_by)) == 0
+    )
+    stopifnot(
+        "Invalid 'group_by'/'facet_by'. They should not overlap." = is.null(
+            group_by
+        ) ||
+            is.null(facet_by) ||
+            length(intersect(group_by, facet_by)) == 0
+    )
+    stopifnot(
+        "Invalid 'split_by'/'facet_by'. They should not overlap." = is.null(
+            split_by
+        ) ||
+            is.null(facet_by) ||
+            length(intersect(split_by, facet_by)) == 0
+    )
 
     if (!inherits(data, "iNEXT")) {
         data <- iNEXT::iNEXT(data, ...)
     }
 
-    data <- suppressWarnings({ fortify(data, type=type) })
+    data <- suppressWarnings({
+        fortify(data, type = type)
+    })
     # rename Assemblage to group and Order.q to q
     data <- rename(data, group = "Assemblage", q = "Order.q")
 
@@ -174,13 +301,30 @@ RarefactionPlot <- function(
     data$Method2[data$Method2 == "Observed"] <- "Rarefaction"
     data$lty <- factor(data$Method2, levels = c("Rarefaction", "Extrapolation"))
 
-    group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE,
-        concat_multi = TRUE, concat_sep = group_by_sep)
+    group_by <- check_columns(
+        data,
+        group_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = group_by_sep
+    )
 
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE,
-        concat_multi = TRUE, concat_sep = split_by_sep)
+    split_by <- check_columns(
+        data,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
 
-    facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
+    facet_by <- check_columns(
+        data,
+        facet_by,
+        force_factor = TRUE,
+        allow_multi = TRUE
+    )
     if (!is.null(facet_by)) {
         data[[facet_by]] <- droplevels(data[[facet_by]])
     }
@@ -201,33 +345,77 @@ RarefactionPlot <- function(
     }
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
-    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
-    legend.position <- check_legend(legend.position, names(datas), "legend.position")
+    legend.direction <- check_legend(
+        legend.direction,
+        names(datas),
+        "legend.direction"
+    )
+    legend.position <- check_legend(
+        legend.position,
+        names(datas),
+        "legend.position"
+    )
 
     plots <- lapply(
-        names(datas), function(nm) {
+        names(datas),
+        function(nm) {
             default_title <- if (length(datas) == 1 && identical(nm, "...")) {
                 NULL
             } else {
-               ifelse(identical(split_by, "q"), paste(split_by, nm, sep = " = "), nm)
+                ifelse(
+                    identical(split_by, "q"),
+                    paste(split_by, nm, sep = " = "),
+                    nm
+                )
             }
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
                 title <- title %||% default_title
             }
-            RarefactionPlotAtomic(datas[[nm]], type = type, se = se, group_by = group_by, group_name = group_name, pt_size = pt_size,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, line_width = line_width,
-                alpha = alpha, facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol,
-                facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, ...
+            RarefactionPlotAtomic(
+                datas[[nm]],
+                type = type,
+                se = se,
+                group_by = group_by,
+                group_name = group_name,
+                pt_size = pt_size,
+                theme = theme,
+                theme_args = theme_args,
+                palette = palette[[nm]],
+                palcolor = palcolor[[nm]],
+                palreverse = palreverse,
+                line_width = line_width,
+                alpha = alpha,
+                facet_by = facet_by,
+                facet_scales = facet_scales,
+                facet_ncol = facet_ncol,
+                facet_nrow = facet_nrow,
+                facet_byrow = facet_byrow,
+                aspect.ratio = aspect.ratio,
+                legend.position = legend.position[[nm]],
+                legend.direction = legend.direction[[nm]],
+                title = title,
+                subtitle = subtitle,
+                xlab = xlab,
+                ylab = ylab,
+                ...
             )
         }
     )
 
     names(plots) <- names(datas)
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }

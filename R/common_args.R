@@ -1,4 +1,3 @@
-
 #' Common arguments for plots
 #'
 #' @name common_args
@@ -137,7 +136,8 @@ validate_common_args <- function(
     nrow = NULL,
     ncol = NULL,
     byrow = TRUE,
-    ...) {
+    ...
+) {
     if (!is.numeric(seed)) {
         stop("'seed' must be a numeric value.")
     }
@@ -145,7 +145,9 @@ validate_common_args <- function(
     set.seed(seed)
 
     if (length(facet_by) > 2) {
-        stop("Too many columns specified in 'facet_by', only up to 2 columns are allowed.")
+        stop(
+            "Too many columns specified in 'facet_by', only up to 2 columns are allowed."
+        )
     }
 
     invisible(NULL)

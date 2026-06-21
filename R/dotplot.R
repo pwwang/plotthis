@@ -37,14 +37,48 @@
 #' @importFrom ggplot2 coord_flip guide_colorbar guide_legend guides guide_none scale_size geom_segment
 #' @importFrom ggnewscale new_scale_color
 DotPlotAtomic <- function(
-    data, x, y, x_sep = "_", y_sep = "_", flip = FALSE, lollipop = FALSE,
-    size_by = NULL, fill_by = NULL, fill_cutoff = NULL, palreverse = FALSE,
-    size_name = NULL, fill_name = NULL, fill_cutoff_name = NULL, size_min = 1, size_max = 10,
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 1,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    x_text_angle = 0, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2, bg_direction = c("vertical", "horizontal", "v", "h"),
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_na = FALSE, keep_empty = FALSE, ...
+    data,
+    x,
+    y,
+    x_sep = "_",
+    y_sep = "_",
+    flip = FALSE,
+    lollipop = FALSE,
+    size_by = NULL,
+    fill_by = NULL,
+    fill_cutoff = NULL,
+    palreverse = FALSE,
+    size_name = NULL,
+    fill_name = NULL,
+    fill_cutoff_name = NULL,
+    size_min = 1,
+    size_max = 10,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Spectral",
+    palcolor = NULL,
+    alpha = 1,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    x_text_angle = 0,
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    add_bg = FALSE,
+    bg_palette = "stripe",
+    bg_palcolor = NULL,
+    bg_alpha = 0.2,
+    bg_direction = c("vertical", "horizontal", "v", "h"),
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    keep_na = FALSE,
+    keep_empty = FALSE,
+    ...
 ) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
@@ -57,28 +91,61 @@ DotPlotAtomic <- function(
     } else {
         bg_direction <- "vertical"
     }
-    x_is_numeric <- length(x) == 1 && !is.character(data[[x]]) && !is.factor(data[[x]])
-    y_is_numeric <- length(y) == 1 && !is.character(data[[y]]) && !is.factor(data[[y]])
+    x_is_numeric <- length(x) == 1 &&
+        !is.character(data[[x]]) &&
+        !is.factor(data[[x]])
+    y_is_numeric <- length(y) == 1 &&
+        !is.character(data[[y]]) &&
+        !is.factor(data[[y]])
     if (!x_is_numeric) {
-        x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
+        x <- check_columns(
+            data,
+            x,
+            force_factor = TRUE,
+            allow_multi = TRUE,
+            concat_multi = TRUE,
+            concat_sep = x_sep
+        )
     }
     if (!y_is_numeric) {
-        y <- check_columns(data, y, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = y_sep)
+        y <- check_columns(
+            data,
+            y,
+            force_factor = TRUE,
+            allow_multi = TRUE,
+            concat_multi = TRUE,
+            concat_sep = y_sep
+        )
     }
     fill_by <- check_columns(data, fill_by)
-    facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
+    facet_by <- check_columns(
+        data,
+        facet_by,
+        force_factor = TRUE,
+        allow_multi = TRUE
+    )
 
     data <- process_keep_na_empty(data, keep_na, keep_empty)
     keep_empty_x <- keep_empty[[x]]
     keep_empty_y <- keep_empty[[y]]
-    keep_empty_facet <- if (!is.null(facet_by)) keep_empty[[facet_by[1]]] else NULL
+    keep_empty_facet <- if (!is.null(facet_by)) {
+        keep_empty[[facet_by[1]]]
+    } else {
+        NULL
+    }
     if (length(facet_by) > 1) {
-        stopifnot("[DotPlot/LillipopPlot] `keep_empty` for `facet_by` variables must be identical." =
-            identical(keep_empty_facet, keep_empty[[facet_by[2]]]))
+        stopifnot(
+            "[DotPlot/LillipopPlot] `keep_empty` for `facet_by` variables must be identical." = identical(
+                keep_empty_facet,
+                keep_empty[[facet_by[2]]]
+            )
+        )
     }
 
     if (!is.null(fill_cutoff) && is.null(fill_by)) {
-        stop("[DotPlot/LollipopPlot]'fill_by' must be provided when 'fill_cutoff' is specified.")
+        stop(
+            "[DotPlot/LollipopPlot]'fill_by' must be provided when 'fill_cutoff' is specified."
+        )
     }
 
     if (!is.numeric(size_by)) {
@@ -90,10 +157,17 @@ DotPlotAtomic <- function(
                 group_by(!!!syms(unique(c(x, y, facet_by)))) %>%
                 summarise(.size = n(), .groups = "drop")
         } else {
-            warning("[DotPlot] Using the first value of fill_by.", immediate. = TRUE)
+            warning(
+                "[DotPlot] Using the first value of fill_by.",
+                immediate. = TRUE
+            )
             data <- data %>%
                 group_by(!!!syms(unique(c(x, y, facet_by)))) %>%
-                summarise(!!sym(fill_by) := first(!!sym(fill_by)), .size = n(), .groups = "drop")
+                summarise(
+                    !!sym(fill_by) := first(!!sym(fill_by)),
+                    .size = n(),
+                    .groups = "drop"
+                )
         }
         # keep the levels of x, y, and facet_by
         for (col in unique(c(x, y, facet_by))) {
@@ -127,14 +201,38 @@ DotPlotAtomic <- function(
     if (add_bg) {
         if (bg_direction == "vertical") {
             if (x_is_numeric) {
-                stop("Vertical 'bg_direction' is not supported when 'x' is numeric.")
+                stop(
+                    "Vertical 'bg_direction' is not supported when 'x' is numeric."
+                )
             }
-            p <- p + bg_layer(data, x, isTRUE(keep_empty_x), bg_palette, bg_palcolor, bg_alpha, facet_by, bg_direction)
+            p <- p +
+                bg_layer(
+                    data,
+                    x,
+                    isTRUE(keep_empty_x),
+                    bg_palette,
+                    bg_palcolor,
+                    bg_alpha,
+                    facet_by,
+                    bg_direction
+                )
         } else {
             if (y_is_numeric) {
-                stop("Horizontal 'bg_direction' is not supported when 'y' is numeric.")
+                stop(
+                    "Horizontal 'bg_direction' is not supported when 'y' is numeric."
+                )
             }
-            p <- p + bg_layer(data, y, isTRUE(keep_empty_y), bg_palette, bg_palcolor, bg_alpha, facet_by, bg_direction)
+            p <- p +
+                bg_layer(
+                    data,
+                    y,
+                    isTRUE(keep_empty_y),
+                    bg_palette,
+                    bg_palcolor,
+                    bg_alpha,
+                    facet_by,
+                    bg_direction
+                )
         }
     }
     if (!x_is_numeric) {
@@ -146,58 +244,114 @@ DotPlotAtomic <- function(
 
     if (isTRUE(lollipop)) {
         p <- p +
-            geom_segment(aes(x = 0, xend = !!sym(x), yend = !!sym(y)), color = "black", linewidth = 2) +
-            geom_segment(aes(x = 0, xend = !!sym(x), yend = !!sym(y), color = !!sym(fill_by)), linewidth = 1) +
+            geom_segment(
+                aes(x = 0, xend = !!sym(x), yend = !!sym(y)),
+                color = "black",
+                linewidth = 2
+            ) +
+            geom_segment(
+                aes(
+                    x = 0,
+                    xend = !!sym(x),
+                    yend = !!sym(y),
+                    color = !!sym(fill_by)
+                ),
+                linewidth = 1
+            ) +
             scale_x_continuous(expand = c(0, 0, 0.05, 0)) +
             scale_color_gradientn(
                 n.breaks = 5,
-                colors = palette_this(palette = palette, palcolor = palcolor, reverse = palreverse),
+                colors = palette_this(
+                    palette = palette,
+                    palcolor = palcolor,
+                    reverse = palreverse
+                ),
                 na.value = "grey80",
                 guide = "none"
             ) +
             new_scale_color()
     }
     if (is.numeric(size_by)) {
-        p <- p + geom_point(aes(fill = !!sym(fill_by), color = ""), size = size_by, shape = 21, alpha = alpha)
+        p <- p +
+            geom_point(
+                aes(fill = !!sym(fill_by), color = ""),
+                size = size_by,
+                shape = 21,
+                alpha = alpha
+            )
     } else {
-        p <- p + geom_point(aes(size = !!sym(size_by), fill = !!sym(fill_by), color = ""), shape = 21, alpha = alpha) +
+        p <- p +
+            geom_point(
+                aes(size = !!sym(size_by), fill = !!sym(fill_by), color = ""),
+                shape = 21,
+                alpha = alpha
+            ) +
             # scale_size_area(max_size = 6, n.breaks = 4) +
             scale_size(range = c(size_min, size_max)) +
-            guides(size = guide_legend(
-                title = size_name %||% size_by,
-                override.aes = list(fill = "transparent", shape = 21), order = 1))
+            guides(
+                size = guide_legend(
+                    title = size_name %||% size_by,
+                    override.aes = list(fill = "transparent", shape = 21),
+                    order = 1
+                )
+            )
     }
 
     p <- p +
         scale_fill_gradientn(
             n.breaks = 5,
-            colors = palette_this(palette = palette, palcolor = palcolor, reverse = palreverse),
+            colors = palette_this(
+                palette = palette,
+                palcolor = palcolor,
+                reverse = palreverse
+            ),
             na.value = "grey80",
             guide = if (isTRUE(fill_legend)) {
                 guide_colorbar(
                     title = fill_name %||% fill_by,
-                    frame.colour = "black", ticks.colour = "black", title.hjust = 0, order = 2)
+                    frame.colour = "black",
+                    ticks.colour = "black",
+                    title.hjust = 0,
+                    order = 2
+                )
             } else {
                 guide_none()
             }
         ) +
-        labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
+        labs(
+            title = title,
+            subtitle = subtitle,
+            x = xlab %||% x,
+            y = ylab %||% y
+        ) +
         do.call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,
             legend.direction = legend.direction,
             panel.grid.major = element_line(colour = "grey80", linetype = 2),
-            axis.text.x = element_text(angle = x_text_angle, hjust = just$h, vjust = just$v)
+            axis.text.x = element_text(
+                angle = x_text_angle,
+                hjust = just$h,
+                vjust = just$v
+            )
         )
 
-    p <- p + scale_color_manual(values = "black", na.value = "black", guide = "none")
+    p <- p +
+        scale_color_manual(values = "black", na.value = "black", guide = "none")
     if (!is.null(fill_by) && !is.null(fill_cutoff) && anyNA(data[[fill_by]])) {
-        p <- p + guides(color = guide_legend(
-            title = fill_cutoff_name %||% fill_cutoff_label,
-            override.aes = list(colour = "black", fill = "grey80", size = 3),
-            order = 3
-        ))
+        p <- p +
+            guides(
+                color = guide_legend(
+                    title = fill_cutoff_name %||% fill_cutoff_label,
+                    override.aes = list(
+                        colour = "black",
+                        fill = "grey80",
+                        size = 3
+                    ),
+                    order = 3
+                )
+            )
     }
 
     if (isTRUE(flip)) {
@@ -220,14 +374,20 @@ DotPlotAtomic <- function(
     }
 
     y_label_len <- if (!y_is_numeric) {
-        max(sapply(strsplit(levels(data[[y]]), "\n"), function(x) max(nchar(x))))
+        max(sapply(strsplit(levels(data[[y]]), "\n"), function(x) {
+            max(nchar(x))
+        }))
     } else {
         0
     }
-    legend_nchar <- max(nchar(c(
-        fill_name %||% fill_by,
-        if (!is.numeric(size_by)) size_name %||% size_by else character(0)
-    )), na.rm = TRUE, 5)
+    legend_nchar <- max(
+        nchar(c(
+            fill_name %||% fill_by,
+            if (!is.numeric(size_by)) size_name %||% size_by else character(0)
+        )),
+        na.rm = TRUE,
+        5
+    )
 
     # Use aspect.ratio = NULL so that each axis is sized independently from its content:
     #   - visual x-axis (groups when not flipped, terms when flipped) drives width via n_x
@@ -253,14 +413,14 @@ DotPlotAtomic <- function(
 
     if (is.null(dims)) {
         if (ny / nx > 10) {
-            height = ny * 0.2
-            width = nx * 2
+            height <- ny * 0.2
+            width <- nx * 2
         } else if (ny / nx < 0.1) {
-            height = ny * 2
-            width = nx * 0.4
+            height <- ny * 2
+            width <- nx * 0.4
         } else {
-            height = ny * 0.5
-            width = nx * 0.8
+            height <- ny * 0.5
+            width <- nx * 0.8
         }
         width <- width + y_label_len * 0.1
         width <- max(width, 3)
@@ -297,12 +457,20 @@ DotPlotAtomic <- function(
         h <- max(h, w * 0.5)
         w <- max(w, h * 0.5)
         attr(p, "height") <- min(h, 12)
-        attr(p, "width")  <- min(w, 12)
+        attr(p, "width") <- min(w, 12)
     }
 
-    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-        legend.position = legend.position, legend.direction = legend.direction,
-        drop = !isTRUE(keep_empty_facet))
+    facet_plot(
+        p,
+        facet_by,
+        facet_scales,
+        facet_nrow,
+        facet_ncol,
+        facet_byrow,
+        legend.position = legend.position,
+        legend.direction = legend.direction,
+        drop = !isTRUE(keep_empty_facet)
+    )
 }
 
 #' Dot Plot / Scatter Plot / Lollipop Plot
@@ -349,22 +517,74 @@ DotPlotAtomic <- function(
 #'         keep_na = TRUE, keep_empty = TRUE)
 #' }
 DotPlot <- function(
-    data, x, y, x_sep = "_", y_sep = "_", flip = FALSE,
-    split_by = NULL, split_by_sep = "_", size_name = NULL, fill_name = NULL, fill_cutoff_name = NULL,
-    add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2, bg_direction = c("vertical", "horizontal", "v", "h"),
-    size_by = NULL, fill_by = NULL, fill_cutoff = NULL, palreverse = FALSE, size_min = 1, size_max = 10,
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 1,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    x_text_angle = 0, seed = 8525, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_na = FALSE, keep_empty = FALSE,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
+    data,
+    x,
+    y,
+    x_sep = "_",
+    y_sep = "_",
+    flip = FALSE,
+    split_by = NULL,
+    split_by_sep = "_",
+    size_name = NULL,
+    fill_name = NULL,
+    fill_cutoff_name = NULL,
+    add_bg = FALSE,
+    bg_palette = "stripe",
+    bg_palcolor = NULL,
+    bg_alpha = 0.2,
+    bg_direction = c("vertical", "horizontal", "v", "h"),
+    size_by = NULL,
+    fill_by = NULL,
+    fill_cutoff = NULL,
+    palreverse = FALSE,
+    size_min = 1,
+    size_max = 10,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Spectral",
+    palcolor = NULL,
+    alpha = 1,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    x_text_angle = 0,
+    seed = 8525,
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    keep_na = FALSE,
+    keep_empty = FALSE,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
     ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
     keep_na <- check_keep_na(keep_na, c(x, y, split_by, fill_by, facet_by))
-    keep_empty <- check_keep_empty(keep_empty, c(x, y, split_by, fill_by, facet_by))
+    keep_empty <- check_keep_empty(
+        keep_empty,
+        c(x, y, split_by, fill_by, facet_by)
+    )
     theme <- process_theme(theme)
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
+    split_by <- check_columns(
+        data,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
 
     if (!is.null(split_by)) {
         data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
@@ -379,34 +599,91 @@ DotPlot <- function(
     }
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
-    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
-    legend.position <- check_legend(legend.position, names(datas), "legend.position")
+    legend.direction <- check_legend(
+        legend.direction,
+        names(datas),
+        "legend.direction"
+    )
+    legend.position <- check_legend(
+        legend.position,
+        names(datas),
+        "legend.position"
+    )
 
     plots <- lapply(
-        names(datas), function(nm) {
-            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+        names(datas),
+        function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) {
+                NULL
+            } else {
+                nm
+            }
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
                 title <- title %||% default_title
             }
-            DotPlotAtomic(datas[[nm]],
-                x = x, y = y, x_sep = x_sep, y_sep = y_sep, flip = flip, bg_direction = bg_direction, size_min = size_min, size_max = size_max, lollipop = FALSE,
-                size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, palreverse = palreverse,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
-                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                x_text_angle = x_text_angle, size_name = size_name, fill_name = fill_name, fill_cutoff_name = fill_cutoff_name,
-                add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
-                aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_na = keep_na, keep_empty = keep_empty, ...
+            DotPlotAtomic(
+                datas[[nm]],
+                x = x,
+                y = y,
+                x_sep = x_sep,
+                y_sep = y_sep,
+                flip = flip,
+                bg_direction = bg_direction,
+                size_min = size_min,
+                size_max = size_max,
+                lollipop = FALSE,
+                size_by = size_by,
+                fill_by = fill_by,
+                fill_cutoff = fill_cutoff,
+                palreverse = palreverse,
+                theme = theme,
+                theme_args = theme_args,
+                palette = palette[[nm]],
+                palcolor = palcolor[[nm]],
+                alpha = alpha,
+                facet_by = facet_by,
+                facet_scales = facet_scales,
+                facet_ncol = facet_ncol,
+                facet_nrow = facet_nrow,
+                facet_byrow = facet_byrow,
+                x_text_angle = x_text_angle,
+                size_name = size_name,
+                fill_name = fill_name,
+                fill_cutoff_name = fill_cutoff_name,
+                add_bg = add_bg,
+                bg_palette = bg_palette,
+                bg_palcolor = bg_palcolor,
+                bg_alpha = bg_alpha,
+                aspect.ratio = aspect.ratio,
+                legend.position = legend.position[[nm]],
+                legend.direction = legend.direction[[nm]],
+                title = title,
+                subtitle = subtitle,
+                xlab = xlab,
+                ylab = ylab,
+                keep_na = keep_na,
+                keep_empty = keep_empty,
+                ...
             )
         }
     )
 
     names(plots) <- names(datas)
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }
 
 #' @rdname dotplot
@@ -427,21 +704,68 @@ DotPlot <- function(
 #' LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
 #'              split_by = "vs", palette = list("0" = "Reds", "1" = "Blues"))
 LollipopPlot <- function(
-    data, x, y, y_sep = NULL, flip = FALSE,
-    split_by = NULL, split_by_sep = "_", size_name = NULL, fill_name = NULL, fill_cutoff_name = NULL,
-    size_by = NULL, fill_by = NULL, fill_cutoff = NULL, palreverse = FALSE, size_min = 1, size_max = 10,
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 1,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    x_text_angle = 0, seed = 8525, aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, keep_na = FALSE, keep_empty = FALSE,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
+    data,
+    x,
+    y,
+    y_sep = NULL,
+    flip = FALSE,
+    split_by = NULL,
+    split_by_sep = "_",
+    size_name = NULL,
+    fill_name = NULL,
+    fill_cutoff_name = NULL,
+    size_by = NULL,
+    fill_by = NULL,
+    fill_cutoff = NULL,
+    palreverse = FALSE,
+    size_min = 1,
+    size_max = 10,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Spectral",
+    palcolor = NULL,
+    alpha = 1,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    x_text_angle = 0,
+    seed = 8525,
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    keep_na = FALSE,
+    keep_empty = FALSE,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
     ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
     keep_na <- check_keep_na(keep_na, c(y, split_by, fill_by, facet_by))
-    keep_empty <- check_keep_empty(keep_empty, c(y, split_by, fill_by, facet_by))
+    keep_empty <- check_keep_empty(
+        keep_empty,
+        c(y, split_by, fill_by, facet_by)
+    )
     theme <- process_theme(theme)
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
+    split_by <- check_columns(
+        data,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
 
     if (!is.null(split_by)) {
         data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
@@ -456,31 +780,84 @@ LollipopPlot <- function(
     }
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
-    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
-    legend.position <- check_legend(legend.position, names(datas), "legend.position")
+    legend.direction <- check_legend(
+        legend.direction,
+        names(datas),
+        "legend.direction"
+    )
+    legend.position <- check_legend(
+        legend.position,
+        names(datas),
+        "legend.position"
+    )
 
     plots <- lapply(
-        names(datas), function(nm) {
-            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+        names(datas),
+        function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) {
+                NULL
+            } else {
+                nm
+            }
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
                 title <- title %||% default_title
             }
-            DotPlotAtomic(datas[[nm]], lollipop = TRUE,
-                x = x, y = y, x_sep = NULL, y_sep = y_sep, flip = flip, size_min = size_min, size_max = size_max,
-                size_by = size_by, fill_by = fill_by, fill_cutoff = fill_cutoff, palreverse = palreverse,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha,
-                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                x_text_angle = x_text_angle, size_name = size_name, fill_name = fill_name, fill_cutoff_name = fill_cutoff_name,
-                aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, keep_na = keep_na, keep_empty = keep_empty, ...
+            DotPlotAtomic(
+                datas[[nm]],
+                lollipop = TRUE,
+                x = x,
+                y = y,
+                x_sep = NULL,
+                y_sep = y_sep,
+                flip = flip,
+                size_min = size_min,
+                size_max = size_max,
+                size_by = size_by,
+                fill_by = fill_by,
+                fill_cutoff = fill_cutoff,
+                palreverse = palreverse,
+                theme = theme,
+                theme_args = theme_args,
+                palette = palette[[nm]],
+                palcolor = palcolor[[nm]],
+                alpha = alpha,
+                facet_by = facet_by,
+                facet_scales = facet_scales,
+                facet_ncol = facet_ncol,
+                facet_nrow = facet_nrow,
+                facet_byrow = facet_byrow,
+                x_text_angle = x_text_angle,
+                size_name = size_name,
+                fill_name = fill_name,
+                fill_cutoff_name = fill_cutoff_name,
+                aspect.ratio = aspect.ratio,
+                legend.position = legend.position[[nm]],
+                legend.direction = legend.direction[[nm]],
+                title = title,
+                subtitle = subtitle,
+                xlab = xlab,
+                ylab = ylab,
+                keep_na = keep_na,
+                keep_empty = keep_empty,
+                ...
             )
         }
     )
 
     names(plots) <- names(datas)
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }

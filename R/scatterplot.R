@@ -1,4 +1,3 @@
-
 #' Scatter Plot Atomic
 #'
 #' @inheritParams common_args
@@ -33,21 +32,57 @@
 #' @importFrom ggplot2 aes geom_point scale_size_area scale_fill_gradientn scale_color_gradientn labs
 #' @importFrom ggplot2 guide_colorbar guide_legend guides guide_none scale_size
 ScatterPlotAtomic <- function(
-    data, x, y, size_by = 2, size_name = NULL, color_by = NULL, color_name = NULL, palreverse = FALSE,
-    theme = "theme_this", theme_args = list(), alpha = ifelse(shape %in% 21:25, 0.65, 1),
-    shape = 21, border_color = "black", xtrans = "identity", ytrans = "identity",
-    highlight = NULL, highlight_shape = 16, highlight_size = 3, highlight_color = "red", highlight_alpha = 1,
-    palette = ifelse(!is.null(color_by) && !is.numeric(data[[color_by]]), "Paired", "Spectral"), palcolor = NULL,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, ...
+    data,
+    x,
+    y,
+    size_by = 2,
+    size_name = NULL,
+    color_by = NULL,
+    color_name = NULL,
+    palreverse = FALSE,
+    theme = "theme_this",
+    theme_args = list(),
+    alpha = ifelse(shape %in% 21:25, 0.65, 1),
+    shape = 21,
+    border_color = "black",
+    xtrans = "identity",
+    ytrans = "identity",
+    highlight = NULL,
+    highlight_shape = 16,
+    highlight_size = 3,
+    highlight_color = "red",
+    highlight_alpha = 1,
+    palette = ifelse(
+        !is.null(color_by) && !is.numeric(data[[color_by]]),
+        "Paired",
+        "Spectral"
+    ),
+    palcolor = NULL,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    ...
 ) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
     } else {
         ggplot2::ggplot
     }
-    facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
+    facet_by <- check_columns(
+        data,
+        facet_by,
+        force_factor = TRUE,
+        allow_multi = TRUE
+    )
     if (!is.numeric(size_by)) {
         size_by <- check_columns(data, size_by)
     }
@@ -72,7 +107,9 @@ ScatterPlotAtomic <- function(
         } else if (is.character(highlight) && length(highlight) == 1) {
             hidata <- filter(data, !!parse_expr(highlight))
         } else if (is.null(rownames(data))) {
-            stop("No row names in the data, please provide a vector of indexes to highlight.")
+            stop(
+                "No row names in the data, please provide a vector of indexes to highlight."
+            )
         } else {
             hidata <- data[highlight, , drop = FALSE]
         }
@@ -105,114 +142,196 @@ ScatterPlotAtomic <- function(
 
     p <- p + point_layer
     if (!is.numeric(size_by)) {
-        p <- p + scale_size_area(max_size = 6, n.breaks = 4) +
-            guides(size = guide_legend(
-                title = size_name %||% size_by,
-                override.aes = list(fill = "grey30", shape = 21), order = 1))
+        p <- p +
+            scale_size_area(max_size = 6, n.breaks = 4) +
+            guides(
+                size = guide_legend(
+                    title = size_name %||% size_by,
+                    override.aes = list(fill = "grey30", shape = 21),
+                    order = 1
+                )
+            )
     }
     if (shape_has_fill) {
         if (is.numeric(data[[color_by]])) {
-            p <- p + scale_fill_gradientn(
-                n.breaks = 5,
-                colors = palette_this(data[[color_by]], palette = palette, palcolor = palcolor, reverse = palreverse, alpha = alpha),
-                na.value = "grey80",
-                guide = if (isTRUE(border_color) || isFALSE(color_legend)) {
-                    # legend for border color will be added later
-                    # so we don't need to show the legend for fill color
-                    guide_none()
-                } else {
-                    guide_colorbar(
-                        title = color_name %||% color_by,
-                        frame.colour = "black", ticks.colour = "black", title.hjust = 0, order = 2)
-                }
-            )
-            if (isTRUE(border_color)) {
-                p <- p + scale_color_gradientn(
+            p <- p +
+                scale_fill_gradientn(
                     n.breaks = 5,
-                    colors = palette_this(palette = palette, palcolor = palcolor, reverse = palreverse),
+                    colors = palette_this(
+                        data[[color_by]],
+                        palette = palette,
+                        palcolor = palcolor,
+                        reverse = palreverse,
+                        alpha = alpha
+                    ),
                     na.value = "grey80",
-                    guide = if (isTRUE(border_color) && isTRUE(color_legend)) {
+                    guide = if (isTRUE(border_color) || isFALSE(color_legend)) {
+                        # legend for border color will be added later
+                        # so we don't need to show the legend for fill color
+                        guide_none()
+                    } else {
                         guide_colorbar(
                             title = color_name %||% color_by,
-                            frame.colour = "black", ticks.colour = "black", title.hjust = 0, order = 2)
-                    } else {
-                        guide_none()
+                            frame.colour = "black",
+                            ticks.colour = "black",
+                            title.hjust = 0,
+                            order = 2
+                        )
                     }
                 )
-            }
-        } else {  # factor/character
-            p <- p + scale_fill_manual(
-                values = palette_this(levels(data[[color_by]]), palette = palette, palcolor = palcolor, reverse = palreverse, alpha = alpha),
-                na.value = "grey80",
-                guide = if (isTRUE(border_color) || isFALSE(color_legend)) {
-                    guide_none()
-                } else {
-                    guide_legend(
-                        title = color_name %||% color_by,
-                        override.aes = list(size = 4, alpha = 1),
-                        order = 3
-                    )
-                }
-            )
             if (isTRUE(border_color)) {
-                p <- p + scale_color_manual(
-                    values = palette_this(levels(data[[color_by]]), palette = palette, palcolor = palcolor, reverse = palreverse),
-                    na.value = "black",
-                    guide = if (isTRUE(border_color) && isTRUE(color_legend)) {
-                        guide_legend(title = color_name %||% color_by, order = 3)
-                    } else {
+                p <- p +
+                    scale_color_gradientn(
+                        n.breaks = 5,
+                        colors = palette_this(
+                            palette = palette,
+                            palcolor = palcolor,
+                            reverse = palreverse
+                        ),
+                        na.value = "grey80",
+                        guide = if (
+                            isTRUE(border_color) && isTRUE(color_legend)
+                        ) {
+                            guide_colorbar(
+                                title = color_name %||% color_by,
+                                frame.colour = "black",
+                                ticks.colour = "black",
+                                title.hjust = 0,
+                                order = 2
+                            )
+                        } else {
+                            guide_none()
+                        }
+                    )
+            }
+        } else {
+            # factor/character
+            p <- p +
+                scale_fill_manual(
+                    values = palette_this(
+                        levels(data[[color_by]]),
+                        palette = palette,
+                        palcolor = palcolor,
+                        reverse = palreverse,
+                        alpha = alpha
+                    ),
+                    na.value = "grey80",
+                    guide = if (isTRUE(border_color) || isFALSE(color_legend)) {
                         guide_none()
+                    } else {
+                        guide_legend(
+                            title = color_name %||% color_by,
+                            override.aes = list(size = 4, alpha = 1),
+                            order = 3
+                        )
                     }
                 )
+            if (isTRUE(border_color)) {
+                p <- p +
+                    scale_color_manual(
+                        values = palette_this(
+                            levels(data[[color_by]]),
+                            palette = palette,
+                            palcolor = palcolor,
+                            reverse = palreverse
+                        ),
+                        na.value = "black",
+                        guide = if (
+                            isTRUE(border_color) && isTRUE(color_legend)
+                        ) {
+                            guide_legend(
+                                title = color_name %||% color_by,
+                                order = 3
+                            )
+                        } else {
+                            guide_none()
+                        }
+                    )
             }
         }
-    } else {  # shape has no fill
+    } else {
+        # shape has no fill
         if (is.numeric(data[[color_by]])) {
-            p <- p + scale_color_gradientn(
-                n.breaks = 5,
-                colors = palette_this(data[[color_by]], palette = palette, palcolor = palcolor, reverse = palreverse, alpha = alpha),
-                na.value = "grey80",
-                guide = if (isTRUE(color_legend)) {
-                    guide_colorbar(
-                        title = color_name %||% color_by,
-                        frame.colour = "black", ticks.colour = "black", title.hjust = 0, order = 2)
-                } else {
-                    guide_none()
-                }
-            )
-        } else {  # factor/character
-            p <- p + scale_color_manual(
-                values = palette_this(levels(data[[color_by]]), palette = palette, palcolor = palcolor, reverse = palreverse, alpha = alpha),
-                na.value = "grey80",
-                guide = if (isTRUE(color_legend)) {
-                    guide_legend(
-                        title = color_name %||% color_by,
-                        override.aes = list(size = 4, alpha = 1),
-                        order = 3
-                    )
-                } else {
-                    guide_none()
-                }
-            )
+            p <- p +
+                scale_color_gradientn(
+                    n.breaks = 5,
+                    colors = palette_this(
+                        data[[color_by]],
+                        palette = palette,
+                        palcolor = palcolor,
+                        reverse = palreverse,
+                        alpha = alpha
+                    ),
+                    na.value = "grey80",
+                    guide = if (isTRUE(color_legend)) {
+                        guide_colorbar(
+                            title = color_name %||% color_by,
+                            frame.colour = "black",
+                            ticks.colour = "black",
+                            title.hjust = 0,
+                            order = 2
+                        )
+                    } else {
+                        guide_none()
+                    }
+                )
+        } else {
+            # factor/character
+            p <- p +
+                scale_color_manual(
+                    values = palette_this(
+                        levels(data[[color_by]]),
+                        palette = palette,
+                        palcolor = palcolor,
+                        reverse = palreverse,
+                        alpha = alpha
+                    ),
+                    na.value = "grey80",
+                    guide = if (isTRUE(color_legend)) {
+                        guide_legend(
+                            title = color_name %||% color_by,
+                            override.aes = list(size = 4, alpha = 1),
+                            order = 3
+                        )
+                    } else {
+                        guide_none()
+                    }
+                )
         }
     }
 
     if (!is.null(hidata)) {
         if (hishape_has_fill) {
-            p <- p + geom_point(data = hidata,
-                shape = highlight_shape, fill = highlight_color, color = "transparent",
-                size = highlight_size, alpha = highlight_alpha)
+            p <- p +
+                geom_point(
+                    data = hidata,
+                    shape = highlight_shape,
+                    fill = highlight_color,
+                    color = "transparent",
+                    size = highlight_size,
+                    alpha = highlight_alpha
+                )
         } else {
-            p <- p + geom_point(data = hidata,
-                shape = highlight_shape, color = highlight_color,
-                size = highlight_size, alpha = highlight_alpha)
+            p <- p +
+                geom_point(
+                    data = hidata,
+                    shape = highlight_shape,
+                    color = highlight_color,
+                    size = highlight_size,
+                    alpha = highlight_alpha
+                )
         }
     }
 
     p <- p +
         scale_x_continuous(trans = xtrans) +
         scale_y_continuous(trans = ytrans) +
-        labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
+        labs(
+            title = title,
+            subtitle = subtitle,
+            x = xlab %||% x,
+            y = ylab %||% y
+        ) +
         do.call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
@@ -226,15 +345,31 @@ ScatterPlotAtomic <- function(
         aspect.ratio = aspect.ratio,
         legend.position = legend.position,
         legend.direction = legend.direction,
-        legend_n = if (!is.null(color_by) && is.factor(data[[color_by]])) nlevels(data[[color_by]]) else 1,
-        legend_nchar = if (!is.null(color_by) && is.factor(data[[color_by]])) max(nchar(levels(data[[color_by]]))) else 5
+        legend_n = if (!is.null(color_by) && is.factor(data[[color_by]])) {
+            nlevels(data[[color_by]])
+        } else {
+            1
+        },
+        legend_nchar = if (!is.null(color_by) && is.factor(data[[color_by]])) {
+            max(nchar(levels(data[[color_by]])))
+        } else {
+            5
+        }
     )
 
     attr(p, "height") <- dims$height
     attr(p, "width") <- dims$width
 
-    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-        legend.position = legend.position, legend.direction = legend.direction)
+    facet_plot(
+        p,
+        facet_by,
+        facet_scales,
+        facet_nrow,
+        facet_ncol,
+        facet_byrow,
+        legend.position = legend.position,
+        legend.direction = legend.direction
+    )
 }
 
 
@@ -280,21 +415,65 @@ ScatterPlotAtomic <- function(
 #' ScatterPlot(data, x = "x", y = "y", split_by = "t",
 #'             palcolor = list(A = "blue", B = "red"))
 ScatterPlot <- function(
-    data, x, y, size_by = 2, size_name = NULL, color_by = NULL, color_name = NULL, palreverse = FALSE,
-    split_by = NULL, split_by_sep = "_", shape = 21, alpha = ifelse(shape %in% 21:25, 0.65, 1), border_color = "black",
-    highlight = NULL, highlight_shape = 16, highlight_size = 3, highlight_color = "red", highlight_alpha = 1,
-    theme = "theme_this", theme_args = list(),
-    palette = ifelse(!is.null(color_by) && !is.numeric(data[[color_by]]), "Paired", "Spectral"), palcolor = NULL,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525,
-    axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...
+    data,
+    x,
+    y,
+    size_by = 2,
+    size_name = NULL,
+    color_by = NULL,
+    color_name = NULL,
+    palreverse = FALSE,
+    split_by = NULL,
+    split_by_sep = "_",
+    shape = 21,
+    alpha = ifelse(shape %in% 21:25, 0.65, 1),
+    border_color = "black",
+    highlight = NULL,
+    highlight_shape = 16,
+    highlight_size = 3,
+    highlight_color = "red",
+    highlight_alpha = 1,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = ifelse(
+        !is.null(color_by) && !is.numeric(data[[color_by]]),
+        "Paired",
+        "Spectral"
+    ),
+    palcolor = NULL,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    seed = 8525,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
+    ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
     theme <- process_theme(theme)
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE,
-        concat_sep = split_by_sep)
+    split_by <- check_columns(
+        data,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
 
     if (!is.null(split_by)) {
         data[[split_by]] <- droplevels(data[[split_by]])
@@ -307,32 +486,80 @@ ScatterPlot <- function(
     }
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
-    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
-    legend.position <- check_legend(legend.position, names(datas), "legend.position")
+    legend.direction <- check_legend(
+        legend.direction,
+        names(datas),
+        "legend.direction"
+    )
+    legend.position <- check_legend(
+        legend.position,
+        names(datas),
+        "legend.position"
+    )
 
     plots <- lapply(
-        names(datas), function(nm) {
-            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+        names(datas),
+        function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) {
+                NULL
+            } else {
+                nm
+            }
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
                 title <- title %||% default_title
             }
             ScatterPlotAtomic(
-                datas[[nm]], x = x, y = y, size_by = size_by, size_name = size_name, color_by = color_by,
-                highlight = highlight, highlight_shape = highlight_shape, highlight_size = highlight_size,
-                highlight_color = highlight_color, highlight_alpha = highlight_alpha,
-                color_name = color_name, palreverse = palreverse, theme = theme, theme_args = theme_args,
-                alpha = alpha, shape = shape, border_color = border_color, palette = palette[[nm]], palcolor = palcolor[[nm]],
-                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, ...
+                datas[[nm]],
+                x = x,
+                y = y,
+                size_by = size_by,
+                size_name = size_name,
+                color_by = color_by,
+                highlight = highlight,
+                highlight_shape = highlight_shape,
+                highlight_size = highlight_size,
+                highlight_color = highlight_color,
+                highlight_alpha = highlight_alpha,
+                color_name = color_name,
+                palreverse = palreverse,
+                theme = theme,
+                theme_args = theme_args,
+                alpha = alpha,
+                shape = shape,
+                border_color = border_color,
+                palette = palette[[nm]],
+                palcolor = palcolor[[nm]],
+                facet_by = facet_by,
+                facet_scales = facet_scales,
+                facet_ncol = facet_ncol,
+                facet_nrow = facet_nrow,
+                facet_byrow = facet_byrow,
+                aspect.ratio = aspect.ratio,
+                legend.position = legend.position[[nm]],
+                legend.direction = legend.direction[[nm]],
+                title = title,
+                subtitle = subtitle,
+                xlab = xlab,
+                ylab = ylab,
+                ...
             )
         }
     )
 
     names(plots) <- names(datas)
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }

@@ -16,16 +16,47 @@
 #' @importFrom patchwork wrap_elements plot_annotation
 #' @keywords internal
 ChordPlotAtomic <- function(
-    data, y = NULL, from = NULL, from_sep = "_", to = NULL, to_sep = "_", flip = FALSE, links_color = c("from", "to"),
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 0.5,
-    labels_rot = FALSE, title = NULL, subtitle = NULL, keep_na = FALSE, keep_empty = FALSE, ...
+    data,
+    y = NULL,
+    from = NULL,
+    from_sep = "_",
+    to = NULL,
+    to_sep = "_",
+    flip = FALSE,
+    links_color = c("from", "to"),
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Paired",
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 0.5,
+    labels_rot = FALSE,
+    title = NULL,
+    subtitle = NULL,
+    keep_na = FALSE,
+    keep_empty = FALSE,
+    ...
 ) {
     # if (!requireNamespace("circlize", quietly = TRUE)) {
     #     stop("circlize is required for chord plot.")
     # }
     links_color <- match.arg(links_color)
-    from <- check_columns(data, from, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = from_sep)
-    to <- check_columns(data, to, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = to_sep)
+    from <- check_columns(
+        data,
+        from,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = from_sep
+    )
+    to <- check_columns(
+        data,
+        to,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = to_sep
+    )
     y <- check_columns(data, y)
     if (is.null(y)) {
         from_levels <- levels(data[[from]])
@@ -42,9 +73,11 @@ ChordPlotAtomic <- function(
 
     data <- process_keep_na_empty(data, keep_na, keep_empty)
     if (isTRUE(flip)) {
-        data <- data %>% select(from = !!sym(to), to = !!sym(from), value = !!sym(y))
+        data <- data %>%
+            select(from = !!sym(to), to = !!sym(from), value = !!sym(y))
     } else {
-        data <- data %>% select(from = !!sym(from), to = !!sym(to), value = !!sym(y))
+        data <- data %>%
+            select(from = !!sym(from), to = !!sym(to), value = !!sym(y))
     }
 
     data <- data[order(data$from, data$to), , drop = FALSE]
@@ -54,11 +87,21 @@ ChordPlotAtomic <- function(
     # froms <- unique(data$from)
     # tos <- unique(data$to)
     from_vals <- levels(data$from)
-    if (anyNA(data$from)) from_vals <- c(from_vals, NA)
+    if (anyNA(data$from)) {
+        from_vals <- c(from_vals, NA)
+    }
     to_vals <- levels(data$to)
-    if (anyNA(data$to)) to_vals <- c(to_vals, NA)
+    if (anyNA(data$to)) {
+        to_vals <- c(to_vals, NA)
+    }
 
-    grid_cols <- palette_this(unique(c(from_vals, to_vals)), palette = palette, palcolor = palcolor, NA_keep = TRUE, reverse = palreverse)
+    grid_cols <- palette_this(
+        unique(c(from_vals, to_vals)),
+        palette = palette,
+        palcolor = palcolor,
+        NA_keep = TRUE,
+        reverse = palreverse
+    )
     names(grid_cols)[is.na(names(grid_cols))] <- "NA"
     if (anyNA(from_vals)) {
         from_vals[is.na(from_vals)] <- "NA"
@@ -92,23 +135,44 @@ ChordPlotAtomic <- function(
                     list(track.height = circlize::mm_h(.1))
                 )
             )
-            circlize::circos.track(track.index = 1, panel.fun = function(x, y) {
-                circlize::circos.text(
-                    circlize::CELL_META$xcenter, circlize::CELL_META$ylim[1] + 5.5,
-                    circlize::CELL_META$sector.index,
-                    niceFacing = TRUE,
-                    adj = c(0.5, 0.5))
-            }, bg.border = NA)
-            circlize::circos.track(track.index = 2, panel.fun = function(x, y) {
-                for (si in circlize::get.all.sector.index()) {
-                    start.degree <- circlize::get.cell.meta.data("cell.start.degree", sector.index = si)
-                    end.degree <- circlize::get.cell.meta.data("cell.end.degree", sector.index = si)
-                    if (abs(end.degree - start.degree) > 2) {
-                        # otherwise: patchwork wrap_elements 'x' and 'units' must have length > 0
-                        circlize::circos.axis(h = "top", labels.cex = 0.7, labels.niceFacing = TRUE, sector.index = si)
+            circlize::circos.track(
+                track.index = 1,
+                panel.fun = function(x, y) {
+                    circlize::circos.text(
+                        circlize::CELL_META$xcenter,
+                        circlize::CELL_META$ylim[1] + 5.5,
+                        circlize::CELL_META$sector.index,
+                        niceFacing = TRUE,
+                        adj = c(0.5, 0.5)
+                    )
+                },
+                bg.border = NA
+            )
+            circlize::circos.track(
+                track.index = 2,
+                panel.fun = function(x, y) {
+                    for (si in circlize::get.all.sector.index()) {
+                        start.degree <- circlize::get.cell.meta.data(
+                            "cell.start.degree",
+                            sector.index = si
+                        )
+                        end.degree <- circlize::get.cell.meta.data(
+                            "cell.end.degree",
+                            sector.index = si
+                        )
+                        if (abs(end.degree - start.degree) > 2) {
+                            # otherwise: patchwork wrap_elements 'x' and 'units' must have length > 0
+                            circlize::circos.axis(
+                                h = "top",
+                                labels.cex = 0.7,
+                                labels.niceFacing = TRUE,
+                                sector.index = si
+                            )
+                        }
                     }
-                }
-            }, bg.border = NA) # here set bg.border to NA is important
+                },
+                bg.border = NA
+            ) # here set bg.border to NA is important
         }
     } else {
         allnames <- unique(c(from_vals, to_vals))
@@ -128,30 +192,56 @@ ChordPlotAtomic <- function(
                     list(track.height = circlize::mm_h(.1))
                 )
             )
-            circlize::circos.track(track.index = 1, panel.fun = function(x, y) {
-                circlize::circos.text(
-                    circlize::CELL_META$xcenter, circlize::CELL_META$ylim[1] + .15,
-                    circlize::CELL_META$sector.index,
-                    facing = "clockwise",
-                    niceFacing = TRUE,
-                    adj = c(0, 0.5))
-            }, bg.border = NA)
-            circlize::circos.track(track.index = 2, panel.fun = function(x, y) {
-                for (si in circlize::get.all.sector.index()) {
-                    start.degree <- circlize::get.cell.meta.data("cell.start.degree", sector.index = si)
-                    end.degree <- circlize::get.cell.meta.data("cell.end.degree", sector.index = si)
-                    if (abs(end.degree - start.degree) > 2) {
-                        # otherwise: patchwork wrap_elements 'x' and 'units' must have length > 0
-                        circlize::circos.axis(h = "top", labels.cex = 0.7, labels.niceFacing = TRUE, sector.index = si)
+            circlize::circos.track(
+                track.index = 1,
+                panel.fun = function(x, y) {
+                    circlize::circos.text(
+                        circlize::CELL_META$xcenter,
+                        circlize::CELL_META$ylim[1] + .15,
+                        circlize::CELL_META$sector.index,
+                        facing = "clockwise",
+                        niceFacing = TRUE,
+                        adj = c(0, 0.5)
+                    )
+                },
+                bg.border = NA
+            )
+            circlize::circos.track(
+                track.index = 2,
+                panel.fun = function(x, y) {
+                    for (si in circlize::get.all.sector.index()) {
+                        start.degree <- circlize::get.cell.meta.data(
+                            "cell.start.degree",
+                            sector.index = si
+                        )
+                        end.degree <- circlize::get.cell.meta.data(
+                            "cell.end.degree",
+                            sector.index = si
+                        )
+                        if (abs(end.degree - start.degree) > 2) {
+                            # otherwise: patchwork wrap_elements 'x' and 'units' must have length > 0
+                            circlize::circos.axis(
+                                h = "top",
+                                labels.cex = 0.7,
+                                labels.niceFacing = TRUE,
+                                sector.index = si
+                            )
+                        }
                     }
-                }
-            }, bg.border = NA) # here set bg.border to NA is important
+                },
+                bg.border = NA
+            ) # here set bg.border to NA is important
         }
     }
     p <- wrap_elements(full = p)
 
     if (!is.null(title) || !is.null(subtitle)) {
-        p <- p + plot_annotation(title = title, subtitle = subtitle, theme = do.call(theme, theme_args))
+        p <- p +
+            plot_annotation(
+                title = title,
+                subtitle = subtitle,
+                theme = do.call(theme, theme_args)
+            )
     }
     # allow to access data from the plot object
     p$data <- data
@@ -201,19 +291,50 @@ ChordPlotAtomic <- function(
 #' ChordPlot(data, from = "nodes1", to = "nodes2", flip = TRUE)
 #' }
 ChordPlot <- function(
-    data, y = NULL, from = NULL, from_sep = "_", to = NULL, to_sep = "_",
-    split_by = NULL, split_by_sep = "_", flip = FALSE, links_color = c("from", "to"),
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 0.5,
-    labels_rot = FALSE, title = NULL, subtitle = NULL, seed = 8525,
-    keep_na = FALSE, keep_empty = FALSE,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
-    axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...
+    data,
+    y = NULL,
+    from = NULL,
+    from_sep = "_",
+    to = NULL,
+    to_sep = "_",
+    split_by = NULL,
+    split_by_sep = "_",
+    flip = FALSE,
+    links_color = c("from", "to"),
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Paired",
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 0.5,
+    labels_rot = FALSE,
+    title = NULL,
+    subtitle = NULL,
+    seed = 8525,
+    keep_na = FALSE,
+    keep_empty = FALSE,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
+    ...
 ) {
     validate_common_args(seed)
     keep_na <- check_keep_na(keep_na, c(split_by, from, to))
     keep_empty <- check_keep_empty(keep_empty, c(split_by, from, to))
     theme <- process_theme(theme)
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
+    split_by <- check_columns(
+        data,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
 
     if (!is.null(split_by)) {
         data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
@@ -231,24 +352,56 @@ ChordPlot <- function(
     palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
-        names(datas), function(nm) {
-            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+        names(datas),
+        function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) {
+                NULL
+            } else {
+                nm
+            }
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
                 title <- title %||% default_title
             }
-            ChordPlotAtomic(datas[[nm]],
-                y = y, from = from, from_sep = from_sep, to = to, to_sep = to_sep, flip = flip, links_color = links_color,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, alpha = alpha,
-                labels_rot = labels_rot, title = title, subtitle = subtitle, keep_na = keep_na, keep_empty = keep_empty, ...
+            ChordPlotAtomic(
+                datas[[nm]],
+                y = y,
+                from = from,
+                from_sep = from_sep,
+                to = to,
+                to_sep = to_sep,
+                flip = flip,
+                links_color = links_color,
+                theme = theme,
+                theme_args = theme_args,
+                palette = palette[[nm]],
+                palcolor = palcolor[[nm]],
+                palreverse = palreverse,
+                alpha = alpha,
+                labels_rot = labels_rot,
+                title = title,
+                subtitle = subtitle,
+                keep_na = keep_na,
+                keep_empty = keep_empty,
+                ...
             )
         }
     )
     names(plots) <- names(datas)
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }
 
 #' @export

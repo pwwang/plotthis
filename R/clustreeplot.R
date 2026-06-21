@@ -16,13 +16,27 @@
 #' @importFrom ggrepel geom_text_repel
 #' @keywords internal
 ClustreePlotAtomic <- function(
-    data, prefix, flip = FALSE, alpha = 0.85,
-    palette = "Paired", palcolor = NULL, palreverse = FALSE,
-    edge_palette = "Spectral", edge_palcolor = NULL,
-    aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(0.1, 0.1),
-    theme = "theme_this", theme_args = list(),
-    ...) {
+    data,
+    prefix,
+    flip = FALSE,
+    alpha = 0.85,
+    palette = "Paired",
+    palcolor = NULL,
+    palreverse = FALSE,
+    edge_palette = "Spectral",
+    edge_palcolor = NULL,
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    expand = c(0.1, 0.1),
+    theme = "theme_this",
+    theme_args = list(),
+    ...
+) {
     # if (!requireNamespace("ggraph", quietly = TRUE)) {
     #     stop("ggraph is not available for ClustreePlot. Please install it first.")
     # }
@@ -34,7 +48,11 @@ ClustreePlotAtomic <- function(
 
     data <- data %>% select(starts_with(prefix))
     data <- data[complete.cases(data), , drop = FALSE]
-    expand <- norm_expansion(expand, x_type = "continuous", y_type = "continuous")
+    expand <- norm_expansion(
+        expand,
+        x_type = "continuous",
+        y_type = "continuous"
+    )
 
     if (ncol(data) == 0 || nrow(data) == 0) {
         stop("No data found with prefix '", prefix, "'")
@@ -63,7 +81,9 @@ ClustreePlotAtomic <- function(
     clustree_args$layout <- clustree_args$layout %||% "sugiyama"
     clustree_args$node_size_range <- clustree_args$node_size_range %||% c(6, 12)
     clustree_args$node_text_size <- clustree_args$node_text_size %||% 3
-    clustree_args$node_text_colour <- clustree_args$node_text_colour %||% clustree_args$node_text_color %||% "black"
+    clustree_args$node_text_colour <- clustree_args$node_text_colour %||%
+        clustree_args$node_text_color %||%
+        "black"
     clustree <- gglogger::register(clustree::clustree)
 
     p <- suppressMessages(do.call(clustree, clustree_args))
@@ -88,28 +108,52 @@ ClustreePlotAtomic <- function(
 
     p <- suppressMessages({
         p +
-        geom_text(aes(label = !!sym("cluster"), x = !!sym("x"), y = !!sym("y")),
-            size = clustree_args$node_text_size, color = clustree_args$node_text_colour) +
-        scale_color_manual(
-            values = palette_this(n = nres, palette = palette, palcolor = palcolor, keep_names = FALSE, reverse = palreverse),
-            guide = "none") +
-        ggraph::scale_edge_color_gradientn(
-            name = "count",
-            n.breaks = 5,
-            colors = palette_this(palette = edge_palette, palcolor = edge_palcolor, reverse = palreverse),
-            na.value = "grey80",
-            guide = ggraph::guide_edge_colorbar(frame.colour = "black", ticks.colour = "black", title.hjust = 0)) +
-        do.call(theme, theme_args) +
-        ggplot2::theme(
-            aspect.ratio = aspect.ratio,
-            axis.title.x = element_text(),
-            axis.title.y = element_text(),
-            legend.position = legend.position,
-            legend.direction = legend.direction,
-            # panel.border = element_blank()
-        ) +
-        labs(title = title, subtitle = subtitle, x = xlab %||% "", y = ylab %||% sub("\\.|_$", "", prefix)) +
-        scale_x_continuous(expand = expand$x)
+            geom_text(
+                aes(label = !!sym("cluster"), x = !!sym("x"), y = !!sym("y")),
+                size = clustree_args$node_text_size,
+                color = clustree_args$node_text_colour
+            ) +
+            scale_color_manual(
+                values = palette_this(
+                    n = nres,
+                    palette = palette,
+                    palcolor = palcolor,
+                    keep_names = FALSE,
+                    reverse = palreverse
+                ),
+                guide = "none"
+            ) +
+            ggraph::scale_edge_color_gradientn(
+                name = "count",
+                n.breaks = 5,
+                colors = palette_this(
+                    palette = edge_palette,
+                    palcolor = edge_palcolor,
+                    reverse = palreverse
+                ),
+                na.value = "grey80",
+                guide = ggraph::guide_edge_colorbar(
+                    frame.colour = "black",
+                    ticks.colour = "black",
+                    title.hjust = 0
+                )
+            ) +
+            do.call(theme, theme_args) +
+            ggplot2::theme(
+                aspect.ratio = aspect.ratio,
+                axis.title.x = element_text(),
+                axis.title.y = element_text(),
+                legend.position = legend.position,
+                legend.direction = legend.direction,
+                # panel.border = element_blank()
+            ) +
+            labs(
+                title = title,
+                subtitle = subtitle,
+                x = xlab %||% "",
+                y = ylab %||% sub("\\.|_$", "", prefix)
+            ) +
+            scale_x_continuous(expand = expand$x)
     })
 
     if (isTRUE(flip)) {
@@ -132,14 +176,23 @@ ClustreePlotAtomic <- function(
         attr(p, "height") <- dims$height
         attr(p, "width") <- dims$width
         p <- suppressMessages({
-            p + scale_y_reverse(breaks = nres:1, labels = resolutions, expand = expand$y) +
-            coord_flip(clip = "off") +
-            ggplot2::theme(
-                panel.grid.major.x = element_line(colour = "grey80", linetype = 2),
-                panel.grid.major.y = element_blank(),
-                axis.line.y = element_blank(),
-                axis.text.y = element_blank(),
-                axis.ticks.y = element_blank())
+            p +
+                scale_y_reverse(
+                    breaks = nres:1,
+                    labels = resolutions,
+                    expand = expand$y
+                ) +
+                coord_flip(clip = "off") +
+                ggplot2::theme(
+                    panel.grid.major.x = element_line(
+                        colour = "grey80",
+                        linetype = 2
+                    ),
+                    panel.grid.major.y = element_blank(),
+                    axis.line.y = element_blank(),
+                    axis.text.y = element_blank(),
+                    axis.ticks.y = element_blank()
+                )
         })
     } else {
         # Non-flip: resolutions on y-axis (rows), clusters spread on x-axis (columns)
@@ -161,15 +214,23 @@ ClustreePlotAtomic <- function(
         attr(p, "height") <- dims$height
         attr(p, "width") <- dims$width
         p <- suppressMessages({
-            p + coord_cartesian(clip = "off") +
-            scale_y_continuous(breaks = nres:1, labels = resolutions, expand = expand$y) +
-            ggplot2::theme(
-                panel.grid.major.x = element_blank(),
-                panel.grid.major.y = element_line(colour = "grey80", linetype = 2),
-                axis.line.x = element_blank(),
-                axis.text.x = element_blank(),
-                axis.ticks.x = element_blank()
-            )
+            p +
+                coord_cartesian(clip = "off") +
+                scale_y_continuous(
+                    breaks = nres:1,
+                    labels = resolutions,
+                    expand = expand$y
+                ) +
+                ggplot2::theme(
+                    panel.grid.major.x = element_blank(),
+                    panel.grid.major.y = element_line(
+                        colour = "grey80",
+                        linetype = 2
+                    ),
+                    axis.line.x = element_blank(),
+                    axis.text.x = element_blank(),
+                    axis.ticks.x = element_blank()
+                )
         })
     }
     p
@@ -204,18 +265,47 @@ ClustreePlotAtomic <- function(
 #'              palette = c("1" = "Set1", "2" = "Paired"))
 #' }
 ClustreePlot <- function(
-    data, prefix, flip = FALSE, split_by = NULL, split_by_sep = "_",
-    palette = "Paired", palcolor = NULL, palreverse = FALSE,
-    edge_palette = "Spectral", edge_palcolor = NULL,
-    aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, expand = c(0.1, 0.1),
-    theme = "theme_this", theme_args = list(),
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525,
-    axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...
+    data,
+    prefix,
+    flip = FALSE,
+    split_by = NULL,
+    split_by_sep = "_",
+    palette = "Paired",
+    palcolor = NULL,
+    palreverse = FALSE,
+    edge_palette = "Spectral",
+    edge_palcolor = NULL,
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    expand = c(0.1, 0.1),
+    theme = "theme_this",
+    theme_args = list(),
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    seed = 8525,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
+    ...
 ) {
     validate_common_args(seed)
     theme <- process_theme(theme)
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
+    split_by <- check_columns(
+        data,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
 
     if (!is.null(split_by)) {
         data[[split_by]] <- droplevels(data[[split_by]])
@@ -229,30 +319,66 @@ ClustreePlot <- function(
 
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
-    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
-    legend.position <- check_legend(legend.position, names(datas), "legend.position")
+    legend.direction <- check_legend(
+        legend.direction,
+        names(datas),
+        "legend.direction"
+    )
+    legend.position <- check_legend(
+        legend.position,
+        names(datas),
+        "legend.position"
+    )
 
     plots <- lapply(
-        names(datas), function(nm) {
-            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+        names(datas),
+        function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) {
+                NULL
+            } else {
+                nm
+            }
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
                 title <- title %||% default_title
             }
-            ClustreePlotAtomic(datas[[nm]],
-                prefix = prefix, flip = flip, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse,
-                edge_palette = edge_palette, edge_palcolor = edge_palcolor, expand = expand,
-                aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]],
+            ClustreePlotAtomic(
+                datas[[nm]],
+                prefix = prefix,
+                flip = flip,
+                palette = palette[[nm]],
+                palcolor = palcolor[[nm]],
+                palreverse = palreverse,
+                edge_palette = edge_palette,
+                edge_palcolor = edge_palcolor,
+                expand = expand,
+                aspect.ratio = aspect.ratio,
+                legend.position = legend.position[[nm]],
                 legend.direction = legend.direction[[nm]],
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
-                theme = theme, theme_args = theme_args, ...
+                title = title,
+                subtitle = subtitle,
+                xlab = xlab,
+                ylab = ylab,
+                theme = theme,
+                theme_args = theme_args,
+                ...
             )
         }
     )
 
     names(plots) <- names(datas)
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }

@@ -14,39 +14,93 @@
 #' @return A data frame with the cutoffs and the corresponding x and y values.
 #' @keywords internal
 get_cutoffs_data <- function(
-    data, truth_by, score_by, cat_by, cutoffs_at = NULL, cutoffs_labels = NULL,
-    cutoffs_accuracy = 0.001, n_cuts = 0, increasing = TRUE
+    data,
+    truth_by,
+    score_by,
+    cat_by,
+    cutoffs_at = NULL,
+    cutoffs_labels = NULL,
+    cutoffs_accuracy = 0.001,
+    n_cuts = 0,
+    increasing = TRUE
 ) {
     if (is.null(cutoffs_at) && n_cuts == 0) {
         return(NULL)
     }
 
     if (is.null(cutoffs_at) && n_cuts > 0) {
-        cutoffs_at <- quantile(data[[score_by]], probs = seq(0, 1, length.out = n_cuts + 2))
+        cutoffs_at <- quantile(
+            data[[score_by]],
+            probs = seq(0, 1, length.out = n_cuts + 2)
+        )
         cutoffs_at <- unname(cutoffs_at[-c(1, length(cutoffs_at))])
     }
 
-    stopifnot("cutoffs_labels should be NULL or a character vector of the same length as cutoffs_at." =
-        is.null(cutoffs_labels) || length(cutoffs_labels) == length(cutoffs_at))
+    stopifnot(
+        "cutoffs_labels should be NULL or a character vector of the same length as cutoffs_at." = is.null(
+            cutoffs_labels
+        ) ||
+            length(cutoffs_labels) == length(cutoffs_at)
+    )
 
-    cutoff_methods = c(
-        "CB", "MCT", "MinValueSp", "MinValueSe", "ValueSe", "MinValueSpSe", "MaxSp", "MaxSe", "MaxSpSe",
-        "MaxProdSpSe", "ROC01", "SpEqualSe", "Youden", "MaxEfficiency", "Minimax", "MaxDOR", "MaxKappa",
-        "MinValueNPV", "MinValuePPV", "ValueNPV", "ValuePPV", "MinValueNPVPPV", "PROC01", "NPVEqualPPV",
-        "MaxNPVPPV", "MaxSumNPVPPV", "MaxProdNPVPPV", "ValueDLR.Negative", "ValueDLR.Positive", "MinPvalue",
-        "ObservedPrev", "MeanPrev", "PrevalenceMatching"
+    cutoff_methods <- c(
+        "CB",
+        "MCT",
+        "MinValueSp",
+        "MinValueSe",
+        "ValueSe",
+        "MinValueSpSe",
+        "MaxSp",
+        "MaxSe",
+        "MaxSpSe",
+        "MaxProdSpSe",
+        "ROC01",
+        "SpEqualSe",
+        "Youden",
+        "MaxEfficiency",
+        "Minimax",
+        "MaxDOR",
+        "MaxKappa",
+        "MinValueNPV",
+        "MinValuePPV",
+        "ValueNPV",
+        "ValuePPV",
+        "MinValueNPVPPV",
+        "PROC01",
+        "NPVEqualPPV",
+        "MaxNPVPPV",
+        "MaxSumNPVPPV",
+        "MaxProdNPVPPV",
+        "ValueDLR.Negative",
+        "ValueDLR.Positive",
+        "MinPvalue",
+        "ObservedPrev",
+        "MeanPrev",
+        "PrevalenceMatching"
     )
 
     # Get sensitivity and specificity for given cutoff
     get_se_sp <- function(df, cutoff, cutoff_in = NULL) {
         cutoff_in <- cutoff_in %||% cutoff
         if (is.na(cutoff)) {
-            stop("[ROCCurve] Invalid cutoffs_at '", cutoff_in, "', which numerized as NA.")
+            stop(
+                "[ROCCurve] Invalid cutoffs_at '",
+                cutoff_in,
+                "', which numerized as NA."
+            )
         }
         min_score <- min(df[[score_by]], na.rm = TRUE)
         max_score <- max(df[[score_by]], na.rm = TRUE)
         if (cutoff > max_score || cutoff < min_score) {
-            stop("[ROCCurve] Invalid cutoffs_at '", cutoff_in, "', which is out of range of the score [", min_score, ", ", max_score, "].")
+            stop(
+                "[ROCCurve] Invalid cutoffs_at '",
+                cutoff_in,
+                "', which is out of range of the score [",
+                min_score,
+                ", ",
+                max_score,
+                "]."
+            )
         }
 
         if (increasing) {
@@ -72,28 +126,49 @@ get_cutoffs_data <- function(
         if (!cutoff %in% cutoff_methods) {
             cutoff_num <- as.numeric(cutoff)
             se_sp <- get_se_sp(df, cutoff_num, cutoff)
-            label <- label %||% scales::number(cutoff_num, accuracy = cutoffs_accuracy)
+            label <- label %||%
+                scales::number(cutoff_num, accuracy = cutoffs_accuracy)
             return(list(c(se_sp, label = label)))
         } else {
             cutoff_info <- OptimalCutpoints::optimal.cutpoints(
-                X = score_by, status = truth_by, methods = cutoff, data = as.data.frame(df),
-                direction = ifelse(increasing, ">", "<"), tag.healthy = 0
+                X = score_by,
+                status = truth_by,
+                methods = cutoff,
+                data = as.data.frame(df),
+                direction = ifelse(increasing, ">", "<"),
+                tag.healthy = 0
             )
-            n_cutoff_num <- tryCatch({
-                length(cutoff_info[[cutoff]][[1]]$optimal.cutoff$cutoff)
-            }, error = function(e) {
-                warning("No optimal cutoff found for ", cutoff, immediate. = TRUE)
-                0
-            })
+            n_cutoff_num <- tryCatch(
+                {
+                    length(cutoff_info[[cutoff]][[1]]$optimal.cutoff$cutoff)
+                },
+                error = function(e) {
+                    warning(
+                        "No optimal cutoff found for ",
+                        cutoff,
+                        immediate. = TRUE
+                    )
+                    0
+                }
+            )
             if (n_cutoff_num == 0) {
                 se_sp <- get_se_sp(df, NA, cutoff)
-                label <- label %||% paste0("No optimal cutoff found for ", cutoff)
+                label <- label %||%
+                    paste0("No optimal cutoff found for ", cutoff)
                 return(list(c(se_sp, label = label)))
             } else {
                 out <- lapply(seq_len(n_cutoff_num), function(i) {
-                    cutoff_num <- cutoff_info[[cutoff]][[1]]$optimal.cutoff$cutoff[i]
+                    cutoff_num <- cutoff_info[[cutoff]][[
+                        1
+                    ]]$optimal.cutoff$cutoff[i]
                     se_sp <- get_se_sp(df, cutoff_num, cutoff)
-                    label <- cutoffs_labels[i] %||% paste0(scales::number(cutoff_num, cutoffs_accuracy), " (by ", cutoff, ")")
+                    label <- cutoffs_labels[i] %||%
+                        paste0(
+                            scales::number(cutoff_num, cutoffs_accuracy),
+                            " (by ",
+                            cutoff,
+                            ")"
+                        )
                     c(se_sp, label = label)
                 })
                 return(out)
@@ -101,23 +176,29 @@ get_cutoffs_data <- function(
         }
     }
     splits <- split(data, data[[cat_by]])
-    do.call(rbind, lapply(names(splits), function(ns) {
-        df <- do.call(rbind, lapply(seq_along(cutoffs_at), function(i) {
-            co <- get_cutoff(
-                splits[[ifelse(identical(ns, ""), 1, ns)]],
-                cutoffs_at[i],
-                if (is.null(cutoffs_labels)) NULL else cutoffs_labels[i]
+    do.call(
+        rbind,
+        lapply(names(splits), function(ns) {
+            df <- do.call(
+                rbind,
+                lapply(seq_along(cutoffs_at), function(i) {
+                    co <- get_cutoff(
+                        splits[[ifelse(identical(ns, ""), 1, ns)]],
+                        cutoffs_at[i],
+                        if (is.null(cutoffs_labels)) NULL else cutoffs_labels[i]
+                    )
+                    co <- t(as.data.frame(co))
+                    rownames(co) <- NULL
+                    co
+                })
             )
-            co <- t(as.data.frame(co))
-            rownames(co) <- NULL
-            co
-        }))
-        df <- as.data.frame(df)
-        df[[cat_by]] <- ns
-        df$x <- as.numeric(df$x)
-        df$y <- as.numeric(df$y)
-        df
-    }))
+            df <- as.data.frame(df)
+            df[[cat_by]] <- ns
+            df$x <- as.numeric(df$x)
+            df$y <- as.numeric(df$y)
+            df
+        })
+    )
 }
 
 
@@ -207,23 +288,81 @@ get_cutoffs_data <- function(
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom ggplot2 geom_abline scale_color_manual scale_x_reverse scale_x_continuous scale_y_continuous waiver
 #' @importFrom ggplot2 geom_text labs
-ROCCurveAtomic <- function(data, truth_by, score_by, pos_label = NULL,
-    group_by = NULL, group_by_sep = "_", group_name = NULL, x_axis_reverse = FALSE, percent = FALSE, ci = NULL,
-    n_cuts = 0, cutoffs_at = NULL, cutoffs_labels = NULL, cutoffs_accuracy = 0.01, cutoffs_pt_size = 5, cutoffs_pt_shape = 4,
-    cutoffs_pt_stroke = 1, cutoffs_labal_fg = "black", cutoffs_label_size = 4, cutoffs_label_bg = "white", cutoffs_label_bg_r = 0.1,
-    show_auc = c("auto", "none", "legend", "plot"), auc_accuracy = 0.01, auc_size = 4, increasing = TRUE,
-    theme = "theme_this", theme_args = list(),  palette = "Spectral", palcolor = NULL, palreverse = FALSE, alpha = 1,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical", title = NULL, subtitle = NULL,
-    xlab = ifelse(x_axis_reverse, "Specificity", "1 - Specificity"), ylab = "Sensitivity", ...) {
+ROCCurveAtomic <- function(
+    data,
+    truth_by,
+    score_by,
+    pos_label = NULL,
+    group_by = NULL,
+    group_by_sep = "_",
+    group_name = NULL,
+    x_axis_reverse = FALSE,
+    percent = FALSE,
+    ci = NULL,
+    n_cuts = 0,
+    cutoffs_at = NULL,
+    cutoffs_labels = NULL,
+    cutoffs_accuracy = 0.01,
+    cutoffs_pt_size = 5,
+    cutoffs_pt_shape = 4,
+    cutoffs_pt_stroke = 1,
+    cutoffs_labal_fg = "black",
+    cutoffs_label_size = 4,
+    cutoffs_label_bg = "white",
+    cutoffs_label_bg_r = 0.1,
+    show_auc = c("auto", "none", "legend", "plot"),
+    auc_accuracy = 0.01,
+    auc_size = 4,
+    increasing = TRUE,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Spectral",
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 1,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    aspect.ratio = 1,
+    legend.position = waiver(),
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = ifelse(x_axis_reverse, "Specificity", "1 - Specificity"),
+    ylab = "Sensitivity",
+    ...
+) {
     show_auc <- match.arg(show_auc)
     truth_by <- check_columns(data, truth_by, allow_multi = FALSE)
-    score_by <- check_columns(data, score_by, force_factor = FALSE, allow_multi = TRUE)
-    group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
-    stopifnot("'group_by' should be NULL when mulitple 'score_by' columns are provided." = length(score_by) == 1 || is.null(group_by))
+    score_by <- check_columns(
+        data,
+        score_by,
+        force_factor = FALSE,
+        allow_multi = TRUE
+    )
+    group_by <- check_columns(
+        data,
+        group_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = group_by_sep
+    )
+    stopifnot(
+        "'group_by' should be NULL when mulitple 'score_by' columns are provided." = length(
+            score_by
+        ) ==
+            1 ||
+            is.null(group_by)
+    )
 
     if (!is.null(pos_label)) {
-        data[[truth_by]] <- factor(data[[truth_by]], levels = c(setdiff(unique(data[[truth_by]]), pos_label), pos_label))
+        data[[truth_by]] <- factor(
+            data[[truth_by]],
+            levels = c(setdiff(unique(data[[truth_by]]), pos_label), pos_label)
+        )
         data[[truth_by]] <- as.numeric(data[[truth_by]]) - 1
     } else if (is.factor(data[[truth_by]])) {
         warning(
@@ -247,7 +386,12 @@ ROCCurveAtomic <- function(data, truth_by, score_by, pos_label = NULL,
     }
 
     if (length(score_by) > 1) {
-        data <- pivot_longer(data, cols = score_by, names_to = ".group", values_to = ".score")
+        data <- pivot_longer(
+            data,
+            cols = score_by,
+            names_to = ".group",
+            values_to = ".score"
+        )
         group_by <- ".group"
         data[[group_by]] <- factor(data[[group_by]], levels = score_by)
         score_by <- ".score"
@@ -264,9 +408,17 @@ ROCCurveAtomic <- function(data, truth_by, score_by, pos_label = NULL,
     if (is.null(group_by)) {
         data$..group <- factor("")
         group_by <- "..group"
-        legend.position <- ifelse(inherits(legend.position, "waiver"), "none", "right")
+        legend.position <- ifelse(
+            inherits(legend.position, "waiver"),
+            "none",
+            "right"
+        )
     } else {
-        legend.position <- ifelse(inherits(legend.position, "waiver"), "right", legend.position)
+        legend.position <- ifelse(
+            inherits(legend.position, "waiver"),
+            "right",
+            legend.position
+        )
     }
 
     # determine where to place the AUC
@@ -278,31 +430,69 @@ ROCCurveAtomic <- function(data, truth_by, score_by, pos_label = NULL,
         }
     }
 
-    p <- ggplot(data, aes(d = !!sym(truth_by), m = !!sym(score_by), color = !!sym(group_by))) +
+    p <- ggplot(
+        data,
+        aes(d = !!sym(truth_by), m = !!sym(score_by), color = !!sym(group_by))
+    ) +
         # plotROC::geom_roc() doesn't support different cutoffs for different groups/facets
-        plotROC::geom_roc(n.cuts = 0, cutoffs.at = NULL, cutoff.labels = NULL, increasing = increasing, ...)
+        plotROC::geom_roc(
+            n.cuts = 0,
+            cutoffs.at = NULL,
+            cutoff.labels = NULL,
+            increasing = increasing,
+            ...
+        )
 
     # facet the plot to calculate the correct AUCs for each facet
     attr(p, "height") <- attr(p, "width") <- 0
     auc <- plotROC::calc_auc(
-        facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow))
+        facet_plot(
+            p,
+            facet_by,
+            facet_scales,
+            facet_nrow,
+            facet_ncol,
+            facet_byrow
+        )
+    )
 
     cutoffs_df <- get_cutoffs_data(
-        data %>% unite(".cat", !!!syms(unique(c(group_by, facet_by))), sep = " // "),
-        truth_by, score_by, ".cat", cutoffs_at, cutoffs_labels, cutoffs_accuracy, n_cuts, increasing)
+        data %>%
+            unite(".cat", !!!syms(unique(c(group_by, facet_by))), sep = " // "),
+        truth_by,
+        score_by,
+        ".cat",
+        cutoffs_at,
+        cutoffs_labels,
+        cutoffs_accuracy,
+        n_cuts,
+        increasing
+    )
 
     if (!is.null(cutoffs_df)) {
         cutoffs_df <- cutoffs_df %>%
             separate(".cat", into = unique(c(group_by, facet_by)), sep = " // ")
 
-        p <- p + geom_point(
-            data = cutoffs_df, aes(x = !!sym("x"), y = !!sym("y"), color = !!sym(group_by)), inherit.aes = FALSE, shape = cutoffs_pt_shape,
-            size = cutoffs_pt_size, stroke = cutoffs_pt_stroke
-        ) + geom_text_repel(
-            data = cutoffs_df, aes(label = !!sym("label"), x = !!sym("x"), y = !!sym("y")), inherit.aes = FALSE,
-            size = cutoffs_label_size * text_size_scale, color = cutoffs_labal_fg, nudge_x = 0.01,
-            bg.color = cutoffs_label_bg, bg.r = cutoffs_label_bg_r, min.segment.length = 10
-        )
+        p <- p +
+            geom_point(
+                data = cutoffs_df,
+                aes(x = !!sym("x"), y = !!sym("y"), color = !!sym(group_by)),
+                inherit.aes = FALSE,
+                shape = cutoffs_pt_shape,
+                size = cutoffs_pt_size,
+                stroke = cutoffs_pt_stroke
+            ) +
+            geom_text_repel(
+                data = cutoffs_df,
+                aes(label = !!sym("label"), x = !!sym("x"), y = !!sym("y")),
+                inherit.aes = FALSE,
+                size = cutoffs_label_size * text_size_scale,
+                color = cutoffs_labal_fg,
+                nudge_x = 0.01,
+                bg.color = cutoffs_label_bg,
+                bg.r = cutoffs_label_bg_r,
+                min.segment.length = 10
+            )
     }
     cutoffs_df$specificity <- 1 - cutoffs_df$x
     cutoffs_df$sensitivity <- cutoffs_df$y
@@ -314,33 +504,77 @@ ROCCurveAtomic <- function(data, truth_by, score_by, pos_label = NULL,
     if (show_auc == "plot") {
         if (identical(group_by, "..group")) {
             auc_df <- auc
-            auc_df$AUC <- paste0("AUC = ", scales::number(auc$AUC, accuracy = auc_accuracy))
+            auc_df$AUC <- paste0(
+                "AUC = ",
+                scales::number(auc$AUC, accuracy = auc_accuracy)
+            )
         } else {
-            auc_df <- if (is.null(facet_by)) auc else auc %>% dplyr::group_by(!!sym(facet_by))
+            auc_df <- if (is.null(facet_by)) {
+                auc
+            } else {
+                auc %>% dplyr::group_by(!!sym(facet_by))
+            }
             auc_df <- auc_df %>%
-                summarise(AUC = paste0(
-                    "AUC (", !!sym(group_by), ") = ", scales::number(!!sym("AUC"), accuracy = auc_accuracy),
-                    collapse = "\n"), .groups = "drop")
+                summarise(
+                    AUC = paste0(
+                        "AUC (",
+                        !!sym(group_by),
+                        ") = ",
+                        scales::number(!!sym("AUC"), accuracy = auc_accuracy),
+                        collapse = "\n"
+                    ),
+                    .groups = "drop"
+                )
         }
 
         auc_pos_x <- ifelse(increasing, ifelse(x_axis_reverse, -1, 1), 0)
         auc_pos_y <- ifelse(increasing, 0, 1)
         auc_pos_hjust <- ifelse(increasing == x_axis_reverse, -0.05, 1.05)
-        auc_pos_vjust <- ifelse(increasing, -0.5 / nlevels(data[[group_by]]), 1 + .5 / nlevels(data[[group_by]]))
-        p <- p + geom_text(
-            data = auc_df, x = auc_pos_x, y = auc_pos_y, size = auc_size * text_size_scale,
-            hjust = auc_pos_hjust, vjust = auc_pos_vjust, aes(label = !!sym("AUC")), inherit.aes = FALSE)
+        auc_pos_vjust <- ifelse(
+            increasing,
+            -0.5 / nlevels(data[[group_by]]),
+            1 + .5 / nlevels(data[[group_by]])
+        )
+        p <- p +
+            geom_text(
+                data = auc_df,
+                x = auc_pos_x,
+                y = auc_pos_y,
+                size = auc_size * text_size_scale,
+                hjust = auc_pos_hjust,
+                vjust = auc_pos_vjust,
+                aes(label = !!sym("AUC")),
+                inherit.aes = FALSE
+            )
         labels <- levels(data[[group_by]])
     } else if (show_auc == "legend") {
         if (!is.null(facet_by)) {
-            auc_df <- auc[order(auc[[facet_by]], auc[[group_by]]), , drop = FALSE]
-            auc_df$AUC <- paste0("AUC (", auc_df[[facet_by]], ") = ", scales::number(auc$AUC, accuracy = auc_accuracy))
-            labels <- auc_df %>% dplyr::group_by(!!sym(group_by)) %>%
-                summarise(AUC = paste(!!sym("AUC"), collapse = "\n"), .groups = "drop") %>%
+            auc_df <- auc[
+                order(auc[[facet_by]], auc[[group_by]]),
+                ,
+                drop = FALSE
+            ]
+            auc_df$AUC <- paste0(
+                "AUC (",
+                auc_df[[facet_by]],
+                ") = ",
+                scales::number(auc$AUC, accuracy = auc_accuracy)
+            )
+            labels <- auc_df %>%
+                dplyr::group_by(!!sym(group_by)) %>%
+                summarise(
+                    AUC = paste(!!sym("AUC"), collapse = "\n"),
+                    .groups = "drop"
+                ) %>%
                 mutate(AUC = paste0(!!sym(group_by), "\n", !!sym("AUC"))) %>%
                 pull("AUC")
         } else {
-            labels <- paste0(auc[[group_by]], " (AUC = ", scales::number(auc$AUC, accuracy = auc_accuracy), ")")
+            labels <- paste0(
+                auc[[group_by]],
+                " (AUC = ",
+                scales::number(auc$AUC, accuracy = auc_accuracy),
+                ")"
+            )
         }
     } else {
         labels <- levels(data[[group_by]])
@@ -348,10 +582,21 @@ ROCCurveAtomic <- function(data, truth_by, score_by, pos_label = NULL,
 
     p <- p +
         # diagnal line
-        geom_abline(intercept = 0, slope = ifelse(x_axis_reverse, -1, 1), linetype = "dashed", color = "grey50") +
+        geom_abline(
+            intercept = 0,
+            slope = ifelse(x_axis_reverse, -1, 1),
+            linetype = "dashed",
+            color = "grey50"
+        ) +
         scale_color_manual(
             name = group_name %||% group_by,
-            values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor, alpha = alpha, reverse = palreverse),
+            values = palette_this(
+                levels(data[[group_by]]),
+                palette = palette,
+                palcolor = palcolor,
+                alpha = alpha,
+                reverse = palreverse
+            ),
             labels = labels
         )
 
@@ -360,7 +605,10 @@ ROCCurveAtomic <- function(data, truth_by, score_by, pos_label = NULL,
     }
 
     if (x_axis_reverse) {
-        p <- p + scale_x_reverse(labels = if (isTRUE(percent)) scales::percent else waiver())
+        p <- p +
+            scale_x_reverse(
+                labels = if (isTRUE(percent)) scales::percent else waiver()
+            )
     } else if (isTRUE(percent)) {
         p <- p + scale_x_continuous(labels = scales::percent)
     }
@@ -389,8 +637,16 @@ ROCCurveAtomic <- function(data, truth_by, score_by, pos_label = NULL,
     attr(p, "height") <- dims$height
     attr(p, "width") <- dims$width
 
-    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-        legend.position = legend.position, legend.direction = legend.direction)
+    facet_plot(
+        p,
+        facet_by,
+        facet_scales,
+        facet_nrow,
+        facet_ncol,
+        facet_byrow,
+        legend.position = legend.position,
+        legend.direction = legend.direction
+    )
 }
 
 
@@ -440,20 +696,71 @@ ROCCurveAtomic <- function(data, truth_by, score_by, pos_label = NULL,
 #' attr(p, "auc")
 #' # Retrieve the cutoffs
 #' attr(p, "cutoffs")
-ROCCurve <- function(data, truth_by, score_by, pos_label = NULL, split_by = NULL, split_by_sep = "_",
-    group_by = NULL, group_by_sep = "_", group_name = NULL,
-    x_axis_reverse = FALSE, percent = FALSE, ci = NULL, n_cuts = 0,
-    cutoffs_at = NULL, cutoffs_labels = NULL, cutoffs_accuracy = 0.001, cutoffs_pt_size = 5, cutoffs_pt_shape = 4,
-    cutoffs_pt_stroke = 1, cutoffs_labal_fg = "black", cutoffs_label_size = 4, cutoffs_label_bg = "white", cutoffs_label_bg_r = 0.1,
-    show_auc = c("auto", "none", "legend", "plot"), auc_accuracy = 0.01, auc_size = 4,
-    theme = "theme_this", theme_args = list(),  palette = "Spectral", palcolor = NULL, palreverse = FALSE, alpha = 1,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical", title = NULL, subtitle = NULL,
-    xlab = ifelse(x_axis_reverse, "Specificity", "1 - Specificity"), ylab = "Sensitivity",
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, seed = 8525,
-    axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...) {
+ROCCurve <- function(
+    data,
+    truth_by,
+    score_by,
+    pos_label = NULL,
+    split_by = NULL,
+    split_by_sep = "_",
+    group_by = NULL,
+    group_by_sep = "_",
+    group_name = NULL,
+    x_axis_reverse = FALSE,
+    percent = FALSE,
+    ci = NULL,
+    n_cuts = 0,
+    cutoffs_at = NULL,
+    cutoffs_labels = NULL,
+    cutoffs_accuracy = 0.001,
+    cutoffs_pt_size = 5,
+    cutoffs_pt_shape = 4,
+    cutoffs_pt_stroke = 1,
+    cutoffs_labal_fg = "black",
+    cutoffs_label_size = 4,
+    cutoffs_label_bg = "white",
+    cutoffs_label_bg_r = 0.1,
+    show_auc = c("auto", "none", "legend", "plot"),
+    auc_accuracy = 0.01,
+    auc_size = 4,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Spectral",
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 1,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    aspect.ratio = 1,
+    legend.position = waiver(),
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = ifelse(x_axis_reverse, "Specificity", "1 - Specificity"),
+    ylab = "Sensitivity",
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    seed = 8525,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
+    ...
+) {
     validate_common_args(seed, facet_by)
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
+    split_by <- check_columns(
+        data,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
 
     if (!is.null(split_by)) {
         data[[split_by]] <- droplevels(data[[split_by]])
@@ -467,12 +774,25 @@ ROCCurve <- function(data, truth_by, score_by, pos_label = NULL, split_by = NULL
 
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
-    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
-    legend.position <- check_legend(legend.position, names(datas), "legend.position")
+    legend.direction <- check_legend(
+        legend.direction,
+        names(datas),
+        "legend.direction"
+    )
+    legend.position <- check_legend(
+        legend.position,
+        names(datas),
+        "legend.position"
+    )
 
     plots <- lapply(
-        names(datas), function(nm) {
-            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+        names(datas),
+        function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) {
+                NULL
+            } else {
+                nm
+            }
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
@@ -482,42 +802,92 @@ ROCCurve <- function(data, truth_by, score_by, pos_label = NULL, split_by = NULL
                 datas[[nm]][[split_by]] <- NULL
             }
 
-            ROCCurveAtomic(datas[[nm]], truth_by, score_by, pos_label = pos_label,
-                group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
-                x_axis_reverse = x_axis_reverse, percent = percent, ci = ci, n_cuts = n_cuts,
-                cutoffs_at = cutoffs_at, cutoffs_labels = cutoffs_labels, cutoffs_accuracy = cutoffs_accuracy,
-                cutoffs_pt_size = cutoffs_pt_size, cutoffs_pt_shape = cutoffs_pt_shape, cutoffs_pt_stroke = cutoffs_pt_stroke,
-                cutoffs_labal_fg = cutoffs_labal_fg, cutoffs_label_size = cutoffs_label_size, cutoffs_label_bg = cutoffs_label_bg,
-                cutoffs_label_bg_r = cutoffs_label_bg_r, show_auc = show_auc, auc_accuracy = auc_accuracy, auc_size = auc_size,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, alpha = alpha,
-                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, ...)
+            ROCCurveAtomic(
+                datas[[nm]],
+                truth_by,
+                score_by,
+                pos_label = pos_label,
+                group_by = group_by,
+                group_by_sep = group_by_sep,
+                group_name = group_name,
+                x_axis_reverse = x_axis_reverse,
+                percent = percent,
+                ci = ci,
+                n_cuts = n_cuts,
+                cutoffs_at = cutoffs_at,
+                cutoffs_labels = cutoffs_labels,
+                cutoffs_accuracy = cutoffs_accuracy,
+                cutoffs_pt_size = cutoffs_pt_size,
+                cutoffs_pt_shape = cutoffs_pt_shape,
+                cutoffs_pt_stroke = cutoffs_pt_stroke,
+                cutoffs_labal_fg = cutoffs_labal_fg,
+                cutoffs_label_size = cutoffs_label_size,
+                cutoffs_label_bg = cutoffs_label_bg,
+                cutoffs_label_bg_r = cutoffs_label_bg_r,
+                show_auc = show_auc,
+                auc_accuracy = auc_accuracy,
+                auc_size = auc_size,
+                theme = theme,
+                theme_args = theme_args,
+                palette = palette[[nm]],
+                palcolor = palcolor[[nm]],
+                palreverse = palreverse,
+                alpha = alpha,
+                facet_by = facet_by,
+                facet_scales = facet_scales,
+                facet_ncol = facet_ncol,
+                facet_nrow = facet_nrow,
+                facet_byrow = facet_byrow,
+                aspect.ratio = aspect.ratio,
+                legend.position = legend.position[[nm]],
+                legend.direction = legend.direction[[nm]],
+                title = title,
+                subtitle = subtitle,
+                xlab = xlab,
+                ylab = ylab,
+                ...
+            )
         }
     )
 
     names(plots) <- names(datas)
 
-    p <- combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    p <- combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 
     if (!combine) {
         return(p)
     } else {
-        attr(p, "auc") <- do.call(rbind, lapply(seq_along(plots), function(i) {
-            df <- attr(plots[[i]], "auc")
-            if (!is.null(split_by)) {
-                df[[split_by]] <- names(datas)[i]
-            }
-            df
-        }))
-        attr(p, "cutoffs") <- do.call(rbind, lapply(seq_along(plots), function(i) {
-            df <- attr(plots[[i]], "cutoffs")
-            if (!is.null(split_by)) {
-                df[[split_by]] <- names(datas)[i]
-            }
-            df
-        }))
+        attr(p, "auc") <- do.call(
+            rbind,
+            lapply(seq_along(plots), function(i) {
+                df <- attr(plots[[i]], "auc")
+                if (!is.null(split_by)) {
+                    df[[split_by]] <- names(datas)[i]
+                }
+                df
+            })
+        )
+        attr(p, "cutoffs") <- do.call(
+            rbind,
+            lapply(seq_along(plots), function(i) {
+                df <- attr(plots[[i]], "cutoffs")
+                if (!is.null(split_by)) {
+                    df[[split_by]] <- names(datas)[i]
+                }
+                df
+            })
+        )
         return(p)
     }
 }

@@ -13,9 +13,15 @@
 #' @param cutoff_perc An optional numeric value specifying the percentile cutoff for removing low-density grid points. Default is 5.
 #' @keywords internal
 .compute_velocity_on_grid <- function(
-    embedding, v_embedding,
-    density = NULL, smooth = NULL, n_neighbors = NULL, min_mass = NULL,
-    scale = 1, adjust_for_stream = FALSE, cutoff_perc = NULL
+    embedding,
+    v_embedding,
+    density = NULL,
+    smooth = NULL,
+    n_neighbors = NULL,
+    min_mass = NULL,
+    scale = 1,
+    adjust_for_stream = FALSE,
+    cutoff_perc = NULL
 ) {
     n_obs <- nrow(embedding)
     n_dim <- ncol(embedding)
@@ -44,27 +50,43 @@
         use_nan = TRUE
     )
 
-    neighbors <- t(as.matrix(apply(d, 2, function(x) order(x, decreasing = FALSE)[1:n_neighbors])))
-    dists <- t(as.matrix(apply(d, 2, function(x) x[order(x, decreasing = FALSE)[1:n_neighbors]])))
+    neighbors <- t(as.matrix(apply(d, 2, function(x) {
+        order(x, decreasing = FALSE)[1:n_neighbors]
+    })))
+    dists <- t(as.matrix(apply(d, 2, function(x) {
+        x[order(x, decreasing = FALSE)[1:n_neighbors]]
+    })))
 
-    weight <- stats::dnorm(dists, sd = mean(sapply(grs, function(g) g[2] - g[1])) * smooth)
+    weight <- stats::dnorm(
+        dists,
+        sd = mean(sapply(grs, function(g) g[2] - g[1])) * smooth
+    )
     p_mass <- p_mass_v <- rowSums(weight)
     p_mass_v[p_mass_v < 1] <- 1
 
-    neighbors_emb <- array(as.matrix(v_embedding)[neighbors, seq_len(ncol(v_embedding))],
+    neighbors_emb <- array(
+        as.matrix(v_embedding)[neighbors, seq_len(ncol(v_embedding))],
         dim = c(dim(neighbors), dim(v_embedding)[2])
     )
     v_grid <- apply((neighbors_emb * c(weight)), c(1, 3), sum)
     v_grid <- v_grid / p_mass_v
 
     if (isTRUE(adjust_for_stream)) {
-        x_grid <- matrix(c(unique(x_grid[, 1]), unique(x_grid[, 2])), nrow = 2, byrow = TRUE)
+        x_grid <- matrix(
+            c(unique(x_grid[, 1]), unique(x_grid[, 2])),
+            nrow = 2,
+            byrow = TRUE
+        )
         ns <- floor(sqrt(length(v_grid[, 1])))
         v_grid <- array(t(v_grid), dim = c(2, ns, ns))
 
         mass <- sqrt(apply(v_grid**2, c(2, 3), sum))
         min_mass <- 10**(min_mass - 6) # default min_mass = 1e-5
-        min_mass[min_mass > max(mass, na.rm = TRUE) * 0.9] <- max(mass, na.rm = TRUE) * 0.9
+        min_mass[min_mass > max(mass, na.rm = TRUE) * 0.9] <- max(
+            mass,
+            na.rm = TRUE
+        ) *
+            0.9
         cutoff <- array(t(mass), dim = c(ns, ns)) < min_mass
 
         lens <- t(apply(apply(abs(neighbors_emb), c(1, 3), mean), 1, sum))
@@ -138,33 +160,94 @@
 #'     keep_na = TRUE, keep_empty = FALSE)
 #' }
 VelocityPlot <- function(
-    embedding, v_embedding, plot_type = c("raw", "grid", "stream"), split_by = NULL,
-    group_by = NULL, group_name = "Group", group_palette = "Paired", group_palcolor = NULL,
-    n_neighbors = NULL, density = 1, smooth = 0.5, scale = 1, min_mass = 1, cutoff_perc = 5,
-    arrow_angle = 20, arrow_color = "black", arrow_alpha = 1, keep_na = FALSE, keep_empty = FALSE,
-    streamline_l = 5, streamline_minl = 1, streamline_res = 1, streamline_n = 15,
-    streamline_width = c(0, 0.8), streamline_alpha = 1, streamline_color = NULL, streamline_palette = "RdYlBu", streamline_palcolor = NULL, palreverse = FALSE,
-    streamline_bg_color = "white", streamline_bg_stroke = 0.5,
-    aspect.ratio = 1, title = "Cell velocity", subtitle = NULL, xlab = NULL, ylab = NULL,
-    legend.position = "right", legend.direction = "vertical",
-    theme = "theme_this", theme_args = list(),
-    return_layer = FALSE, seed = 8525) {
+    embedding,
+    v_embedding,
+    plot_type = c("raw", "grid", "stream"),
+    split_by = NULL,
+    group_by = NULL,
+    group_name = "Group",
+    group_palette = "Paired",
+    group_palcolor = NULL,
+    n_neighbors = NULL,
+    density = 1,
+    smooth = 0.5,
+    scale = 1,
+    min_mass = 1,
+    cutoff_perc = 5,
+    arrow_angle = 20,
+    arrow_color = "black",
+    arrow_alpha = 1,
+    keep_na = FALSE,
+    keep_empty = FALSE,
+    streamline_l = 5,
+    streamline_minl = 1,
+    streamline_res = 1,
+    streamline_n = 15,
+    streamline_width = c(0, 0.8),
+    streamline_alpha = 1,
+    streamline_color = NULL,
+    streamline_palette = "RdYlBu",
+    streamline_palcolor = NULL,
+    palreverse = FALSE,
+    streamline_bg_color = "white",
+    streamline_bg_stroke = 0.5,
+    aspect.ratio = 1,
+    title = "Cell velocity",
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    legend.position = "right",
+    legend.direction = "vertical",
+    theme = "theme_this",
+    theme_args = list(),
+    return_layer = FALSE,
+    seed = 8525
+) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
     } else {
         ggplot2::ggplot
     }
-    stopifnot("[VelocityPlot] 'split_by' is not supported yet" = is.null(split_by))
-    stopifnot("[VelocityPlot] 'keep_na' supports only atomic values (logical or character)" =
-        is.atomic(keep_na) && (is.logical(keep_na) || is.character(keep_na)))
-    stopifnot("[VelocityPlot] 'keep_empty' supports only atomic values (logical or 'level'/'levels')" =
-        is.atomic(keep_empty) && (is.logical(keep_empty) || (is.character(keep_empty) && keep_empty %in% c("level", "levels"))))
-    stopifnot("[VelocityPlot] 'embedding' must be a matrix or data.frame" = is.matrix(embedding) || is.data.frame(embedding))
-    stopifnot("[VelocityPlot] 'v_embedding' must be a matrix or data.frame" = is.matrix(v_embedding) || is.data.frame(v_embedding))
-    stopifnot("[VelocityPlot] 'embedding' and 'v_embedding' must have the same dimensions" =
-        all(dim(embedding) == dim(v_embedding)))
-    stopifnot("[VelocityPlot] 'group_by' must be NULL or a vector of the same length as the number of rows in 'embedding'" =
-        is.null(group_by) || (length(group_by) == nrow(embedding)))
+    stopifnot(
+        "[VelocityPlot] 'split_by' is not supported yet" = is.null(split_by)
+    )
+    stopifnot(
+        "[VelocityPlot] 'keep_na' supports only atomic values (logical or character)" = is.atomic(
+            keep_na
+        ) &&
+            (is.logical(keep_na) || is.character(keep_na))
+    )
+    stopifnot(
+        "[VelocityPlot] 'keep_empty' supports only atomic values (logical or 'level'/'levels')" = is.atomic(
+            keep_empty
+        ) &&
+            (is.logical(keep_empty) ||
+                (is.character(keep_empty) &&
+                    keep_empty %in% c("level", "levels")))
+    )
+    stopifnot(
+        "[VelocityPlot] 'embedding' must be a matrix or data.frame" = is.matrix(
+            embedding
+        ) ||
+            is.data.frame(embedding)
+    )
+    stopifnot(
+        "[VelocityPlot] 'v_embedding' must be a matrix or data.frame" = is.matrix(
+            v_embedding
+        ) ||
+            is.data.frame(v_embedding)
+    )
+    stopifnot(
+        "[VelocityPlot] 'embedding' and 'v_embedding' must have the same dimensions" = all(
+            dim(embedding) == dim(v_embedding)
+        )
+    )
+    stopifnot(
+        "[VelocityPlot] 'group_by' must be NULL or a vector of the same length as the number of rows in 'embedding'" = is.null(
+            group_by
+        ) ||
+            (length(group_by) == nrow(embedding))
+    )
 
     set.seed(seed)
 
@@ -188,7 +271,12 @@ VelocityPlot <- function(
         group_by <- as.factor(group_by)
     }
 
-    if (!is.null(group_by) && anyNA(group_by) && !isTRUE(keep_na) && !is.na(keep_na)) {
+    if (
+        !is.null(group_by) &&
+            anyNA(group_by) &&
+            !isTRUE(keep_na) &&
+            !is.na(keep_na)
+    ) {
         if (isFALSE(keep_na)) {
             row_idxes <- is.na(group_by)
             group_by <- group_by[!row_idxes]
@@ -207,7 +295,11 @@ VelocityPlot <- function(
     if (plot_type == "raw") {
         if (!is.null(density) && (density > 0 && density < 1)) {
             s <- ceiling(density * nrow(embedding))
-            ix_choice <- sample(seq_len(nrow(embedding)), size = s, replace = FALSE)
+            ix_choice <- sample(
+                seq_len(nrow(embedding)),
+                size = s,
+                replace = FALSE
+            )
             embedding <- embedding[ix_choice, ]
             v_embedding <- v_embedding[ix_choice, ]
         }
@@ -217,7 +309,9 @@ VelocityPlot <- function(
         df <- cbind.data.frame(embedding, v_embedding)
         colnames(df) <- c("x", "y", "u", "v")
         df$length <- sqrt(df[["u"]]^2 + df[["v"]]^2)
-        global_size <- sqrt(max(df$x, na.rm = TRUE)^2 + max(df$y, na.rm = TRUE)^2)
+        global_size <- sqrt(
+            max(df$x, na.rm = TRUE)^2 + max(df$y, na.rm = TRUE)^2
+        )
         df$length_perc <- df$length / global_size
 
         if (!is.null(group_by)) {
@@ -226,63 +320,119 @@ VelocityPlot <- function(
             if (anyNA(group_by)) {
                 group_vals <- c(group_vals, NA)
             }
-            group_cols <- palette_this(group_vals, palette = group_palette, palcolor = group_palcolor, NA_keep = TRUE, reverse = palreverse)
+            group_cols <- palette_this(
+                group_vals,
+                palette = group_palette,
+                palcolor = group_palcolor,
+                NA_keep = TRUE,
+                reverse = palreverse
+            )
             velocity_layer <- list(
                 geom_segment(
                     data = df,
                     mapping = aes(
-                        x = !!sym("x"), y = !!sym("y"),
+                        x = !!sym("x"),
+                        y = !!sym("y"),
                         xend = !!sym("x") + !!sym("u"),
                         yend = !!sym("y") + !!sym("v"),
                         color = !!sym(group_name)
                     ),
                     alpha = arrow_alpha,
-                    arrow = if (utils::compareVersion(as.character(utils::packageVersion("ggplot2")), "4") != 0) {
-                        arrow(length = unit(df$length_perc, "npc"), type = "closed", angle = arrow_angle)
+                    arrow = if (
+                        utils::compareVersion(
+                            as.character(utils::packageVersion("ggplot2")),
+                            "4"
+                        ) !=
+                            0
+                    ) {
+                        arrow(
+                            length = unit(df$length_perc, "npc"),
+                            type = "closed",
+                            angle = arrow_angle
+                        )
                     } else {
-                        warning("[VelocityPlot] 'arrow()' in ggplot2 == 4.0.0 does not support varying lengths. Using fixed length instead. See https://github.com/tidyverse/ggplot2/issues/6594 for details.")
+                        warning(
+                            "[VelocityPlot] 'arrow()' in ggplot2 == 4.0.0 does not support varying lengths. Using fixed length instead. See https://github.com/tidyverse/ggplot2/issues/6594 for details."
+                        )
                         NULL
                     },
-                    lineend = "round", linejoin = "mitre", inherit.aes = FALSE, show.legend = TRUE
+                    lineend = "round",
+                    linejoin = "mitre",
+                    inherit.aes = FALSE,
+                    show.legend = TRUE
                 )
             )
             if (isTRUE(keep_empty)) {
-                velocity_layer[[length(velocity_layer) + 1]] <- scale_color_manual(
+                velocity_layer[[
+                    length(velocity_layer) + 1
+                ]] <- scale_color_manual(
                     name = group_name,
-                    values = group_cols, na.value = group_cols["NA"] %||% "grey80",
+                    values = group_cols,
+                    na.value = group_cols["NA"] %||% "grey80",
                     breaks = group_vals,
                     limits = group_vals,
                     drop = FALSE,
-                    guide = guide_legend(title.hjust = 0, order = 1, override.aes = list(linewidth = 2, alpha = 1))
+                    guide = guide_legend(
+                        title.hjust = 0,
+                        order = 1,
+                        override.aes = list(linewidth = 2, alpha = 1)
+                    )
                 )
             } else {
-                 velocity_layer[[length(velocity_layer) + 1]] <- scale_color_manual(
+                velocity_layer[[
+                    length(velocity_layer) + 1
+                ]] <- scale_color_manual(
                     name = group_name,
-                    values = group_cols, na.value = group_cols["NA"] %||% "grey80",
-                    guide = guide_legend(title.hjust = 0, order = 1, override.aes = list(linewidth = 2, alpha = 1))
+                    values = group_cols,
+                    na.value = group_cols["NA"] %||% "grey80",
+                    guide = guide_legend(
+                        title.hjust = 0,
+                        order = 1,
+                        override.aes = list(linewidth = 2, alpha = 1)
+                    )
                 )
             }
-            attr(velocity_layer, "scales") <- unique(c(attr(velocity_layer, "scales"), "color"))
+            attr(velocity_layer, "scales") <- unique(c(
+                attr(velocity_layer, "scales"),
+                "color"
+            ))
         } else {
             velocity_layer <- list(
                 geom_segment(
-                    data = df, aes(
-                        x = !!sym("x"), y = !!sym("y"),
+                    data = df,
+                    aes(
+                        x = !!sym("x"),
+                        y = !!sym("y"),
                         xend = !!sym("x") + !!sym("u"),
-                        yend = !!sym("y") + !!sym("v")),
-                    color = arrow_color, alpha = arrow_alpha,
-                    arrow = arrow(length = unit(df$length_perc, "npc"), type = "closed", angle = arrow_angle),
-                    lineend = "round", linejoin = "mitre", inherit.aes = FALSE
+                        yend = !!sym("y") + !!sym("v")
+                    ),
+                    color = arrow_color,
+                    alpha = arrow_alpha,
+                    arrow = arrow(
+                        length = unit(df$length_perc, "npc"),
+                        type = "closed",
+                        angle = arrow_angle
+                    ),
+                    lineend = "round",
+                    linejoin = "mitre",
+                    inherit.aes = FALSE
                 )
             )
         }
     } else if (plot_type == "grid") {
         if (!is.null(group_by)) {
-            warning("[VelocityPlot] Ignoring 'group_by', which is not supported for 'grid' plot type.")
+            warning(
+                "[VelocityPlot] Ignoring 'group_by', which is not supported for 'grid' plot type."
+            )
         }
-        res <- .compute_velocity_on_grid(embedding, v_embedding,
-            density = density, smooth = smooth, n_neighbors = n_neighbors,
-            min_mass = min_mass, scale = scale
+        res <- .compute_velocity_on_grid(
+            embedding,
+            v_embedding,
+            density = density,
+            smooth = smooth,
+            n_neighbors = n_neighbors,
+            min_mass = min_mass,
+            scale = scale
         )
         x_grid <- res$x_grid
         v_grid <- res$v_grid
@@ -290,26 +440,46 @@ VelocityPlot <- function(
         df <- cbind.data.frame(x_grid, v_grid)
         colnames(df) <- c("x", "y", "u", "v")
         df$length <- sqrt(df[["u"]]^2 + df[["v"]]^2)
-        global_size <- sqrt(max(df$x, na.rm = TRUE)^2 + max(df$y, na.rm = TRUE)^2)
+        global_size <- sqrt(
+            max(df$x, na.rm = TRUE)^2 + max(df$y, na.rm = TRUE)^2
+        )
         df$length_perc <- df$length / global_size
         velocity_layer <- list(
             geom_segment(
-                data = df, aes(
-                    x = !!sym("x"), y = !!sym("y"),
+                data = df,
+                aes(
+                    x = !!sym("x"),
+                    y = !!sym("y"),
                     xend = !!sym("x") + !!sym("u"),
-                    yend = !!sym("y") + !!sym("v")),
-                color = arrow_color, alpha = arrow_alpha,
-                arrow = arrow(length = unit(df$length_perc, "npc"), type = "closed", angle = arrow_angle),
-                lineend = "round", linejoin = "mitre", inherit.aes = FALSE
+                    yend = !!sym("y") + !!sym("v")
+                ),
+                color = arrow_color,
+                alpha = arrow_alpha,
+                arrow = arrow(
+                    length = unit(df$length_perc, "npc"),
+                    type = "closed",
+                    angle = arrow_angle
+                ),
+                lineend = "round",
+                linejoin = "mitre",
+                inherit.aes = FALSE
             )
         )
     } else if (plot_type == "stream") {
         if (!is.null(group_by)) {
-            warning("[VelocityPlot] Ignoring 'group_by', which is not supported for 'stream' plot type.")
+            warning(
+                "[VelocityPlot] Ignoring 'group_by', which is not supported for 'stream' plot type."
+            )
         }
-        res <- .compute_velocity_on_grid(embedding, v_embedding,
-            density = density, smooth = smooth, n_neighbors = n_neighbors,
-            min_mass = min_mass, scale = 1, cutoff_perc = cutoff_perc,
+        res <- .compute_velocity_on_grid(
+            embedding,
+            v_embedding,
+            density = density,
+            smooth = smooth,
+            n_neighbors = n_neighbors,
+            min_mass = min_mass,
+            scale = 1,
+            cutoff_perc = cutoff_perc,
             adjust_for_stream = TRUE
         )
         x_grid <- res$x_grid
@@ -326,58 +496,157 @@ VelocityPlot <- function(
         if (!is.null(streamline_color)) {
             velocity_layer <- list(
                 metR::geom_streamline(
-                    data = df, aes(x = !!sym("x"), y = !!sym("y"), dx = !!sym("u"), dy = !!sym("v")),
-                    L = streamline_l, min.L = streamline_minl, res = streamline_res,
-                    n = streamline_n, linewidth = max(streamline_width, na.rm = TRUE) + streamline_bg_stroke, color = streamline_bg_color, alpha = streamline_alpha,
-                    arrow.type = "closed", arrow.angle = arrow_angle,
-                    lineend = "round", linejoin = "mitre", inherit.aes = FALSE
+                    data = df,
+                    aes(
+                        x = !!sym("x"),
+                        y = !!sym("y"),
+                        dx = !!sym("u"),
+                        dy = !!sym("v")
+                    ),
+                    L = streamline_l,
+                    min.L = streamline_minl,
+                    res = streamline_res,
+                    n = streamline_n,
+                    linewidth = max(streamline_width, na.rm = TRUE) +
+                        streamline_bg_stroke,
+                    color = streamline_bg_color,
+                    alpha = streamline_alpha,
+                    arrow.type = "closed",
+                    arrow.angle = arrow_angle,
+                    lineend = "round",
+                    linejoin = "mitre",
+                    inherit.aes = FALSE
                 ),
                 metR::geom_streamline(
-                    data = df, aes(x = !!sym("x"), y = !!sym("y"), dx = !!sym("u"), dy = !!sym("v")),
-                    L = streamline_l, min.L = streamline_minl, res = streamline_res,
-                    n = streamline_n, linewidth = max(streamline_width, na.rm = TRUE), color = streamline_color, alpha = streamline_alpha,
-                    arrow.type = "closed", arrow.angle = arrow_angle,
-                    lineend = "round", linejoin = "mitre", inherit.aes = FALSE
+                    data = df,
+                    aes(
+                        x = !!sym("x"),
+                        y = !!sym("y"),
+                        dx = !!sym("u"),
+                        dy = !!sym("v")
+                    ),
+                    L = streamline_l,
+                    min.L = streamline_minl,
+                    res = streamline_res,
+                    n = streamline_n,
+                    linewidth = max(streamline_width, na.rm = TRUE),
+                    color = streamline_color,
+                    alpha = streamline_alpha,
+                    arrow.type = "closed",
+                    arrow.angle = arrow_angle,
+                    lineend = "round",
+                    linejoin = "mitre",
+                    inherit.aes = FALSE
                 ),
                 metR::geom_streamline(
-                    data = df, aes(x = !!sym("x"), y = !!sym("y"), dx = !!sym("u"), dy = !!sym("v")),
-                    L = streamline_l, min.L = streamline_minl, res = streamline_res,
-                    n = streamline_n, linetype = 0, color = arrow_color,
-                    arrow.type = "closed", arrow.angle = arrow_angle,
-                    lineend = "round", linejoin = "mitre", inherit.aes = FALSE
+                    data = df,
+                    aes(
+                        x = !!sym("x"),
+                        y = !!sym("y"),
+                        dx = !!sym("u"),
+                        dy = !!sym("v")
+                    ),
+                    L = streamline_l,
+                    min.L = streamline_minl,
+                    res = streamline_res,
+                    n = streamline_n,
+                    linetype = 0,
+                    color = arrow_color,
+                    arrow.type = "closed",
+                    arrow.angle = arrow_angle,
+                    lineend = "round",
+                    linejoin = "mitre",
+                    inherit.aes = FALSE
                 )
             )
         } else {
             velocity_layer <- list(
                 metR::geom_streamline(
-                    data = df, aes(x = !!sym("x"), y = !!sym("y"), dx = !!sym("u"), dy = !!sym("v")),
-                    L = streamline_l, min.L = streamline_minl, res = streamline_res,
-                    n = streamline_n, linewidth = max(streamline_width, na.rm = TRUE) + streamline_bg_stroke, color = streamline_bg_color, alpha = streamline_alpha,
-                    arrow.type = "closed", arrow.angle = arrow_angle,
-                    lineend = "round", linejoin = "mitre", inherit.aes = FALSE
+                    data = df,
+                    aes(
+                        x = !!sym("x"),
+                        y = !!sym("y"),
+                        dx = !!sym("u"),
+                        dy = !!sym("v")
+                    ),
+                    L = streamline_l,
+                    min.L = streamline_minl,
+                    res = streamline_res,
+                    n = streamline_n,
+                    linewidth = max(streamline_width, na.rm = TRUE) +
+                        streamline_bg_stroke,
+                    color = streamline_bg_color,
+                    alpha = streamline_alpha,
+                    arrow.type = "closed",
+                    arrow.angle = arrow_angle,
+                    lineend = "round",
+                    linejoin = "mitre",
+                    inherit.aes = FALSE
                 ),
                 metR::geom_streamline(
-                    data = df, aes(x = !!sym("x"), y = !!sym("y"), dx = !!sym("u"), dy = !!sym("v"),
-                        linewidth = after_stat(!!sym("step")), color = sqrt(after_stat(!!sym("dx"))^2 + after_stat(!!sym("dy"))^2)),
-                    L = streamline_l, min.L = streamline_minl, res = streamline_res,
-                    n = streamline_n, alpha = streamline_alpha,
-                    arrow = NULL, lineend = "round", linejoin = "mitre", inherit.aes = FALSE
+                    data = df,
+                    aes(
+                        x = !!sym("x"),
+                        y = !!sym("y"),
+                        dx = !!sym("u"),
+                        dy = !!sym("v"),
+                        linewidth = after_stat(!!sym("step")),
+                        color = sqrt(
+                            after_stat(!!sym("dx"))^2 +
+                                after_stat(!!sym("dy"))^2
+                        )
+                    ),
+                    L = streamline_l,
+                    min.L = streamline_minl,
+                    res = streamline_res,
+                    n = streamline_n,
+                    alpha = streamline_alpha,
+                    arrow = NULL,
+                    lineend = "round",
+                    linejoin = "mitre",
+                    inherit.aes = FALSE
                 ),
                 metR::geom_streamline(
-                    data = df, aes(x = !!sym("x"), y = !!sym("y"), dx = !!sym("u"), dy = !!sym("v")),
-                    L = streamline_l, min.L = streamline_minl, res = streamline_res,
-                    n = streamline_n, linetype = 0, color = arrow_color,
-                    arrow.type = "closed", arrow.angle = arrow_angle,
-                    lineend = "round", linejoin = "mitre", inherit.aes = FALSE
+                    data = df,
+                    aes(
+                        x = !!sym("x"),
+                        y = !!sym("y"),
+                        dx = !!sym("u"),
+                        dy = !!sym("v")
+                    ),
+                    L = streamline_l,
+                    min.L = streamline_minl,
+                    res = streamline_res,
+                    n = streamline_n,
+                    linetype = 0,
+                    color = arrow_color,
+                    arrow.type = "closed",
+                    arrow.angle = arrow_angle,
+                    lineend = "round",
+                    linejoin = "mitre",
+                    inherit.aes = FALSE
                 ),
                 scale_color_gradientn(
-                    name = "Velocity", n.breaks = 4,
-                    colors = palette_this(palette = streamline_palette, palcolor = streamline_palcolor, reverse = palreverse),
-                    guide = guide_colorbar(frame.colour = "black", ticks.colour = "black", title.hjust = 0, order = 1)
+                    name = "Velocity",
+                    n.breaks = 4,
+                    colors = palette_this(
+                        palette = streamline_palette,
+                        palcolor = streamline_palcolor,
+                        reverse = palreverse
+                    ),
+                    guide = guide_colorbar(
+                        frame.colour = "black",
+                        ticks.colour = "black",
+                        title.hjust = 0,
+                        order = 1
+                    )
                 ),
                 scale_size(range = range(streamline_width), guide = "none")
             )
-            attr(velocity_layer, "scales") <- unique(c(attr(velocity_layer, "scales"), "color"))
+            attr(velocity_layer, "scales") <- unique(c(
+                attr(velocity_layer, "scales"),
+                "color"
+            ))
         }
     }
 

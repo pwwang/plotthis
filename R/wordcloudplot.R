@@ -24,14 +24,36 @@
 #' @importFrom tidyr unnest
 #' @importFrom dplyr all_of reframe slice_max distinct mutate group_by summarise n
 WordCloudPlotAtomic <- function(
-    data, word_by = NULL, sentence_by = NULL, count_by = NULL, score_by = NULL,
-    count_name = NULL, score_name = NULL,
-    words_excluded = plotthis::words_excluded, score_agg = mean, minchar = 2,
-    word_size = c(2, 8), top_words = 100,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, alpha = 1, palreverse = FALSE,
-    aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, seed = 8525, ...
+    data,
+    word_by = NULL,
+    sentence_by = NULL,
+    count_by = NULL,
+    score_by = NULL,
+    count_name = NULL,
+    score_name = NULL,
+    words_excluded = plotthis::words_excluded,
+    score_agg = mean,
+    minchar = 2,
+    word_size = c(2, 8),
+    top_words = 100,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Paired",
+    palcolor = NULL,
+    alpha = 1,
+    palreverse = FALSE,
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    seed = 8525,
+    ...
 ) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
@@ -44,7 +66,12 @@ WordCloudPlotAtomic <- function(
     if (!is.null(sentence_by) && !is.null(count_by)) {
         stop("Cannot specify 'count_by' when 'sentence_by' is specified.")
     }
-    facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
+    facet_by <- check_columns(
+        data,
+        facet_by,
+        force_factor = TRUE,
+        allow_multi = TRUE
+    )
     count_by <- check_columns(data, count_by)
     score_by <- check_columns(data, score_by)
     if (is.null(score_by)) {
@@ -59,7 +86,16 @@ WordCloudPlotAtomic <- function(
     if (!is.null(sentence_by)) {
         sentence_by <- check_columns(data, sentence_by)
         data <- data %>%
-            mutate(word = strsplit(tolower(gsub("[[:punct:]]", "", as.character(!!sym(sentence_by)))), "\\b\\s+\\b")) %>%
+            mutate(
+                word = strsplit(
+                    tolower(gsub(
+                        "[[:punct:]]",
+                        "",
+                        as.character(!!sym(sentence_by))
+                    )),
+                    "\\b\\s+\\b"
+                )
+            ) %>%
             unnest(cols = "word")
 
         if (length(facet_by) == 1) {
@@ -136,19 +172,65 @@ WordCloudPlotAtomic <- function(
         filter(!tolower(!!sym("word")) %in% tolower(words_excluded)) %>%
         distinct() %>%
         slice_max(order_by = !!sym("score"), n = top_words) %>%
-        mutate(angle = 90 * sample(c(0, 1), n(), replace = TRUE, prob = c(60, 40))) %>%
+        mutate(
+            angle = 90 * sample(c(0, 1), n(), replace = TRUE, prob = c(60, 40))
+        ) %>%
         as.data.frame()
 
-    colors <- palette_this(data$score, type = "continuous", palette = palette, palcolor = palcolor, matched = FALSE, reverse = palreverse)
-    colors_value <- seq(min(data$score, na.rm = TRUE), quantile(data$score, 0.99, na.rm = TRUE) + 0.001, length.out = 100)
-    p <- ggplot(data, aes(label = !!sym("word"), size = !!sym("count"), color = !!sym("score"), angle = !!sym("angle"))) +
-        ggwordcloud::geom_text_wordcloud(rm_outside = TRUE, eccentricity = 1, shape = "square", show.legend = TRUE, grid_margin = 3) +
-        scale_color_gradientn(
-            name = score_name %||% "Score", colours = colors, values = scales::rescale(colors_value),
-            guide = guide_colorbar(frame.colour = "black", ticks.colour = "black", title.hjust = 0)
+    colors <- palette_this(
+        data$score,
+        type = "continuous",
+        palette = palette,
+        palcolor = palcolor,
+        matched = FALSE,
+        reverse = palreverse
+    )
+    colors_value <- seq(
+        min(data$score, na.rm = TRUE),
+        quantile(data$score, 0.99, na.rm = TRUE) + 0.001,
+        length.out = 100
+    )
+    p <- ggplot(
+        data,
+        aes(
+            label = !!sym("word"),
+            size = !!sym("count"),
+            color = !!sym("score"),
+            angle = !!sym("angle")
+        )
+    ) +
+        ggwordcloud::geom_text_wordcloud(
+            rm_outside = TRUE,
+            eccentricity = 1,
+            shape = "square",
+            show.legend = TRUE,
+            grid_margin = 3
         ) +
-        scale_size(name = count_name %||% "Count", range = word_size, breaks = ceiling(seq(min(data$count, na.rm = TRUE), max(data$count, na.rm = TRUE), length.out = 3))) +
-        guides(size = guide_legend(override.aes = list(colour = "black", label = "G"), order = 1)) +
+        scale_color_gradientn(
+            name = score_name %||% "Score",
+            colours = colors,
+            values = scales::rescale(colors_value),
+            guide = guide_colorbar(
+                frame.colour = "black",
+                ticks.colour = "black",
+                title.hjust = 0
+            )
+        ) +
+        scale_size(
+            name = count_name %||% "Count",
+            range = word_size,
+            breaks = ceiling(seq(
+                min(data$count, na.rm = TRUE),
+                max(data$count, na.rm = TRUE),
+                length.out = 3
+            ))
+        ) +
+        guides(
+            size = guide_legend(
+                override.aes = list(colour = "black", label = "G"),
+                order = 1
+            )
+        ) +
         labs(title = title, subtitle = subtitle) +
         coord_flip() +
         do.call(theme, theme_args) +
@@ -186,19 +268,57 @@ WordCloudPlotAtomic <- function(
 #' )
 #' WordCloudPlot(data, word_by = "word", count_by = "count", score_by = "score")
 WordCloudPlot <- function(
-    data, word_by = NULL, sentence_by = NULL, count_by = NULL, score_by = NULL,
-    count_name = NULL, score_name = NULL, split_by = NULL, split_by_sep = "_",
-    words_excluded = plotthis::words_excluded, score_agg = mean, minchar = 2,
-    word_size = c(2, 8), top_words = 100,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    theme = "theme_this", theme_args = list(), palette = "Spectral", palcolor = NULL, alpha = 1, palreverse = FALSE,
-    aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
-    axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...
-    ) {
+    data,
+    word_by = NULL,
+    sentence_by = NULL,
+    count_by = NULL,
+    score_by = NULL,
+    count_name = NULL,
+    score_name = NULL,
+    split_by = NULL,
+    split_by_sep = "_",
+    words_excluded = plotthis::words_excluded,
+    score_agg = mean,
+    minchar = 2,
+    word_size = c(2, 8),
+    top_words = 100,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Spectral",
+    palcolor = NULL,
+    alpha = 1,
+    palreverse = FALSE,
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    seed = 8525,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
+    ...
+) {
     validate_common_args(seed, facet_by = facet_by)
     theme <- process_theme(theme)
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
+    split_by <- check_columns(
+        data,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
 
     if (!is.null(split_by)) {
         data[[split_by]] <- droplevels(data[[split_by]])
@@ -211,31 +331,77 @@ WordCloudPlot <- function(
     }
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
-    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
-    legend.position <- check_legend(legend.position, names(datas), "legend.position")
+    legend.direction <- check_legend(
+        legend.direction,
+        names(datas),
+        "legend.direction"
+    )
+    legend.position <- check_legend(
+        legend.position,
+        names(datas),
+        "legend.position"
+    )
 
     plots <- lapply(
-        names(datas), function(nm) {
-            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+        names(datas),
+        function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) {
+                NULL
+            } else {
+                nm
+            }
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
                 title <- title %||% default_title
             }
-            WordCloudPlotAtomic(datas[[nm]],
-                word_by = word_by, sentence_by = sentence_by, count_by = count_by, score_by = score_by,
-                count_name = count_name, score_name = score_name, words_excluded = words_excluded, score_agg = score_agg, minchar = minchar,
-                word_size = word_size, top_words = top_words,
-                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], alpha = alpha, palreverse = palreverse,
-                aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                title = title, subtitle = subtitle, seed = seed, ...
+            WordCloudPlotAtomic(
+                datas[[nm]],
+                word_by = word_by,
+                sentence_by = sentence_by,
+                count_by = count_by,
+                score_by = score_by,
+                count_name = count_name,
+                score_name = score_name,
+                words_excluded = words_excluded,
+                score_agg = score_agg,
+                minchar = minchar,
+                word_size = word_size,
+                top_words = top_words,
+                facet_by = facet_by,
+                facet_scales = facet_scales,
+                facet_ncol = facet_ncol,
+                facet_nrow = facet_nrow,
+                facet_byrow = facet_byrow,
+                theme = theme,
+                theme_args = theme_args,
+                palette = palette[[nm]],
+                palcolor = palcolor[[nm]],
+                alpha = alpha,
+                palreverse = palreverse,
+                aspect.ratio = aspect.ratio,
+                legend.position = legend.position[[nm]],
+                legend.direction = legend.direction[[nm]],
+                title = title,
+                subtitle = subtitle,
+                seed = seed,
+                ...
             )
         }
     )
 
     names(plots) <- names(datas)
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }

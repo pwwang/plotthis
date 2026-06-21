@@ -53,14 +53,51 @@
 #' @importFrom ggnewscale new_scale_fill
 #' @importFrom ggplot2 geom_col scale_fill_manual geom_label after_stat scale_x_discrete scale_y_continuous labs coord_flip
 SankeyPlotAtomic <- function(
-    data, in_form = c("auto", "long", "lodes", "wide", "alluvia", "counts"), x, x_sep = "_", y = NULL,
-    stratum = NULL, stratum_sep = "_", alluvium = NULL, alluvium_sep = "_", flow = FALSE,
-    nodes_color = "grey30", links_fill_by = NULL, links_fill_by_sep = "_", links_name = NULL, links_color = "gray80",
-    nodes_palette = "Paired", nodes_palcolor = NULL, palreverse = FALSE, nodes_alpha = 1, nodes_label = FALSE, nodes_width = 0.25,  nodes_label_miny = 0,
-    nodes_legend = c("auto", "separate", "merge", "none"), expand = c(0, 0, 0, 0), links_palette = "Paired", links_palcolor = NULL,
-    links_alpha = 0.6, legend.box = "vertical", keep_empty = TRUE, x_text_angle = 0, aspect.ratio = 1, legend.position = "right",
-    legend.direction = "vertical", flip = FALSE, theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL,
-    xlab = NULL, ylab = NULL, facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
+    data,
+    in_form = c("auto", "long", "lodes", "wide", "alluvia", "counts"),
+    x,
+    x_sep = "_",
+    y = NULL,
+    stratum = NULL,
+    stratum_sep = "_",
+    alluvium = NULL,
+    alluvium_sep = "_",
+    flow = FALSE,
+    nodes_color = "grey30",
+    links_fill_by = NULL,
+    links_fill_by_sep = "_",
+    links_name = NULL,
+    links_color = "gray80",
+    nodes_palette = "Paired",
+    nodes_palcolor = NULL,
+    palreverse = FALSE,
+    nodes_alpha = 1,
+    nodes_label = FALSE,
+    nodes_width = 0.25,
+    nodes_label_miny = 0,
+    nodes_legend = c("auto", "separate", "merge", "none"),
+    expand = c(0, 0, 0, 0),
+    links_palette = "Paired",
+    links_palcolor = NULL,
+    links_alpha = 0.6,
+    legend.box = "vertical",
+    keep_empty = TRUE,
+    x_text_angle = 0,
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    flip = FALSE,
+    theme = "theme_this",
+    theme_args = list(),
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
     ...
 ) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
@@ -72,59 +109,170 @@ SankeyPlotAtomic <- function(
     is_flowcounts <- FALSE
     nodes_legend <- match.arg(nodes_legend)
     in_form <- match.arg(in_form)
-    if (in_form == "long") in_form <- "lodes"
-    if (in_form == "wide") in_form <- "alluvia"
+    if (in_form == "long") {
+        in_form <- "lodes"
+    }
+    if (in_form == "wide") {
+        in_form <- "alluvia"
+    }
     if (in_form == "lodes") {
-        x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
-        alluvium <- check_columns(data, alluvium, force_factor = TRUE, allow_multi = TRUE,
-            concat_multi = TRUE, concat_sep = alluvium_sep)
-        links_fill_by <- check_columns(data, links_fill_by, force_factor = TRUE, allow_multi = TRUE,
-            concat_multi = TRUE, concat_sep = links_fill_by_sep) %||% alluvium
-        stratum <- check_columns(data, stratum, force_factor = TRUE, allow_multi = TRUE,
-            concat_multi = TRUE, concat_sep = stratum_sep) %||% links_fill_by
+        x <- check_columns(
+            data,
+            x,
+            force_factor = TRUE,
+            allow_multi = TRUE,
+            concat_multi = TRUE,
+            concat_sep = x_sep
+        )
+        alluvium <- check_columns(
+            data,
+            alluvium,
+            force_factor = TRUE,
+            allow_multi = TRUE,
+            concat_multi = TRUE,
+            concat_sep = alluvium_sep
+        )
+        links_fill_by <- check_columns(
+            data,
+            links_fill_by,
+            force_factor = TRUE,
+            allow_multi = TRUE,
+            concat_multi = TRUE,
+            concat_sep = links_fill_by_sep
+        ) %||%
+            alluvium
+        stratum <- check_columns(
+            data,
+            stratum,
+            force_factor = TRUE,
+            allow_multi = TRUE,
+            concat_multi = TRUE,
+            concat_sep = stratum_sep
+        ) %||%
+            links_fill_by
         if (is.null(y)) {
-            data <- add_count(data, !!!syms(unique(c(x, stratum, alluvium, links_fill_by, facet_by))), name = ".y")
+            data <- add_count(
+                data,
+                !!!syms(unique(c(
+                    x,
+                    stratum,
+                    alluvium,
+                    links_fill_by,
+                    facet_by
+                ))),
+                name = ".y"
+            )
             y <- ".y"
         }
-    } else if (!identical(x[1], ".") &&
-        (in_form == "counts" || (in_form == "auto" && length(x) > 1 && all(sapply(data[, x, drop = FALSE], is.numeric))))) {
+    } else if (
+        !identical(x[1], ".") &&
+            (in_form == "counts" ||
+                (in_form == "auto" &&
+                    length(x) > 1 &&
+                    all(sapply(data[, x, drop = FALSE], is.numeric))))
+    ) {
         x <- check_columns(data, x, allow_multi = TRUE)
         # if (!is.null(stratum)) warning("[SankeyPlot] 'stratum' is ignored in 'counts' format.")
-        if (!is.null(y)) warning("[SankeyPlot] 'y' is ignored in 'counts' format.")
+        if (!is.null(y)) {
+            warning("[SankeyPlot] 'y' is ignored in 'counts' format.")
+        }
         if (is.null(alluvium)) {
             alluvium <- "alluvium"
             data[[alluvium]] <- as.character(1:nrow(data))
         } else {
-            alluvium <- check_columns(data, alluvium, force_factor = TRUE, allow_multi = TRUE,
-                concat_multi = TRUE, concat_sep = alluvium_sep)
+            alluvium <- check_columns(
+                data,
+                alluvium,
+                force_factor = TRUE,
+                allow_multi = TRUE,
+                concat_multi = TRUE,
+                concat_sep = alluvium_sep
+            )
         }
-        links_fill_by <- check_columns(data, links_fill_by, force_factor = TRUE, allow_multi = TRUE,
-            concat_multi = TRUE, concat_sep = links_fill_by_sep) %||% alluvium
-        data <- pivot_longer(data, cols = x, names_to = "x", values_to = "Frequency")
+        links_fill_by <- check_columns(
+            data,
+            links_fill_by,
+            force_factor = TRUE,
+            allow_multi = TRUE,
+            concat_multi = TRUE,
+            concat_sep = links_fill_by_sep
+        ) %||%
+            alluvium
+        data <- pivot_longer(
+            data,
+            cols = x,
+            names_to = "x",
+            values_to = "Frequency"
+        )
         data$x <- factor(data$x, levels = x)
-        stratum <- check_columns(data, stratum, force_factor = TRUE, allow_multi = TRUE,
-            concat_multi = TRUE, concat_sep = stratum_sep) %||% links_fill_by
+        stratum <- check_columns(
+            data,
+            stratum,
+            force_factor = TRUE,
+            allow_multi = TRUE,
+            concat_multi = TRUE,
+            concat_sep = stratum_sep
+        ) %||%
+            links_fill_by
         x <- "x"
         y <- "Frequency"
-    } else if (identical(x[1], ".") &&
-        (in_form == "counts" || (in_form == "auto" && length(x) > 1 && all(sapply(data[, x[-1], drop = FALSE], is.numeric))))) {
+    } else if (
+        identical(x[1], ".") &&
+            (in_form == "counts" ||
+                (in_form == "auto" &&
+                    length(x) > 1 &&
+                    all(sapply(data[, x[-1], drop = FALSE], is.numeric))))
+    ) {
         is_flowcounts <- TRUE
         x <- check_columns(data, x[-1], allow_multi = TRUE)
-        stratum <- check_columns(data, stratum, force_factor = TRUE, allow_multi = TRUE,
-            concat_multi = TRUE, concat_sep = stratum_sep)
-        stratum_levels <- if (is.null(stratum)) NULL else levels(data[[stratum]])
-        if (!is.null(y)) warning("[SankeyPlot] 'y' is ignored in 'counts' format.")
+        stratum <- check_columns(
+            data,
+            stratum,
+            force_factor = TRUE,
+            allow_multi = TRUE,
+            concat_multi = TRUE,
+            concat_sep = stratum_sep
+        )
+        stratum_levels <- if (is.null(stratum)) {
+            NULL
+        } else {
+            levels(data[[stratum]])
+        }
+        if (!is.null(y)) {
+            warning("[SankeyPlot] 'y' is ignored in 'counts' format.")
+        }
         if (is.null(alluvium)) {
             alluvium <- "alluvium"
             data[[alluvium]] <- as.character(1:nrow(data))
         } else {
-            alluvium <- check_columns(data, alluvium, force_factor = TRUE, allow_multi = TRUE,
-                concat_multi = TRUE, concat_sep = alluvium_sep)
+            alluvium <- check_columns(
+                data,
+                alluvium,
+                force_factor = TRUE,
+                allow_multi = TRUE,
+                concat_multi = TRUE,
+                concat_sep = alluvium_sep
+            )
         }
-        links_fill_by <- check_columns(data, links_fill_by, force_factor = TRUE, allow_multi = TRUE,
-            concat_multi = TRUE, concat_sep = links_fill_by_sep)
-        stopifnot("[SankeyPlot] The 'links_fill_by' must be provided in 'counts' format." = !is.null(links_fill_by))
-        data <- pivot_longer(data, cols = x, names_to = "x", values_to = "Frequency")
+        links_fill_by <- check_columns(
+            data,
+            links_fill_by,
+            force_factor = TRUE,
+            allow_multi = TRUE,
+            concat_multi = TRUE,
+            concat_sep = links_fill_by_sep
+        )
+        stopifnot(
+            "[SankeyPlot] The 'links_fill_by' must be provided in 'counts' format." = !is.null(
+                links_fill_by
+            )
+        )
+        data <- pivot_longer(
+            data,
+            cols = x,
+            names_to = "x",
+            values_to = "Frequency"
+        )
         if (is.null(stratum)) {
             stratum <- links_fill_by
         } else {
@@ -135,61 +283,166 @@ SankeyPlotAtomic <- function(
         dotdata[[stratum]] <- dotdata[[links_fill_by]]
         data <- rbind(data, dotdata)
         data$x <- factor(data$x, levels = unique(c(links_fill_by, x)))
-        data[[stratum]] <- factor(data[[stratum]], levels = unique(c(levels(data[[links_fill_by]]), stratum_levels)))
+        data[[stratum]] <- factor(
+            data[[stratum]],
+            levels = unique(c(levels(data[[links_fill_by]]), stratum_levels))
+        )
         x <- "x"
         y <- "Frequency"
-    } else if (in_form == "alluvia" || (in_form == "auto" && length(x) > 1 && ggalluvial::is_alluvia_form(data, axes = x, weight = y))) {
+    } else if (
+        in_form == "alluvia" ||
+            (in_form == "auto" &&
+                length(x) > 1 &&
+                ggalluvial::is_alluvia_form(data, axes = x, weight = y))
+    ) {
         x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE)
-        stopifnot("[SankeyPlot] 'x' must be at least 2 columns in 'alluvia' format." = length(x) >= 2)
-        if (!is.null(stratum)) warning("[SankeyPlot] 'stratum' is ignored in 'alluvia' format.")
-        if (!is.null(alluvium)) warning("[SankeyPlot] 'alluvium' is ignored in 'alluvia' format.")
-        links_fill_by <- check_columns(data, links_fill_by, force_factor = TRUE, allow_multi = TRUE,
-            concat_multi = TRUE, concat_sep = links_fill_by_sep)
+        stopifnot(
+            "[SankeyPlot] 'x' must be at least 2 columns in 'alluvia' format." = length(
+                x
+            ) >=
+                2
+        )
+        if (!is.null(stratum)) {
+            warning("[SankeyPlot] 'stratum' is ignored in 'alluvia' format.")
+        }
+        if (!is.null(alluvium)) {
+            warning("[SankeyPlot] 'alluvium' is ignored in 'alluvia' format.")
+        }
+        links_fill_by <- check_columns(
+            data,
+            links_fill_by,
+            force_factor = TRUE,
+            allow_multi = TRUE,
+            concat_multi = TRUE,
+            concat_sep = links_fill_by_sep
+        )
         if (is.null(y)) {
-            data <- add_count(data, !!!syms(unique(c(x, links_fill_by, facet_by))), name = ".y")
+            data <- add_count(
+                data,
+                !!!syms(unique(c(x, links_fill_by, facet_by))),
+                name = ".y"
+            )
             y <- ".y"
         }
         # make a copy of links_fill_by in case it's one of x or alluvium that gets transformed later
         if (!is.null(links_fill_by) && links_fill_by %in% x) {
             is_flowcounts <- identical(links_fill_by, x[1])
-            data <- ggalluvial::to_lodes_form(data, axes = x, diffuse = !!sym(links_fill_by))
+            data <- ggalluvial::to_lodes_form(
+                data,
+                axes = x,
+                diffuse = !!sym(links_fill_by)
+            )
         } else {
             data <- ggalluvial::to_lodes_form(data, axes = x)
         }
         x <- "x"
         alluvium <- "alluvium"
         stratum <- "stratum"
-    } else {  # maybe lodes
-        x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
-        alluvium <- check_columns(data, alluvium, force_factor = TRUE, allow_multi = TRUE,
-            concat_multi = TRUE, concat_sep = alluvium_sep)
-        links_fill_by <- check_columns(data, links_fill_by, force_factor = TRUE, allow_multi = TRUE,
-            concat_multi = TRUE, concat_sep = links_fill_by_sep) %||% alluvium
-        stratum <- check_columns(data, stratum, force_factor = TRUE, allow_multi = TRUE,
-            concat_multi = TRUE, concat_sep = stratum_sep) %||% links_fill_by
-        if (!ggalluvial::is_lodes_form(data, key = x, value = stratum, id = alluvium)) {
-            stop("[SankeyPlot] 'data' must be in 'lodes/long' or 'alluvia/wide' format.")
+    } else {
+        # maybe lodes
+        x <- check_columns(
+            data,
+            x,
+            force_factor = TRUE,
+            allow_multi = TRUE,
+            concat_multi = TRUE,
+            concat_sep = x_sep
+        )
+        alluvium <- check_columns(
+            data,
+            alluvium,
+            force_factor = TRUE,
+            allow_multi = TRUE,
+            concat_multi = TRUE,
+            concat_sep = alluvium_sep
+        )
+        links_fill_by <- check_columns(
+            data,
+            links_fill_by,
+            force_factor = TRUE,
+            allow_multi = TRUE,
+            concat_multi = TRUE,
+            concat_sep = links_fill_by_sep
+        ) %||%
+            alluvium
+        stratum <- check_columns(
+            data,
+            stratum,
+            force_factor = TRUE,
+            allow_multi = TRUE,
+            concat_multi = TRUE,
+            concat_sep = stratum_sep
+        ) %||%
+            links_fill_by
+        if (
+            !ggalluvial::is_lodes_form(
+                data,
+                key = x,
+                value = stratum,
+                id = alluvium
+            )
+        ) {
+            stop(
+                "[SankeyPlot] 'data' must be in 'lodes/long' or 'alluvia/wide' format."
+            )
         }
         if (is.null(y)) {
-            data <- add_count(data, !!!syms(unique(c(x, stratum, alluvium, links_fill_by, facet_by))), name = ".y")
+            data <- add_count(
+                data,
+                !!!syms(unique(c(
+                    x,
+                    stratum,
+                    alluvium,
+                    links_fill_by,
+                    facet_by
+                ))),
+                name = ".y"
+            )
             y <- ".y"
         }
     }
 
-    nodes_colors <- palette_this(levels(data[[stratum]]), palette = nodes_palette, palcolor = nodes_palcolor, reverse = palreverse)
-    links_colors <- palette_this(levels(data[[links_fill_by]]), palette = links_palette, palcolor = links_palcolor, reverse = palreverse)
-    links_guide = guide_legend(order = 1, override.aes = list(alpha = min(links_alpha + 0.2, 1), color = "transparent"))
+    nodes_colors <- palette_this(
+        levels(data[[stratum]]),
+        palette = nodes_palette,
+        palcolor = nodes_palcolor,
+        reverse = palreverse
+    )
+    links_colors <- palette_this(
+        levels(data[[links_fill_by]]),
+        palette = links_palette,
+        palcolor = links_palcolor,
+        reverse = palreverse
+    )
+    links_guide <- guide_legend(
+        order = 1,
+        override.aes = list(
+            alpha = min(links_alpha + 0.2, 1),
+            color = "transparent"
+        )
+    )
     if (is_flowcounts) {
         if (identical(nodes_colors[names(links_colors)], links_colors)) {
             links_guide <- "none"
-        } else if (identical(links_palette, nodes_palette) && identical(links_palcolor, nodes_palcolor)) {
+        } else if (
+            identical(links_palette, nodes_palette) &&
+                identical(links_palcolor, nodes_palcolor)
+        ) {
             links_guide <- "none"
             # Plotting the flow of the first column of nodes. Links guide is still showing because
             # the first column of nodes have different colors as the links. It is probably because nodes_palette
             # does not have enough colors. Please use a palette with more colors for both
             # nodes_palette and links_palette.
-            nodes_colors1 <- palette_this(levels(data[[links_fill_by]]), palette = nodes_palette, palcolor = nodes_palcolor, reverse = palreverse)
-            nodes_colors <- c(nodes_colors1, nodes_colors[setdiff(names(nodes_colors), names(nodes_colors1))])
+            nodes_colors1 <- palette_this(
+                levels(data[[links_fill_by]]),
+                palette = nodes_palette,
+                palcolor = nodes_palcolor,
+                reverse = palreverse
+            )
+            nodes_colors <- c(
+                nodes_colors1,
+                nodes_colors[setdiff(names(nodes_colors), names(nodes_colors1))]
+            )
         }
     }
 
@@ -198,19 +451,33 @@ SankeyPlotAtomic <- function(
     text_size_scale <- base_size / 12
     expand <- norm_expansion(expand, x_type = "discrete", y_type = "continuous")
     if (nodes_legend == "auto") {
-        if (isTRUE(nodes_label) || (identical(stratum, links_fill_by) && identical(nodes_colors, links_colors))) {
+        if (
+            isTRUE(nodes_label) ||
+                (identical(stratum, links_fill_by) &&
+                    identical(nodes_colors, links_colors))
+        ) {
             nodes_legend <- "none"
         } else {
             stratum_values <- lapply(levels(data[[x]]), function(xval) {
-                as.character(unique(data[data[[x]] == xval, stratum, drop = TRUE]))
+                as.character(unique(data[
+                    data[[x]] == xval,
+                    stratum,
+                    drop = TRUE
+                ]))
             })
             idxes <- combn(seq_along(stratum_values), 2)
             nodes_legend <- ifelse(
                 !is_flowcounts &&
-                any(sapply(
-                    as.data.frame(idxes),
-                    function(idx) length(intersect(stratum_values[[idx[1]]], stratum_values[[idx[2]]])) > 0
-                )),
+                    any(sapply(
+                        as.data.frame(idxes),
+                        function(idx) {
+                            length(intersect(
+                                stratum_values[[idx[1]]],
+                                stratum_values[[idx[2]]]
+                            )) >
+                                0
+                        }
+                    )),
                 "merge",
                 "separate"
             )
@@ -219,7 +486,13 @@ SankeyPlotAtomic <- function(
 
     p <- ggplot(
         data = data,
-        aes(x = !!sym(x), stratum = !!sym(stratum), alluvium = !!sym(alluvium), y = !!sym(y)))
+        aes(
+            x = !!sym(x),
+            stratum = !!sym(stratum),
+            alluvium = !!sym(alluvium),
+            y = !!sym(y)
+        )
+    )
 
     # fill nodes on each x so they can have different legends/guides
     # but when stratum and alluvium are the same, they should be filled with the same palette
@@ -230,51 +503,121 @@ SankeyPlotAtomic <- function(
             xdf <- xdf[order(xdf[[stratum]]), , drop = FALSE]
             p <- p +
                 geom_col(
-                    data = xdf, inherit.aes = FALSE,
-                    aes(x = !!sym(x), fill = !!sym(stratum), y = 0), width = 0) +
-                scale_fill_manual(name = xs[i], values = nodes_colors, breaks = unique(xdf[[stratum]]),
-                    guide = guide_legend(order = i + 1, override.aes = list(alpha = min(nodes_alpha + 0.2, 1)))) +
+                    data = xdf,
+                    inherit.aes = FALSE,
+                    aes(x = !!sym(x), fill = !!sym(stratum), y = 0),
+                    width = 0
+                ) +
+                scale_fill_manual(
+                    name = xs[i],
+                    values = nodes_colors,
+                    breaks = unique(xdf[[stratum]]),
+                    guide = guide_legend(
+                        order = i + 1,
+                        override.aes = list(alpha = min(nodes_alpha + 0.2, 1))
+                    )
+                ) +
                 new_scale_fill()
         }
     }
 
     if (!isTRUE(flow)) {
         if (identical(links_color, ".fill")) {
-            p <- p + ggalluvial::geom_alluvium(aes(fill = !!sym(links_fill_by), color = !!sym(links_fill_by)), width = nodes_width,
-                alpha = links_alpha, na.rm = !keep_empty, ...) +
+            p <- p +
+                ggalluvial::geom_alluvium(
+                    aes(
+                        fill = !!sym(links_fill_by),
+                        color = !!sym(links_fill_by)
+                    ),
+                    width = nodes_width,
+                    alpha = links_alpha,
+                    na.rm = !keep_empty,
+                    ...
+                ) +
                 scale_color_manual(guide = "none", values = links_colors)
         } else {
-            p <- p + ggalluvial::geom_alluvium(aes(fill = !!sym(links_fill_by)), width = nodes_width, alpha = links_alpha,
-                color = links_color, na.rm = !keep_empty, ...)
+            p <- p +
+                ggalluvial::geom_alluvium(
+                    aes(fill = !!sym(links_fill_by)),
+                    width = nodes_width,
+                    alpha = links_alpha,
+                    color = links_color,
+                    na.rm = !keep_empty,
+                    ...
+                )
         }
     } else {
         if (identical(links_color, ".fill")) {
             # stratum changed to "stratum" after flow stat
             if (identical(stratum, links_fill_by)) {
-                p <- p + ggalluvial::geom_flow(aes(fill = after_stat(!!sym("stratum")), color = after_stat(!!sym("stratum"))),
-                    width = nodes_width, alpha = links_alpha, na.rm = !keep_empty, ...) +
+                p <- p +
+                    ggalluvial::geom_flow(
+                        aes(
+                            fill = after_stat(!!sym("stratum")),
+                            color = after_stat(!!sym("stratum"))
+                        ),
+                        width = nodes_width,
+                        alpha = links_alpha,
+                        na.rm = !keep_empty,
+                        ...
+                    ) +
                     scale_color_manual(guide = "none", values = links_colors)
             } else {
-
-                p <- p + ggalluvial::geom_flow(aes(fill = !!sym(links_fill_by), color = !!sym(links_fill_by)), width = nodes_width,
-                    alpha = links_alpha, na.rm = !keep_empty, ...) +
+                p <- p +
+                    ggalluvial::geom_flow(
+                        aes(
+                            fill = !!sym(links_fill_by),
+                            color = !!sym(links_fill_by)
+                        ),
+                        width = nodes_width,
+                        alpha = links_alpha,
+                        na.rm = !keep_empty,
+                        ...
+                    ) +
                     scale_color_manual(guide = "none", values = links_colors)
             }
         } else {
             if (identical(stratum, links_fill_by)) {
-                p <- p + ggalluvial::geom_flow(aes(fill = after_stat(!!sym("stratum"))), width = nodes_width, alpha = links_alpha,
-                    color = links_color, na.rm = !keep_empty, ...) +
+                p <- p +
+                    ggalluvial::geom_flow(
+                        aes(fill = after_stat(!!sym("stratum"))),
+                        width = nodes_width,
+                        alpha = links_alpha,
+                        color = links_color,
+                        na.rm = !keep_empty,
+                        ...
+                    ) +
                     scale_color_manual(guide = "none", values = links_colors)
             } else if (dots_n(...) == 0 || !"stat" %in% names(list(...))) {
-                p <- p + ggalluvial::geom_flow(aes(fill = !!sym(links_fill_by)), width = nodes_width, alpha = links_alpha,
-                    color = links_color, na.rm = !keep_empty, stat = "alluvium", ...)
+                p <- p +
+                    ggalluvial::geom_flow(
+                        aes(fill = !!sym(links_fill_by)),
+                        width = nodes_width,
+                        alpha = links_alpha,
+                        color = links_color,
+                        na.rm = !keep_empty,
+                        stat = "alluvium",
+                        ...
+                    )
             } else {
                 warning(
                     "[SankeyPlot] You probably see no color filling for the links. ",
-                    paste0("This is because 'flow' stat of ggalluvial::geom_flow loses '", links_fill_by, "' "),
-                    "while building the plot. Please use 'stat = 'alluvium' instead.")
-                p <- p + ggalluvial::geom_flow(aes(fill = !!sym(links_fill_by)), width = nodes_width, alpha = links_alpha,
-                    color = links_color, na.rm = !keep_empty, ...)
+                    paste0(
+                        "This is because 'flow' stat of ggalluvial::geom_flow loses '",
+                        links_fill_by,
+                        "' "
+                    ),
+                    "while building the plot. Please use 'stat = 'alluvium' instead."
+                )
+                p <- p +
+                    ggalluvial::geom_flow(
+                        aes(fill = !!sym(links_fill_by)),
+                        width = nodes_width,
+                        alpha = links_alpha,
+                        color = links_color,
+                        na.rm = !keep_empty,
+                        ...
+                    )
             }
         }
     }
@@ -282,42 +625,63 @@ SankeyPlotAtomic <- function(
     p <- p +
         scale_fill_manual(
             name = links_name %||% links_fill_by,
-            values = links_colors, breaks = levels(data[[links_fill_by]]),
-            guide = links_guide) +
+            values = links_colors,
+            breaks = levels(data[[links_fill_by]]),
+            guide = links_guide
+        ) +
         new_scale_fill()
 
     if (identical(nodes_color, ".fill")) {
         p <- p +
-            ggalluvial::geom_stratum(aes(fill = !!sym(stratum), color = !!sym(stratum)), alpha = nodes_alpha,
-                width = nodes_width, na.rm = !keep_empty) +
+            ggalluvial::geom_stratum(
+                aes(fill = !!sym(stratum), color = !!sym(stratum)),
+                alpha = nodes_alpha,
+                width = nodes_width,
+                na.rm = !keep_empty
+            ) +
             scale_color_manual(guide = "none", values = nodes_colors)
     } else {
         p <- p +
-            ggalluvial::geom_stratum(aes(fill = !!sym(stratum)), alpha = nodes_alpha, width = nodes_width,
-                color = nodes_color, na.rm = !keep_empty)
+            ggalluvial::geom_stratum(
+                aes(fill = !!sym(stratum)),
+                alpha = nodes_alpha,
+                width = nodes_width,
+                color = nodes_color,
+                na.rm = !keep_empty
+            )
     }
 
     p <- p +
         scale_fill_manual(
             values = nodes_colors,
             breaks = levels(data[[stratum]]),
-            guide = ifelse(nodes_legend %in% c("none", "separate"), "none", "legend")
+            guide = ifelse(
+                nodes_legend %in% c("none", "separate"),
+                "none",
+                "legend"
+            )
         )
 
     if (isTRUE(nodes_label)) {
-        p <- p + geom_label(
-            aes(label = !!sym(stratum)),
-            stat = ggalluvial::StatStratum,
-            min.y = nodes_label_miny,
-            size = text_size_scale * 3)
+        p <- p +
+            geom_label(
+                aes(label = !!sym(stratum)),
+                stat = ggalluvial::StatStratum,
+                min.y = nodes_label_miny,
+                size = text_size_scale * 3
+            )
     }
 
     p <- p +
         scale_x_discrete(expand = expand$x) +
         scale_y_continuous(expand = expand$y) +
         do.call(theme, theme_args) +
-        labs(title = title, subtitle = subtitle, x = xlab %||% x,
-            y = ylab %||% ifelse(identical(y, ".y"), links_fill_by, "Frequency")) +
+        labs(
+            title = title,
+            subtitle = subtitle,
+            x = xlab %||% x,
+            y = ylab %||% ifelse(identical(y, ".y"), links_fill_by, "Frequency")
+        ) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
             legend.position = legend.position,
@@ -327,7 +691,11 @@ SankeyPlotAtomic <- function(
             panel.grid.minor = element_blank(),
             panel.border = element_blank(),
             axis.ticks.x = element_blank(),
-            axis.text.x = element_text(angle = x_text_angle, hjust = just$h, vjust = just$v)
+            axis.text.x = element_text(
+                angle = x_text_angle,
+                hjust = just$h,
+                vjust = just$v
+            )
         )
 
     if (isTRUE(flip)) {
@@ -339,8 +707,14 @@ SankeyPlotAtomic <- function(
             y_scale_factor = 1.5,
             legend.position = legend.position,
             legend.direction = legend.direction,
-            legend_n = length(unique(c(levels(data[[stratum]]), levels(data[[links_fill_by]])))),
-            legend_nchar = max(nchar(unique(c(levels(data[[stratum]]), levels(data[[links_fill_by]]))))),
+            legend_n = length(unique(c(
+                levels(data[[stratum]]),
+                levels(data[[links_fill_by]])
+            ))),
+            legend_nchar = max(nchar(unique(c(
+                levels(data[[stratum]]),
+                levels(data[[links_fill_by]])
+            )))),
             flip = TRUE
         )
         attr(p, "height") <- dims$height
@@ -353,15 +727,29 @@ SankeyPlotAtomic <- function(
             x_scale_factor = 1.5,
             legend.position = legend.position,
             legend.direction = legend.direction,
-            legend_n = length(unique(c(levels(data[[stratum]]), levels(data[[links_fill_by]])))),
-            legend_nchar = max(nchar(unique(c(levels(data[[stratum]]), levels(data[[links_fill_by]])))))
+            legend_n = length(unique(c(
+                levels(data[[stratum]]),
+                levels(data[[links_fill_by]])
+            ))),
+            legend_nchar = max(nchar(unique(c(
+                levels(data[[stratum]]),
+                levels(data[[links_fill_by]])
+            ))))
         )
         attr(p, "height") <- dims$height
         attr(p, "width") <- dims$width
     }
 
-    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-        legend.position = legend.position, legend.direction = legend.direction)
+    facet_plot(
+        p,
+        facet_by,
+        facet_scales,
+        facet_nrow,
+        facet_ncol,
+        facet_byrow,
+        legend.position = legend.position,
+        legend.direction = legend.direction
+    )
 }
 
 
@@ -472,22 +860,74 @@ SankeyPlotAtomic <- function(
 #'     stratum = "Group", links_fill_by = "Clone", links_color = ".fill")
 #' }
 SankeyPlot <- function(
-    data, in_form = c("auto", "long", "lodes", "wide", "alluvia", "counts"), x, x_sep = "_", y = NULL,
-    stratum = NULL, stratum_sep = "_", alluvium = NULL, alluvium_sep = "_",
-    split_by = NULL, split_by_sep = "_", keep_empty = TRUE, flow = FALSE, expand = c(0, 0, 0, 0),
-    nodes_legend = c("auto", "separate", "merge", "none"), nodes_color = "grey30", links_fill_by = NULL,
-    links_fill_by_sep = "_", links_name = NULL, links_color = "gray80", nodes_palette = "Paired", nodes_palcolor = NULL,
-    nodes_alpha = 1, nodes_label = FALSE, nodes_label_miny = 0, nodes_width = 0.25, links_palette = "Paired",
-    links_palcolor = NULL, palreverse = FALSE, links_alpha = 0.6, legend.box = "vertical", x_text_angle = 0, aspect.ratio = 1,
-    legend.position = "right", legend.direction = "vertical", flip = FALSE, theme = "theme_this", theme_args = list(),
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    seed = 8525, combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
-    axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...
+    data,
+    in_form = c("auto", "long", "lodes", "wide", "alluvia", "counts"),
+    x,
+    x_sep = "_",
+    y = NULL,
+    stratum = NULL,
+    stratum_sep = "_",
+    alluvium = NULL,
+    alluvium_sep = "_",
+    split_by = NULL,
+    split_by_sep = "_",
+    keep_empty = TRUE,
+    flow = FALSE,
+    expand = c(0, 0, 0, 0),
+    nodes_legend = c("auto", "separate", "merge", "none"),
+    nodes_color = "grey30",
+    links_fill_by = NULL,
+    links_fill_by_sep = "_",
+    links_name = NULL,
+    links_color = "gray80",
+    nodes_palette = "Paired",
+    nodes_palcolor = NULL,
+    nodes_alpha = 1,
+    nodes_label = FALSE,
+    nodes_label_miny = 0,
+    nodes_width = 0.25,
+    links_palette = "Paired",
+    links_palcolor = NULL,
+    palreverse = FALSE,
+    links_alpha = 0.6,
+    legend.box = "vertical",
+    x_text_angle = 0,
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    flip = FALSE,
+    theme = "theme_this",
+    theme_args = list(),
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    seed = 8525,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
+    ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
     theme <- process_theme(theme)
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
+    split_by <- check_columns(
+        data,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
 
     if (!is.null(split_by)) {
         data[[split_by]] <- droplevels(data[[split_by]])
@@ -500,25 +940,64 @@ SankeyPlot <- function(
     }
 
     plots <- lapply(
-        names(datas), function(nm) {
-            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+        names(datas),
+        function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) {
+                NULL
+            } else {
+                nm
+            }
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
                 title <- title %||% default_title
             }
-            SankeyPlotAtomic(datas[[nm]],
-                in_form = in_form, x = x, x_sep = x_sep, y = y, stratum = stratum, stratum_sep = stratum_sep,
-                alluvium = alluvium, alluvium_sep = alluvium_sep, keep_empty = keep_empty, nodes_legend = nodes_legend,
-                nodes_color = nodes_color, links_fill_by = links_fill_by, links_fill_by_sep = links_fill_by_sep,
-                links_name = links_name, links_color = links_color, expand = expand, nodes_label_miny = nodes_label_miny,
-                nodes_palette = nodes_palette, nodes_palcolor = nodes_palcolor, nodes_alpha = nodes_alpha,
-                nodes_label = nodes_label, nodes_width = nodes_width, flow = flow,
-                links_palette = links_palette, links_palcolor = links_palcolor, palreverse = palreverse, links_alpha = links_alpha,
-                legend.box = legend.box, x_text_angle = x_text_angle, aspect.ratio = aspect.ratio,
-                legend.position = legend.position, legend.direction = legend.direction, flip = flip,
-                theme = theme, theme_args = theme_args, title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
-                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
+            SankeyPlotAtomic(
+                datas[[nm]],
+                in_form = in_form,
+                x = x,
+                x_sep = x_sep,
+                y = y,
+                stratum = stratum,
+                stratum_sep = stratum_sep,
+                alluvium = alluvium,
+                alluvium_sep = alluvium_sep,
+                keep_empty = keep_empty,
+                nodes_legend = nodes_legend,
+                nodes_color = nodes_color,
+                links_fill_by = links_fill_by,
+                links_fill_by_sep = links_fill_by_sep,
+                links_name = links_name,
+                links_color = links_color,
+                expand = expand,
+                nodes_label_miny = nodes_label_miny,
+                nodes_palette = nodes_palette,
+                nodes_palcolor = nodes_palcolor,
+                nodes_alpha = nodes_alpha,
+                nodes_label = nodes_label,
+                nodes_width = nodes_width,
+                flow = flow,
+                links_palette = links_palette,
+                links_palcolor = links_palcolor,
+                palreverse = palreverse,
+                links_alpha = links_alpha,
+                legend.box = legend.box,
+                x_text_angle = x_text_angle,
+                aspect.ratio = aspect.ratio,
+                legend.position = legend.position,
+                legend.direction = legend.direction,
+                flip = flip,
+                theme = theme,
+                theme_args = theme_args,
+                title = title,
+                subtitle = subtitle,
+                xlab = xlab,
+                ylab = ylab,
+                facet_by = facet_by,
+                facet_scales = facet_scales,
+                facet_ncol = facet_ncol,
+                facet_nrow = facet_nrow,
+                facet_byrow = facet_byrow,
                 ...
             )
         }
@@ -526,8 +1005,18 @@ SankeyPlot <- function(
 
     names(plots) <- names(datas)
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }
 
 

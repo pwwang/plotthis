@@ -2,25 +2,53 @@
 #'
 #' @keywords internal
 DimPlotAtomic3D <- function(
-    data, dims, group_by = NULL, features = NULL, colorby,
-    colors = NULL, feat_colors_value = NULL,
-    label_use = NULL, labels_tb = NULL, keep_empty_group = FALSE,
-    bg_color = "grey80", color_name = "",
-    pt_size = NULL, pt_alpha = 1,
-    show_stat = TRUE, title = NULL, subtitle = NULL,
-    xlab = NULL, ylab = NULL,
-    label = FALSE, label_insitu = FALSE, label_size = 4,
-    label_fg = "white", label_bg = "black",
-    highlight = NULL, highlight_color = "black",
-    highlight_size = 1, highlight_stroke = 0.8, highlight_alpha = 1,
-    graph = NULL, edge_size = c(0.05, 0.5), edge_alpha = 0.1, edge_color = "grey40",
-    lineages = NULL, lineages_trim = c(0.01, 0.99), lineages_span = 0.75,
-    lineages_palette = "Dark2", lineages_palcolor = NULL,
-    palette = "Spectral", palcolor = NULL, palreverse = FALSE,
-    n_sampled = NULL) {
-
+    data,
+    dims,
+    group_by = NULL,
+    features = NULL,
+    colorby,
+    colors = NULL,
+    feat_colors_value = NULL,
+    label_use = NULL,
+    labels_tb = NULL,
+    keep_empty_group = FALSE,
+    bg_color = "grey80",
+    color_name = "",
+    pt_size = NULL,
+    pt_alpha = 1,
+    show_stat = TRUE,
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    label = FALSE,
+    label_insitu = FALSE,
+    label_size = 4,
+    label_fg = "white",
+    label_bg = "black",
+    highlight = NULL,
+    highlight_color = "black",
+    highlight_size = 1,
+    highlight_stroke = 0.8,
+    highlight_alpha = 1,
+    graph = NULL,
+    edge_size = c(0.05, 0.5),
+    edge_alpha = 0.1,
+    edge_color = "grey40",
+    lineages = NULL,
+    lineages_trim = c(0.01, 0.99),
+    lineages_span = 0.75,
+    lineages_palette = "Dark2",
+    lineages_palcolor = NULL,
+    palette = "Spectral",
+    palcolor = NULL,
+    palreverse = FALSE,
+    n_sampled = NULL
+) {
     if (!requireNamespace("plotly", quietly = TRUE)) {
-        stop("Package 'plotly' is required for 3D plots. Install it with: install.packages('plotly')")
+        stop(
+            "Package 'plotly' is required for 3D plots. Install it with: install.packages('plotly')"
+        )
     }
 
     xlab <- xlab %||% dims[1]
@@ -38,15 +66,25 @@ DimPlotAtomic3D <- function(
 
     ## Graph / network edges (rendered first so they appear behind points)
     if (!is.null(graph)) {
-        if (is.character(graph) && length(graph) == 1 && startsWith(graph, "@")) {
+        if (
+            is.character(graph) && length(graph) == 1 && startsWith(graph, "@")
+        ) {
             graph_name <- substring(graph, 2)
             net_mat <- attr(data, graph_name)
             if (is.null(net_mat)) {
-                stop(paste0("[DimPlot] The graph '", graph_name, "' is not found in the data attributes."))
+                stop(paste0(
+                    "[DimPlot] The graph '",
+                    graph_name,
+                    "' is not found in the data attributes."
+                ))
             }
         } else if (inherits(graph, "Graph")) {
             net_mat <- as.matrix(graph)
-        } else if (is.matrix(graph) || is.data.frame(graph) || inherits(graph, "dgCMatrix")) {
+        } else if (
+            is.matrix(graph) ||
+                is.data.frame(graph) ||
+                inherits(graph, "dgCMatrix")
+        ) {
             net_mat <- graph
         } else if (is.numeric(graph)) {
             graph_cols <- colnames(data)[graph]
@@ -54,7 +92,9 @@ DimPlotAtomic3D <- function(
         } else if (is.character(graph)) {
             net_mat <- data[graph]
         } else {
-            stop("[DimPlot] The 'graph' should be a matrix, data.frame, Graph object, indexes, or column names.")
+            stop(
+                "[DimPlot] The 'graph' should be a matrix, data.frame, Graph object, indexes, or column names."
+            )
         }
 
         if (!is.matrix(net_mat)) {
@@ -71,23 +111,42 @@ DimPlotAtomic3D <- function(
         net_mat[net_mat == 0] <- NA
         net_mat[upper.tri(net_mat)] <- NA
 
-        net_df <- reshape2::melt(net_mat, na.rm = TRUE, stringsAsFactors = FALSE)
+        net_df <- reshape2::melt(
+            net_mat,
+            na.rm = TRUE,
+            stringsAsFactors = FALSE
+        )
         net_df$value <- as.numeric(net_df$value)
         net_df$Var1 <- as.character(net_df$Var1)
         net_df$Var2 <- as.character(net_df$Var2)
 
         # Build edge coordinates with NA separators for line breaks
-        edge_x <- as.vector(rbind(data[net_df$Var1, dims[1]], data[net_df$Var2, dims[1]], NA))
-        edge_y <- as.vector(rbind(data[net_df$Var1, dims[2]], data[net_df$Var2, dims[2]], NA))
-        edge_z <- as.vector(rbind(data[net_df$Var1, dims[3]], data[net_df$Var2, dims[3]], NA))
+        edge_x <- as.vector(rbind(
+            data[net_df$Var1, dims[1]],
+            data[net_df$Var2, dims[1]],
+            NA
+        ))
+        edge_y <- as.vector(rbind(
+            data[net_df$Var1, dims[2]],
+            data[net_df$Var2, dims[2]],
+            NA
+        ))
+        edge_z <- as.vector(rbind(
+            data[net_df$Var1, dims[3]],
+            data[net_df$Var2, dims[3]],
+            NA
+        ))
 
         # Scale edge width: use mean of edge_size range, scaled for plotly
         edge_width <- mean(edge_size) * 10
 
         p <- plotly::add_trace(
             p = p,
-            x = edge_x, y = edge_y, z = edge_z,
-            type = "scatter3d", mode = "lines",
+            x = edge_x,
+            y = edge_y,
+            z = edge_z,
+            type = "scatter3d",
+            mode = "lines",
             line = list(color = edge_color, width = edge_width),
             opacity = edge_alpha,
             name = "edges",
@@ -107,19 +166,33 @@ DimPlotAtomic3D <- function(
                 grp_data <- data[is.na(data[[group_by]]), , drop = FALSE]
                 grp_color <- bg_color
             } else {
-                grp_data <- data[!is.na(data[[group_by]]) & as.character(data[[group_by]]) == grp, , drop = FALSE]
+                grp_data <- data[
+                    !is.na(data[[group_by]]) &
+                        as.character(data[[group_by]]) == grp,
+                    ,
+                    drop = FALSE
+                ]
                 grp_color <- colors[grp]
             }
 
-            if (nrow(grp_data) == 0 && !isTRUE(keep_empty_group)) next
+            if (nrow(grp_data) == 0 && !isTRUE(keep_empty_group)) {
+                next
+            }
 
             legend_label <- if (!is.null(label_use)) label_use[i] else grp
 
             trace_args <- list(
                 p = p,
-                x = grp_data[[dims[1]]], y = grp_data[[dims[2]]], z = grp_data[[dims[3]]],
-                type = "scatter3d", mode = "markers",
-                marker = list(size = marker_size, color = grp_color, opacity = pt_alpha),
+                x = grp_data[[dims[1]]],
+                y = grp_data[[dims[2]]],
+                z = grp_data[[dims[3]]],
+                type = "scatter3d",
+                mode = "markers",
+                marker = list(
+                    size = marker_size,
+                    color = grp_color,
+                    opacity = pt_alpha
+                ),
                 name = legend_label,
                 legendgroup = grp,
                 showlegend = TRUE,
@@ -136,7 +209,12 @@ DimPlotAtomic3D <- function(
         }
     } else {
         # Feature mode: continuous coloring
-        feat_colors <- palette_this(palette = palette, palcolor = palcolor, type = "continuous", reverse = palreverse)
+        feat_colors <- palette_this(
+            palette = palette,
+            palcolor = palcolor,
+            type = "continuous",
+            reverse = palreverse
+        )
         n_colors <- length(feat_colors)
         plotly_colorscale <- lapply(seq_len(n_colors), function(i) {
             list((i - 1) / (n_colors - 1), feat_colors[i])
@@ -148,14 +226,23 @@ DimPlotAtomic3D <- function(
             data_na <- data[na_mask, , drop = FALSE]
             na_trace_args <- list(
                 p = p,
-                x = data_na[[dims[1]]], y = data_na[[dims[2]]], z = data_na[[dims[3]]],
-                type = "scatter3d", mode = "markers",
-                marker = list(size = marker_size, color = bg_color, opacity = pt_alpha),
+                x = data_na[[dims[1]]],
+                y = data_na[[dims[2]]],
+                z = data_na[[dims[3]]],
+                type = "scatter3d",
+                mode = "markers",
+                marker = list(
+                    size = marker_size,
+                    color = bg_color,
+                    opacity = pt_alpha
+                ),
                 name = "NA",
                 showlegend = FALSE,
                 hoverinfo = hover_mode
             )
-            if (!large_data) na_trace_args$text <- paste0("Cell: ", rownames(data_na))
+            if (!large_data) {
+                na_trace_args$text <- paste0("Cell: ", rownames(data_na))
+            }
             p <- do.call(plotly::add_trace, na_trace_args)
         }
         # Plot non-NA points with colorscale
@@ -164,8 +251,11 @@ DimPlotAtomic3D <- function(
             colorbar_title <- if (nchar(color_name) > 0) color_name else colorby
             feat_trace_args <- list(
                 p = p,
-                x = data_valid[[dims[1]]], y = data_valid[[dims[2]]], z = data_valid[[dims[3]]],
-                type = "scatter3d", mode = "markers",
+                x = data_valid[[dims[1]]],
+                y = data_valid[[dims[2]]],
+                z = data_valid[[dims[3]]],
+                type = "scatter3d",
+                mode = "markers",
                 marker = list(
                     size = marker_size,
                     color = data_valid[[features]],
@@ -183,8 +273,10 @@ DimPlotAtomic3D <- function(
             )
             if (!large_data) {
                 feat_trace_args$text <- paste0(
-                    "Cell: ", rownames(data_valid),
-                    "\nValue: ", round(data_valid[[features]], 3)
+                    "Cell: ",
+                    rownames(data_valid),
+                    "\nValue: ",
+                    round(data_valid[[features]], 3)
                 )
             }
             p <- do.call(plotly::add_trace, feat_trace_args)
@@ -196,22 +288,34 @@ DimPlotAtomic3D <- function(
         if (isTRUE(highlight)) {
             hi_df <- data
         } else if (length(highlight) == 1 && is.character(highlight)) {
-            hi_df <- eval(parse(text = paste0("dplyr::filter(data, ", highlight, ")")))
+            hi_df <- eval(parse(
+                text = paste0("dplyr::filter(data, ", highlight, ")")
+            ))
         } else {
-            all_inst <- if (is.numeric(highlight)) seq_len(nrow(data)) else rownames(data)
+            all_inst <- if (is.numeric(highlight)) {
+                seq_len(nrow(data))
+            } else {
+                rownames(data)
+            }
             if (!any(highlight %in% all_inst)) {
                 stop("No highlight items found in the data (rownames).")
             }
             if (!all(highlight %in% all_inst)) {
-                warning("Not all highlight items found in the data (rownames).", immediate. = TRUE)
+                warning(
+                    "Not all highlight items found in the data (rownames).",
+                    immediate. = TRUE
+                )
             }
             hi_df <- data[intersect(highlight, all_inst), , drop = FALSE]
         }
         if (nrow(hi_df) > 0) {
             hi_trace_args <- list(
                 p = p,
-                x = hi_df[[dims[1]]], y = hi_df[[dims[2]]], z = hi_df[[dims[3]]],
-                type = "scatter3d", mode = "markers",
+                x = hi_df[[dims[1]]],
+                y = hi_df[[dims[2]]],
+                z = hi_df[[dims[3]]],
+                type = "scatter3d",
+                mode = "markers",
                 marker = list(
                     size = highlight_size * 2 + highlight_stroke,
                     color = highlight_color,
@@ -222,20 +326,32 @@ DimPlotAtomic3D <- function(
                 showlegend = FALSE,
                 hoverinfo = hover_mode
             )
-            if (!large_data) hi_trace_args$text <- paste0("Cell: ", rownames(hi_df))
+            if (!large_data) {
+                hi_trace_args$text <- paste0("Cell: ", rownames(hi_df))
+            }
             p <- do.call(plotly::add_trace, hi_trace_args)
         }
     }
 
     ## Lineages
     if (!is.null(lineages)) {
-        lineages <- unique(check_columns(data, lineages, force_factor = FALSE, allow_multi = TRUE))
-        lineage_colors <- palette_this(lineages, palette = lineages_palette, palcolor = lineages_palcolor, reverse = palreverse)
+        lineages <- unique(check_columns(
+            data,
+            lineages,
+            force_factor = FALSE,
+            allow_multi = TRUE
+        ))
+        lineage_colors <- palette_this(
+            lineages,
+            palette = lineages_palette,
+            palcolor = lineages_palcolor,
+            reverse = palreverse
+        )
 
         for (l in lineages) {
-            trim_pass <- (
-                data[[l]] > quantile(data[[l]], lineages_trim[1], na.rm = TRUE) &
-                    data[[l]] < quantile(data[[l]], lineages_trim[2], na.rm = TRUE))
+            trim_pass <- (data[[l]] >
+                quantile(data[[l]], lineages_trim[1], na.rm = TRUE) &
+                data[[l]] < quantile(data[[l]], lineages_trim[2], na.rm = TRUE))
             na_pass <- !is.na(data[[l]])
             index <- which(trim_pass & na_pass)
             index <- index[order(data[index, l])]
@@ -243,9 +359,13 @@ DimPlotAtomic3D <- function(
             weights_used <- rep(1, nrow(dat_sub))
 
             fitted_vals <- lapply(dims, function(x) {
-                loess(formula(paste(x, l, sep = "~")),
-                      weights = weights_used, data = dat_sub,
-                      span = lineages_span, degree = 2)$fitted
+                loess(
+                    formula(paste(x, l, sep = "~")),
+                    weights = weights_used,
+                    data = dat_sub,
+                    span = lineages_span,
+                    degree = 2
+                )$fitted
             })
             names(fitted_vals) <- dims
             dat_smooth <- as.data.frame(fitted_vals)
@@ -254,9 +374,12 @@ DimPlotAtomic3D <- function(
             if (nrow(dat_smooth) > 0) {
                 p <- plotly::add_trace(
                     p = p,
-                    x = dat_smooth[[dims[1]]], y = dat_smooth[[dims[2]]], z = dat_smooth[[dims[3]]],
+                    x = dat_smooth[[dims[1]]],
+                    y = dat_smooth[[dims[2]]],
+                    z = dat_smooth[[dims[3]]],
                     text = paste0("Lineage: ", l),
-                    type = "scatter3d", mode = "lines",
+                    type = "scatter3d",
+                    mode = "lines",
                     line = list(width = 6, color = lineage_colors[l]),
                     name = l,
                     showlegend = TRUE,
@@ -270,7 +393,11 @@ DimPlotAtomic3D <- function(
     if (isTRUE(label) && !is.null(group_by)) {
         # Compute label positions at group median coordinates (same as 2D)
         label_data <- data[!is.na(data[[group_by]]), , drop = FALSE]
-        label_df <- aggregate(label_data[, dims, drop = FALSE], by = list(label_data[[group_by]]), FUN = median)
+        label_df <- aggregate(
+            label_data[, dims, drop = FALSE],
+            by = list(label_data[[group_by]]),
+            FUN = median
+        )
         colnames(label_df)[1] <- ".group"
         if (!isTRUE(label_insitu)) {
             label_df[, ".label"] <- seq_len(nrow(label_df))
@@ -281,9 +408,12 @@ DimPlotAtomic3D <- function(
         # so we use label_bg as the text color for visibility
         p <- plotly::add_trace(
             p = p,
-            x = label_df[[dims[1]]], y = label_df[[dims[2]]], z = label_df[[dims[3]]],
+            x = label_df[[dims[1]]],
+            y = label_df[[dims[2]]],
+            z = label_df[[dims[3]]],
             text = as.character(label_df[[".label"]]),
-            type = "scatter3d", mode = "text",
+            type = "scatter3d",
+            mode = "text",
             textfont = list(
                 size = label_size * 3,
                 color = label_bg
@@ -452,37 +582,122 @@ DimPlotAtomic3D <- function(
 #' @importFrom ggplot2 ggplotGrob theme_void as_labeller stat_summary_hex
 #' @importFrom cowplot get_plot_component
 DimPlotAtomic <- function(
-    data, dims = 1:2, group_by = NULL, group_by_sep = "_", features = NULL,
-    lower_quantile = 0, upper_quantile = 0.99, lower_cutoff = NULL, upper_cutoff = NULL,
-    pt_size = NULL, pt_alpha = 1, bg_color = "grey80", bg_cutoff = NULL, color_name = "",
-    label_insitu = FALSE, show_stat = !identical(theme, "theme_blank"),
-    label = FALSE, label_size = 4, label_fg = "white", label_bg = "black", label_bg_r = 0.1,
-    label_repel = FALSE, label_repulsion = 20, label_pt_size = 1, label_pt_color = "black",
-    label_segment_color = "black", order = c("as-is", "reverse", "high-top", "low-top", "random"),
-    highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
-    add_mark = FALSE, mark_type = c("hull", "ellipse", "rect", "circle"), mark_expand = unit(3, "mm"),
-    mark_alpha = 0.1, mark_linetype = 1,
-    stat_by = NULL, stat_plot_type = c("pie", "ring", "bar", "line"), stat_plot_size = 0.1,
-    stat_palette = "Set1", stat_args = list(),
-    graph = NULL, edge_size = c(0.05, 0.5), edge_alpha = 0.1, edge_color = "grey40",
-    add_density = FALSE, density_color = "grey80", density_filled = FALSE,
-    density_filled_palette = "Greys", density_filled_palcolor = NULL,
-    lineages = NULL, lineages_trim = c(0.01, 0.99), lineages_span = 0.75,
-    lineages_palette = "Dark2", lineages_palcolor = NULL, lineages_arrow = ggplot2::arrow(length = unit(0.1, "inches")),
-    lineages_linewidth = 1, lineages_line_bg = "white", lineages_line_bg_stroke = 0.5,
-    lineages_whiskers = FALSE, lineages_whiskers_linewidth = 0.5, lineages_whiskers_alpha = 0.5,
-    velocity = NULL, velocity_plot_type = c("raw", "grid", "stream"), velocity_n_neighbors = NULL,
-    velocity_density = 1, velocity_smooth = 0.5, velocity_scale = 1, velocity_min_mass = 1, velocity_cutoff_perc = 5,
-    velocity_group_palette = "Set2", velocity_group_palcolor = NULL, arrow_angle = 20, arrow_color = "black",
-    streamline_l = 5, streamline_minl = 1, streamline_res = 1, streamline_n = 15, arrow_alpha = 1,
-    streamline_width = c(0, 0.8), streamline_alpha = 1, streamline_color = NULL, streamline_palette = "RdYlBu", streamline_palcolor = NULL,
-    streamline_bg_color = "white", streamline_bg_stroke = 0.5, keep_na = FALSE, keep_empty = FALSE,
-    facet_by = NULL, facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
-    theme = "theme_this", theme_args = list(), aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    raster = NULL, raster_dpi = c(512, 512),
-    hex = FALSE, hex_linewidth = 0.5, hex_count = !is.null(group_by), hex_bins = 50, hex_binwidth = NULL,
-    palette = ifelse(is.null(features), "Paired", "Spectral"), palcolor = NULL, palreverse = FALSE, seed = 8525, ...) {
+    data,
+    dims = 1:2,
+    group_by = NULL,
+    group_by_sep = "_",
+    features = NULL,
+    lower_quantile = 0,
+    upper_quantile = 0.99,
+    lower_cutoff = NULL,
+    upper_cutoff = NULL,
+    pt_size = NULL,
+    pt_alpha = 1,
+    bg_color = "grey80",
+    bg_cutoff = NULL,
+    color_name = "",
+    label_insitu = FALSE,
+    show_stat = !identical(theme, "theme_blank"),
+    label = FALSE,
+    label_size = 4,
+    label_fg = "white",
+    label_bg = "black",
+    label_bg_r = 0.1,
+    label_repel = FALSE,
+    label_repulsion = 20,
+    label_pt_size = 1,
+    label_pt_color = "black",
+    label_segment_color = "black",
+    order = c("as-is", "reverse", "high-top", "low-top", "random"),
+    highlight = NULL,
+    highlight_alpha = 1,
+    highlight_size = 1,
+    highlight_color = "black",
+    highlight_stroke = 0.8,
+    add_mark = FALSE,
+    mark_type = c("hull", "ellipse", "rect", "circle"),
+    mark_expand = unit(3, "mm"),
+    mark_alpha = 0.1,
+    mark_linetype = 1,
+    stat_by = NULL,
+    stat_plot_type = c("pie", "ring", "bar", "line"),
+    stat_plot_size = 0.1,
+    stat_palette = "Set1",
+    stat_args = list(),
+    graph = NULL,
+    edge_size = c(0.05, 0.5),
+    edge_alpha = 0.1,
+    edge_color = "grey40",
+    add_density = FALSE,
+    density_color = "grey80",
+    density_filled = FALSE,
+    density_filled_palette = "Greys",
+    density_filled_palcolor = NULL,
+    lineages = NULL,
+    lineages_trim = c(0.01, 0.99),
+    lineages_span = 0.75,
+    lineages_palette = "Dark2",
+    lineages_palcolor = NULL,
+    lineages_arrow = ggplot2::arrow(length = unit(0.1, "inches")),
+    lineages_linewidth = 1,
+    lineages_line_bg = "white",
+    lineages_line_bg_stroke = 0.5,
+    lineages_whiskers = FALSE,
+    lineages_whiskers_linewidth = 0.5,
+    lineages_whiskers_alpha = 0.5,
+    velocity = NULL,
+    velocity_plot_type = c("raw", "grid", "stream"),
+    velocity_n_neighbors = NULL,
+    velocity_density = 1,
+    velocity_smooth = 0.5,
+    velocity_scale = 1,
+    velocity_min_mass = 1,
+    velocity_cutoff_perc = 5,
+    velocity_group_palette = "Set2",
+    velocity_group_palcolor = NULL,
+    arrow_angle = 20,
+    arrow_color = "black",
+    streamline_l = 5,
+    streamline_minl = 1,
+    streamline_res = 1,
+    streamline_n = 15,
+    arrow_alpha = 1,
+    streamline_width = c(0, 0.8),
+    streamline_alpha = 1,
+    streamline_color = NULL,
+    streamline_palette = "RdYlBu",
+    streamline_palcolor = NULL,
+    streamline_bg_color = "white",
+    streamline_bg_stroke = 0.5,
+    keep_na = FALSE,
+    keep_empty = FALSE,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_nrow = NULL,
+    facet_ncol = NULL,
+    facet_byrow = TRUE,
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    theme = "theme_this",
+    theme_args = list(),
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    raster = NULL,
+    raster_dpi = c(512, 512),
+    hex = FALSE,
+    hex_linewidth = 0.5,
+    hex_count = !is.null(group_by),
+    hex_bins = 50,
+    hex_binwidth = NULL,
+    palette = ifelse(is.null(features), "Paired", "Spectral"),
+    palcolor = NULL,
+    palreverse = FALSE,
+    seed = 8525,
+    ...
+) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
     } else {
@@ -501,17 +716,28 @@ DimPlotAtomic <- function(
         raster_dpi <- rep(raster_dpi, 2)
     }
 
-    group_by <- check_columns(data, group_by,
+    group_by <- check_columns(
+        data,
+        group_by,
         force_factor = TRUE,
-        allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = group_by_sep
     )
     features <- check_columns(data, features, allow_multi = TRUE)
     if (is.null(group_by) && is.null(features)) {
         stop("Either 'group_by' or 'features' should be specified.")
     }
-    facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
+    facet_by <- check_columns(
+        data,
+        facet_by,
+        force_factor = TRUE,
+        allow_multi = TRUE
+    )
     if (length(features) > 1 && !is.null(facet_by)) {
-        stop("Cannot specify 'facet_by' with multiple features. The plot will be faceted by features.")
+        stop(
+            "Cannot specify 'facet_by' with multiple features. The plot will be faceted by features."
+        )
     }
     pt_size <- pt_size %||% min(3000 / nrow(data), 0.6)
     raster <- raster %||% (nrow(data) > 1e5)
@@ -522,24 +748,47 @@ DimPlotAtomic <- function(
         theme_args[["ylab"]] <- ylab
     }
     if ((isTRUE(label_repel) || isTRUE(label_insitu)) && !isTRUE(label)) {
-        message("Forcing label to be TRUE when label_repel or label_insitu is TRUE.")
+        message(
+            "Forcing label to be TRUE when label_repel or label_insitu is TRUE."
+        )
         label <- TRUE
     }
 
     data <- process_keep_na_empty(data, keep_na, keep_empty)
     keep_empty_group <- if (!is.null(group_by)) keep_empty[[group_by]] else NULL
-    keep_empty_facet <- if (!is.null(facet_by)) keep_empty[[facet_by[1]]] else NULL
+    keep_empty_facet <- if (!is.null(facet_by)) {
+        keep_empty[[facet_by[1]]]
+    } else {
+        NULL
+    }
     if (length(facet_by) > 1) {
-        keep_empty_facet2 <- if (!is.null(facet_by[2])) keep_empty[[facet_by[2]]] else NULL
-        stopifnot("[(Feature)DimPlot] `keep_empty` for `facet_by` variables must be identical." = identical(keep_empty_facet, keep_empty_facet2))
+        keep_empty_facet2 <- if (!is.null(facet_by[2])) {
+            keep_empty[[facet_by[2]]]
+        } else {
+            NULL
+        }
+        stopifnot(
+            "[(Feature)DimPlot] `keep_empty` for `facet_by` variables must be identical." = identical(
+                keep_empty_facet,
+                keep_empty_facet2
+            )
+        )
     }
 
     facet_labeller <- "label_value"
     if (!is.null(group_by)) {
         group_vals <- levels(data[[group_by]])
-        if (anyNA(data[[group_by]])) group_vals <- c(group_vals, NA)
+        if (anyNA(data[[group_by]])) {
+            group_vals <- c(group_vals, NA)
+        }
 
-        colors <- palette_this(group_vals, palette = palette, palcolor = palcolor, NA_keep = TRUE, reverse = palreverse)
+        colors <- palette_this(
+            group_vals,
+            palette = palette,
+            palcolor = palcolor,
+            NA_keep = TRUE,
+            reverse = palreverse
+        )
         names(colors)[is.na(names(colors))] <- "NA"
         group_vals[is.na(group_vals)] <- "NA"
         labels_tb <- table(data[[group_by]], useNA = "ifany")
@@ -557,9 +806,20 @@ DimPlotAtomic <- function(
         } else {
             if (isTRUE(label)) {
                 if (isTRUE(show_stat)) {
-                    label_use <- paste0(seq_along(labels_tb), ": ", names(labels_tb), "(", labels_tb, ")")
+                    label_use <- paste0(
+                        seq_along(labels_tb),
+                        ": ",
+                        names(labels_tb),
+                        "(",
+                        labels_tb,
+                        ")"
+                    )
                 } else {
-                    label_use <- paste0(seq_along(labels_tb), ": ", names(labels_tb))
+                    label_use <- paste0(
+                        seq_along(labels_tb),
+                        ": ",
+                        names(labels_tb)
+                    )
                 }
             } else {
                 if (isTRUE(show_stat)) {
@@ -571,12 +831,18 @@ DimPlotAtomic <- function(
         }
         if (isTRUE(show_stat)) {
             if (is.null(facet_by)) {
-                subtitle <- subtitle %||% paste0("N = ", sum(!is.na(data[[group_by]])))
+                subtitle <- subtitle %||%
+                    paste0("N = ", sum(!is.na(data[[group_by]])))
             } else if (length(facet_by) == 1) {
                 facet_labeller <- as_labeller(function(values) {
                     sapply(values, function(v) {
                         data_sub <- data[data[[facet_by]] == v, , drop = FALSE]
-                        paste0(v, " (N = ", sum(!is.na(data_sub[[group_by]])), ")")
+                        paste0(
+                            v,
+                            " (N = ",
+                            sum(!is.na(data_sub[[group_by]])),
+                            ")"
+                        )
                     })
                 })
             }
@@ -585,12 +851,19 @@ DimPlotAtomic <- function(
 
     ## Making long data for features when length(features) > 1
     if (length(dims) == 3 && length(features) > 1) {
-        stop("Multiple features are not supported for 3D plots. ",
-             "Use `split_by = TRUE` in `FeatureDimPlot()` to plot features separately with `combine = FALSE`.")
+        stop(
+            "Multiple features are not supported for 3D plots. ",
+            "Use `split_by = TRUE` in `FeatureDimPlot()` to plot features separately with `combine = FALSE`."
+        )
     }
     multifeats <- length(features) > 1
     if (multifeats) {
-        data <- data %>% pivot_longer(cols = features, names_to = ".feature", values_to = ".value")
+        data <- data %>%
+            pivot_longer(
+                cols = features,
+                names_to = ".feature",
+                values_to = ".value"
+            )
         data$.feature <- factor(data$.feature, levels = features)
         facet_by <- ".feature"
         features <- ".value"
@@ -602,8 +875,18 @@ DimPlotAtomic <- function(
         if (all(is.na(data[[features]]))) {
             feat_colors_value <- rep(0, 100)
         } else {
-            lower_cutoff <- lower_cutoff %||% quantile(data[[features]][is.finite(data[[features]])], lower_quantile, na.rm = TRUE)
-            upper_cutoff <- upper_cutoff %||% quantile(data[[features]][is.finite(data[[features]])], upper_quantile, na.rm = TRUE)
+            lower_cutoff <- lower_cutoff %||%
+                quantile(
+                    data[[features]][is.finite(data[[features]])],
+                    lower_quantile,
+                    na.rm = TRUE
+                )
+            upper_cutoff <- upper_cutoff %||%
+                quantile(
+                    data[[features]][is.finite(data[[features]])],
+                    upper_quantile,
+                    na.rm = TRUE
+                )
             if (upper_cutoff == lower_cutoff) {
                 if (upper_cutoff == 0) {
                     upper_cutoff <- 1e-3
@@ -612,10 +895,18 @@ DimPlotAtomic <- function(
                 }
             }
 
-            feat_colors_value <- seq(lower_cutoff, upper_cutoff, length.out = 100)
+            feat_colors_value <- seq(
+                lower_cutoff,
+                upper_cutoff,
+                length.out = 100
+            )
         }
-        data[[features]][data[[features]] > max(feat_colors_value, na.rm = TRUE)] <- max(feat_colors_value, na.rm = TRUE)
-        data[[features]][data[[features]] < min(feat_colors_value, na.rm = TRUE)] <- min(feat_colors_value, na.rm = TRUE)
+        data[[features]][
+            data[[features]] > max(feat_colors_value, na.rm = TRUE)
+        ] <- max(feat_colors_value, na.rm = TRUE)
+        data[[features]][
+            data[[features]] < min(feat_colors_value, na.rm = TRUE)
+        ] <- min(feat_colors_value, na.rm = TRUE)
     }
     colorby <- ifelse(is.null(features), group_by, features)
     if (order == "reverse") {
@@ -623,7 +914,11 @@ DimPlotAtomic <- function(
     } else if (order == "high-top") {
         data <- dplyr::arrange(data, !is.na(!!sym(colorby)), !!sym(colorby))
     } else if (order == "low-top") {
-        data <- dplyr::arrange(data, !is.na(!!sym(colorby)), dplyr::desc(!!sym(colorby)))
+        data <- dplyr::arrange(
+            data,
+            !is.na(!!sym(colorby)),
+            dplyr::desc(!!sym(colorby))
+        )
     } else if (order == "random") {
         data <- data[sample(nrow(data)), , drop = FALSE]
     }
@@ -639,8 +934,11 @@ DimPlotAtomic <- function(
             if (!is.null(facet_by)) "facet_by"
         )
         if (length(unsupported_args) > 0) {
-            warning("The following features are not supported for 3D plots and will be ignored: ",
-                    paste(unsupported_args, collapse = ", "), immediate. = TRUE)
+            warning(
+                "The following features are not supported for 3D plots and will be ignored: ",
+                paste(unsupported_args, collapse = ", "),
+                immediate. = TRUE
+            )
         }
 
         # Downsample for large datasets (analogous to raster in 2D)
@@ -653,7 +951,10 @@ DimPlotAtomic <- function(
                 grp_vals_all <- as.character(data[[group_by]])
                 grp_vals_all[is.na(grp_vals_all)] <- "NA"
                 grp_counts <- table(grp_vals_all)
-                grp_n <- pmax(1L, as.integer(round(grp_counts / sum(grp_counts) * max_pts)))
+                grp_n <- pmax(
+                    1L,
+                    as.integer(round(grp_counts / sum(grp_counts) * max_pts))
+                )
                 names(grp_n) <- names(grp_counts)
                 sampled_idx <- unlist(lapply(names(grp_counts), function(g) {
                     idx <- which(grp_vals_all == g)
@@ -667,26 +968,51 @@ DimPlotAtomic <- function(
         }
 
         return(DimPlotAtomic3D(
-            data = data, dims = dims, group_by = group_by, features = features,
+            data = data,
+            dims = dims,
+            group_by = group_by,
+            features = features,
             colorby = colorby,
             colors = if (!is.null(group_by)) colors else NULL,
-            feat_colors_value = if (!is.null(features)) feat_colors_value else NULL,
+            feat_colors_value = if (!is.null(features)) {
+                feat_colors_value
+            } else {
+                NULL
+            },
             label_use = if (!is.null(group_by)) label_use else NULL,
             labels_tb = if (!is.null(group_by)) labels_tb else NULL,
             keep_empty_group = isTRUE(keep_empty_group),
-            bg_color = bg_color, color_name = color_name,
-            pt_size = pt_size, pt_alpha = pt_alpha,
-            show_stat = show_stat, title = title, subtitle = subtitle,
-            xlab = xlab, ylab = ylab,
-            label = label, label_insitu = label_insitu, label_size = label_size,
-            label_fg = label_fg, label_bg = label_bg,
-            highlight = highlight, highlight_color = highlight_color,
-            highlight_size = highlight_size, highlight_stroke = highlight_stroke,
+            bg_color = bg_color,
+            color_name = color_name,
+            pt_size = pt_size,
+            pt_alpha = pt_alpha,
+            show_stat = show_stat,
+            title = title,
+            subtitle = subtitle,
+            xlab = xlab,
+            ylab = ylab,
+            label = label,
+            label_insitu = label_insitu,
+            label_size = label_size,
+            label_fg = label_fg,
+            label_bg = label_bg,
+            highlight = highlight,
+            highlight_color = highlight_color,
+            highlight_size = highlight_size,
+            highlight_stroke = highlight_stroke,
             highlight_alpha = highlight_alpha,
-            graph = graph, edge_size = edge_size, edge_alpha = edge_alpha, edge_color = edge_color,
-            lineages = lineages, lineages_trim = lineages_trim, lineages_span = lineages_span,
-            lineages_palette = lineages_palette, lineages_palcolor = lineages_palcolor,
-            palette = palette, palcolor = palcolor, palreverse = palreverse,
+            graph = graph,
+            edge_size = edge_size,
+            edge_alpha = edge_alpha,
+            edge_color = edge_color,
+            lineages = lineages,
+            lineages_trim = lineages_trim,
+            lineages_span = lineages_span,
+            lineages_palette = lineages_palette,
+            lineages_palcolor = lineages_palcolor,
+            palette = palette,
+            palcolor = palcolor,
+            palreverse = palreverse,
             n_sampled = n_sampled
         ))
     }
@@ -704,35 +1030,61 @@ DimPlotAtomic <- function(
         #     stop("'ggforce' package is required for adding mark to the plot.")
         # }
         mark_type <- match.arg(mark_type)
-        mark_fun <- switch(mark_type,
+        mark_fun <- switch(
+            mark_type,
             hull = ggforce::geom_mark_hull,
             ellipse = ggforce::geom_mark_ellipse,
             rect = ggforce::geom_mark_rect,
             circle = ggforce::geom_mark_circle
         )
-        p <- p + mark_fun(
-            data = data[!is.na(data[[group_by]]), , drop = FALSE],
-            mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(group_by), fill = !!sym(group_by)),
-            expand = mark_expand, alpha = mark_alpha, linetype = mark_linetype,
-            show.legend = FALSE
-        ) +
-            scale_fill_manual(values = colors[names(labels_tb)], guide = "none") +
-            scale_color_manual(values = colors[names(labels_tb)], guide = "none") +
+        p <- p +
+            mark_fun(
+                data = data[!is.na(data[[group_by]]), , drop = FALSE],
+                mapping = aes(
+                    x = !!sym(dims[1]),
+                    y = !!sym(dims[2]),
+                    color = !!sym(group_by),
+                    fill = !!sym(group_by)
+                ),
+                expand = mark_expand,
+                alpha = mark_alpha,
+                linetype = mark_linetype,
+                show.legend = FALSE
+            ) +
+            scale_fill_manual(
+                values = colors[names(labels_tb)],
+                guide = "none"
+            ) +
+            scale_color_manual(
+                values = colors[names(labels_tb)],
+                guide = "none"
+            ) +
             new_scale_fill() +
             new_scale_color()
     }
 
     ## Adding the graph/network
     if (!is.null(graph)) {
-        if (is.character(graph) && length(graph) == 1 && startsWith(graph, "@")) {
+        if (
+            is.character(graph) && length(graph) == 1 && startsWith(graph, "@")
+        ) {
             graph <- substring(graph, 2)
             net_mat <- attr(data, graph)
             if (is.null(net_mat)) {
-                stop(paste0("[DimPlot] The graph '", graph, "' is not found in the data attributes."))
+                stop(paste0(
+                    "[DimPlot] The graph '",
+                    graph,
+                    "' is not found in the data attributes."
+                ))
             }
-        } else if (inherits(graph, "Graph")) {  # SeuratObject Graph
+        } else if (inherits(graph, "Graph")) {
+            # SeuratObject Graph
             net_mat <- as.matrix(graph)
-        } else if (is.matrix(graph) || is.data.frame(graph) || inherits(graph, "dgCMatrix")) {
+        } else if (
+            is.matrix(graph) ||
+                is.data.frame(graph) ||
+                inherits(graph, "dgCMatrix")
+        ) {
             net_mat <- graph
         } else if (is.numeric(graph)) {
             graph <- colnames(data)[graph]
@@ -740,7 +1092,9 @@ DimPlotAtomic <- function(
         } else if (is.character(graph)) {
             net_mat <- data[graph]
         } else {
-            stop("[DimPlot] The 'graph' should be a matrix, data.frame, Graph object, indexes, or column names.")
+            stop(
+                "[DimPlot] The 'graph' should be a matrix, data.frame, Graph object, indexes, or column names."
+            )
         }
 
         if (!is.matrix(net_mat)) {
@@ -758,7 +1112,11 @@ DimPlotAtomic <- function(
         net_mat[upper.tri(net_mat)] <- NA
 
         handle_single_facet_value <- function(mat) {
-            net_df <- reshape2::melt(mat, na.rm = TRUE, stringsAsFactors = FALSE)
+            net_df <- reshape2::melt(
+                mat,
+                na.rm = TRUE,
+                stringsAsFactors = FALSE
+            )
             net_df$value <- as.numeric(net_df$value)
             net_df$Var1 <- as.character(net_df$Var1)
             net_df$Var2 <- as.character(net_df$Var2)
@@ -770,38 +1128,68 @@ DimPlotAtomic <- function(
         }
 
         if (!is.null(facet_by)) {
-            net_df <- do.call(rbind, lapply(split(data, data[, facet_by]), function(d) {
-                d <- handle_single_facet_value(net_mat[rownames(d), rownames(d)])
-                d[, facet_by] <- d[1, facet_by]
-                d
-            }))
+            net_df <- do.call(
+                rbind,
+                lapply(split(data, data[, facet_by]), function(d) {
+                    d <- handle_single_facet_value(net_mat[
+                        rownames(d),
+                        rownames(d)
+                    ])
+                    d[, facet_by] <- d[1, facet_by]
+                    d
+                })
+            )
         } else {
             net_df <- handle_single_facet_value(net_mat)
         }
 
-        p <- p + geom_segment(
-            data = net_df, mapping = aes(x = !!sym("x"), y = !!sym("y"), xend = !!sym("xend"),
-                yend = !!sym("yend"), linewidth = !!sym("value")),
-            color = edge_color, alpha = edge_alpha, show.legend = FALSE
-        ) + scale_linewidth_continuous(range = edge_size, guide = "none")
+        p <- p +
+            geom_segment(
+                data = net_df,
+                mapping = aes(
+                    x = !!sym("x"),
+                    y = !!sym("y"),
+                    xend = !!sym("xend"),
+                    yend = !!sym("yend"),
+                    linewidth = !!sym("value")
+                ),
+                color = edge_color,
+                alpha = edge_alpha,
+                show.legend = FALSE
+            ) +
+            scale_linewidth_continuous(range = edge_size, guide = "none")
     }
 
     ## Adding the density plot
     if (isTRUE(add_density)) {
         if (isTRUE(density_filled)) {
-            filled_color <- palette_this(palette = density_filled_palette, palcolor = density_filled_palcolor, reverse = palreverse)
+            filled_color <- palette_this(
+                palette = density_filled_palette,
+                palcolor = density_filled_palcolor,
+                reverse = palreverse
+            )
             p <- p +
                 stat_density_2d(
-                    geom = "raster", aes(x = !!sym(dims[1]), y = !!sym(dims[2]), fill = after_stat(!!sym("density"))),
-                    contour = FALSE, inherit.aes = FALSE, show.legend = FALSE
+                    geom = "raster",
+                    aes(
+                        x = !!sym(dims[1]),
+                        y = !!sym(dims[2]),
+                        fill = after_stat(!!sym("density"))
+                    ),
+                    contour = FALSE,
+                    inherit.aes = FALSE,
+                    show.legend = FALSE
                 ) +
                 scale_fill_gradientn(name = "Density", colours = filled_color) +
                 new_scale_fill()
         } else {
-            p <- p + geom_density_2d(
-                aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
-                color = density_color, inherit.aes = FALSE, show.legend = FALSE
-            )
+            p <- p +
+                geom_density_2d(
+                    aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
+                    color = density_color,
+                    inherit.aes = FALSE,
+                    show.legend = FALSE
+                )
         }
     }
 
@@ -830,27 +1218,45 @@ DimPlotAtomic <- function(
         # Remove the points inside the facet
         fc_indicator <- TRUE
         for (fc in facet_by) {
-            fc_indicator <- fc_indicator & (fc_data[[fc]] == fc_data[[paste0(".facet_", fc)]])
+            fc_indicator <- fc_indicator &
+                (fc_data[[fc]] == fc_data[[paste0(".facet_", fc)]])
         }
         fc_data <- fc_data[!fc_indicator, , drop = FALSE]
-        fc_data[, facet_by, drop = FALSE] <- fc_data[, paste0(".facet_", facet_by), drop = FALSE]
+        fc_data[, facet_by, drop = FALSE] <- fc_data[,
+            paste0(".facet_", facet_by),
+            drop = FALSE
+        ]
 
         if (isTRUE(raster)) {
-            p <- p + scattermore::geom_scattermore(
-                data = fc_data, mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
-                size = pt_size, alpha = pt_alpha / 2, color = bg_color, pixels = raster_dpi
-            )
+            p <- p +
+                scattermore::geom_scattermore(
+                    data = fc_data,
+                    mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
+                    size = pt_size,
+                    alpha = pt_alpha / 2,
+                    color = bg_color,
+                    pixels = raster_dpi
+                )
         } else if (isTRUE(hex)) {
-            p <- p + geom_hex(
-                data = fc_data, mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
-                linewidth = hex_linewidth, bins = hex_bins, binwidth = hex_binwidth,
-                fill = bg_color, alpha = pt_alpha / 2
-            )
+            p <- p +
+                geom_hex(
+                    data = fc_data,
+                    mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
+                    linewidth = hex_linewidth,
+                    bins = hex_bins,
+                    binwidth = hex_binwidth,
+                    fill = bg_color,
+                    alpha = pt_alpha / 2
+                )
         } else {
-            p <- p + geom_point(
-                data = fc_data, mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
-                size = pt_size, alpha = pt_alpha / 2, color = bg_color
-            )
+            p <- p +
+                geom_point(
+                    data = fc_data,
+                    mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
+                    size = pt_size,
+                    alpha = pt_alpha / 2,
+                    color = bg_color
+                )
         }
         rm(fc_data)
     }
@@ -861,23 +1267,48 @@ DimPlotAtomic <- function(
         #     stop("'scattermore' package is required to raster the plot.")
         # }
         if (!is.null(group_by)) {
-            p <- p + scattermore::geom_scattermore(
-                data = data[is.na(data[[group_by]]), , drop = FALSE],
-                mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])), color = bg_color,
-                pointsize = ceiling(pt_size), alpha = pt_alpha, pixels = raster_dpi, show.legend = TRUE
-            ) + scattermore::geom_scattermore(
-                data = data[!is.na(data[[group_by]]), , drop = FALSE],
-                mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(group_by)),
-                pointsize = ceiling(pt_size), alpha = pt_alpha, pixels = raster_dpi, show.legend = TRUE
-            )
-        } else {  # features
-            p <- p + scattermore::geom_scattermore(
-                mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])), color = bg_color,
-                pointsize = ceiling(pt_size), alpha = pt_alpha, pixels = raster_dpi
-            ) + scattermore::geom_scattermore(
-                mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(colorby)),
-                pointsize = ceiling(pt_size), alpha = pt_alpha, pixels = raster_dpi
-            )
+            p <- p +
+                scattermore::geom_scattermore(
+                    data = data[is.na(data[[group_by]]), , drop = FALSE],
+                    mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
+                    color = bg_color,
+                    pointsize = ceiling(pt_size),
+                    alpha = pt_alpha,
+                    pixels = raster_dpi,
+                    show.legend = TRUE
+                ) +
+                scattermore::geom_scattermore(
+                    data = data[!is.na(data[[group_by]]), , drop = FALSE],
+                    mapping = aes(
+                        x = !!sym(dims[1]),
+                        y = !!sym(dims[2]),
+                        color = !!sym(group_by)
+                    ),
+                    pointsize = ceiling(pt_size),
+                    alpha = pt_alpha,
+                    pixels = raster_dpi,
+                    show.legend = TRUE
+                )
+        } else {
+            # features
+            p <- p +
+                scattermore::geom_scattermore(
+                    mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
+                    color = bg_color,
+                    pointsize = ceiling(pt_size),
+                    alpha = pt_alpha,
+                    pixels = raster_dpi
+                ) +
+                scattermore::geom_scattermore(
+                    mapping = aes(
+                        x = !!sym(dims[1]),
+                        y = !!sym(dims[2]),
+                        color = !!sym(colorby)
+                    ),
+                    pointsize = ceiling(pt_size),
+                    alpha = pt_alpha,
+                    pixels = raster_dpi
+                )
         }
     } else if (isTRUE(hex)) {
         # if (!requireNamespace("hexbin", quietly = TRUE)) {
@@ -886,38 +1317,78 @@ DimPlotAtomic <- function(
         has_fill <- TRUE
         if (isTRUE(hex_count)) {
             if (!is.null(features)) {
-                stop("Don't know how to count for the hex when 'group_by' is not provided.")
-            }
-            p <- p + geom_hex(
-                mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(group_by), fill = !!sym(group_by),
-                    alpha = after_stat(!!sym("count"))),
-                linewidth = hex_linewidth, bins = hex_bins, binwidth = hex_binwidth
-            )
-        } else if (!is.null(group_by)) {
-            p <- p + geom_hex(
-                mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(group_by), fill = !!sym(group_by)),
-                linewidth = hex_linewidth, bins = hex_bins, binwidth = hex_binwidth, show.legend = TRUE
-            )
-        } else {  # features
-            data_na <- data[is.na(data[[features]]), , drop = FALSE]
-            if (nrow(data_na) > 0) {
-                p <- p + geom_hex(
-                    data = data_na, mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
-                    fill = bg_color, linewidth = hex_linewidth, bins = hex_bins,
-                    binwidth = hex_binwidth, alpha = pt_alpha / 2
+                stop(
+                    "Don't know how to count for the hex when 'group_by' is not provided."
                 )
             }
-            p <- p + stat_summary_hex(
-                data = data[!is.na(data[[features]]), , drop = FALSE],
-                mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), z = !!sym(colorby)),
-                linewidth = hex_linewidth, bins = hex_bins, binwidth = hex_binwidth, alpha = pt_alpha
-            )
+            p <- p +
+                geom_hex(
+                    mapping = aes(
+                        x = !!sym(dims[1]),
+                        y = !!sym(dims[2]),
+                        color = !!sym(group_by),
+                        fill = !!sym(group_by),
+                        alpha = after_stat(!!sym("count"))
+                    ),
+                    linewidth = hex_linewidth,
+                    bins = hex_bins,
+                    binwidth = hex_binwidth
+                )
+        } else if (!is.null(group_by)) {
+            p <- p +
+                geom_hex(
+                    mapping = aes(
+                        x = !!sym(dims[1]),
+                        y = !!sym(dims[2]),
+                        color = !!sym(group_by),
+                        fill = !!sym(group_by)
+                    ),
+                    linewidth = hex_linewidth,
+                    bins = hex_bins,
+                    binwidth = hex_binwidth,
+                    show.legend = TRUE
+                )
+        } else {
+            # features
+            data_na <- data[is.na(data[[features]]), , drop = FALSE]
+            if (nrow(data_na) > 0) {
+                p <- p +
+                    geom_hex(
+                        data = data_na,
+                        mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
+                        fill = bg_color,
+                        linewidth = hex_linewidth,
+                        bins = hex_bins,
+                        binwidth = hex_binwidth,
+                        alpha = pt_alpha / 2
+                    )
+            }
+            p <- p +
+                stat_summary_hex(
+                    data = data[!is.na(data[[features]]), , drop = FALSE],
+                    mapping = aes(
+                        x = !!sym(dims[1]),
+                        y = !!sym(dims[2]),
+                        z = !!sym(colorby)
+                    ),
+                    linewidth = hex_linewidth,
+                    bins = hex_bins,
+                    binwidth = hex_binwidth,
+                    alpha = pt_alpha
+                )
         }
     } else {
-        p <- p + geom_point(
-            mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(colorby)),
-            size = pt_size, alpha = pt_alpha, show.legend = TRUE
-        )
+        p <- p +
+            geom_point(
+                mapping = aes(
+                    x = !!sym(dims[1]),
+                    y = !!sym(dims[2]),
+                    color = !!sym(colorby)
+                ),
+                size = pt_size,
+                alpha = pt_alpha,
+                show.legend = TRUE
+            )
     }
 
     ## Adding the highlight
@@ -930,34 +1401,63 @@ DimPlotAtomic <- function(
         } else if (length(highlight) == 1 && is.character(highlight)) {
             hi_df <- eval(parse(text = paste0('filter(data, ', highlight, ')')))
         } else {
-            all_inst <- if (is.numeric(highlight)) 1:nrow(data) else rownames(data)
+            all_inst <- if (is.numeric(highlight)) {
+                1:nrow(data)
+            } else {
+                rownames(data)
+            }
             if (!any(highlight %in% all_inst)) {
                 stop("No highlight items found in the data (rownames).")
             }
             if (!all(highlight %in% all_inst)) {
-                warning("Not all highlight items found in the data (rownames).", immediate. = TRUE)
+                warning(
+                    "Not all highlight items found in the data (rownames).",
+                    immediate. = TRUE
+                )
             }
             hi_df <- data[intersect(highlight, all_inst), , drop = FALSE]
             rm(all_inst)
         }
         if (nrow(hi_df) > 0) {
             if (isTRUE(raster)) {
-                p <- p + scattermore::geom_scattermore(
-                    data = hi_df, aes(x = !!sym(dims[1]), y = !!sym(dims[2])), color = highlight_color,
-                    pointsize = floor(highlight_size) + highlight_stroke, alpha = highlight_alpha, pixels = raster_dpi
-                ) +
+                p <- p +
                     scattermore::geom_scattermore(
-                        data = hi_df, aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(colorby)),
-                        pointsize = floor(highlight_size), alpha = highlight_alpha, pixels = raster_dpi
+                        data = hi_df,
+                        aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
+                        color = highlight_color,
+                        pointsize = floor(highlight_size) + highlight_stroke,
+                        alpha = highlight_alpha,
+                        pixels = raster_dpi
+                    ) +
+                    scattermore::geom_scattermore(
+                        data = hi_df,
+                        aes(
+                            x = !!sym(dims[1]),
+                            y = !!sym(dims[2]),
+                            color = !!sym(colorby)
+                        ),
+                        pointsize = floor(highlight_size),
+                        alpha = highlight_alpha,
+                        pixels = raster_dpi
                     )
             } else {
-                p <- p + geom_point(
-                    data = hi_df, aes(x = !!sym(dims[1]), y = !!sym(dims[2])), color = highlight_color,
-                    size = highlight_size + highlight_stroke, alpha = highlight_alpha
-                ) +
+                p <- p +
                     geom_point(
-                        data = hi_df, aes(x = !!sym(dims[1]), y = !!sym(dims[2]), color = !!sym(colorby)),
-                        size = highlight_size, alpha = highlight_alpha
+                        data = hi_df,
+                        aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
+                        color = highlight_color,
+                        size = highlight_size + highlight_stroke,
+                        alpha = highlight_alpha
+                    ) +
+                    geom_point(
+                        data = hi_df,
+                        aes(
+                            x = !!sym(dims[1]),
+                            y = !!sym(dims[2]),
+                            color = !!sym(colorby)
+                        ),
+                        size = highlight_size,
+                        alpha = highlight_alpha
                     )
             }
         }
@@ -965,21 +1465,8 @@ DimPlotAtomic <- function(
 
     if (!is.null(group_by)) {
         if (!isFALSE(keep_empty_group)) {
-            p <- p + scale_color_manual(
-                values = colors[names(labels_tb)],
-                labels = label_use,
-                na.value = bg_color,
-                breaks = group_vals,
-                limits = group_vals,
-                drop = FALSE,
-                guide = guide_legend(
-                    title.hjust = 0,
-                    order = 1,
-                    override.aes = list(size = 3, alpha = 1)
-                )
-            )
-            if (has_fill) {
-                p <- p + scale_fill_manual(
+            p <- p +
+                scale_color_manual(
                     values = colors[names(labels_tb)],
                     labels = label_use,
                     na.value = bg_color,
@@ -988,56 +1475,98 @@ DimPlotAtomic <- function(
                     drop = FALSE,
                     guide = guide_legend(
                         title.hjust = 0,
-                        order = 1
+                        order = 1,
+                        override.aes = list(size = 3, alpha = 1)
                     )
                 )
+            if (has_fill) {
+                p <- p +
+                    scale_fill_manual(
+                        values = colors[names(labels_tb)],
+                        labels = label_use,
+                        na.value = bg_color,
+                        breaks = group_vals,
+                        limits = group_vals,
+                        drop = FALSE,
+                        guide = guide_legend(
+                            title.hjust = 0,
+                            order = 1
+                        )
+                    )
             }
         } else {
-            p <- p + scale_color_manual(
-                values = colors[names(labels_tb)],
-                labels = label_use,
-                na.value = bg_color,
-                guide = guide_legend(
-                    title.hjust = 0,
-                    order = 1,
-                    override.aes = list(size = 3, alpha = 1)
-                )
-            )
-            if (has_fill) {
-                p <- p + scale_fill_manual(
+            p <- p +
+                scale_color_manual(
                     values = colors[names(labels_tb)],
                     labels = label_use,
                     na.value = bg_color,
                     guide = guide_legend(
                         title.hjust = 0,
-                        order = 1
+                        order = 1,
+                        override.aes = list(size = 3, alpha = 1)
                     )
                 )
+            if (has_fill) {
+                p <- p +
+                    scale_fill_manual(
+                        values = colors[names(labels_tb)],
+                        labels = label_use,
+                        na.value = bg_color,
+                        guide = guide_legend(
+                            title.hjust = 0,
+                            order = 1
+                        )
+                    )
             }
         }
-    } else {  # features
-        p <- p + scale_color_gradientn(
-            name = color_name,
-            colors = palette_this(palette = palette, palcolor = palcolor, type = "continuous", reverse = palreverse),
-            values = rescale(feat_colors_value),
-            limits = range(feat_colors_value),
-            na.value = bg_color,
-            guide = guide_colorbar(frame.colour = "black", ticks.colour = "black", title.hjust = 0)
-        )
-        if (has_fill) {
-            p <- p + scale_fill_gradientn(
+    } else {
+        # features
+        p <- p +
+            scale_color_gradientn(
                 name = color_name,
-                colors = palette_this(palette = palette, palcolor = palcolor, type = "continuous", reverse = palreverse),
+                colors = palette_this(
+                    palette = palette,
+                    palcolor = palcolor,
+                    type = "continuous",
+                    reverse = palreverse
+                ),
                 values = rescale(feat_colors_value),
                 limits = range(feat_colors_value),
                 na.value = bg_color,
-                guide = guide_colorbar(frame.colour = "black", ticks.colour = "black", title.hjust = 0)
+                guide = guide_colorbar(
+                    frame.colour = "black",
+                    ticks.colour = "black",
+                    title.hjust = 0
+                )
             )
+        if (has_fill) {
+            p <- p +
+                scale_fill_gradientn(
+                    name = color_name,
+                    colors = palette_this(
+                        palette = palette,
+                        palcolor = palcolor,
+                        type = "continuous",
+                        reverse = palreverse
+                    ),
+                    values = rescale(feat_colors_value),
+                    limits = range(feat_colors_value),
+                    na.value = bg_color,
+                    guide = guide_colorbar(
+                        frame.colour = "black",
+                        ticks.colour = "black",
+                        title.hjust = 0
+                    )
+                )
         }
     }
     # There may be warnings about fonts, but we don't care here
     legend_base <- suppressWarnings(get_plot_component(
-        p + theme_this(legend.position = "bottom", legend.direction = legend.direction),
+        p +
+            theme_this(
+                legend.position = "bottom",
+                legend.direction = legend.direction
+            ),
         "guide-box-bottom"
     ))
 
@@ -1047,12 +1576,22 @@ DimPlotAtomic <- function(
         if (!is.null(facet_by)) {
             stop("'lineages' is not supported when 'facet_by' is not NULL.")
         }
-        lineages <- unique(check_columns(data, lineages, force_factor = FALSE, allow_multi = TRUE))
-        lineage_colors <- palette_this(lineages, palette = lineages_palette, palcolor = lineages_palcolor, reverse = palreverse)
+        lineages <- unique(check_columns(
+            data,
+            lineages,
+            force_factor = FALSE,
+            allow_multi = TRUE
+        ))
+        lineage_colors <- palette_this(
+            lineages,
+            palette = lineages_palette,
+            palcolor = lineages_palcolor,
+            reverse = palreverse
+        )
         lineage_layers <- lapply(lineages, function(l) {
-            trim_pass <- (
-                data[[l]] > quantile(data[[l]], lineages_trim[1], na.rm = TRUE) &
-                    data[[l]] < quantile(data[[l]], lineages_trim[2], na.rm = TRUE))
+            trim_pass <- (data[[l]] >
+                quantile(data[[l]], lineages_trim[1], na.rm = TRUE) &
+                data[[l]] < quantile(data[[l]], lineages_trim[2], na.rm = TRUE))
             na_pass <- !is.na(data[[l]])
             index <- which(trim_pass & na_pass)
             index <- index[order(data[index, l])]
@@ -1063,43 +1602,81 @@ DimPlotAtomic <- function(
             # weights_used <- dat_sub[[weights]]
             # }
             fitted <- lapply(dims, function(x) {
-                loess(formula(paste(x, l, sep = "~")), weights = weights_used, data = dat_sub, span = lineages_span, degree = 2)$fitted
+                loess(
+                    formula(paste(x, l, sep = "~")),
+                    weights = weights_used,
+                    data = dat_sub,
+                    span = lineages_span,
+                    degree = 2
+                )$fitted
             })
             names(fitted) <- dims
             fitted[["index"]] <- index
 
             dat_smooth <- as.data.frame(fitted)
-            colnames(dat_smooth) <- c(paste0("Axis_", 1:(ncol(dat_smooth) - 1)), "index")
+            colnames(dat_smooth) <- c(
+                paste0("Axis_", 1:(ncol(dat_smooth) - 1)),
+                "index"
+            )
             dat_smooth[, "Lineages"] <- factor(l, levels = lineages)
             dat_smooth <- unique(na.omit(dat_smooth))
             curve <- list()
             if (isTRUE(lineages_whiskers)) {
-                dat_smooth[, "raw_Axis_1"] <- data[dat_smooth[, "index"], dims[1]]
-                dat_smooth[, "raw_Axis_2"] <- data[dat_smooth[, "index"], dims[2]]
-                curve <- c(curve, geom_segment(
-                    data = dat_smooth,
-                    mapping = aes(x = !!sym("Axis_1"), y = !!sym("Axis_2"),
-                        xend = !!sym("raw_Axis_1"), yend = !!sym("raw_Axis_2"), color = !!sym("Lineages")),
-                    linewidth = lineages_whiskers_linewidth, alpha = lineages_whiskers_alpha,
-                    show.legend = TRUE, inherit.aes = FALSE
-                ))
+                dat_smooth[, "raw_Axis_1"] <- data[
+                    dat_smooth[, "index"],
+                    dims[1]
+                ]
+                dat_smooth[, "raw_Axis_2"] <- data[
+                    dat_smooth[, "index"],
+                    dims[2]
+                ]
+                curve <- c(
+                    curve,
+                    geom_segment(
+                        data = dat_smooth,
+                        mapping = aes(
+                            x = !!sym("Axis_1"),
+                            y = !!sym("Axis_2"),
+                            xend = !!sym("raw_Axis_1"),
+                            yend = !!sym("raw_Axis_2"),
+                            color = !!sym("Lineages")
+                        ),
+                        linewidth = lineages_whiskers_linewidth,
+                        alpha = lineages_whiskers_alpha,
+                        show.legend = TRUE,
+                        inherit.aes = FALSE
+                    )
+                )
             }
             curve <- c(
                 curve,
                 geom_path(
-                    data = dat_smooth, mapping = aes(x = !!sym("Axis_1"), y = !!sym("Axis_2")), color = lineages_line_bg,
-                    linewidth = lineages_linewidth + lineages_line_bg_stroke, arrow = lineages_arrow,
-                    show.legend = TRUE, inherit.aes = FALSE
+                    data = dat_smooth,
+                    mapping = aes(x = !!sym("Axis_1"), y = !!sym("Axis_2")),
+                    color = lineages_line_bg,
+                    linewidth = lineages_linewidth + lineages_line_bg_stroke,
+                    arrow = lineages_arrow,
+                    show.legend = TRUE,
+                    inherit.aes = FALSE
                 ),
                 geom_path(
-                    data = dat_smooth, mapping = aes(x = !!sym("Axis_1"), y = !!sym("Axis_2"), color = !!sym("Lineages")),
-                    linewidth = lineages_linewidth, arrow = lineages_arrow,
-                    show.legend = TRUE, inherit.aes = FALSE
+                    data = dat_smooth,
+                    mapping = aes(
+                        x = !!sym("Axis_1"),
+                        y = !!sym("Axis_2"),
+                        color = !!sym("Lineages")
+                    ),
+                    linewidth = lineages_linewidth,
+                    arrow = lineages_arrow,
+                    show.legend = TRUE,
+                    inherit.aes = FALSE
                 )
             )
             return(curve)
         })
-        lineage_layers[[length(lineage_layers) + 1]] <- scale_color_manual(values = lineage_colors)
+        lineage_layers[[length(lineage_layers) + 1]] <- scale_color_manual(
+            values = lineage_colors
+        )
 
         suppressMessages({
             legend_list$lineages <- suppressWarnings(get_plot_component(
@@ -1114,7 +1691,10 @@ DimPlotAtomic <- function(
         })
 
         p <- suppressWarnings({
-            p + new_scale_color() + lineage_layers + ggplot2::theme(legend.position = "none")
+            p +
+                new_scale_color() +
+                lineage_layers +
+                ggplot2::theme(legend.position = "none")
         })
         if (is.null(legend_list$lineages)) {
             legend_list["lineages"] <- list(NULL)
@@ -1134,17 +1714,38 @@ DimPlotAtomic <- function(
         }
 
         velocity_layers <- VelocityPlot(
-            embedding = data[, dims, drop = FALSE], v_embedding = v_embedding,
-            plot_type = velocity_plot_type, group_by = if (velocity_plot_type == "raw") data[[group_by]] else NULL,
-            group_name = group_by, group_palette = velocity_group_palette, group_palcolor = velocity_group_palcolor,
-            n_neighbors = velocity_n_neighbors, density = velocity_density, keep_na = keep_na[[group_by]], keep_empty = keep_empty[[group_by]],
-            smooth = velocity_smooth, scale = velocity_scale, min_mass = velocity_min_mass,
-            cutoff_perc = velocity_cutoff_perc, arrow_angle = arrow_angle, arrow_color = arrow_color,
-            streamline_l = streamline_l, streamline_minl = streamline_minl, arrow_alpha = arrow_alpha,
-            streamline_res = streamline_res, streamline_n = streamline_n,
-            streamline_width = streamline_width, streamline_alpha = streamline_alpha,
-            streamline_color = streamline_color, streamline_palette = streamline_palette,
-            streamline_palcolor = streamline_palcolor, streamline_bg_color = streamline_bg_color,
+            embedding = data[, dims, drop = FALSE],
+            v_embedding = v_embedding,
+            plot_type = velocity_plot_type,
+            group_by = if (velocity_plot_type == "raw") {
+                data[[group_by]]
+            } else {
+                NULL
+            },
+            group_name = group_by,
+            group_palette = velocity_group_palette,
+            group_palcolor = velocity_group_palcolor,
+            n_neighbors = velocity_n_neighbors,
+            density = velocity_density,
+            keep_na = keep_na[[group_by]],
+            keep_empty = keep_empty[[group_by]],
+            smooth = velocity_smooth,
+            scale = velocity_scale,
+            min_mass = velocity_min_mass,
+            cutoff_perc = velocity_cutoff_perc,
+            arrow_angle = arrow_angle,
+            arrow_color = arrow_color,
+            streamline_l = streamline_l,
+            streamline_minl = streamline_minl,
+            arrow_alpha = arrow_alpha,
+            streamline_res = streamline_res,
+            streamline_n = streamline_n,
+            streamline_width = streamline_width,
+            streamline_alpha = streamline_alpha,
+            streamline_color = streamline_color,
+            streamline_palette = streamline_palette,
+            streamline_palcolor = streamline_palcolor,
+            streamline_bg_color = streamline_bg_color,
             streamline_bg_stroke = streamline_bg_stroke,
             return_layer = TRUE
         )
@@ -1152,9 +1753,12 @@ DimPlotAtomic <- function(
         if (!is.null(velocity_scales) && "color" %in% velocity_scales) {
             p <- p + new_scale_color() + velocity_layers
             legend_list$velocity <- suppressWarnings(get_plot_component(
-                ggplot() + velocity_layers + theme_this(
-                    legend.position = "bottom", legend.direction = legend.direction
-                ),
+                ggplot() +
+                    velocity_layers +
+                    theme_this(
+                        legend.position = "bottom",
+                        legend.direction = legend.direction
+                    ),
                 "guide-box-bottom"
             ))
         } else {
@@ -1199,7 +1803,11 @@ DimPlotAtomic <- function(
             stat_plots <- do.call(LinePlot, stat_args)
         }
 
-        coord_df <- aggregate(p$data[, dims], by = list(p$data[[group_by]]), FUN = median)
+        coord_df <- aggregate(
+            p$data[, dims],
+            by = list(p$data[[group_by]]),
+            FUN = median
+        )
         colnames(coord_df)[1] <- group_by
         x_range <- diff(layer_scales(p)$x$range$range)
         y_range <- diff(layer_scales(p)$y$range$range)
@@ -1207,14 +1815,21 @@ DimPlotAtomic <- function(
         stat_plot_list <- list()
         for (i in seq_len(nrow(coord_df))) {
             stat_plot_list[[i]] <- annotation_custom(
-                ggplotGrob(stat_plots[[coord_df[i, group_by]]] + theme_void() + ggplot2::theme(legend.position = "none")),
-                xmin = coord_df[i, dims[1]] - x_range * stat_plot_size / 2, ymin = coord_df[i, dims[2]] - y_range * stat_plot_size / 2,
-                xmax = coord_df[i, dims[1]] + x_range * stat_plot_size / 2, ymax = coord_df[i, dims[2]] + y_range * stat_plot_size / 2
+                ggplotGrob(
+                    stat_plots[[coord_df[i, group_by]]] +
+                        theme_void() +
+                        ggplot2::theme(legend.position = "none")
+                ),
+                xmin = coord_df[i, dims[1]] - x_range * stat_plot_size / 2,
+                ymin = coord_df[i, dims[2]] - y_range * stat_plot_size / 2,
+                xmax = coord_df[i, dims[1]] + x_range * stat_plot_size / 2,
+                ymax = coord_df[i, dims[2]] + y_range * stat_plot_size / 2
             )
         }
         p <- p + stat_plot_list
         legend_list$stat_by <- suppressWarnings(get_plot_component(
-            stat_plots[[coord_df[i, group_by]]] + ggplot2::theme(legend.position = "bottom"),
+            stat_plots[[coord_df[i, group_by]]] +
+                ggplot2::theme(legend.position = "bottom"),
             "guide-box-bottom"
         ))
     }
@@ -1225,10 +1840,18 @@ DimPlotAtomic <- function(
             stop("Adding labels is not supported when 'features' is specified.")
         }
         if (!is.null(facet_by)) {
-            label_df <- aggregate(data[, dims], by = list(data[[group_by]], data[[facet_by]]), FUN = median)
+            label_df <- aggregate(
+                data[, dims],
+                by = list(data[[group_by]], data[[facet_by]]),
+                FUN = median
+            )
             colnames(label_df)[2:length(facet_by) + 1] <- facet_by
         } else {
-            label_df <- aggregate(data[, dims], by = list(data[[group_by]]), FUN = median)
+            label_df <- aggregate(
+                data[, dims],
+                by = list(data[[group_by]]),
+                FUN = median
+            )
         }
         colnames(label_df)[1] <- ".label"
         label_df <- label_df[!is.na(label_df[, ".label"]), , drop = FALSE]
@@ -1236,21 +1859,50 @@ DimPlotAtomic <- function(
             label_df[, ".label"] <- seq_len(nrow(label_df))
         }
         if (isTRUE(label_repel)) {
-            p <- p + geom_point(
-                data = label_df, mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
-                color = label_pt_color, size = label_pt_size
-            ) + geom_text_repel(
-                data = label_df, aes(x = !!sym(dims[1]), y = !!sym(dims[2]), label = !!sym(".label")),
-                point.size = label_pt_size, max.overlaps = 100, force = label_repulsion,
-                color = label_fg, bg.color = label_bg, bg.r = label_bg_r, size = label_size, inherit.aes = FALSE
-            )
+            p <- p +
+                geom_point(
+                    data = label_df,
+                    mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
+                    color = label_pt_color,
+                    size = label_pt_size
+                ) +
+                geom_text_repel(
+                    data = label_df,
+                    aes(
+                        x = !!sym(dims[1]),
+                        y = !!sym(dims[2]),
+                        label = !!sym(".label")
+                    ),
+                    point.size = label_pt_size,
+                    max.overlaps = 100,
+                    force = label_repulsion,
+                    color = label_fg,
+                    bg.color = label_bg,
+                    bg.r = label_bg_r,
+                    size = label_size,
+                    inherit.aes = FALSE
+                )
         } else {
-            p <- p + geom_text_repel(
-                data = label_df, aes(x = !!sym(dims[1]), y = !!sym(dims[2]), label = !!sym(".label")),
-                fontface = "bold", min.segment.length = 0, segment.color = label_segment_color,
-                point.size = NA, max.overlaps = 100, force = 0,
-                color = label_fg, bg.color = label_bg, bg.r = label_bg_r, size = label_size, inherit.aes = FALSE
-            )
+            p <- p +
+                geom_text_repel(
+                    data = label_df,
+                    aes(
+                        x = !!sym(dims[1]),
+                        y = !!sym(dims[2]),
+                        label = !!sym(".label")
+                    ),
+                    fontface = "bold",
+                    min.segment.length = 0,
+                    segment.color = label_segment_color,
+                    point.size = NA,
+                    max.overlaps = 100,
+                    force = 0,
+                    color = label_fg,
+                    bg.color = label_bg,
+                    bg.r = label_bg_r,
+                    size = label_size,
+                    inherit.aes = FALSE
+                )
         }
     }
 
@@ -1281,9 +1933,18 @@ DimPlotAtomic <- function(
     attr(p, "width") <- dims$width
 
     if (length(legend_list) == 0) {
-        p <- facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-                        labeller = facet_labeller, legend.position = legend.position,
-                        legend.direction = legend.direction, drop = !isTRUE(keep_empty_facet))
+        p <- facet_plot(
+            p,
+            facet_by,
+            facet_scales,
+            facet_nrow,
+            facet_ncol,
+            facet_byrow,
+            labeller = facet_labeller,
+            legend.position = legend.position,
+            legend.direction = legend.direction,
+            drop = !isTRUE(keep_empty_facet)
+        )
     }
     p
 }
@@ -1363,46 +2024,146 @@ DimPlotAtomic <- function(
 #' DimPlot(dim_example, group_by = "clusters", keep_na = TRUE, keep_empty = FALSE)
 #' }
 DimPlot <- function(
-    data, dims = 1:2, group_by, group_by_sep = "_", split_by = NULL, split_by_sep = "_",
-    pt_size = NULL, pt_alpha = 1, bg_color = "grey80",
-    label_insitu = FALSE, show_stat = !identical(theme, "theme_blank"),
-    label = FALSE, label_size = 4, label_fg = "white", label_bg = "black", label_bg_r = 0.1,
-    label_repel = FALSE, label_repulsion = 20, label_pt_size = 1, label_pt_color = "black",
-    label_segment_color = "black", order = c("as-is", "reverse", "high-top", "low-top", "random"),
-    highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
-    add_mark = FALSE, mark_type = c("hull", "ellipse", "rect", "circle"), mark_expand = unit(3, "mm"),
-    mark_alpha = 0.1, mark_linetype = 1,
-    stat_by = NULL, stat_plot_type = c("pie", "ring", "bar", "line"), stat_plot_size = 0.1, stat_args = list(palette = "Set1"),
-    graph = NULL, edge_size = c(0.05, 0.5), edge_alpha = 0.1, edge_color = "grey40",
-    add_density = FALSE, density_color = "grey80", density_filled = FALSE,
-    density_filled_palette = "Greys", density_filled_palcolor = NULL,
-    lineages = NULL, lineages_trim = c(0.01, 0.99), lineages_span = 0.75,
-    lineages_palette = "Dark2", lineages_palcolor = NULL, lineages_arrow = arrow(length = unit(0.1, "inches")),
-    lineages_linewidth = 1, lineages_line_bg = "white", lineages_line_bg_stroke = 0.5,
-    lineages_whiskers = FALSE, lineages_whiskers_linewidth = 0.5, lineages_whiskers_alpha = 0.5,
-    velocity = NULL, velocity_plot_type = c("raw", "grid", "stream"), velocity_n_neighbors = NULL,
-    velocity_density = 1, velocity_smooth = 0.5, velocity_scale = 1, velocity_min_mass = 1, velocity_cutoff_perc = 5,
-    velocity_group_palette = "Set2", velocity_group_palcolor = NULL, arrow_angle = 20, arrow_color = "black", arrow_alpha = 1,
-    streamline_l = 5, streamline_minl = 1, streamline_res = 1, streamline_n = 15,
-    streamline_width = c(0, 0.8), streamline_alpha = 1, streamline_color = NULL, streamline_palette = "RdYlBu", streamline_palcolor = NULL,
-    streamline_bg_color = "white", streamline_bg_stroke = 0.5, keep_na = FALSE, keep_empty = FALSE,
-    facet_by = NULL, facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
-    theme = "theme_this", theme_args = list(), aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    raster = NULL, raster_dpi = c(512, 512),
-    hex = FALSE, hex_linewidth = 0.5, hex_count = TRUE, hex_bins = 50, hex_binwidth = NULL,
-    palette = "Paired", palcolor = NULL, palreverse = FALSE, seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
-    ...) {
-
+    data,
+    dims = 1:2,
+    group_by,
+    group_by_sep = "_",
+    split_by = NULL,
+    split_by_sep = "_",
+    pt_size = NULL,
+    pt_alpha = 1,
+    bg_color = "grey80",
+    label_insitu = FALSE,
+    show_stat = !identical(theme, "theme_blank"),
+    label = FALSE,
+    label_size = 4,
+    label_fg = "white",
+    label_bg = "black",
+    label_bg_r = 0.1,
+    label_repel = FALSE,
+    label_repulsion = 20,
+    label_pt_size = 1,
+    label_pt_color = "black",
+    label_segment_color = "black",
+    order = c("as-is", "reverse", "high-top", "low-top", "random"),
+    highlight = NULL,
+    highlight_alpha = 1,
+    highlight_size = 1,
+    highlight_color = "black",
+    highlight_stroke = 0.8,
+    add_mark = FALSE,
+    mark_type = c("hull", "ellipse", "rect", "circle"),
+    mark_expand = unit(3, "mm"),
+    mark_alpha = 0.1,
+    mark_linetype = 1,
+    stat_by = NULL,
+    stat_plot_type = c("pie", "ring", "bar", "line"),
+    stat_plot_size = 0.1,
+    stat_args = list(palette = "Set1"),
+    graph = NULL,
+    edge_size = c(0.05, 0.5),
+    edge_alpha = 0.1,
+    edge_color = "grey40",
+    add_density = FALSE,
+    density_color = "grey80",
+    density_filled = FALSE,
+    density_filled_palette = "Greys",
+    density_filled_palcolor = NULL,
+    lineages = NULL,
+    lineages_trim = c(0.01, 0.99),
+    lineages_span = 0.75,
+    lineages_palette = "Dark2",
+    lineages_palcolor = NULL,
+    lineages_arrow = arrow(length = unit(0.1, "inches")),
+    lineages_linewidth = 1,
+    lineages_line_bg = "white",
+    lineages_line_bg_stroke = 0.5,
+    lineages_whiskers = FALSE,
+    lineages_whiskers_linewidth = 0.5,
+    lineages_whiskers_alpha = 0.5,
+    velocity = NULL,
+    velocity_plot_type = c("raw", "grid", "stream"),
+    velocity_n_neighbors = NULL,
+    velocity_density = 1,
+    velocity_smooth = 0.5,
+    velocity_scale = 1,
+    velocity_min_mass = 1,
+    velocity_cutoff_perc = 5,
+    velocity_group_palette = "Set2",
+    velocity_group_palcolor = NULL,
+    arrow_angle = 20,
+    arrow_color = "black",
+    arrow_alpha = 1,
+    streamline_l = 5,
+    streamline_minl = 1,
+    streamline_res = 1,
+    streamline_n = 15,
+    streamline_width = c(0, 0.8),
+    streamline_alpha = 1,
+    streamline_color = NULL,
+    streamline_palette = "RdYlBu",
+    streamline_palcolor = NULL,
+    streamline_bg_color = "white",
+    streamline_bg_stroke = 0.5,
+    keep_na = FALSE,
+    keep_empty = FALSE,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_nrow = NULL,
+    facet_ncol = NULL,
+    facet_byrow = TRUE,
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    theme = "theme_this",
+    theme_args = list(),
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    raster = NULL,
+    raster_dpi = c(512, 512),
+    hex = FALSE,
+    hex_linewidth = 0.5,
+    hex_count = TRUE,
+    hex_bins = 50,
+    hex_binwidth = NULL,
+    palette = "Paired",
+    palcolor = NULL,
+    palreverse = FALSE,
+    seed = 8525,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
+    ...
+) {
     validate_common_args(seed, facet_by = facet_by)
     keep_na <- check_keep_na(keep_na, c(facet_by, group_by, split_by, stat_by))
-    keep_empty <- check_keep_empty(keep_empty, c(facet_by, group_by, split_by, stat_by))
+    keep_empty <- check_keep_empty(
+        keep_empty,
+        c(facet_by, group_by, split_by, stat_by)
+    )
     theme <- process_theme(theme)
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE,
-        concat_multi = TRUE, concat_sep = split_by_sep)
+    split_by <- check_columns(
+        data,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
 
-    stopifnot("[DimPlot] 'split_by' is not supported for velocity plot." = is.null(velocity) || is.null(split_by))
+    stopifnot(
+        "[DimPlot] 'split_by' is not supported for velocity plot." = is.null(
+            velocity
+        ) ||
+            is.null(split_by)
+    )
 
     if (!is.null(split_by)) {
         data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
@@ -1411,7 +2172,9 @@ DimPlot <- function(
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
-        if (is.character(graph) && length(graph) == 1 && startsWith(graph, "@")) {
+        if (
+            is.character(graph) && length(graph) == 1 && startsWith(graph, "@")
+        ) {
             # split the graph as well
             datas <- lapply(datas, function(d) {
                 gh <- attr(data, substring(graph, 2))[rownames(d), rownames(d)]
@@ -1425,56 +2188,156 @@ DimPlot <- function(
     }
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
-    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
-    legend.position <- check_legend(legend.position, names(datas), "legend.position")
+    legend.direction <- check_legend(
+        legend.direction,
+        names(datas),
+        "legend.direction"
+    )
+    legend.position <- check_legend(
+        legend.position,
+        names(datas),
+        "legend.position"
+    )
 
     plots <- lapply(
-        names(datas), function(nm) {
-            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+        names(datas),
+        function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) {
+                NULL
+            } else {
+                nm
+            }
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
                 title <- title %||% default_title
             }
-            DimPlotAtomic(datas[[nm]],
-                dims = dims, group_by = group_by, group_by_sep = group_by_sep,
-                pt_size = pt_size, pt_alpha = pt_alpha, bg_color = bg_color,
-                label_insitu = label_insitu, show_stat = show_stat,
-                label = label, label_size = label_size, label_fg = label_fg, label_bg = label_bg, label_bg_r = label_bg_r,
-                label_repel = label_repel, label_repulsion = label_repulsion, label_pt_size = label_pt_size, label_pt_color = label_pt_color,
-                label_segment_color = label_segment_color, order = order,
-                highlight = highlight, highlight_alpha = highlight_alpha, highlight_size = highlight_size, highlight_color = highlight_color, highlight_stroke = highlight_stroke,
-                add_mark = add_mark, mark_type = mark_type, mark_expand = mark_expand, mark_alpha = mark_alpha, mark_linetype = mark_linetype,
-                stat_by = stat_by, stat_plot_type = stat_plot_type, stat_plot_size = stat_plot_size, stat_args = stat_args,
-                graph = graph, edge_size = edge_size, edge_alpha = edge_alpha, edge_color = edge_color,
-                add_density = add_density, density_color = density_color, density_filled = density_filled,
-                density_filled_palette = density_filled_palette, density_filled_palcolor = density_filled_palcolor,
-                lineages = lineages, lineages_trim = lineages_trim, lineages_span = lineages_span,
-                lineages_palette = lineages_palette, lineages_palcolor = lineages_palcolor, lineages_arrow = lineages_arrow,
-                lineages_linewidth = lineages_linewidth, lineages_line_bg = lineages_line_bg, lineages_line_bg_stroke = lineages_line_bg_stroke,
-                lineages_whiskers = lineages_whiskers, lineages_whiskers_linewidth = lineages_whiskers_linewidth, lineages_whiskers_alpha = lineages_whiskers_alpha,
-                velocity = velocity, velocity_plot_type = velocity_plot_type, velocity_n_neighbors = velocity_n_neighbors,
-                velocity_density = velocity_density, velocity_smooth = velocity_smooth, velocity_scale = velocity_scale,
-                velocity_min_mass = velocity_min_mass, velocity_cutoff_perc = velocity_cutoff_perc, arrow_alpha = arrow_alpha,
-                velocity_group_palette = velocity_group_palette, velocity_group_palcolor = velocity_group_palcolor, arrow_angle = arrow_angle, arrow_color = arrow_color,
-                streamline_l = streamline_l, streamline_minl = streamline_minl, streamline_res = streamline_res, streamline_n = streamline_n,
-                streamline_width = streamline_width, streamline_alpha = streamline_alpha, streamline_color = streamline_color,
-                streamline_palette = streamline_palette, streamline_palcolor = streamline_palcolor,
-                streamline_bg_color = streamline_bg_color, streamline_bg_stroke = streamline_bg_stroke, keep_na = keep_na, keep_empty = keep_empty,
-                facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
-                theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                raster = raster, raster_dpi = raster_dpi,
-                hex = hex, hex_linewidth = hex_linewidth, hex_count = hex_count, hex_bins = hex_bins, hex_binwidth = hex_binwidth,
-                palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, seed = seed, ...
+            DimPlotAtomic(
+                datas[[nm]],
+                dims = dims,
+                group_by = group_by,
+                group_by_sep = group_by_sep,
+                pt_size = pt_size,
+                pt_alpha = pt_alpha,
+                bg_color = bg_color,
+                label_insitu = label_insitu,
+                show_stat = show_stat,
+                label = label,
+                label_size = label_size,
+                label_fg = label_fg,
+                label_bg = label_bg,
+                label_bg_r = label_bg_r,
+                label_repel = label_repel,
+                label_repulsion = label_repulsion,
+                label_pt_size = label_pt_size,
+                label_pt_color = label_pt_color,
+                label_segment_color = label_segment_color,
+                order = order,
+                highlight = highlight,
+                highlight_alpha = highlight_alpha,
+                highlight_size = highlight_size,
+                highlight_color = highlight_color,
+                highlight_stroke = highlight_stroke,
+                add_mark = add_mark,
+                mark_type = mark_type,
+                mark_expand = mark_expand,
+                mark_alpha = mark_alpha,
+                mark_linetype = mark_linetype,
+                stat_by = stat_by,
+                stat_plot_type = stat_plot_type,
+                stat_plot_size = stat_plot_size,
+                stat_args = stat_args,
+                graph = graph,
+                edge_size = edge_size,
+                edge_alpha = edge_alpha,
+                edge_color = edge_color,
+                add_density = add_density,
+                density_color = density_color,
+                density_filled = density_filled,
+                density_filled_palette = density_filled_palette,
+                density_filled_palcolor = density_filled_palcolor,
+                lineages = lineages,
+                lineages_trim = lineages_trim,
+                lineages_span = lineages_span,
+                lineages_palette = lineages_palette,
+                lineages_palcolor = lineages_palcolor,
+                lineages_arrow = lineages_arrow,
+                lineages_linewidth = lineages_linewidth,
+                lineages_line_bg = lineages_line_bg,
+                lineages_line_bg_stroke = lineages_line_bg_stroke,
+                lineages_whiskers = lineages_whiskers,
+                lineages_whiskers_linewidth = lineages_whiskers_linewidth,
+                lineages_whiskers_alpha = lineages_whiskers_alpha,
+                velocity = velocity,
+                velocity_plot_type = velocity_plot_type,
+                velocity_n_neighbors = velocity_n_neighbors,
+                velocity_density = velocity_density,
+                velocity_smooth = velocity_smooth,
+                velocity_scale = velocity_scale,
+                velocity_min_mass = velocity_min_mass,
+                velocity_cutoff_perc = velocity_cutoff_perc,
+                arrow_alpha = arrow_alpha,
+                velocity_group_palette = velocity_group_palette,
+                velocity_group_palcolor = velocity_group_palcolor,
+                arrow_angle = arrow_angle,
+                arrow_color = arrow_color,
+                streamline_l = streamline_l,
+                streamline_minl = streamline_minl,
+                streamline_res = streamline_res,
+                streamline_n = streamline_n,
+                streamline_width = streamline_width,
+                streamline_alpha = streamline_alpha,
+                streamline_color = streamline_color,
+                streamline_palette = streamline_palette,
+                streamline_palcolor = streamline_palcolor,
+                streamline_bg_color = streamline_bg_color,
+                streamline_bg_stroke = streamline_bg_stroke,
+                keep_na = keep_na,
+                keep_empty = keep_empty,
+                facet_by = facet_by,
+                facet_scales = facet_scales,
+                facet_nrow = facet_nrow,
+                facet_ncol = facet_ncol,
+                facet_byrow = facet_byrow,
+                title = title,
+                subtitle = subtitle,
+                xlab = xlab,
+                ylab = ylab,
+                theme = theme,
+                theme_args = theme_args,
+                aspect.ratio = aspect.ratio,
+                legend.position = legend.position[[nm]],
+                legend.direction = legend.direction[[nm]],
+                raster = raster,
+                raster_dpi = raster_dpi,
+                hex = hex,
+                hex_linewidth = hex_linewidth,
+                hex_count = hex_count,
+                hex_bins = hex_bins,
+                hex_binwidth = hex_binwidth,
+                palette = palette[[nm]],
+                palcolor = palcolor[[nm]],
+                palreverse = palreverse,
+                seed = seed,
+                ...
             )
         }
     )
 
     names(plots) <- names(datas)
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }
 
 #' @export
@@ -1515,39 +2378,129 @@ DimPlot <- function(
 #'  features = "stochasticbasis_2")
 #' }
 FeatureDimPlot <- function(
-    data, dims = 1:2, features, split_by = NULL, split_by_sep = "_",
-    lower_quantile = 0, upper_quantile = 0.99, lower_cutoff = NULL, upper_cutoff = NULL,
-    pt_size = NULL, pt_alpha = 1, bg_color = "grey80", bg_cutoff = NULL,
-    label_insitu = FALSE, show_stat = !identical(theme, "theme_blank"), color_name = "",
-    label = FALSE, label_size = 4, label_fg = "white", label_bg = "black", label_bg_r = 0.1,
-    label_repel = FALSE, label_repulsion = 20, label_pt_size = 1, label_pt_color = "black",
-    label_segment_color = "black", order = c("as-is", "reverse", "high-top", "low-top", "random"),
-    highlight = NULL, highlight_alpha = 1, highlight_size = 1, highlight_color = "black", highlight_stroke = 0.8,
-    add_mark = FALSE, mark_type = c("hull", "ellipse", "rect", "circle"), mark_expand = unit(3, "mm"),
-    mark_alpha = 0.1, mark_linetype = 1, keep_na = FALSE, keep_empty = FALSE,
-    stat_by = NULL, stat_plot_type = c("pie", "ring", "bar", "line"), stat_plot_size = 0.1, stat_args = list(palette = "Set1"),
-    graph = NULL, edge_size = c(0.05, 0.5), edge_alpha = 0.1, edge_color = "grey40",
-    add_density = FALSE, density_color = "grey80", density_filled = FALSE,
-    density_filled_palette = "Greys", density_filled_palcolor = NULL,
-    lineages = NULL, lineages_trim = c(0.01, 0.99), lineages_span = 0.75,
-    lineages_palette = "Dark2", lineages_palcolor = NULL, lineages_arrow = arrow(length = unit(0.1, "inches")),
-    lineages_linewidth = 1, lineages_line_bg = "white", lineages_line_bg_stroke = 0.5,
-    lineages_whiskers = FALSE, lineages_whiskers_linewidth = 0.5, lineages_whiskers_alpha = 0.5,
-    velocity = NULL, velocity_plot_type = c("raw", "grid", "stream"), velocity_n_neighbors = NULL,
-    velocity_density = 1, velocity_smooth = 0.5, velocity_scale = 1, velocity_min_mass = 1, velocity_cutoff_perc = 5,
-    velocity_group_palette = "Set2", velocity_group_palcolor = NULL, arrow_angle = 20, arrow_color = "black", arrow_alpha = 1,
-    streamline_l = 5, streamline_minl = 1, streamline_res = 1, streamline_n = 15,
-    streamline_width = c(0, 0.8), streamline_alpha = 1, streamline_color = NULL, streamline_palette = "RdYlBu", streamline_palcolor = NULL,
-    streamline_bg_color = "white", streamline_bg_stroke = 0.5,
-    facet_by = NULL, facet_scales = "fixed", facet_nrow = NULL, facet_ncol = NULL, facet_byrow = TRUE,
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
-    theme = "theme_this", theme_args = list(), aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    raster = NULL, raster_dpi = c(512, 512),
-    hex = FALSE, hex_linewidth = 0.5, hex_count = FALSE, hex_bins = 50, hex_binwidth = NULL,
-    palette = "Spectral", palcolor = NULL, palreverse = FALSE, seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
-    ...) {
-
+    data,
+    dims = 1:2,
+    features,
+    split_by = NULL,
+    split_by_sep = "_",
+    lower_quantile = 0,
+    upper_quantile = 0.99,
+    lower_cutoff = NULL,
+    upper_cutoff = NULL,
+    pt_size = NULL,
+    pt_alpha = 1,
+    bg_color = "grey80",
+    bg_cutoff = NULL,
+    label_insitu = FALSE,
+    show_stat = !identical(theme, "theme_blank"),
+    color_name = "",
+    label = FALSE,
+    label_size = 4,
+    label_fg = "white",
+    label_bg = "black",
+    label_bg_r = 0.1,
+    label_repel = FALSE,
+    label_repulsion = 20,
+    label_pt_size = 1,
+    label_pt_color = "black",
+    label_segment_color = "black",
+    order = c("as-is", "reverse", "high-top", "low-top", "random"),
+    highlight = NULL,
+    highlight_alpha = 1,
+    highlight_size = 1,
+    highlight_color = "black",
+    highlight_stroke = 0.8,
+    add_mark = FALSE,
+    mark_type = c("hull", "ellipse", "rect", "circle"),
+    mark_expand = unit(3, "mm"),
+    mark_alpha = 0.1,
+    mark_linetype = 1,
+    keep_na = FALSE,
+    keep_empty = FALSE,
+    stat_by = NULL,
+    stat_plot_type = c("pie", "ring", "bar", "line"),
+    stat_plot_size = 0.1,
+    stat_args = list(palette = "Set1"),
+    graph = NULL,
+    edge_size = c(0.05, 0.5),
+    edge_alpha = 0.1,
+    edge_color = "grey40",
+    add_density = FALSE,
+    density_color = "grey80",
+    density_filled = FALSE,
+    density_filled_palette = "Greys",
+    density_filled_palcolor = NULL,
+    lineages = NULL,
+    lineages_trim = c(0.01, 0.99),
+    lineages_span = 0.75,
+    lineages_palette = "Dark2",
+    lineages_palcolor = NULL,
+    lineages_arrow = arrow(length = unit(0.1, "inches")),
+    lineages_linewidth = 1,
+    lineages_line_bg = "white",
+    lineages_line_bg_stroke = 0.5,
+    lineages_whiskers = FALSE,
+    lineages_whiskers_linewidth = 0.5,
+    lineages_whiskers_alpha = 0.5,
+    velocity = NULL,
+    velocity_plot_type = c("raw", "grid", "stream"),
+    velocity_n_neighbors = NULL,
+    velocity_density = 1,
+    velocity_smooth = 0.5,
+    velocity_scale = 1,
+    velocity_min_mass = 1,
+    velocity_cutoff_perc = 5,
+    velocity_group_palette = "Set2",
+    velocity_group_palcolor = NULL,
+    arrow_angle = 20,
+    arrow_color = "black",
+    arrow_alpha = 1,
+    streamline_l = 5,
+    streamline_minl = 1,
+    streamline_res = 1,
+    streamline_n = 15,
+    streamline_width = c(0, 0.8),
+    streamline_alpha = 1,
+    streamline_color = NULL,
+    streamline_palette = "RdYlBu",
+    streamline_palcolor = NULL,
+    streamline_bg_color = "white",
+    streamline_bg_stroke = 0.5,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_nrow = NULL,
+    facet_ncol = NULL,
+    facet_byrow = TRUE,
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    theme = "theme_this",
+    theme_args = list(),
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    raster = NULL,
+    raster_dpi = c(512, 512),
+    hex = FALSE,
+    hex_linewidth = 0.5,
+    hex_count = FALSE,
+    hex_bins = 50,
+    hex_binwidth = NULL,
+    palette = "Spectral",
+    palcolor = NULL,
+    palreverse = FALSE,
+    seed = 8525,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
+    ...
+) {
     validate_common_args(seed, facet_by = facet_by)
     theme <- process_theme(theme)
 
@@ -1555,39 +2508,123 @@ FeatureDimPlot <- function(
         keep_na <- check_keep_na(keep_na, c(facet_by, stat_by))
         keep_empty <- check_keep_empty(keep_empty, c(facet_by, stat_by))
         plots <- lapply(
-            features, function(feature) DimPlotAtomic(
-                data, dims = dims,
-                lower_quantile = lower_quantile, upper_quantile = upper_quantile, lower_cutoff = lower_cutoff, upper_cutoff = upper_cutoff,
-                pt_size = pt_size, pt_alpha = pt_alpha, bg_color = bg_color, color_name = color_name,
-                label_insitu = label_insitu, show_stat = show_stat, features = feature, bg_cutoff = bg_cutoff,
-                label = label, label_size = label_size, label_fg = label_fg, label_bg = label_bg, label_bg_r = label_bg_r,
-                label_repel = label_repel, label_repulsion = label_repulsion, label_pt_size = label_pt_size, label_pt_color = label_pt_color,
-                label_segment_color = label_segment_color, order = order, keep_na = keep_na, keep_empty = keep_empty,
-                highlight = highlight, highlight_alpha = highlight_alpha, highlight_size = highlight_size, highlight_color = highlight_color, highlight_stroke = highlight_stroke,
-                add_mark = add_mark, mark_type = mark_type, mark_expand = mark_expand, mark_alpha = mark_alpha, mark_linetype = mark_linetype,
-                stat_by = stat_by, stat_plot_type = stat_plot_type, stat_plot_size = stat_plot_size, stat_args = stat_args,
-                graph = graph, edge_size = edge_size, edge_alpha = edge_alpha, edge_color = edge_color,
-                add_density = add_density, density_color = density_color, density_filled = density_filled,
-                density_filled_palette = density_filled_palette, density_filled_palcolor = density_filled_palcolor,
-                lineages = lineages, lineages_trim = lineages_trim, lineages_span = lineages_span,
-                lineages_palette = lineages_palette, lineages_palcolor = lineages_palcolor, lineages_arrow = lineages_arrow,
-                lineages_linewidth = lineages_linewidth, lineages_line_bg = lineages_line_bg, lineages_line_bg_stroke = lineages_line_bg_stroke,
-                lineages_whiskers = lineages_whiskers, lineages_whiskers_linewidth = lineages_whiskers_linewidth, lineages_whiskers_alpha = lineages_whiskers_alpha,
-                velocity = velocity, velocity_plot_type = velocity_plot_type, velocity_n_neighbors = velocity_n_neighbors,
-                velocity_density = velocity_density, velocity_smooth = velocity_smooth, velocity_scale = velocity_scale,
-                velocity_min_mass = velocity_min_mass, velocity_cutoff_perc = velocity_cutoff_perc, arrow_alpha = arrow_alpha,
-                velocity_group_palette = velocity_group_palette, velocity_group_palcolor = velocity_group_palcolor, arrow_angle = arrow_angle, arrow_color = arrow_color,
-                streamline_l = streamline_l, streamline_minl = streamline_minl, streamline_res = streamline_res, streamline_n = streamline_n,
-                streamline_width = streamline_width, streamline_alpha = streamline_alpha, streamline_color = streamline_color,
-                streamline_palette = streamline_palette, streamline_palcolor = streamline_palcolor,
-                streamline_bg_color = streamline_bg_color, streamline_bg_stroke = streamline_bg_stroke,
-                facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
-                title = title %||% feature, subtitle = subtitle, xlab = xlab, ylab = ylab,
-                theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position, legend.direction = legend.direction,
-                raster = raster, raster_dpi = raster_dpi,
-                hex = hex, hex_linewidth = hex_linewidth, hex_count = hex_count, hex_bins = hex_bins, hex_binwidth = hex_binwidth,
-                palette = palette, palcolor = palcolor, palreverse = palreverse, seed = seed, ...
-            )
+            features,
+            function(feature) {
+                DimPlotAtomic(
+                    data,
+                    dims = dims,
+                    lower_quantile = lower_quantile,
+                    upper_quantile = upper_quantile,
+                    lower_cutoff = lower_cutoff,
+                    upper_cutoff = upper_cutoff,
+                    pt_size = pt_size,
+                    pt_alpha = pt_alpha,
+                    bg_color = bg_color,
+                    color_name = color_name,
+                    label_insitu = label_insitu,
+                    show_stat = show_stat,
+                    features = feature,
+                    bg_cutoff = bg_cutoff,
+                    label = label,
+                    label_size = label_size,
+                    label_fg = label_fg,
+                    label_bg = label_bg,
+                    label_bg_r = label_bg_r,
+                    label_repel = label_repel,
+                    label_repulsion = label_repulsion,
+                    label_pt_size = label_pt_size,
+                    label_pt_color = label_pt_color,
+                    label_segment_color = label_segment_color,
+                    order = order,
+                    keep_na = keep_na,
+                    keep_empty = keep_empty,
+                    highlight = highlight,
+                    highlight_alpha = highlight_alpha,
+                    highlight_size = highlight_size,
+                    highlight_color = highlight_color,
+                    highlight_stroke = highlight_stroke,
+                    add_mark = add_mark,
+                    mark_type = mark_type,
+                    mark_expand = mark_expand,
+                    mark_alpha = mark_alpha,
+                    mark_linetype = mark_linetype,
+                    stat_by = stat_by,
+                    stat_plot_type = stat_plot_type,
+                    stat_plot_size = stat_plot_size,
+                    stat_args = stat_args,
+                    graph = graph,
+                    edge_size = edge_size,
+                    edge_alpha = edge_alpha,
+                    edge_color = edge_color,
+                    add_density = add_density,
+                    density_color = density_color,
+                    density_filled = density_filled,
+                    density_filled_palette = density_filled_palette,
+                    density_filled_palcolor = density_filled_palcolor,
+                    lineages = lineages,
+                    lineages_trim = lineages_trim,
+                    lineages_span = lineages_span,
+                    lineages_palette = lineages_palette,
+                    lineages_palcolor = lineages_palcolor,
+                    lineages_arrow = lineages_arrow,
+                    lineages_linewidth = lineages_linewidth,
+                    lineages_line_bg = lineages_line_bg,
+                    lineages_line_bg_stroke = lineages_line_bg_stroke,
+                    lineages_whiskers = lineages_whiskers,
+                    lineages_whiskers_linewidth = lineages_whiskers_linewidth,
+                    lineages_whiskers_alpha = lineages_whiskers_alpha,
+                    velocity = velocity,
+                    velocity_plot_type = velocity_plot_type,
+                    velocity_n_neighbors = velocity_n_neighbors,
+                    velocity_density = velocity_density,
+                    velocity_smooth = velocity_smooth,
+                    velocity_scale = velocity_scale,
+                    velocity_min_mass = velocity_min_mass,
+                    velocity_cutoff_perc = velocity_cutoff_perc,
+                    arrow_alpha = arrow_alpha,
+                    velocity_group_palette = velocity_group_palette,
+                    velocity_group_palcolor = velocity_group_palcolor,
+                    arrow_angle = arrow_angle,
+                    arrow_color = arrow_color,
+                    streamline_l = streamline_l,
+                    streamline_minl = streamline_minl,
+                    streamline_res = streamline_res,
+                    streamline_n = streamline_n,
+                    streamline_width = streamline_width,
+                    streamline_alpha = streamline_alpha,
+                    streamline_color = streamline_color,
+                    streamline_palette = streamline_palette,
+                    streamline_palcolor = streamline_palcolor,
+                    streamline_bg_color = streamline_bg_color,
+                    streamline_bg_stroke = streamline_bg_stroke,
+                    facet_by = facet_by,
+                    facet_scales = facet_scales,
+                    facet_nrow = facet_nrow,
+                    facet_ncol = facet_ncol,
+                    facet_byrow = facet_byrow,
+                    title = title %||% feature,
+                    subtitle = subtitle,
+                    xlab = xlab,
+                    ylab = ylab,
+                    theme = theme,
+                    theme_args = theme_args,
+                    aspect.ratio = aspect.ratio,
+                    legend.position = legend.position,
+                    legend.direction = legend.direction,
+                    raster = raster,
+                    raster_dpi = raster_dpi,
+                    hex = hex,
+                    hex_linewidth = hex_linewidth,
+                    hex_count = hex_count,
+                    hex_bins = hex_bins,
+                    hex_binwidth = hex_binwidth,
+                    palette = palette,
+                    palcolor = palcolor,
+                    palreverse = palreverse,
+                    seed = seed,
+                    ...
+                )
+            }
         )
         names(plots) <- features
         split_by <- ".features"
@@ -1595,20 +2632,38 @@ FeatureDimPlot <- function(
         keep_na <- check_keep_na(keep_na, c(facet_by, stat_by))
         keep_empty <- check_keep_empty(keep_empty, c(facet_by, stat_by))
 
-        split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE,
-            concat_multi = TRUE, concat_sep = split_by_sep)
+        split_by <- check_columns(
+            data,
+            split_by,
+            force_factor = TRUE,
+            allow_multi = TRUE,
+            concat_multi = TRUE,
+            concat_sep = split_by_sep
+        )
 
         if (!is.null(split_by)) {
-            data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
+            data <- process_keep_na_empty(
+                data,
+                keep_na,
+                keep_empty,
+                col = split_by
+            )
             keep_na[[split_by]] <- NULL
             keep_empty[[split_by]] <- NULL
             datas <- split(data, data[[split_by]])
             # keep the order of levels
             datas <- datas[levels(data[[split_by]])]
-            if (is.character(graph) && length(graph) == 1 && startsWith(graph, "@")) {
+            if (
+                is.character(graph) &&
+                    length(graph) == 1 &&
+                    startsWith(graph, "@")
+            ) {
                 # split the graph as well
                 datas <- lapply(datas, function(d) {
-                    gh <- attr(data, substring(graph, 2))[rownames(d), rownames(d)]
+                    gh <- attr(data, substring(graph, 2))[
+                        rownames(d),
+                        rownames(d)
+                    ]
                     attr(d, substring(graph, 2)) <- gh
                     d
                 })
@@ -1619,55 +2674,161 @@ FeatureDimPlot <- function(
         }
         palette <- check_palette(palette, names(datas))
         palcolor <- check_palcolor(palcolor, names(datas))
-        legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
-        legend.position <- check_legend(legend.position, names(datas), "legend.position")
+        legend.direction <- check_legend(
+            legend.direction,
+            names(datas),
+            "legend.direction"
+        )
+        legend.position <- check_legend(
+            legend.position,
+            names(datas),
+            "legend.position"
+        )
 
         plots <- lapply(
-            names(datas), function(nm) {
-                default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+            names(datas),
+            function(nm) {
+                default_title <- if (
+                    length(datas) == 1 && identical(nm, "...")
+                ) {
+                    NULL
+                } else {
+                    nm
+                }
                 if (is.function(title)) {
                     title <- title(default_title)
                 } else {
                     title <- title %||% default_title
                 }
                 DimPlotAtomic(
-                    datas[[nm]], dims = dims, features = features,
-                    lower_quantile = lower_quantile, upper_quantile = upper_quantile, lower_cutoff = lower_cutoff, upper_cutoff = upper_cutoff,
-                    pt_size = pt_size, pt_alpha = pt_alpha, bg_color = bg_color, color_name = color_name,
-                    label_insitu = label_insitu, show_stat = show_stat, bg_cutoff = bg_cutoff,
-                    label = label, label_size = label_size, label_fg = label_fg, label_bg = label_bg, label_bg_r = label_bg_r,
-                    label_repel = label_repel, label_repulsion = label_repulsion, label_pt_size = label_pt_size, label_pt_color = label_pt_color,
-                    label_segment_color = label_segment_color, order = order, keep_na = keep_na, keep_empty = keep_empty,
-                    highlight = highlight, highlight_alpha = highlight_alpha, highlight_size = highlight_size, highlight_color = highlight_color, highlight_stroke = highlight_stroke,
-                    add_mark = add_mark, mark_type = mark_type, mark_expand = mark_expand, mark_alpha = mark_alpha, mark_linetype = mark_linetype,
-                    stat_by = stat_by, stat_plot_type = stat_plot_type, stat_plot_size = stat_plot_size, stat_args = stat_args,
-                    graph = graph, edge_size = edge_size, edge_alpha = edge_alpha, edge_color = edge_color,
-                    add_density = add_density, density_color = density_color, density_filled = density_filled,
-                    density_filled_palette = density_filled_palette, density_filled_palcolor = density_filled_palcolor,
-                    lineages = lineages, lineages_trim = lineages_trim, lineages_span = lineages_span,
-                    lineages_palette = lineages_palette, lineages_palcolor = lineages_palcolor, lineages_arrow = lineages_arrow,
-                    lineages_linewidth = lineages_linewidth, lineages_line_bg = lineages_line_bg, lineages_line_bg_stroke = lineages_line_bg_stroke,
-                    lineages_whiskers = lineages_whiskers, lineages_whiskers_linewidth = lineages_whiskers_linewidth, lineages_whiskers_alpha = lineages_whiskers_alpha,
-                    velocity = velocity, velocity_plot_type = velocity_plot_type, velocity_n_neighbors = velocity_n_neighbors,
-                    velocity_density = velocity_density, velocity_smooth = velocity_smooth, velocity_scale = velocity_scale,
-                    velocity_min_mass = velocity_min_mass, velocity_cutoff_perc = velocity_cutoff_perc, arrow_alpha = arrow_alpha,
-                    velocity_group_palette = velocity_group_palette, velocity_group_palcolor = velocity_group_palcolor, arrow_angle = arrow_angle, arrow_color = arrow_color,
-                    streamline_l = streamline_l, streamline_minl = streamline_minl, streamline_res = streamline_res, streamline_n = streamline_n,
-                    streamline_width = streamline_width, streamline_alpha = streamline_alpha, streamline_color = streamline_color,
-                    streamline_palette = streamline_palette, streamline_palcolor = streamline_palcolor,
-                    streamline_bg_color = streamline_bg_color, streamline_bg_stroke = streamline_bg_stroke,
-                    facet_by = facet_by, facet_scales = facet_scales, facet_nrow = facet_nrow, facet_ncol = facet_ncol, facet_byrow = facet_byrow,
-                    title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
-                    theme = theme, theme_args = theme_args, aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                    raster = raster, raster_dpi = raster_dpi,
-                    hex = hex, hex_linewidth = hex_linewidth, hex_count = hex_count, hex_bins = hex_bins, hex_binwidth = hex_binwidth,
-                    palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, seed = seed, ...
+                    datas[[nm]],
+                    dims = dims,
+                    features = features,
+                    lower_quantile = lower_quantile,
+                    upper_quantile = upper_quantile,
+                    lower_cutoff = lower_cutoff,
+                    upper_cutoff = upper_cutoff,
+                    pt_size = pt_size,
+                    pt_alpha = pt_alpha,
+                    bg_color = bg_color,
+                    color_name = color_name,
+                    label_insitu = label_insitu,
+                    show_stat = show_stat,
+                    bg_cutoff = bg_cutoff,
+                    label = label,
+                    label_size = label_size,
+                    label_fg = label_fg,
+                    label_bg = label_bg,
+                    label_bg_r = label_bg_r,
+                    label_repel = label_repel,
+                    label_repulsion = label_repulsion,
+                    label_pt_size = label_pt_size,
+                    label_pt_color = label_pt_color,
+                    label_segment_color = label_segment_color,
+                    order = order,
+                    keep_na = keep_na,
+                    keep_empty = keep_empty,
+                    highlight = highlight,
+                    highlight_alpha = highlight_alpha,
+                    highlight_size = highlight_size,
+                    highlight_color = highlight_color,
+                    highlight_stroke = highlight_stroke,
+                    add_mark = add_mark,
+                    mark_type = mark_type,
+                    mark_expand = mark_expand,
+                    mark_alpha = mark_alpha,
+                    mark_linetype = mark_linetype,
+                    stat_by = stat_by,
+                    stat_plot_type = stat_plot_type,
+                    stat_plot_size = stat_plot_size,
+                    stat_args = stat_args,
+                    graph = graph,
+                    edge_size = edge_size,
+                    edge_alpha = edge_alpha,
+                    edge_color = edge_color,
+                    add_density = add_density,
+                    density_color = density_color,
+                    density_filled = density_filled,
+                    density_filled_palette = density_filled_palette,
+                    density_filled_palcolor = density_filled_palcolor,
+                    lineages = lineages,
+                    lineages_trim = lineages_trim,
+                    lineages_span = lineages_span,
+                    lineages_palette = lineages_palette,
+                    lineages_palcolor = lineages_palcolor,
+                    lineages_arrow = lineages_arrow,
+                    lineages_linewidth = lineages_linewidth,
+                    lineages_line_bg = lineages_line_bg,
+                    lineages_line_bg_stroke = lineages_line_bg_stroke,
+                    lineages_whiskers = lineages_whiskers,
+                    lineages_whiskers_linewidth = lineages_whiskers_linewidth,
+                    lineages_whiskers_alpha = lineages_whiskers_alpha,
+                    velocity = velocity,
+                    velocity_plot_type = velocity_plot_type,
+                    velocity_n_neighbors = velocity_n_neighbors,
+                    velocity_density = velocity_density,
+                    velocity_smooth = velocity_smooth,
+                    velocity_scale = velocity_scale,
+                    velocity_min_mass = velocity_min_mass,
+                    velocity_cutoff_perc = velocity_cutoff_perc,
+                    arrow_alpha = arrow_alpha,
+                    velocity_group_palette = velocity_group_palette,
+                    velocity_group_palcolor = velocity_group_palcolor,
+                    arrow_angle = arrow_angle,
+                    arrow_color = arrow_color,
+                    streamline_l = streamline_l,
+                    streamline_minl = streamline_minl,
+                    streamline_res = streamline_res,
+                    streamline_n = streamline_n,
+                    streamline_width = streamline_width,
+                    streamline_alpha = streamline_alpha,
+                    streamline_color = streamline_color,
+                    streamline_palette = streamline_palette,
+                    streamline_palcolor = streamline_palcolor,
+                    streamline_bg_color = streamline_bg_color,
+                    streamline_bg_stroke = streamline_bg_stroke,
+                    facet_by = facet_by,
+                    facet_scales = facet_scales,
+                    facet_nrow = facet_nrow,
+                    facet_ncol = facet_ncol,
+                    facet_byrow = facet_byrow,
+                    title = title,
+                    subtitle = subtitle,
+                    xlab = xlab,
+                    ylab = ylab,
+                    theme = theme,
+                    theme_args = theme_args,
+                    aspect.ratio = aspect.ratio,
+                    legend.position = legend.position[[nm]],
+                    legend.direction = legend.direction[[nm]],
+                    raster = raster,
+                    raster_dpi = raster_dpi,
+                    hex = hex,
+                    hex_linewidth = hex_linewidth,
+                    hex_count = hex_count,
+                    hex_bins = hex_bins,
+                    hex_binwidth = hex_binwidth,
+                    palette = palette[[nm]],
+                    palcolor = palcolor[[nm]],
+                    palreverse = palreverse,
+                    seed = seed,
+                    ...
                 )
             }
         )
         names(plots) <- names(datas)
     }
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }

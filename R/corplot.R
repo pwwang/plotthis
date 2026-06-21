@@ -38,16 +38,59 @@
 #' @importFrom dplyr group_modify filter
 #' @importFrom ggplot2 geom_point geom_smooth geom_text scale_color_manual labs
 CorPlotAtomic <- function(
-    data, x, y, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    pt_size = 2, pt_shape = 16, alpha = 1, raster = FALSE, raster_dpi = c(512, 512),
-    highlight = NULL, highlight_color = "black", highlight_size = 1, highlight_alpha = 1, highlight_stroke = 0.8,
-    anno_items = c("eq", "r2", "p"), anno_size = 3, anno_fg = "black", anno_bg = "white", anno_bg_r = 0.1,
-    anno_position = c("topleft", "topright", "bottomleft", "bottomright", "tl", "tr", "bl", "br"),
-    add_smooth = TRUE, smooth_color = "red2", smooth_width = 1.5, smooth_se = FALSE,
-    theme = "theme_this", theme_args = list(), palette = ifelse(is.null(group_by), "Spectral", "Paired"), palcolor = NULL, palreverse = FALSE,
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical", seed = 8525,
+    data,
+    x,
+    y,
+    group_by = NULL,
+    group_by_sep = "_",
+    group_name = NULL,
+    pt_size = 2,
+    pt_shape = 16,
+    alpha = 1,
+    raster = FALSE,
+    raster_dpi = c(512, 512),
+    highlight = NULL,
+    highlight_color = "black",
+    highlight_size = 1,
+    highlight_alpha = 1,
+    highlight_stroke = 0.8,
+    anno_items = c("eq", "r2", "p"),
+    anno_size = 3,
+    anno_fg = "black",
+    anno_bg = "white",
+    anno_bg_r = 0.1,
+    anno_position = c(
+        "topleft",
+        "topright",
+        "bottomleft",
+        "bottomright",
+        "tl",
+        "tr",
+        "bl",
+        "br"
+    ),
+    add_smooth = TRUE,
+    smooth_color = "red2",
+    smooth_width = 1.5,
+    smooth_se = FALSE,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = ifelse(is.null(group_by), "Spectral", "Paired"),
+    palcolor = NULL,
+    palreverse = FALSE,
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    aspect.ratio = 1,
+    legend.position = waiver(),
+    legend.direction = "vertical",
+    seed = 8525,
     ...
 ) {
     set.seed(seed)
@@ -57,8 +100,12 @@ CorPlotAtomic <- function(
         ggplot2::ggplot
     }
     anno_position <- match.arg(anno_position)
-    anno_position <- switch(anno_position,
-        tl = "topleft", tr = "topright", bl = "bottomleft", br = "bottomright",
+    anno_position <- switch(
+        anno_position,
+        tl = "topleft",
+        tr = "topright",
+        bl = "bottomleft",
+        br = "bottomright",
         anno_position
     )
     if (length(raster_dpi) == 1) {
@@ -67,15 +114,29 @@ CorPlotAtomic <- function(
 
     x <- check_columns(data, x)
     y <- check_columns(data, y)
-    group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE,
-        concat_multi = TRUE, concat_sep = group_by_sep)
+    group_by <- check_columns(
+        data,
+        group_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = group_by_sep
+    )
 
     if (is.null(group_by)) {
         group_by <- ".group"
         data[[group_by]] <- factor("")
-        legend.position <- ifelse(inherits(legend.position, "waiver"), "none", "right")
+        legend.position <- ifelse(
+            inherits(legend.position, "waiver"),
+            "none",
+            "right"
+        )
     } else {
-        legend.position <- ifelse(inherits(legend.position, "waiver"), "right", legend.position)
+        legend.position <- ifelse(
+            inherits(legend.position, "waiver"),
+            "right",
+            legend.position
+        )
     }
 
     base_size <- theme_args$base_size %||% 12
@@ -134,22 +195,38 @@ CorPlotAtomic <- function(
                     anno <- c(anno, as.character(as.expression(anno_p)))
                 } else if (item == "spearman") {
                     rho <- cor(dat[[x]], dat[[y]], method = "spearman")
-                    anno_rho <- substitute(italic("spearman's") ~ italic(rho) ~ "=" ~ value, list(value = format(rho, digits = 2)))
+                    anno_rho <- substitute(
+                        italic("spearman's") ~ italic(rho) ~ "=" ~ value,
+                        list(value = format(rho, digits = 2))
+                    )
                     anno <- c(anno, as.character(as.expression(anno_rho)))
                 } else if (item == "pearson") {
                     r <- cor(dat[[x]], dat[[y]], method = "pearson")
-                    anno_r <- substitute(italic("pearson's") ~ italic(r) ~ "=" ~ value, list(value = format(r, digits = 2)))
+                    anno_r <- substitute(
+                        italic("pearson's") ~ italic(r) ~ "=" ~ value,
+                        list(value = format(r, digits = 2))
+                    )
                     anno <- c(anno, as.character(as.expression(anno_r)))
                 } else if (item == "kendall") {
                     tau <- cor(dat[[x]], dat[[y]], method = "kendall")
-                    anno_tau <- substitute(italic("kendall's") ~ italic(tau) ~ "=" ~ value, list(value = format(tau, digits = 2)))
+                    anno_tau <- substitute(
+                        italic("kendall's") ~ italic(tau) ~ "=" ~ value,
+                        list(value = format(tau, digits = 2))
+                    )
                     anno <- c(anno, as.character(as.expression(anno_tau)))
                 } else if (item == "n") {
                     n <- nrow(dat)
-                    anno_n <- substitute(italic(N) ~ "=" ~ value, list(value = n))
+                    anno_n <- substitute(
+                        italic(N) ~ "=" ~ value,
+                        list(value = n)
+                    )
                     anno <- c(anno, as.character(as.expression(anno_n)))
                 } else {
-                    stop("Unknown annotation item: ", item, ". Expect: eq, r2, p, spearman, pearson, kendall, n")
+                    stop(
+                        "Unknown annotation item: ",
+                        item,
+                        ". Expect: eq, r2, p, spearman, pearson, kendall, n"
+                    )
                 }
             }
             data.frame(anno = anno)
@@ -169,7 +246,9 @@ CorPlotAtomic <- function(
                 stop("No highlight items found in the data (rownames).")
             }
             if (!all(highlight %in% all_inst)) {
-                warning("Some highlight items not found in the data (rownames).")
+                warning(
+                    "Some highlight items not found in the data (rownames)."
+                )
             }
             data$.highlight <- all_inst %in% highlight
             rm(all_inst)
@@ -179,34 +258,66 @@ CorPlotAtomic <- function(
     if (isTRUE(raster)) {
         # Normal points
         if (sum(data$.highlight == FALSE) > 0) {
-            p <- p + scattermore::geom_scattermore(
-                data = data[data$.highlight == FALSE, , drop = FALSE], aes(color = !!sym(group_by)),
-                pointsize = ceiling(pt_size), alpha = alpha, pixels = raster_dpi
-            )
+            p <- p +
+                scattermore::geom_scattermore(
+                    data = data[data$.highlight == FALSE, , drop = FALSE],
+                    aes(color = !!sym(group_by)),
+                    pointsize = ceiling(pt_size),
+                    alpha = alpha,
+                    pixels = raster_dpi
+                )
         }
         # Highlight points
         if (sum(data$.highlight) > 0) {
             hi_df <- data[data$.highlight, , drop = FALSE]
             p <- p +
                 scattermore::geom_scattermore(
-                    data = hi_df, aes(x = !!sym(x), y = !!sym(y)), color = highlight_color, pointsize = floor(highlight_size) + highlight_stroke,
-                    alpha = highlight_alpha, pixels = raster_dpi, inherit.aes = FALSE) +
+                    data = hi_df,
+                    aes(x = !!sym(x), y = !!sym(y)),
+                    color = highlight_color,
+                    pointsize = floor(highlight_size) + highlight_stroke,
+                    alpha = highlight_alpha,
+                    pixels = raster_dpi,
+                    inherit.aes = FALSE
+                ) +
                 scattermore::geom_scattermore(
-                    data = hi_df, aes(color = !!sym(group_by)), pointsize = floor(highlight_size),
-                    alpha = highlight_alpha, pixels = raster_dpi)
+                    data = hi_df,
+                    aes(color = !!sym(group_by)),
+                    pointsize = floor(highlight_size),
+                    alpha = highlight_alpha,
+                    pixels = raster_dpi
+                )
             rm(hi_df)
         }
     } else {
         # Normal points
-        p <- p + geom_point(aes(color = !!sym(group_by)), size = pt_size, shape = pt_shape, alpha = alpha)
+        p <- p +
+            geom_point(
+                aes(color = !!sym(group_by)),
+                size = pt_size,
+                shape = pt_shape,
+                alpha = alpha
+            )
         # Highlight points
         if (sum(data$.highlight) > 0) {
             hi_df <- data[data$.highlight, , drop = FALSE]
             p <- p +
-                geom_point(data = hi_df, aes(x = !!sym(x), y = !!sym(y)), color = highlight_color, size = highlight_size + highlight_stroke,
-                    shape = pt_shape, alpha = highlight_alpha, inherit.aes = FALSE) +
-                geom_point(data = hi_df, aes(color = !!sym(group_by)), size = highlight_size, shape = pt_shape,
-                    alpha = highlight_alpha)
+                geom_point(
+                    data = hi_df,
+                    aes(x = !!sym(x), y = !!sym(y)),
+                    color = highlight_color,
+                    size = highlight_size + highlight_stroke,
+                    shape = pt_shape,
+                    alpha = highlight_alpha,
+                    inherit.aes = FALSE
+                ) +
+                geom_point(
+                    data = hi_df,
+                    aes(color = !!sym(group_by)),
+                    size = highlight_size,
+                    shape = pt_shape,
+                    alpha = highlight_alpha
+                )
             rm(hi_df)
         }
     }
@@ -214,19 +325,46 @@ CorPlotAtomic <- function(
     anno_x <- ifelse(grepl("left", anno_position), -Inf, Inf)
     anno_y <- ifelse(grepl("top", anno_position), Inf, -Inf)
     p <- p +
-        geom_smooth(method = "lm", formula = y ~ x, se = smooth_se, color = smooth_color, linewidth = smooth_width, alpha = 0.5) +
+        geom_smooth(
+            method = "lm",
+            formula = y ~ x,
+            se = smooth_se,
+            color = smooth_color,
+            linewidth = smooth_width,
+            alpha = 0.5
+        ) +
         geom_text_repel(
-            data = annodata, parse = TRUE, hjust = 0, direction = "y",
-            aes(label = !!sym("anno")), x = anno_x, y = anno_y, seed = seed,
+            data = annodata,
+            parse = TRUE,
+            hjust = 0,
+            direction = "y",
+            aes(label = !!sym("anno")),
+            x = anno_x,
+            y = anno_y,
+            seed = seed,
             size = text_size_scale * anno_size,
-            bg.color = anno_bg, bg.r = anno_bg_r, color = anno_fg,
-            force = 0.5, max.overlaps = 100, segment.color = "transparent"
+            bg.color = anno_bg,
+            bg.r = anno_bg_r,
+            color = anno_fg,
+            force = 0.5,
+            max.overlaps = 100,
+            segment.color = "transparent"
         ) +
         scale_color_manual(
             name = group_name %||% group_by,
-            values = palette_this(levels(data[[group_by]]), palette = palette, palcolor = palcolor, reverse = palreverse)
+            values = palette_this(
+                levels(data[[group_by]]),
+                palette = palette,
+                palcolor = palcolor,
+                reverse = palreverse
+            )
         ) +
-        labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y) +
+        labs(
+            title = title,
+            subtitle = subtitle,
+            x = xlab %||% x,
+            y = ylab %||% y
+        ) +
         do.call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
@@ -246,8 +384,16 @@ CorPlotAtomic <- function(
     attr(p, "height") <- dims$height
     attr(p, "width") <- dims$width
 
-    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-        legend.position = legend.position, legend.direction = legend.direction)
+    facet_plot(
+        p,
+        facet_by,
+        facet_scales,
+        facet_nrow,
+        facet_ncol,
+        facet_byrow,
+        legend.position = legend.position,
+        legend.direction = legend.direction
+    )
 }
 
 #' CorPlot
@@ -269,22 +415,81 @@ CorPlotAtomic <- function(
 #'         palette = c(setosa = "Set1", versicolor = "Dark2", virginica = "Paired"))
 #' }
 CorPlot <- function(
-    data, x, y, group_by = NULL, group_by_sep = "_", group_name = NULL, split_by = NULL, split_by_sep = "_",
-    pt_size = 2, pt_shape = 16, raster = FALSE, alpha = 1, raster_dpi = c(512, 512),
-    highlight = NULL, highlight_color = "black", highlight_size = 1, highlight_alpha = 1, highlight_stroke = 0.8,
-    anno_items = c("eq", "r2", "p"), anno_size = 3, anno_fg = "black", anno_bg = "white", anno_bg_r = 0.1,
-    anno_position = c("topleft", "topright", "bottomleft", "bottomright", "tl", "tr", "bl", "br"),
-    add_smooth = TRUE, smooth_color = "red2", smooth_width = 1.5, smooth_se = FALSE,
-    theme = "theme_this", theme_args = list(), palette = ifelse(is.null(group_by), "Spectral", "Paired"), palcolor = NULL, palreverse = FALSE,
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    aspect.ratio = 1, legend.position = waiver(), legend.direction = "vertical", seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
-    axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...
+    data,
+    x,
+    y,
+    group_by = NULL,
+    group_by_sep = "_",
+    group_name = NULL,
+    split_by = NULL,
+    split_by_sep = "_",
+    pt_size = 2,
+    pt_shape = 16,
+    raster = FALSE,
+    alpha = 1,
+    raster_dpi = c(512, 512),
+    highlight = NULL,
+    highlight_color = "black",
+    highlight_size = 1,
+    highlight_alpha = 1,
+    highlight_stroke = 0.8,
+    anno_items = c("eq", "r2", "p"),
+    anno_size = 3,
+    anno_fg = "black",
+    anno_bg = "white",
+    anno_bg_r = 0.1,
+    anno_position = c(
+        "topleft",
+        "topright",
+        "bottomleft",
+        "bottomright",
+        "tl",
+        "tr",
+        "bl",
+        "br"
+    ),
+    add_smooth = TRUE,
+    smooth_color = "red2",
+    smooth_width = 1.5,
+    smooth_se = FALSE,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = ifelse(is.null(group_by), "Spectral", "Paired"),
+    palcolor = NULL,
+    palreverse = FALSE,
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    aspect.ratio = 1,
+    legend.position = waiver(),
+    legend.direction = "vertical",
+    seed = 8525,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
+    ...
 ) {
     validate_common_args(seed, facet_by = facet_by)
     theme <- process_theme(theme)
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
+    split_by <- check_columns(
+        data,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
 
     if (!is.null(split_by)) {
         data[[split_by]] <- droplevels(data[[split_by]])
@@ -298,27 +503,75 @@ CorPlot <- function(
 
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
-    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
-    legend.position <- check_legend(legend.position, names(datas), "legend.position")
+    legend.direction <- check_legend(
+        legend.direction,
+        names(datas),
+        "legend.direction"
+    )
+    legend.position <- check_legend(
+        legend.position,
+        names(datas),
+        "legend.position"
+    )
 
     plots <- lapply(
-        names(datas), function(nm) {
-            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+        names(datas),
+        function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) {
+                NULL
+            } else {
+                nm
+            }
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
                 title <- title %||% default_title
             }
             CorPlotAtomic(
-                data = datas[[nm]], x = x, y = y, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
-                pt_size = pt_size, pt_shape = pt_shape, raster = raster, raster_dpi = raster_dpi,
-                highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha, highlight_stroke = highlight_stroke,
-                anno_items = anno_items, anno_size = anno_size, anno_fg = anno_fg, anno_bg = anno_bg, anno_bg_r = anno_bg_r,
-                anno_position = anno_position, add_smooth = add_smooth, smooth_color = smooth_color, smooth_width = smooth_width, smooth_se = smooth_se,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, alpha = alpha,
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab,
-                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]], seed = seed,
+                data = datas[[nm]],
+                x = x,
+                y = y,
+                group_by = group_by,
+                group_by_sep = group_by_sep,
+                group_name = group_name,
+                pt_size = pt_size,
+                pt_shape = pt_shape,
+                raster = raster,
+                raster_dpi = raster_dpi,
+                highlight = highlight,
+                highlight_color = highlight_color,
+                highlight_size = highlight_size,
+                highlight_alpha = highlight_alpha,
+                highlight_stroke = highlight_stroke,
+                anno_items = anno_items,
+                anno_size = anno_size,
+                anno_fg = anno_fg,
+                anno_bg = anno_bg,
+                anno_bg_r = anno_bg_r,
+                anno_position = anno_position,
+                add_smooth = add_smooth,
+                smooth_color = smooth_color,
+                smooth_width = smooth_width,
+                smooth_se = smooth_se,
+                theme = theme,
+                theme_args = theme_args,
+                palette = palette[[nm]],
+                palcolor = palcolor[[nm]],
+                palreverse = palreverse,
+                alpha = alpha,
+                title = title,
+                subtitle = subtitle,
+                xlab = xlab,
+                ylab = ylab,
+                facet_by = facet_by,
+                facet_scales = facet_scales,
+                facet_ncol = facet_ncol,
+                facet_nrow = facet_nrow,
+                facet_byrow = facet_byrow,
+                aspect.ratio = aspect.ratio,
+                legend.position = legend.position[[nm]],
+                legend.direction = legend.direction[[nm]],
+                seed = seed,
                 ...
             )
         }
@@ -326,8 +579,18 @@ CorPlot <- function(
 
     names(plots) <- names(datas)
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }
 
 #' Atomic Correlation Pairs Plot
@@ -369,13 +632,33 @@ CorPlot <- function(
 #' @importFrom patchwork wrap_plots plot_layout plot_annotation
 #' @keywords internal
 CorPairsPlotAtomic <- function(
-    data, columns = NULL, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    diag_type = NULL, diag_args = list(), layout = c(".\\", "\\.", "/.", "./"),
-    cor_method = c("pearson", "spearman", "kendall"), cor_palette = "RdBu", cor_palcolor = NULL,
-    cor_size = 3, cor_format = "corr: {round(corr, 2)}", cor_fg = "black", cor_bg = "white", cor_bg_r = 0.1,
-    theme = "theme_this", theme_args = list(), palette = ifelse(is.null(group_by), "Spectral", "Paired"), palcolor = NULL, palreverse = FALSE,
-    title = NULL, subtitle = NULL,
-    facet_by = NULL, legend.position = "right", legend.direction = "vertical", seed = 8525,
+    data,
+    columns = NULL,
+    group_by = NULL,
+    group_by_sep = "_",
+    group_name = NULL,
+    diag_type = NULL,
+    diag_args = list(),
+    layout = c(".\\", "\\.", "/.", "./"),
+    cor_method = c("pearson", "spearman", "kendall"),
+    cor_palette = "RdBu",
+    cor_palcolor = NULL,
+    cor_size = 3,
+    cor_format = "corr: {round(corr, 2)}",
+    cor_fg = "black",
+    cor_bg = "white",
+    cor_bg_r = 0.1,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = ifelse(is.null(group_by), "Spectral", "Paired"),
+    palcolor = NULL,
+    palreverse = FALSE,
+    title = NULL,
+    subtitle = NULL,
+    facet_by = NULL,
+    legend.position = "right",
+    legend.direction = "vertical",
+    seed = 8525,
     ...
 ) {
     set.seed(seed)
@@ -385,7 +668,9 @@ CorPairsPlotAtomic <- function(
         ggplot2::ggplot
     }
     if (!is.null(facet_by)) {
-        stop("'facet_by' is not supported in CorPairsPlot. Consider using 'split_by'.")
+        stop(
+            "'facet_by' is not supported in CorPairsPlot. Consider using 'split_by'."
+        )
     }
     if (is.null(columns)) {
         if (!is.null(group_by)) {
@@ -402,7 +687,10 @@ CorPairsPlotAtomic <- function(
     if (is.null(diag_type)) {
         diag_type <- ifelse(is.null(group_by), "density", "violin")
     }
-    diag_type <- match.arg(diag_type, c("density", "violin", "histogram", "box", "none"))
+    diag_type <- match.arg(
+        diag_type,
+        c("density", "violin", "histogram", "box", "none")
+    )
     layout <- match.arg(layout)
     cor_method <- match.arg(cor_method)
     base_size <- theme_args$base_size %||% 12
@@ -412,45 +700,109 @@ CorPairsPlotAtomic <- function(
     get_plot_info <- function(i, j, j1) {
         diag_no_x_axis <- diag_type %in% c("box", "violin", "none")
         xaxis <- yaxis <- xlab <- ylab <- "none"
-        if (i == j1) {  # diagonal
+        if (i == j1) {
+            # diagonal
             if (layout %in% c(".\\", "/.")) {
-                if (i == 1) {  # top corner
-                    yaxis <- ifelse(diag_type == "none", "none", ifelse(layout == ".\\", "left", "right"))
+                if (i == 1) {
+                    # top corner
+                    yaxis <- ifelse(
+                        diag_type == "none",
+                        "none",
+                        ifelse(layout == ".\\", "left", "right")
+                    )
                     xlab <- "top"
-                } else if (i == length(columns)) {  # bottom corner
+                } else if (i == length(columns)) {
+                    # bottom corner
                     xaxis <- ifelse(diag_no_x_axis, "none", "bottom")
                     ylab <- ifelse(layout == ".\\", "right", "left")
                 }
-            } else {  # layout %in% c("\\.", "./")
-                if (i == 1) {  # top corner
+            } else {
+                # layout %in% c("\\.", "./")
+                if (i == 1) {
+                    # top corner
                     xaxis <- ifelse(diag_no_x_axis, "none", "top")
                     xlab <- "none"
                     ylab <- ifelse(layout == "\\.", "left", "right")
-                } else if (i == length(columns)) {  # bottom corner
-                    yaxis <- ifelse(diag_type == "none", "none", ifelse(layout == "\\.", "right", "left"))
+                } else if (i == length(columns)) {
+                    # bottom corner
+                    yaxis <- ifelse(
+                        diag_type == "none",
+                        "none",
+                        ifelse(layout == "\\.", "right", "left")
+                    )
                     xlab <- "bottom"
                 }
             }
-            return(list(type = layout, xaxis = xaxis, yaxis = yaxis, xlab = xlab, ylab = ylab))
-        } else if (i < j1) {  # upper triangle
+            return(list(
+                type = layout,
+                xaxis = xaxis,
+                yaxis = yaxis,
+                xlab = xlab,
+                ylab = ylab
+            ))
+        } else if (i < j1) {
+            # upper triangle
             if (layout %in% c(".\\", "/.")) {
                 xlab <- ifelse(i > 1, "none", "top")
-                ylab <- ifelse(j1 < length(columns), "none", ifelse(layout == "/.", "left", "right"))
-                return(list(type = "fill", xaxis = xaxis, yaxis = yaxis, xlab = xlab, ylab = ylab))
-            } else {  # layout %in% c("\\.", "./")
+                ylab <- ifelse(
+                    j1 < length(columns),
+                    "none",
+                    ifelse(layout == "/.", "left", "right")
+                )
+                return(list(
+                    type = "fill",
+                    xaxis = xaxis,
+                    yaxis = yaxis,
+                    xlab = xlab,
+                    ylab = ylab
+                ))
+            } else {
+                # layout %in% c("\\.", "./")
                 xaxis <- ifelse(i > 1, "none", "top")
-                yaxis <- ifelse(j1 < length(columns), "none", ifelse(layout == "\\.", "right", "left"))
-                return(list(type = "cor", xaxis = xaxis, yaxis = yaxis, xlab = xlab, ylab = ylab))
+                yaxis <- ifelse(
+                    j1 < length(columns),
+                    "none",
+                    ifelse(layout == "\\.", "right", "left")
+                )
+                return(list(
+                    type = "cor",
+                    xaxis = xaxis,
+                    yaxis = yaxis,
+                    xlab = xlab,
+                    ylab = ylab
+                ))
             }
-        } else {  # i > j1, lower triangle
+        } else {
+            # i > j1, lower triangle
             if (layout %in% c(".\\", "/.")) {
                 xaxis <- ifelse(i < length(columns), "none", "bottom")
-                yaxis <- ifelse(j1 > 1, "none", ifelse(layout == "/.", "right", "left"))
-                return(list(type = "cor", xaxis = xaxis, yaxis = yaxis, xlab = xlab, ylab = ylab))
-            } else {  # layout %in% c("\\.", "./")
+                yaxis <- ifelse(
+                    j1 > 1,
+                    "none",
+                    ifelse(layout == "/.", "right", "left")
+                )
+                return(list(
+                    type = "cor",
+                    xaxis = xaxis,
+                    yaxis = yaxis,
+                    xlab = xlab,
+                    ylab = ylab
+                ))
+            } else {
+                # layout %in% c("\\.", "./")
                 xlab <- ifelse(i < length(columns), "none", "bottom")
-                ylab <- ifelse(j1 > 1, "none", ifelse(layout == "\\.", "left", "right"))
-                return(list(type = "fill", xaxis = xaxis, yaxis = yaxis, xlab = xlab, ylab = ylab))
+                ylab <- ifelse(
+                    j1 > 1,
+                    "none",
+                    ifelse(layout == "\\.", "left", "right")
+                )
+                return(list(
+                    type = "fill",
+                    xaxis = xaxis,
+                    yaxis = yaxis,
+                    xlab = xlab,
+                    ylab = ylab
+                ))
             }
         }
     }
@@ -460,12 +812,18 @@ CorPairsPlotAtomic <- function(
         expand <- c(0, 0)
         if (diag_type == "none") {
             if (info$type %in% c("./", "/.")) {
-                p <- ggplot(data.frame(x = c(0, 1), y = c(0, 1)), aes(x = x, y = y)) +
+                p <- ggplot(
+                    data.frame(x = c(0, 1), y = c(0, 1)),
+                    aes(x = x, y = y)
+                ) +
                     geom_line(color = "darkred", linewidth = 1.5) +
                     scale_x_continuous(expand = expand) +
                     scale_y_continuous(expand = expand)
             } else if (info$type %in% c(".\\", "\\.")) {
-                p <- ggplot(data.frame(x = c(0, 1), y = c(1, 0)), aes(x = x, y = y)) +
+                p <- ggplot(
+                    data.frame(x = c(0, 1), y = c(1, 0)),
+                    aes(x = x, y = y)
+                ) +
                     geom_line(color = "darkred", linewidth = 1.5) +
                     scale_x_continuous(expand = expand) +
                     scale_y_continuous(expand = expand)
@@ -484,12 +842,18 @@ CorPairsPlotAtomic <- function(
             args$palette <- args$palette %||% palette
             args$palcolor <- args$palcolor %||% palcolor
             p <- do.call(DensityPlot, args)
-            if (is.null(group_by) || (identical(args$palette, palette) && identical(args$palcolor, palcolor))) {
+            if (
+                is.null(group_by) ||
+                    (identical(args$palette, palette) &&
+                        identical(args$palcolor, palcolor))
+            ) {
                 p <- p + guides(fill = "none", color = "none")
             }
         } else if (info$type == "violin") {
             if (is.null(group_by)) {
-                stop("No 'group_by' is specified for 'violin' plot on the diagnal cells. Consider using 'density' instead.")
+                stop(
+                    "No 'group_by' is specified for 'violin' plot on the diagnal cells. Consider using 'density' instead."
+                )
             }
             args <- diag_args
             args$data <- data
@@ -498,7 +862,10 @@ CorPairsPlotAtomic <- function(
             args$palette <- args$palette %||% palette
             args$palcolor <- args$palcolor %||% palcolor
             p <- do.call(ViolinPlot, args)
-            if (identical(args$palette, palette) && identical(args$palcolor, palcolor)) {
+            if (
+                identical(args$palette, palette) &&
+                    identical(args$palcolor, palcolor)
+            ) {
                 p <- p + guides(fill = "none")
             }
         } else if (info$type == "histogram") {
@@ -509,12 +876,18 @@ CorPairsPlotAtomic <- function(
             args$palette <- args$palette %||% palette
             args$palcolor <- args$palcolor %||% palcolor
             p <- do.call(Histogram, args)
-            if (is.null(group_by) || (identical(args$palette, palette) && identical(args$palcolor, palcolor))) {
+            if (
+                is.null(group_by) ||
+                    (identical(args$palette, palette) &&
+                        identical(args$palcolor, palcolor))
+            ) {
                 p <- p + guides(fill = "none", color = "none")
             }
         } else if (info$type == "box") {
             if (is.null(group_by)) {
-                stop("No 'group_by' is specified for 'box' plot on the diagnal cells. Consider using 'histogram' instead.")
+                stop(
+                    "No 'group_by' is specified for 'box' plot on the diagnal cells. Consider using 'histogram' instead."
+                )
             }
             args <- diag_args
             args$data <- data
@@ -523,31 +896,63 @@ CorPairsPlotAtomic <- function(
             args$palette <- args$palette %||% palette
             args$palcolor <- args$palcolor %||% palcolor
             p <- do.call(BoxPlot, args)
-            if (identical(args$palette, palette) && identical(args$palcolor, palcolor)) {
+            if (
+                identical(args$palette, palette) &&
+                    identical(args$palcolor, palcolor)
+            ) {
                 p <- p + guides(fill = "none")
             }
         } else if (info$type == "cor") {
             expand <- waiver()
-            p <- CorPlot(data, x = x, y = y, group_by = group_by, group_name = group_name,
-                palette = palette, palcolor = palcolor,
-                legend.position = legend.position, legend.direction = legend.direction, seed = seed, ...)
+            p <- CorPlot(
+                data,
+                x = x,
+                y = y,
+                group_by = group_by,
+                group_name = group_name,
+                palette = palette,
+                palcolor = palcolor,
+                legend.position = legend.position,
+                legend.direction = legend.direction,
+                seed = seed,
+                ...
+            )
             if (is.null(group_by)) {
                 p <- p + guides(fill = "none", color = "none")
             }
         } else if (info$type == "fill") {
             corr <- cor(data[[x]], data[[y]], method = cor_method)
             # x, y for cor_format
-            p <- ggplot(data.frame(i = 0.5, j = 0.5, x = y, y = x, corr = corr), aes(x = i, y = j, fill = corr)) +
+            p <- ggplot(
+                data.frame(i = 0.5, j = 0.5, x = y, y = x, corr = corr),
+                aes(x = i, y = j, fill = corr)
+            ) +
                 geom_tile(width = 1, height = 1) +
                 geom_text_repel(
                     mapping = aes(label = glue(cor_format)),
-                    segment.color = "transparent", force = 0,
-                    color = cor_fg, bg.color = cor_bg, bg.r = cor_bg_r,
-                    size = text_size_scale * cor_size, seed = seed) +
+                    segment.color = "transparent",
+                    force = 0,
+                    color = cor_fg,
+                    bg.color = cor_bg,
+                    bg.r = cor_bg_r,
+                    size = text_size_scale * cor_size,
+                    seed = seed
+                ) +
                 scale_fill_gradientn(
-                    colors = palette_this(c(-1, 1), palette = cor_palette, palcolor = cor_palcolor, reverse = palreverse),
-                    limits = c(-1, 1), breaks = c(-1, 0, 1), labels = scales::number_format(accuracy = 0.1),
-                    guide = guide_colorbar(frame.colour = "black", ticks.colour = "black", title.hjust = 0)
+                    colors = palette_this(
+                        c(-1, 1),
+                        palette = cor_palette,
+                        palcolor = cor_palcolor,
+                        reverse = palreverse
+                    ),
+                    limits = c(-1, 1),
+                    breaks = c(-1, 0, 1),
+                    labels = scales::number_format(accuracy = 0.1),
+                    guide = guide_colorbar(
+                        frame.colour = "black",
+                        ticks.colour = "black",
+                        title.hjust = 0
+                    )
                 ) +
                 scale_x_continuous(expand = expand) +
                 scale_y_continuous(expand = expand)
@@ -563,20 +968,40 @@ CorPairsPlotAtomic <- function(
                 scale_x <- scale_x_continuous
             }
             if (info$xlab == "top") {
-                p <- p + ggplot2::xlab(x) + scale_x(position = "top", expand = expand) +
-                    ggplot2::theme(axis.title.x = element_textbox(face = "bold"))
+                p <- p +
+                    ggplot2::xlab(x) +
+                    scale_x(position = "top", expand = expand) +
+                    ggplot2::theme(
+                        axis.title.x = element_textbox(face = "bold")
+                    )
             } else if (info$xlab == "bottom") {
-                p <- p + ggplot2::xlab(x) + scale_x(expand = expand) +
-                    ggplot2::theme(axis.title.x = element_textbox(face = "bold"))
+                p <- p +
+                    ggplot2::xlab(x) +
+                    scale_x(expand = expand) +
+                    ggplot2::theme(
+                        axis.title.x = element_textbox(face = "bold")
+                    )
             } else {
                 p <- p + ggplot2::theme(axis.title.x = element_blank())
             }
             if (info$ylab == "left") {
-                p <- p + ggplot2::ylab(y) + scale_y_continuous(expand = expand) +
-                    ggplot2::theme(axis.title.y = element_textbox(orientation = "left-rotated"))
+                p <- p +
+                    ggplot2::ylab(y) +
+                    scale_y_continuous(expand = expand) +
+                    ggplot2::theme(
+                        axis.title.y = element_textbox(
+                            orientation = "left-rotated"
+                        )
+                    )
             } else if (info$ylab == "right") {
-                p <- p + ggplot2::ylab(y) + scale_y_continuous(position = "right", expand = expand) +
-                    ggplot2::theme(axis.title.y = element_textbox(orientation = "right-rotated"))
+                p <- p +
+                    ggplot2::ylab(y) +
+                    scale_y_continuous(position = "right", expand = expand) +
+                    ggplot2::theme(
+                        axis.title.y = element_textbox(
+                            orientation = "right-rotated"
+                        )
+                    )
             } else {
                 p <- p + ggplot2::theme(axis.title.y = ggplot2::element_blank())
             }
@@ -585,14 +1010,22 @@ CorPairsPlotAtomic <- function(
             } else if (info$xaxis == "top") {
                 p <- p + scale_x(position = "top", expand = expand)
             } else {
-                p <- p + ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.ticks.x = ggplot2::element_blank())
+                p <- p +
+                    ggplot2::theme(
+                        axis.text.x = ggplot2::element_blank(),
+                        axis.ticks.x = ggplot2::element_blank()
+                    )
             }
             if (info$yaxis == "left") {
                 p <- p + scale_y_continuous(expand = expand)
             } else if (info$yaxis == "right") {
                 p <- p + scale_y_continuous(position = "right", expand = expand)
             } else {
-                p <- p + ggplot2::theme(axis.text.y = ggplot2::element_blank(), axis.ticks.y = ggplot2::element_blank())
+                p <- p +
+                    ggplot2::theme(
+                        axis.text.y = ggplot2::element_blank(),
+                        axis.ticks.y = ggplot2::element_blank()
+                    )
             }
         })
         p + ggplot2::theme(plot.margin = margin(1, 1, 1, 1), aspect.ratio = 1)
@@ -616,17 +1049,24 @@ CorPairsPlotAtomic <- function(
     p <- wrap_plots(plots, ncol = length(columns), byrow = TRUE) +
         plot_layout(guides = "collect") +
         plot_annotation(title = title, subtitle = subtitle) &
-        ggplot2::theme(legend.position = legend.position, legend.direction = legend.direction)
+        ggplot2::theme(
+            legend.position = legend.position,
+            legend.direction = legend.direction
+        )
     # so that the plot title can be displayed
     p <- patchwork::wrap_elements(p)
 
     dims <- calculate_plot_dimensions(
         base_height = sqrt(length(columns)) * 4,
-        aspect.ratio = 1,  # pairs plot panels are always square
+        aspect.ratio = 1, # pairs plot panels are always square
         legend.position = legend.position,
         legend.direction = legend.direction,
         legend_n = if (!is.null(group_by)) nlevels(data[[group_by]]) else 1,
-        legend_nchar = if (!is.null(group_by)) max(nchar(levels(data[[group_by]]))) else 5
+        legend_nchar = if (!is.null(group_by)) {
+            max(nchar(levels(data[[group_by]])))
+        } else {
+            5
+        }
     )
 
     attr(p, "height") <- dims$height
@@ -670,17 +1110,54 @@ CorPairsPlotAtomic <- function(
 #'  palcolor = list("1" = "red", "2" = "blue", "3" = "green", "4" = "yellow"))
 #' }
 CorPairsPlot <- function(
-    data, columns = NULL, group_by = NULL, group_by_sep = "_", group_name = NULL, split_by = NULL, split_by_sep = "_",
-    diag_type = NULL, diag_args = list(), layout = c(".\\", "\\.", "/.", "./"),
-    cor_method = c("pearson", "spearman", "kendall"), cor_palette = "RdBu", cor_palcolor = NULL,
-    cor_size = 3, cor_format = "corr: {round(corr, 2)}", cor_fg = "black", cor_bg = "white", cor_bg_r = 0.1,
-    theme = "theme_this", theme_args = list(), palette = ifelse(is.null(group_by), "Spectral", "Paired"), palcolor = NULL, palreverse = FALSE,
-    title = NULL, subtitle = NULL, facet_by = NULL, legend.position = "right", legend.direction = "vertical", seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
+    data,
+    columns = NULL,
+    group_by = NULL,
+    group_by_sep = "_",
+    group_name = NULL,
+    split_by = NULL,
+    split_by_sep = "_",
+    diag_type = NULL,
+    diag_args = list(),
+    layout = c(".\\", "\\.", "/.", "./"),
+    cor_method = c("pearson", "spearman", "kendall"),
+    cor_palette = "RdBu",
+    cor_palcolor = NULL,
+    cor_size = 3,
+    cor_format = "corr: {round(corr, 2)}",
+    cor_fg = "black",
+    cor_bg = "white",
+    cor_bg_r = 0.1,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = ifelse(is.null(group_by), "Spectral", "Paired"),
+    palcolor = NULL,
+    palreverse = FALSE,
+    title = NULL,
+    subtitle = NULL,
+    facet_by = NULL,
+    legend.position = "right",
+    legend.direction = "vertical",
+    seed = 8525,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
     ...
 ) {
     validate_common_args(seed)
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
+    split_by <- check_columns(
+        data,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
 
     if (!is.null(split_by)) {
         data[[split_by]] <- droplevels(data[[split_by]])
@@ -694,12 +1171,25 @@ CorPairsPlot <- function(
 
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
-    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
-    legend.position <- check_legend(legend.position, names(datas), "legend.position")
+    legend.direction <- check_legend(
+        legend.direction,
+        names(datas),
+        "legend.direction"
+    )
+    legend.position <- check_legend(
+        legend.position,
+        names(datas),
+        "legend.position"
+    )
 
     plots <- lapply(
-        names(datas), function(nm) {
-            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+        names(datas),
+        function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) {
+                NULL
+            } else {
+                nm
+            }
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
@@ -710,19 +1200,49 @@ CorPairsPlot <- function(
             }
 
             CorPairsPlotAtomic(
-                data = datas[[nm]], columns = columns, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
-                diag_type = diag_type, diag_args = diag_args, layout = layout,
-                cor_method = cor_method, cor_palette = cor_palette, cor_palcolor = cor_palcolor,
-                cor_size = cor_size, cor_format = cor_format, cor_fg = cor_fg, cor_bg = cor_bg, cor_bg_r = cor_bg_r,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse,
-                title = title, subtitle = subtitle, legend.position = legend.position[[nm]],
-                legend.direction = legend.direction[[nm]], seed = seed, ...
+                data = datas[[nm]],
+                columns = columns,
+                group_by = group_by,
+                group_by_sep = group_by_sep,
+                group_name = group_name,
+                diag_type = diag_type,
+                diag_args = diag_args,
+                layout = layout,
+                cor_method = cor_method,
+                cor_palette = cor_palette,
+                cor_palcolor = cor_palcolor,
+                cor_size = cor_size,
+                cor_format = cor_format,
+                cor_fg = cor_fg,
+                cor_bg = cor_bg,
+                cor_bg_r = cor_bg_r,
+                theme = theme,
+                theme_args = theme_args,
+                palette = palette[[nm]],
+                palcolor = palcolor[[nm]],
+                palreverse = palreverse,
+                title = title,
+                subtitle = subtitle,
+                legend.position = legend.position[[nm]],
+                legend.direction = legend.direction[[nm]],
+                seed = seed,
+                ...
             )
         }
     )
 
     names(plots) <- names(datas)
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }

@@ -2,7 +2,14 @@
 #'
 #' @keywords internal
 #' @importFrom stats dist
-adjust_network_layout <- function(graph, layout, width, height = 2, scale = 100, iter = 100) {
+adjust_network_layout <- function(
+    graph,
+    layout,
+    width,
+    height = 2,
+    scale = 100,
+    iter = 100
+) {
     w <- width / 2
     layout[, 1] <- layout[, 1] / diff(range(layout[, 1])) * scale
     layout[, 2] <- layout[, 2] / diff(range(layout[, 2])) * scale
@@ -35,7 +42,12 @@ adjust_network_layout <- function(graph, layout, width, height = 2, scale = 100,
 
     for (i in seq_len(iter)) {
         dist_matrix <- as.matrix(dist(layout))
-        nearest_neighbors <- apply(dist_matrix, 2, function(x) which(x == min(x[x > 0])), simplify = FALSE)
+        nearest_neighbors <- apply(
+            dist_matrix,
+            2,
+            function(x) which(x == min(x[x > 0])),
+            simplify = FALSE
+        )
         # nearest_neighbors <- apply(dist_matrix, 2, function(x) {
         #   head(order(x), 3)[-1]
         # }, simplify = FALSE)
@@ -104,13 +116,36 @@ adjust_network_layout <- function(graph, layout, width, height = 2, scale = 100,
 #' @importFrom ggplot2 geom_segment geom_point labs scale_size guides scale_linewidth scale_fill_manual scale_x_continuous
 #' @importFrom ggplot2 scale_y_continuous
 EnrichMapAtomic <- function(
-    data, in_form = "clusterProfiler", top_term = 100, metric = "p.adjust", layout = "fr", minchar = 2,
-    cluster = "fast_greedy", show_keyword = FALSE, nlabel = 4, character_width = 50,
+    data,
+    in_form = "clusterProfiler",
+    top_term = 100,
+    metric = "p.adjust",
+    layout = "fr",
+    minchar = 2,
+    cluster = "fast_greedy",
+    show_keyword = FALSE,
+    nlabel = 4,
+    character_width = 50,
     words_excluded = plotthis::words_excluded,
-    mark = "ellipse", label = c("term", "feature"), labelsize = 5, expand = c(0.4, 0.4),
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 1,
-    aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525, ...
+    mark = "ellipse",
+    label = c("term", "feature"),
+    labelsize = 5,
+    expand = c(0.4, 0.4),
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Paired",
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 1,
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    seed = 8525,
+    ...
 ) {
     # if (!requireNamespace("igraph", quietly = TRUE)) {
     #     stop("The 'igraph' package is required 'EnrichMap'. Please install it first.")
@@ -137,7 +172,11 @@ EnrichMapAtomic <- function(
     check_columns(data, "p.adjust")
     check_columns(data, "geneID")
     label <- match.arg(label)
-    expand <- norm_expansion(expand, x_type = "continuous", y_type = "continuous")
+    expand <- norm_expansion(
+        expand,
+        x_type = "continuous",
+        y_type = "continuous"
+    )
 
     if (!is.null(top_term)) {
         data <- slice_min(data, !!sym(metric), n = top_term, with_ties = FALSE)
@@ -155,15 +194,25 @@ EnrichMapAtomic <- function(
     edges <- as.data.frame(t(combn(nodes$ID, 2)))
     colnames(edges) <- c("from", "to")
     edges$weight <- mapply(
-        function(x, y) length(intersect(unlist(data[x, "geneID"]), unlist(data[y, "geneID"]))),
+        function(x, y) {
+            length(intersect(
+                unlist(data[x, "geneID"]),
+                unlist(data[y, "geneID"])
+            ))
+        },
         edges$from,
         edges$to
     )
     edges <- edges[edges$weight > 0, , drop = FALSE]
     nodes <- nodes[c("ID", setdiff(colnames(nodes), "ID"))]
-    graph <- igraph::graph_from_data_frame(d = edges, vertices = nodes, directed = FALSE)
+    graph <- igraph::graph_from_data_frame(
+        d = edges,
+        vertices = nodes,
+        directed = FALSE
+    )
     if (layout %in% c("circle", "tree", "grid")) {
-        layout <- switch(layout,
+        layout <- switch(
+            layout,
             "circle" = igraph::layout_in_circle(graph),
             "tree" = igraph::layout_as_tree(graph),
             "grid" = igraph::layout_on_grid(graph)
@@ -182,11 +231,18 @@ EnrichMapAtomic <- function(
     df_nodes$dim2 <- layout[, 2]
     df_nodes$clusters <- factor(
         paste0("C", clusters$membership),
-        paste0("C", unique(sort(clusters$membership))))
+        paste0("C", unique(sort(clusters$membership)))
+    )
 
     if (isTRUE(show_keyword)) {
         df_keyword1 <- df_nodes %>%
-            mutate(keyword = strsplit(tolower(as.character(!!sym("Description"))), "\\s|\\n", perl = TRUE)) %>%
+            mutate(
+                keyword = strsplit(
+                    tolower(as.character(!!sym("Description"))),
+                    "\\s|\\n",
+                    perl = TRUE
+                )
+            ) %>%
             unnest(cols = "keyword") %>%
             group_by(!!sym("keyword"), !!sym("clusters")) %>%
             reframe(
@@ -205,11 +261,21 @@ EnrichMapAtomic <- function(
             reframe(keyword = paste0(!!sym("keyword"), collapse = "/")) %>%
             as.data.frame()
         rownames(df_keyword1) <- as.character(df_keyword1$clusters)
-        df_keyword1$keyword <- str_wrap(df_keyword1$keyword, width = character_width)
-        df_keyword1$label <- paste0(df_keyword1$clusters, ":\n", df_keyword1$keyword)
+        df_keyword1$keyword <- str_wrap(
+            df_keyword1$keyword,
+            width = character_width
+        )
+        df_keyword1$label <- paste0(
+            df_keyword1$clusters,
+            ":\n",
+            df_keyword1$keyword
+        )
     } else {
         # if (label == "term") {
-            df_nodes$Description <- paste0("- ", str_wrap(df_nodes$Description, width = character_width, exdent = 2))
+        df_nodes$Description <- paste0(
+            "- ",
+            str_wrap(df_nodes$Description, width = character_width, exdent = 2)
+        )
         # }
         df_keyword1 <- df_nodes %>%
             group_by(!!sym("clusters")) %>%
@@ -222,7 +288,11 @@ EnrichMapAtomic <- function(
             as.data.frame()
 
         rownames(df_keyword1) <- as.character(df_keyword1$clusters)
-        df_keyword1$label <- paste0(df_keyword1$clusters, ":\n", df_keyword1$keyword)
+        df_keyword1$label <- paste0(
+            df_keyword1$clusters,
+            ":\n",
+            df_keyword1$keyword
+        )
     }
 
     df_keyword2 <- df_nodes %>%
@@ -243,8 +313,15 @@ EnrichMapAtomic <- function(
         as.data.frame()
 
     rownames(df_keyword2) <- as.character(df_keyword2$clusters)
-    df_keyword2$keyword <- str_wrap(df_keyword2$keyword, width = character_width)
-    df_keyword2$label <- paste0(df_keyword2$clusters, ":\n", df_keyword2$keyword)
+    df_keyword2$keyword <- str_wrap(
+        df_keyword2$keyword,
+        width = character_width
+    )
+    df_keyword2$label <- paste0(
+        df_keyword2$clusters,
+        ":\n",
+        df_keyword2$keyword
+    )
 
     df_nodes$keyword1 <- df_keyword1[as.character(df_nodes$clusters), "keyword"]
     df_nodes$keyword2 <- df_keyword2[as.character(df_nodes$clusters), "keyword"]
@@ -257,9 +334,14 @@ EnrichMapAtomic <- function(
 
     markfun <- getFromNamespace(paste0("geom_mark_", mark), "ggforce")
     mark_layer <- markfun(
-        data = df_nodes, aes(
-            x = !!sym("dim1"), y = !!sym("dim2"), color = !!sym("clusters"), fill = !!sym("clusters"),
-            label = !!sym("clusters"), description = !!sym(ifelse(label == "term", "keyword1", "keyword2"))
+        data = df_nodes,
+        aes(
+            x = !!sym("dim1"),
+            y = !!sym("dim2"),
+            color = !!sym("clusters"),
+            fill = !!sym("clusters"),
+            label = !!sym("clusters"),
+            description = !!sym(ifelse(label == "term", "keyword1", "keyword2"))
         ),
         expand = unit(3, "mm"),
         alpha = 0.1,
@@ -274,29 +356,77 @@ EnrichMapAtomic <- function(
 
     p <- ggplot() +
         mark_layer +
-        geom_segment(data = df_edges,
-            aes(x = !!sym("from_dim1"), y = !!sym("from_dim2"), xend = !!sym("to_dim1"), yend = !!sym("to_dim2"), linewidth = !!sym("weight")),
-            alpha = 0.1, lineend = "round") +
-        geom_point(data = df_nodes,
-            aes(x = !!sym("dim1"), y = !!sym("dim2"), size = !!sym("Count"), fill = !!sym("clusters")),
-            color = "black", shape = 21) +
-        labs(title = title, subtitle = subtitle, x = xlab %||% "", y = ylab %||% "") +
+        geom_segment(
+            data = df_edges,
+            aes(
+                x = !!sym("from_dim1"),
+                y = !!sym("from_dim2"),
+                xend = !!sym("to_dim1"),
+                yend = !!sym("to_dim2"),
+                linewidth = !!sym("weight")
+            ),
+            alpha = 0.1,
+            lineend = "round"
+        ) +
+        geom_point(
+            data = df_nodes,
+            aes(
+                x = !!sym("dim1"),
+                y = !!sym("dim2"),
+                size = !!sym("Count"),
+                fill = !!sym("clusters")
+            ),
+            color = "black",
+            shape = 21
+        ) +
+        labs(
+            title = title,
+            subtitle = subtitle,
+            x = xlab %||% "",
+            y = ylab %||% ""
+        ) +
         scale_size(name = "Count", range = c(2, 6), breaks_extended(n = 4)) +
-        guides(size = guide_legend(override.aes = list(fill = "grey30", shape = 21), order = 1)) +
-        scale_linewidth(name = "Intersection", range = c(0.3, 3), breaks_extended(n = 4)) +
-        guides(linewidth = guide_legend(override.aes = list(alpha = 1, color = "grey"), order = 2)) +
+        guides(
+            size = guide_legend(
+                override.aes = list(fill = "grey30", shape = 21),
+                order = 1
+            )
+        ) +
+        scale_linewidth(
+            name = "Intersection",
+            range = c(0.3, 3),
+            breaks_extended(n = 4)
+        ) +
+        guides(
+            linewidth = guide_legend(
+                override.aes = list(alpha = 1, color = "grey"),
+                order = 2
+            )
+        ) +
         scale_fill_manual(
             name = switch(label, "term" = "Feature", "feature" = "Term"),
-            values = palette_this(levels(df_nodes$clusters), palette = palette, palcolor = palcolor, reverse = palreverse),
-            labels = if (label == "term") df_keyword2[levels(df_nodes$clusters), "label"] else df_keyword1[levels(df_nodes$clusters), "label"],
+            values = palette_this(
+                levels(df_nodes$clusters),
+                palette = palette,
+                palcolor = palcolor,
+                reverse = palreverse
+            ),
+            labels = if (label == "term") {
+                df_keyword2[levels(df_nodes$clusters), "label"]
+            } else {
+                df_keyword1[levels(df_nodes$clusters), "label"]
+            },
             na.value = "grey80",
             aesthetics = c("colour", "fill")
         ) +
-        guides(fill = guide_legend(
-            override.aes = list(alpha = 1, color = "black", shape = NA),
-            byrow = TRUE,
-            theme = ggplot2::theme(legend.key.spacing.y = unit(0.1, "cm")),
-            order = 3)) +
+        guides(
+            fill = guide_legend(
+                override.aes = list(alpha = 1, color = "black", shape = NA),
+                byrow = TRUE,
+                theme = ggplot2::theme(legend.key.spacing.y = unit(0.1, "cm")),
+                order = 3
+            )
+        ) +
         guides(color = guide_none()) +
         scale_x_continuous(expand = expand$x) +
         scale_y_continuous(expand = expand$y) +
@@ -334,11 +464,30 @@ EnrichMapAtomic <- function(
 #' @importFrom grDevices col2rgb
 #' @importFrom ggplot2 scale_color_identity scale_fill_identity guides guide_legend draw_key_point .pt element_text
 EnrichNetworkAtomic <- function(
-    data, top_term = 6, metric = "p.adjust", character_width = 50,
-    layout = "fr", layoutadjust = TRUE, adjscale = 60, adjiter = 100, blendmode = "blend", labelsize = 5,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 1,
-    aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
+    data,
+    top_term = 6,
+    metric = "p.adjust",
+    character_width = 50,
+    layout = "fr",
+    layoutadjust = TRUE,
+    adjscale = 60,
+    adjiter = 100,
+    blendmode = "blend",
+    labelsize = 5,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Paired",
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 1,
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    seed = 8525,
     ...
 ) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
@@ -368,21 +517,33 @@ EnrichNetworkAtomic <- function(
 
     data$metric <- -log10(data[[metric]])
     data$Description <- str_wrap(data$Description, width = character_width)
-    data$Description <- factor(data$Description, levels = unique(data$Description))
+    data$Description <- factor(
+        data$Description,
+        levels = unique(data$Description)
+    )
     data$geneID <- strsplit(data$geneID, "/")
     df_unnest <- unnest(data, cols = "geneID")
 
     nodes <- rbind(
-        data.frame("ID" = data$Description, class = "term", metric = data$metric),
+        data.frame(
+            "ID" = data$Description,
+            class = "term",
+            metric = data$metric
+        ),
         data.frame("ID" = unique(df_unnest$geneID), class = "gene", metric = 0)
     )
     nodes$Database <- data$Database[1]
     edges <- as.data.frame(df_unnest[, c("Description", "geneID")])
     colnames(edges) <- c("from", "to")
     edges$weight <- 1
-    graph <- igraph::graph_from_data_frame(d = edges, vertices = nodes, directed = FALSE)
+    graph <- igraph::graph_from_data_frame(
+        d = edges,
+        vertices = nodes,
+        directed = FALSE
+    )
     if (layout %in% c("circle", "tree", "grid")) {
-        layout <- switch(layout,
+        layout <- switch(
+            layout,
             "circle" = igraph::layout_in_circle(graph),
             "tree" = igraph::layout_as_tree(graph),
             "grid" = igraph::layout_on_grid(graph)
@@ -398,8 +559,12 @@ EnrichNetworkAtomic <- function(
         width <- nchar(df_nodes$name)
         width[df_nodes$class == "term"] <- 8
         layout <- adjust_network_layout(
-            graph = graph, layout = layout, width = width, height = 2,
-            scale = adjscale, iter = adjiter
+            graph = graph,
+            layout = layout,
+            width = width,
+            height = 2,
+            scale = adjscale,
+            iter = adjiter
         )
     }
     df_nodes$dim1 <- layout[, 1]
@@ -411,7 +576,12 @@ EnrichNetworkAtomic <- function(
     df_edges$to_dim1 <- df_nodes[df_edges$to, "dim1"]
     df_edges$to_dim2 <- df_nodes[df_edges$to, "dim2"]
 
-    colors <- palette_this(levels(data$Description), palette = palette, palcolor = palcolor, reverse = palreverse)
+    colors <- palette_this(
+        levels(data$Description),
+        palette = palette,
+        palcolor = palcolor,
+        reverse = palreverse
+    )
     df_edges$color <- colors[df_edges$from]
     node_colors <- aggregate(
         df_unnest$Description,
@@ -423,47 +593,105 @@ EnrichNetworkAtomic <- function(
     df_nodes$color <- colors[df_nodes$name]
     df_nodes$label_color <- label_colors[df_nodes$name]
     df_nodes$label <- NA
-    df_nodes[levels(data$Description), "label"] <- seq_len(nlevels(data$Description))
+    df_nodes[levels(data$Description), "label"] <- seq_len(nlevels(
+        data$Description
+    ))
 
     draw_key_cust <- function(df, params, size) {
         data_text <- df
-        data_text$label <- which(levels(data$Description) %in% names(colors)[colors == data_text$fill])
+        data_text$label <- which(
+            levels(data$Description) %in%
+                names(colors)[colors == data_text$fill]
+        )
         data_text$colour <- "black"
         data_text$alpha <- 1
         data_text$size <- 11 / .pt
         grid::grobTree(
             draw_key_point(df, list(color = "white", shape = 21)),
-            getFromNamespace("shadowtextGrob", "ggrepel")(label = data_text$label, bg.colour = "black", bg.r = 0.1, gp = grid::gpar(col = "white", fontface = "bold"))
+            getFromNamespace("shadowtextGrob", "ggrepel")(
+                label = data_text$label,
+                bg.colour = "black",
+                bg.r = 0.1,
+                gp = grid::gpar(col = "white", fontface = "bold")
+            )
         )
     }
 
     p <- ggplot() +
-        geom_segment(data = df_edges,
-            aes(x = !!sym("from_dim1"), y = !!sym("from_dim2"), xend = !!sym("to_dim1"), yend = !!sym("to_dim2"), color = !!sym("color")),
-            alpha = 1, lineend = "round", show.legend = FALSE) +
-        geom_label(data = df_nodes[df_nodes$class == "gene", ],
-            aes(x = !!sym("dim1"), y = !!sym("dim2"), label = !!sym("name"), fill = !!sym("color"), color = !!sym("label_color")),
-            size = 3, show.legend = FALSE) +
-        geom_point(data = df_nodes[df_nodes$class == "term", ],
+        geom_segment(
+            data = df_edges,
+            aes(
+                x = !!sym("from_dim1"),
+                y = !!sym("from_dim2"),
+                xend = !!sym("to_dim1"),
+                yend = !!sym("to_dim2"),
+                color = !!sym("color")
+            ),
+            alpha = 1,
+            lineend = "round",
+            show.legend = FALSE
+        ) +
+        geom_label(
+            data = df_nodes[df_nodes$class == "gene", ],
+            aes(
+                x = !!sym("dim1"),
+                y = !!sym("dim2"),
+                label = !!sym("name"),
+                fill = !!sym("color"),
+                color = !!sym("label_color")
+            ),
+            size = 3,
+            show.legend = FALSE
+        ) +
+        geom_point(
+            data = df_nodes[df_nodes$class == "term", ],
             aes(x = !!sym("dim1"), y = !!sym("dim2")),
-            size = 8, color = "black", fill = "black", stroke = 1, shape = 21, show.legend = FALSE) +
-        geom_point(data = df_nodes[df_nodes$class == "term", ],
+            size = 8,
+            color = "black",
+            fill = "black",
+            stroke = 1,
+            shape = 21,
+            show.legend = FALSE
+        ) +
+        geom_point(
+            data = df_nodes[df_nodes$class == "term", ],
             aes(x = !!sym("dim1"), y = !!sym("dim2"), fill = !!sym("color")),
-            size = 7, color = "white", stroke = 1, shape = 21, key_glyph = draw_key_cust) +
+            size = 7,
+            color = "white",
+            stroke = 1,
+            shape = 21,
+            key_glyph = draw_key_cust
+        ) +
         geom_text_repel(
             data = df_nodes[df_nodes$class == "term", ],
             aes(x = !!sym("dim1"), y = !!sym("dim2"), label = !!sym("label")),
-            fontface = "bold", min.segment.length = 0, segment.color = "black",
-            point.size = NA, max.overlaps = 100, force = 0, color = "white", bg.color = "black", bg.r = 0.1, size = labelsize
+            fontface = "bold",
+            min.segment.length = 0,
+            segment.color = "black",
+            point.size = NA,
+            max.overlaps = 100,
+            force = 0,
+            color = "white",
+            bg.color = "black",
+            bg.r = 0.1,
+            size = labelsize
         ) +
         scale_color_identity(guide = "none") +
         scale_fill_identity(
-            name = "Term", guide = "legend",
+            name = "Term",
+            guide = "legend",
             labels = levels(data$Description),
             breaks = colors[levels(data$Description)]
         ) +
-        guides(color = guide_legend(override.aes = list(color = "transparent"))) +
-        labs(title = title, subtitle = subtitle, x = xlab %||% "", y = ylab %||% "") +
+        guides(
+            color = guide_legend(override.aes = list(color = "transparent"))
+        ) +
+        labs(
+            title = title,
+            subtitle = subtitle,
+            x = xlab %||% "",
+            y = ylab %||% ""
+        ) +
         do.call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
@@ -527,12 +755,20 @@ prepare_enrichr_result <- function(data, dbname = "Database", n_input = NULL) {
     data$Genes <- NULL
     data$geneID <- gsub(";", "/", data$geneID, fixed = TRUE)
     if (is.null(n_input)) {
-        C <- length(unique(unlist(strsplit(unlist(data$geneID), "/", fixed = TRUE))))
-        while(TRUE) {
+        C <- length(unique(unlist(strsplit(
+            unlist(data$geneID),
+            "/",
+            fixed = TRUE
+        ))))
+        while (TRUE) {
             D <- data$Odds.Ratio * pmax((B - A) * (C - A), 1) / A + B + C - A
-            if (isTRUE(all.equal(D, rep(D[1], length(D))))) { break }
+            if (isTRUE(all.equal(D, rep(D[1], length(D))))) {
+                break
+            }
             if (D[1] > 100000) {
-                stop("Failed to infer the number of input genes. Please provide it manually.")
+                stop(
+                    "Failed to infer the number of input genes. Please provide it manually."
+                )
             }
             C <- C + 1
         }
@@ -595,15 +831,45 @@ prepare_enrichr_result <- function(data, dbname = "Database", n_input = NULL) {
 #'           palette = list(DB1 = "Paired", DB2 = "Set1"))
 #' }
 EnrichMap <- function(
-    data, in_form = c("auto", "clusterProfiler", "clusterprofiler", "enrichr"), split_by = NULL,
-    split_by_sep = "_", top_term = 10, metric = "p.adjust", layout = "fr", minchar = 2,
-    cluster = "fast_greedy", show_keyword = FALSE, nlabel = 4, character_width = 50,
-    mark = "ellipse", label = c("term", "feature"), labelsize = 5, expand = c(0.4, 0.4),
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 1,
-    aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
-    axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...
+    data,
+    in_form = c("auto", "clusterProfiler", "clusterprofiler", "enrichr"),
+    split_by = NULL,
+    split_by_sep = "_",
+    top_term = 10,
+    metric = "p.adjust",
+    layout = "fr",
+    minchar = 2,
+    cluster = "fast_greedy",
+    show_keyword = FALSE,
+    nlabel = 4,
+    character_width = 50,
+    mark = "ellipse",
+    label = c("term", "feature"),
+    labelsize = 5,
+    expand = c(0.4, 0.4),
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Paired",
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 1,
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    seed = 8525,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
+    ...
 ) {
     validate_common_args(seed)
     theme <- process_theme(theme)
@@ -622,8 +888,14 @@ EnrichMap <- function(
         data <- prepare_enrichr_result(data)
     }
 
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE,
-        concat_multi = TRUE, concat_sep = split_by_sep)
+    split_by <- check_columns(
+        data,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
 
     if (!is.null(split_by)) {
         data[[split_by]] <- droplevels(data[[split_by]])
@@ -636,13 +908,25 @@ EnrichMap <- function(
     }
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
-    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
-    legend.position <- check_legend(legend.position, names(datas), "legend.position")
+    legend.direction <- check_legend(
+        legend.direction,
+        names(datas),
+        "legend.direction"
+    )
+    legend.position <- check_legend(
+        legend.position,
+        names(datas),
+        "legend.position"
+    )
 
     plots <- lapply(
         names(datas),
         function(nm) {
-            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) {
+                NULL
+            } else {
+                nm
+            }
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
@@ -650,20 +934,51 @@ EnrichMap <- function(
             }
             EnrichMapAtomic(
                 datas[[nm]],
-                top_term = top_term, metric = metric, layout = layout, minchar = minchar,
-                cluster = cluster, show_keyword = show_keyword, nlabel = nlabel, character_width = character_width,
-                mark = mark, label = label, labelsize = labelsize, expand = expand,
-                theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, alpha = alpha,
-                aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, ...
+                top_term = top_term,
+                metric = metric,
+                layout = layout,
+                minchar = minchar,
+                cluster = cluster,
+                show_keyword = show_keyword,
+                nlabel = nlabel,
+                character_width = character_width,
+                mark = mark,
+                label = label,
+                labelsize = labelsize,
+                expand = expand,
+                theme = theme,
+                theme_args = theme_args,
+                palette = palette[[nm]],
+                palcolor = palcolor[[nm]],
+                palreverse = palreverse,
+                alpha = alpha,
+                aspect.ratio = aspect.ratio,
+                legend.position = legend.position[[nm]],
+                legend.direction = legend.direction[[nm]],
+                title = title,
+                subtitle = subtitle,
+                xlab = xlab,
+                ylab = ylab,
+                seed = seed,
+                ...
             )
         }
     )
 
     names(plots) <- names(datas)
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }
 
 #' @rdname enrichmap1
@@ -692,13 +1007,41 @@ EnrichMap <- function(
 #' EnrichNetwork(enrich_example, top_term = 5)
 #' }
 EnrichNetwork <- function(
-    data, in_form = c("auto", "clusterProfiler", "clusterprofiler", "enrichr"),
-    split_by = NULL, split_by_sep = "_", top_term = 10, metric = "p.adjust", character_width = 50,
-    layout = "fr", layoutadjust = TRUE, adjscale = 60, adjiter = 100, blendmode = "blend", labelsize = 5,
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 1,
-    aspect.ratio = 1, legend.position = "right", legend.direction = "vertical",
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE, axes = NULL, axis_titles = axes, guides = NULL, design = NULL,
+    data,
+    in_form = c("auto", "clusterProfiler", "clusterprofiler", "enrichr"),
+    split_by = NULL,
+    split_by_sep = "_",
+    top_term = 10,
+    metric = "p.adjust",
+    character_width = 50,
+    layout = "fr",
+    layoutadjust = TRUE,
+    adjscale = 60,
+    adjiter = 100,
+    blendmode = "blend",
+    labelsize = 5,
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Paired",
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 1,
+    aspect.ratio = 1,
+    legend.position = "right",
+    legend.direction = "vertical",
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    seed = 8525,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
     ...
 ) {
     validate_common_args(seed)
@@ -718,8 +1061,14 @@ EnrichNetwork <- function(
         data <- prepare_enrichr_result(data)
     }
 
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE,
-        concat_multi = TRUE, concat_sep = split_by_sep)
+    split_by <- check_columns(
+        data,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
 
     if (!is.null(split_by)) {
         data[[split_by]] <- droplevels(data[[split_by]])
@@ -732,13 +1081,25 @@ EnrichNetwork <- function(
     }
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
-    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
-    legend.position <- check_legend(legend.position, names(datas), "legend.position")
+    legend.direction <- check_legend(
+        legend.direction,
+        names(datas),
+        "legend.direction"
+    )
+    legend.position <- check_legend(
+        legend.position,
+        names(datas),
+        "legend.position"
+    )
 
     plots <- lapply(
         names(datas),
         function(nm) {
-            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) {
+                NULL
+            } else {
+                nm
+            }
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
@@ -746,17 +1107,46 @@ EnrichNetwork <- function(
             }
             EnrichNetworkAtomic(
                 datas[[nm]],
-                top_term = top_term, metric = metric, character_width = character_width,
-                layout = layout, layoutadjust = layoutadjust, adjscale = adjscale, adjiter = adjiter, blendmode = blendmode,
-                labelsize = labelsize, theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, alpha = alpha,
-                aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, ...
+                top_term = top_term,
+                metric = metric,
+                character_width = character_width,
+                layout = layout,
+                layoutadjust = layoutadjust,
+                adjscale = adjscale,
+                adjiter = adjiter,
+                blendmode = blendmode,
+                labelsize = labelsize,
+                theme = theme,
+                theme_args = theme_args,
+                palette = palette[[nm]],
+                palcolor = palcolor[[nm]],
+                palreverse = palreverse,
+                alpha = alpha,
+                aspect.ratio = aspect.ratio,
+                legend.position = legend.position[[nm]],
+                legend.direction = legend.direction[[nm]],
+                title = title,
+                subtitle = subtitle,
+                xlab = xlab,
+                ylab = ylab,
+                seed = seed,
+                ...
             )
         }
     )
 
     names(plots) <- names(datas)
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }

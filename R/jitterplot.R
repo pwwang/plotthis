@@ -59,42 +59,133 @@
 #' @importFrom ggplot2 position_jitterdodge scale_fill_manual scale_color_manual scale_y_continuous scale_size_area guide_legend guide_colorbar
 #' @importFrom ggrepel geom_text_repel
 JitterPlotAtomic <- function(
-    data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"), keep_na = FALSE, keep_empty = FALSE,
-    sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
-    flip = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    x_text_angle = 0, order_by = "-({y}^2 + {size_by}^2)",
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 1,
-    aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
-    shape = 21, border = "black",
-    size_by = 2, size_name = NULL, size_trans = NULL, y_nbreaks = 4,
-    jitter_width = 0.5, jitter_height = 0, y_max = NULL, y_min = NULL, y_trans = "identity",
-    add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
-    add_hline = NULL, hline_type = "solid", hline_width = 0.5, hline_color = "black", hline_alpha = 1,
-    labels = NULL, label_by = NULL, nlabel = 5, label_size = 3, label_fg = "black", label_bg = "white", label_bg_r = 0.1,
-    highlight = NULL, highlight_color = "red2", highlight_size = 1, highlight_alpha = 1,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525, ...
+    data,
+    x,
+    x_sep = "_",
+    y = NULL,
+    in_form = c("long", "wide"),
+    keep_na = FALSE,
+    keep_empty = FALSE,
+    sort_x = c(
+        "none",
+        "mean_asc",
+        "mean_desc",
+        "mean",
+        "median_asc",
+        "median_desc",
+        "median"
+    ),
+    flip = FALSE,
+    group_by = NULL,
+    group_by_sep = "_",
+    group_name = NULL,
+    x_text_angle = 0,
+    order_by = "-({y}^2 + {size_by}^2)",
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Paired",
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 1,
+    aspect.ratio = NULL,
+    legend.position = "right",
+    legend.direction = "vertical",
+    shape = 21,
+    border = "black",
+    size_by = 2,
+    size_name = NULL,
+    size_trans = NULL,
+    y_nbreaks = 4,
+    jitter_width = 0.5,
+    jitter_height = 0,
+    y_max = NULL,
+    y_min = NULL,
+    y_trans = "identity",
+    add_bg = FALSE,
+    bg_palette = "stripe",
+    bg_palcolor = NULL,
+    bg_alpha = 0.2,
+    add_hline = NULL,
+    hline_type = "solid",
+    hline_width = 0.5,
+    hline_color = "black",
+    hline_alpha = 1,
+    labels = NULL,
+    label_by = NULL,
+    nlabel = 5,
+    label_size = 3,
+    label_fg = "black",
+    label_bg = "white",
+    label_bg_r = 0.1,
+    highlight = NULL,
+    highlight_color = "red2",
+    highlight_size = 1,
+    highlight_alpha = 1,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    seed = 8525,
+    ...
 ) {
     set.seed(seed)
-    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) gglogger::ggplot else ggplot2::ggplot
+    ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
+        gglogger::ggplot
+    } else {
+        ggplot2::ggplot
+    }
     in_form <- match.arg(in_form)
     if (in_form == "wide") {
-        data <- data %>% tidyr::pivot_longer(cols = x, names_to = ".x", values_to = ".y")
-        x <- ".x"; y <- ".y"
+        data <- data %>%
+            tidyr::pivot_longer(cols = x, names_to = ".x", values_to = ".y")
+        x <- ".x"
+        y <- ".y"
     }
 
-    x <- check_columns(data, x, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = x_sep)
+    x <- check_columns(
+        data,
+        x,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = x_sep
+    )
     y <- check_columns(data, y)
-    group_by <- check_columns(data, group_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = group_by_sep)
-    facet_by <- check_columns(data, facet_by, force_factor = TRUE, allow_multi = TRUE)
+    group_by <- check_columns(
+        data,
+        group_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = group_by_sep
+    )
+    facet_by <- check_columns(
+        data,
+        facet_by,
+        force_factor = TRUE,
+        allow_multi = TRUE
+    )
 
     data <- process_keep_na_empty(data, keep_na, keep_empty)
     keep_empty_x <- keep_empty[[x]]
     keep_empty_group <- if (!is.null(group_by)) keep_empty[[group_by]] else NULL
-    keep_empty_facet <- if (!is.null(facet_by)) keep_empty[[facet_by[1]]] else NULL
+    keep_empty_facet <- if (!is.null(facet_by)) {
+        keep_empty[[facet_by[1]]]
+    } else {
+        NULL
+    }
     if (length(facet_by) > 1) {
-        stopifnot("[JitterPlot] `keep_empty` for `facet_by` variables must be identical." =
-            identical(keep_empty_facet, keep_empty[[facet_by[2]]]))
+        stopifnot(
+            "[JitterPlot] `keep_empty` for `facet_by` variables must be identical." = identical(
+                keep_empty_facet,
+                keep_empty[[facet_by[2]]]
+            )
+        )
     }
 
     sort_x <- match.arg(sort_x)
@@ -134,7 +225,9 @@ JitterPlotAtomic <- function(
         } else if (is.character(highlight) && length(highlight) == 1) {
             data <- dplyr::mutate(data, .highlight = !!parse_expr(highlight))
         } else if (is.null(rownames(data))) {
-            stop("No row names in the data, please provide a vector of indexes to highlight.")
+            stop(
+                "No row names in the data, please provide a vector of indexes to highlight."
+            )
         } else {
             data$.highlight <- rownames(data) %in% highlight
         }
@@ -150,12 +243,14 @@ JitterPlotAtomic <- function(
         data[labels, ".show_label"] <- TRUE
     } else if (nlabel > 0) {
         if (!is.null(facet_by)) {
-            data <- data %>% dplyr::group_by(!!!syms(facet_by), !!sym(x)) %>%
+            data <- data %>%
+                dplyr::group_by(!!!syms(facet_by), !!sym(x)) %>%
                 dplyr::arrange(!!rlang::parse_expr(glue::glue(order_by))) %>%
                 dplyr::mutate(.show_label = dplyr::row_number() <= nlabel) %>%
                 dplyr::ungroup()
         } else {
-            data <- data %>% dplyr::group_by(!!sym(x)) %>%
+            data <- data %>%
+                dplyr::group_by(!!sym(x)) %>%
                 dplyr::arrange(!!rlang::parse_expr(glue::glue(order_by))) %>%
                 dplyr::mutate(.show_label = dplyr::row_number() <= nlabel) %>%
                 dplyr::ungroup()
@@ -179,14 +274,24 @@ JitterPlotAtomic <- function(
     if (isTRUE(flip)) {
         data[[x]] <- factor(data[[x]], levels = rev(levels(data[[x]])))
         aspect.ratio <- 1 / aspect.ratio
-        if (length(aspect.ratio) == 0 || is.na(aspect.ratio)) aspect.ratio <- NULL
+        if (length(aspect.ratio) == 0 || is.na(aspect.ratio)) {
+            aspect.ratio <- NULL
+        }
     }
 
     color_col <- ifelse(is.null(group_by), x, group_by)
     keep_empty_col <- if (color_col == x) keep_empty_x else keep_empty_group
     col_levels <- levels(data[[color_col]])
-    if (anyNA(data[[color_col]])) col_levels <- c(col_levels, NA)
-    colors <- palette_this(col_levels, palette = palette, palcolor = palcolor, NA_keep = TRUE, reverse = palreverse)
+    if (anyNA(data[[color_col]])) {
+        col_levels <- c(col_levels, NA)
+    }
+    colors <- palette_this(
+        col_levels,
+        palette = palette,
+        palcolor = palcolor,
+        NA_keep = TRUE,
+        reverse = palreverse
+    )
     if (anyNA(col_levels)) {
         # To prevent ggrepel text segments being too long
         # It seem it thinks the NA is an empty area for it to place labels
@@ -204,16 +309,31 @@ JitterPlotAtomic <- function(
     # Base
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y)))
     if (isTRUE(add_bg)) {
-        p <- p + bg_layer(data, x, isTRUE(keep_empty_x), bg_palette, bg_palcolor, bg_alpha, facet_by)
+        p <- p +
+            bg_layer(
+                data,
+                x,
+                isTRUE(keep_empty_x),
+                bg_palette,
+                bg_palcolor,
+                bg_alpha,
+                facet_by
+            )
     }
 
     # Positioner (jitter + optional dodge)
     if (is.null(group_by)) {
-        pos <- position_jitter(width = jitter_width, height = jitter_height, seed = seed)
+        pos <- position_jitter(
+            width = jitter_width,
+            height = jitter_height,
+            seed = seed
+        )
     } else {
         pos <- position_jitterdodge(
-            jitter.width = jitter_width, jitter.height = jitter_height,
-            dodge.width = 0.9, seed = seed
+            jitter.width = jitter_width,
+            jitter.height = jitter_height,
+            dodge.width = 0.9,
+            seed = seed
         )
     }
 
@@ -238,7 +358,9 @@ JitterPlotAtomic <- function(
     # Build point layer, color by x
     has_fill <- shape %in% 21:25
     point_args <- list(
-        shape = shape, position = pos, alpha = alpha
+        shape = shape,
+        position = pos,
+        alpha = alpha
     )
     mapping <- list(aes())
 
@@ -289,24 +411,49 @@ JitterPlotAtomic <- function(
     # Discrete color/fill scales by x
     if (has_fill) {
         if (isTRUE(keep_empty_col)) {
-            p <- p + scale_fill_manual(
-                name = color_col, values = colors, na.value = colors['NA'] %||% "grey80",
-                breaks = col_levels, limits = col_levels, drop = FALSE
-            )
+            p <- p +
+                scale_fill_manual(
+                    name = color_col,
+                    values = colors,
+                    na.value = colors['NA'] %||% "grey80",
+                    breaks = col_levels,
+                    limits = col_levels,
+                    drop = FALSE
+                )
         } else {
-            p <- p + scale_fill_manual(name = color_col, values = colors, na.value = colors['NA'] %||% "grey80")
+            p <- p +
+                scale_fill_manual(
+                    name = color_col,
+                    values = colors,
+                    na.value = colors['NA'] %||% "grey80"
+                )
         }
         if (isTRUE(border)) {
-            p <- p + scale_color_manual(values = colors, guide = "none", na.value = colors['NA'] %||% "grey80")
+            p <- p +
+                scale_color_manual(
+                    values = colors,
+                    guide = "none",
+                    na.value = colors['NA'] %||% "grey80"
+                )
         }
     } else {
         if (isTRUE(keep_empty_col)) {
-            p <- p + scale_color_manual(
-                name = color_col, values = colors, na.value = colors['NA'] %||% "grey80",
-                breaks = col_levels, limits = col_levels, drop = FALSE
-            )
+            p <- p +
+                scale_color_manual(
+                    name = color_col,
+                    values = colors,
+                    na.value = colors['NA'] %||% "grey80",
+                    breaks = col_levels,
+                    limits = col_levels,
+                    drop = FALSE
+                )
         } else {
-            p <- p + scale_color_manual(name = color_col, values = colors, na.value = colors['NA'] %||% "grey80")
+            p <- p +
+                scale_color_manual(
+                    name = color_col,
+                    values = colors,
+                    na.value = colors['NA'] %||% "grey80"
+                )
         }
     }
 
@@ -323,95 +470,149 @@ JitterPlotAtomic <- function(
         raw_vals <- data$.size_raw
         raw_breaks <- unique(scales::pretty_breaks(n = 4)(raw_vals))
         mapped_breaks <- tryCatch(f(raw_breaks), error = function(e) raw_breaks)
-        p <- p + scale_size_area(max_size = 6, breaks = mapped_breaks, labels = raw_breaks) +
-            guides(size = guide_legend(
-                title = size_name %||% size_by,
-                override.aes = list(fill = "grey30", shape = shape), order = 1
-            ))
+        p <- p +
+            scale_size_area(
+                max_size = 6,
+                breaks = mapped_breaks,
+                labels = raw_breaks
+            ) +
+            guides(
+                size = guide_legend(
+                    title = size_name %||% size_by,
+                    override.aes = list(fill = "grey30", shape = shape),
+                    order = 1
+                )
+            )
     }
 
     # Highlight overlay on top (does not affect legends)
     if (any(data$.highlight)) {
         hi_df <- data[data$.highlight, , drop = FALSE]
         if (has_fill) {
-            p <- p + geom_point(
-                data = hi_df,
-                mapping = if (!is.null(group_by)) {
-                    aes(x = !!sym(x), y = !!sym(y), group = !!sym(group_by))
-                } else {
-                    aes(x = !!sym(x), y = !!sym(y))
-                },
-                shape = shape, fill = highlight_color, color = "transparent",
-                position = pos, size = if (is.numeric(size_by)) highlight_size else highlight_size, alpha = highlight_alpha
-            )
+            p <- p +
+                geom_point(
+                    data = hi_df,
+                    mapping = if (!is.null(group_by)) {
+                        aes(x = !!sym(x), y = !!sym(y), group = !!sym(group_by))
+                    } else {
+                        aes(x = !!sym(x), y = !!sym(y))
+                    },
+                    shape = shape,
+                    fill = highlight_color,
+                    color = "transparent",
+                    position = pos,
+                    size = if (is.numeric(size_by)) {
+                        highlight_size
+                    } else {
+                        highlight_size
+                    },
+                    alpha = highlight_alpha
+                )
         } else {
-            p <- p + geom_point(
-                data = hi_df,
-                mapping = if (!is.null(group_by)) {
-                    aes(x = !!sym(x), y = !!sym(y), group = !!sym(group_by))
-                } else {
-                    aes(x = !!sym(x), y = !!sym(y))
-                },
-                shape = shape, color = highlight_color,
-                position = pos, size = if (is.numeric(size_by)) highlight_size else highlight_size, alpha = highlight_alpha
-            )
+            p <- p +
+                geom_point(
+                    data = hi_df,
+                    mapping = if (!is.null(group_by)) {
+                        aes(x = !!sym(x), y = !!sym(y), group = !!sym(group_by))
+                    } else {
+                        aes(x = !!sym(x), y = !!sym(y))
+                    },
+                    shape = shape,
+                    color = highlight_color,
+                    position = pos,
+                    size = if (is.numeric(size_by)) {
+                        highlight_size
+                    } else {
+                        highlight_size
+                    },
+                    alpha = highlight_alpha
+                )
         }
     }
 
     # Labels layer
     if (any(data$.show_label)) {
-        p <- p + geom_text_repel(
-            data = data[data$.show_label, , drop = FALSE],
-            mapping = aes(x = !!sym(".x_jittered"), y = !!sym(".y_jittered"), label = !!sym(".label")),
-            color = label_fg, bg.color = label_bg, bg.r = label_bg_r,
-            size = label_size, min.segment.length = 0, segment.color = "grey40",
-            max.overlaps = 100
-        )
+        p <- p +
+            geom_text_repel(
+                data = data[data$.show_label, , drop = FALSE],
+                mapping = aes(
+                    x = !!sym(".x_jittered"),
+                    y = !!sym(".y_jittered"),
+                    label = !!sym(".label")
+                ),
+                color = label_fg,
+                bg.color = label_bg,
+                bg.r = label_bg_r,
+                size = label_size,
+                min.segment.length = 0,
+                segment.color = "grey40",
+                max.overlaps = 100
+            )
     }
     # Optional horizontal reference lines
     if (!is.null(add_hline)) {
-        p <- p + ggplot2::geom_hline(
-            yintercept = add_hline,
-            linetype = hline_type, linewidth = hline_width, color = hline_color, alpha = hline_alpha
-        )
+        p <- p +
+            ggplot2::geom_hline(
+                yintercept = add_hline,
+                linetype = hline_type,
+                linewidth = hline_width,
+                color = hline_color,
+                alpha = hline_alpha
+            )
     }
 
     just <- calc_just(x_text_angle)
     p <- p +
         scale_x_discrete(drop = !isTRUE(keep_empty_x)) +
         scale_y_continuous(trans = y_trans, n.breaks = y_nbreaks) +
-        labs(title = title, subtitle = subtitle, x = xlab %||% x, y = ylab %||% y)
+        labs(
+            title = title,
+            subtitle = subtitle,
+            x = xlab %||% x,
+            y = ylab %||% y
+        )
 
     x_maxchars <- max(nchar(levels(data[[x]])))
     nx <- nlevels(data[[x]])
     nd <- ifelse(is.null(group_by), 1, nlevels(data[[group_by]]))
-    facet_free <- !is.null(facet_by) && (
-        identical(facet_scales, "free") ||
-        (!flip && identical(facet_scales, "free_y")) ||
-        (flip && identical(facet_scales, "free_x"))
-    )
+    facet_free <- !is.null(facet_by) &&
+        (identical(facet_scales, "free") ||
+            (!flip && identical(facet_scales, "free_y")) ||
+            (flip && identical(facet_scales, "free_x")))
 
     if (isTRUE(flip)) {
         strip_position <- "top"
-        p <- p + ggplot2::theme(
-            strip.text.y = element_text(angle = 0),
-            panel.grid.major.y = element_line(color = "grey", linetype = 2)
-        )
-        if (facet_free) p <- p + coord_flip() else p <- p + coord_flip(ylim = c(y_min_use, y_max_use))
+        p <- p +
+            ggplot2::theme(
+                strip.text.y = element_text(angle = 0),
+                panel.grid.major.y = element_line(color = "grey", linetype = 2)
+            )
+        if (facet_free) {
+            p <- p + coord_flip()
+        } else {
+            p <- p + coord_flip(ylim = c(y_min_use, y_max_use))
+        }
     } else {
         strip_position <- "top"
-        p <- p + ggplot2::theme(
-            strip.text.x = element_text(angle = 0),
-            panel.grid.major.x = element_line(color = "grey", linetype = 2)
-        )
-        if (!facet_free) p <- p + ggplot2::coord_cartesian(ylim = c(y_min_use, y_max_use))
+        p <- p +
+            ggplot2::theme(
+                strip.text.x = element_text(angle = 0),
+                panel.grid.major.x = element_line(color = "grey", linetype = 2)
+            )
+        if (!facet_free) {
+            p <- p + ggplot2::coord_cartesian(ylim = c(y_min_use, y_max_use))
+        }
     }
 
     p <- p +
         do.call(theme, theme_args) +
         ggplot2::theme(
             aspect.ratio = aspect.ratio,
-            axis.text.x = element_text(angle = x_text_angle, hjust = just$h, vjust = just$v),
+            axis.text.x = element_text(
+                angle = x_text_angle,
+                hjust = just$h,
+                vjust = just$v
+            ),
             legend.position = legend.position,
             legend.direction = legend.direction
         )
@@ -451,9 +652,17 @@ JitterPlotAtomic <- function(
     attr(p, "height") <- height
     attr(p, "width") <- max(width, height)
 
-    facet_plot(p, facet_by, facet_scales, facet_nrow, facet_ncol, facet_byrow,
-        strip.position = strip_position, legend.position = legend.position,
-        legend.direction = legend.direction, drop = !isTRUE(keep_empty_facet)
+    facet_plot(
+        p,
+        facet_by,
+        facet_scales,
+        facet_nrow,
+        facet_ncol,
+        facet_byrow,
+        strip.position = strip_position,
+        legend.position = legend.position,
+        legend.direction = legend.direction,
+        drop = !isTRUE(keep_empty_facet)
     )
 }
 
@@ -519,30 +728,105 @@ JitterPlotAtomic <- function(
 #' JitterPlot(df, x = "x", y = "y", flip = TRUE)
 #' }
 JitterPlot <- function(
-    data, x, x_sep = "_", y = NULL, in_form = c("long", "wide"),
-    split_by = NULL, split_by_sep = "_", keep_na = FALSE, keep_empty = FALSE,
-    sort_x = c("none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median"),
-    flip = FALSE, group_by = NULL, group_by_sep = "_", group_name = NULL,
-    x_text_angle = 0, order_by = "-({y}^2 + {size_by}^2)",
-    theme = "theme_this", theme_args = list(), palette = "Paired", palcolor = NULL, palreverse = FALSE, alpha = 1,
-    aspect.ratio = NULL, legend.position = "right", legend.direction = "vertical",
-    shape = 21, border = "black",
-    size_by = 2, size_name = NULL, size_trans = NULL, y_nbreaks = 4,
-    jitter_width = 0.5, jitter_height = 0, y_max = NULL, y_min = NULL, y_trans = "identity",
-    add_bg = FALSE, bg_palette = "stripe", bg_palcolor = NULL, bg_alpha = 0.2,
-    add_hline = NULL, hline_type = "solid", hline_width = 0.5, hline_color = "black", hline_alpha = 1,
-    labels = NULL, label_by = NULL, nlabel = 5, label_size = 3, label_fg = "black", label_bg = "white", label_bg_r = 0.1,
-    highlight = NULL, highlight_color = "red2", highlight_size = 1, highlight_alpha = 1,
-    facet_by = NULL, facet_scales = "fixed", facet_ncol = NULL, facet_nrow = NULL, facet_byrow = TRUE,
-    title = NULL, subtitle = NULL, xlab = NULL, ylab = NULL, seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
-    axes = NULL, axis_titles = axes, guides = NULL, design = NULL, ...
+    data,
+    x,
+    x_sep = "_",
+    y = NULL,
+    in_form = c("long", "wide"),
+    split_by = NULL,
+    split_by_sep = "_",
+    keep_na = FALSE,
+    keep_empty = FALSE,
+    sort_x = c(
+        "none",
+        "mean_asc",
+        "mean_desc",
+        "mean",
+        "median_asc",
+        "median_desc",
+        "median"
+    ),
+    flip = FALSE,
+    group_by = NULL,
+    group_by_sep = "_",
+    group_name = NULL,
+    x_text_angle = 0,
+    order_by = "-({y}^2 + {size_by}^2)",
+    theme = "theme_this",
+    theme_args = list(),
+    palette = "Paired",
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 1,
+    aspect.ratio = NULL,
+    legend.position = "right",
+    legend.direction = "vertical",
+    shape = 21,
+    border = "black",
+    size_by = 2,
+    size_name = NULL,
+    size_trans = NULL,
+    y_nbreaks = 4,
+    jitter_width = 0.5,
+    jitter_height = 0,
+    y_max = NULL,
+    y_min = NULL,
+    y_trans = "identity",
+    add_bg = FALSE,
+    bg_palette = "stripe",
+    bg_palcolor = NULL,
+    bg_alpha = 0.2,
+    add_hline = NULL,
+    hline_type = "solid",
+    hline_width = 0.5,
+    hline_color = "black",
+    hline_alpha = 1,
+    labels = NULL,
+    label_by = NULL,
+    nlabel = 5,
+    label_size = 3,
+    label_fg = "black",
+    label_bg = "white",
+    label_bg_r = 0.1,
+    highlight = NULL,
+    highlight_color = "red2",
+    highlight_size = 1,
+    highlight_alpha = 1,
+    facet_by = NULL,
+    facet_scales = "fixed",
+    facet_ncol = NULL,
+    facet_nrow = NULL,
+    facet_byrow = TRUE,
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = NULL,
+    seed = 8525,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
+    ...
 ) {
     validate_common_args(seed)
     keep_na <- check_keep_na(keep_na, c(x, split_by, group_by, facet_by))
-    keep_empty <- check_keep_empty(keep_empty, c(x, split_by, group_by, facet_by))
+    keep_empty <- check_keep_empty(
+        keep_empty,
+        c(x, split_by, group_by, facet_by)
+    )
     theme <- process_theme(theme)
-    split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE, concat_sep = split_by_sep)
+    split_by <- check_columns(
+        data,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
 
     if (!is.null(split_by)) {
         data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
@@ -551,18 +835,31 @@ JitterPlot <- function(
         datas <- split(data, data[[split_by]])
         datas <- datas[levels(data[[split_by]])]
     } else {
-        datas <- list(data);
+        datas <- list(data)
         split_by <- names(datas) <- "..."
     }
 
     palette <- check_palette(palette, names(datas))
     palcolor <- check_palcolor(palcolor, names(datas))
-    legend.direction <- check_legend(legend.direction, names(datas), "legend.direction")
-    legend.position <- check_legend(legend.position, names(datas), "legend.position")
+    legend.direction <- check_legend(
+        legend.direction,
+        names(datas),
+        "legend.direction"
+    )
+    legend.position <- check_legend(
+        legend.position,
+        names(datas),
+        "legend.position"
+    )
 
     plots <- lapply(
-        names(datas), function(nm) {
-            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+        names(datas),
+        function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) {
+                NULL
+            } else {
+                nm
+            }
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
@@ -570,25 +867,86 @@ JitterPlot <- function(
             }
             JitterPlotAtomic(
                 datas[[nm]],
-                x = x, x_sep = x_sep, y = y, in_form = in_form, keep_na = keep_na, keep_empty = keep_empty,
-                sort_x = sort_x, flip = flip, group_by = group_by, group_by_sep = group_by_sep, group_name = group_name,
-                x_text_angle = x_text_angle, theme = theme, theme_args = theme_args, palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse, alpha = alpha,
-                aspect.ratio = aspect.ratio, legend.position = legend.position[[nm]], legend.direction = legend.direction[[nm]],
-                shape = shape, border = border, order_by = order_by,
-                size_by = size_by, size_name = size_name, size_trans = size_trans, y_nbreaks = y_nbreaks,
-                jitter_width = jitter_width, jitter_height = jitter_height, y_max = y_max, y_min = y_min, y_trans = y_trans,
-                add_bg = add_bg, bg_palette = bg_palette, bg_palcolor = bg_palcolor, bg_alpha = bg_alpha,
-                add_hline = add_hline, hline_type = hline_type, hline_width = hline_width, hline_color = hline_color, hline_alpha = hline_alpha,
-                labels = labels, label_by = label_by, nlabel = nlabel, label_size = label_size, label_fg = label_fg, label_bg = label_bg, label_bg_r = label_bg_r,
-                highlight = highlight, highlight_color = highlight_color, highlight_size = highlight_size, highlight_alpha = highlight_alpha,
-                facet_by = facet_by, facet_scales = facet_scales, facet_ncol = facet_ncol, facet_nrow = facet_nrow, facet_byrow = facet_byrow,
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab, seed = seed, ...
+                x = x,
+                x_sep = x_sep,
+                y = y,
+                in_form = in_form,
+                keep_na = keep_na,
+                keep_empty = keep_empty,
+                sort_x = sort_x,
+                flip = flip,
+                group_by = group_by,
+                group_by_sep = group_by_sep,
+                group_name = group_name,
+                x_text_angle = x_text_angle,
+                theme = theme,
+                theme_args = theme_args,
+                palette = palette[[nm]],
+                palcolor = palcolor[[nm]],
+                palreverse = palreverse,
+                alpha = alpha,
+                aspect.ratio = aspect.ratio,
+                legend.position = legend.position[[nm]],
+                legend.direction = legend.direction[[nm]],
+                shape = shape,
+                border = border,
+                order_by = order_by,
+                size_by = size_by,
+                size_name = size_name,
+                size_trans = size_trans,
+                y_nbreaks = y_nbreaks,
+                jitter_width = jitter_width,
+                jitter_height = jitter_height,
+                y_max = y_max,
+                y_min = y_min,
+                y_trans = y_trans,
+                add_bg = add_bg,
+                bg_palette = bg_palette,
+                bg_palcolor = bg_palcolor,
+                bg_alpha = bg_alpha,
+                add_hline = add_hline,
+                hline_type = hline_type,
+                hline_width = hline_width,
+                hline_color = hline_color,
+                hline_alpha = hline_alpha,
+                labels = labels,
+                label_by = label_by,
+                nlabel = nlabel,
+                label_size = label_size,
+                label_fg = label_fg,
+                label_bg = label_bg,
+                label_bg_r = label_bg_r,
+                highlight = highlight,
+                highlight_color = highlight_color,
+                highlight_size = highlight_size,
+                highlight_alpha = highlight_alpha,
+                facet_by = facet_by,
+                facet_scales = facet_scales,
+                facet_ncol = facet_ncol,
+                facet_nrow = facet_nrow,
+                facet_byrow = facet_byrow,
+                title = title,
+                subtitle = subtitle,
+                xlab = xlab,
+                ylab = ylab,
+                seed = seed,
+                ...
             )
         }
     )
 
     names(plots) <- names(datas)
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }

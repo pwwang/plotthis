@@ -79,18 +79,49 @@
 #' @importFrom ggrepel geom_label_repel
 #' @return A ggplot object.
 ManhattanPlotAtomic <- function(
-    data, chr_by, pos_by, pval_by, label_by = NULL,
-    chromosomes = NULL, pt_size = 0.75, pt_color = NULL, pt_alpha = alpha, pt_shape = 19,
-    label_size = 3, label_fg = NULL, highlight = NULL, highlight_color = NULL,
-    highlight_size = 1.5, highlight_alpha = 1, highlight_shape = 19,
-    preserve_position = TRUE, chr_gap_scaling = 1, pval_transform = "-log10",
-    signif = c(5e-08, 1e-05), signif_color = NULL, signif_rel_pos = 0.2, signif_label = TRUE,
-    signif_label_size = 3.5, signif_label_pos = c("left", "right"),
-    thin = NULL, thin_n = 1000, thin_bins = 200, rescale = TRUE, rescale_ratio_threshold = 5,
-    palette = "Dark2", palcolor = NULL, palreverse = FALSE, alpha = 1,
-    theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL,
-    xlab = NULL, ylab = expression("\u002d" * log[10](p)), ...) {
-
+    data,
+    chr_by,
+    pos_by,
+    pval_by,
+    label_by = NULL,
+    chromosomes = NULL,
+    pt_size = 0.75,
+    pt_color = NULL,
+    pt_alpha = alpha,
+    pt_shape = 19,
+    label_size = 3,
+    label_fg = NULL,
+    highlight = NULL,
+    highlight_color = NULL,
+    highlight_size = 1.5,
+    highlight_alpha = 1,
+    highlight_shape = 19,
+    preserve_position = TRUE,
+    chr_gap_scaling = 1,
+    pval_transform = "-log10",
+    signif = c(5e-08, 1e-05),
+    signif_color = NULL,
+    signif_rel_pos = 0.2,
+    signif_label = TRUE,
+    signif_label_size = 3.5,
+    signif_label_pos = c("left", "right"),
+    thin = NULL,
+    thin_n = 1000,
+    thin_bins = 200,
+    rescale = TRUE,
+    rescale_ratio_threshold = 5,
+    palette = "Dark2",
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 1,
+    theme = "theme_this",
+    theme_args = list(),
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = expression("\u002d" * log[10](p)),
+    ...
+) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
     } else {
@@ -119,14 +150,19 @@ ManhattanPlotAtomic <- function(
     })
     label_by <- check_columns(mpdata$data, label_by, force_factor = TRUE)
 
-    if ((!is.null(highlight) && !is.null(highlight_color)) || !is.null(pt_color)) {
+    if (
+        (!is.null(highlight) && !is.null(highlight_color)) || !is.null(pt_color)
+    ) {
         pt_color <- pt_color %||% "grey80"
         mpdata$chr.col <- rep(pt_color, length(levels(mpdata$data[[chr_by]])))
         names(mpdata$chr.col) <- levels(mpdata$data[[chr_by]])
     } else {
         mpdata$chr.col <- palette_this(
             levels(mpdata$data[[chr_by]]),
-            palette = palette, palcolor = palcolor, reverse = palreverse, alpha = pt_alpha
+            palette = palette,
+            palcolor = palcolor,
+            reverse = palreverse,
+            alpha = pt_alpha
         )
     }
 
@@ -138,7 +174,11 @@ ManhattanPlotAtomic <- function(
     if (is.character(pval_transform)) {
         pval_transform <- eval(parse(text = pval_transform))
     }
-    stopifnot("[ManhattanPlot] 'pval_transform' must be a function" = is.function(pval_transform))
+    stopifnot(
+        "[ManhattanPlot] 'pval_transform' must be a function" = is.function(
+            pval_transform
+        )
+    )
     mpdata$data$log10pval <- pval_transform(mpdata$data[[pval_by]])
     mpdata$pval.colname <- "log10pval"
 
@@ -147,12 +187,23 @@ ManhattanPlotAtomic <- function(
         get_transform_jump <- getFromNamespace("get_transform_jump", "ggmanh")
         get_transform <- getFromNamespace("get_transform", "ggmanh")
         jump <- get_transform_jump(pval_transform(mpdata$signif))
-        if ((ceiling(max(mpdata$data[[mpdata$pval.colname]]) / 5) * 5) / jump > rescale_ratio_threshold) {
-            trans <- get_transform(mpdata$data, jump, mpdata$pval.colname, jump.rel.pos = signif_rel_pos)
+        if (
+            (ceiling(max(mpdata$data[[mpdata$pval.colname]]) / 5) * 5) / jump >
+                rescale_ratio_threshold
+        ) {
+            trans <- get_transform(
+                mpdata$data,
+                jump,
+                mpdata$pval.colname,
+                jump.rel.pos = signif_rel_pos
+            )
         }
     }
 
-    ylimit <- c(0, ifelse(identical(trans$trans, "identity"), NA, max(trans$breaks)))
+    ylimit <- c(
+        0,
+        ifelse(identical(trans$trans, "identity"), NA, max(trans$breaks))
+    )
 
     if (length(unique(mpdata$data[[chr_by]])) == 1) {
         pos <- mpdata$true.pos.colname
@@ -160,11 +211,12 @@ ManhattanPlotAtomic <- function(
         x_break_label <- waiver()
         x_limits <- NULL
         chrname <- as.character(unique(mpdata$data[[chr_by]]))
-        xlab <- xlab %||% ifelse(
-            startsWith(chrname, "chr") || startsWith(chrname, "Chr"),
-            chrname,
-            paste0("Chromosome ", chrname)
-        )
+        xlab <- xlab %||%
+            ifelse(
+                startsWith(chrname, "chr") || startsWith(chrname, "Chr"),
+                chrname,
+                paste0("Chromosome ", chrname)
+            )
     } else {
         calc_new_pos_ <- getFromNamespace("calc_new_pos_", "ggmanh")
         if (mpdata$pos.colname == "new_pos_unscaled") {
@@ -177,7 +229,10 @@ ManhattanPlotAtomic <- function(
         pos <- mpdata$pos.colname
         x_break <- mpdata$chr.pos.info$center_pos
         x_break_label <- mpdata$chr.labels
-        x_limits <- c(min(mpdata$chr.pos.info$start_pos), max(mpdata$chr.pos.info$end_pos))
+        x_limits <- c(
+            min(mpdata$chr.pos.info$start_pos),
+            max(mpdata$chr.pos.info$end_pos)
+        )
     }
     xlab <- xlab %||% "Chromosome"
 
@@ -188,59 +243,82 @@ ManhattanPlotAtomic <- function(
     expand <- norm_expansion(expand, "continuous", "continuous")
 
     p <- ggplot(
-            mpdata$data,
-            aes(x = !!sym(pos), y = !!sym(mpdata$pval.colname), color = !!sym(chr_by))) +
+        mpdata$data,
+        aes(
+            x = !!sym(pos),
+            y = !!sym(mpdata$pval.colname),
+            color = !!sym(chr_by)
+        )
+    ) +
         geom_point(size = pt_size) +
         scale_color_manual(values = mpdata$chr.col, guide = "none") +
         scale_y_continuous(
             trans = trans$trans,
             breaks = trans$breaks,
             expand = expand$y,
-            limits = ylimit) +
+            limits = ylimit
+        ) +
         scale_x_continuous(
             name = xlab,
             breaks = x_break,
             labels = x_break_label,
             expand = expand$x,
-            limits = x_limits) +
+            limits = x_limits
+        ) +
         geom_hline(
             yintercept = pval_transform(mpdata$signif),
             linetype = 'dashed',
-            color = mpdata$signif.col) +
+            color = mpdata$signif.col
+        ) +
         do.call(theme, theme_args) +
         ggplot2::theme(
             panel.grid.major = ggplot2::element_blank(),
             panel.grid.minor = ggplot2::element_blank(),
-            legend.position = "none") +
+            legend.position = "none"
+        ) +
         labs(x = xlab, y = ylab) +
         ggtitle(label = title, subtitle = subtitle)
 
     if (isTRUE(signif_label)) {
-        p <- p + geom_text(
-            data.frame(
-                x = if (signif_label_pos == "left") -Inf else Inf,
-                y = pval_transform(mpdata$signif),
-                label = mpdata$signif,
-                color = signif_color %||% c("black", rep("grey80", length(mpdata$signif) - 1))
-            ),
-            mapping = aes(x = !!sym("x"), y = !!sym("y"), label = !!sym("label"), color = I(!!sym("color"))),
-            hjust = if (signif_label_pos == "left") -0.5 else 1.5,
-            vjust = -0.5,
-            size = signif_label_size
-        )
+        p <- p +
+            geom_text(
+                data.frame(
+                    x = if (signif_label_pos == "left") -Inf else Inf,
+                    y = pval_transform(mpdata$signif),
+                    label = mpdata$signif,
+                    color = signif_color %||%
+                        c("black", rep("grey80", length(mpdata$signif) - 1))
+                ),
+                mapping = aes(
+                    x = !!sym("x"),
+                    y = !!sym("y"),
+                    label = !!sym("label"),
+                    color = I(!!sym("color"))
+                ),
+                hjust = if (signif_label_pos == "left") -0.5 else 1.5,
+                vjust = -0.5,
+                size = signif_label_size
+            )
     }
 
     if (!is.null(label_by)) {
         if (is.null(label_fg)) {
-            p <- p + geom_label_repel(
-                aes(label = !!sym(label_by), color = !!sym(chr_by)), size = label_size,
-                min.segment.length = 0, max.overlaps = 100
-            )
+            p <- p +
+                geom_label_repel(
+                    aes(label = !!sym(label_by), color = !!sym(chr_by)),
+                    size = label_size,
+                    min.segment.length = 0,
+                    max.overlaps = 100
+                )
         } else {
-            p <- p + geom_label_repel(
-                aes(label = !!sym(label_by)), color = label_fg, size = label_size,
-                min.segment.length = 0, max.overlaps = 100
-            )
+            p <- p +
+                geom_label_repel(
+                    aes(label = !!sym(label_by)),
+                    color = label_fg,
+                    size = label_size,
+                    min.segment.length = 0,
+                    max.overlaps = 100
+                )
         }
     }
 
@@ -250,8 +328,15 @@ ManhattanPlotAtomic <- function(
 
         p <- p +
             ggplot2::theme(
-                axis.ticks.y = element_line(linetype = trans$y_axis_linetype)) +
-            annotate(geom = "point", shape = "=", x = -Inf, y = trans$jump, size = jump_tick_size) +
+                axis.ticks.y = element_line(linetype = trans$y_axis_linetype)
+            ) +
+            annotate(
+                geom = "point",
+                shape = "=",
+                x = -Inf,
+                y = trans$jump,
+                size = jump_tick_size
+            ) +
             coord_cartesian(clip = "off")
     }
 
@@ -264,18 +349,28 @@ ManhattanPlotAtomic <- function(
     }
     if (!is.null(hidata)) {
         if (is.null(highlight_color)) {
-            p <- p + geom_point(
-                data = hidata,
-                aes(x = !!sym(pos), y = !!sym(mpdata$pval.colname), color = !!sym(chr_by)),
-                size = highlight_size, shape = highlight_shape, alpha = highlight_alpha
-            )
+            p <- p +
+                geom_point(
+                    data = hidata,
+                    aes(
+                        x = !!sym(pos),
+                        y = !!sym(mpdata$pval.colname),
+                        color = !!sym(chr_by)
+                    ),
+                    size = highlight_size,
+                    shape = highlight_shape,
+                    alpha = highlight_alpha
+                )
         } else {
-            p <- p + geom_point(
-                data = hidata,
-                aes(x = !!sym(pos), y = !!sym(mpdata$pval.colname)),
-                size = highlight_size, shape = highlight_shape,
-                color = highlight_color, alpha = highlight_alpha
-            )
+            p <- p +
+                geom_point(
+                    data = hidata,
+                    aes(x = !!sym(pos), y = !!sym(mpdata$pval.colname)),
+                    size = highlight_size,
+                    shape = highlight_shape,
+                    color = highlight_color,
+                    alpha = highlight_alpha
+                )
         }
     }
 
@@ -449,32 +544,88 @@ ManhattanPlotAtomic <- function(
 #' }
 #' }
 ManhattanPlot <- function(
-    data, chr_by, pos_by, pval_by, split_by = NULL, split_by_sep = "_", label_by = NULL,
-    chromosomes = NULL, pt_size = 0.75, pt_color = NULL, pt_alpha = alpha, pt_shape = 19,
-    label_size = 3, label_fg = NULL, highlight = NULL, highlight_color = NULL,
-    highlight_size = 1.5, highlight_alpha = 1, highlight_shape = 19,
-    preserve_position = TRUE, chr_gap_scaling = 1, pval_transform = "-log10",
-    signif = c(5e-08, 1e-05), signif_color = NULL, signif_rel_pos = 0.2, signif_label = TRUE,
-    signif_label_size = 3.5, signif_label_pos = c("left", "right"),
-    thin = NULL, thin_n = 1000, thin_bins = 200, rescale = TRUE, rescale_ratio_threshold = 5,
-    palette = "Dark2", palcolor = NULL, palreverse = FALSE, alpha = 1,
-    theme = "theme_this", theme_args = list(), title = NULL, subtitle = NULL,
-    xlab = NULL, ylab = expression("\u002d" * log[10](p)), seed = 8525,
-    combine = TRUE, nrow = NULL, ncol = NULL, byrow = TRUE,
-    axes = NULL, axis_titles = axes, guides = NULL, facet_by = NULL, design = NULL, ...) {
-
+    data,
+    chr_by,
+    pos_by,
+    pval_by,
+    split_by = NULL,
+    split_by_sep = "_",
+    label_by = NULL,
+    chromosomes = NULL,
+    pt_size = 0.75,
+    pt_color = NULL,
+    pt_alpha = alpha,
+    pt_shape = 19,
+    label_size = 3,
+    label_fg = NULL,
+    highlight = NULL,
+    highlight_color = NULL,
+    highlight_size = 1.5,
+    highlight_alpha = 1,
+    highlight_shape = 19,
+    preserve_position = TRUE,
+    chr_gap_scaling = 1,
+    pval_transform = "-log10",
+    signif = c(5e-08, 1e-05),
+    signif_color = NULL,
+    signif_rel_pos = 0.2,
+    signif_label = TRUE,
+    signif_label_size = 3.5,
+    signif_label_pos = c("left", "right"),
+    thin = NULL,
+    thin_n = 1000,
+    thin_bins = 200,
+    rescale = TRUE,
+    rescale_ratio_threshold = 5,
+    palette = "Dark2",
+    palcolor = NULL,
+    palreverse = FALSE,
+    alpha = 1,
+    theme = "theme_this",
+    theme_args = list(),
+    title = NULL,
+    subtitle = NULL,
+    xlab = NULL,
+    ylab = expression("\u002d" * log[10](p)),
+    seed = 8525,
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    facet_by = NULL,
+    design = NULL,
+    ...
+) {
     validate_common_args(seed = seed)
     if (!is.null(facet_by)) {
-        warning("[ManhattanPlot] 'facet_by' is not supported, using 'split_by' instead.")}
+        warning(
+            "[ManhattanPlot] 'facet_by' is not supported, using 'split_by' instead."
+        )
+    }
 
     theme <- process_theme(theme)
     if (is.data.frame(data)) {
-        split_by <- check_columns(data, split_by, force_factor = TRUE, allow_multi = TRUE,
-            concat_multi = TRUE, concat_sep = split_by_sep)
+        split_by <- check_columns(
+            data,
+            split_by,
+            force_factor = TRUE,
+            allow_multi = TRUE,
+            concat_multi = TRUE,
+            concat_sep = split_by_sep
+        )
     } else if (inherits(data, "GRanges")) {
         metadata <- data@elementMetadata
-        split_by <- check_columns(metadata, split_by, force_factor = TRUE, allow_multi = TRUE,
-            concat_multi = TRUE, concat_sep = split_by_sep)
+        split_by <- check_columns(
+            metadata,
+            split_by,
+            force_factor = TRUE,
+            allow_multi = TRUE,
+            concat_multi = TRUE,
+            concat_sep = split_by_sep
+        )
         data@elementMetadata <- metadata
     } else {
         stop("[ManhattanPlot] 'data' must be a data frame or a GRanges object.")
@@ -494,36 +645,76 @@ ManhattanPlot <- function(
     palcolor <- check_palcolor(palcolor, names(datas))
 
     plots <- lapply(
-        names(datas), function(nm) {
-            default_title <- if (length(datas) == 1 && identical(nm, "...")) NULL else nm
+        names(datas),
+        function(nm) {
+            default_title <- if (length(datas) == 1 && identical(nm, "...")) {
+                NULL
+            } else {
+                nm
+            }
             if (is.function(title)) {
                 title <- title(default_title)
             } else {
                 title <- title %||% default_title
             }
             ManhattanPlotAtomic(
-                data = datas[[nm]], chr_by = chr_by, pos_by = pos_by, pval_by = pval_by,
-                label_by = label_by, chromosomes = chromosomes, pt_size = pt_size,
-                pt_color = pt_color, pt_alpha = pt_alpha, pt_shape = pt_shape,
-                label_size = label_size, label_fg = label_fg, highlight = highlight,
-                highlight_color = highlight_color, highlight_size = highlight_size,
-                highlight_alpha = highlight_alpha, highlight_shape = highlight_shape,
-                preserve_position = preserve_position, chr_gap_scaling = chr_gap_scaling,
-                pval_transform = pval_transform, signif = signif,
-                signif_color = signif_color, signif_rel_pos = signif_rel_pos,
-                signif_label = signif_label, signif_label_size = signif_label_size,
-                signif_label_pos = signif_label_pos, thin = thin, thin_n = thin_n,
-                thin_bins = thin_bins, rescale = rescale,
+                data = datas[[nm]],
+                chr_by = chr_by,
+                pos_by = pos_by,
+                pval_by = pval_by,
+                label_by = label_by,
+                chromosomes = chromosomes,
+                pt_size = pt_size,
+                pt_color = pt_color,
+                pt_alpha = pt_alpha,
+                pt_shape = pt_shape,
+                label_size = label_size,
+                label_fg = label_fg,
+                highlight = highlight,
+                highlight_color = highlight_color,
+                highlight_size = highlight_size,
+                highlight_alpha = highlight_alpha,
+                highlight_shape = highlight_shape,
+                preserve_position = preserve_position,
+                chr_gap_scaling = chr_gap_scaling,
+                pval_transform = pval_transform,
+                signif = signif,
+                signif_color = signif_color,
+                signif_rel_pos = signif_rel_pos,
+                signif_label = signif_label,
+                signif_label_size = signif_label_size,
+                signif_label_pos = signif_label_pos,
+                thin = thin,
+                thin_n = thin_n,
+                thin_bins = thin_bins,
+                rescale = rescale,
                 rescale_ratio_threshold = rescale_ratio_threshold,
-                palette = palette[[nm]], palcolor = palcolor[[nm]], palreverse = palreverse,
-                alpha = alpha, theme_args = theme_args, theme = theme,
-                title = title, subtitle = subtitle, xlab = xlab, ylab = ylab
+                palette = palette[[nm]],
+                palcolor = palcolor[[nm]],
+                palreverse = palreverse,
+                alpha = alpha,
+                theme_args = theme_args,
+                theme = theme,
+                title = title,
+                subtitle = subtitle,
+                xlab = xlab,
+                ylab = ylab
             )
         }
     )
 
     names(plots) <- names(datas)
 
-    combine_plots(plots, combine = combine, split_by = split_by, nrow = nrow, ncol = ncol, byrow = byrow,
-        axes = axes, axis_titles = axis_titles, guides = guides, design = design)
+    combine_plots(
+        plots,
+        combine = combine,
+        split_by = split_by,
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
+    )
 }

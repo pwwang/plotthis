@@ -19,32 +19,78 @@
 #' @importFrom methods formalArgs
 #' @importFrom ggplot2 element_text element_rect margin theme element_blank unit
 #' @export
-theme_this <- function(aspect.ratio = NULL, base_size = NULL, font_family = NULL, ...) {
+theme_this <- function(
+    aspect.ratio = NULL,
+    base_size = NULL,
+    font_family = NULL,
+    ...
+) {
     base_size <- base_size %||% getOption("theme_this.base_size", 12)
     font_family <- font_family %||% getOption("theme_this.font_family")
     text_size_scale <- base_size / 12
     args1 <- list(
         aspect.ratio = aspect.ratio,
-        text = element_text(size = 12 * text_size_scale, family = font_family, color = "black"),
-        plot.title = element_text(size = 14 * text_size_scale, family = font_family, colour = "black", vjust = 1),
-        plot.subtitle = element_text(size = 13 * text_size_scale, family = font_family, hjust = 0, margin = margin(b = 3)),
+        text = element_text(
+            size = 12 * text_size_scale,
+            family = font_family,
+            color = "black"
+        ),
+        plot.title = element_text(
+            size = 14 * text_size_scale,
+            family = font_family,
+            colour = "black",
+            vjust = 1
+        ),
+        plot.subtitle = element_text(
+            size = 13 * text_size_scale,
+            family = font_family,
+            hjust = 0,
+            margin = margin(b = 3)
+        ),
         plot.background = element_rect(fill = "white", color = "white"),
         plot.margin = margin(10, 10, 10, 10),
         axis.line = element_blank(),
-        axis.title = element_text(size = 13 * text_size_scale, family = font_family, colour = "black"),
-        axis.text = element_text(size = 12 * text_size_scale, family = font_family, colour = "black"),
-        strip.text = element_text(size = 12.5 * text_size_scale, family = font_family, colour = "black", hjust = 0.5, margin = margin(3, 3, 3, 3)),
+        axis.title = element_text(
+            size = 13 * text_size_scale,
+            family = font_family,
+            colour = "black"
+        ),
+        axis.text = element_text(
+            size = 12 * text_size_scale,
+            family = font_family,
+            colour = "black"
+        ),
+        strip.text = element_text(
+            size = 12.5 * text_size_scale,
+            family = font_family,
+            colour = "black",
+            hjust = 0.5,
+            margin = margin(3, 3, 3, 3)
+        ),
         strip.background = element_rect(fill = "transparent", linetype = 0),
         strip.switch.pad.grid = unit(-1, "pt"),
         strip.switch.pad.wrap = unit(-1, "pt"),
         strip.placement = "outside",
-        legend.title = element_text(size = 12 * text_size_scale, family = font_family, colour = "black", hjust = 0),
-        legend.text = element_text(size = 11 * text_size_scale, family = font_family, colour = "black"),
+        legend.title = element_text(
+            size = 12 * text_size_scale,
+            family = font_family,
+            colour = "black",
+            hjust = 0
+        ),
+        legend.text = element_text(
+            size = 11 * text_size_scale,
+            family = font_family,
+            colour = "black"
+        ),
         legend.key = element_rect(fill = "transparent", color = "transparent"),
         legend.key.size = unit(10, "pt"),
         legend.background = element_blank(),
         panel.background = element_rect(fill = "white", color = "white"),
-        panel.border = element_rect(fill = "transparent", colour = "black", linewidth = 1)
+        panel.border = element_rect(
+            fill = "transparent",
+            colour = "black",
+            linewidth = 1
+        )
     )
     args2 <- as.list(match.call())[-1]
     call.envir <- parent.frame(1)
@@ -87,7 +133,15 @@ theme_this <- function(aspect.ratio = NULL, base_size = NULL, font_family = NULL
 #' @importFrom ggplot2 theme element_blank margin annotation_custom coord_cartesian
 #' @importFrom grid grobTree gList linesGrob textGrob arrow gpar
 #' @export
-theme_blank <- function(add_coord = TRUE, xlen_npc = 0.15, ylen_npc = 0.15, xlab = "", ylab = "", lab_size = 12, ...) {
+theme_blank <- function(
+    add_coord = TRUE,
+    xlen_npc = 0.15,
+    ylen_npc = 0.15,
+    xlab = "",
+    ylab = "",
+    lab_size = 12,
+    ...
+) {
     args1 <- list(
         panel.border = element_blank(),
         panel.grid = element_blank(),
@@ -99,7 +153,13 @@ theme_blank <- function(add_coord = TRUE, xlen_npc = 0.15, ylen_npc = 0.15, xlab
         legend.box.margin = margin(0, 0, 0, 0),
         legend.margin = margin(0, 0, 0, 0),
         legend.key.size = unit(10, "pt"),
-        plot.margin = margin(lab_size + 2, lab_size + 2, lab_size + 2, lab_size + 2, unit = "points")
+        plot.margin = margin(
+            lab_size + 2,
+            lab_size + 2,
+            lab_size + 2,
+            lab_size + 2,
+            unit = "points"
+        )
     )
     args2 <- as.list(match.call())[-1]
     call.envir <- parent.frame(1)
@@ -122,10 +182,35 @@ theme_blank <- function(add_coord = TRUE, xlen_npc = 0.15, ylen_npc = 0.15, xlab
     )
     if (isTRUE(add_coord)) {
         g <- grobTree(gList(
-            linesGrob(x = unit(c(0, xlen_npc), "npc"), y = unit(c(0, 0), "npc"), arrow = arrow(length = unit(0.02, "npc")), gp = gpar(lwd = 2)),
-            textGrob(label = xlab, x = unit(0, "npc"), y = unit(0, "npc"), vjust = 4 / 3, hjust = 0, gp = gpar(fontsize = lab_size)),
-            linesGrob(x = unit(c(0, 0), "npc"), y = unit(c(0, ylen_npc), "npc"), arrow = arrow(length = unit(0.02, "npc")), gp = gpar(lwd = 2)),
-            textGrob(label = ylab, x = unit(0, "npc"), y = unit(0, "npc"), vjust = -2 / 3, hjust = 0, rot = 90, gp = gpar(fontsize = lab_size))
+            linesGrob(
+                x = unit(c(0, xlen_npc), "npc"),
+                y = unit(c(0, 0), "npc"),
+                arrow = arrow(length = unit(0.02, "npc")),
+                gp = gpar(lwd = 2)
+            ),
+            textGrob(
+                label = xlab,
+                x = unit(0, "npc"),
+                y = unit(0, "npc"),
+                vjust = 4 / 3,
+                hjust = 0,
+                gp = gpar(fontsize = lab_size)
+            ),
+            linesGrob(
+                x = unit(c(0, 0), "npc"),
+                y = unit(c(0, ylen_npc), "npc"),
+                arrow = arrow(length = unit(0.02, "npc")),
+                gp = gpar(lwd = 2)
+            ),
+            textGrob(
+                label = ylab,
+                x = unit(0, "npc"),
+                y = unit(0, "npc"),
+                vjust = -2 / 3,
+                hjust = 0,
+                rot = 90,
+                gp = gpar(fontsize = lab_size)
+            )
         ))
         return(list(
             list(annotation_custom(g)),
@@ -160,9 +245,20 @@ theme_blank <- function(add_coord = TRUE, xlen_npc = 0.15, ylen_npc = 0.15, xlab
 #' @importFrom ggplot2 theme element_blank margin annotation_custom coord_cartesian
 #' @importFrom grid grobTree gList linesGrob textGrob arrow gpar
 #' @export
-theme_box <- function(xlen_npc = 0.15, ylen_npc = 0.15, xlab = "", ylab = "", lab_size = 12, ...) {
+theme_box <- function(
+    xlen_npc = 0.15,
+    ylen_npc = 0.15,
+    xlab = "",
+    ylab = "",
+    lab_size = 12,
+    ...
+) {
     args1 <- list(
-        panel.border = element_rect(fill = "transparent", colour = "black", linewidth = 1),
+        panel.border = element_rect(
+            fill = "transparent",
+            colour = "black",
+            linewidth = 1
+        ),
         panel.grid = element_blank(),
         axis.title = element_blank(),
         axis.line = element_blank(),
@@ -172,7 +268,13 @@ theme_box <- function(xlen_npc = 0.15, ylen_npc = 0.15, xlab = "", ylab = "", la
         legend.box.margin = margin(0, 0, 0, 0),
         legend.margin = margin(0, 0, 0, 0),
         legend.key.size = unit(10, "pt"),
-        plot.margin = margin(lab_size + 2, lab_size + 2, lab_size + 2, lab_size + 2, unit = "points")
+        plot.margin = margin(
+            lab_size + 2,
+            lab_size + 2,
+            lab_size + 2,
+            lab_size + 2,
+            unit = "points"
+        )
     )
     args2 <- as.list(match.call())[-1]
     call.envir <- parent.frame(1)
@@ -222,15 +324,30 @@ theme_box <- function(xlen_npc = 0.15, ylen_npc = 0.15, xlab = "", ylab = "", la
 #' @export
 #'
 palette_this <- function(
-    x, n = 100, palette = "Paired", palcolor = NULL, type = "auto", keep_names = TRUE, alpha = 1,
-    matched = FALSE, reverse = FALSE, NA_keep = FALSE, NA_color = "grey80", transparent = TRUE) {
+    x,
+    n = 100,
+    palette = "Paired",
+    palcolor = NULL,
+    type = "auto",
+    keep_names = TRUE,
+    alpha = 1,
+    matched = FALSE,
+    reverse = FALSE,
+    NA_keep = FALSE,
+    NA_color = "grey80",
+    transparent = TRUE
+) {
     palette_list <- plotthis::palette_list
     if (missing(x)) {
         x <- 1:n
         type <- "continuous"
     }
     if (!palette %in% names(palette_list)) {
-        stop("The palette name (", palette, ") is invalid! You can check the available palette names with 'show_palettes()'. Or pass palette colors via the 'palcolor' parameter.")
+        stop(
+            "The palette name (",
+            palette,
+            ") is invalid! You can check the available palette names with 'show_palettes()'. Or pass palette colors via the 'palcolor' parameter."
+        )
     }
 
     # Store custom colors for later replacement
@@ -299,7 +416,8 @@ palette_this <- function(
             color <- colorRampPalette(palcolor)(n_x)
             names(color) <- levels(x)
         } else {
-            color <- ifelse(rep(n_x, n_x) <= pal_n,
+            color <- ifelse(
+                rep(n_x, n_x) <= pal_n,
                 palcolor[1:n_x],
                 colorRampPalette(palcolor)(n_x)
             )
@@ -316,7 +434,9 @@ palette_this <- function(
 
         if (any(is.na(x))) {
             # Check if custom_colors has "NA" key
-            na_col <- if (!is.null(custom_colors) && "NA" %in% names(custom_colors)) {
+            na_col <- if (
+                !is.null(custom_colors) && "NA" %in% names(custom_colors)
+            ) {
                 custom_colors["NA"]
             } else {
                 NA_color
@@ -329,7 +449,9 @@ palette_this <- function(
         }
     } else if (type == "continuous") {
         if (!is.numeric(x) && all(!is.na(x))) {
-            stop("'x' must be type of numeric when use continuous color palettes.")
+            stop(
+                "'x' must be type of numeric when use continuous color palettes."
+            )
         }
         if (all(is.na(x))) {
             values <- as.factor(rep(0, n))
@@ -337,14 +459,31 @@ palette_this <- function(
             values <- as.factor(rep(unique(na.omit(as.numeric(x))), n))
         } else {
             if (isTRUE(matched)) {
-                values <- cut(x, breaks = seq(min(x, na.rm = TRUE), max(x, na.rm = TRUE), length.out = n + 1), include.lowest = TRUE)
+                values <- cut(
+                    x,
+                    breaks = seq(
+                        min(x, na.rm = TRUE),
+                        max(x, na.rm = TRUE),
+                        length.out = n + 1
+                    ),
+                    include.lowest = TRUE
+                )
             } else {
-                values <- cut(1:100, breaks = seq(min(x, na.rm = TRUE), max(x, na.rm = TRUE), length.out = n + 1), include.lowest = TRUE)
+                values <- cut(
+                    1:100,
+                    breaks = seq(
+                        min(x, na.rm = TRUE),
+                        max(x, na.rm = TRUE),
+                        length.out = n + 1
+                    ),
+                    include.lowest = TRUE
+                )
             }
         }
 
         n_x <- nlevels(values)
-        color <- ifelse(rep(n_x, n_x) <= pal_n,
+        color <- ifelse(
+            rep(n_x, n_x) <= pal_n,
             palcolor[1:n_x],
             colorRampPalette(palcolor)(n_x)
         )
@@ -352,9 +491,14 @@ palette_this <- function(
 
         if (any(is.na(x))) {
             # Check if custom_colors_continuous has "NA" key
-            na_col <- if (!is.null(custom_colors_continuous) && "NA" %in% names(custom_colors_continuous)) {
+            na_col <- if (
+                !is.null(custom_colors_continuous) &&
+                    "NA" %in% names(custom_colors_continuous)
+            ) {
                 custom_colors_continuous["NA"]
-            } else if (!is.null(custom_colors) && "NA" %in% names(custom_colors)) {
+            } else if (
+                !is.null(custom_colors) && "NA" %in% names(custom_colors)
+            ) {
                 custom_colors["NA"]
             } else {
                 NA_color
@@ -436,7 +580,14 @@ palette_this <- function(
 #'
 #' @importFrom ggplot2 geom_col scale_fill_manual scale_x_continuous element_blank aes element_text margin element_rect unit theme
 #' @export
-show_palettes <- function(palettes = NULL, type = c("discrete", "continuous"), index = NULL, palette_names = NULL, return_names = TRUE, return_palettes = FALSE) {
+show_palettes <- function(
+    palettes = NULL,
+    type = c("discrete", "continuous"),
+    index = NULL,
+    palette_names = NULL,
+    return_names = TRUE,
+    return_palettes = FALSE
+) {
     ggplot <- if (getOption("plotthis.gglogger.enabled", FALSE)) {
         gglogger::ggplot
     } else {
@@ -446,7 +597,10 @@ show_palettes <- function(palettes = NULL, type = c("discrete", "continuous"), i
     if (!is.null(palettes)) {
         palette_list <- palettes
     } else {
-        palette_list <- plotthis::palette_list[unlist(lapply(palette_list, function(x) isTRUE(attr(x, "type") %in% type)))]
+        palette_list <- plotthis::palette_list[unlist(lapply(
+            palette_list,
+            function(x) isTRUE(attr(x, "type") %in% type)
+        ))]
     }
     index <- index[index %in% seq_along(palette_list)]
     if (!is.null(index)) {
@@ -459,15 +613,31 @@ show_palettes <- function(palettes = NULL, type = c("discrete", "continuous"), i
         palette_names <- palette_names %||% names(palette_list)
     }
     if (any(!palette_names %in% names(palette_list))) {
-        stop(paste("Can not find the palettes: ", paste0(palette_names[!palette_names %in% names(palette_list)], collapse = ",")))
+        stop(paste(
+            "Can not find the palettes: ",
+            paste0(
+                palette_names[!palette_names %in% names(palette_list)],
+                collapse = ","
+            )
+        ))
     }
     palette_list <- palette_list[palette_names]
 
-    df <- data.frame(palette = rep(names(palette_list), sapply(palette_list, length)), color = unlist(palette_list))
+    df <- data.frame(
+        palette = rep(names(palette_list), sapply(palette_list, length)),
+        color = unlist(palette_list)
+    )
     df$palette <- factor(df$palette, levels = rev(unique(df$palette)))
     df$color_order <- factor(seq_len(nrow(df)), levels = seq_len(nrow(df)))
     df$proportion <- as.numeric(1 / table(df$palette)[df$palette])
-    p <- ggplot(data = df, aes(y = !!sym("palette"), x = !!sym("proportion"), fill = !!sym("color_order"))) +
+    p <- ggplot(
+        data = df,
+        aes(
+            y = !!sym("palette"),
+            x = !!sym("proportion"),
+            fill = !!sym("color_order")
+        )
+    ) +
         geom_col(show.legend = FALSE) +
         scale_fill_manual(values = df[["color"]]) +
         scale_x_continuous(expand = c(0, 0), trans = "reverse") +
@@ -523,13 +693,34 @@ show_palettes <- function(palettes = NULL, type = c("discrete", "continuous"), i
 #' @export
 #' @importFrom grid unit
 element_textbox <- function(
-    family = NULL, face = NULL, size = NULL, colour = NULL,
-    fill = NULL, box.colour = NULL, linetype = NULL, linewidth = NULL,
-    hjust = NULL, vjust = NULL, halign = NULL, valign = NULL,
-    lineheight = NULL, margin = NULL, padding = NULL, width = NULL,
-    height = NULL, minwidth = NULL, maxwidth = NULL, minheight = NULL,
-    maxheight = NULL, r = NULL, orientation = NULL, color = NULL,
-    box.color = NULL, debug = FALSE, inherit.blank = FALSE) {
+    family = NULL,
+    face = NULL,
+    size = NULL,
+    colour = NULL,
+    fill = NULL,
+    box.colour = NULL,
+    linetype = NULL,
+    linewidth = NULL,
+    hjust = NULL,
+    vjust = NULL,
+    halign = NULL,
+    valign = NULL,
+    lineheight = NULL,
+    margin = NULL,
+    padding = NULL,
+    width = NULL,
+    height = NULL,
+    minwidth = NULL,
+    maxwidth = NULL,
+    minheight = NULL,
+    maxheight = NULL,
+    r = NULL,
+    orientation = NULL,
+    color = NULL,
+    box.color = NULL,
+    debug = FALSE,
+    inherit.blank = FALSE
+) {
     if (!is.null(color)) {
         colour <- color
     }
@@ -540,13 +731,31 @@ element_textbox <- function(
     family <- family %||% getOption("theme_this.font_family")
     structure(
         list(
-            family = family, face = face, size = size, colour = colour, fill = fill, box.colour = box.colour,
-            linetype = linetype, linewidth = linewidth,
-            hjust = hjust, vjust = vjust, halign = halign, valign = valign, lineheight = lineheight,
-            margin = margin, padding = padding, width = width, height = height, minwidth = minwidth,
-            maxwidth = maxwidth, minheight = minheight, maxheight = maxheight,
-            r = r, orientation = orientation,
-            debug = debug, inherit.blank = inherit.blank
+            family = family,
+            face = face,
+            size = size,
+            colour = colour,
+            fill = fill,
+            box.colour = box.colour,
+            linetype = linetype,
+            linewidth = linewidth,
+            hjust = hjust,
+            vjust = vjust,
+            halign = halign,
+            valign = valign,
+            lineheight = lineheight,
+            margin = margin,
+            padding = padding,
+            width = width,
+            height = height,
+            minwidth = minwidth,
+            maxwidth = maxwidth,
+            minheight = minheight,
+            maxheight = maxheight,
+            r = r,
+            orientation = orientation,
+            debug = debug,
+            inherit.blank = inherit.blank
         ),
         class = c("element_textbox", "element_text", "element")
     )
@@ -562,10 +771,20 @@ element_textbox <- function(
 #' @importFrom ggplot2 zeroGrob .pt element_grob
 #' @export
 element_grob.element_textbox <- function(
-    element, label = "", x = NULL, y = NULL,
-    family = NULL, face = NULL, colour = NULL, size = NULL,
-    hjust = NULL, vjust = NULL, lineheight = NULL,
-    margin = NULL, ...) {
+    element,
+    label = "",
+    x = NULL,
+    y = NULL,
+    family = NULL,
+    face = NULL,
+    colour = NULL,
+    size = NULL,
+    hjust = NULL,
+    vjust = NULL,
+    lineheight = NULL,
+    margin = NULL,
+    ...
+) {
     if (is.null(label)) {
         return(zeroGrob())
     }
@@ -596,12 +815,23 @@ element_grob.element_textbox <- function(
 
     textbox_grob(
         label,
-        x = x, y = y, hjust = hj, vjust = vj, halign = halign, valign = valign,
-        width = element$width, height = element$height,
-        minwidth = element$minwidth, minheight = element$minheight,
-        maxwidth = element$maxwidth, maxheight = element$maxheight,
-        margin = margin, padding = padding, r = r,
+        x = x,
+        y = y,
+        hjust = hj,
+        vjust = vj,
+        halign = halign,
+        valign = valign,
+        width = element$width,
+        height = element$height,
+        minwidth = element$minwidth,
+        minheight = element$minheight,
+        maxwidth = element$maxwidth,
+        maxheight = element$maxheight,
+        margin = margin,
+        padding = padding,
+        r = r,
         orientation = orientation,
-        gp = gp, box_gp = box_gp
+        gp = gp,
+        box_gp = box_gp
     )
 }
