@@ -77,10 +77,13 @@ For 'ScatterPlot', it can be a single numeric value to specify the size of the d
 \item{fill_by}{Which column to use as the fill the dots. It must be a numeric column.
 If not provided, all dots will be filled with the same color at the middle of the palette.}
 
-\item{fill_cutoff}{A numeric value specifying the cutoff for the fill column.
-By default, the fill direction is "up". If TRUE, the fill direction is "down".
-When the direction is "up", the values less than the cutoff will be filled with grey.
-When the direction is "down", the values greater than the cutoff will be filled with grey.}
+\item{fill_cutoff}{A string specifying which values of the fill column to grey out.
+Format: an operator followed by a number, e.g. \code{"< 18"}, \code{"<= 18"},
+\code{"> 18"}, or \code{">= 18"}. Values matching the condition are shown in grey
+while the rest are colored by the fill gradient. The operator determines which
+side of the threshold is greyed out, independent of \code{palreverse}.
+A numeric value is also accepted as shorthand for \code{"<"} (e.g. \code{18}
+is equivalent to \code{"< 18"}).}
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
@@ -88,7 +91,8 @@ When the direction is "down", the values greater than the cutoff will be filled 
 
 \item{fill_name}{A character vector specifying the name for the fill legend.}
 
-\item{fill_cutoff_name}{A character vector specifying the name for the fill cutoff legend.}
+\item{fill_cutoff_name}{A string for the fill cutoff legend title. Defaults to
+\code{"<fill_by> <fill_cutoff>"}, e.g. \code{"mpg < 18"}.}
 
 \item{size_min}{A numeric value specifying the minimum size of the dots. Default is 1.}
 

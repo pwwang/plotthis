@@ -138,7 +138,8 @@ A factor/character column is expected.}
 
 \item{fill_name}{A character vector specifying the name for the fill legend.}
 
-\item{fill_cutoff_name}{A character vector specifying the name for the fill cutoff legend.}
+\item{fill_cutoff_name}{A string for the fill cutoff legend title. Defaults to
+\code{"<fill_by> <fill_cutoff>"}, e.g. \code{"mpg < 18"}.}
 
 \item{add_bg}{A logical value indicating whether to add a background color to the plot. Default is FALSE.}
 
@@ -158,10 +159,13 @@ For 'ScatterPlot', it can be a single numeric value to specify the size of the d
 \item{fill_by}{Which column to use as the fill the dots. It must be a numeric column.
 If not provided, all dots will be filled with the same color at the middle of the palette.}
 
-\item{fill_cutoff}{A numeric value specifying the cutoff for the fill column.
-By default, the fill direction is "up". If TRUE, the fill direction is "down".
-When the direction is "up", the values less than the cutoff will be filled with grey.
-When the direction is "down", the values greater than the cutoff will be filled with grey.}
+\item{fill_cutoff}{A string specifying which values of the fill column to grey out.
+Format: an operator followed by a number, e.g. \code{"< 18"}, \code{"<= 18"},
+\code{"> 18"}, or \code{">= 18"}. Values matching the condition are shown in grey
+while the rest are colored by the fill gradient. The operator determines which
+side of the threshold is greyed out, independent of \code{palreverse}.
+A numeric value is also accepted as shorthand for \code{"<"} (e.g. \code{18}
+is equivalent to \code{"< 18"}).}
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
@@ -310,30 +314,32 @@ mtcars <- datasets::mtcars
 mtcars$carb <- factor(mtcars$carb)
 mtcars$gear <- factor(mtcars$gear)
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
-        fill_by = "mpg", fill_cutoff = 18)
+        fill_by = "mpg", fill_cutoff = "< 18")
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
-        fill_by = "mpg", fill_cutoff = 18, add_bg = TRUE)
+        fill_by = "mpg", fill_cutoff = "> 18")
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
-        fill_by = "mpg", fill_cutoff = 18, add_bg = TRUE,
+        fill_by = "mpg", fill_cutoff = "< 18", add_bg = TRUE)
+DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
+        fill_by = "mpg", fill_cutoff = "< 18", add_bg = TRUE,
         bg_direction = "h")
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
-        fill_by = "mpg", fill_cutoff = 18, facet_by = "cyl")
+        fill_by = "mpg", fill_cutoff = "< 18", facet_by = "cyl")
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
-        fill_by = "mpg", fill_cutoff = 18, facet_by = "cyl",
+        fill_by = "mpg", fill_cutoff = "< 18", facet_by = "cyl",
         facet_scales = "free_x")
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
-        fill_by = "mpg", fill_cutoff = 18, split_by = "cyl")
+        fill_by = "mpg", fill_cutoff = "< 18", split_by = "cyl")
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
-        fill_by = "mpg", fill_cutoff = 18, split_by = "cyl",
+        fill_by = "mpg", fill_cutoff = "< 18", split_by = "cyl",
         palette = list("4" = "Set1", "6" = "Paired", "8" = "Reds"))
 # works as a scatter plot
 DotPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
-        fill_by = "mpg", fill_cutoff = 18, fill_cutoff_name = "Small mpgs")
+        fill_by = "mpg", fill_cutoff = "< 18", fill_cutoff_name = "Small mpgs")
 # keep_na and keep_empty
 mtcars$carb[mtcars$carb == "1"] <- NA
 mtcars$gear[mtcars$gear == "3"] <- NA
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
-        fill_by = "mpg", fill_cutoff = 18,
+        fill_by = "mpg", fill_cutoff = "< 18",
         keep_na = TRUE, keep_empty = TRUE)
 # border customization
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
@@ -349,7 +355,7 @@ DotPlot(mtcars, x = "carb", y = "gear",
 LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
              fill_by = "mpg")
 LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
-             fill_by = "mpg", fill_cutoff = 18, facet_by = "cyl",
+             fill_by = "mpg", fill_cutoff = "< 18", facet_by = "cyl",
              facet_scales = "free_y")
 LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
              split_by = "vs", palette = list("0" = "Reds", "1" = "Blues"))

@@ -14,13 +14,17 @@
 #' @param size_max A numeric value specifying the maximum size of the dots. Default is 10.
 #' @param fill_by Which column to use as the fill the dots. It must be a numeric column.
 #'   If not provided, all dots will be filled with the same color at the middle of the palette.
-#' @param fill_cutoff A numeric value specifying the cutoff for the fill column.
-#'   By default, the fill direction is "up". If TRUE, the fill direction is "down".
-#'   When the direction is "up", the values less than the cutoff will be filled with grey.
-#'   When the direction is "down", the values greater than the cutoff will be filled with grey.
+#' @param fill_cutoff A string specifying which values of the fill column to grey out.
+#'   Format: an operator followed by a number, e.g. \code{"< 18"}, \code{"<= 18"},
+#'   \code{"> 18"}, or \code{">= 18"}. Values matching the condition are shown in grey
+#'   while the rest are colored by the fill gradient. The operator determines which
+#'   side of the threshold is greyed out, independent of \code{palreverse}.
+#'   A numeric value is also accepted as shorthand for \code{"<"} (e.g. \code{18}
+#'   is equivalent to \code{"< 18"}).
 #' @param size_name A character vector specifying the name for the size legend.
 #' @param fill_name A character vector specifying the name for the fill legend.
-#' @param fill_cutoff_name A character vector specifying the name for the fill cutoff legend.
+#' @param fill_cutoff_name A string for the fill cutoff legend title. Defaults to
+#'   \code{"<fill_by> <fill_cutoff>"}, e.g. \code{"mpg < 18"}.
 #' @param flip A logical value indicating whether to flip the x and y axes. Default is FALSE.
 #' @param add_bg A logical value indicating whether to add a background color to the plot. Default is FALSE.
 #' @param bg_palette A character vector specifying the palette for the background color. Default is "stripe".
@@ -193,14 +197,39 @@ DotPlotAtomic <- function(
     }
 
     if (!is.null(fill_by) && !is.null(fill_cutoff)) {
-        # Add a column to indicate the fill cutoff
-        if (isFALSE(palreverse)) {
-            fill_cutoff_label <- paste0(fill_by, " < ", fill_cutoff)
-            data[[fill_by]][data[[fill_by]] < fill_cutoff] <- NA
-        } else {
-            fill_cutoff_label <- paste0(fill_by, " > ", fill_cutoff)
-            data[[fill_by]][data[[fill_by]] > fill_cutoff] <- NA
+        # Numeric shorthand: 18 → "< 18"
+        if (is.numeric(fill_cutoff)) {
+            fill_cutoff <- paste("<", fill_cutoff)
         }
+        if (!is.character(fill_cutoff) || length(fill_cutoff) != 1 || is.na(fill_cutoff)) {
+            stop(
+                "[DotPlot/LollipopPlot] 'fill_cutoff' must be a string like '< 18' or '> 18'."
+            )
+        }
+        parsed <- regmatches(
+            fill_cutoff,
+            regexec("^(<=?|>=?)\\s*(-?[0-9.]+)$", fill_cutoff)
+        )[[1]]
+        if (length(parsed) != 3) {
+            stop(
+                "[DotPlot/LollipopPlot] 'fill_cutoff' must be a string like '< 18', '<= 18', '> 18', or '>= 18'."
+            )
+        }
+        cutoff_op <- parsed[2]
+        cutoff_val <- as.numeric(parsed[3])
+        if (is.na(cutoff_val)) {
+            stop(
+                "[DotPlot/LollipopPlot] Invalid numeric value in 'fill_cutoff': ",
+                fill_cutoff
+            )
+        }
+        fill_cutoff_label <- paste0(fill_by, " ", fill_cutoff)
+        switch(cutoff_op,
+            "<" = { data[[fill_by]][data[[fill_by]] < cutoff_val] <- NA },
+            "<=" = { data[[fill_by]][data[[fill_by]] <= cutoff_val] <- NA },
+            ">" = { data[[fill_by]][data[[fill_by]] > cutoff_val] <- NA },
+            ">=" = { data[[fill_by]][data[[fill_by]] >= cutoff_val] <- NA }
+        )
     }
     if (is.null(fill_by)) {
         data$.fill_by <- 1
@@ -589,30 +618,32 @@ DotPlotAtomic <- function(
 #' mtcars$carb <- factor(mtcars$carb)
 #' mtcars$gear <- factor(mtcars$gear)
 #' DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
-#'         fill_by = "mpg", fill_cutoff = 18)
+#'         fill_by = "mpg", fill_cutoff = "< 18")
 #' DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
-#'         fill_by = "mpg", fill_cutoff = 18, add_bg = TRUE)
+#'         fill_by = "mpg", fill_cutoff = "> 18")
 #' DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
-#'         fill_by = "mpg", fill_cutoff = 18, add_bg = TRUE,
+#'         fill_by = "mpg", fill_cutoff = "< 18", add_bg = TRUE)
+#' DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
+#'         fill_by = "mpg", fill_cutoff = "< 18", add_bg = TRUE,
 #'         bg_direction = "h")
 #' DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
-#'         fill_by = "mpg", fill_cutoff = 18, facet_by = "cyl")
+#'         fill_by = "mpg", fill_cutoff = "< 18", facet_by = "cyl")
 #' DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
-#'         fill_by = "mpg", fill_cutoff = 18, facet_by = "cyl",
+#'         fill_by = "mpg", fill_cutoff = "< 18", facet_by = "cyl",
 #'         facet_scales = "free_x")
 #' DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
-#'         fill_by = "mpg", fill_cutoff = 18, split_by = "cyl")
+#'         fill_by = "mpg", fill_cutoff = "< 18", split_by = "cyl")
 #' DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
-#'         fill_by = "mpg", fill_cutoff = 18, split_by = "cyl",
+#'         fill_by = "mpg", fill_cutoff = "< 18", split_by = "cyl",
 #'         palette = list("4" = "Set1", "6" = "Paired", "8" = "Reds"))
 #' # works as a scatter plot
 #' DotPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
-#'         fill_by = "mpg", fill_cutoff = 18, fill_cutoff_name = "Small mpgs")
+#'         fill_by = "mpg", fill_cutoff = "< 18", fill_cutoff_name = "Small mpgs")
 #' # keep_na and keep_empty
 #' mtcars$carb[mtcars$carb == "1"] <- NA
 #' mtcars$gear[mtcars$gear == "3"] <- NA
 #' DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
-#'         fill_by = "mpg", fill_cutoff = 18,
+#'         fill_by = "mpg", fill_cutoff = "< 18",
 #'         keep_na = TRUE, keep_empty = TRUE)
 #' # border customization
 #' DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
@@ -814,7 +845,7 @@ DotPlot <- function(
 #' LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
 #'              fill_by = "mpg")
 #' LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
-#'              fill_by = "mpg", fill_cutoff = 18, facet_by = "cyl",
+#'              fill_by = "mpg", fill_cutoff = "< 18", facet_by = "cyl",
 #'              facet_scales = "free_y")
 #' LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
 #'              split_by = "vs", palette = list("0" = "Reds", "1" = "Blues"))

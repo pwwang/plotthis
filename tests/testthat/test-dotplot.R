@@ -54,7 +54,7 @@ test_that("DotPlot with facet_by works", {
 
 test_that("DotPlot with fill_cutoff works", {
     p <- suppressWarnings(DotPlot(data, x = "gene", y = "celltype", fill_by = "expression",
-                 fill_cutoff = 0.05))
+                 fill_cutoff = "< 0.05"))
     expect_s3_class(p, "ggplot")
 })
 
