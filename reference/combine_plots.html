@@ -46,6 +46,7 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">combine_plots</span><span class="op">(</span></span>
 <span>  <span class="va">plots</span>,</span>
 <span>  combine <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  split_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  nrow <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  byrow <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -67,6 +68,11 @@
 
 <dt id="arg-combine">combine<a class="anchor" aria-label="anchor" href="#arg-combine"></a></dt>
 <dd><p>Whether to combine the plots into one</p></dd>
+
+
+<dt id="arg-split-by">split_by<a class="anchor" aria-label="anchor" href="#arg-split-by"></a></dt>
+<dd><p>The column name to split the plots by. When provided,
+the combined data from all sub-plots is available via <code>p$data</code>.</p></dd>
 
 
 <dt id="arg-nrow">nrow<a class="anchor" aria-label="anchor" href="#arg-nrow"></a></dt>

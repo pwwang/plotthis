@@ -8,6 +8,7 @@ Combine plots into one
 combine_plots(
   plots,
   combine = TRUE,
+  split_by = NULL,
   nrow = NULL,
   ncol = NULL,
   byrow = NULL,
@@ -28,6 +29,11 @@ combine_plots(
 - combine:
 
   Whether to combine the plots into one
+
+- split_by:
+
+  The column name to split the plots by. When provided, the combined
+  data from all sub-plots is available via `p$data`.
 
 - nrow:
 

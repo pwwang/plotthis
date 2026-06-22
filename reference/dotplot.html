@@ -77,6 +77,9 @@ When x-axis and y-axis are both numeric, the plot works as a scatter plot.
 <span>  palette <span class="op">=</span> <span class="st">"Spectral"</span>,</span>
 <span>  palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  border_color <span class="op">=</span> <span class="st">"black"</span>,</span>
+<span>  border_size <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  border_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  facet_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  facet_scales <span class="op">=</span> <span class="st">"fixed"</span>,</span>
 <span>  facet_ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -126,6 +129,9 @@ When x-axis and y-axis are both numeric, the plot works as a scatter plot.
 <span>  palette <span class="op">=</span> <span class="st">"Spectral"</span>,</span>
 <span>  palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  border_color <span class="op">=</span> <span class="st">"black"</span>,</span>
+<span>  border_size <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  border_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  facet_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  facet_scales <span class="op">=</span> <span class="st">"fixed"</span>,</span>
 <span>  facet_ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -201,7 +207,8 @@ A factor/character column is expected.</p></dd>
 
 
 <dt id="arg-fill-cutoff-name">fill_cutoff_name<a class="anchor" aria-label="anchor" href="#arg-fill-cutoff-name"></a></dt>
-<dd><p>A character vector specifying the name for the fill cutoff legend.</p></dd>
+<dd><p>A string for the fill cutoff legend title. Defaults to
+<code>"&lt;fill_by&gt; &lt;fill_cutoff&gt;"</code>, e.g. <code>"mpg &lt; 18"</code>.</p></dd>
 
 
 <dt id="arg-add-bg">add_bg<a class="anchor" aria-label="anchor" href="#arg-add-bg"></a></dt>
@@ -237,10 +244,13 @@ If not provided, all dots will be filled with the same color at the middle of th
 
 
 <dt id="arg-fill-cutoff">fill_cutoff<a class="anchor" aria-label="anchor" href="#arg-fill-cutoff"></a></dt>
-<dd><p>A numeric value specifying the cutoff for the fill column.
-By default, the fill direction is "up". If TRUE, the fill direction is "down".
-When the direction is "up", the values less than the cutoff will be filled with grey.
-When the direction is "down", the values greater than the cutoff will be filled with grey.</p></dd>
+<dd><p>A string specifying which values of the fill column to grey out.
+Format: an operator followed by a number, e.g. <code>"&lt; 18"</code>, <code>"&lt;= 18"</code>,
+<code>"&gt; 18"</code>, or <code>"&gt;= 18"</code>. Values matching the condition are shown in grey
+while the rest are colored by the fill gradient. The operator determines which
+side of the threshold is greyed out, independent of <code>palreverse</code>.
+A numeric value is also accepted as shorthand for <code>"&lt;"</code> (e.g. <code>18</code>
+is equivalent to <code>"&lt; 18"</code>).</p></dd>
 
 
 <dt id="arg-palreverse">palreverse<a class="anchor" aria-label="anchor" href="#arg-palreverse"></a></dt>
@@ -277,6 +287,25 @@ If some values are missing, the values from the palette will be used (palcolor w
 
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
 <dd><p>A numeric value specifying the transparency of the plot.</p></dd>
+
+
+<dt id="arg-border-color">border_color<a class="anchor" aria-label="anchor" href="#arg-border-color"></a></dt>
+<dd><p>A logical or character value specifying the border color of the dots
+and the outer shadow of lollipop bars. If TRUE, border color follows the fill color
+(same as fill_by column values) for dots, and lollipop bars have a black outer shadow
+with the inner bar following fill_by. If a color string, uses that constant color for
+both dots and bar shadows. If FALSE, no dot borders and no bar shadows (the inner
+colored bars remain visible). Default is "black".</p></dd>
+
+
+<dt id="arg-border-size">border_size<a class="anchor" aria-label="anchor" href="#arg-border-size"></a></dt>
+<dd><p>A numeric value specifying the stroke width of the dot borders
+and the linewidth of the lollipop bars. Default is 0.5.</p></dd>
+
+
+<dt id="arg-border-alpha">border_alpha<a class="anchor" aria-label="anchor" href="#arg-border-alpha"></a></dt>
+<dd><p>A numeric value specifying the transparency of the dot borders
+and lollipop bars. Default is 1.</p></dd>
 
 
 <dt id="arg-facet-by">facet_by<a class="anchor" aria-label="anchor" href="#arg-facet-by"></a></dt>
@@ -432,51 +461,84 @@ See <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.htm
 <span class="r-in"><span><span class="va">mtcars</span><span class="op">$</span><span class="va">carb</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">$</span><span class="va">carb</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">mtcars</span><span class="op">$</span><span class="va">gear</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">$</span><span class="va">gear</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">DotPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"carb"</span>, y <span class="op">=</span> <span class="st">"gear"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
-<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="fl">18</span><span class="op">)</span></span></span>
+<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="st">"&lt; 18"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="dotplot-1.png" alt="" width="875" height="541"></span>
 <span class="r-in"><span><span class="fu">DotPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"carb"</span>, y <span class="op">=</span> <span class="st">"gear"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
-<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="fl">18</span>, add_bg <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="st">"&gt; 18"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="dotplot-2.png" alt="" width="875" height="541"></span>
 <span class="r-in"><span><span class="fu">DotPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"carb"</span>, y <span class="op">=</span> <span class="st">"gear"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
-<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="fl">18</span>, add_bg <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>        bg_direction <span class="op">=</span> <span class="st">"h"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="st">"&lt; 18"</span>, add_bg <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="dotplot-3.png" alt="" width="875" height="541"></span>
 <span class="r-in"><span><span class="fu">DotPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"carb"</span>, y <span class="op">=</span> <span class="st">"gear"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
-<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="fl">18</span>, facet_by <span class="op">=</span> <span class="st">"cyl"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="st">"&lt; 18"</span>, add_bg <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>        bg_direction <span class="op">=</span> <span class="st">"h"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="dotplot-4.png" alt="" width="875" height="541"></span>
 <span class="r-in"><span><span class="fu">DotPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"carb"</span>, y <span class="op">=</span> <span class="st">"gear"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
-<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="fl">18</span>, facet_by <span class="op">=</span> <span class="st">"cyl"</span>,</span></span>
-<span class="r-in"><span>        facet_scales <span class="op">=</span> <span class="st">"free_x"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="st">"&lt; 18"</span>, facet_by <span class="op">=</span> <span class="st">"cyl"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="dotplot-5.png" alt="" width="875" height="541"></span>
 <span class="r-in"><span><span class="fu">DotPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"carb"</span>, y <span class="op">=</span> <span class="st">"gear"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
-<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="fl">18</span>, split_by <span class="op">=</span> <span class="st">"cyl"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="st">"&lt; 18"</span>, facet_by <span class="op">=</span> <span class="st">"cyl"</span>,</span></span>
+<span class="r-in"><span>        facet_scales <span class="op">=</span> <span class="st">"free_x"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="dotplot-6.png" alt="" width="875" height="541"></span>
 <span class="r-in"><span><span class="fu">DotPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"carb"</span>, y <span class="op">=</span> <span class="st">"gear"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
-<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="fl">18</span>, split_by <span class="op">=</span> <span class="st">"cyl"</span>,</span></span>
-<span class="r-in"><span>        palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"4"</span> <span class="op">=</span> <span class="st">"Set1"</span>, <span class="st">"6"</span> <span class="op">=</span> <span class="st">"Paired"</span>, <span class="st">"8"</span> <span class="op">=</span> <span class="st">"Reds"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="st">"&lt; 18"</span>, split_by <span class="op">=</span> <span class="st">"cyl"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="dotplot-7.png" alt="" width="875" height="541"></span>
+<span class="r-in"><span><span class="fu">DotPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"carb"</span>, y <span class="op">=</span> <span class="st">"gear"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
+<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="st">"&lt; 18"</span>, split_by <span class="op">=</span> <span class="st">"cyl"</span>,</span></span>
+<span class="r-in"><span>        palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"4"</span> <span class="op">=</span> <span class="st">"Set1"</span>, <span class="st">"6"</span> <span class="op">=</span> <span class="st">"Paired"</span>, <span class="st">"8"</span> <span class="op">=</span> <span class="st">"Reds"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="dotplot-8.png" alt="" width="875" height="541"></span>
 <span class="r-in"><span><span class="co"># works as a scatter plot</span></span></span>
 <span class="r-in"><span><span class="fu">DotPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"qsec"</span>, y <span class="op">=</span> <span class="st">"drat"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
-<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="fl">18</span>, fill_cutoff_name <span class="op">=</span> <span class="st">"Small mpgs"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="dotplot-8.png" alt="" width="875" height="541"></span>
+<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="st">"&lt; 18"</span>, fill_cutoff_name <span class="op">=</span> <span class="st">"Small mpgs"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="dotplot-9.png" alt="" width="875" height="541"></span>
 <span class="r-in"><span><span class="co"># keep_na and keep_empty</span></span></span>
 <span class="r-in"><span><span class="va">mtcars</span><span class="op">$</span><span class="va">carb</span><span class="op">[</span><span class="va">mtcars</span><span class="op">$</span><span class="va">carb</span> <span class="op">==</span> <span class="st">"1"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span></span></span>
 <span class="r-in"><span><span class="va">mtcars</span><span class="op">$</span><span class="va">gear</span><span class="op">[</span><span class="va">mtcars</span><span class="op">$</span><span class="va">gear</span> <span class="op">==</span> <span class="st">"3"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span></span></span>
 <span class="r-in"><span><span class="fu">DotPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"carb"</span>, y <span class="op">=</span> <span class="st">"gear"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
-<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="fl">18</span>,</span></span>
+<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="st">"&lt; 18"</span>,</span></span>
 <span class="r-in"><span>        keep_na <span class="op">=</span> <span class="cn">TRUE</span>, keep_empty <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="dotplot-9.png" alt="" width="875" height="541"></span>
+<span class="r-plt img"><img src="dotplot-10.png" alt="" width="875" height="541"></span>
+<span class="r-in"><span><span class="co"># border customization</span></span></span>
+<span class="r-in"><span><span class="fu">DotPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"carb"</span>, y <span class="op">=</span> <span class="st">"gear"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
+<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, border_color <span class="op">=</span> <span class="st">"red"</span>, border_size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="dotplot-11.png" alt="" width="875" height="541"></span>
+<span class="r-in"><span><span class="co"># border_color = TRUE means the border color follows the fill color</span></span></span>
+<span class="r-in"><span><span class="fu">DotPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"carb"</span>, y <span class="op">=</span> <span class="st">"gear"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
+<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, border_color <span class="op">=</span> <span class="cn">TRUE</span>, border_size <span class="op">=</span> <span class="fl">1.5</span>,</span></span>
+<span class="r-in"><span>        border_alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="dotplot-12.png" alt="" width="875" height="541"></span>
+<span class="r-in"><span><span class="co"># border_color = FALSE means no border</span></span></span>
+<span class="r-in"><span><span class="fu">DotPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"carb"</span>, y <span class="op">=</span> <span class="st">"gear"</span>,</span></span>
+<span class="r-in"><span>        fill_by <span class="op">=</span> <span class="st">"mpg"</span>, border_color <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>[DotPlot] Using the first value of fill_by.</span>
+<span class="r-plt img"><img src="dotplot-13.png" alt="" width="875" height="541"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span><span class="fu">LollipopPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"qsec"</span>, y <span class="op">=</span> <span class="st">"drat"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
 <span class="r-in"><span>             fill_by <span class="op">=</span> <span class="st">"mpg"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="dotplot-10.png" alt="" width="875" height="541"></span>
+<span class="r-plt img"><img src="dotplot-14.png" alt="" width="875" height="541"></span>
 <span class="r-in"><span><span class="fu">LollipopPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"qsec"</span>, y <span class="op">=</span> <span class="st">"drat"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
-<span class="r-in"><span>             fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="fl">18</span>, facet_by <span class="op">=</span> <span class="st">"cyl"</span>,</span></span>
+<span class="r-in"><span>             fill_by <span class="op">=</span> <span class="st">"mpg"</span>, fill_cutoff <span class="op">=</span> <span class="st">"&lt; 18"</span>, facet_by <span class="op">=</span> <span class="st">"cyl"</span>,</span></span>
 <span class="r-in"><span>             facet_scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="dotplot-11.png" alt="" width="875" height="541"></span>
+<span class="r-plt img"><img src="dotplot-15.png" alt="" width="875" height="541"></span>
 <span class="r-in"><span><span class="fu">LollipopPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"qsec"</span>, y <span class="op">=</span> <span class="st">"drat"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
 <span class="r-in"><span>             split_by <span class="op">=</span> <span class="st">"vs"</span>, palette <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"0"</span> <span class="op">=</span> <span class="st">"Reds"</span>, <span class="st">"1"</span> <span class="op">=</span> <span class="st">"Blues"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="dotplot-12.png" alt="" width="875" height="541"></span>
+<span class="r-plt img"><img src="dotplot-16.png" alt="" width="875" height="541"></span>
+<span class="r-in"><span><span class="co"># border customization</span></span></span>
+<span class="r-in"><span><span class="fu">LollipopPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"qsec"</span>, y <span class="op">=</span> <span class="st">"drat"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
+<span class="r-in"><span>             fill_by <span class="op">=</span> <span class="st">"mpg"</span>, border_color <span class="op">=</span> <span class="st">"red"</span>, border_size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="dotplot-17.png" alt="" width="875" height="541"></span>
+<span class="r-in"><span><span class="fu">LollipopPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"qsec"</span>, y <span class="op">=</span> <span class="st">"drat"</span>, size_by <span class="op">=</span> <span class="st">"wt"</span>,</span></span>
+<span class="r-in"><span>             fill_by <span class="op">=</span> <span class="st">"mpg"</span>, border_color <span class="op">=</span> <span class="cn">TRUE</span>, border_size <span class="op">=</span> <span class="fl">1.5</span>,</span></span>
+<span class="r-in"><span>             border_alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="dotplot-18.png" alt="" width="875" height="541"></span>
+<span class="r-in"><span><span class="fu">LollipopPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"qsec"</span>, y <span class="op">=</span> <span class="st">"drat"</span>,</span></span>
+<span class="r-in"><span>             fill_by <span class="op">=</span> <span class="st">"mpg"</span>, border_color <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>[DotPlot] Using the first value of fill_by.</span>
+<span class="r-plt img"><img src="dotplot-19.png" alt="" width="875" height="541"></span>
+<span class="r-in"><span><span class="fu">LollipopPlot</span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="st">"qsec"</span>, y <span class="op">=</span> <span class="st">"drat"</span>,</span></span>
+<span class="r-in"><span>             fill_by <span class="op">=</span> <span class="st">"mpg"</span>, border_color <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>[DotPlot] Using the first value of fill_by.</span>
+<span class="r-plt img"><img src="dotplot-20.png" alt="" width="875" height="541"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

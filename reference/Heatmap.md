@@ -949,6 +949,12 @@ Heatmap(
   like "5inches" to specify the number and unit directly. Unmatched
   arguments will be warned and ignored.
 
+## Value
+
+A patchwork wrapped heatmap object if `combine` is `TRUE`; otherwise a
+list of heatmap objects if `combine` is `FALSE` and `split_by` is
+specified.
+
 ## See also
 
 [`anno_simple`](https://pwwang.github.io/plotthis/reference/heatmap-anno.md),
@@ -1251,7 +1257,7 @@ if (requireNamespace("cluster", quietly = TRUE)) {
 }
 
 if (requireNamespace("cluster", quietly = TRUE)) {
-    dot_size_data <- p@data
+    dot_size_data <- as.matrix(p$data)
     # Make it big so we can see if we get the right indexing
     # for dot_size function
     dot_size_data["A", "a"] <- max(dot_size_data) * 2

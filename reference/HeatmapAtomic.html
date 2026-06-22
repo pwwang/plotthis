@@ -115,7 +115,6 @@
 <span>  flip <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">8525</span>,</span>
-<span>  return_grob <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  padding <span class="op">=</span> <span class="fl">15</span>,</span>
 <span>  base_size <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  aspect.ratio <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -561,11 +560,6 @@ that are passed to <code><a href="https://rdrr.io/pkg/ComplexHeatmap/man/Heatmap
 <dd><p>The random seed to use. Default is 8525.</p></dd>
 
 
-<dt id="arg-return-grob">return_grob<a class="anchor" aria-label="anchor" href="#arg-return-grob"></a></dt>
-<dd><p>A logical value indicating whether to return the grob object of the heatmap.
-This is useful when merging multiple heatmaps using patchwork.</p></dd>
-
-
 <dt id="arg-padding">padding<a class="anchor" aria-label="anchor" href="#arg-padding"></a></dt>
 <dd><p>A numeric vector of length 4 specifying the padding of the heatmap in the order of top, right, bottom, left.
 Like padding in css. Note that it is different than the <code>padding</code> argument in <code><a href="https://rdrr.io/pkg/ComplexHeatmap/man/draw-dispatch.html" class="external-link">ComplexHeatmap::draw()</a></code>, which is the padding
@@ -635,7 +629,7 @@ Unmatched arguments will be warned and ignored.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A drawn HeatmapList object if <code>return_grob = FALSE</code>. Otherwise, a grob/gTree object.</p>
+    <p>An object of heatmap that is wrapped by <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">patchwork::wrap_plots()</a></code></p>
     </div>
     <div class="section level2">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>

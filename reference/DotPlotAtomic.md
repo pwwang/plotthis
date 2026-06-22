@@ -27,6 +27,9 @@ DotPlotAtomic(
   palette = "Spectral",
   palcolor = NULL,
   alpha = 1,
+  border_color = "black",
+  border_size = 0.5,
+  border_alpha = 1,
   facet_by = NULL,
   facet_scales = "fixed",
   facet_ncol = NULL,
@@ -105,11 +108,13 @@ DotPlotAtomic(
 
 - fill_cutoff:
 
-  A numeric value specifying the cutoff for the fill column. By default,
-  the fill direction is "up". If TRUE, the fill direction is "down".
-  When the direction is "up", the values less than the cutoff will be
-  filled with grey. When the direction is "down", the values greater
-  than the cutoff will be filled with grey.
+  A string specifying which values of the fill column to grey out.
+  Format: an operator followed by a number, e.g. `"< 18"`, `"<= 18"`,
+  `"> 18"`, or `">= 18"`. Values matching the condition are shown in
+  grey while the rest are colored by the fill gradient. The operator
+  determines which side of the threshold is greyed out, independent of
+  `palreverse`. A numeric value is also accepted as shorthand for `"<"`
+  (e.g. `18` is equivalent to `"< 18"`).
 
 - palreverse:
 
@@ -126,7 +131,8 @@ DotPlotAtomic(
 
 - fill_cutoff_name:
 
-  A character vector specifying the name for the fill cutoff legend.
+  A string for the fill cutoff legend title. Defaults to
+  `"<fill_by> <fill_cutoff>"`, e.g. `"mpg < 18"`.
 
 - size_min:
 
@@ -162,6 +168,26 @@ DotPlotAtomic(
 - alpha:
 
   A numeric value specifying the transparency of the plot.
+
+- border_color:
+
+  A logical or character value specifying the border color of the dots
+  and the outer shadow of lollipop bars. If TRUE, border color follows
+  the fill color (same as fill_by column values) for dots, and lollipop
+  bars have a black outer shadow with the inner bar following fill_by.
+  If a color string, uses that constant color for both dots and bar
+  shadows. If FALSE, no dot borders and no bar shadows (the inner
+  colored bars remain visible). Default is "black".
+
+- border_size:
+
+  A numeric value specifying the stroke width of the dot borders and the
+  linewidth of the lollipop bars. Default is 0.5.
+
+- border_alpha:
+
+  A numeric value specifying the transparency of the dot borders and
+  lollipop bars. Default is 1.
 
 - facet_by:
 

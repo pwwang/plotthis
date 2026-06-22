@@ -191,27 +191,27 @@ distributed</strong> across the base palette colors:</p>
 <span>    data <span class="op">=</span> <span class="va">dim_example</span>,</span>
 <span>    features <span class="op">=</span> <span class="st">"stochasticbasis_1"</span>,</span>
 <span>    palette <span class="op">=</span> <span class="st">"Spectral"</span>,</span>
-<span>    <span class="co"># The colors will be evenly replace across the palette based on the number of custom colors provided</span></span>
-<span>    <span class="co"># Here are the colors that will be used to generate the ramp colors:</span></span>
-<span>    <span class="co"># "red"       "#3288BD"   "#66C2A5"   "pink"      "#E6F598"   "#FFFFBF"</span></span>
-<span>    <span class="co"># "#FEE08B"   "lightblue" "#F46D43"   "#D53E4F"   "blue"</span></span>
-<span>    <span class="co"># Notice that the 1st, 4th, 8th, and 11th colors in the palette are replaced</span></span>
+<span>    <span class="co"># With 5 colors and 11 palette colors, positions are chosen evenly:</span></span>
+<span>    <span class="co">#   round(seq(1, 11, length.out = 5)) = c(1, 4, 6, 9, 11)</span></span>
+<span>    <span class="co"># Colors at positions 1, 4, 9, 11 are replaced (position 6 is NA, so kept):</span></span>
+<span>    <span class="co">#   "red"       "#3288BD"   "#66C2A5"</span></span>
+<span>    <span class="co">#   "pink"      "#E6F598"   "#FFFFBF"</span></span>
+<span>    <span class="co">#   "#FEE08B"   "#FDAE61"   "lightblue"</span></span>
+<span>    <span class="co">#   "#D53E4F"   "blue"</span></span>
 <span>    palcolor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"red"</span>, <span class="st">"pink"</span>, <span class="cn">NA</span>, <span class="st">"lightblue"</span>, <span class="st">"blue"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="basic-design_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="Example of using the palcolor argument for continuous colors"></p>
 <p>The positions are calculated evenly across the palette, so: - With 2
 values in <code>palcolor</code>: replaces first and last colors - With 3
-values: replaces first, middle, and last colors - With 4 values:
-replaces at positions 1, 2, 4, and 5 (for a 5-color palette)</p>
-<p>This approach ensures smooth color transitions while allowing you to
-control the endpoints and key intermediate colors.</p>
+values: replaces first, middle, and last colors - With <code>NA</code>
+values: keeps the original palette color at that position</p>
 </div>
 </div>
 <div class="section level4">
 <h4 id="customizing-na-colors">Customizing NA colors<a class="anchor" aria-label="anchor" href="#customizing-na-colors"></a>
 </h4>
 <p>You can specify the color for <code>NA</code> values using the
-<code>"NA"</code> key in <code>palcolor</code>**</p>
+<code>"NA"</code> key in <code>palcolor</code>:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="cn">NA</span>, <span class="st">"B"</span>, <span class="st">"C"</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -258,84 +258,185 @@ while maintaining the convenience of predefined palettes.</p>
 <div class="section level2">
 <h2 id="basic-implementation-of-the-plotting-functions">Basic implementation of the plotting functions<a class="anchor" aria-label="anchor" href="#basic-implementation-of-the-plotting-functions"></a>
 </h2>
-<p>The plotting functions in <code>plotthis</code> are implemented with
-the following structure:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>SomePlot <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>    data,</span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>    <span class="co"># The column to split the data and plot</span></span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>    <span class="co"># When `facet` is TRUE, the columns specified here will be used to facet the plot</span></span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>    <span class="co"># When `facet` is FALSE, the columns specified here will be used to split the data</span></span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>    <span class="co">#   and generate multiple plots and combine them into one</span></span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>    <span class="co"># If multiple columns are specified</span></span>
-<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>    <span class="co">#   When `facet` is TRUE, up to 2 columns are allowed. If one column,</span></span>
-<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>    <span class="co">#     `ggplot2::facet_wrap` is used, the number of rows and columns is determined</span></span>
-<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>    <span class="co">#     by `nrow` and `ncol`</span></span>
-<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>    <span class="co">#   When `facet` is FALSE, a warning will be issued and the columns will be</span></span>
-<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>    <span class="co">#     concatenated into one column, using `split_by_sep` as the separator</span></span>
-<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>    split_by, split_by_sep,</span>
-<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a>    <span class="co"># Columns to group the data for plotting</span></span>
-<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a>    <span class="co"># For those plotting functions that do not support multiple groups,</span></span>
-<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a>    <span class="co"># They will be concatenated into one column, using `group_by_sep` as the separator</span></span>
-<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a>    group_by, group_by_sep,</span>
-<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a>    <span class="co"># Whether to facet the plot, or split the data and combine the plots</span></span>
-<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a>    facet, facet_scales,</span>
-<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a>    <span class="co"># Controls for theming</span></span>
-<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a>    theme, theme_args, palette, palcolor, keep_empty, x_text_angle, aspect.ratio,</span>
-<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a>    legend.position, legend.direction, alpha, title, subtitle, xlab, ylab,</span>
-<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a>    <span class="co"># The number of rows and columns when `facet_wrap` is used or</span></span>
-<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a>    <span class="co"># when `facet` is FALSE, the number of rows and columns to combine the plots</span></span>
-<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a>    <span class="co"># For facet_wrap, dir = 'v' will be used when byrow = FALSE</span></span>
-<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a>    combine, nrow, ncol, byrow</span>
-<span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a>    <span class="co"># Whether to guess the width and height of the plot in pixels</span></span>
-<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a>    <span class="co"># list(plot, width, height) will be returned instead of the plot if TRUE</span></span>
-<span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a>    seed,</span>
-<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a>    ...</span>
-<span id="cb8-31"><a href="#cb8-31" tabindex="-1"></a>) {</span>
-<span id="cb8-32"><a href="#cb8-32" tabindex="-1"></a></span>
-<span id="cb8-33"><a href="#cb8-33" tabindex="-1"></a>    <span class="co"># Argument validation</span></span>
-<span id="cb8-34"><a href="#cb8-34" tabindex="-1"></a></span>
-<span id="cb8-35"><a href="#cb8-35" tabindex="-1"></a>    <span class="co"># Data preparation</span></span>
-<span id="cb8-36"><a href="#cb8-36" tabindex="-1"></a>    <span class="co">#   Data will be transformed based on the arguments</span></span>
-<span id="cb8-37"><a href="#cb8-37" tabindex="-1"></a>    <span class="co">#   and split into a list of data frames by split_by</span></span>
-<span id="cb8-38"><a href="#cb8-38" tabindex="-1"></a></span>
-<span id="cb8-39"><a href="#cb8-39" tabindex="-1"></a>    <span class="co"># Plot for each split data frame</span></span>
-<span id="cb8-40"><a href="#cb8-40" tabindex="-1"></a>    plots <span class="ot">&lt;-</span> <span class="fu">lapply</span>(split_data, <span class="cf">function</span>(df) {</span>
-<span id="cb8-41"><a href="#cb8-41" tabindex="-1"></a>        <span class="co"># Calling atomic plotting functions to generate the plot</span></span>
-<span id="cb8-42"><a href="#cb8-42" tabindex="-1"></a>        <span class="co">#   These functions do not need to handle split</span></span>
-<span id="cb8-43"><a href="#cb8-43" tabindex="-1"></a>        <span class="co">#   All data passed to these functions should feed to the plot</span></span>
-<span id="cb8-44"><a href="#cb8-44" tabindex="-1"></a>        <span class="fu">SomePlotAtomic</span>(df, ...)</span>
-<span id="cb8-45"><a href="#cb8-45" tabindex="-1"></a>    })</span>
-<span id="cb8-46"><a href="#cb8-46" tabindex="-1"></a></span>
-<span id="cb8-47"><a href="#cb8-47" tabindex="-1"></a>    <span class="co"># Combine the plots</span></span>
-<span id="cb8-48"><a href="#cb8-48" tabindex="-1"></a>    <span class="co">#     patch_work::wrap_plots(plots, nrow, ncol, byrow)</span></span>
-<span id="cb8-49"><a href="#cb8-49" tabindex="-1"></a>}</span></code></pre></div>
+<p>Nearly every plotting function in <code>plotthis</code> follows a
+three-layer pattern:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong><code>*Atomic()</code></strong> (internal) — Core
+implementation. Takes a single data frame and returns a
+<code>ggplot</code> object. Handles faceting via
+<code><a href="../reference/facet_plot.html">facet_plot()</a></code>. Does NOT handle <code>split_by</code> or
+<code>combine</code>.</p></li>
+<li><p><strong><code>*Plot()</code></strong> (exported) — The public
+API. Handles <code>split_by</code> (splitting data by a column,
+processing <code>keep_na</code>/<code>keep_empty</code>, dispatching per
+split to <code>*Atomic()</code>, then combining results via
+<code><a href="../reference/combine_plots.html">combine_plots()</a></code>).</p></li>
+<li><p><strong>Optional intermediate functions</strong> —
+e.g. <code>BarPlotSingle</code>, <code>BarPlotGrouped</code> — called by
+<code>*Atomic()</code> when there are significantly different rendering
+paths (with vs. without <code>group_by</code>).</p></li>
+</ol>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">SomePlot</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span></span>
+<span>    <span class="va">data</span>,</span>
+<span>    <span class="co"># Column(s) to split data into independent sub-plots.</span></span>
+<span>    <span class="co"># If NULL, all data goes into a single plot.</span></span>
+<span>    <span class="va">split_by</span>, <span class="va">split_by_sep</span>,</span>
+<span>    <span class="co"># Column(s) to group data within each sub-plot (e.g., fill color per group).</span></span>
+<span>    <span class="va">group_by</span>, <span class="va">group_by_sep</span>,</span>
+<span>    <span class="co"># Column(s) for ggplot2 native faceting within each sub-plot.</span></span>
+<span>    <span class="co"># Up to 2 columns: 1 → facet_wrap, 2 → facet_grid.</span></span>
+<span>    <span class="va">facet_by</span>, <span class="va">facet_scales</span>, <span class="va">facet_nrow</span>, <span class="va">facet_ncol</span>, <span class="va">facet_byrow</span>,</span>
+<span>    <span class="co"># Theming, colors, and display</span></span>
+<span>    <span class="va">theme</span>, <span class="va">theme_args</span>, <span class="va">palette</span>, <span class="va">palcolor</span>, <span class="va">alpha</span>, <span class="va">aspect.ratio</span>,</span>
+<span>    <span class="va">legend.position</span>, <span class="va">legend.direction</span>, <span class="va">title</span>, <span class="va">subtitle</span>, <span class="va">xlab</span>, <span class="va">ylab</span>,</span>
+<span>    <span class="co"># NA and empty factor level handling</span></span>
+<span>    <span class="va">keep_na</span>, <span class="va">keep_empty</span>,</span>
+<span>    <span class="co"># Combine control (when split_by is used)</span></span>
+<span>    <span class="co"># TRUE (default) → return patchwork; FALSE → return list of individual plots</span></span>
+<span>    <span class="va">combine</span>, <span class="va">nrow</span>, <span class="va">ncol</span>, <span class="va">byrow</span>,</span>
+<span>    <span class="co"># patchwork options passed to wrap_plots()</span></span>
+<span>    <span class="va">axes</span>, <span class="va">axis_titles</span>, <span class="va">guides</span>, <span class="va">design</span>,</span>
+<span>    <span class="va">seed</span>,</span>
+<span>    <span class="va">...</span></span>
+<span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="co"># 1. Validate arguments</span></span>
+<span>    <span class="fu"><a href="../reference/validate_common_args.html">validate_common_args</a></span><span class="op">(</span><span class="va">seed</span>, facet_by <span class="op">=</span> <span class="va">facet_by</span><span class="op">)</span></span>
+<span></span>
+<span>    <span class="co"># 2. Prepare and split data</span></span>
+<span>    <span class="co">#    keep_na/keep_empty are normalized per-column</span></span>
+<span>    <span class="co">#    Data is split into a named list by split_by levels</span></span>
+<span>    <span class="va">datas</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/split.html" class="external-link">split</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">data</span><span class="op">[[</span><span class="va">split_by</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span></span>
+<span>    <span class="co"># 3. Generate one plot per split, dispatching to *Atomic()</span></span>
+<span>    <span class="va">plots</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">datas</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">nm</span><span class="op">)</span> <span class="op">{</span></span>
+<span>        <span class="fu">SomePlotAtomic</span><span class="op">(</span></span>
+<span>            <span class="va">datas</span><span class="op">[[</span><span class="va">nm</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>            <span class="co"># per-split palette, palcolor, legend settings</span></span>
+<span>            palette <span class="op">=</span> <span class="va">palette</span><span class="op">[[</span><span class="va">nm</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>            palcolor <span class="op">=</span> <span class="va">palcolor</span><span class="op">[[</span><span class="va">nm</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>            legend.position <span class="op">=</span> <span class="va">legend.position</span><span class="op">[[</span><span class="va">nm</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>            legend.direction <span class="op">=</span> <span class="va">legend.direction</span><span class="op">[[</span><span class="va">nm</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>            title <span class="op">=</span> <span class="va">title</span> <span class="op"><a href="https://rdrr.io/r/base/Control.html" class="external-link">%||%</a></span> <span class="va">nm</span>,</span>
+<span>            <span class="va">...</span></span>
+<span>        <span class="op">)</span></span>
+<span>    <span class="op">}</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">plots</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">datas</span><span class="op">)</span></span>
+<span></span>
+<span>    <span class="co"># 4. Combine via patchwork</span></span>
+<span>    <span class="fu"><a href="../reference/combine_plots.html">combine_plots</a></span><span class="op">(</span></span>
+<span>        <span class="va">plots</span>,</span>
+<span>        combine <span class="op">=</span> <span class="va">combine</span>,</span>
+<span>        split_by <span class="op">=</span> <span class="va">split_by</span>,</span>
+<span>        nrow <span class="op">=</span> <span class="va">nrow</span>, ncol <span class="op">=</span> <span class="va">ncol</span>, byrow <span class="op">=</span> <span class="va">byrow</span>,</span>
+<span>        axes <span class="op">=</span> <span class="va">axes</span>, axis_titles <span class="op">=</span> <span class="va">axis_titles</span>,</span>
+<span>        guides <span class="op">=</span> <span class="va">guides</span>, design <span class="op">=</span> <span class="va">design</span></span>
+<span>    <span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>Key design decisions: - <code>split_by</code> splits data into
+<strong>separate ggplot objects</strong> that are later assembled via
+<code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">patchwork::wrap_plots()</a></code>. Each sub-plot has independent
+scales and legends. - <code>facet_by</code> uses <strong>ggplot2’s
+native faceting</strong>
+(<code>facet_wrap</code>/<code>facet_grid</code>) within a single plot
+object. Scales can be shared or free via <code>facet_scales</code>. -
+Per-split customization of <code>palette</code>, <code>palcolor</code>,
+<code>legend.position</code>, and <code>legend.direction</code> is
+supported via named lists keyed by split level names. -
+<code>combine = FALSE</code> returns the list of individual plots
+instead of a combined <code>patchwork</code> object, useful for custom
+assembly.</p>
 </div>
 <div class="section level2">
 <h2 id="splitting-vs-faceting">Splitting vs faceting<a class="anchor" aria-label="anchor" href="#splitting-vs-faceting"></a>
 </h2>
-<p>Unlike other plotting packages, <code>plotthis</code> provides a
-unified interface for both splitting and faceting. For most plots that
-are created by <code>ggplot2</code> behind the scenes,
-<code>plotthis</code> is “facet-aware”.</p>
-<p>Most of the plotting functions in <code>plotthis</code> support both
-splitting and faceting.</p>
-<p>The <code>split_by</code> argument is used to split the data and
-generate multiple plots, and the data in the <code>split_by</code>
-columns will be used to split the data and generate multiple plots,
-which will be combined into one plot. Those sub-plots are independent of
-each other, and they have their own scales and guides. In addition, the
-<code>split_by_sep</code> argument is used to concatenate the columns
-specified in <code>split_by</code> into one column, using the specified
-separator. The palettes/palcolors can be different for each sub-plot
-using the <code>palette</code>/<code>palcolor</code> argument.</p>
-<p>For faceting, the <code>facet_scales</code> argument is used to
-control the scales of the facets. The <code>facet_wrap</code> function
-is used when <code>facet_by</code> has one column; otherwise, the
-<code>facet_grid</code> function is used when <code>facet_by</code> has
-two columns.</p>
-<p>For the plots that do not support faceting (they are not built
-directly based on <code>ggplot2</code>), the <code>split_by</code> will
-be a good choice to split the data and generate multiple plots.</p>
+<p><code>plotthis</code> provides two complementary ways to create
+multi-panel plots: <strong>splitting</strong> (via
+<code>split_by</code>) and <strong>faceting</strong> (via
+<code>facet_by</code>). Understanding the difference is important for
+choosing the right approach:</p>
+<div class="section level3">
+<h3 id="splitting-split_by">Splitting (<code>split_by</code>)<a class="anchor" aria-label="anchor" href="#splitting-split_by"></a>
+</h3>
+<ul>
+<li>The data is split into separate subsets by the levels of the
+<code>split_by</code> column(s).</li>
+<li>Each subset produces an <strong>independent ggplot object</strong>
+via the <code>*Atomic()</code> function.</li>
+<li>The individual plots are then <strong>combined into one</strong>
+using <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">patchwork::wrap_plots()</a></code>.</li>
+<li>Each sub-plot has its <strong>own scales and legends</strong>
+(though legends can be collected via the <code>guides</code>
+argument).</li>
+<li>
+<strong>Per-split customization</strong> is supported: you can
+specify different <code>palette</code>, <code>palcolor</code>,
+<code>legend.position</code>, and <code>legend.direction</code> for each
+split level using named lists.</li>
+<li>Use <code>combine = FALSE</code> to get a <strong>list of individual
+plots</strong> instead of a combined patchwork object, useful for
+further custom assembly.</li>
+<li>Splitting works with <strong>any plot type</strong>, including those
+not built on <code>ggplot2</code> (e.g., <code>Heatmap</code>,
+<code>VennDiagram</code>).</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="faceting-facet_by">Faceting (<code>facet_by</code>)<a class="anchor" aria-label="anchor" href="#faceting-facet_by"></a>
+</h3>
+<ul>
+<li>Uses <strong>ggplot2’s native faceting</strong>
+(<code>facet_wrap</code> for 1 column, <code>facet_grid</code> for 2
+columns).</li>
+<li>All facets share a <strong>single ggplot object</strong> with shared
+or free scales (controlled by <code>facet_scales</code>).</li>
+<li>Scales and legends are <strong>shared across facets</strong>.</li>
+<li>More efficient than splitting for simple layouts — fewer plot
+objects, faster rendering.</li>
+<li>Up to <strong>2 columns</strong> can be used for faceting.</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="choosing-between-them">Choosing between them<a class="anchor" aria-label="anchor" href="#choosing-between-them"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr class="header">
+<th>Scenario</th>
+<th>Recommendation</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Need per-panel different color palettes or legends</td>
+<td>Use <code>split_by</code>
+</td>
+</tr>
+<tr class="even">
+<td>Need independent axis scales per panel</td>
+<td>Use <code>split_by</code>
+</td>
+</tr>
+<tr class="odd">
+<td>Want simple, shared-scale multi-panel layout</td>
+<td>Use <code>facet_by</code>
+</td>
+</tr>
+<tr class="even">
+<td>Plot type doesn’t support faceting (non-ggplot2)</td>
+<td>Use <code>split_by</code>
+</td>
+</tr>
+<tr class="odd">
+<td>Need both splitting AND faceting</td>
+<td>Use both — <code>split_by</code> creates groups of plots,
+<code>facet_by</code> facets within each</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <div class="section level2">
 <h2 id="argument-naming-conventions">Argument naming conventions<a class="anchor" aria-label="anchor" href="#argument-naming-conventions"></a>
@@ -352,33 +453,92 @@ The argument names are all lowercased.</p>
 <div class="section level2">
 <h2 id="the-height-and-width-attributes">The <code>height</code> and <code>width</code> attributes<a class="anchor" aria-label="anchor" href="#the-height-and-width-attributes"></a>
 </h2>
-<p>All plots created by <code>plotthis</code> come with a
-<code>height</code> and <code>width</code> attribute. It is an
-experimental feature that is used to guess the size of the plot in
-inches. Note that they are NOT the actual size of the plot. They are
-just a guess based on the elements in the plot.</p>
-<p>You can then use these values to set the <code>fig.width</code> and
-<code>fig.height</code> arguments in the chunk options in R Markdown or
-<code>options(repr.plot.width = ...)</code> and
-<code>options(repr.plot.height = ...)</code> in Jupyter notebooks.</p>
-<p>You can also use them to save the plot to a file with the guessed
-size. For example:</p>
+<p>Every plot created by <code>plotthis</code> carries
+<code>height</code> and <code>width</code> attributes (in inches). These
+are calculated by <code><a href="../reference/calculate_plot_dimensions.html">calculate_plot_dimensions()</a></code> based on:</p>
+<ul>
+<li>The number of categories on each axis (<code>n_x</code>,
+<code>n_y</code>)</li>
+<li>The aspect ratio (<code>aspect.ratio</code>)</li>
+<li>Legend position, direction, and label lengths</li>
+<li>Minimum and maximum dimension bounds (3–12 inches by default)</li>
+</ul>
+<p><strong>Note:</strong> These are <strong>estimated</strong>
+dimensions, not the exact rendered size. They are intended as a starting
+point that you can adjust.</p>
+<p>You can use these values to set chunk options in R Markdown:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">SomePlot</span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/grDevices/png.html" class="external-link">png</a></span><span class="op">(</span><span class="st">"plot.png"</span>, width <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"width"</span><span class="op">)</span> <span class="op">*</span> <span class="fl">100</span>, height <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"height"</span><span class="op">)</span> <span class="op">*</span> <span class="fl">100</span>, res <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">SomePlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"category"</span><span class="op">)</span></span></code></pre></div>
+<p>Then set chunk options like <code>fig.width = attr(p, "width")</code>
+and <code>fig.height = attr(p, "height")</code>.</p>
+<p>Or to save the plot to a file with the estimated size:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">SomePlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"category"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/png.html" class="external-link">png</a></span><span class="op">(</span><span class="st">"plot.png"</span>,</span>
+<span>    width <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"width"</span><span class="op">)</span>, height <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"height"</span><span class="op">)</span>,</span>
+<span>    units <span class="op">=</span> <span class="st">"in"</span>, res <span class="op">=</span> <span class="fl">150</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="accessing-the-plotting-data-via-pdata">Accessing the plotting data via <code>p$data</code><a class="anchor" aria-label="anchor" href="#accessing-the-plotting-data-via-pdata"></a>
+</h2>
+<p>Every plot object returned by <code>plotthis</code> retains the
+<strong>data used for plotting</strong> in <code>p$data</code>. This is
+useful for inspecting the processed data after transformations like
+<code>keep_na</code>/<code>keep_empty</code> handling, aggregation, or
+scaling.</p>
+<p>For a simple plot without <code>split_by</code>, <code>p$data</code>
+contains the data frame as used by the <code>*Atomic()</code>
+function:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/barplot.html">BarPlot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">iris</span>, x <span class="op">=</span> <span class="st">"Species"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">p</span><span class="op">$</span><span class="va">data</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 3 × 2</span></span></span>
+<span><span class="co">##   Species       .y</span></span>
+<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span> setosa        50</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span> versicolor    50</span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">3</span> virginica     50</span></span></code></pre>
+<p>When <code>split_by</code> is used, <code><a href="../reference/combine_plots.html">combine_plots()</a></code>
+<strong>row-binds</strong> the individual data frames from each
+sub-plot. The combined data is stored on the last sub-plot (which
+<code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">patchwork::wrap_plots()</a></code> uses as the rendering base), with
+each layer retaining its original per-split data explicitly so that
+rendering is unaffected. The result is that <code>p$data</code> returns
+the combined data uniformly for both simple and split plots:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/barplot.html">BarPlot</a></span><span class="op">(</span></span>
+<span>    data <span class="op">=</span> <span class="va">iris</span>,</span>
+<span>    x <span class="op">=</span> <span class="st">"Species"</span>, y <span class="op">=</span> <span class="st">"Petal.Length"</span>,</span>
+<span>    split_by <span class="op">=</span> <span class="st">"Species"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">p</span><span class="op">$</span><span class="va">data</span><span class="op">[[</span><span class="st">"Species"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>  <span class="co"># shows the split levels</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] "setosa"     "versicolor" "virginica"</span></span></code></pre>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">p</span><span class="op">$</span><span class="va">data</span><span class="op">[[</span><span class="st">"Species"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>   <span class="co"># counts per split level</span></span></code></pre></div>
+<pre><code><span><span class="co">## </span></span>
+<span><span class="co">##     setosa versicolor  virginica </span></span>
+<span><span class="co">##         50         50         50</span></span></code></pre>
+<p>To inspect the data for a specific split level:</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">p</span><span class="op">$</span><span class="va">data</span>, <span class="va">Species</span> <span class="op">==</span> <span class="st">"setosa"</span><span class="op">)</span></span></code></pre></div>
+<p>Note that when <code>split_by</code> is used, the combined
+<code>p$data</code> is <strong>reconstructed</strong> from the
+individual sub-plot data — it may differ from the original input data
+due to per-split processing (<code>keep_na</code>,
+<code>keep_empty</code>, aggregation, etc.).</p>
+</div>
+<div class="section level2">
 <h2 id="tracing-the-ggplot-calls-for-debugging">Tracing the ggplot calls for debugging<a class="anchor" aria-label="anchor" href="#tracing-the-ggplot-calls-for-debugging"></a>
 </h2>
-<p>If a plot is created by <code>ggplot2</code> behind the scenes,
-<code>plotthis</code> relies on the <code>gglogger</code> package to
-trace the <code>ggplot2</code> calls. The <code>gglogger</code> package
-is used to log the <code>ggplot2</code> calls and the arguments passed
-to the <code>ggplot2</code> functions. This is useful for debugging and
-understanding how the plot is created.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<p>When <code>options(plotthis.gglogger.enabled = TRUE)</code> is set,
+<code>plotthis</code> uses the <a href="https://github.com/gglogger/gglogger" class="external-link"><code>gglogger</code></a>
+package instead of <code><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot2::ggplot()</a></code>. The
+<code>gglogger::ggplot()</code> function records every
+<code>ggplot2</code> layer addition as a log entry, making it easy to
+inspect how a plot is constructed.</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>plotthis.gglogger.enabled <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/barplot.html">BarPlot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">iris</span>, x <span class="op">=</span> <span class="st">"Species"</span><span class="op">)</span></span>
@@ -414,7 +574,7 @@ understanding how the plot is created.</p>
 <span><span class="co">## [[6]]</span></span>
 <span><span class="co">## Reference class object of class "GGLog"</span></span>
 <span><span class="co">## Field "code":</span></span>
-<span><span class="co">## [1] "do.call(theme, theme_args)"</span></span>
+<span><span class="co">## [1] "do_call(theme, theme_args)"</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## [[7]]</span></span>
 <span><span class="co">## Reference class object of class "GGLog"</span></span>
@@ -434,23 +594,38 @@ understanding how the plot is created.</p>
 <span><span class="co">## Reference class object of class "GGLog"</span></span>
 <span><span class="co">## Field "code":</span></span>
 <span><span class="co">## [1] "coord_cartesian(ylim = c(y_min, y_max))"</span></span></code></pre>
+<p>This is useful for <strong>debugging</strong> (seeing exactly what
+layers and scales were added) and for <strong>learning</strong> how the
+plotting functions work internally. Disable it when not needed to avoid
+overhead:</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>plotthis.gglogger.enabled <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="providing-extra-data-for-plotting">Providing extra data for plotting<a class="anchor" aria-label="anchor" href="#providing-extra-data-for-plotting"></a>
+<h2 id="providing-extra-data-via-data-attributes">Providing extra data via data attributes<a class="anchor" aria-label="anchor" href="#providing-extra-data-via-data-attributes"></a>
 </h2>
-<p>When extra data is needed for plotting, <code>plotthis</code> usually
-provides an argument to receive it. But you can prepare the data and
-attached as an attribute to the main data frame, and pass
-<code>@extra</code> to the argument. So the function can access the
-extra data by <code>attr(data, "extra")</code>. For example:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="va">gsea_result</span></span>
+<p>Some plotting functions accept large supplementary data (e.g.,
+<code>GSEAPlot</code> needs gene ranks and gene sets). Rather than
+passing them as separate arguments every time, you can attach them as
+<strong>attributes of the data frame</strong>. The function will
+automatically look them up.</p>
+<p>Specifically, when an argument defaults to a string starting with
+<code>@</code> (e.g., <code>"@gene_ranks"</code>), the function looks up
+the attribute of <code>data</code> with that name (stripping the
+<code>@</code> prefix). This means the following two calls are
+equivalent:</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Method 1: Attach extra data as attributes</span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="va">gsea_result</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">data</span>, <span class="st">"gene_ranks"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">gene_ranks</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">data</span>, <span class="st">"gene_sets"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">gene_sets</span></span>
 <span><span class="fu"><a href="../reference/gsea.html">GSEAPlot</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Equivalent to</span></span>
+<span><span class="co"># Method 2: Pass directly as arguments</span></span>
 <span><span class="fu"><a href="../reference/gsea.html">GSEAPlot</a></span><span class="op">(</span><span class="va">data</span>, gene_ranks <span class="op">=</span> <span class="va">gene_ranks</span>, gene_sets <span class="op">=</span> <span class="va">gene_sets</span><span class="op">)</span></span></code></pre></div>
+<p>This pattern is used by <code>GSEAPlot</code>,
+<code>GSEASummaryPlot</code>, and other functions that require auxiliary
+data beyond the main data frame.</p>
 </div>
 <div class="section level2">
 <h2 id="handling-na-values-and-unused-levels-of-factors">Handling NA values and unused levels of factors<a class="anchor" aria-label="anchor" href="#handling-na-values-and-unused-levels-of-factors"></a>
@@ -459,37 +634,32 @@ extra data by <code>attr(data, "extra")</code>. For example:</p>
 <div class="section level2">
 <h2 id="na-values">NA values<a class="anchor" aria-label="anchor" href="#na-values"></a>
 </h2>
-<p>When NA values appear in the grouping variables or category variables
-that are used to in the plot (x-axis, fill, color, group, etc.), they
-will be excluded by default. You can use <code>keep_na</code> option to
-control whether and how to keep the NA values.</p>
+<p>When NA values appear in grouping or categorical columns used in the
+plot (x-axis, fill, color, group, etc.), they are excluded by default.
+Use <code>keep_na</code> to control this behavior:</p>
 <ul>
 <li>
-<code>TRUE</code>: just keep the NA values as they are, and they
-will be treated as a separate group or category. They will be included
-in the plot and the legend. The color for the NA values will be
-<code>grey80</code> by default, but you can customize it using the
-<code>palcolor</code> argument
-(<code>palcolor = list("NA" = "orange")</code>).</li>
+<strong><code>FALSE</code></strong> (default): Drop NA values — they
+are excluded from the plot and legend.</li>
 <li>
-<code>FALSE</code>: drop the NA values, and they will not be
-included in the plot or the legend. This is the default behavior.</li>
+<strong><code>TRUE</code></strong> or
+<strong><code>NA</code></strong>: Keep NA values as <code>NA</code> —
+they are treated as a separate category in the plot and legend. The
+default color is <code>"grey80"</code>; customize it via
+<code>palcolor = c("NA" = "orange")</code>.</li>
 <li>
-<code>"missing"</code>: or other character string, will replace the
-NA values with the specified string, and they will be treated as a
-separate group or category. They will be included in the plot and the
-legend. The color for the values will be determined by
-<code>palette</code> and <code>palcolor</code> as usual.</li>
+<strong>A character string</strong> (e.g., <code>"missing"</code>):
+Replace NA values with that string — they become a labeled category in
+the plot and legend. Color is determined by the palette as usual.</li>
 </ul>
-<p>See the above section (Using <code>palette</code> and
-<code>palcolor</code> arguments to control the colors in the plots) for
-more details on how to customize the colors for NA values.</p>
+<p>See the <a href="#using-palette-and-palcolor-arguments-to-control-the-colors-in-the-plots">palette
+and palcolor section</a> for details on customizing the NA color.</p>
 </div>
 <div class="section level2">
 <h2 id="unused-empty-levels-of-factors">Unused (Empty) levels of factors<a class="anchor" aria-label="anchor" href="#unused-empty-levels-of-factors"></a>
 </h2>
 <p>When there are unused levels of factors in the grouping variables or
-category variables that are used to in the plot (x-axis, fill, color,
+category variables that are used in the plot (x-axis, fill, color,
 group, etc.), they will be included in the plot by default. You can use
 <code>keep_empty</code> option to control whether and how to keep the
 unused levels of factors.</p>
@@ -515,35 +685,35 @@ want to include them in the legend.</li>
 be determined by <code>palette</code> and <code>palcolor</code> as
 usual, even though they are not plotted (they will affect the colors of
 existing levels).</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>    <span class="co"># C is an unused level</span></span>
 <span>    x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"D"</span><span class="op">)</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>, <span class="st">"D"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>    y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Excluded by default</span></span>
 <span><span class="fu"><a href="../reference/barplot.html">BarPlot</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="va">data</span>,</span>
 <span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="basic-design_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" alt="Example of keeping NA values and unused levels of factors"></p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<p><img src="basic-design_files/figure-html/unnamed-chunk-12-1.png" class="r-plt" alt="Example of keeping NA values and unused levels of factors"></p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Keep the unused level "C"</span></span>
 <span><span class="fu"><a href="../reference/barplot.html">BarPlot</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="va">data</span>,</span>
 <span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>,</span>
 <span>    keep_empty <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="basic-design_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" alt="Example of keeping NA values and unused levels of factors"></p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<p><img src="basic-design_files/figure-html/unnamed-chunk-13-1.png" class="r-plt" alt="Example of keeping NA values and unused levels of factors"></p>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Keep the unused level "C" for color assignment but not plotting</span></span>
 <span><span class="fu"><a href="../reference/barplot.html">BarPlot</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="va">data</span>,</span>
 <span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>,</span>
 <span>    keep_empty <span class="op">=</span> <span class="st">"level"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="basic-design_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" alt="Example of keeping NA values and unused levels of factors"></p>
+<p><img src="basic-design_files/figure-html/unnamed-chunk-14-1.png" class="r-plt" alt="Example of keeping NA values and unused levels of factors"></p>
 </div>
 <div class="section level2">
 <h2 id="variable-level-control-of-keeping-na-values-and-unused-levels-of-factors">Variable-level control of keeping NA values and unused levels of
@@ -553,7 +723,7 @@ factors<a class="anchor" aria-label="anchor" href="#variable-level-control-of-ke
 also take a named list to control the behavior for each variable
 separately. The names of the list should correspond to the variables in
 the data. For example:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>    x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="cn">NA</span>, <span class="st">"B"</span>, <span class="st">"D"</span><span class="op">)</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>, <span class="st">"D"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>    group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"G3"</span>, <span class="st">"G1"</span>, <span class="cn">NA</span>, <span class="st">"G3"</span><span class="op">)</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"G1"</span>, <span class="st">"G2"</span>, <span class="st">"G3"</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -566,7 +736,7 @@ the data. For example:</p>
 <span>    keep_empty <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="cn">TRUE</span>, group <span class="op">=</span> <span class="st">"level"</span><span class="op">)</span>,</span>
 <span>    keep_na <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="cn">FALSE</span>, group <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="basic-design_files/figure-html/unnamed-chunk-12-1.png" class="r-plt" alt="Example of variable-level control of keeping NA values and unused levels of factors"></p>
+<p><img src="basic-design_files/figure-html/unnamed-chunk-15-1.png" class="r-plt" alt="Example of variable-level control of keeping NA values and unused levels of factors"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

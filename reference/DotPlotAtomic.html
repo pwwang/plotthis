@@ -65,6 +65,9 @@
 <span>  palette <span class="op">=</span> <span class="st">"Spectral"</span>,</span>
 <span>  palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  border_color <span class="op">=</span> <span class="st">"black"</span>,</span>
+<span>  border_size <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  border_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  facet_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  facet_scales <span class="op">=</span> <span class="st">"fixed"</span>,</span>
 <span>  facet_ncol <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -136,10 +139,13 @@ If not provided, all dots will be filled with the same color at the middle of th
 
 
 <dt id="arg-fill-cutoff">fill_cutoff<a class="anchor" aria-label="anchor" href="#arg-fill-cutoff"></a></dt>
-<dd><p>A numeric value specifying the cutoff for the fill column.
-By default, the fill direction is "up". If TRUE, the fill direction is "down".
-When the direction is "up", the values less than the cutoff will be filled with grey.
-When the direction is "down", the values greater than the cutoff will be filled with grey.</p></dd>
+<dd><p>A string specifying which values of the fill column to grey out.
+Format: an operator followed by a number, e.g. <code>"&lt; 18"</code>, <code>"&lt;= 18"</code>,
+<code>"&gt; 18"</code>, or <code>"&gt;= 18"</code>. Values matching the condition are shown in grey
+while the rest are colored by the fill gradient. The operator determines which
+side of the threshold is greyed out, independent of <code>palreverse</code>.
+A numeric value is also accepted as shorthand for <code>"&lt;"</code> (e.g. <code>18</code>
+is equivalent to <code>"&lt; 18"</code>).</p></dd>
 
 
 <dt id="arg-palreverse">palreverse<a class="anchor" aria-label="anchor" href="#arg-palreverse"></a></dt>
@@ -155,7 +161,8 @@ When the direction is "down", the values greater than the cutoff will be filled 
 
 
 <dt id="arg-fill-cutoff-name">fill_cutoff_name<a class="anchor" aria-label="anchor" href="#arg-fill-cutoff-name"></a></dt>
-<dd><p>A character vector specifying the name for the fill cutoff legend.</p></dd>
+<dd><p>A string for the fill cutoff legend title. Defaults to
+<code>"&lt;fill_by&gt; &lt;fill_cutoff&gt;"</code>, e.g. <code>"mpg &lt; 18"</code>.</p></dd>
 
 
 <dt id="arg-size-min">size_min<a class="anchor" aria-label="anchor" href="#arg-size-min"></a></dt>
@@ -188,6 +195,25 @@ If some values are missing, the values from the palette will be used (palcolor w
 
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
 <dd><p>A numeric value specifying the transparency of the plot.</p></dd>
+
+
+<dt id="arg-border-color">border_color<a class="anchor" aria-label="anchor" href="#arg-border-color"></a></dt>
+<dd><p>A logical or character value specifying the border color of the dots
+and the outer shadow of lollipop bars. If TRUE, border color follows the fill color
+(same as fill_by column values) for dots, and lollipop bars have a black outer shadow
+with the inner bar following fill_by. If a color string, uses that constant color for
+both dots and bar shadows. If FALSE, no dot borders and no bar shadows (the inner
+colored bars remain visible). Default is "black".</p></dd>
+
+
+<dt id="arg-border-size">border_size<a class="anchor" aria-label="anchor" href="#arg-border-size"></a></dt>
+<dd><p>A numeric value specifying the stroke width of the dot borders
+and the linewidth of the lollipop bars. Default is 0.5.</p></dd>
+
+
+<dt id="arg-border-alpha">border_alpha<a class="anchor" aria-label="anchor" href="#arg-border-alpha"></a></dt>
+<dd><p>A numeric value specifying the transparency of the dot borders
+and lollipop bars. Default is 1.</p></dd>
 
 
 <dt id="arg-facet-by">facet_by<a class="anchor" aria-label="anchor" href="#arg-facet-by"></a></dt>

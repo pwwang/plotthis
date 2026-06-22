@@ -77,7 +77,6 @@ HeatmapAtomic(
   flip = FALSE,
   alpha = 1,
   seed = 8525,
-  return_grob = FALSE,
   padding = 15,
   base_size = 1,
   aspect.ratio = NULL,
@@ -635,12 +634,6 @@ HeatmapAtomic(
 
   The random seed to use. Default is 8525.
 
-- return_grob:
-
-  A logical value indicating whether to return the grob object of the
-  heatmap. This is useful when merging multiple heatmaps using
-  patchwork.
-
 - padding:
 
   A numeric vector of length 4 specifying the padding of the heatmap in
@@ -731,8 +724,8 @@ HeatmapAtomic(
 
 ## Value
 
-A drawn HeatmapList object if `return_grob = FALSE`. Otherwise, a
-grob/gTree object.
+An object of heatmap that is wrapped by
+[`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
 
 ## Note
 
