@@ -600,7 +600,9 @@ combine_plots <- function(
             all_cols <- unique(unlist(lapply(split_dfs, names)))
             split_dfs <- lapply(split_dfs, function(d) {
                 missing <- setdiff(all_cols, names(d))
-                for (col in missing) d[[col]] <- NA
+                for (col in missing) {
+                    d[[col]] <- NA
+                }
                 d[, all_cols, drop = FALSE]
             })
             combined_data <- do_call(rbind, split_dfs)
@@ -610,12 +612,17 @@ combine_plots <- function(
 
         # For standard ggplot plots, wrap_plots uses the last sub-plot as
         # the rendering base. We set the combined data on it and give each
-        # layer explicit per-split data so rendering is unaffected.
+        # layer that inherits the plot data explicit per-split data so
+        # rendering is unaffected. Layers with their own explicit data
+        # (e.g. geom_text with a computed AUC column) are left unchanged.
         last_idx <- length(plots)
         last_orig_data <- plots[[last_idx]]$data
         plots[[last_idx]]$data <- combined_data
         for (i in seq_along(plots[[last_idx]]$layers)) {
-            plots[[last_idx]]$layers[[i]]$data <- last_orig_data
+            layer_data <- plots[[last_idx]]$layers[[i]]$data
+            if (inherits(layer_data, "waiver")) {
+                plots[[last_idx]]$layers[[i]]$data <- last_orig_data
+            }
         }
     }
 
