@@ -29,6 +29,10 @@ SplitBarPlotAtomic(
   palette = "Spectral",
   palcolor = NULL,
   palreverse = FALSE,
+  lower_quantile = 0,
+  upper_quantile = 0.99,
+  lower_cutoff = NULL,
+  upper_cutoff = NULL,
   facet_by = NULL,
   facet_scales = "free_y",
   facet_nrow = NULL,
@@ -164,6 +168,22 @@ SplitBarPlotAtomic(
 
   A logical value indicating whether to reverse the palette. Default is
   FALSE.
+
+- lower_quantile, upper_quantile:
+
+  Lower and upper quantiles for the continuous color/fill scale. The
+  actual cutoffs are determined by these quantiles when `lower_cutoff`
+  and `upper_cutoff` are `NULL`. Defaults: `lower_quantile = 0`,
+  `upper_quantile = 0.99`.
+
+- lower_cutoff, upper_cutoff:
+
+  Explicit lower and upper cutoffs for the continuous color/fill scale.
+  When `NULL` (the default), the cutoffs are determined by
+  `lower_quantile` and `upper_quantile` via
+  [`quantile`](https://rdrr.io/r/stats/quantile.html). Values outside
+  the `[lower_cutoff, upper_cutoff]` range are clamped (winsorized) to
+  the nearest cutoff value.
 
 - facet_by:
 

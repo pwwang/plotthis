@@ -34,6 +34,10 @@ BarPlotAtomic(
   palcolor = NULL,
   palreverse = FALSE,
   alpha = 1,
+  lower_quantile = 0,
+  upper_quantile = 0.99,
+  lower_cutoff = NULL,
+  upper_cutoff = NULL,
   x_text_angle = 0,
   aspect.ratio = 1,
   add_line = NULL,
@@ -199,6 +203,22 @@ BarPlotAtomic(
 - alpha:
 
   A numeric value specifying the transparency of the plot.
+
+- lower_quantile, upper_quantile:
+
+  Lower and upper quantiles for the continuous color/fill scale. The
+  actual cutoffs are determined by these quantiles when `lower_cutoff`
+  and `upper_cutoff` are `NULL`. Defaults: `lower_quantile = 0`,
+  `upper_quantile = 0.99`.
+
+- lower_cutoff, upper_cutoff:
+
+  Explicit lower and upper cutoffs for the continuous color/fill scale.
+  When `NULL` (the default), the cutoffs are determined by
+  `lower_quantile` and `upper_quantile` via
+  [`quantile`](https://rdrr.io/r/stats/quantile.html). Values outside
+  the `[lower_cutoff, upper_cutoff]` range are clamped (winsorized) to
+  the nearest cutoff value.
 
 - x_text_angle:
 

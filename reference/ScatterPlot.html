@@ -51,6 +51,10 @@
 <span>  size_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  color_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  color_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  lower_quantile <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  upper_quantile <span class="op">=</span> <span class="fl">0.99</span>,</span>
+<span>  lower_cutoff <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  upper_cutoff <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  palreverse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  split_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  split_by_sep <span class="op">=</span> <span class="st">"_"</span>,</span>
@@ -125,6 +129,19 @@ For shapes 21-25, the color is applied to the fill color.</p></dd>
 
 <dt id="arg-color-name">color_name<a class="anchor" aria-label="anchor" href="#arg-color-name"></a></dt>
 <dd><p>A character vector specifying the name for the color legend.</p></dd>
+
+
+<dt id="arg-lower-quantile-upper-quantile">lower_quantile, upper_quantile<a class="anchor" aria-label="anchor" href="#arg-lower-quantile-upper-quantile"></a></dt>
+<dd><p>Lower and upper quantiles for the continuous color/fill scale.
+The actual cutoffs are determined by these quantiles when <code>lower_cutoff</code> and
+<code>upper_cutoff</code> are <code>NULL</code>. Defaults: <code>lower_quantile = 0</code>, <code>upper_quantile = 0.99</code>.</p></dd>
+
+
+<dt id="arg-lower-cutoff-upper-cutoff">lower_cutoff, upper_cutoff<a class="anchor" aria-label="anchor" href="#arg-lower-cutoff-upper-cutoff"></a></dt>
+<dd><p>Explicit lower and upper cutoffs for the continuous color/fill scale.
+When <code>NULL</code> (the default), the cutoffs are determined by <code>lower_quantile</code> and
+<code>upper_quantile</code> via <code><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></code>. Values outside the
+<code>[lower_cutoff, upper_cutoff]</code> range are clamped (winsorized) to the nearest cutoff value.</p></dd>
 
 
 <dt id="arg-palreverse">palreverse<a class="anchor" aria-label="anchor" href="#arg-palreverse"></a></dt>
@@ -355,6 +372,14 @@ See <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.htm
 <span class="r-in"><span><span class="fu">ScatterPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, split_by <span class="op">=</span> <span class="st">"t"</span>,</span></span>
 <span class="r-in"><span>            palcolor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>A <span class="op">=</span> <span class="st">"blue"</span>, B <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="ScatterPlot-8.png" alt="" width="875" height="541"></span>
+<span class="r-in"><span><span class="co"># control color scale limits with quantiles</span></span></span>
+<span class="r-in"><span><span class="fu">ScatterPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, color_by <span class="op">=</span> <span class="st">"w"</span>,</span></span>
+<span class="r-in"><span>            lower_quantile <span class="op">=</span> <span class="fl">0.1</span>, upper_quantile <span class="op">=</span> <span class="fl">0.9</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="ScatterPlot-9.png" alt="" width="875" height="541"></span>
+<span class="r-in"><span><span class="co"># explicit cutoff values</span></span></span>
+<span class="r-in"><span><span class="fu">ScatterPlot</span><span class="op">(</span><span class="va">data</span>, x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>, color_by <span class="op">=</span> <span class="st">"w"</span>,</span></span>
+<span class="r-in"><span>            lower_cutoff <span class="op">=</span> <span class="fl">0</span>, upper_cutoff <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="ScatterPlot-10.png" alt="" width="875" height="541"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

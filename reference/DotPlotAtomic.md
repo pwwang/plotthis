@@ -30,6 +30,10 @@ DotPlotAtomic(
   border_color = "black",
   border_size = 0.5,
   border_alpha = 1,
+  lower_quantile = 0,
+  upper_quantile = 0.99,
+  lower_cutoff = NULL,
+  upper_cutoff = NULL,
   facet_by = NULL,
   facet_scales = "fixed",
   facet_ncol = NULL,
@@ -188,6 +192,22 @@ DotPlotAtomic(
 
   A numeric value specifying the transparency of the dot borders and
   lollipop bars. Default is 1.
+
+- lower_quantile, upper_quantile:
+
+  Lower and upper quantiles for the continuous color/fill scale. The
+  actual cutoffs are determined by these quantiles when `lower_cutoff`
+  and `upper_cutoff` are `NULL`. Defaults: `lower_quantile = 0`,
+  `upper_quantile = 0.99`.
+
+- lower_cutoff, upper_cutoff:
+
+  Explicit lower and upper cutoffs for the continuous color/fill scale.
+  When `NULL` (the default), the cutoffs are determined by
+  `lower_quantile` and `upper_quantile` via
+  [`quantile`](https://rdrr.io/r/stats/quantile.html). Values outside
+  the `[lower_cutoff, upper_cutoff]` range are clamped (winsorized) to
+  the nearest cutoff value.
 
 - facet_by:
 

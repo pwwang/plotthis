@@ -52,6 +52,10 @@ BarPlot(
   palcolor = NULL,
   palreverse = FALSE,
   alpha = 1,
+  lower_quantile = 0,
+  upper_quantile = 0.99,
+  lower_cutoff = NULL,
+  upper_cutoff = NULL,
   x_text_angle = 0,
   aspect.ratio = 1,
   y_min = NULL,
@@ -106,6 +110,10 @@ SplitBarPlot(
   palette = "Spectral",
   palcolor = NULL,
   palreverse = FALSE,
+  lower_quantile = 0,
+  upper_quantile = 0.99,
+  lower_cutoff = NULL,
+  upper_cutoff = NULL,
   facet_by = NULL,
   facet_scales = "free_y",
   facet_nrow = NULL,
@@ -160,6 +168,10 @@ WaterfallPlot(
   palette = "Spectral",
   palcolor = NULL,
   palreverse = FALSE,
+  lower_quantile = 0,
+  upper_quantile = 0.99,
+  lower_cutoff = NULL,
+  upper_cutoff = NULL,
   facet_by = NULL,
   facet_scales = "free_y",
   facet_nrow = NULL,
@@ -394,6 +406,22 @@ WaterfallPlot(
 - alpha:
 
   A numeric value specifying the transparency of the plot.
+
+- lower_quantile, upper_quantile:
+
+  Lower and upper quantiles for the continuous color/fill scale. The
+  actual cutoffs are determined by these quantiles when `lower_cutoff`
+  and `upper_cutoff` are `NULL`. Defaults: `lower_quantile = 0`,
+  `upper_quantile = 0.99`.
+
+- lower_cutoff, upper_cutoff:
+
+  Explicit lower and upper cutoffs for the continuous color/fill scale.
+  When `NULL` (the default), the cutoffs are determined by
+  `lower_quantile` and `upper_quantile` via
+  [`quantile`](https://rdrr.io/r/stats/quantile.html). Values outside
+  the `[lower_cutoff, upper_cutoff]` range are clamped (winsorized) to
+  the nearest cutoff value.
 
 - x_text_angle:
 
@@ -710,6 +738,13 @@ BarPlot(data, x = "group", flip = TRUE, ylab = "count")
 # Allow numeric fill_by
 BarPlot(data, x = "x", y = "y", fill_by = "y", flip = TRUE)
 
+# control fill color scale limits
+BarPlot(data, x = "x", y = "y", fill_by = "y", flip = TRUE,
+        lower_quantile = 0.1, upper_quantile = 0.9)
+
+BarPlot(data, x = "x", y = "y", fill_by = "y", flip = TRUE,
+        lower_cutoff = 5, upper_cutoff = 12)
+
 
 data <- data.frame(
     x = factor(c("A", "B", "C", "D", "E", "F", NA, "H"), levels = LETTERS[1:10]),
@@ -845,6 +880,10 @@ SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
 SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
     keep_na = list(word = FALSE), keep_empty = list(word = TRUE),
     title = "keep_na: word=FALSE; keep_empty: word=TRUE")
+
+# control fill color scale limits
+SplitBarPlot(data, x = "count", y = "word", fill_by = "score",
+             lower_cutoff = 1, upper_cutoff = 4)
 
 # }
 ```

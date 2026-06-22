@@ -154,10 +154,21 @@ DimPlotAtomic(
 
   A character vector of the column names to plot as features.
 
-- lower_quantile, upper_quantile, lower_cutoff, upper_cutoff:
+- lower_quantile, upper_quantile:
 
-  Vector of minimum and maximum cutoff values or quantile values for
-  each feature.
+  Lower and upper quantiles for the continuous color/fill scale. The
+  actual cutoffs are determined by these quantiles when `lower_cutoff`
+  and `upper_cutoff` are `NULL`. Defaults: `lower_quantile = 0`,
+  `upper_quantile = 0.99`.
+
+- lower_cutoff, upper_cutoff:
+
+  Explicit lower and upper cutoffs for the continuous color/fill scale.
+  When `NULL` (the default), the cutoffs are determined by
+  `lower_quantile` and `upper_quantile` via
+  [`quantile`](https://rdrr.io/r/stats/quantile.html). Values outside
+  the `[lower_cutoff, upper_cutoff]` range are clamped (winsorized) to
+  the nearest cutoff value.
 
 - pt_size:
 

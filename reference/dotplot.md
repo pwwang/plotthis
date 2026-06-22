@@ -39,6 +39,10 @@ DotPlot(
   border_color = "black",
   border_size = 0.5,
   border_alpha = 1,
+  lower_quantile = 0,
+  upper_quantile = 0.99,
+  lower_cutoff = NULL,
+  upper_cutoff = NULL,
   facet_by = NULL,
   facet_scales = "fixed",
   facet_ncol = NULL,
@@ -91,6 +95,10 @@ LollipopPlot(
   border_color = "black",
   border_size = 0.5,
   border_alpha = 1,
+  lower_quantile = 0,
+  upper_quantile = 0.99,
+  lower_cutoff = NULL,
+  upper_cutoff = NULL,
   facet_by = NULL,
   facet_scales = "fixed",
   facet_ncol = NULL,
@@ -278,6 +286,22 @@ LollipopPlot(
 
   A numeric value specifying the transparency of the dot borders and
   lollipop bars. Default is 1.
+
+- lower_quantile, upper_quantile:
+
+  Lower and upper quantiles for the continuous color/fill scale. The
+  actual cutoffs are determined by these quantiles when `lower_cutoff`
+  and `upper_cutoff` are `NULL`. Defaults: `lower_quantile = 0`,
+  `upper_quantile = 0.99`.
+
+- lower_cutoff, upper_cutoff:
+
+  Explicit lower and upper cutoffs for the continuous color/fill scale.
+  When `NULL` (the default), the cutoffs are determined by
+  `lower_quantile` and `upper_quantile` via
+  [`quantile`](https://rdrr.io/r/stats/quantile.html). Values outside
+  the `[lower_cutoff, upper_cutoff]` range are clamped (winsorized) to
+  the nearest cutoff value.
 
 - facet_by:
 
@@ -518,6 +542,14 @@ DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
 DotPlot(mtcars, x = "carb", y = "gear",
         fill_by = "mpg", border_color = FALSE)
 #> Warning: [DotPlot] Using the first value of fill_by.
+
+# control fill color scale limits with quantiles
+DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
+        fill_by = "mpg", lower_quantile = 0.05, upper_quantile = 0.95)
+
+# explicit cutoff values
+DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
+        fill_by = "mpg", lower_cutoff = 15, upper_cutoff = 25)
 
 # }
 LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",

@@ -190,8 +190,17 @@ A character/factor column is expected. If multiple columns are provided, the col
 <dd><p>A character vector of the column names to plot as features.</p></dd>
 
 
-<dt id="arg-lower-quantile-upper-quantile-lower-cutoff-upper-cutoff">lower_quantile, upper_quantile, lower_cutoff, upper_cutoff<a class="anchor" aria-label="anchor" href="#arg-lower-quantile-upper-quantile-lower-cutoff-upper-cutoff"></a></dt>
-<dd><p>Vector of minimum and maximum cutoff values or quantile values for each feature.</p></dd>
+<dt id="arg-lower-quantile-upper-quantile">lower_quantile, upper_quantile<a class="anchor" aria-label="anchor" href="#arg-lower-quantile-upper-quantile"></a></dt>
+<dd><p>Lower and upper quantiles for the continuous color/fill scale.
+The actual cutoffs are determined by these quantiles when <code>lower_cutoff</code> and
+<code>upper_cutoff</code> are <code>NULL</code>. Defaults: <code>lower_quantile = 0</code>, <code>upper_quantile = 0.99</code>.</p></dd>
+
+
+<dt id="arg-lower-cutoff-upper-cutoff">lower_cutoff, upper_cutoff<a class="anchor" aria-label="anchor" href="#arg-lower-cutoff-upper-cutoff"></a></dt>
+<dd><p>Explicit lower and upper cutoffs for the continuous color/fill scale.
+When <code>NULL</code> (the default), the cutoffs are determined by <code>lower_quantile</code> and
+<code>upper_quantile</code> via <code><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></code>. Values outside the
+<code>[lower_cutoff, upper_cutoff]</code> range are clamped (winsorized) to the nearest cutoff value.</p></dd>
 
 
 <dt id="arg-pt-size">pt_size<a class="anchor" aria-label="anchor" href="#arg-pt-size"></a></dt>

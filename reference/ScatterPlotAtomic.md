@@ -19,6 +19,10 @@ ScatterPlotAtomic(
   alpha = ifelse(shape %in% 21:25, 0.65, 1),
   shape = 21,
   border_color = "black",
+  lower_quantile = 0,
+  upper_quantile = 0.99,
+  lower_cutoff = NULL,
+  upper_cutoff = NULL,
   xtrans = "identity",
   ytrans = "identity",
   highlight = NULL,
@@ -107,6 +111,22 @@ ScatterPlotAtomic(
 
   A character vector specifying the color for the border of the points.
   Or TRUE to use the fill color as the border color.
+
+- lower_quantile, upper_quantile:
+
+  Lower and upper quantiles for the continuous color/fill scale. The
+  actual cutoffs are determined by these quantiles when `lower_cutoff`
+  and `upper_cutoff` are `NULL`. Defaults: `lower_quantile = 0`,
+  `upper_quantile = 0.99`.
+
+- lower_cutoff, upper_cutoff:
+
+  Explicit lower and upper cutoffs for the continuous color/fill scale.
+  When `NULL` (the default), the cutoffs are determined by
+  `lower_quantile` and `upper_quantile` via
+  [`quantile`](https://rdrr.io/r/stats/quantile.html). Values outside
+  the `[lower_cutoff, upper_cutoff]` range are clamped (winsorized) to
+  the nearest cutoff value.
 
 - xtrans:
 
