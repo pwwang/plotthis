@@ -137,7 +137,14 @@ A character/factor column is expected. If multiple columns are provided, the col
 
 \item{features}{A character vector of the column names to plot as features.}
 
-\item{lower_quantile, upper_quantile, lower_cutoff, upper_cutoff}{Vector of minimum and maximum cutoff values or quantile values for each feature.}
+\item{lower_quantile, upper_quantile}{Lower and upper quantiles for the continuous color/fill scale.
+The actual cutoffs are determined by these quantiles when \code{lower_cutoff} and
+\code{upper_cutoff} are \code{NULL}. Defaults: \code{lower_quantile = 0}, \code{upper_quantile = 0.99}.}
+
+\item{lower_cutoff, upper_cutoff}{Explicit lower and upper cutoffs for the continuous color/fill scale.
+When \code{NULL} (the default), the cutoffs are determined by \code{lower_quantile} and
+\code{upper_quantile} via \code{\link[stats]{quantile}}. Values outside the
+\code{[lower_cutoff, upper_cutoff]} range are clamped (winsorized) to the nearest cutoff value.}
 
 \item{pt_size}{A numeric value of the point size. If NULL, the point size will be calculated based on the number of data points.}
 

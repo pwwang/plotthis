@@ -478,7 +478,6 @@ DimPlotAtomic3D <- function(
 #'  Supported in 3D: group_by, features, labels, highlight, lineages, graph/network, show_stat, order.
 #'  Not supported in 3D: add_mark, stat_by, add_density, velocity, hex, facet_by, raster.
 #' @param features A character vector of the column names to plot as features.
-#' @param lower_quantile,upper_quantile,lower_cutoff,upper_cutoff Vector of minimum and maximum cutoff values or quantile values for each feature.
 #' @param group_by A character string of the column name to group the data.
 #'  A character/factor column is expected. If multiple columns are provided, the columns will be concatenated with `group_by_sep`.
 #' @param group_by_sep A character string to concatenate the columns in `group_by`, if multiple columns are provided.
@@ -869,44 +868,17 @@ DimPlotAtomic <- function(
         features <- ".value"
     }
     if (!is.null(features)) {
-        if (!is.null(bg_cutoff)) {
-            data[[features]][data[[features]] <= bg_cutoff] <- NA
-        }
-        if (all(is.na(data[[features]]))) {
-            feat_colors_value <- rep(0, 100)
-        } else {
-            lower_cutoff <- lower_cutoff %||%
-                quantile(
-                    data[[features]][is.finite(data[[features]])],
-                    lower_quantile,
-                    na.rm = TRUE
-                )
-            upper_cutoff <- upper_cutoff %||%
-                quantile(
-                    data[[features]][is.finite(data[[features]])],
-                    upper_quantile,
-                    na.rm = TRUE
-                )
-            if (upper_cutoff == lower_cutoff) {
-                if (upper_cutoff == 0) {
-                    upper_cutoff <- 1e-3
-                } else {
-                    upper_cutoff <- upper_cutoff + upper_cutoff * 1e-3
-                }
-            }
-
-            feat_colors_value <- seq(
-                lower_cutoff,
-                upper_cutoff,
-                length.out = 100
-            )
-        }
-        data[[features]][
-            data[[features]] > max(feat_colors_value, na.rm = TRUE)
-        ] <- max(feat_colors_value, na.rm = TRUE)
-        data[[features]][
-            data[[features]] < min(feat_colors_value, na.rm = TRUE)
-        ] <- min(feat_colors_value, na.rm = TRUE)
+        result <- prepare_continuous_color_scale(
+            data,
+            features,
+            lower_quantile = lower_quantile,
+            upper_quantile = upper_quantile,
+            lower_cutoff = lower_cutoff,
+            upper_cutoff = upper_cutoff,
+            bg_cutoff = bg_cutoff
+        )
+        data <- result$data
+        feat_colors_value <- result$feat_colors_value
     }
     colorby <- ifelse(is.null(features), group_by, features)
     if (order == "reverse") {

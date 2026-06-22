@@ -39,6 +39,13 @@
 #'   A named list can be used to specify the colors for different `split_by` values.
 #'   If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).
 #' @param palreverse A logical value indicating whether to reverse the palette. Default is FALSE.
+#' @param lower_quantile,upper_quantile Lower and upper quantiles for the continuous color/fill scale.
+#'   The actual cutoffs are determined by these quantiles when \code{lower_cutoff} and
+#'   \code{upper_cutoff} are \code{NULL}. Defaults: \code{lower_quantile = 0}, \code{upper_quantile = 0.99}.
+#' @param lower_cutoff,upper_cutoff Explicit lower and upper cutoffs for the continuous color/fill scale.
+#'   When \code{NULL} (the default), the cutoffs are determined by \code{lower_quantile} and
+#'   \code{upper_quantile} via \code{\link[stats]{quantile}}. Values outside the
+#'   \code{[lower_cutoff, upper_cutoff]} range are clamped (winsorized) to the nearest cutoff value.
 #' @param alpha A numeric value specifying the transparency of the plot.
 #' @param x_text_angle A numeric value specifying the angle of the x-axis text.
 #' @param aspect.ratio A numeric value specifying the aspect ratio of the plot.

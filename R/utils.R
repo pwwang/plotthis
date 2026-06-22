@@ -1274,3 +1274,77 @@ do_call <- function(what, args, quote = FALSE, envir = parent.frame()) {
 
     eval(call, envir = args, enclos = envir)
 }
+
+#' Prepare continuous color scale limits with quantile/cutoff controls
+#'
+#' Computes the lower and upper cutoffs for a continuous color/fill scale,
+#' applies data winsorization (clamping), and returns the results needed
+#' by \code{\link[ggplot2]{scale_fill_gradientn}} or
+#' \code{\link[ggplot2]{scale_color_gradientn}}.
+#'
+#' @inheritParams common_args
+#' @param data A data frame.
+#' @param column The column name in \code{data} to use for the color scale.
+#' @param bg_cutoff Optional numeric cutoff — values \code{<= bg_cutoff} are
+#'   set to \code{NA} before computing cutoffs. Default is \code{NULL}.
+#' @return A list with components:
+#'   \item{data}{The modified data frame (with winsorized \code{column}).}
+#'   \item{feat_colors_value}{Numeric vector of 100 evenly-spaced values from
+#'     \code{lower_cutoff} to \code{upper_cutoff}.}
+#'   \item{limits}{Numeric vector of length 2 giving the range
+#'     \code{c(lower_cutoff, upper_cutoff)}.}
+#' @keywords internal
+#' @importFrom stats quantile
+prepare_continuous_color_scale <- function(
+    data,
+    column,
+    lower_quantile = 0,
+    upper_quantile = 0.99,
+    lower_cutoff = NULL,
+    upper_cutoff = NULL,
+    bg_cutoff = NULL
+) {
+    if (!is.null(bg_cutoff)) {
+        data[[column]][data[[column]] <= bg_cutoff] <- NA
+    }
+    if (all(is.na(data[[column]]))) {
+        feat_colors_value <- rep(0, 100)
+    } else {
+        lower_cutoff <- lower_cutoff %||%
+            quantile(
+                data[[column]][is.finite(data[[column]])],
+                lower_quantile,
+                na.rm = TRUE
+            )
+        upper_cutoff <- upper_cutoff %||%
+            quantile(
+                data[[column]][is.finite(data[[column]])],
+                upper_quantile,
+                na.rm = TRUE
+            )
+        if (upper_cutoff == lower_cutoff) {
+            if (upper_cutoff == 0) {
+                upper_cutoff <- 1e-3
+            } else {
+                upper_cutoff <- upper_cutoff + upper_cutoff * 1e-3
+            }
+        }
+        feat_colors_value <- seq(
+            lower_cutoff,
+            upper_cutoff,
+            length.out = 100
+        )
+    }
+    data[[column]][
+        data[[column]] > max(feat_colors_value, na.rm = TRUE)
+    ] <- max(feat_colors_value, na.rm = TRUE)
+    data[[column]][
+        data[[column]] < min(feat_colors_value, na.rm = TRUE)
+    ] <- min(feat_colors_value, na.rm = TRUE)
+
+    list(
+        data = data,
+        feat_colors_value = feat_colors_value,
+        limits = range(feat_colors_value)
+    )
+}
