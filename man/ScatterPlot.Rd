@@ -12,6 +12,10 @@ ScatterPlot(
   size_name = NULL,
   color_by = NULL,
   color_name = NULL,
+  lower_quantile = 0,
+  upper_quantile = 0.99,
+  lower_cutoff = NULL,
+  upper_cutoff = NULL,
   palreverse = FALSE,
   split_by = NULL,
   split_by_sep = "_",
@@ -69,6 +73,15 @@ It could be a numeric column or a factor/character column.
 For shapes 21-25, the color is applied to the fill color.}
 
 \item{color_name}{A character vector specifying the name for the color legend.}
+
+\item{lower_quantile, upper_quantile}{Lower and upper quantiles for the continuous color/fill scale.
+The actual cutoffs are determined by these quantiles when \code{lower_cutoff} and
+\code{upper_cutoff} are \code{NULL}. Defaults: \code{lower_quantile = 0}, \code{upper_quantile = 0.99}.}
+
+\item{lower_cutoff, upper_cutoff}{Explicit lower and upper cutoffs for the continuous color/fill scale.
+When \code{NULL} (the default), the cutoffs are determined by \code{lower_quantile} and
+\code{upper_quantile} via \code{\link[stats]{quantile}}. Values outside the
+\code{[lower_cutoff, upper_cutoff]} range are clamped (winsorized) to the nearest cutoff value.}
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
@@ -222,4 +235,10 @@ ScatterPlot(data, x = "x", y = "y", size_by = "w", color_by = "t",
 # Change color per plot
 ScatterPlot(data, x = "x", y = "y", split_by = "t",
             palcolor = list(A = "blue", B = "red"))
+# control color scale limits with quantiles
+ScatterPlot(data, x = "x", y = "y", color_by = "w",
+            lower_quantile = 0.1, upper_quantile = 0.9)
+# explicit cutoff values
+ScatterPlot(data, x = "x", y = "y", color_by = "w",
+            lower_cutoff = 0, upper_cutoff = 1)
 }

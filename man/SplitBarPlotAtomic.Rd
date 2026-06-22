@@ -28,6 +28,10 @@ SplitBarPlotAtomic(
   palette = "Spectral",
   palcolor = NULL,
   palreverse = FALSE,
+  lower_quantile = 0,
+  upper_quantile = 0.99,
+  lower_cutoff = NULL,
+  upper_cutoff = NULL,
   facet_by = NULL,
   facet_scales = "free_y",
   facet_nrow = NULL,
@@ -104,6 +108,15 @@ A named list can be used to specify the colors for different \code{split_by} val
 If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).}
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
+
+\item{lower_quantile, upper_quantile}{Lower and upper quantiles for the continuous color/fill scale.
+The actual cutoffs are determined by these quantiles when \code{lower_cutoff} and
+\code{upper_cutoff} are \code{NULL}. Defaults: \code{lower_quantile = 0}, \code{upper_quantile = 0.99}.}
+
+\item{lower_cutoff, upper_cutoff}{Explicit lower and upper cutoffs for the continuous color/fill scale.
+When \code{NULL} (the default), the cutoffs are determined by \code{lower_quantile} and
+\code{upper_quantile} via \code{\link[stats]{quantile}}. Values outside the
+\code{[lower_cutoff, upper_cutoff]} range are clamped (winsorized) to the nearest cutoff value.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots

@@ -124,3 +124,26 @@ test_that("SplitBarPlot returns a ggplot", {
     p <- SplitBarPlot(wf_data, x = "x", y = "y")
     expect_s3_class(p, "ggplot")
 })
+
+test_that("BarPlot with numeric fill_by and quantile works", {
+    p <- BarPlot(data, x = "x", y = "y", fill_by = "y",
+        lower_quantile = 0.1, upper_quantile = 0.9)
+    expect_s3_class(p, "ggplot")
+})
+
+test_that("BarPlot with numeric fill_by and explicit cutoffs works", {
+    p <- BarPlot(data, x = "x", y = "y", fill_by = "y",
+        lower_cutoff = -0.5, upper_cutoff = 0.5)
+    expect_s3_class(p, "ggplot")
+})
+
+test_that("SplitBarPlot with quantile works", {
+    wf_data <- data.frame(
+        x = c(0.5, -0.3, 0.8, -1.2, 0.4),
+        y = c("GeneA", "GeneB", "GeneC", "GeneD", "GeneE"),
+        score = c(1, 2, 3, 4, 5)
+    )
+    p <- SplitBarPlot(wf_data, x = "x", y = "y", fill_by = "score",
+        lower_quantile = 0.1, upper_quantile = 0.9)
+    expect_s3_class(p, "ggplot")
+})

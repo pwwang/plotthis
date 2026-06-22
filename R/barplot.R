@@ -36,6 +36,7 @@
 #' @importFrom ggplot2 aes geom_bar geom_text scale_fill_manual labs scale_x_discrete scale_y_continuous guide_legend guide_colorbar
 #' @importFrom ggplot2 element_line waiver coord_flip scale_color_manual guide_legend coord_cartesian
 #' @importFrom ggrepel geom_text_repel
+#' @importFrom scales rescale
 BarPlotSingle <- function(
     data,
     x,
@@ -60,6 +61,10 @@ BarPlotSingle <- function(
     palcolor = NULL,
     palreverse = FALSE,
     alpha = 1,
+    lower_quantile = 0,
+    upper_quantile = 0.99,
+    lower_cutoff = NULL,
+    upper_cutoff = NULL,
     x_text_angle = 0,
     aspect.ratio = 1,
     y_min = NULL,
@@ -196,6 +201,20 @@ BarPlotSingle <- function(
         )
     }
 
+    feat_colors_value <- NULL
+    if (fill_is_numeric) {
+        result <- prepare_continuous_color_scale(
+            data,
+            fill_by,
+            lower_quantile = lower_quantile,
+            upper_quantile = upper_quantile,
+            lower_cutoff = lower_cutoff,
+            upper_cutoff = upper_cutoff
+        )
+        data <- result$data
+        feat_colors_value <- result$feat_colors_value
+    }
+
     p <- ggplot(data, aes(x = !!sym(x), y = !!sym(y), fill = !!sym(fill_by)))
 
     if (isTRUE(add_bg)) {
@@ -302,6 +321,16 @@ BarPlotSingle <- function(
                 name = fill_name %||% fill_by,
                 colors = colors,
                 n.breaks = 3,
+                values = if (!is.null(feat_colors_value)) {
+                    scales::rescale(feat_colors_value)
+                } else {
+                    waiver()
+                },
+                limits = if (!is.null(feat_colors_value)) {
+                    range(feat_colors_value)
+                } else {
+                    NULL
+                },
                 guide = fill_guide
             )
     }
@@ -836,6 +865,10 @@ BarPlotAtomic <- function(
     palcolor = NULL,
     palreverse = FALSE,
     alpha = 1,
+    lower_quantile = 0,
+    upper_quantile = 0.99,
+    lower_cutoff = NULL,
+    upper_cutoff = NULL,
     x_text_angle = 0,
     aspect.ratio = 1,
     add_line = NULL,
@@ -891,6 +924,10 @@ BarPlotAtomic <- function(
             palcolor = palcolor,
             palreverse = palreverse,
             alpha = alpha,
+            lower_quantile = lower_quantile,
+            upper_quantile = upper_quantile,
+            lower_cutoff = lower_cutoff,
+            upper_cutoff = upper_cutoff,
             x_text_angle = x_text_angle,
             aspect.ratio = aspect.ratio,
             add_bg = add_bg,
@@ -1062,6 +1099,11 @@ BarPlotAtomic <- function(
 #' BarPlot(data, x = "group", flip = TRUE, ylab = "count")
 #' # Allow numeric fill_by
 #' BarPlot(data, x = "x", y = "y", fill_by = "y", flip = TRUE)
+#' # control fill color scale limits
+#' BarPlot(data, x = "x", y = "y", fill_by = "y", flip = TRUE,
+#'         lower_quantile = 0.1, upper_quantile = 0.9)
+#' BarPlot(data, x = "x", y = "y", fill_by = "y", flip = TRUE,
+#'         lower_cutoff = 5, upper_cutoff = 12)
 #'
 #' data <- data.frame(
 #'     x = factor(c("A", "B", "C", "D", "E", "F", NA, "H"), levels = LETTERS[1:10]),
@@ -1158,6 +1200,10 @@ BarPlot <- function(
     palcolor = NULL,
     palreverse = FALSE,
     alpha = 1,
+    lower_quantile = 0,
+    upper_quantile = 0.99,
+    lower_cutoff = NULL,
+    upper_cutoff = NULL,
     x_text_angle = 0,
     aspect.ratio = 1,
     y_min = NULL,
@@ -1260,6 +1306,10 @@ BarPlot <- function(
                 palcolor = palcolor[[nm]],
                 palreverse = palreverse,
                 alpha = alpha,
+                lower_quantile = lower_quantile,
+                upper_quantile = upper_quantile,
+                lower_cutoff = lower_cutoff,
+                upper_cutoff = upper_cutoff,
                 add_bg = add_bg,
                 bg_palette = bg_palette,
                 bg_palcolor = bg_palcolor,
@@ -1352,6 +1402,7 @@ BarPlot <- function(
 #' @importFrom dplyr .data
 #' @importFrom ggplot2 aes geom_vline geom_col geom_text scale_fill_manual labs scale_y_discrete position_nudge scale_alpha_continuous
 #' @importFrom ggplot2 scale_alpha_continuous guide_none guide_legend
+#' @importFrom scales rescale
 SplitBarPlotAtomic <- function(
     data,
     x,
@@ -1379,6 +1430,10 @@ SplitBarPlotAtomic <- function(
     palette = "Spectral",
     palcolor = NULL,
     palreverse = FALSE,
+    lower_quantile = 0,
+    upper_quantile = 0.99,
+    lower_cutoff = NULL,
+    upper_cutoff = NULL,
     facet_by = NULL,
     facet_scales = "free_y",
     facet_nrow = NULL,
@@ -1434,6 +1489,20 @@ SplitBarPlotAtomic <- function(
             concat_multi = TRUE,
             concat_sep = fill_by_sep
         )
+    }
+
+    feat_colors_value <- NULL
+    if (fill_by_numeric) {
+        result <- prepare_continuous_color_scale(
+            data,
+            fill_by,
+            lower_quantile = lower_quantile,
+            upper_quantile = upper_quantile,
+            lower_cutoff = lower_cutoff,
+            upper_cutoff = upper_cutoff
+        )
+        data <- result$data
+        feat_colors_value <- result$feat_colors_value
     }
 
     alpha_by <- check_columns(data, alpha_by)
@@ -1657,6 +1726,16 @@ SplitBarPlotAtomic <- function(
                     palcolor = palcolor,
                     reverse = palreverse
                 ),
+                values = if (!is.null(feat_colors_value)) {
+                    scales::rescale(feat_colors_value)
+                } else {
+                    waiver()
+                },
+                limits = if (!is.null(feat_colors_value)) {
+                    range(feat_colors_value)
+                } else {
+                    NULL
+                },
                 na.value = "grey80",
                 guide = guide_colorbar(
                     frame.colour = "black",
@@ -1821,6 +1900,9 @@ SplitBarPlotAtomic <- function(
 #' SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
 #'     keep_na = list(word = FALSE), keep_empty = list(word = TRUE),
 #'     title = "keep_na: word=FALSE; keep_empty: word=TRUE")
+#' # control fill color scale limits
+#' SplitBarPlot(data, x = "count", y = "word", fill_by = "score",
+#'              lower_cutoff = 1, upper_cutoff = 4)
 #' }
 SplitBarPlot <- function(
     data,
@@ -1851,6 +1933,10 @@ SplitBarPlot <- function(
     palette = "Spectral",
     palcolor = NULL,
     palreverse = FALSE,
+    lower_quantile = 0,
+    upper_quantile = 0.99,
+    lower_cutoff = NULL,
+    upper_cutoff = NULL,
     facet_by = NULL,
     facet_scales = "free_y",
     facet_nrow = NULL,
@@ -1957,6 +2043,10 @@ SplitBarPlot <- function(
                 palette = palette[[nm]],
                 palcolor = palcolor[[nm]],
                 palreverse = palreverse,
+                lower_quantile = lower_quantile,
+                upper_quantile = upper_quantile,
+                lower_cutoff = lower_cutoff,
+                upper_cutoff = upper_cutoff,
                 facet_by = facet_by,
                 facet_scales = facet_scales,
                 facet_nrow = facet_nrow,

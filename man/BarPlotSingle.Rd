@@ -28,6 +28,10 @@ BarPlotSingle(
   palcolor = NULL,
   palreverse = FALSE,
   alpha = 1,
+  lower_quantile = 0,
+  upper_quantile = 0.99,
+  lower_cutoff = NULL,
+  upper_cutoff = NULL,
   x_text_angle = 0,
   aspect.ratio = 1,
   y_min = NULL,
@@ -104,6 +108,15 @@ If some values are missing, the values from the palette will be used (palcolor w
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
 \item{alpha}{A numeric value specifying the transparency of the plot.}
+
+\item{lower_quantile, upper_quantile}{Lower and upper quantiles for the continuous color/fill scale.
+The actual cutoffs are determined by these quantiles when \code{lower_cutoff} and
+\code{upper_cutoff} are \code{NULL}. Defaults: \code{lower_quantile = 0}, \code{upper_quantile = 0.99}.}
+
+\item{lower_cutoff, upper_cutoff}{Explicit lower and upper cutoffs for the continuous color/fill scale.
+When \code{NULL} (the default), the cutoffs are determined by \code{lower_quantile} and
+\code{upper_quantile} via \code{\link[stats]{quantile}}. Values outside the
+\code{[lower_cutoff, upper_cutoff]} range are clamped (winsorized) to the nearest cutoff value.}
 
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
 

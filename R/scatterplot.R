@@ -30,7 +30,8 @@
 #' @importFrom utils getFromNamespace
 #' @importFrom dplyr filter
 #' @importFrom ggplot2 aes geom_point scale_size_area scale_fill_gradientn scale_color_gradientn labs
-#' @importFrom ggplot2 guide_colorbar guide_legend guides guide_none scale_size
+#' @importFrom ggplot2 guide_colorbar guide_legend guides guide_none scale_size waiver
+#' @importFrom scales rescale
 ScatterPlotAtomic <- function(
     data,
     x,
@@ -45,6 +46,10 @@ ScatterPlotAtomic <- function(
     alpha = ifelse(shape %in% 21:25, 0.65, 1),
     shape = 21,
     border_color = "black",
+    lower_quantile = 0,
+    upper_quantile = 0.99,
+    lower_cutoff = NULL,
+    upper_cutoff = NULL,
     xtrans = "identity",
     ytrans = "identity",
     highlight = NULL,
@@ -96,6 +101,20 @@ ScatterPlotAtomic <- function(
     }
     if (!is.numeric(data[[color_by]])) {
         color_by <- check_columns(data, color_by, force_factor = TRUE)
+    }
+
+    feat_colors_value <- NULL
+    if (!is.null(color_by) && is.numeric(data[[color_by]])) {
+        result <- prepare_continuous_color_scale(
+            data,
+            color_by,
+            lower_quantile = lower_quantile,
+            upper_quantile = upper_quantile,
+            lower_cutoff = lower_cutoff,
+            upper_cutoff = upper_cutoff
+        )
+        data <- result$data
+        feat_colors_value <- result$feat_colors_value
     }
 
     hidata <- NULL
@@ -164,6 +183,16 @@ ScatterPlotAtomic <- function(
                         reverse = palreverse,
                         alpha = alpha
                     ),
+                    values = if (!is.null(feat_colors_value)) {
+                        scales::rescale(feat_colors_value)
+                    } else {
+                        waiver()
+                    },
+                    limits = if (!is.null(feat_colors_value)) {
+                        range(feat_colors_value)
+                    } else {
+                        NULL
+                    },
                     na.value = "grey80",
                     guide = if (isTRUE(border_color) || isFALSE(color_legend)) {
                         # legend for border color will be added later
@@ -188,6 +217,16 @@ ScatterPlotAtomic <- function(
                             palcolor = palcolor,
                             reverse = palreverse
                         ),
+                        values = if (!is.null(feat_colors_value)) {
+                            scales::rescale(feat_colors_value)
+                        } else {
+                            waiver()
+                        },
+                        limits = if (!is.null(feat_colors_value)) {
+                            range(feat_colors_value)
+                        } else {
+                            NULL
+                        },
                         na.value = "grey80",
                         guide = if (
                             isTRUE(border_color) && isTRUE(color_legend)
@@ -262,6 +301,16 @@ ScatterPlotAtomic <- function(
                         reverse = palreverse,
                         alpha = alpha
                     ),
+                    values = if (!is.null(feat_colors_value)) {
+                        scales::rescale(feat_colors_value)
+                    } else {
+                        waiver()
+                    },
+                    limits = if (!is.null(feat_colors_value)) {
+                        range(feat_colors_value)
+                    } else {
+                        NULL
+                    },
                     na.value = "grey80",
                     guide = if (isTRUE(color_legend)) {
                         guide_colorbar(
@@ -414,6 +463,12 @@ ScatterPlotAtomic <- function(
 #' # Change color per plot
 #' ScatterPlot(data, x = "x", y = "y", split_by = "t",
 #'             palcolor = list(A = "blue", B = "red"))
+#' # control color scale limits with quantiles
+#' ScatterPlot(data, x = "x", y = "y", color_by = "w",
+#'             lower_quantile = 0.1, upper_quantile = 0.9)
+#' # explicit cutoff values
+#' ScatterPlot(data, x = "x", y = "y", color_by = "w",
+#'             lower_cutoff = 0, upper_cutoff = 1)
 ScatterPlot <- function(
     data,
     x,
@@ -422,6 +477,10 @@ ScatterPlot <- function(
     size_name = NULL,
     color_by = NULL,
     color_name = NULL,
+    lower_quantile = 0,
+    upper_quantile = 0.99,
+    lower_cutoff = NULL,
+    upper_cutoff = NULL,
     palreverse = FALSE,
     split_by = NULL,
     split_by_sep = "_",
@@ -523,6 +582,10 @@ ScatterPlot <- function(
                 highlight_color = highlight_color,
                 highlight_alpha = highlight_alpha,
                 color_name = color_name,
+                lower_quantile = lower_quantile,
+                upper_quantile = upper_quantile,
+                lower_cutoff = lower_cutoff,
+                upper_cutoff = upper_cutoff,
                 palreverse = palreverse,
                 theme = theme,
                 theme_args = theme_args,

@@ -50,7 +50,8 @@
 #' @importFrom ggplot2 geom_point scale_y_discrete scale_size_area scale_fill_gradientn scale_color_gradientn labs
 #' @importFrom ggplot2 coord_flip guide_colorbar guide_legend guides guide_none scale_size geom_segment
 #' @importFrom ggnewscale new_scale_color
-#' @importFrom scales alpha
+#' @importFrom scales alpha rescale
+#' @importFrom ggplot2 waiver
 DotPlotAtomic <- function(
     data,
     x,
@@ -76,6 +77,10 @@ DotPlotAtomic <- function(
     border_color = "black",
     border_size = 0.5,
     border_alpha = 1,
+    lower_quantile = 0,
+    upper_quantile = 0.99,
+    lower_cutoff = NULL,
+    upper_cutoff = NULL,
     facet_by = NULL,
     facet_scales = "fixed",
     facet_ncol = NULL,
@@ -201,7 +206,11 @@ DotPlotAtomic <- function(
         if (is.numeric(fill_cutoff)) {
             fill_cutoff <- paste("<", fill_cutoff)
         }
-        if (!is.character(fill_cutoff) || length(fill_cutoff) != 1 || is.na(fill_cutoff)) {
+        if (
+            !is.character(fill_cutoff) ||
+                length(fill_cutoff) != 1 ||
+                is.na(fill_cutoff)
+        ) {
             stop(
                 "[DotPlot/LollipopPlot] 'fill_cutoff' must be a string like '< 18' or '> 18'."
             )
@@ -224,11 +233,20 @@ DotPlotAtomic <- function(
             )
         }
         fill_cutoff_label <- paste0(fill_by, " ", fill_cutoff)
-        switch(cutoff_op,
-            "<" = { data[[fill_by]][data[[fill_by]] < cutoff_val] <- NA },
-            "<=" = { data[[fill_by]][data[[fill_by]] <= cutoff_val] <- NA },
-            ">" = { data[[fill_by]][data[[fill_by]] > cutoff_val] <- NA },
-            ">=" = { data[[fill_by]][data[[fill_by]] >= cutoff_val] <- NA }
+        switch(
+            cutoff_op,
+            "<" = {
+                data[[fill_by]][data[[fill_by]] < cutoff_val] <- NA
+            },
+            "<=" = {
+                data[[fill_by]][data[[fill_by]] <= cutoff_val] <- NA
+            },
+            ">" = {
+                data[[fill_by]][data[[fill_by]] > cutoff_val] <- NA
+            },
+            ">=" = {
+                data[[fill_by]][data[[fill_by]] >= cutoff_val] <- NA
+            }
         )
     }
     if (is.null(fill_by)) {
@@ -237,6 +255,20 @@ DotPlotAtomic <- function(
         fill_legend <- FALSE
     } else {
         fill_legend <- TRUE
+    }
+
+    feat_colors_value <- NULL
+    if (!is.null(fill_by) && is.numeric(data[[fill_by]])) {
+        result <- prepare_continuous_color_scale(
+            data,
+            fill_by,
+            lower_quantile = lower_quantile,
+            upper_quantile = upper_quantile,
+            lower_cutoff = lower_cutoff,
+            upper_cutoff = upper_cutoff
+        )
+        data <- result$data
+        feat_colors_value <- result$feat_colors_value
     }
 
     just <- calc_just(x_text_angle)
@@ -323,6 +355,16 @@ DotPlotAtomic <- function(
                     reverse = palreverse,
                     alpha = border_alpha
                 ),
+                values = if (!is.null(feat_colors_value)) {
+                    scales::rescale(feat_colors_value)
+                } else {
+                    waiver()
+                },
+                limits = if (!is.null(feat_colors_value)) {
+                    range(feat_colors_value)
+                } else {
+                    NULL
+                },
                 na.value = "grey80",
                 guide = "none"
             ) +
@@ -402,6 +444,16 @@ DotPlotAtomic <- function(
                 palcolor = palcolor,
                 reverse = palreverse
             ),
+            values = if (!is.null(feat_colors_value)) {
+                scales::rescale(feat_colors_value)
+            } else {
+                waiver()
+            },
+            limits = if (!is.null(feat_colors_value)) {
+                range(feat_colors_value)
+            } else {
+                NULL
+            },
             na.value = "grey80",
             guide = if (isTRUE(fill_legend)) {
                 guide_colorbar(
@@ -444,6 +496,16 @@ DotPlotAtomic <- function(
                     reverse = palreverse,
                     alpha = border_alpha
                 ),
+                values = if (!is.null(feat_colors_value)) {
+                    scales::rescale(feat_colors_value)
+                } else {
+                    waiver()
+                },
+                limits = if (!is.null(feat_colors_value)) {
+                    range(feat_colors_value)
+                } else {
+                    NULL
+                },
                 na.value = "grey80",
                 guide = "none"
             )
@@ -655,6 +717,12 @@ DotPlotAtomic <- function(
 #' # border_color = FALSE means no border
 #' DotPlot(mtcars, x = "carb", y = "gear",
 #'         fill_by = "mpg", border_color = FALSE)
+#' # control fill color scale limits with quantiles
+#' DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
+#'         fill_by = "mpg", lower_quantile = 0.05, upper_quantile = 0.95)
+#' # explicit cutoff values
+#' DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
+#'         fill_by = "mpg", lower_cutoff = 15, upper_cutoff = 25)
 #' }
 DotPlot <- function(
     data,
@@ -687,6 +755,10 @@ DotPlot <- function(
     border_color = "black",
     border_size = 0.5,
     border_alpha = 1,
+    lower_quantile = 0,
+    upper_quantile = 0.99,
+    lower_cutoff = NULL,
+    upper_cutoff = NULL,
     facet_by = NULL,
     facet_scales = "fixed",
     facet_ncol = NULL,
@@ -789,6 +861,10 @@ DotPlot <- function(
                 border_color = border_color,
                 border_size = border_size,
                 border_alpha = border_alpha,
+                lower_quantile = lower_quantile,
+                upper_quantile = upper_quantile,
+                lower_cutoff = lower_cutoff,
+                upper_cutoff = upper_cutoff,
                 facet_by = facet_by,
                 facet_scales = facet_scales,
                 facet_ncol = facet_ncol,
@@ -884,6 +960,10 @@ LollipopPlot <- function(
     border_color = "black",
     border_size = 0.5,
     border_alpha = 1,
+    lower_quantile = 0,
+    upper_quantile = 0.99,
+    lower_cutoff = NULL,
+    upper_cutoff = NULL,
     facet_by = NULL,
     facet_scales = "fixed",
     facet_ncol = NULL,
@@ -985,6 +1065,10 @@ LollipopPlot <- function(
                 border_color = border_color,
                 border_size = border_size,
                 border_alpha = border_alpha,
+                lower_quantile = lower_quantile,
+                upper_quantile = upper_quantile,
+                lower_cutoff = lower_cutoff,
+                upper_cutoff = upper_cutoff,
                 facet_by = facet_by,
                 facet_scales = facet_scales,
                 facet_ncol = facet_ncol,

@@ -63,3 +63,26 @@ test_that("DotPlot width/height attributes are numeric", {
     expect_true(is.numeric(attr(p, "width")))
     expect_true(is.numeric(attr(p, "height")))
 })
+
+test_that("DotPlot with lower/upper quantile works", {
+    p <- suppressWarnings(DotPlot(data, x = "gene", y = "celltype", fill_by = "expression",
+                 lower_quantile = 0.1, upper_quantile = 0.9))
+    expect_s3_class(p, "ggplot")
+})
+
+test_that("DotPlot with explicit cutoffs works", {
+    p <- suppressWarnings(DotPlot(data, x = "gene", y = "celltype", fill_by = "expression",
+                 lower_cutoff = 0, upper_cutoff = 5))
+    expect_s3_class(p, "ggplot")
+})
+
+test_that("DotPlot quantile/cutoff works with lollipop", {
+    data_lolli <- data.frame(
+        expression = c(0.1, 0.5, 0.8, 1.2, 2.0),
+        celltype = paste0("CellType", 1:5)
+    )
+    p <- suppressWarnings(LollipopPlot(data_lolli, x = "expression", y = "celltype",
+        fill_by = "expression",
+        lower_quantile = 0, upper_quantile = 0.95))
+    expect_s3_class(p, "ggplot")
+})

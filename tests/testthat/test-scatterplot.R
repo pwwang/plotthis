@@ -84,3 +84,21 @@ test_that("ScatterPlot works with alpha", {
     p <- ScatterPlot(data, x = "x", y = "y", alpha = 0.5)
     expect_s3_class(p, "ggplot")
 })
+
+test_that("ScatterPlot with lower/upper quantile works", {
+    p <- ScatterPlot(data, x = "x", y = "y", color_by = "color_num",
+        lower_quantile = 0.1, upper_quantile = 0.9)
+    expect_s3_class(p, "ggplot")
+})
+
+test_that("ScatterPlot with explicit cutoffs works", {
+    p <- ScatterPlot(data, x = "x", y = "y", color_by = "color_num",
+        lower_cutoff = -1, upper_cutoff = 1)
+    expect_s3_class(p, "ggplot")
+})
+
+test_that("ScatterPlot quantile/cutoff works with border_color = TRUE", {
+    p <- ScatterPlot(data, x = "x", y = "y", color_by = "color_num",
+        border_color = TRUE, lower_quantile = 0.05, upper_quantile = 0.95)
+    expect_s3_class(p, "ggplot")
+})

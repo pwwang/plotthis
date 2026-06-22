@@ -36,6 +36,10 @@ DotPlot(
   border_color = "black",
   border_size = 0.5,
   border_alpha = 1,
+  lower_quantile = 0,
+  upper_quantile = 0.99,
+  lower_cutoff = NULL,
+  upper_cutoff = NULL,
   facet_by = NULL,
   facet_scales = "fixed",
   facet_ncol = NULL,
@@ -88,6 +92,10 @@ LollipopPlot(
   border_color = "black",
   border_size = 0.5,
   border_alpha = 1,
+  lower_quantile = 0,
+  upper_quantile = 0.99,
+  lower_cutoff = NULL,
+  upper_cutoff = NULL,
   facet_by = NULL,
   facet_scales = "fixed",
   facet_ncol = NULL,
@@ -199,6 +207,15 @@ and the linewidth of the lollipop bars. Default is 0.5.}
 
 \item{border_alpha}{A numeric value specifying the transparency of the dot borders
 and lollipop bars. Default is 1.}
+
+\item{lower_quantile, upper_quantile}{Lower and upper quantiles for the continuous color/fill scale.
+The actual cutoffs are determined by these quantiles when \code{lower_cutoff} and
+\code{upper_cutoff} are \code{NULL}. Defaults: \code{lower_quantile = 0}, \code{upper_quantile = 0.99}.}
+
+\item{lower_cutoff, upper_cutoff}{Explicit lower and upper cutoffs for the continuous color/fill scale.
+When \code{NULL} (the default), the cutoffs are determined by \code{lower_quantile} and
+\code{upper_quantile} via \code{\link[stats]{quantile}}. Values outside the
+\code{[lower_cutoff, upper_cutoff]} range are clamped (winsorized) to the nearest cutoff value.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
@@ -351,6 +368,12 @@ DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
 # border_color = FALSE means no border
 DotPlot(mtcars, x = "carb", y = "gear",
         fill_by = "mpg", border_color = FALSE)
+# control fill color scale limits with quantiles
+DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
+        fill_by = "mpg", lower_quantile = 0.05, upper_quantile = 0.95)
+# explicit cutoff values
+DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
+        fill_by = "mpg", lower_cutoff = 15, upper_cutoff = 25)
 }
 LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
              fill_by = "mpg")

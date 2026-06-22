@@ -18,6 +18,10 @@ ScatterPlotAtomic(
   alpha = ifelse(shape \%in\% 21:25, 0.65, 1),
   shape = 21,
   border_color = "black",
+  lower_quantile = 0,
+  upper_quantile = 0.99,
+  lower_cutoff = NULL,
+  upper_cutoff = NULL,
   xtrans = "identity",
   ytrans = "identity",
   highlight = NULL,
@@ -77,6 +81,15 @@ For shapes 21-25, the transparency is applied to the fill color.}
 
 \item{border_color}{A character vector specifying the color for the border of the points.
 Or TRUE to use the fill color as the border color.}
+
+\item{lower_quantile, upper_quantile}{Lower and upper quantiles for the continuous color/fill scale.
+The actual cutoffs are determined by these quantiles when \code{lower_cutoff} and
+\code{upper_cutoff} are \code{NULL}. Defaults: \code{lower_quantile = 0}, \code{upper_quantile = 0.99}.}
+
+\item{lower_cutoff, upper_cutoff}{Explicit lower and upper cutoffs for the continuous color/fill scale.
+When \code{NULL} (the default), the cutoffs are determined by \code{lower_quantile} and
+\code{upper_quantile} via \code{\link[stats]{quantile}}. Values outside the
+\code{[lower_cutoff, upper_cutoff]} range are clamped (winsorized) to the nearest cutoff value.}
 
 \item{xtrans}{A character vector specifying the transformation of the x-axis. Default is "identity".}
 
