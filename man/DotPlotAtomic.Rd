@@ -26,6 +26,9 @@ DotPlotAtomic(
   palette = "Spectral",
   palcolor = NULL,
   alpha = 1,
+  border_color = "black",
+  border_size = 0.5,
+  border_alpha = 1,
   facet_by = NULL,
   facet_scales = "fixed",
   facet_ncol = NULL,
@@ -104,6 +107,19 @@ A named list can be used to specify the colors for different \code{split_by} val
 If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).}
 
 \item{alpha}{A numeric value specifying the transparency of the plot.}
+
+\item{border_color}{A logical or character value specifying the border color of the dots
+and the outer shadow of lollipop bars. If TRUE, border color follows the fill color
+(same as fill_by column values) for dots, and lollipop bars have a black outer shadow
+with the inner bar following fill_by. If a color string, uses that constant color for
+both dots and bar shadows. If FALSE, no dot borders and no bar shadows (the inner
+colored bars remain visible). Default is "black".}
+
+\item{border_size}{A numeric value specifying the stroke width of the dot borders
+and the linewidth of the lollipop bars. Default is 0.5.}
+
+\item{border_alpha}{A numeric value specifying the transparency of the dot borders
+and lollipop bars. Default is 1.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots

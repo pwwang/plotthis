@@ -30,12 +30,23 @@
 #'   Other options are "horizontal". "h" and "v" are also accepted.
 #' @param lollipop A logical value indicating whether to make it a lolipop plot. Default is FALSE.
 #'   When TRUE, 'x' should be a numeric column and 'y' should be a factor/character column.
+#' @param border_color A logical or character value specifying the border color of the dots
+#'   and the outer shadow of lollipop bars. If TRUE, border color follows the fill color
+#'   (same as fill_by column values) for dots, and lollipop bars have a black outer shadow
+#'   with the inner bar following fill_by. If a color string, uses that constant color for
+#'   both dots and bar shadows. If FALSE, no dot borders and no bar shadows (the inner
+#'   colored bars remain visible). Default is "black".
+#' @param border_size A numeric value specifying the stroke width of the dot borders
+#'   and the linewidth of the lollipop bars. Default is 0.5.
+#' @param border_alpha A numeric value specifying the transparency of the dot borders
+#'   and lollipop bars. Default is 1.
 #' @return A ggplot object
 #' @keywords internal
 #' @importFrom dplyr %>% group_by summarise n first
 #' @importFrom ggplot2 geom_point scale_y_discrete scale_size_area scale_fill_gradientn scale_color_gradientn labs
 #' @importFrom ggplot2 coord_flip guide_colorbar guide_legend guides guide_none scale_size geom_segment
 #' @importFrom ggnewscale new_scale_color
+#' @importFrom scales alpha
 DotPlotAtomic <- function(
     data,
     x,
@@ -58,6 +69,9 @@ DotPlotAtomic <- function(
     palette = "Spectral",
     palcolor = NULL,
     alpha = 1,
+    border_color = "black",
+    border_size = 0.5,
+    border_alpha = 1,
     facet_by = NULL,
     facet_scales = "fixed",
     facet_ncol = NULL,
@@ -243,12 +257,26 @@ DotPlotAtomic <- function(
     }
 
     if (isTRUE(lollipop)) {
+        lw_outer <- border_size * 4
+        lw_inner <- border_size * 2
         p <- p +
-            geom_segment(
-                aes(x = 0, xend = !!sym(x), yend = !!sym(y)),
-                color = "black",
-                linewidth = 2
-            ) +
+            scale_x_continuous(expand = c(0, 0, 0.05, 0))
+        # outer shadow / border (hidden when border_color is FALSE)
+        if (!isFALSE(border_color)) {
+            outer_color <- if (isTRUE(border_color)) {
+                scales::alpha("black", border_alpha)
+            } else {
+                scales::alpha(border_color, border_alpha)
+            }
+            p <- p +
+                geom_segment(
+                    aes(x = 0, xend = !!sym(x), yend = !!sym(y)),
+                    color = outer_color,
+                    linewidth = lw_outer
+                )
+        }
+        # inner colored bar (always drawn)
+        p <- p +
             geom_segment(
                 aes(
                     x = 0,
@@ -256,15 +284,15 @@ DotPlotAtomic <- function(
                     yend = !!sym(y),
                     color = !!sym(fill_by)
                 ),
-                linewidth = 1
+                linewidth = lw_inner
             ) +
-            scale_x_continuous(expand = c(0, 0, 0.05, 0)) +
             scale_color_gradientn(
                 n.breaks = 5,
                 colors = palette_this(
                     palette = palette,
                     palcolor = palcolor,
-                    reverse = palreverse
+                    reverse = palreverse,
+                    alpha = border_alpha
                 ),
                 na.value = "grey80",
                 guide = "none"
@@ -272,29 +300,69 @@ DotPlotAtomic <- function(
             new_scale_color()
     }
     if (is.numeric(size_by)) {
-        p <- p +
-            geom_point(
-                aes(fill = !!sym(fill_by), color = ""),
-                size = size_by,
-                shape = 21,
-                alpha = alpha
-            )
-    } else {
-        p <- p +
-            geom_point(
-                aes(size = !!sym(size_by), fill = !!sym(fill_by), color = ""),
-                shape = 21,
-                alpha = alpha
-            ) +
-            # scale_size_area(max_size = 6, n.breaks = 4) +
-            scale_size(range = c(size_min, size_max)) +
-            guides(
-                size = guide_legend(
-                    title = size_name %||% size_by,
-                    override.aes = list(fill = "transparent", shape = 21),
-                    order = 1
+        if (isTRUE(border_color)) {
+            p <- p +
+                geom_point(
+                    aes(fill = !!sym(fill_by), color = !!sym(fill_by)),
+                    size = size_by,
+                    shape = 21,
+                    stroke = border_size,
+                    alpha = alpha
                 )
-            )
+        } else {
+            p <- p +
+                geom_point(
+                    aes(fill = !!sym(fill_by), color = ""),
+                    size = size_by,
+                    shape = 21,
+                    stroke = border_size,
+                    alpha = alpha
+                )
+        }
+    } else {
+        if (isTRUE(border_color)) {
+            p <- p +
+                geom_point(
+                    aes(
+                        size = !!sym(size_by),
+                        fill = !!sym(fill_by),
+                        color = !!sym(fill_by)
+                    ),
+                    shape = 21,
+                    stroke = border_size,
+                    alpha = alpha
+                ) +
+                # scale_size_area(max_size = 6, n.breaks = 4) +
+                scale_size(range = c(size_min, size_max)) +
+                guides(
+                    size = guide_legend(
+                        title = size_name %||% size_by,
+                        override.aes = list(fill = "transparent", shape = 21),
+                        order = 1
+                    )
+                )
+        } else {
+            p <- p +
+                geom_point(
+                    aes(
+                        size = !!sym(size_by),
+                        fill = !!sym(fill_by),
+                        color = ""
+                    ),
+                    shape = 21,
+                    stroke = border_size,
+                    alpha = alpha
+                ) +
+                # scale_size_area(max_size = 6, n.breaks = 4) +
+                scale_size(range = c(size_min, size_max)) +
+                guides(
+                    size = guide_legend(
+                        title = size_name %||% size_by,
+                        override.aes = list(fill = "transparent", shape = 21),
+                        order = 1
+                    )
+                )
+        }
     }
 
     p <- p +
@@ -337,15 +405,46 @@ DotPlotAtomic <- function(
             )
         )
 
-    p <- p +
-        scale_color_manual(values = "black", na.value = "black", guide = "none")
+    if (isTRUE(border_color)) {
+        p <- p +
+            scale_color_gradientn(
+                n.breaks = 5,
+                colors = palette_this(
+                    palette = palette,
+                    palcolor = palcolor,
+                    reverse = palreverse,
+                    alpha = border_alpha
+                ),
+                na.value = "grey80",
+                guide = "none"
+            )
+    } else {
+        border_color_value <- if (isFALSE(border_color)) {
+            "transparent"
+        } else {
+            scales::alpha(border_color, border_alpha)
+        }
+        p <- p +
+            scale_color_manual(
+                values = border_color_value,
+                na.value = border_color_value,
+                guide = "none"
+            )
+    }
     if (!is.null(fill_by) && !is.null(fill_cutoff) && anyNA(data[[fill_by]])) {
+        fill_cutoff_colour <- if (isTRUE(border_color)) {
+            scales::alpha("black", border_alpha)
+        } else if (isFALSE(border_color)) {
+            "transparent"
+        } else {
+            scales::alpha(border_color, border_alpha)
+        }
         p <- p +
             guides(
                 color = guide_legend(
                     title = fill_cutoff_name %||% fill_cutoff_label,
                     override.aes = list(
-                        colour = "black",
+                        colour = fill_cutoff_colour,
                         fill = "grey80",
                         size = 3
                     ),
@@ -515,6 +614,16 @@ DotPlotAtomic <- function(
 #' DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
 #'         fill_by = "mpg", fill_cutoff = 18,
 #'         keep_na = TRUE, keep_empty = TRUE)
+#' # border customization
+#' DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
+#'         fill_by = "mpg", border_color = "red", border_size = 2)
+#' # border_color = TRUE means the border color follows the fill color
+#' DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
+#'         fill_by = "mpg", border_color = TRUE, border_size = 1.5,
+#'         border_alpha = 0.5)
+#' # border_color = FALSE means no border
+#' DotPlot(mtcars, x = "carb", y = "gear",
+#'         fill_by = "mpg", border_color = FALSE)
 #' }
 DotPlot <- function(
     data,
@@ -544,6 +653,9 @@ DotPlot <- function(
     palette = "Spectral",
     palcolor = NULL,
     alpha = 1,
+    border_color = "black",
+    border_size = 0.5,
+    border_alpha = 1,
     facet_by = NULL,
     facet_scales = "fixed",
     facet_ncol = NULL,
@@ -643,6 +755,9 @@ DotPlot <- function(
                 palette = palette[[nm]],
                 palcolor = palcolor[[nm]],
                 alpha = alpha,
+                border_color = border_color,
+                border_size = border_size,
+                border_alpha = border_alpha,
                 facet_by = facet_by,
                 facet_scales = facet_scales,
                 facet_ncol = facet_ncol,
@@ -703,6 +818,16 @@ DotPlot <- function(
 #'              facet_scales = "free_y")
 #' LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
 #'              split_by = "vs", palette = list("0" = "Reds", "1" = "Blues"))
+#' # border customization
+#' LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
+#'              fill_by = "mpg", border_color = "red", border_size = 2)
+#' LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
+#'              fill_by = "mpg", border_color = TRUE, border_size = 1.5,
+#'              border_alpha = 0.5)
+#' LollipopPlot(mtcars, x = "qsec", y = "drat",
+#'              fill_by = "mpg", border_color = FALSE)
+#' LollipopPlot(mtcars, x = "qsec", y = "drat",
+#'              fill_by = "mpg", border_color = FALSE)
 LollipopPlot <- function(
     data,
     x,
@@ -725,6 +850,9 @@ LollipopPlot <- function(
     palette = "Spectral",
     palcolor = NULL,
     alpha = 1,
+    border_color = "black",
+    border_size = 0.5,
+    border_alpha = 1,
     facet_by = NULL,
     facet_scales = "fixed",
     facet_ncol = NULL,
@@ -823,6 +951,9 @@ LollipopPlot <- function(
                 palette = palette[[nm]],
                 palcolor = palcolor[[nm]],
                 alpha = alpha,
+                border_color = border_color,
+                border_size = border_size,
+                border_alpha = border_alpha,
                 facet_by = facet_by,
                 facet_scales = facet_scales,
                 facet_ncol = facet_ncol,
