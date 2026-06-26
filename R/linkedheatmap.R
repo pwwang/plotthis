@@ -378,7 +378,7 @@ LinkedHeatmapAtomic <- function(
             dev_w <- ds[1]
             dev_h <- ds[2]
         } else {
-            dev_w <- 7; dev_h <- 7
+            dev_w <- total_w * 1.2; dev_h <- total_h * 1.2
         }
         scale_factor <- min(dev_w * 1 / total_w, dev_h * 1 / total_h)
     }
