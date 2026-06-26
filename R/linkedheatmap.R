@@ -150,6 +150,8 @@ LinkedHeatmapAtomic <- function(
     seed = 8525,
     alignment_fudge = 0,
     scale = NULL,
+    legend.position = "right",
+    legend.direction = "vertical",
     ...
 ) {
     set.seed(seed)
@@ -534,14 +536,94 @@ LinkedHeatmapAtomic <- function(
     left_ht  <- do_call(ComplexHeatmap::Heatmap, left_hm_args)
     right_ht <- do_call(ComplexHeatmap::Heatmap, right_hm_args)
 
+    # ── Collect legends (before link position computation so legend
+    #     dimensions can be factored into plot_h for top/bottom) ──
+    show_legend <- !identical(legend.position, "none")
+    combined_legend <- NULL
+    legend_w <- 0
+    legend_h <- 0
+    legend_gap <- 0.15
+
+    if (show_legend) {
+        legends <- list()
+        if (!is.null(left_ht@matrix_color_mapping)) {
+            left_lgd <- ComplexHeatmap::color_mapping_legend(
+                left_ht@matrix_color_mapping, plot = FALSE,
+                legend_direction = legend.direction
+            )
+            if (!is.null(left_lgd)) legends <- c(legends, list(left_lgd))
+        }
+        if (!is.null(right_ht@matrix_color_mapping)) {
+            right_lgd <- ComplexHeatmap::color_mapping_legend(
+                right_ht@matrix_color_mapping, plot = FALSE,
+                legend_direction = legend.direction
+            )
+            if (!is.null(right_lgd)) legends <- c(legends, list(right_lgd))
+        }
+
+        if (length(legends) > 0) {
+            combined_legend <- ComplexHeatmap::packLegend(
+                list = legends,
+                direction = legend.direction,
+                gap = unit(4, "mm")
+            )
+            # Estimate legend width from label text widths.
+            # Discrete legends have @labels slot; continuous (colorRamp2)
+            # legends do not — use fixed estimate for those.
+            label_widths <- vapply(legends, function(lgd) {
+                if (methods::.hasSlot(lgd, "labels") &&
+                    is.character(lgd@labels) && length(lgd@labels) > 0) {
+                    convertUnit(
+                        ComplexHeatmap::max_text_width(lgd@labels),
+                        "inches", valueOnly = TRUE
+                    )
+                } else {
+                    0.6  # continuous legend: fixed label width
+                }
+            }, numeric(1))
+            max_label_w <- max(label_widths, 0.5)
+            title_w <- max(vapply(legends, function(lgd) {
+                if (methods::.hasSlot(lgd, "title") &&
+                    is.character(lgd@title) &&
+                    nchar(lgd@title) > 0) {
+                    convertUnit(
+                        ComplexHeatmap::max_text_width(lgd@title),
+                        "inches", valueOnly = TRUE
+                    )
+                } else 0
+            }, numeric(1)), 0)
+            legend_w <- max(max_label_w, title_w) + 0.6
+
+            # Estimate legend height:
+            # ~0.7 in per legend (title + colour bar + labels + gaps)
+            # When vertical they stack; when horizontal single row.
+            n_legends <- length(legends)
+            mm_gap_in <- convertUnit(unit(4, "mm"), "inches", valueOnly = TRUE)
+            if (legend.direction == "vertical") {
+                legend_h <- n_legends * 0.7 + (n_legends - 1) * mm_gap_in
+            } else {
+                legend_h <- 0.7
+            }
+        }
+    }
+
+    # ── Plot dimensions (heatmap body + legend) ──
+    plot_w <- total_w
+    plot_h <- total_h
+    if (show_legend) {
+        if (legend.position == "right" || legend.position == "left") {
+            plot_w <- total_w + legend_gap + legend_w
+        } else if (legend.position == "top" || legend.position == "bottom") {
+            plot_h <- total_h + legend_gap + legend_h
+        }
+    }
+
     # ── Link position computation ──
-    # ComplexHeatmap CENTERS the heatmap vertically within the viewport
-    # (grid's default just="center" on the internal viewport).
-    # left_total_h / right_total_h include ALL components.
+    # NPC coords use total_h (heatmap-only height) because each heatmap
+    # viewport receives that exact height from the grid layout.
     left_center_offset  <- (total_h - left_total_h)  / 2
     right_center_offset <- (total_h - right_total_h) / 2
 
-    # ── Body NPC positions (center offsets computed above) ──
     left_body_top_npc  <- 1 - (body_top_offset_left  + left_center_offset)  / total_h
     left_body_bot_npc  <- 1 - (body_top_offset_left  + left_center_offset + left_body_h)  / total_h
     left_body_range    <- left_body_top_npc - left_body_bot_npc
@@ -555,18 +637,71 @@ LinkedHeatmapAtomic <- function(
     }
 
     # ── Draw composite ──
+    # Build grid layout dynamically based on legend.position.
+    # Heatmaps always occupy one row of 3 columns (left | gap | right).
+    # The legend gets an extra column (left/right) or an extra row (top/bottom).
+    pos_left <- legend.position == "left"
+    pos_right <- legend.position == "right"
+    pos_top <- legend.position == "top"
+    pos_bottom <- legend.position == "bottom"
+
+    n_hm_cols <- 3L
+    hm_col_widths <- unit(c(left_total_w, gap_width, right_total_w), "inches")
+    hm_col_left <- 1L
+    hm_col_gap <- 2L
+    hm_col_right <- 3L
+
+    if (show_legend && (pos_left || pos_right)) {
+        n_cols <- 4L
+        if (pos_left) {
+            col_widths <- unit(c(legend_w + legend_gap, left_total_w,
+                                 gap_width, right_total_w), "inches")
+            lg_col <- 1L
+            hm_col_left <- 2L
+            hm_col_gap <- 3L
+            hm_col_right <- 4L
+        } else {  # right
+            col_widths <- unit(c(left_total_w, gap_width, right_total_w,
+                                 legend_w + legend_gap), "inches")
+            lg_col <- 4L
+        }
+        n_rows <- 1L
+        row_heights <- unit(total_h, "inches")
+        hm_row <- 1L
+        lg_row <- 1L
+    } else if (show_legend && (pos_top || pos_bottom)) {
+        n_cols <- 3L
+        col_widths <- hm_col_widths
+        n_rows <- 2L
+        if (pos_top) {
+            row_heights <- unit(c(legend_h + legend_gap, total_h), "inches")
+            lg_row <- 1L
+            hm_row <- 2L
+        } else {  # bottom
+            row_heights <- unit(c(total_h, legend_h + legend_gap), "inches")
+            hm_row <- 1L
+            lg_row <- 2L
+        }
+    } else {
+        n_cols <- 3L
+        col_widths <- hm_col_widths
+        n_rows <- 1L
+        row_heights <- unit(total_h, "inches")
+        hm_row <- 1L
+    }
+
     p <- grid.grabExpr({
         grid.newpage()
         pushViewport(viewport(
-            layout = grid.layout(1, 3,
-                widths = unit(c(left_total_w, gap_width, right_total_w),
-                              "inches"),
-                height = unit(total_h, "inches")
+            layout = grid.layout(n_rows, n_cols,
+                widths = col_widths,
+                heights = row_heights
             )
         ))
 
         # Left heatmap
-        pushViewport(viewport(layout.pos.col = 1))
+        pushViewport(viewport(layout.pos.row = hm_row,
+                              layout.pos.col = hm_col_left))
         ComplexHeatmap::draw(
             left_ht,
             newpage = FALSE,
@@ -577,7 +712,8 @@ LinkedHeatmapAtomic <- function(
         popViewport()
 
         # Right heatmap
-        pushViewport(viewport(layout.pos.col = 3))
+        pushViewport(viewport(layout.pos.row = hm_row,
+                              layout.pos.col = hm_col_right))
         ComplexHeatmap::draw(
             right_ht,
             newpage = FALSE,
@@ -587,8 +723,32 @@ LinkedHeatmapAtomic <- function(
         )
         popViewport()
 
+        # Legend
+        if (!is.null(combined_legend)) {
+            if (pos_left || pos_right) {
+                pushViewport(viewport(layout.pos.row = lg_row,
+                                      layout.pos.col = lg_col))
+                ComplexHeatmap::draw(
+                    combined_legend,
+                    x = unit(0, "npc"),
+                    just = "left"
+                )
+            } else {
+                # top / bottom: legend spans all heatmap columns
+                pushViewport(viewport(layout.pos.row = lg_row,
+                                      layout.pos.col = 1:3))
+                ComplexHeatmap::draw(
+                    combined_legend,
+                    x = unit(0.5, "npc"),
+                    just = "centre"
+                )
+            }
+            popViewport()
+        }
+
         # Links in middle column
-        pushViewport(viewport(layout.pos.col = 2))
+        pushViewport(viewport(layout.pos.row = hm_row,
+                              layout.pos.col = hm_col_gap))
         if (nrow(link_table) > 0) {
             for (k in seq_len(nrow(link_table))) {
                 y_left <- compute_y(
@@ -620,15 +780,11 @@ LinkedHeatmapAtomic <- function(
     p <- patchwork::wrap_plots(p)
 
     # ── Dimension attributes ──
-    # Use wider bounds than base HeatmapAtomic because LinkedHeatmap
-    # has explicit sizing and the downstream renderer scales naturally.
     min_size_in <- 2
     max_size_in <- 80
-    display_h <- max(min(total_h, max_size_in), min_size_in)
-    display_w <- max(min(total_w, max_size_in), min_size_in)
-
-    # Preserve ratio when clamping
-    ratio <- total_h / total_w
+    display_h <- max(min(plot_h, max_size_in), min_size_in)
+    display_w <- max(min(plot_w, max_size_in), min_size_in)
+    ratio <- plot_h / plot_w
     if (ratio > 1 && display_h == max_size_in) {
         display_w <- display_h / ratio
     } else if (ratio < 1 && display_w == max_size_in) {
@@ -692,6 +848,7 @@ LinkedHeatmapAtomic <- function(
 #'   \code{"auto"} scales to fit current device/notebook canvas.
 #'   A number (e.g. \code{2}) multiplies all dimensions uniformly.
 #'   Link alignment is preserved at any scale.
+#' @inheritParams common_args
 #' @param ... Other arguments passed to \code{\link[ComplexHeatmap]{Heatmap}}.
 #'
 #' @return A patchwork-wrapped grob.
@@ -754,6 +911,8 @@ LinkedHeatmap <- function(
     seed = 8525,
     alignment_fudge = 0,
     scale = NULL,
+    legend.position = "right",
+    legend.direction = "vertical",
     ...
 ) {
     # ── Validate ──
@@ -793,6 +952,14 @@ LinkedHeatmap <- function(
         names(datas) <- "..."
     }
 
+    # ── Validate per-split legend params ──
+    legend.position <- check_legend(
+        legend.position, names(datas), "legend.position"
+    )
+    legend.direction <- check_legend(
+        legend.direction, names(datas), "legend.direction"
+    )
+
     # ── Build per-split plots ──
     plots <- lapply(names(datas), function(nm) {
         LinkedHeatmapAtomic(
@@ -821,6 +988,8 @@ LinkedHeatmap <- function(
             seed = seed,
             alignment_fudge = alignment_fudge,
             scale = scale,
+            legend.position = legend.position[[nm]],
+            legend.direction = legend.direction[[nm]],
             ...
         )
     })
