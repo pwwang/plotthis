@@ -114,10 +114,6 @@ NULL
 #' @param row_names_side,column_names_side Side for names.
 #' @param base_size Scaling factor for cell dimensions.
 #' @param seed Random seed.
-#' @param alignment_fudge Additional inches added to body_top_offset
-#'   to correct systematic misalignment. Positive values shift the
-#'   link anchor points DOWN (body appears lower than predicted).
-#'   Start at 0 and adjust in 0.02-inch increments.
 #' @param ... Additional arguments passed to ComplexHeatmap::Heatmap.
 #'
 #' @return A patchwork-wrapped grob with height/width attributes.
@@ -148,8 +144,6 @@ LinkedHeatmapAtomic <- function(
     column_names_side = NULL,
     base_size = 1,
     seed = 8525,
-    alignment_fudge = 0,
-    scale = NULL,
     legend.position = "right",
     legend.direction = "vertical",
     ...
@@ -327,7 +321,7 @@ LinkedHeatmapAtomic <- function(
     if (is_top(left_column_names_side) && left_gap_dimname > 0)
                                 body_top_offset_left <- body_top_offset_left + left_gap_dimname
     if (left_gap_col_anno > 0)  body_top_offset_left <- body_top_offset_left + left_gap_col_anno
-    body_top_offset_left <- body_top_offset_left + alignment_fudge
+    body_top_offset_left <- body_top_offset_left
 
     body_top_offset_right <- 0
     if (title_h > 0)            body_top_offset_right <- body_top_offset_right + title_h
@@ -339,7 +333,7 @@ LinkedHeatmapAtomic <- function(
     if (is_top(right_column_names_side) && right_gap_dimname > 0)
                                 body_top_offset_right <- body_top_offset_right + right_gap_dimname
     if (right_gap_col_anno > 0) body_top_offset_right <- body_top_offset_right + right_gap_col_anno
-    body_top_offset_right <- body_top_offset_right + alignment_fudge
+    body_top_offset_right <- body_top_offset_right
 
     # ── Total heatmap dimensions ──
     # left_total_h / right_total_h: FULL height including ALL components
@@ -362,91 +356,119 @@ LinkedHeatmapAtomic <- function(
     total_w <- left_total_w + gap_width + right_total_w
     total_h <- max(left_total_h, right_total_h)
 
+    # ── Pre-estimate legend dimensions for scale_factor ──
+    # The actual legends are built later from ComplexHeatmap objects,
+    # but we can estimate their footprint now from the heatmap names
+    legend_gap <- 0.15
+    legend_w_est <- 0
+    legend_h_est <- 0
+    show_legend <- !identical(legend.position, "none")
+
+    if (show_legend) {
+        title_w <- max(
+            convertUnit(
+                ComplexHeatmap::max_text_width(left_name),
+                "inches", valueOnly = TRUE
+            ),
+            convertUnit(
+                ComplexHeatmap::max_text_width(right_name),
+                "inches", valueOnly = TRUE
+            ),
+            0
+        )
+        legend_w_est <- max(0.6, title_w) + 0.6
+        if (legend.direction == "vertical") {
+            legend_h_est <- 2 * 0.7 + 0.157  # 2 legends stacked + 4mm gap
+        } else {
+            legend_h_est <- 0.7
+        }
+    }
+
+    plot_w_est <- total_w
+    plot_h_est <- total_h
+    if (show_legend) {
+        if (legend.position == "right" || legend.position == "left") {
+            plot_w_est <- total_w + legend_gap + legend_w_est
+        } else if (legend.position == "top" || legend.position == "bottom") {
+            plot_h_est <- total_h + legend_gap + legend_h_est
+        }
+    }
+
     # ── Uniform scaling ──
     # Apply a uniform scale factor to ALL dimensions. This preserves
     # all internal proportions and link alignment while allowing the
     # plot to fit different canvas sizes.
     scale_factor <- 1.0
-    if (is.numeric(scale) && length(scale) == 1 && scale > 0) {
-        scale_factor <- scale
-    } else if (identical(scale, "auto")) {
-        rpw <- getOption("repr.plot.width", NULL)
-        rph <- getOption("repr.plot.height", NULL)
-        if (!is.null(rpw) && !is.null(rph)) {
-            dev_w <- as.numeric(rpw)
-            dev_h <- as.numeric(rph)
-        } else if (!is.null(grDevices::dev.list())) {
-            ds <- grDevices::dev.size("in")
-            dev_w <- ds[1]
-            dev_h <- ds[2]
-        } else {
-            dev_w <- total_w * 1.2; dev_h <- total_h * 1.2
-        }
-        scale_factor <- min(dev_w * 1 / total_w, dev_h * 1 / total_h)
+
+    rpw <- getOption("repr.plot.width", NULL)
+    rph <- getOption("repr.plot.height", NULL)
+    if (!is.null(rpw) && !is.null(rph)) {
+        dev_w <- as.numeric(rpw)
+        dev_h <- as.numeric(rph)
+    } else {
+        dev_w <- plot_w_est * 1.2; dev_h <- plot_h_est * 1.2
+    }
+    scale_factor <- min(dev_w * 1 / plot_w_est, dev_h * 1 / plot_h_est)
+
+    cell_w <- cell_w * scale_factor
+    cell_h <- cell_h * scale_factor
+    left_body_w  <- left_body_w  * scale_factor
+    left_body_h  <- left_body_h  * scale_factor
+    right_body_w <- right_body_w * scale_factor
+    right_body_h <- right_body_h * scale_factor
+    dendro_h       <- dendro_h       * scale_factor
+    dendro_h_actual <- dendro_h_actual * scale_factor
+    dendro_w       <- dendro_w       * scale_factor
+    dendro_w_actual <- dendro_w_actual * scale_factor
+    # NOTE: colname_h, rowname_w, gap_dimname are NOT scaled.
+    # ComplexHeatmap computes text-derived dimensions at natural
+    # size regardless of body cell scaling (verified via prepare()).
+    left_gap_col_anno  <- left_gap_col_anno  * scale_factor
+    right_gap_col_anno <- right_gap_col_anno * scale_factor
+    # NOTE: colname_h, rowname_w, gap_dimname are NOT scaled (text-derived)
+    gap_title <- gap_title * scale_factor
+    title_h   <- title_h   * scale_factor
+    gap_width <- gap_width * scale_factor
+
+    body_top_offset_left <- 0
+    if (title_h > 0)            body_top_offset_left <- body_top_offset_left + title_h
+    if (gap_title > 0)          body_top_offset_left <- body_top_offset_left + gap_title
+    if (is_top("top") && dendro_h_actual > 0)
+                                body_top_offset_left <- body_top_offset_left + dendro_h_actual
+    if (is_top(left_column_names_side) && left_colname_h > 0)
+                                body_top_offset_left <- body_top_offset_left + left_colname_h
+    if (is_top(left_column_names_side) && left_gap_dimname > 0)
+                                body_top_offset_left <- body_top_offset_left + left_gap_dimname
+    if (left_gap_col_anno > 0)  body_top_offset_left <- body_top_offset_left + left_gap_col_anno
+    body_top_offset_left <- body_top_offset_left
+    body_top_offset_right <- 0
+    if (title_h > 0)            body_top_offset_right <- body_top_offset_right + title_h
+    if (gap_title > 0)          body_top_offset_right <- body_top_offset_right + gap_title
+    if (is_top("top") && dendro_h_actual > 0)
+                                body_top_offset_right <- body_top_offset_right + dendro_h_actual
+    if (is_top(right_column_names_side) && right_colname_h > 0)
+                                body_top_offset_right <- body_top_offset_right + right_colname_h
+    if (is_top(right_column_names_side) && right_gap_dimname > 0)
+                                body_top_offset_right <- body_top_offset_right + right_gap_dimname
+    if (right_gap_col_anno > 0) body_top_offset_right <- body_top_offset_right + right_gap_col_anno
+    body_top_offset_right <- body_top_offset_right
+
+    # Recompute below-body totals after scaling
+    left_below_h <- 0
+    if (!is_top(left_column_names_side)) {
+        left_below_h <- left_below_h + left_colname_h + left_gap_dimname
+    }
+    right_below_h <- 0
+    if (!is_top(right_column_names_side)) {
+        right_below_h <- right_below_h + right_colname_h + right_gap_dimname
     }
 
-    if (scale_factor != 1.0) {
-        cell_w <- cell_w * scale_factor
-        cell_h <- cell_h * scale_factor
-        left_body_w  <- left_body_w  * scale_factor
-        left_body_h  <- left_body_h  * scale_factor
-        right_body_w <- right_body_w * scale_factor
-        right_body_h <- right_body_h * scale_factor
-        dendro_h       <- dendro_h       * scale_factor
-        dendro_h_actual <- dendro_h_actual * scale_factor
-        dendro_w       <- dendro_w       * scale_factor
-        dendro_w_actual <- dendro_w_actual * scale_factor
-        # NOTE: colname_h, rowname_w, gap_dimname are NOT scaled.
-        # ComplexHeatmap computes text-derived dimensions at natural
-        # size regardless of body cell scaling (verified via prepare()).
-        left_gap_col_anno  <- left_gap_col_anno  * scale_factor
-        right_gap_col_anno <- right_gap_col_anno * scale_factor
-        # NOTE: colname_h, rowname_w, gap_dimname are NOT scaled (text-derived)
-        gap_title <- gap_title * scale_factor
-        title_h   <- title_h   * scale_factor
-        alignment_fudge <- alignment_fudge * scale_factor
-        gap_width <- gap_width * scale_factor
-
-        body_top_offset_left <- 0
-        if (title_h > 0)            body_top_offset_left <- body_top_offset_left + title_h
-        if (gap_title > 0)          body_top_offset_left <- body_top_offset_left + gap_title
-        if (is_top("top") && dendro_h_actual > 0)
-                                    body_top_offset_left <- body_top_offset_left + dendro_h_actual
-        if (is_top(left_column_names_side) && left_colname_h > 0)
-                                    body_top_offset_left <- body_top_offset_left + left_colname_h
-        if (is_top(left_column_names_side) && left_gap_dimname > 0)
-                                    body_top_offset_left <- body_top_offset_left + left_gap_dimname
-        if (left_gap_col_anno > 0)  body_top_offset_left <- body_top_offset_left + left_gap_col_anno
-        body_top_offset_left <- body_top_offset_left + alignment_fudge
-        body_top_offset_right <- 0
-        if (title_h > 0)            body_top_offset_right <- body_top_offset_right + title_h
-        if (gap_title > 0)          body_top_offset_right <- body_top_offset_right + gap_title
-        if (is_top("top") && dendro_h_actual > 0)
-                                    body_top_offset_right <- body_top_offset_right + dendro_h_actual
-        if (is_top(right_column_names_side) && right_colname_h > 0)
-                                    body_top_offset_right <- body_top_offset_right + right_colname_h
-        if (is_top(right_column_names_side) && right_gap_dimname > 0)
-                                    body_top_offset_right <- body_top_offset_right + right_gap_dimname
-        if (right_gap_col_anno > 0) body_top_offset_right <- body_top_offset_right + right_gap_col_anno
-        body_top_offset_right <- body_top_offset_right + alignment_fudge
-
-        # Recompute below-body totals after scaling
-        left_below_h <- 0
-        if (!is_top(left_column_names_side)) {
-            left_below_h <- left_below_h + left_colname_h + left_gap_dimname
-        }
-        right_below_h <- 0
-        if (!is_top(right_column_names_side)) {
-            right_below_h <- right_below_h + right_colname_h + right_gap_dimname
-        }
-
-        left_total_w  <- dendro_w_actual + left_rowname_w  + left_body_w
-        left_total_h  <- body_top_offset_left  + left_body_h + left_below_h
-        right_total_w <- right_body_w + right_rowname_w + dendro_w_actual
-        right_total_h <- body_top_offset_right + right_body_h + right_below_h
-        total_w <- left_total_w + gap_width + right_total_w
-        total_h <- max(left_total_h, right_total_h)
-    }
+    left_total_w  <- dendro_w_actual + left_rowname_w  + left_body_w
+    left_total_h  <- body_top_offset_left  + left_body_h + left_below_h
+    right_total_w <- right_body_w + right_rowname_w + dendro_w_actual
+    right_total_h <- body_top_offset_right + right_body_h + right_below_h
+    total_w <- left_total_w + gap_width + right_total_w
+    total_h <- max(left_total_h, right_total_h)
 
     # ── Build link table ──
     left_row_names_ordered <- rownames(left_mat)[left_row_order]
@@ -538,11 +560,9 @@ LinkedHeatmapAtomic <- function(
 
     # ── Collect legends (before link position computation so legend
     #     dimensions can be factored into plot_h for top/bottom) ──
-    show_legend <- !identical(legend.position, "none")
     combined_legend <- NULL
     legend_w <- 0
     legend_h <- 0
-    legend_gap <- 0.15
 
     if (show_legend) {
         legends <- list()
@@ -840,14 +860,6 @@ LinkedHeatmapAtomic <- function(
 #' @param base_size Scaling factor for cell size.
 #' @param gap_width Width of gap between heatmaps (inches).
 #' @param seed Random seed.
-#' @param alignment_fudge Additional inches added to body_top_offset to
-#'   correct systematic misalignment. Start at 0, adjust in 0.02-inch
-#'   increments. Positive = links shift
-#'   DOWN (body top is lower than predicted).
-#' @param scale Uniform scaling factor. \code{NULL} uses natural size.
-#'   \code{"auto"} scales to fit current device/notebook canvas.
-#'   A number (e.g. \code{2}) multiplies all dimensions uniformly.
-#'   Link alignment is preserved at any scale.
 #' @inheritParams common_args
 #' @param ... Other arguments passed to \code{\link[ComplexHeatmap]{Heatmap}}.
 #'
@@ -909,8 +921,6 @@ LinkedHeatmap <- function(
     base_size = 1,
     gap_width = 0.5,
     seed = 8525,
-    alignment_fudge = 0,
-    scale = NULL,
     legend.position = "right",
     legend.direction = "vertical",
     ...
@@ -986,8 +996,6 @@ LinkedHeatmap <- function(
             show_column_names = show_column_names,
             base_size = base_size,
             seed = seed,
-            alignment_fudge = alignment_fudge,
-            scale = scale,
             legend.position = legend.position[[nm]],
             legend.direction = legend.direction[[nm]],
             ...
