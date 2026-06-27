@@ -431,7 +431,7 @@ LinkedHeatmapAtomic <- function(
     left_total_h  <- body_top_offset_left  + left_body_h + left_below_h
     right_total_w <- right_body_w + right_rowname_w + dendro_w_actual
     right_total_h <- body_top_offset_right + right_body_h + right_below_h
-    total_w <- left_total_w + gap_width + right_total_w
+    total_w <- left_total_w + gap_width + right_total_w + 0.5
     total_h <- max(left_total_h, right_total_h) + 1
 
     # ── Build link table ──
