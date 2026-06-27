@@ -113,6 +113,8 @@ NULL
 #' @param show_row_names,show_column_names Whether to show names.
 #' @param row_names_side,column_names_side Side for names.
 #' @param base_size Scaling factor for cell dimensions.
+#' @param left_aspect.ratio,right_aspect.ratio Aspect ratio (height/width) for
+#'   cells in the left and right heatmaps. Default 1 gives square cells.
 #' @param seed Random seed.
 #' @param ... Additional arguments passed to ComplexHeatmap::Heatmap.
 #'
@@ -143,6 +145,8 @@ LinkedHeatmapAtomic <- function(
     row_names_side = NULL,
     column_names_side = NULL,
     base_size = 1,
+    left_aspect.ratio = 1,
+    right_aspect.ratio = 1,
     seed = 8525,
     legend.position = "right",
     legend.direction = "vertical",
@@ -165,6 +169,8 @@ LinkedHeatmapAtomic <- function(
     right_show_row_names   <- right$show_row_names   %||% show_row_names
     left_show_column_names <- left$show_column_names %||% show_column_names
     right_show_column_names <- right$show_column_names %||% show_column_names
+    left_aspect.ratio  <- left$aspect.ratio  %||% left_aspect.ratio
+    right_aspect.ratio <- right$aspect.ratio %||% right_aspect.ratio
 
     # Default sides: left heatmap annotations on left, right on right
     left_row_names_side <- row_names_side %||% "left"
@@ -239,7 +245,8 @@ LinkedHeatmapAtomic <- function(
     # ── Dimension constants ──
     mm_to_in <- 0.0393701
     cell_w <- 0.25 * base_size
-    cell_h <- cell_w  # aspect ratio 1 for tiles
+    left_cell_h  <- cell_w * left_aspect.ratio
+    right_cell_h <- cell_w * right_aspect.ratio
 
     dendro_h <- if (isTRUE(cluster_columns)) 0.5 else 0
     dendro_w <- if (isTRUE(cluster_rows)) 0.5 else 0
@@ -289,9 +296,9 @@ LinkedHeatmapAtomic <- function(
 
     # ── Body dimensions ──
     left_body_w  <- n_left_cols  * cell_w
-    left_body_h  <- n_left_rows  * cell_h
+    left_body_h  <- n_left_rows  * left_cell_h
     right_body_w <- n_right_cols * cell_w
-    right_body_h <- n_right_rows * cell_h
+    right_body_h <- n_right_rows * right_cell_h
 
     # ── COMPLETE body_top_offset ──
     # ComplexHeatmap vertical layout (top→bottom):
@@ -744,7 +751,7 @@ LinkedHeatmapAtomic <- function(
                     right_body_top_npc, right_body_range
                 )
                 grid.xspline(
-                    x = unit(c(0, 0.5, 1), "npc"),
+                    x = unit(c(-0.4, 0.5, 1.4), "npc"),
                     y = unit(
                         c(y_left, mean(c(y_left, y_right)), y_right),
                         "npc"
@@ -822,6 +829,9 @@ LinkedHeatmapAtomic <- function(
 #' @param cluster_rows,cluster_columns Cluster heatmap rows/columns.
 #' @param show_row_names,show_column_names Show row/column labels.
 #' @param base_size Scaling factor for cell size.
+#' @param left_aspect.ratio,right_aspect.ratio Aspect ratio (height/width) for
+#'   cells in the left and right heatmaps. Default 1 gives square cells.
+#'   Can also be specified inside the \code{left} / \code{right} list.
 #' @param gap_width Width of gap between heatmaps (inches).
 #' @param seed Random seed.
 #' @inheritParams common_args
@@ -883,6 +893,8 @@ LinkedHeatmap <- function(
     show_row_names = TRUE,
     show_column_names = TRUE,
     base_size = 1,
+    left_aspect.ratio = 1,
+    right_aspect.ratio = 1,
     gap_width = 0.5,
     seed = 8525,
     legend.position = "right",
@@ -959,6 +971,8 @@ LinkedHeatmap <- function(
             show_row_names = show_row_names,
             show_column_names = show_column_names,
             base_size = base_size,
+            left_aspect.ratio = left_aspect.ratio,
+            right_aspect.ratio = right_aspect.ratio,
             seed = seed,
             legend.position = legend.position[[nm]],
             legend.direction = legend.direction[[nm]],
