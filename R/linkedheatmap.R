@@ -394,42 +394,6 @@ LinkedHeatmapAtomic <- function(
         }
     }
 
-    # ── Uniform scaling ──
-    # Apply a uniform scale factor to ALL dimensions. This preserves
-    # all internal proportions and link alignment while allowing the
-    # plot to fit different canvas sizes.
-    scale_factor <- 1.0
-
-    rpw <- getOption("repr.plot.width", NULL)
-    rph <- getOption("repr.plot.height", NULL)
-    if (!is.null(rpw) && !is.null(rph)) {
-        dev_w <- as.numeric(rpw)
-        dev_h <- as.numeric(rph)
-    } else {
-        dev_w <- plot_w_est * 1.2; dev_h <- plot_h_est * 1.2
-    }
-    scale_factor <- min(dev_w * 1 / plot_w_est, dev_h * 1 / plot_h_est)
-
-    cell_w <- cell_w * scale_factor
-    cell_h <- cell_h * scale_factor
-    left_body_w  <- left_body_w  * scale_factor
-    left_body_h  <- left_body_h  * scale_factor
-    right_body_w <- right_body_w * scale_factor
-    right_body_h <- right_body_h * scale_factor
-    dendro_h       <- dendro_h       * scale_factor
-    dendro_h_actual <- dendro_h_actual * scale_factor
-    dendro_w       <- dendro_w       * scale_factor
-    dendro_w_actual <- dendro_w_actual * scale_factor
-    # NOTE: colname_h, rowname_w, gap_dimname are NOT scaled.
-    # ComplexHeatmap computes text-derived dimensions at natural
-    # size regardless of body cell scaling (verified via prepare()).
-    left_gap_col_anno  <- left_gap_col_anno  * scale_factor
-    right_gap_col_anno <- right_gap_col_anno * scale_factor
-    # NOTE: colname_h, rowname_w, gap_dimname are NOT scaled (text-derived)
-    gap_title <- gap_title * scale_factor
-    title_h   <- title_h   * scale_factor
-    gap_width <- gap_width * scale_factor
-
     body_top_offset_left <- 0
     if (title_h > 0)            body_top_offset_left <- body_top_offset_left + title_h
     if (gap_title > 0)          body_top_offset_left <- body_top_offset_left + gap_title
@@ -468,7 +432,7 @@ LinkedHeatmapAtomic <- function(
     right_total_w <- right_body_w + right_rowname_w + dendro_w_actual
     right_total_h <- body_top_offset_right + right_body_h + right_below_h
     total_w <- left_total_w + gap_width + right_total_w
-    total_h <- max(left_total_h, right_total_h)
+    total_h <- max(left_total_h, right_total_h) + 1
 
     # ── Build link table ──
     left_row_names_ordered <- rownames(left_mat)[left_row_order]
@@ -800,7 +764,7 @@ LinkedHeatmapAtomic <- function(
     p <- patchwork::wrap_plots(p)
 
     # ── Dimension attributes ──
-    min_size_in <- 2
+    min_size_in <- 4
     max_size_in <- 80
     display_h <- max(min(plot_h, max_size_in), min_size_in)
     display_w <- max(min(plot_w, max_size_in), min_size_in)
