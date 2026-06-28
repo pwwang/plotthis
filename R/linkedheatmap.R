@@ -216,6 +216,9 @@ LinkedHeatmapAtomic <- function(
     row_annotation_agg = NULL,
 
     links_width_by = NULL,
+    link_width_scale = 5,
+    link_color = "grey30",
+    link_alpha = 0.8,
 
     alpha = 1,
     seed = 8525,
@@ -302,7 +305,7 @@ LinkedHeatmapAtomic <- function(
     left_args$column_title <- left_args$column_title %||% column_title
     left_args$row_title <- left_args$row_title %||% row_title
     left_args$na_col <- left_args$na_col %||% na_col
-    left_args$row_names_side <- left_args$row_names_side %||% row_names_side
+    left_args$row_names_side <- left_row_names_side
     left_args$column_names_side <- left_args$column_names_side %||% column_names_side
     left_args$column_annotation <- left_args[["column_annotation"]] %||% column_annotation
     left_args$column_annotation_side <- left_args$column_annotation_side %||% column_annotation_side
@@ -379,7 +382,7 @@ LinkedHeatmapAtomic <- function(
     right_args$column_title <- right_args$column_title %||% column_title
     right_args$row_title <- right_args$row_title %||% row_title
     right_args$na_col <- right_args$na_col %||% na_col
-    right_args$row_names_side <- right_args$row_names_side %||% row_names_side
+    right_args$row_names_side <- right_row_names_side
     right_args$column_names_side <- right_args$column_names_side %||% column_names_side
     right_args$column_annotation <- right_args[["column_annotation"]] %||% column_annotation
     right_args$column_annotation_side <- right_args$column_annotation_side %||% column_annotation_side
@@ -406,6 +409,47 @@ LinkedHeatmapAtomic <- function(
     right_args$cell_agg <- right_args$cell_agg %||% cell_agg
     right_args$return_ht <- TRUE
 
+    # ── Pre-compute cell dimensions (same formula as HeatmapAtomic) ──
+    # Pass explicit width/height to guarantee exact cell sizing.
+    # Without this, ComplexHeatmap uses null units and cells fill
+    # whatever space is available in the viewport.
+    .ct <- match.arg(cell_type)
+    .ct <- sub("mark+label", "label+mark", .ct, fixed = TRUE)
+    .cell_w <- switch(.ct,
+        violin = 0.5, boxplot = 0.5, pie = 0.5, bars = 0.35,
+        label = 0.6, mark = 0.25, `label+mark` = 0.6, 0.25)
+    .aspect_default <- switch(.ct,
+        violin = 2, boxplot = 2, pie = 1, bars = 0.5,
+        label = 0.6, mark = 1, `label+mark` = 0.6, 1)
+
+    left_bs <- left_args$base_size %||% base_size %||% 1
+    left_ar <- left_args$aspect.ratio %||% .aspect_default
+    left_cell_w_pre <- .cell_w * left_bs
+    left_cell_h_pre <- left_cell_w_pre * left_ar
+
+    right_bs <- right_args$base_size %||% base_size %||% 1
+    right_ar <- right_args$aspect.ratio %||% .aspect_default
+    right_cell_w_pre <- .cell_w * right_bs
+    right_cell_h_pre <- right_cell_w_pre * right_ar
+
+    # Pre-build matrices to get row/column counts
+    left_mat_info <- .build_linked_matrix(
+        data, left_rows_by, left_columns_by, left_values_by,
+        left_args$cell_agg, values_fill)
+    right_mat_info <- .build_linked_matrix(
+        data, right_rows_by, right_columns_by, right_values_by,
+        right_args$cell_agg, values_fill)
+
+    left_ncols_pre <- length(left_mat_info$col_names)
+    left_nrows_pre <- length(left_mat_info$row_names)
+    right_ncols_pre <- length(right_mat_info$col_names)
+    right_nrows_pre <- length(right_mat_info$row_names)
+
+    left_args$width <- unit(left_ncols_pre * left_cell_w_pre, "inches")
+    left_args$height <- unit(left_nrows_pre * left_cell_h_pre, "inches")
+    right_args$width <- unit(right_ncols_pre * right_cell_w_pre, "inches")
+    right_args$height <- unit(right_nrows_pre * right_cell_h_pre, "inches")
+
     left_ht <- do_call(HeatmapAtomic, left_args)
     right_ht <- do_call(HeatmapAtomic, right_args)
 
@@ -425,217 +469,53 @@ LinkedHeatmapAtomic <- function(
 
     gap_width <- 0.5
 
-    # ── Dimension constants ──
-    mm_to_in <- grid::convertUnit(grid::unit(1, "mm"), "inches", valueOnly = TRUE)  # 0.0393701
-
-    left_dendro_h <- ifelse(
-        isTRUE(left_args$cluster_columns),
-        # DENDROGRAM_PADDING (0.5mm) baked into dendrogram height by ComplexHeatmap
-        grid::convertUnit(left_ht@column_dend_param$height, "inches", valueOnly = TRUE) + 0.5 * mm_to_in,
-        0
-    )
-    left_dendro_w <- ifelse(
-        isTRUE(left_args$cluster_rows),
-        grid::convertUnit(left_ht@row_dend_param$width, "inches", valueOnly = TRUE) + 0.5 * mm_to_in,
-        0
-    )
-    right_dendro_h <- ifelse(
-        isTRUE(right_args$cluster_columns),
-        grid::convertUnit(right_ht@column_dend_param$height, "inches", valueOnly = TRUE) + 0.5 * mm_to_in,
-        0
-    )
-    right_dendro_w <- ifelse(
-        isTRUE(right_args$cluster_rows),
-        grid::convertUnit(right_ht@row_dend_param$width, "inches", valueOnly = TRUE) + 0.5 * mm_to_in,
-        0
-    )
-
-    # Column names height (rotated 90°, height = text width)
-    left_colname_h <- if (isTRUE(left_args$show_column_names)) {
-        cw <- ComplexHeatmap::max_text_width(colnames(left_ht@matrix))
-        grid::convertUnit(cw, "inches", valueOnly = TRUE)
-    } else 0
-    right_colname_h <- if (isTRUE(right_args$show_column_names)) {
-        cw <- ComplexHeatmap::max_text_width(colnames(right_ht@matrix))
-        grid::convertUnit(cw, "inches", valueOnly = TRUE)
-    } else 0
-
-    # Row names width
-    # Row names width + DIMNAME_PADDING*2 (2mm), matching CH layout:
-    #   row_names_width = anno@width + ht_opt$DIMNAME_PADDING*2
-    left_rowname_w <- if (isTRUE(left_args$show_row_names)) {
-        grid::convertUnit(
-            ComplexHeatmap::max_text_width(rownames(left_ht@matrix)),
-            "inches", valueOnly = TRUE
-        ) + 2.0 * mm_to_in
-    } else 0
-    right_rowname_w <- if (isTRUE(right_args$show_row_names)) {
-        grid::convertUnit(
-            ComplexHeatmap::max_text_width(rownames(right_ht@matrix)),
-            "inches", valueOnly = TRUE
-        ) + 2.0 * mm_to_in
-    } else 0
-
-    # ── Internal gap accounting ──
-    # DIMNAME_PADDING: 1mm above + 1mm below
-    # DIMNAME_PADDING = 1mm per side, so *2 = 2mm total
-    left_gap_dimname  <- if (isTRUE(left_args$show_column_names))  2.0 * mm_to_in else 0
-    right_gap_dimname <- if (isTRUE(right_args$show_column_names)) 2.0 * mm_to_in else 0
-
-    # No column annotations in initial scope → gap_col_anno = 0
-    left_gap_col_anno  <- 0
-    right_gap_col_anno <- 0
-
-    # No title → gap_title = 0, title_h = 0
-    title_h   <- 0
-    gap_title <- 0
-
-    # ── Body dimensions ──
-    left_body_w  <- n_left_cols  * left_cell_w
-    left_body_h  <- n_left_rows  * left_cell_h
-    right_body_w <- n_right_cols * right_cell_w
-    right_body_h <- n_right_rows * right_cell_h
-
-    # ── COMPLETE body_top_offset ──
-    # ComplexHeatmap vertical layout (top→bottom):
-    #   [1] column_title_top       (if title set)
-    #   [2] column_dend_top        (if cluster_columns && dend_side="top")
-    #   [3] column_names_top       (if show_column_names && names_side="top")
-    #   [4] column_anno_top        (if column_annotation_side="top")
-    #   [5] ═══════ HEATMAP BODY ═══════
-    #   [6] column_anno_bottom     (if column_annotation_side="bottom")
-    #   [7] column_names_bottom    (if show_column_names && names_side="bottom")
-    #   [8] column_dend_bottom     (if cluster_columns && dend_side="bottom")
-    #   [9] column_title_bottom    (if title set)
-    #
-    # Only components in slots [1]-[4] count toward body_top_offset.
-    # Column dendrograms default to "top", column names default to "bottom".
-
-    # Helper: should a component be placed ABOVE the body?
-    is_top <- function(side) identical(side, "top")
-
-    body_top_offset_left <- 0
-    if (title_h > 0)            body_top_offset_left <- body_top_offset_left + title_h
-    if (gap_title > 0)          body_top_offset_left <- body_top_offset_left + gap_title
-    if (is_top("top") && left_dendro_h > 0)
-                                body_top_offset_left <- body_top_offset_left + left_dendro_h
-    if (is_top(left_args$column_names_side) && left_colname_h > 0)
-                                body_top_offset_left <- body_top_offset_left + left_colname_h
-    if (is_top(left_args$column_names_side) && left_gap_dimname > 0)
-                                body_top_offset_left <- body_top_offset_left + left_gap_dimname
-    if (left_gap_col_anno > 0)  body_top_offset_left <- body_top_offset_left + left_gap_col_anno
-    body_top_offset_left <- body_top_offset_left
-
-    body_top_offset_right <- 0
-    if (title_h > 0)            body_top_offset_right <- body_top_offset_right + title_h
-    if (gap_title > 0)          body_top_offset_right <- body_top_offset_right + gap_title
-    if (is_top("top") && right_dendro_h > 0)
-                                body_top_offset_right <- body_top_offset_right + right_dendro_h
-    if (is_top(right_args$column_names_side) && right_colname_h > 0)
-                                body_top_offset_right <- body_top_offset_right + right_colname_h
-    if (is_top(right_args$column_names_side) && right_gap_dimname > 0)
-                                body_top_offset_right <- body_top_offset_right + right_gap_dimname
-    if (right_gap_col_anno > 0) body_top_offset_right <- body_top_offset_right + right_gap_col_anno
-    body_top_offset_right <- body_top_offset_right
-
-    # ── Total heatmap dimensions ──
-    # left_total_h / right_total_h: FULL height including ALL components
-    # (above body + body + below body). Used for centering and total_h.
-    # Below-body components (added for total height but NOT body_top_offset):
-    left_below_h <- 0
-    if (!is_top(left_args$column_names_side)) {
-        left_below_h <- left_below_h + left_colname_h + left_gap_dimname
-    }
-    right_below_h <- 0
-    if (!is_top(right_args$column_names_side)) {
-        right_below_h <- right_below_h + right_colname_h + right_gap_dimname
+    # ── Extract exact dimensions from ComplexHeatmap prepared objects ──
+    # component_height() returns a 9-element list (all internal gaps included):
+    #   [1] column_title_top    [2] column_dend_top    [3] column_names_top
+    #   [4] column_anno_top     [5] heatmap_body       [6] column_anno_bot
+    #   [7] column_names_bot    [8] column_dend_bot    [9] column_title_bot
+    # component_width() returns a 9-element list:
+    #   [1] row_title_left      [2] row_dend_left      [3] row_names_left
+    #   [4] row_anno_left       [5] heatmap_body       [6] row_anno_right
+    #   [7] row_names_right     [8] row_dend_right     [9] row_title_right
+    .ch_to_in <- function(comp_list) {
+        vapply(comp_list, function(u) {
+            if (is.null(u)) return(0)
+            grid::convertUnit(u, "inches", valueOnly = TRUE)
+        }, numeric(1))
     }
 
-    left_total_w  <- left_dendro_w + left_rowname_w  + left_body_w
-    left_total_h  <- body_top_offset_left  + left_body_h + left_below_h
-    right_total_w <- right_body_w + right_rowname_w + right_dendro_w
-    right_total_h <- body_top_offset_right + right_body_h + right_below_h
+    left_ch  <- .ch_to_in(ComplexHeatmap:::component_height(left_ht))
+    right_ch <- .ch_to_in(ComplexHeatmap:::component_height(right_ht))
+    left_cw  <- .ch_to_in(ComplexHeatmap:::component_width(left_ht))
+    right_cw <- .ch_to_in(ComplexHeatmap:::component_width(right_ht))
+
+    # Body dimensions (component [5] is the body)
+    left_body_h  <- left_ch[5]
+    right_body_h <- right_ch[5]
+    left_body_w  <- left_cw[5]
+    right_body_w <- right_cw[5]
+
+    # body_top_offset = sum of all components ABOVE the body [1:4]
+    body_top_offset_left  <- sum(left_ch[1:4])
+    body_top_offset_right <- sum(right_ch[1:4])
+
+    # below_h = sum of all components BELOW the body [6:9]
+    left_below_h  <- sum(left_ch[6:9])
+    right_below_h <- sum(right_ch[6:9])
+
+    # Total heatmap dimensions
+    left_total_w  <- sum(left_cw)
+    left_total_h  <- sum(left_ch)
+    right_total_w <- sum(right_cw)
+    right_total_h <- sum(right_ch)
 
     total_w <- left_total_w + gap_width + right_total_w
     total_h <- max(left_total_h, right_total_h)
 
-    # ── Pre-estimate legend dimensions for scale_factor ──
-    # The actual legends are built later from ComplexHeatmap objects,
-    # but we can estimate their footprint now from the heatmap names
+    # ── Legend flag (needed later) ──
     legend_gap <- 0.15
-    legend_w_est <- 0
-    legend_h_est <- 0
     show_legend <- !identical(legend.position, "none")
-
-    if (show_legend) {
-        title_w <- max(
-            convertUnit(
-                ComplexHeatmap::max_text_width(left_values_by),
-                "inches", valueOnly = TRUE
-            ),
-            convertUnit(
-                ComplexHeatmap::max_text_width(right_values_by),
-                "inches", valueOnly = TRUE
-            ),
-            0
-        )
-        legend_w_est <- max(0.6, title_w) + 0.6
-        if (legend.direction == "vertical") {
-            legend_h_est <- 2 * 0.7 + 0.157  # 2 legends stacked + 4mm gap
-        } else {
-            legend_h_est <- 0.7
-        }
-    }
-
-    plot_w_est <- total_w
-    plot_h_est <- total_h
-    if (show_legend) {
-        if (legend.position == "right" || legend.position == "left") {
-            plot_w_est <- total_w + legend_gap + legend_w_est
-        } else if (legend.position == "top" || legend.position == "bottom") {
-            plot_h_est <- total_h + legend_gap + legend_h_est
-        }
-    }
-
-    body_top_offset_left <- 0
-    if (title_h > 0)            body_top_offset_left <- body_top_offset_left + title_h
-    if (gap_title > 0)          body_top_offset_left <- body_top_offset_left + gap_title
-    if (is_top("top") && left_dendro_h > 0)
-                                body_top_offset_left <- body_top_offset_left + left_dendro_h
-    if (is_top(left_args$column_names_side) && left_colname_h > 0)
-                                body_top_offset_left <- body_top_offset_left + left_colname_h
-    if (is_top(left_args$column_names_side) && left_gap_dimname > 0)
-                                body_top_offset_left <- body_top_offset_left + left_gap_dimname
-    if (left_gap_col_anno > 0)  body_top_offset_left <- body_top_offset_left + left_gap_col_anno
-    body_top_offset_left <- body_top_offset_left
-    body_top_offset_right <- 0
-    if (title_h > 0)            body_top_offset_right <- body_top_offset_right + title_h
-    if (gap_title > 0)          body_top_offset_right <- body_top_offset_right + gap_title
-    if (is_top("top") && right_dendro_h > 0)
-                                body_top_offset_right <- body_top_offset_right + right_dendro_h
-    if (is_top(right_args$column_names_side) && right_colname_h > 0)
-                                body_top_offset_right <- body_top_offset_right + right_colname_h
-    if (is_top(right_args$column_names_side) && right_gap_dimname > 0)
-                                body_top_offset_right <- body_top_offset_right + right_gap_dimname
-    if (right_gap_col_anno > 0) body_top_offset_right <- body_top_offset_right + right_gap_col_anno
-    body_top_offset_right <- body_top_offset_right
-
-    # Recompute below-body totals after scaling
-    left_below_h <- 0
-    if (!is_top(left_args$column_names_side)) {
-        left_below_h <- left_below_h + left_colname_h + left_gap_dimname
-    }
-    right_below_h <- 0
-    if (!is_top(right_args$column_names_side)) {
-        right_below_h <- right_below_h + right_colname_h + right_gap_dimname
-    }
-    left_total_w  <- left_dendro_w + left_rowname_w  + left_body_w
-    left_total_h  <- body_top_offset_left  + left_body_h + left_below_h
-    right_total_w <- right_body_w + right_rowname_w + right_dendro_w
-    right_total_h <- body_top_offset_right + right_body_h + right_below_h
-
-    total_w <- left_total_w + gap_width + right_total_w + 0.5
-    total_h <- max(left_total_h, right_total_h) + 1
 
     # ── Build link table ──
     left_row_names_ordered <- rownames(left_ht@matrix)[left_row_order]
@@ -739,19 +619,91 @@ LinkedHeatmapAtomic <- function(
     # ── Link position computation ──
     # NPC coords use total_h (heatmap-only height) because each heatmap
     # viewport receives that exact height from the grid layout.
-    left_center_offset  <- (total_h - left_total_h)  / 2
+    # Each heatmap is drawn inside a centered viewport of its exact native
+    # size, so the body top position includes the centering offset:
+    #   body_top_px = (total_h - heatmap_total_h) / 2 + body_top_offset
+
+    left_center_offset  <- (total_h - left_total_h) / 2
     right_center_offset <- (total_h - right_total_h) / 2
 
-    left_body_top_npc  <- 1 - (body_top_offset_left  + left_center_offset)  / total_h
-    left_body_bot_npc  <- 1 - (body_top_offset_left  + left_center_offset + left_body_h)  / total_h
+    left_body_top_npc  <- 1 - (left_center_offset + body_top_offset_left) / total_h
+    left_body_bot_npc  <- 1 - (left_center_offset + body_top_offset_left + left_body_h) / total_h
     left_body_range    <- left_body_top_npc - left_body_bot_npc
 
-    right_body_top_npc <- 1 - (body_top_offset_right + right_center_offset) / total_h
-    right_body_bot_npc <- 1 - (body_top_offset_right + right_center_offset + right_body_h) / total_h
+    right_body_top_npc <- 1 - (right_center_offset + body_top_offset_right) / total_h
+    right_body_bot_npc <- 1 - (right_center_offset + body_top_offset_right + right_body_h) / total_h
     right_body_range   <- right_body_top_npc - right_body_bot_npc
 
     compute_y <- function(pos, n_rows, top_npc, range_npc) {
         top_npc - (pos - 0.5) / n_rows * range_npc
+    }
+
+    # ── Debug output ──
+    if (isTRUE(getOption("plotthis.debug.linkedheatmap", FALSE))) {
+
+        # Link span (Y range across all endpoints)
+        if (nrow(link_table) > 0) {
+            all_yL <- vapply(seq_len(nrow(link_table)), function(k) {
+                compute_y(link_table$pos_left[k], n_left_rows,
+                          left_body_top_npc, left_body_range)
+            }, numeric(1))
+            all_yR <- vapply(seq_len(nrow(link_table)), function(k) {
+                compute_y(link_table$pos_right[k], n_right_rows,
+                          right_body_top_npc, right_body_range)
+            }, numeric(1))
+            link_ymin <- min(all_yL, all_yR)
+            link_ymax <- max(all_yL, all_yR)
+            link_span <- link_ymax - link_ymin
+        } else {
+            link_ymin <- link_ymax <- link_span <- NA
+        }
+
+        # First and last row Y coordinates
+        left_y_row1  <- compute_y(1, n_left_rows,
+                                  left_body_top_npc, left_body_range)
+        left_y_last  <- compute_y(n_left_rows, n_left_rows,
+                                  left_body_top_npc, left_body_range)
+        right_y_row1 <- compute_y(1, n_right_rows,
+                                  right_body_top_npc, right_body_range)
+        right_y_last <- compute_y(n_right_rows, n_right_rows,
+                                  right_body_top_npc, right_body_range)
+
+        cat("\n── LinkedHeatmap Debug ──\n")
+        cat(sprintf("Body: L %.3f x %.3f in (%d x %d)  R %.3f x %.3f in (%d x %d)\n",
+                    left_body_w, left_body_h, n_left_rows, n_left_cols,
+                    right_body_w, right_body_h, n_right_rows, n_right_cols))
+        cat(sprintf("Top components: L=%.3f  R=%.3f  (CH [1:4])\\n",
+                    body_top_offset_left, body_top_offset_right))
+        cat(sprintf("Bot components: L=%.3f  R=%.3f  (CH [6:9])\\n",
+                    left_below_h, right_below_h))
+        cat(sprintf("Total: L=%.3f x %.3f  R=%.3f x %.3f\\n",
+                    left_total_w, left_total_h, right_total_w, right_total_h))
+        cat(sprintf("shared_h=%.3f  L_center=%.3f  R_center=%.3f\\n",
+                    total_h, left_center_offset, right_center_offset))
+        cat(sprintf("NPC body: L top=%.4f bot=%.4f range=%.4f\\n",
+                    left_body_top_npc, left_body_bot_npc, left_body_range))
+        cat(sprintf("NPC body: R top=%.4f bot=%.4f range=%.4f\\n",
+                    right_body_top_npc, right_body_bot_npc, right_body_range))
+        cat(sprintf("Row Y: L row1=%.4f  row%d=%.4f  R row1=%.4f  row%d=%.4f\\n",
+                    left_y_row1, n_left_rows, left_y_last,
+                    right_y_row1, n_right_rows, right_y_last))
+        if (!is.na(link_span)) {
+            cat(sprintf("Links: %d  span Y=%.4f-%.4f (%.4f) vs body L=%.4f R=%.4f\\n",
+                        nrow(link_table), link_ymin, link_ymax, link_span,
+                        left_body_range, right_body_range))
+            if (link_ymax > max(left_body_top_npc, right_body_top_npc) ||
+                link_ymin < min(left_body_bot_npc, right_body_bot_npc)) {
+                cat("  *** LINKS EXTEND BEYOND BODY ***\n")
+            }
+            cat(sprintf("  first: L%d->R%d  Y=(%.4f, %.4f)\\n",
+                        link_table$pos_left[1], link_table$pos_right[1],
+                        all_yL[1], all_yR[1]))
+            cat(sprintf("  last:  L%d->R%d  Y=(%.4f, %.4f)\\n",
+                        link_table$pos_left[nrow(link_table)],
+                        link_table$pos_right[nrow(link_table)],
+                        all_yL[nrow(link_table)], all_yR[nrow(link_table)]))
+        }
+        cat("─────────────────────────\n\n")
     }
 
     # ── Draw composite ──
@@ -817,9 +769,17 @@ LinkedHeatmapAtomic <- function(
             )
         ))
 
-        # Left heatmap
+        # Left heatmap — centered exact-size viewport so ComplexHeatmap
+        # sizes the body to exactly n_left_rows × cell_h
         pushViewport(viewport(layout.pos.row = hm_row,
                               layout.pos.col = hm_col_left))
+        pushViewport(viewport(
+            x = unit(0, "npc"),
+            y = unit(0.5, "npc"),
+            width = unit(left_total_w, "inches"),
+            height = unit(left_total_h, "inches"),
+            just = c("left", "centre")
+        ))
         ComplexHeatmap::draw(
             left_ht,
             newpage = FALSE,
@@ -827,11 +787,19 @@ LinkedHeatmapAtomic <- function(
             show_annotation_legend = FALSE,
             padding = unit(c(0, 0, 0, 0), "mm")
         )
-        popViewport()
+        popViewport(2)
 
-        # Right heatmap
+        # Right heatmap — centered exact-size viewport so ComplexHeatmap
+        # sizes the body to exactly n_right_rows × cell_h
         pushViewport(viewport(layout.pos.row = hm_row,
                               layout.pos.col = hm_col_right))
+        pushViewport(viewport(
+            x = unit(0, "npc"),
+            y = unit(0.5, "npc"),
+            width = unit(right_total_w, "inches"),
+            height = unit(right_total_h, "inches"),
+            just = c("left", "centre")
+        ))
         ComplexHeatmap::draw(
             right_ht,
             newpage = FALSE,
@@ -839,7 +807,7 @@ LinkedHeatmapAtomic <- function(
             show_annotation_legend = FALSE,
             padding = unit(c(0, 0, 0, 0), "mm")
         )
-        popViewport()
+        popViewport(2)
 
         # Legend
         if (!is.null(combined_legend)) {
@@ -878,16 +846,16 @@ LinkedHeatmapAtomic <- function(
                     right_body_top_npc, right_body_range
                 )
                 grid.xspline(
-                    x = unit(c(0, 0.5, 1), "npc"),
+                    x = unit(c(0.1, 0.5, 0.9), "npc"),
                     y = unit(
                         c(y_left, mean(c(y_left, y_right)), y_right),
                         "npc"
                     ),
                     shape = 0.5,
                     gp = gpar(
-                        lwd = link_table$intensity[k] * 5, # link_width_scale,
-                        col = "grey30", # link_color,
-                        alpha = .8 # link_alpha
+                        lwd = link_table$intensity[k] * link_width_scale,
+                        col = link_color,
+                        alpha = link_alpha
                     )
                 )
             }
@@ -899,7 +867,7 @@ LinkedHeatmapAtomic <- function(
 
     # ── Dimension attributes ──
     min_size_in <- 4
-    max_size_in <- 80
+    max_size_in <- 64
     display_h <- max(min(plot_h, max_size_in), min_size_in)
     display_w <- max(min(plot_w, max_size_in), min_size_in)
     ratio <- plot_h / plot_w
@@ -1090,6 +1058,9 @@ LinkedHeatmap <- function(
     row_annotation_agg = NULL,
     # links
     links_width_by = NULL,
+    link_width_scale = 5,
+    link_color = "grey40",
+    link_alpha = 0.6,
 
     # misc
     flip = FALSE,
@@ -1320,6 +1291,9 @@ LinkedHeatmap <- function(
         args_atomic$row_annotation_agg <- row_annotation_agg
 
         args_atomic$links_width_by <- links_width_by
+        args_atomic$link_width_scale <- link_width_scale
+        args_atomic$link_color <- link_color
+        args_atomic$link_alpha <- link_alpha
 
         args_atomic$alpha <- alpha
         args_atomic$seed <- seed
