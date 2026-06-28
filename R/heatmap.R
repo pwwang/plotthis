@@ -237,6 +237,7 @@
 #' Note that for `cell_type = "pie"` the cells are always drawn square by ComplexHeatmap
 #' regardless of this setting; use it primarily to budget the figure size.
 #' Note that the aspect ratio is not guaranteed to be perfectly preserved; it will also be restricted by the size and height/width ratio of the entire plot itself.
+#' @param return_ht Return a `ComplexHeatmap::prepare()`d heatmap object instead of drawing it. Default is `FALSE`.
 #' @param draw_opts A named list of additional arguments passed to [ComplexHeatmap::draw()]. Arguments already managed
 #' internally (`annotation_legend_list`, `padding`, `show_annotation_legend`, `annotation_legend_side`,
 #' `column_title`) take precedence over any values supplied here.
@@ -344,6 +345,7 @@ HeatmapAtomic <- function(
     base_size = 1,
     aspect.ratio = NULL,
     draw_opts = list(),
+    return_ht = FALSE,
     # cell customization
     layer_fun_callback = NULL,
     cell_type = "tile",
@@ -2763,7 +2765,6 @@ HeatmapAtomic <- function(
         hmargs <- hmargs[setdiff(names(hmargs), unknown_args)]
     }
     p <- do_call(ComplexHeatmap::Heatmap, hmargs)
-    mat <- p@matrix
     # Move label/mark legends to the end so they appear last
     if (!is.null(legends$.label)) {
         legends <- c(legends[names(legends) != ".label"], legends[".label"])
@@ -2771,6 +2772,15 @@ HeatmapAtomic <- function(
     if (!is.null(legends$.mark)) {
         legends <- c(legends[names(legends) != ".mark"], legends[".mark"])
     }
+    if (return_ht) {
+        p <- ComplexHeatmap::prepare(p)
+        attr(p, "cell_w") <- cell_w
+        attr(p, "cell_h") <- cell_h
+        attr(p, "legends") <- legends
+        return(p)
+    }
+
+    mat <- p@matrix
     draw_args_fixed <- list(
         annotation_legend_list = legends,
         padding = draw_opts$padding %||% padding,

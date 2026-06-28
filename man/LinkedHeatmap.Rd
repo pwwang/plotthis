@@ -6,41 +6,207 @@
 \usage{
 LinkedHeatmap(
   data,
-  left,
-  right,
-  link_by = NULL,
-  link_width_by = NULL,
-  link_width_scale = 5,
-  link_color = "grey40",
-  link_alpha = 0.6,
+  values_by,
+  values_fill = NA,
+  name = NULL,
   split_by = NULL,
   split_by_sep = "_",
-  combine = TRUE,
-  nrow = NULL,
-  ncol = NULL,
-  byrow = TRUE,
+  rows_by = NULL,
+  rows_by_sep = "_",
+  rows_split_by = NULL,
+  rows_split_by_sep = "_",
+  columns_by = NULL,
+  columns_by_sep = "_",
+  columns_split_by = NULL,
+  columns_split_by_sep = "_",
+  rows_data = NULL,
+  columns_data = NULL,
+  keep_na = FALSE,
+  keep_empty = FALSE,
+  rows_orderby = NULL,
+  columns_orderby = NULL,
+  columns_name = NULL,
+  columns_split_name = NULL,
+  rows_name = NULL,
+  rows_split_name = NULL,
   palette = "RdBu",
   palcolor = NULL,
   palreverse = FALSE,
+  pie_size_name = "size",
+  pie_size = NULL,
+  pie_values = "length",
+  pie_name = NULL,
+  pie_group_by = NULL,
+  pie_group_by_sep = "_",
+  pie_palette = "Spectral",
+  pie_palcolor = NULL,
+  bars_sample = 100,
+  label = identity,
+  label_size = 10,
+  label_color = "black",
+  label_name = "label",
+  mark = identity,
+  mark_color = "black",
+  mark_size = 1,
+  mark_name = "mark",
+  violin_fill = NULL,
+  boxplot_fill = NULL,
+  dot_size = 8,
+  dot_size_name = "size",
+  legend_items = NULL,
+  legend_discrete = FALSE,
+  legend.position = "right",
+  legend.direction = "vertical",
   lower_quantile = 0,
   upper_quantile = 0.99,
   lower_cutoff = NULL,
   upper_cutoff = NULL,
-  cluster_rows = TRUE,
-  cluster_columns = TRUE,
-  show_row_names = TRUE,
-  show_column_names = TRUE,
-  base_size = 1,
-  gap_width = 0.5,
+  add_bg = FALSE,
+  bg_alpha = 0.5,
+  add_reticle = FALSE,
+  reticle_color = "grey",
+  cluster_columns = NULL,
+  cluster_rows = NULL,
+  show_row_names = NULL,
+  show_column_names = NULL,
+  border = TRUE,
+  title = NULL,
+  column_title = NULL,
+  row_title = NULL,
+  na_col = "grey85",
+  row_names_side = "right",
+  column_names_side = "bottom",
+  column_annotation = NULL,
+  column_annotation_side = "top",
+  column_annotation_palette = "Paired",
+  column_annotation_palcolor = NULL,
+  column_annotation_type = "auto",
+  column_annotation_params = list(),
+  column_annotation_agg = NULL,
+  row_annotation = NULL,
+  row_annotation_side = "left",
+  row_annotation_palette = "Paired",
+  row_annotation_palcolor = NULL,
+  row_annotation_type = "auto",
+  row_annotation_params = list(),
+  row_annotation_agg = NULL,
+  flip = FALSE,
+  alpha = 1,
   seed = 8525,
-  debug = FALSE,
-  alignment_fudge = 0,
-  scale = NULL,
+  padding = 15,
+  base_size = 1,
+  aspect.ratio = NULL,
+  draw_opts = list(),
+  layer_fun_callback = NULL,
+  cell_type = c("tile", "bars", "label", "mark", "label+mark", "mark+label", "dot",
+    "violin", "boxplot", "pie"),
+  cell_agg = NULL,
+  combine = TRUE,
+  nrow = NULL,
+  ncol = NULL,
+  byrow = TRUE,
+  axes = NULL,
+  axis_titles = axes,
+  guides = NULL,
+  design = NULL,
   ...
 )
 }
 \arguments{
 \item{data}{A data frame in long format.}
+
+\item{split_by}{Column to split data by for faceted linked heatmaps.}
+
+\item{split_by_sep}{Separator for concatenated split_by columns.}
+
+\item{keep_na}{A logical value or a character to replace the NA values in the data.
+It can also take a named list to specify different behavior for different columns.
+If TRUE or NA, NA values will be replaced with NA.
+If FALSE, NA values will be removed from the data before plotting.
+If a character string is provided, NA values will be replaced with the provided string.
+If a named vector/list is provided, the names should be the column names to apply the behavior to,
+and the values should be one of TRUE, FALSE, or a character string.
+Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
+for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.}
+
+\item{keep_empty}{One of FALSE, TRUE and "level". It can also take a named list to specify
+different behavior for different columns. Without a named list, the behavior applies to the
+categorical/character columns used on the plot, for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.
+\itemize{
+\item{\code{FALSE} (default): Drop empty factor levels from the data before plotting.}
+\item{\code{TRUE}: Keep empty factor levels and show them as a separate category in the plot.}
+\item{\code{"level"}: Keep empty factor levels, but do not show them in the plot.
+But they will be assigned colors from the palette to maintain consistency across multiple plots.
+Alias: \code{levels}}
+}}
+
+\item{palette}{Palette for heatmap color scale (default "RdBu").}
+
+\item{palcolor}{Custom color vector.}
+
+\item{palreverse}{Reverse palette direction.}
+
+\item{legend.position}{A character string specifying the position of the legend.
+if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
+
+\item{legend.direction}{A character string specifying the direction of the legend.}
+
+\item{lower_quantile, upper_quantile}{Quantile cutoffs.}
+
+\item{lower_cutoff, upper_cutoff}{Explicit cutoffs.}
+
+\item{cluster_rows, cluster_columns}{Cluster heatmap rows/columns.}
+
+\item{show_row_names, show_column_names}{Show row/column labels.}
+
+\item{title}{A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.}
+
+\item{alpha}{A numeric value specifying the transparency of the plot.}
+
+\item{seed}{Random seed.}
+
+\item{base_size}{Scaling factor for cell size.}
+
+\item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
+
+\item{combine}{Whether to combine subplots via patchwork (default TRUE).}
+
+\item{nrow, ncol, byrow}{Grid layout for combined plots.}
+
+\item{axes}{A string specifying how axes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
+Only relevant when \code{split_by} is used and \code{combine} is TRUE.
+Options are:
+\itemize{
+\item 'keep' will retain all axes in individual plots.
+\item 'collect' will remove duplicated axes when placed in the same run of rows or columns of the layout.
+\item 'collect_x' and 'collect_y' will remove duplicated x-axes in the columns or duplicated y-axes in the rows respectively.
+}}
+
+\item{axis_titles}{A string specifying how axis titltes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
+Only relevant when \code{split_by} is used and \code{combine} is TRUE.
+Options are:
+\itemize{
+\item 'keep' will retain all axis titles in individual plots.
+\item 'collect' will remove duplicated titles in one direction and merge titles in the opposite direction.
+\item 'collect_x' and 'collect_y' control this for x-axis titles and y-axis titles respectively.
+}}
+
+\item{guides}{A string specifying how guides should be treated in the layout. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
+Only relevant when \code{split_by} is used and \code{combine} is TRUE.
+Options are:
+\itemize{
+\item 'collect' will collect guides below to the given nesting level, removing duplicates.
+\item 'keep' will stop collection at this level and let guides be placed alongside their plot.
+\item 'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.
+}}
+
+\item{design}{Specification of the location of areas in the layout, passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
+Only relevant when \code{split_by} is used and \code{combine} is TRUE. When specified, \code{nrow}, \code{ncol}, and \code{byrow} are ignored.
+See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details.}
+
+\item{...}{Other arguments passed to \code{\link[ComplexHeatmap]{Heatmap}}.}
 
 \item{left}{A named list for the left heatmap. Must contain \code{rows_by},
 \code{columns_by}, \code{values_by}, and \code{name}. Optionally:
@@ -61,48 +227,11 @@ LinkedHeatmap(
 
 \item{link_alpha}{Alpha transparency for link lines (default 0.6).}
 
-\item{split_by}{Column to split data by for faceted linked heatmaps.}
-
-\item{split_by_sep}{Separator for concatenated split_by columns.}
-
-\item{combine}{Whether to combine subplots via patchwork (default TRUE).}
-
-\item{nrow, ncol, byrow}{Grid layout for combined plots.}
-
-\item{palette}{Palette for heatmap color scale (default "RdBu").}
-
-\item{palcolor}{Custom color vector.}
-
-\item{palreverse}{Reverse palette direction.}
-
-\item{lower_quantile, upper_quantile}{Quantile cutoffs.}
-
-\item{lower_cutoff, upper_cutoff}{Explicit cutoffs.}
-
-\item{cluster_rows, cluster_columns}{Cluster heatmap rows/columns.}
-
-\item{show_row_names, show_column_names}{Show row/column labels.}
-
-\item{base_size}{Scaling factor for cell size.}
+\item{left_aspect.ratio, right_aspect.ratio}{Aspect ratio (height/width) for
+cells in the left and right heatmaps. Default 1 gives square cells.
+Can also be specified inside the \code{left} / \code{right} list.}
 
 \item{gap_width}{Width of gap between heatmaps (inches).}
-
-\item{seed}{Random seed.}
-
-\item{debug}{If TRUE, draw alignment guides for link positioning
-and print dimension breakdown to console.}
-
-\item{alignment_fudge}{Additional inches added to body_top_offset to
-correct systematic misalignment. Start at 0, adjust in 0.02-inch
-increments while using \code{debug = TRUE}. Positive = links shift
-DOWN (body top is lower than predicted).}
-
-\item{scale}{Uniform scaling factor. \code{NULL} uses natural size.
-\code{"auto"} scales to fit current device/notebook canvas.
-A number (e.g. \code{2}) multiplies all dimensions uniformly.
-Link alignment is preserved at any scale.}
-
-\item{...}{Other arguments passed to \code{\link[ComplexHeatmap]{Heatmap}}.}
 }
 \value{
 A patchwork-wrapped grob.

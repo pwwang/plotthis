@@ -100,6 +100,39 @@ join_heatmap_meta <- function(
     out
 }
 
+#' Apply ordering to a data frame based on a specified expression
+#' @param df A data frame to be ordered.
+#' @param orderby A character string representing the expression to order by.
+#' @param by A character string representing the column name to group by.
+#' @param sby A character string representing the column name to group by for secondary ordering.
+#' @param sby_levels A character vector representing the levels of the secondary grouping column.
+#' @return A data frame ordered based on the specified expression.
+#' @keywords internal
+.apply_orderby <- function(df, orderby, by, sby, sby_levels) {
+    if (!is.null(orderby)) {
+        by_levels <- df %>%
+            group_by(!!sym(by)) %>%
+            summarise(.orderby = !!parse_expr(orderby)) %>%
+            arrange(!!sym(".orderby")) %>%
+            pull(!!sym(by)) %>%
+            as.character() %>%
+            unique()
+        df[[by]] <- factor(df[[by]], levels = by_levels)
+
+        if (!is.null(sby) && is.null(sby_levels)) {
+            sby_levels <- df %>%
+                group_by(!!sym(sby)) %>%
+                summarise(.orderby = !!parse_expr(orderby)) %>%
+                arrange(!!sym(".orderby")) %>%
+                pull(!!sym(sby)) %>%
+                as.character() %>%
+                unique()
+            df[[sby]] <- factor(df[[sby]], levels = sby_levels)
+        }
+    }
+    df
+}
+
 #' Process/normalize data passed to [Heatmap()]
 #'
 #' This function is used to process the data passed to [Heatmap()].
@@ -285,31 +318,6 @@ process_heatmap_data <- function(
         concat_sep = split_by_sep
     )
 
-    apply_orderby <- function(df, orderby, by, sby, sby_levels) {
-        if (!is.null(orderby)) {
-            by_levels <- df %>%
-                group_by(!!sym(by)) %>%
-                summarise(.orderby = !!parse_expr(orderby)) %>%
-                arrange(!!sym(".orderby")) %>%
-                pull(!!sym(by)) %>%
-                as.character() %>%
-                unique()
-            df[[by]] <- factor(df[[by]], levels = by_levels)
-
-            if (!is.null(sby) && is.null(sby_levels)) {
-                sby_levels <- df %>%
-                    group_by(!!sym(sby)) %>%
-                    summarise(.orderby = !!parse_expr(orderby)) %>%
-                    arrange(!!sym(".orderby")) %>%
-                    pull(!!sym(sby)) %>%
-                    as.character() %>%
-                    unique()
-                df[[sby]] <- factor(df[[sby]], levels = sby_levels)
-            }
-        }
-        df
-    }
-
     if (in_form == "long") {
         # values_by
         values_by <- check_columns(data, values_by)
@@ -402,14 +410,14 @@ process_heatmap_data <- function(
             concat_sep = columns_split_by_sep
         )
 
-        data <- apply_orderby(
+        data <- .apply_orderby(
             data,
             rows_orderby,
             rows_by,
             rows_split_by,
             rows_split_levels
         )
-        data <- apply_orderby(
+        data <- .apply_orderby(
             data,
             columns_orderby,
             columns_by,
@@ -525,14 +533,14 @@ process_heatmap_data <- function(
             concat_sep = columns_split_by_sep
         )
 
-        data <- apply_orderby(
+        data <- .apply_orderby(
             data,
             rows_orderby,
             rows_by,
             rows_split_by,
             rows_split_levels
         )
-        data <- apply_orderby(
+        data <- .apply_orderby(
             data,
             columns_orderby,
             columns_by,
@@ -641,14 +649,14 @@ process_heatmap_data <- function(
             concat_sep = columns_split_by_sep
         )
 
-        data <- apply_orderby(
+        data <- .apply_orderby(
             data,
             rows_orderby,
             rows_by,
             rows_split_by,
             rows_split_levels
         )
-        data <- apply_orderby(
+        data <- .apply_orderby(
             data,
             columns_orderby,
             columns_by,
@@ -719,6 +727,394 @@ process_heatmap_data <- function(
         columns_by = columns_by,
         columns_split_by = columns_split_by,
         pie_group_by = pie_group_by,
+        keep_na = keep_na,
+        keep_empty = keep_empty
+    )
+}
+
+#' Process data for LinkedHeatmap
+#' @keywords internal
+process_linkedheatmap_data <- function(
+    data,
+    split_by,
+    split_by_sep,
+    rows_split_by,
+    rows_split_by_sep,
+    rows_split_name,
+    left_values_by,
+    left_name,
+    left_rows_by,
+    left_rows_by_sep,
+    left_rows_name,
+    left_rows_orderby,
+    left_columns_orderby,
+    left_columns_by,
+    left_columns_by_sep,
+    left_columns_name,
+    left_columns_split_by,
+    left_columns_split_by_sep,
+    left_columns_split_name,
+    left_pie_group_by,
+    left_pie_group_by_sep,
+    left_pie_name,
+    left_rows_data,
+    left_columns_data,
+    right_values_by,
+    right_name,
+    right_rows_by,
+    right_rows_by_sep,
+    right_rows_name,
+    right_rows_orderby,
+    right_columns_orderby,
+    right_columns_by,
+    right_columns_by_sep,
+    right_columns_name,
+    right_columns_split_by,
+    right_columns_split_by_sep,
+    right_columns_split_name,
+    right_pie_group_by,
+    right_pie_group_by_sep,
+    right_pie_name,
+    right_rows_data,
+    right_columns_data,
+    keep_na,
+    keep_empty
+) {
+    if (!is.null(left_rows_by) && identical(left_rows_by, left_columns_by)) {
+        stop("[LinkedHeatmap] 'left_rows_by' and 'left_columns_by' can not be the same.")
+    }
+    if (!is.null(right_rows_by) && identical(right_rows_by, right_columns_by)) {
+        stop("[LinkedHeatmap] 'right_rows_by' and 'right_columns_by' can not be the same.")
+    }
+    stopifnot("[LinkedHeatmap] no data is presented (nrow == 0)." = nrow(data) > 0)
+
+    if (identical(left_rows_name %||% left_rows_by, left_columns_name %||% left_columns_by)) {
+        if (!is.null(left_columns_name)) {
+            # consider flip and names_side?
+            left_columns_name <- paste0(left_columns_name, " ")
+        } else {
+            left_rows_name <- paste0(" ", left_rows_name)
+        }
+    }
+    if (identical(right_rows_name %||% right_rows_by, right_columns_name %||% right_columns_by)) {
+        if (!is.null(right_columns_name)) {
+            # consider flip and names_side?
+            right_columns_name <- paste0(right_columns_name, " ")
+        } else {
+            right_rows_name <- paste0(" ", right_rows_name)
+        }
+    }
+
+    left_pie_group_by <- check_columns(
+        data,
+        left_pie_group_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = left_pie_group_by_sep
+    )
+
+    right_pie_group_by <- check_columns(
+        data,
+        right_pie_group_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = right_pie_group_by_sep
+    )
+
+    split_by <- check_columns(
+        data,
+        split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = split_by_sep
+    )
+
+    left_values_by <- check_columns(data, left_values_by)
+    right_values_by <- check_columns(data, right_values_by)
+
+    stopifnot(
+        "[LinkedHeatmap] 'left_values_by/values_by' must be specified." = !is.null(left_values_by)
+    )
+    stopifnot(
+        "[LinkedHeatmap] 'right_values_by/values_by' must be specified." = !is.null(right_values_by)
+    )
+
+    left_rows_by <- check_columns(
+        data,
+        left_rows_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = left_rows_by_sep
+    )
+    stopifnot(
+        "[LinkedHeatmap] 'left_rows_by' must be specified." = !is.null(left_rows_by)
+    )
+
+    right_rows_by <- check_columns(
+        data,
+        right_rows_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = right_rows_by_sep
+    )
+    stopifnot(
+        "[LinkedHeatmap] 'right_rows_by' must be specified." = !is.null(right_rows_by)
+    )
+
+    left_columns_by <- check_columns(
+        data,
+        left_columns_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = left_columns_by_sep
+    )
+    stopifnot(
+        "[LinkedHeatmap] 'left_columns_by' must be specified." = !is.null(left_columns_by)
+    )
+
+    right_columns_by <- check_columns(
+        data,
+        right_columns_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = right_columns_by_sep
+    )
+    stopifnot(
+        "[LinkedHeatmap] 'right_columns_by' must be specified." = !is.null(right_columns_by)
+    )
+
+    if (!is.null(left_rows_data)) {
+        data <- join_heatmap_meta(
+            data,
+            left_rows_data,
+            by = left_rows_by,
+            cr_split_by = left_rows_split_by,
+            split_by = split_by,
+            which = "row"
+        )
+    }
+    if (!is.null(right_rows_data)) {
+        data <- join_heatmap_meta(
+            data,
+            right_rows_data,
+            by = right_rows_by,
+            cr_split_by = right_rows_split_by,
+            split_by = split_by,
+            which = "row"
+        )
+    }
+    if (!is.null(left_columns_data)) {
+        data <- join_heatmap_meta(
+            data,
+            left_columns_data,
+            by = left_columns_by,
+            cr_split_by = left_columns_split_by,
+            split_by = split_by,
+            which = "column"
+        )
+    }
+    if (!is.null(right_columns_data)) {
+        data <- join_heatmap_meta(
+            data,
+            right_columns_data,
+            by = right_columns_by,
+            cr_split_by = right_columns_split_by,
+            split_by = split_by,
+            which = "column"
+        )
+    }
+    rows_split_levels <- if (
+        length(rows_split_by) == 1 && is.factor(data[[rows_split_by]])
+    ) {
+        levels(data[[rows_split_by]])
+    } else {
+        NULL
+    }
+    rows_split_by <- check_columns(
+        data,
+        rows_split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = rows_split_by_sep
+    )
+
+    left_columns_split_levels <- if (
+        length(left_columns_split_by) == 1 && is.factor(data[[left_columns_split_by]])
+    ) {
+        levels(data[[left_columns_split_by]])
+    } else {
+        NULL
+    }
+    left_columns_split_by <- check_columns(
+        data,
+        left_columns_split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = left_columns_split_by_sep
+    )
+
+    right_columns_split_levels <- if (
+        length(right_columns_split_by) == 1 && is.factor(data[[right_columns_split_by]])
+    ) {
+        levels(data[[right_columns_split_by]])
+    } else {
+        NULL
+    }
+    right_columns_split_by <- check_columns(
+        data,
+        right_columns_split_by,
+        force_factor = TRUE,
+        allow_multi = TRUE,
+        concat_multi = TRUE,
+        concat_sep = right_columns_split_by_sep
+    )
+
+    data <- .apply_orderby(
+        data,
+        left_rows_orderby,
+        left_rows_by,
+        rows_split_by,
+        rows_split_levels
+    )
+    data <- .apply_orderby(
+        data,
+        left_columns_orderby,
+        left_columns_by,
+        left_columns_split_by,
+        left_columns_split_levels
+    )
+    data <- .apply_orderby(
+        data,
+        right_rows_orderby,
+        right_rows_by,
+        rows_split_by,
+        rows_split_levels
+    )
+    data <- .apply_orderby(
+        data,
+        right_columns_orderby,
+        right_columns_by,
+        right_columns_split_by,
+        right_columns_split_levels
+    )
+
+    # rename
+    if (!is.null(left_rows_name)) {
+        if (identical(left_rows_name, "")) {
+            left_rows_name <- " "
+        }
+        data <- dplyr::rename(data, !!sym(left_rows_name) := left_rows_by)
+        left_rows_by <- left_rows_name
+    }
+    if (!is.null(left_columns_name)) {
+        if (identical(left_columns_name, "")) {
+            left_columns_name <- " "
+        }
+        data <- dplyr::rename(data, !!sym(left_columns_name) := left_columns_by)
+        left_columns_by <- left_columns_name
+    }
+    if (!is.null(right_rows_name)) {
+        if (identical(right_rows_name, "")) {
+            right_rows_name <- " "
+        }
+        data <- dplyr::rename(data, !!sym(right_rows_name) := right_rows_by)
+        right_rows_by <- right_rows_name
+    }
+    if (!is.null(right_columns_name)) {
+        if (identical(right_columns_name, "")) {
+            right_columns_name <- " "
+        }
+        data <- dplyr::rename(data, !!sym(right_columns_name) := right_columns_by)
+        right_columns_by <- right_columns_name
+    }
+    if (!is.null(rows_split_name) && !is.null(rows_split_by)) {
+        if (identical(rows_split_name, "")) {
+            rows_split_name <- " "
+        }
+        data <- dplyr::rename(data, !!sym(rows_split_name) := rows_split_by)
+        rows_split_by <- rows_split_name
+    }
+    if (!is.null(left_columns_split_name) && !is.null(left_columns_split_by)) {
+        if (identical(left_columns_split_name, "")) {
+            left_columns_split_name <- " "
+        }
+        data <- dplyr::rename(data, !!sym(left_columns_split_name) := left_columns_split_by)
+        left_columns_split_by <- left_columns_split_name
+    }
+    if (!is.null(right_columns_split_name) && !is.null(right_columns_split_by)) {
+        if (identical(right_columns_split_name, "")) {
+            right_columns_split_name <- " "
+        }
+        data <- dplyr::rename(data, !!sym(right_columns_split_name) := right_columns_split_by)
+        right_columns_split_by <- right_columns_split_name
+    }
+    if (!is.null(left_pie_name) && !is.null(left_pie_group_by)) {
+        if (identical(left_pie_name, "")) {
+            left_pie_name <- " "
+        }
+        data <- dplyr::rename(data, !!sym(left_pie_name) := left_pie_group_by)
+        left_pie_group_by <- left_pie_name
+    }
+    if (!is.null(right_pie_name) && !is.null(right_pie_group_by)) {
+        if (identical(right_pie_name, "")) {
+            right_pie_name <- " "
+        }
+        data <- dplyr::rename(data, !!sym(right_pie_name) := right_pie_group_by)
+        right_pie_group_by <- right_pie_name
+    }
+    if (!is.null(left_name)) {
+        if (identical(left_name, "")) {
+            left_name <- " "
+        }
+        data <- dplyr::rename(data, !!sym(left_name) := !!sym(left_values_by))
+        left_values_by <- left_name
+    }
+    if (!is.null(right_name)) {
+        if (identical(right_name, "")) {
+            right_name <- " "
+        }
+        data <- dplyr::rename(data, !!sym(right_name) := !!sym(right_values_by))
+        right_values_by <- right_name
+    }
+
+    keep_na <- check_keep_na(
+        keep_na,
+        unique(c(split_by, left_rows_by, rows_split_by, left_columns_by, left_columns_split_by,
+          right_rows_by, right_columns_by, right_columns_split_by))
+    )
+    if (!isFALSE(keep_empty)) {
+        warning(
+            "[LinkedHeatmap] 'keep_empty != FALSE' is not supported yet, and unused levels will be always dropped."
+        )
+    }
+    data <- process_keep_na_empty(data, keep_na, list())
+
+    list(
+        data = if (is.null(split_by)) {
+            stats::setNames(list(data), "...")
+        } else {
+            split(select(data, -!!sym(split_by)), data[[split_by]])
+        },
+        left_values_by = left_values_by,
+        right_values_by = right_values_by,
+        left_rows_by = left_rows_by,
+        right_rows_by = right_rows_by,
+        rows_split_by = rows_split_by,
+        left_columns_by = left_columns_by,
+        right_columns_by = right_columns_by,
+        left_columns_split_by = left_columns_split_by,
+        right_columns_split_by = right_columns_split_by,
+        left_pie_group_by = left_pie_group_by,
+        right_pie_group_by = right_pie_group_by,
         keep_na = keep_na,
         keep_empty = keep_empty
     )

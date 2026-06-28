@@ -122,160 +122,356 @@ NULL
 #' @keywords internal
 LinkedHeatmapAtomic <- function(
     data,
-    left,
-    right,
-    link_left_by,
-    link_right_by,
-    link_width_by = NULL,
-    link_width_scale = 5,
-    link_color = "grey40",
-    link_alpha = 0.6,
-    gap_width = 0.5,
+    left_values_by,
+    right_values_by,
+    left_rows_by,
+    right_rows_by,
+    left_columns_by,
+    right_columns_by,
+    left_columns_split_by = NULL,
+    right_columns_split_by = NULL,
+    left_pie_group_by = NULL,
+    right_pie_group_by = NULL,
+
+    rows_split_by = NULL,
+    values_fill = NA,
+
+    # palettes
     palette = "RdBu",
     palcolor = NULL,
     palreverse = FALSE,
+
+    # cell_type: pies
+    pie_size_name = "size",
+    pie_size = NULL,
+    pie_values = "length",
+    pie_palette = "Spectral",
+    pie_palcolor = NULL,
+
+    # cell_type: bars
+    bars_sample = 100,
+    # cell_type: label
+    label = identity,
+    label_size = 10,
+    label_color = "black",
+    label_name = "label",
+    # cell_type: mark
+    mark = identity,
+    mark_color = "black",
+    mark_size = 1,
+    mark_name = "mark",
+    # cell_type: violin
+    violin_fill = NULL,
+    # cell_type: boxplot
+    boxplot_fill = NULL,
+    # cell_type: dot
+    dot_size = 8,
+    dot_size_name = "size",
+    # legend
+    legend_items = NULL,
+    legend_discrete = FALSE,
+    legend.position = "right",
+    legend.direction = "vertical",
+    # values
     lower_quantile = 0,
     upper_quantile = 0.99,
     lower_cutoff = NULL,
     upper_cutoff = NULL,
-    cluster_rows = TRUE,
-    cluster_columns = TRUE,
-    show_row_names = TRUE,
-    show_column_names = TRUE,
-    row_names_side = NULL,
-    column_names_side = NULL,
-    base_size = 1,
-    left_aspect.ratio = 1,
-    right_aspect.ratio = 1,
+    # bg
+    add_bg = FALSE,
+    bg_alpha = 0.5,
+    keep_na = FALSE,
+    keep_empty = FALSE,
+    # reticle
+    add_reticle = FALSE,
+    reticle_color = "grey",
+
+    left_cluster_rows = NULL,
+    right_cluster_rows = NULL,
+    cluster_columns = NULL,
+    show_row_names = NULL,
+    show_column_names = NULL,
+    border = TRUE,
+    title = NULL,
+    column_title = NULL,
+    row_title = NULL,
+    na_col = "grey85",
+    left_row_names_side = "left",
+    right_row_names_side = "right",
+    column_names_side = "bottom",
+    column_annotation = NULL,
+    column_annotation_side = "top",
+    column_annotation_palette = "Paired",
+    column_annotation_palcolor = NULL,
+    column_annotation_type = "auto",
+    column_annotation_params = list(),
+    column_annotation_agg = NULL,
+    row_annotation = NULL,
+    left_row_annotation_side = "left",
+    right_row_annotation_side = "right",
+    row_annotation_palette = "Paired",
+    row_annotation_palcolor = NULL,
+    row_annotation_type = "auto",
+    row_annotation_params = list(),
+    row_annotation_agg = NULL,
+
+    links_width_by = NULL,
+
+    alpha = 1,
     seed = 8525,
-    legend.position = "right",
-    legend.direction = "vertical",
+    padding = 15,
+    base_size = 1,
+    aspect.ratio = NULL,
+    draw_opts = list(),
+    # cell customization
+    layer_fun_callback = NULL,
+    cell_type = c(
+        "tile",
+        "bars",
+        "label",
+        "mark",
+        "label+mark",
+        "mark+label",
+        "dot",
+        "violin",
+        "boxplot",
+        "pie"
+    ),
+    cell_agg = NULL,
     ...
 ) {
     set.seed(seed)
 
+    rest_args <- list(...)
+    # The arguments in rest_args that don't begin with "right_" prefix
+    left_args <- rest_args[!grepl("^right_", names(rest_args))]
+    # Replace all left_ prefix
+    names(left_args) <- gsub("^left_", "", names(left_args))
+
+    right_args <- rest_args[!grepl("^left_", names(rest_args))]
+    names(right_args) <- gsub("^right_", "", names(right_args))
+
     # ── Resolve left/right parameters ──
-    left_name     <- left$name     %||% "left"
-    right_name    <- right$name    %||% "right"
-    left_palette  <- left$palette  %||% palette
-    right_palette <- right$palette %||% palette
-    left_palcolor  <- left$palcolor  %||% palcolor
-    right_palcolor <- right$palcolor %||% palcolor
-    left_cluster_rows    <- left$cluster_rows    %||% cluster_rows
-    right_cluster_rows   <- right$cluster_rows   %||% cluster_rows
-    left_cluster_columns <- left$cluster_columns %||% cluster_columns
-    right_cluster_columns <- right$cluster_columns %||% cluster_columns
-    left_show_row_names    <- left$show_row_names    %||% show_row_names
-    right_show_row_names   <- right$show_row_names   %||% show_row_names
-    left_show_column_names <- left$show_column_names %||% show_column_names
-    right_show_column_names <- right$show_column_names %||% show_column_names
-    left_aspect.ratio  <- left$aspect.ratio  %||% left_aspect.ratio
-    right_aspect.ratio <- right$aspect.ratio %||% right_aspect.ratio
+    left_args$data <- data
+    left_args$values_by <- left_values_by
+    left_args$values_fill <- left_args$values_fill %||% values_fill
+    left_args$rows_by <- left_rows_by
+    left_args$rows_split_by <- rows_split_by
+    left_args$columns_by <- left_columns_by
+    left_args$columns_split_by <- left_columns_split_by
+    left_args$palette <- left_args$palette %||% palette
+    left_args$palcolor <- left_args$palcolor %||% palcolor
+    left_args$palreverse <- left_args$palreverse %||% palreverse
+    left_args$pie_size_name <- left_args$pie_size_name %||% pie_size_name
+    left_args$pie_size <- left_args$pie_size %||% pie_size
+    left_args$pie_values <- left_args$pie_values %||% pie_values
+    left_args$pie_group_by <- left_pie_group_by
+    left_args$pie_palette <- left_args$pie_palette %||% pie_palette
+    left_args$pie_palcolor <- left_args$pie_palcolor %||% pie_palcolor
+    left_args$bars_sample <- left_args$bars_sample %||% bars_sample
+    left_args$label <- left_args$label %||% label
+    left_args$label_size <- left_args$label_size %||% label_size
+    left_args$label_color <- left_args$label_color %||% label_color
+    left_args$label_name <- left_args$label_name %||% label_name
+    left_args$mark <- left_args$mark %||% mark
+    left_args$mark_color <- left_args$mark_color %||% mark_color
+    left_args$mark_size <- left_args$mark_size %||% mark_size
+    left_args$mark_name <- left_args$mark_name %||% mark_name
+    left_args$violin_fill <- left_args$violin_fill %||% violin_fill
+    left_args$boxplot_fill <- left_args$boxplot_fill %||% boxplot_fill
+    left_args$dot_size <- left_args$dot_size %||% dot_size
+    left_args$dot_size_name <- left_args$dot_size_name %||% dot_size_name
+    left_args$legend_items <- left_args$legend_items %||% legend_items
+    left_args$legend_discrete <- left_args$legend_discrete %||% legend_discrete
+    left_args$legend.position <- left_args$legend.position %||% legend.position
+    left_args$legend.direction <- left_args$legend.direction %||% legend.direction
+    left_args$lower_quantile <- left_args$lower_quantile %||% lower_quantile
+    left_args$upper_quantile <- left_args$upper_quantile %||% upper_quantile
+    left_args$lower_cutoff <- left_args$lower_cutoff %||% lower_cutoff
+    left_args$upper_cutoff <- left_args$upper_cutoff %||% upper_cutoff
+    left_args$add_bg <- left_args$add_bg %||% add_bg
+    left_args$bg_alpha <- left_args$bg_alpha %||% bg_alpha
+    left_args$add_reticle <- left_args$add_reticle %||% add_reticle
+    left_args$reticle_color <- left_args$reticle_color %||% reticle_color
+    left_args$cluster_columns <- left_args$cluster_columns %||% cluster_columns
+    left_args$cluster_rows <- left_cluster_rows
+    left_args$show_row_names <- left_args$show_row_names %||% show_row_names
+    left_args$show_column_names <- left_args$show_column_names %||% show_column_names
+    left_args$border <- left_args$border %||% border
+    left_args$title <- left_args$title %||% title
+    left_args$column_title <- left_args$column_title %||% column_title
+    left_args$row_title <- left_args$row_title %||% row_title
+    left_args$na_col <- left_args$na_col %||% na_col
+    left_args$row_names_side <- left_args$row_names_side %||% row_names_side
+    left_args$column_names_side <- left_args$column_names_side %||% column_names_side
+    left_args$column_annotation <- left_args[["column_annotation"]] %||% column_annotation
+    left_args$column_annotation_side <- left_args$column_annotation_side %||% column_annotation_side
+    left_args$column_annotation_palette <- left_args$column_annotation_palette %||% column_annotation_palette
+    left_args$column_annotation_palcolor <- left_args$column_annotation_palcolor %||% column_annotation_palcolor
+    left_args$column_annotation_type <- left_args$column_annotation_type %||% column_annotation_type
+    left_args$column_annotation_params <- left_args$column_annotation_params %||% column_annotation_params
+    left_args$column_annotation_agg <- left_args$column_annotation_agg %||% column_annotation_agg
+    left_args$row_annotation <- left_args[["row_annotation"]] %||% row_annotation
+    left_args$row_annotation_side <- left_args$row_annotation_side %||% row_annotation_side
+    left_args$row_annotation_palette <- left_args$row_annotation_palette %||% row_annotation_palette
+    left_args$row_annotation_palcolor <- left_args$row_annotation_palcolor %||% row_annotation_palcolor
+    left_args$row_annotation_type <- left_args$row_annotation_type %||% row_annotation_type
+    left_args$row_annotation_params <- left_args$row_annotation_params %||% row_annotation_params
+    left_args$row_annotation_agg <- left_args$row_annotation_agg %||% row_annotation_agg
+    # flip
+    left_args$alpha <- left_args$alpha %||% alpha
+    left_args$padding <- left_args$padding %||% padding
+    left_args$base_size <- left_args$base_size %||% base_size
+    left_args$aspect.ratio <- left_args$aspect.ratio %||% aspect.ratio
+    left_args$draw_opts <- left_args$draw_opts %||% draw_opts
+    left_args$layer_fun_callback <- left_args$layer_fun_callback %||% layer_fun_callback
+    left_args$cell_type <- left_args$cell_type %||% cell_type
+    left_args$cell_agg <- left_args$cell_agg %||% cell_agg
+    left_args$return_ht <- TRUE
 
-    # Default sides: left heatmap annotations on left, right on right
-    left_row_names_side <- row_names_side %||% "left"
-    right_row_names_side <- row_names_side %||% "right"
-    left_column_names_side <- column_names_side %||% "bottom"
-    right_column_names_side <- column_names_side %||% "bottom"
+    right_args$data <- data
+    right_args$values_by <- right_values_by
+    right_args$values_fill <- right_args$values_fill %||% values_fill
+    right_args$rows_by <- right_rows_by
+    right_args$rows_split_by <- rows_split_by
+    right_args$columns_by <- right_columns_by
+    right_args$columns_split_by <- right_columns_split_by
+    right_args$palette <- right_args$palette %||% palette
+    right_args$palcolor <- right_args$palcolor %||% palcolor
+    right_args$palreverse <- right_args$palreverse %||% palreverse
+    right_args$pie_size_name <- right_args$pie_size_name %||% pie_size_name
+    right_args$pie_size <- right_args$pie_size %||% pie_size
+    right_args$pie_values <- right_args$pie_values %||% pie_values
+    right_args$pie_group_by <- right_pie_group_by
+    right_args$pie_palette <- right_args$pie_palette %||% pie_palette
+    right_args$pie_palcolor <- right_args$pie_palcolor %||% pie_palcolor
+    right_args$bars_sample <- right_args$bars_sample %||% bars_sample
+    right_args$label <- right_args$label %||% label
+    right_args$label_size <- right_args$label_size %||% label_size
+    right_args$label_color <- right_args$label_color %||% label_color
+    right_args$label_name <- right_args$label_name %||% label_name
+    right_args$mark <- right_args$mark %||% mark
+    right_args$mark_color <- right_args$mark_color %||% mark_color
+    right_args$mark_size <- right_args$mark_size %||% mark_size
+    right_args$mark_name <- right_args$mark_name %||% mark_name
+    right_args$violin_fill <- right_args$violin_fill %||% violin_fill
+    right_args$boxplot_fill <- right_args$boxplot_fill %||% boxplot_fill
+    right_args$dot_size <- right_args$dot_size %||% dot_size
+    right_args$dot_size_name <- right_args$dot_size_name %||% dot_size_name
+    right_args$legend_items <- right_args$legend_items %||% legend_items
+    right_args$legend_discrete <- right_args$legend_discrete %||% legend_discrete
+    right_args$legend.position <- right_args$legend.position %||% legend.position
+    right_args$legend.direction <- right_args$legend.direction %||% legend.direction
+    right_args$lower_quantile <- right_args$lower_quantile %||% lower_quantile
+    right_args$upper_quantile <- right_args$upper_quantile %||% upper_quantile
+    right_args$lower_cutoff <- right_args$lower_cutoff %||% lower_cutoff
+    right_args$upper_cutoff <- right_args$upper_cutoff %||% upper_cutoff
+    right_args$add_bg <- right_args$add_bg %||% add_bg
+    right_args$bg_alpha <- right_args$bg_alpha %||% bg_alpha
+    right_args$add_reticle <- right_args$add_reticle %||% add_reticle
+    right_args$reticle_color <- right_args$reticle_color %||% reticle_color
+    right_args$cluster_columns <- right_args$cluster_columns %||% cluster_columns
+    right_args$cluster_rows <- right_cluster_rows
+    right_args$show_row_names <- right_args$show_row_names %||% show_row_names
+    right_args$show_column_names <- right_args$show_column_names %||% show_column_names
+    right_args$border <- right_args$border %||% border
+    right_args$title <- right_args$title %||% title
+    right_args$column_title <- right_args$column_title %||% column_title
+    right_args$row_title <- right_args$row_title %||% row_title
+    right_args$na_col <- right_args$na_col %||% na_col
+    right_args$row_names_side <- right_args$row_names_side %||% row_names_side
+    right_args$column_names_side <- right_args$column_names_side %||% column_names_side
+    right_args$column_annotation <- right_args[["column_annotation"]] %||% column_annotation
+    right_args$column_annotation_side <- right_args$column_annotation_side %||% column_annotation_side
+    right_args$column_annotation_palette <- right_args$column_annotation_palette %||% column_annotation_palette
+    right_args$column_annotation_palcolor <- right_args$column_annotation_palcolor %||% column_annotation_palcolor
+    right_args$column_annotation_type <- right_args$column_annotation_type %||% column_annotation_type
+    right_args$column_annotation_params <- right_args$column_annotation_params %||% column_annotation_params
+    right_args$column_annotation_agg <- right_args$column_annotation_agg %||% column_annotation_agg
+    right_args$row_annotation <- right_args[["row_annotation"]] %||% row_annotation
+    right_args$row_annotation_side <- right_args$row_annotation_side %||% row_annotation_side
+    right_args$row_annotation_palette <- right_args$row_annotation_palette %||% row_annotation_palette
+    right_args$row_annotation_palcolor <- right_args$row_annotation_palcolor %||% row_annotation_palcolor
+    right_args$row_annotation_type <- right_args$row_annotation_type %||% row_annotation_type
+    right_args$row_annotation_params <- right_args$row_annotation_params %||% row_annotation_params
+    right_args$row_annotation_agg <- right_args$row_annotation_agg %||% row_annotation_agg
+    # flip
+    right_args$alpha <- right_args$alpha %||% alpha
+    right_args$padding <- right_args$padding %||% padding
+    right_args$base_size <- right_args$base_size %||% base_size
+    right_args$aspect.ratio <- right_args$aspect.ratio %||% aspect.ratio
+    right_args$draw_opts <- right_args$draw_opts %||% draw_opts
+    right_args$layer_fun_callback <- right_args$layer_fun_callback %||% layer_fun_callback
+    right_args$cell_type <- right_args$cell_type %||% cell_type
+    right_args$cell_agg <- right_args$cell_agg %||% cell_agg
+    right_args$return_ht <- TRUE
 
-    # ── Build left and right matrices ──
-    left_mat_info <- .build_linked_matrix(
-        data, left$rows_by, left$columns_by, left$values_by
-    )
-    right_mat_info <- .build_linked_matrix(
-        data, right$rows_by, right$columns_by, right$values_by
-    )
+    left_ht <- do_call(HeatmapAtomic, left_args)
+    right_ht <- do_call(HeatmapAtomic, right_args)
 
-    left_mat  <- left_mat_info$matrix
-    right_mat <- right_mat_info$matrix
-    n_left_rows  <- nrow(left_mat)
-    n_left_cols  <- ncol(left_mat)
-    n_right_rows <- nrow(right_mat)
-    n_right_cols <- ncol(right_mat)
+    n_left_rows <- nrow(left_ht@matrix)
+    n_left_cols <- ncol(left_ht@matrix)
+    n_right_rows <- nrow(right_ht@matrix)
+    n_right_cols <- ncol(right_ht@matrix)
 
-    # ── Pre-compute clustering ──
-    left_row_order <- seq_len(n_left_rows)
-    left_row_dend  <- NULL
-    if (isTRUE(left_cluster_rows) && n_left_rows > 1) {
-        left_hc <- hclust(dist(left_mat))
-        left_row_order <- left_hc$order
-        left_row_dend <- as.dendrogram(left_hc)
-    }
+    # Get the order of the rows in the left heatmap after clustering (if any)
+    left_row_order <- left_ht@row_order
+    right_row_order <- right_ht@row_order
 
-    right_row_order <- seq_len(n_right_rows)
-    right_row_dend  <- NULL
-    if (isTRUE(right_cluster_rows) && n_right_rows > 1) {
-        right_hc <- hclust(dist(right_mat))
-        right_row_order <- right_hc$order
-        right_row_dend <- as.dendrogram(right_hc)
-    }
+    left_cell_w <- attr(left_ht, "cell_w")
+    left_cell_h <- attr(left_ht, "cell_h")
+    right_cell_w <- attr(right_ht, "cell_w")
+    right_cell_h <- attr(right_ht, "cell_h")
 
-    # ── Prepare color scales ──
-    get_col_fun <- function(mat, pal, palcol, lower_q, upper_q,
-                             lower_c, upper_c) {
-        lower_c <- lower_c %||% quantile(
-            mat[is.finite(mat)], lower_q, na.rm = TRUE
-        )
-        upper_c <- upper_c %||% quantile(
-            mat[is.finite(mat)], upper_q, na.rm = TRUE
-        )
-        if (upper_c == lower_c) {
-            upper_c <- if (upper_c == 0) 1e-3 else upper_c + upper_c * 1e-3
-        }
-        colorRamp2(
-            seq(lower_c, upper_c, length = 100),
-            palette_this(
-                palette = pal, palcolor = palcol,
-                alpha = 1, reverse = palreverse, transparent = FALSE
-            )
-        )
-    }
-
-    left_col_fun <- get_col_fun(
-        left_mat, left_palette, left_palcolor,
-        lower_quantile, upper_quantile,
-        lower_cutoff, upper_cutoff
-    )
-    right_col_fun <- get_col_fun(
-        right_mat, right_palette, right_palcolor,
-        lower_quantile, upper_quantile,
-        lower_cutoff, upper_cutoff
-    )
+    gap_width <- 0.5
 
     # ── Dimension constants ──
-    mm_to_in <- 0.0393701
-    cell_w <- 0.25 * base_size
-    left_cell_h  <- cell_w * left_aspect.ratio
-    right_cell_h <- cell_w * right_aspect.ratio
+    mm_to_in <- grid::convertUnit(grid::unit(1, "mm"), "inches", valueOnly = TRUE)  # 0.0393701
 
-    dendro_h <- if (isTRUE(cluster_columns)) 0.5 else 0
-    dendro_w <- if (isTRUE(cluster_rows)) 0.5 else 0
-    # DENDROGRAM_PADDING (0.5mm) baked into dendrogram height by ComplexHeatmap
-    dendro_h_actual <- dendro_h + if (isTRUE(cluster_columns)) 0.5 * mm_to_in else 0
-    dendro_w_actual <- dendro_w + if (isTRUE(cluster_rows)) 0.5 * mm_to_in else 0
+    left_dendro_h <- ifelse(
+        isTRUE(left_args$cluster_columns),
+        # DENDROGRAM_PADDING (0.5mm) baked into dendrogram height by ComplexHeatmap
+        grid::convertUnit(left_ht@column_dend_param$height, "inches", valueOnly = TRUE) + 0.5 * mm_to_in,
+        0
+    )
+    left_dendro_w <- ifelse(
+        isTRUE(left_args$cluster_rows),
+        grid::convertUnit(left_ht@row_dend_param$width, "inches", valueOnly = TRUE) + 0.5 * mm_to_in,
+        0
+    )
+    right_dendro_h <- ifelse(
+        isTRUE(right_args$cluster_columns),
+        grid::convertUnit(right_ht@column_dend_param$height, "inches", valueOnly = TRUE) + 0.5 * mm_to_in,
+        0
+    )
+    right_dendro_w <- ifelse(
+        isTRUE(right_args$cluster_rows),
+        grid::convertUnit(right_ht@row_dend_param$width, "inches", valueOnly = TRUE) + 0.5 * mm_to_in,
+        0
+    )
 
     # Column names height (rotated 90°, height = text width)
-    left_colname_h <- if (isTRUE(left_show_column_names)) {
-        cw <- ComplexHeatmap::max_text_width(colnames(left_mat))
-        convertUnit(cw, "inches", valueOnly = TRUE)
+    left_colname_h <- if (isTRUE(left_args$show_column_names)) {
+        cw <- ComplexHeatmap::max_text_width(colnames(left_ht@matrix))
+        grid::convertUnit(cw, "inches", valueOnly = TRUE)
     } else 0
-    right_colname_h <- if (isTRUE(right_show_column_names)) {
-        cw <- ComplexHeatmap::max_text_width(colnames(right_mat))
-        convertUnit(cw, "inches", valueOnly = TRUE)
+    right_colname_h <- if (isTRUE(right_args$show_column_names)) {
+        cw <- ComplexHeatmap::max_text_width(colnames(right_ht@matrix))
+        grid::convertUnit(cw, "inches", valueOnly = TRUE)
     } else 0
 
     # Row names width
     # Row names width + DIMNAME_PADDING*2 (2mm), matching CH layout:
     #   row_names_width = anno@width + ht_opt$DIMNAME_PADDING*2
-    left_rowname_w <- if (isTRUE(left_show_row_names)) {
-        convertUnit(
-            ComplexHeatmap::max_text_width(rownames(left_mat)),
+    left_rowname_w <- if (isTRUE(left_args$show_row_names)) {
+        grid::convertUnit(
+            ComplexHeatmap::max_text_width(rownames(left_ht@matrix)),
             "inches", valueOnly = TRUE
         ) + 2.0 * mm_to_in
     } else 0
-    right_rowname_w <- if (isTRUE(right_show_row_names)) {
-        convertUnit(
-            ComplexHeatmap::max_text_width(rownames(right_mat)),
+    right_rowname_w <- if (isTRUE(right_args$show_row_names)) {
+        grid::convertUnit(
+            ComplexHeatmap::max_text_width(rownames(right_ht@matrix)),
             "inches", valueOnly = TRUE
         ) + 2.0 * mm_to_in
     } else 0
@@ -283,8 +479,8 @@ LinkedHeatmapAtomic <- function(
     # ── Internal gap accounting ──
     # DIMNAME_PADDING: 1mm above + 1mm below
     # DIMNAME_PADDING = 1mm per side, so *2 = 2mm total
-    left_gap_dimname  <- if (isTRUE(left_show_column_names))  2.0 * mm_to_in else 0
-    right_gap_dimname <- if (isTRUE(right_show_column_names)) 2.0 * mm_to_in else 0
+    left_gap_dimname  <- if (isTRUE(left_args$show_column_names))  2.0 * mm_to_in else 0
+    right_gap_dimname <- if (isTRUE(right_args$show_column_names)) 2.0 * mm_to_in else 0
 
     # No column annotations in initial scope → gap_col_anno = 0
     left_gap_col_anno  <- 0
@@ -295,9 +491,9 @@ LinkedHeatmapAtomic <- function(
     gap_title <- 0
 
     # ── Body dimensions ──
-    left_body_w  <- n_left_cols  * cell_w
+    left_body_w  <- n_left_cols  * left_cell_w
     left_body_h  <- n_left_rows  * left_cell_h
-    right_body_w <- n_right_cols * cell_w
+    right_body_w <- n_right_cols * right_cell_w
     right_body_h <- n_right_rows * right_cell_h
 
     # ── COMPLETE body_top_offset ──
@@ -321,11 +517,11 @@ LinkedHeatmapAtomic <- function(
     body_top_offset_left <- 0
     if (title_h > 0)            body_top_offset_left <- body_top_offset_left + title_h
     if (gap_title > 0)          body_top_offset_left <- body_top_offset_left + gap_title
-    if (is_top("top") && dendro_h_actual > 0)
-                                body_top_offset_left <- body_top_offset_left + dendro_h_actual
-    if (is_top(left_column_names_side) && left_colname_h > 0)
+    if (is_top("top") && left_dendro_h > 0)
+                                body_top_offset_left <- body_top_offset_left + left_dendro_h
+    if (is_top(left_args$column_names_side) && left_colname_h > 0)
                                 body_top_offset_left <- body_top_offset_left + left_colname_h
-    if (is_top(left_column_names_side) && left_gap_dimname > 0)
+    if (is_top(left_args$column_names_side) && left_gap_dimname > 0)
                                 body_top_offset_left <- body_top_offset_left + left_gap_dimname
     if (left_gap_col_anno > 0)  body_top_offset_left <- body_top_offset_left + left_gap_col_anno
     body_top_offset_left <- body_top_offset_left
@@ -333,11 +529,11 @@ LinkedHeatmapAtomic <- function(
     body_top_offset_right <- 0
     if (title_h > 0)            body_top_offset_right <- body_top_offset_right + title_h
     if (gap_title > 0)          body_top_offset_right <- body_top_offset_right + gap_title
-    if (is_top("top") && dendro_h_actual > 0)
-                                body_top_offset_right <- body_top_offset_right + dendro_h_actual
-    if (is_top(right_column_names_side) && right_colname_h > 0)
+    if (is_top("top") && right_dendro_h > 0)
+                                body_top_offset_right <- body_top_offset_right + right_dendro_h
+    if (is_top(right_args$column_names_side) && right_colname_h > 0)
                                 body_top_offset_right <- body_top_offset_right + right_colname_h
-    if (is_top(right_column_names_side) && right_gap_dimname > 0)
+    if (is_top(right_args$column_names_side) && right_gap_dimname > 0)
                                 body_top_offset_right <- body_top_offset_right + right_gap_dimname
     if (right_gap_col_anno > 0) body_top_offset_right <- body_top_offset_right + right_gap_col_anno
     body_top_offset_right <- body_top_offset_right
@@ -347,17 +543,17 @@ LinkedHeatmapAtomic <- function(
     # (above body + body + below body). Used for centering and total_h.
     # Below-body components (added for total height but NOT body_top_offset):
     left_below_h <- 0
-    if (!is_top(left_column_names_side)) {
+    if (!is_top(left_args$column_names_side)) {
         left_below_h <- left_below_h + left_colname_h + left_gap_dimname
     }
     right_below_h <- 0
-    if (!is_top(right_column_names_side)) {
+    if (!is_top(right_args$column_names_side)) {
         right_below_h <- right_below_h + right_colname_h + right_gap_dimname
     }
 
-    left_total_w  <- dendro_w_actual + left_rowname_w  + left_body_w
+    left_total_w  <- left_dendro_w + left_rowname_w  + left_body_w
     left_total_h  <- body_top_offset_left  + left_body_h + left_below_h
-    right_total_w <- right_body_w + right_rowname_w + dendro_w_actual
+    right_total_w <- right_body_w + right_rowname_w + right_dendro_w
     right_total_h <- body_top_offset_right + right_body_h + right_below_h
 
     total_w <- left_total_w + gap_width + right_total_w
@@ -374,11 +570,11 @@ LinkedHeatmapAtomic <- function(
     if (show_legend) {
         title_w <- max(
             convertUnit(
-                ComplexHeatmap::max_text_width(left_name),
+                ComplexHeatmap::max_text_width(left_values_by),
                 "inches", valueOnly = TRUE
             ),
             convertUnit(
-                ComplexHeatmap::max_text_width(right_name),
+                ComplexHeatmap::max_text_width(right_values_by),
                 "inches", valueOnly = TRUE
             ),
             0
@@ -404,62 +600,62 @@ LinkedHeatmapAtomic <- function(
     body_top_offset_left <- 0
     if (title_h > 0)            body_top_offset_left <- body_top_offset_left + title_h
     if (gap_title > 0)          body_top_offset_left <- body_top_offset_left + gap_title
-    if (is_top("top") && dendro_h_actual > 0)
-                                body_top_offset_left <- body_top_offset_left + dendro_h_actual
-    if (is_top(left_column_names_side) && left_colname_h > 0)
+    if (is_top("top") && left_dendro_h > 0)
+                                body_top_offset_left <- body_top_offset_left + left_dendro_h
+    if (is_top(left_args$column_names_side) && left_colname_h > 0)
                                 body_top_offset_left <- body_top_offset_left + left_colname_h
-    if (is_top(left_column_names_side) && left_gap_dimname > 0)
+    if (is_top(left_args$column_names_side) && left_gap_dimname > 0)
                                 body_top_offset_left <- body_top_offset_left + left_gap_dimname
     if (left_gap_col_anno > 0)  body_top_offset_left <- body_top_offset_left + left_gap_col_anno
     body_top_offset_left <- body_top_offset_left
     body_top_offset_right <- 0
     if (title_h > 0)            body_top_offset_right <- body_top_offset_right + title_h
     if (gap_title > 0)          body_top_offset_right <- body_top_offset_right + gap_title
-    if (is_top("top") && dendro_h_actual > 0)
-                                body_top_offset_right <- body_top_offset_right + dendro_h_actual
-    if (is_top(right_column_names_side) && right_colname_h > 0)
+    if (is_top("top") && right_dendro_h > 0)
+                                body_top_offset_right <- body_top_offset_right + right_dendro_h
+    if (is_top(right_args$column_names_side) && right_colname_h > 0)
                                 body_top_offset_right <- body_top_offset_right + right_colname_h
-    if (is_top(right_column_names_side) && right_gap_dimname > 0)
+    if (is_top(right_args$column_names_side) && right_gap_dimname > 0)
                                 body_top_offset_right <- body_top_offset_right + right_gap_dimname
     if (right_gap_col_anno > 0) body_top_offset_right <- body_top_offset_right + right_gap_col_anno
     body_top_offset_right <- body_top_offset_right
 
     # Recompute below-body totals after scaling
     left_below_h <- 0
-    if (!is_top(left_column_names_side)) {
+    if (!is_top(left_args$column_names_side)) {
         left_below_h <- left_below_h + left_colname_h + left_gap_dimname
     }
     right_below_h <- 0
-    if (!is_top(right_column_names_side)) {
+    if (!is_top(right_args$column_names_side)) {
         right_below_h <- right_below_h + right_colname_h + right_gap_dimname
     }
-
-    left_total_w  <- dendro_w_actual + left_rowname_w  + left_body_w
+    left_total_w  <- left_dendro_w + left_rowname_w  + left_body_w
     left_total_h  <- body_top_offset_left  + left_body_h + left_below_h
-    right_total_w <- right_body_w + right_rowname_w + dendro_w_actual
+    right_total_w <- right_body_w + right_rowname_w + right_dendro_w
     right_total_h <- body_top_offset_right + right_body_h + right_below_h
+
     total_w <- left_total_w + gap_width + right_total_w + 0.5
     total_h <- max(left_total_h, right_total_h) + 1
 
     # ── Build link table ──
-    left_row_names_ordered <- rownames(left_mat)[left_row_order]
-    right_row_names_ordered <- rownames(right_mat)[right_row_order]
+    left_row_names_ordered <- rownames(left_ht@matrix)[left_row_order]
+    right_row_names_ordered <- rownames(right_ht@matrix)[right_row_order]
 
     link_table <- data %>%
-        distinct(!!sym(link_left_by), !!sym(link_right_by),
+        distinct(!!sym(left_rows_by), !!sym(right_rows_by),
                  .keep_all = TRUE) %>%
         mutate(
             pos_left = match(
-                as.character(!!sym(link_left_by)), left_row_names_ordered
+                as.character(!!sym(left_rows_by)), left_row_names_ordered
             ),
             pos_right = match(
-                as.character(!!sym(link_right_by)), right_row_names_ordered
+                as.character(!!sym(right_rows_by)), right_row_names_ordered
             )
         ) %>%
         filter(!is.na(.data$pos_left), !is.na(.data$pos_right))
 
-    if (!is.null(link_width_by) && link_width_by %in% colnames(link_table)) {
-        raw_intensity <- link_table[[link_width_by]]
+    if (!is.null(links_width_by) && links_width_by %in% colnames(link_table)) {
+        raw_intensity <- link_table[[links_width_by]]
         if (max(raw_intensity, na.rm = TRUE) >
                 min(raw_intensity, na.rm = TRUE)) {
             link_table$intensity <- (raw_intensity -
@@ -474,61 +670,6 @@ LinkedHeatmapAtomic <- function(
         link_table$intensity <- rep(1, nrow(link_table))
     }
 
-    # ── Build ComplexHeatmap objects ──
-    left_hm_args <- list(
-        matrix = left_mat,
-        name = left_name,
-        col = left_col_fun,
-        cluster_rows = FALSE,  # pre-clustered
-        cluster_columns = left_cluster_columns,
-        row_order = left_row_order,
-        row_dend = left_row_dend,
-        show_row_names = left_show_row_names,
-        show_column_names = left_show_column_names,
-        row_names_side = left_row_names_side,
-        column_names_side = left_column_names_side,
-        column_title = NULL,
-        row_title = NULL,
-        row_dend_side = "left",
-        border = TRUE,
-        width = unit(left_body_w, "inches"),
-        height = unit(left_body_h, "inches"),
-        row_dend_width = unit(dendro_w, "inches"),
-        column_dend_height = unit(dendro_h, "inches"),
-        ...
-    )
-
-    right_hm_args <- list(
-        matrix = right_mat,
-        name = right_name,
-        col = right_col_fun,
-        cluster_rows = FALSE,
-        cluster_columns = right_cluster_columns,
-        row_order = right_row_order,
-        row_dend = right_row_dend,
-        show_row_names = right_show_row_names,
-        show_column_names = right_show_column_names,
-        row_names_side = right_row_names_side,
-        column_names_side = right_column_names_side,
-        column_title = NULL,
-        row_title = NULL,
-        row_dend_side = "right",
-        border = TRUE,
-        width = unit(right_body_w, "inches"),
-        height = unit(right_body_h, "inches"),
-        row_dend_width = unit(dendro_w, "inches"),
-        column_dend_height = unit(dendro_h, "inches"),
-        ...
-    )
-
-    # Filter unknown args
-    hm_formals <- methods::formalArgs(ComplexHeatmap::Heatmap)
-    left_hm_args  <- left_hm_args[intersect(names(left_hm_args), hm_formals)]
-    right_hm_args <- right_hm_args[intersect(names(right_hm_args), hm_formals)]
-
-    left_ht  <- do_call(ComplexHeatmap::Heatmap, left_hm_args)
-    right_ht <- do_call(ComplexHeatmap::Heatmap, right_hm_args)
-
     # ── Collect legends (before link position computation so legend
     #     dimensions can be factored into plot_h for top/bottom) ──
     combined_legend <- NULL
@@ -536,21 +677,7 @@ LinkedHeatmapAtomic <- function(
     legend_h <- 0
 
     if (show_legend) {
-        legends <- list()
-        if (!is.null(left_ht@matrix_color_mapping)) {
-            left_lgd <- ComplexHeatmap::color_mapping_legend(
-                left_ht@matrix_color_mapping, plot = FALSE,
-                legend_direction = legend.direction
-            )
-            if (!is.null(left_lgd)) legends <- c(legends, list(left_lgd))
-        }
-        if (!is.null(right_ht@matrix_color_mapping)) {
-            right_lgd <- ComplexHeatmap::color_mapping_legend(
-                right_ht@matrix_color_mapping, plot = FALSE,
-                legend_direction = legend.direction
-            )
-            if (!is.null(right_lgd)) legends <- c(legends, list(right_lgd))
-        }
+        legends <- c(attr(left_ht, "legends"), attr(right_ht, "legends"))
 
         if (length(legends) > 0) {
             combined_legend <- ComplexHeatmap::packLegend(
@@ -751,16 +878,16 @@ LinkedHeatmapAtomic <- function(
                     right_body_top_npc, right_body_range
                 )
                 grid.xspline(
-                    x = unit(c(-0.4, 0.5, 1.4), "npc"),
+                    x = unit(c(0, 0.5, 1), "npc"),
                     y = unit(
                         c(y_left, mean(c(y_left, y_right)), y_right),
                         "npc"
                     ),
                     shape = 0.5,
                     gp = gpar(
-                        lwd = link_table$intensity[k] * link_width_scale,
-                        col = link_color,
-                        alpha = link_alpha
+                        lwd = link_table$intensity[k] * 5, # link_width_scale,
+                        col = "grey30", # link_color,
+                        alpha = .8 # link_alpha
                     )
                 )
             }
@@ -784,12 +911,6 @@ LinkedHeatmapAtomic <- function(
     attr(p, "height") <- display_h
     attr(p, "width")  <- display_w
 
-    # Attach data (store matrices in a non-conflicting attribute name
-    # to avoid breaking patchwork/ggplot2 rich display rendering)
-    attr(p, "linkedheatmap_data") <- list(
-        left = as.data.frame(left_mat),
-        right = as.data.frame(right_mat)
-    )
     p
 }
 
@@ -868,125 +989,363 @@ LinkedHeatmapAtomic <- function(
 #' }
 LinkedHeatmap <- function(
     data,
-    left,
-    right,
-    link_by = NULL,
-    link_width_by = NULL,
-    link_width_scale = 5,
-    link_color = "grey40",
-    link_alpha = 0.6,
+    values_by,
+    values_fill = NA,
+    name = NULL,
     split_by = NULL,
     split_by_sep = "_",
-    combine = TRUE,
-    nrow = NULL,
-    ncol = NULL,
-    byrow = TRUE,
+    # data definition
+    rows_by = NULL,
+    rows_by_sep = "_",
+    rows_split_by = NULL,
+    rows_split_by_sep = "_",
+    columns_by = NULL,
+    columns_by_sep = "_",
+    columns_split_by = NULL,
+    columns_split_by_sep = "_",
+    rows_data = NULL,
+    columns_data = NULL,
+    keep_na = FALSE,
+    keep_empty = FALSE,
+    rows_orderby = NULL,
+    columns_orderby = NULL,
+    # names
+    columns_name = NULL,
+    columns_split_name = NULL,
+    rows_name = NULL,
+    rows_split_name = NULL,
+    # palettes
     palette = "RdBu",
     palcolor = NULL,
     palreverse = FALSE,
+    # cell_type: pies
+    pie_size_name = "size",
+    pie_size = NULL,
+    pie_values = "length",
+    pie_name = NULL,
+    pie_group_by = NULL,
+    pie_group_by_sep = "_",
+    pie_palette = "Spectral",
+    pie_palcolor = NULL,
+    # cell_type: bars
+    bars_sample = 100,
+    # cell_type: label
+    label = identity,
+    label_size = 10,
+    label_color = "black",
+    label_name = "label",
+    # cell_type: mark
+    mark = identity,
+    mark_color = "black",
+    mark_size = 1,
+    mark_name = "mark",
+    # cell_type: violin
+    violin_fill = NULL,
+    # cell_type: boxplot
+    boxplot_fill = NULL,
+    # cell_type: dot
+    dot_size = 8,
+    dot_size_name = "size",
+    # legend
+    legend_items = NULL,
+    legend_discrete = FALSE,
+    legend.position = "right",
+    legend.direction = "vertical",
+    # values
     lower_quantile = 0,
     upper_quantile = 0.99,
     lower_cutoff = NULL,
     upper_cutoff = NULL,
-    cluster_rows = TRUE,
-    cluster_columns = TRUE,
-    show_row_names = TRUE,
-    show_column_names = TRUE,
-    base_size = 1,
-    left_aspect.ratio = 1,
-    right_aspect.ratio = 1,
-    gap_width = 0.5,
+    # bg
+    add_bg = FALSE,
+    bg_alpha = 0.5,
+    # reticle
+    add_reticle = FALSE,
+    reticle_color = "grey",
+    # passed to ComplexHeatmap::Heatmap
+    cluster_columns = NULL,
+    cluster_rows = NULL,
+    show_row_names = NULL,
+    show_column_names = NULL,
+    border = TRUE,
+    title = NULL,
+    column_title = NULL,
+    row_title = NULL,
+    na_col = "grey85",
+    row_names_side = "right",
+    column_names_side = "bottom",
+    column_annotation = NULL,
+    column_annotation_side = "top",
+    column_annotation_palette = "Paired",
+    column_annotation_palcolor = NULL,
+    column_annotation_type = "auto",
+    column_annotation_params = list(),
+    column_annotation_agg = NULL,
+    row_annotation = NULL,
+    row_annotation_side = "left",
+    row_annotation_palette = "Paired",
+    row_annotation_palcolor = NULL,
+    row_annotation_type = "auto",
+    row_annotation_params = list(),
+    row_annotation_agg = NULL,
+    # links
+    links_width_by = NULL,
+
+    # misc
+    flip = FALSE,
+    alpha = 1,
     seed = 8525,
-    legend.position = "right",
-    legend.direction = "vertical",
+    padding = 15,
+    base_size = 1,
+    aspect.ratio = NULL,
+    draw_opts = list(),
+    # cell customization
+    layer_fun_callback = NULL,
+    cell_type = c(
+        "tile",
+        "bars",
+        "label",
+        "mark",
+        "label+mark",
+        "mark+label",
+        "dot",
+        "violin",
+        "boxplot",
+        "pie"
+    ),
+    cell_agg = NULL,
+    # subplots
+    combine = TRUE,
+    nrow = NULL,
+    ncol = NULL,
+    byrow = TRUE,
+    axes = NULL,
+    axis_titles = axes,
+    guides = NULL,
+    design = NULL,
     ...
 ) {
     # ── Validate ──
-    if (is.null(link_by) || length(link_by) != 2) {
-        stop("[LinkedHeatmap] 'link_by' must be a character vector of length 2")
-    }
-    link_left_by  <- link_by[1]
-    link_right_by <- link_by[2]
-
-    required_left  <- c("rows_by", "columns_by", "values_by", "name")
-    required_right <- c("rows_by", "columns_by", "values_by", "name")
-    missing_left  <- setdiff(required_left, names(left))
-    missing_right <- setdiff(required_right, names(right))
-    if (length(missing_left) > 0) {
-        stop("[LinkedHeatmap] 'left' is missing: ",
-             paste(missing_left, collapse = ", "))
-    }
-    if (length(missing_right) > 0) {
-        stop("[LinkedHeatmap] 'right' is missing: ",
-             paste(missing_right, collapse = ", "))
-    }
-
     validate_common_args(seed)
-
-    # ── Handle split_by ──
-    split_by <- check_columns(
-        data, split_by,
-        force_factor = TRUE, allow_multi = TRUE,
-        concat_multi = TRUE, concat_sep = split_by_sep
+    stopifnot(
+        "[LinkedHeatmap] `flip` is not supported for linked heatmaps; please set `flip = FALSE`" =
+        isFALSE(flip)
     )
 
-    if (!is.null(split_by)) {
-        datas <- split(data, data[[split_by]])
-        datas <- datas[levels(data[[split_by]])]
+    cell_type <- match.arg(cell_type)
+    cell_type <- sub("mark+label", "label+mark", cell_type, fixed = TRUE)
+
+    args <- list(...)
+    left_rows_orderby <- args$left_rows_orderby %||% rows_orderby
+    if (!is.null(left_rows_orderby)) {
+        left_cluster_rows <- args$left_cluster_rows %||% cluster_rows %||% FALSE
+        stopifnot(
+            "[LinkedHeatmap] `left_rows_orderby` can't be used with `left_cluster_rows/cluster_rows = TRUE`" =
+            !left_cluster_rows
+        )
     } else {
-        datas <- list(data)
-        names(datas) <- "..."
+        left_cluster_rows <- args$left_cluster_rows %||% cluster_rows %||% TRUE
     }
+
+    right_rows_orderby <- args$right_rows_orderby %||% rows_orderby
+    if (!is.null(right_rows_orderby)) {
+        right_cluster_rows <- args$right_cluster_rows %||% cluster_rows %||% FALSE
+        stopifnot(
+            "[LinkedHeatmap] `right_rows_orderby` can't be used with `right_cluster_rows/cluster_rows = TRUE`" =
+            !right_cluster_rows
+        )
+    } else {
+        right_cluster_rows <- args$right_cluster_rows %||% cluster_rows %||% TRUE
+    }
+
+    # ── Preprocess data ──
+    hmdata <- process_linkedheatmap_data(
+        data,
+        split_by = split_by,
+        split_by_sep = split_by_sep,
+        rows_split_by = rows_split_by,
+        rows_split_by_sep = rows_split_by_sep,
+        rows_split_name = rows_split_name,
+        left_values_by = args$left_values_by %||% values_by,
+        left_name = args$left_name %||% if (is.null(name)) NULL else paste0(name, " (left)"),
+        left_rows_by = args$left_rows_by %||% rows_by,
+        left_rows_by_sep = args$left_rows_by_sep %||% rows_by_sep,
+        left_rows_name = args$left_rows_name %||% rows_name,
+        left_rows_orderby = left_rows_orderby,
+        left_columns_orderby = args$left_columns_orderby %||% columns_orderby,
+        left_columns_by = args$left_columns_by %||% columns_by,
+        left_columns_by_sep = args$left_columns_by_sep %||% columns_by_sep,
+        left_columns_name = args$left_columns_name %||% columns_name,
+        left_columns_split_by = args$left_columns_split_by %||% columns_split_by,
+        left_columns_split_by_sep = args$left_columns_split_by_sep %||% columns_split_by_sep,
+        left_columns_split_name = args$left_columns_split_name %||% columns_split_name,
+        left_pie_group_by = args$left_pie_group_by %||% pie_group_by,
+        left_pie_group_by_sep = args$left_pie_group_by_sep %||% pie_group_by_sep,
+        left_pie_name = args$left_pie_name %||% pie_name,
+        left_rows_data = args$left_rows_data %||% rows_data,
+        left_columns_data = args$left_columns_data %||% columns_data,
+        right_values_by = args$right_values_by %||% values_by,
+        right_name = args$right_name %||% if (is.null(name)) NULL else paste0(name, " (right)"),
+        right_rows_by = args$right_rows_by %||% rows_by,
+        right_rows_by_sep = args$right_rows_by_sep %||% rows_by_sep,
+        right_rows_name = args$right_rows_name %||% rows_name,
+        right_rows_orderby = right_rows_orderby,
+        right_columns_orderby = args$right_columns_orderby %||% columns_orderby,
+        right_columns_by = args$right_columns_by %||% columns_by,
+        right_columns_by_sep = args$right_columns_by_sep %||% columns_by_sep,
+        right_columns_name = args$right_columns_name %||% columns_name,
+        right_columns_split_by = args$right_columns_split_by %||% columns_split_by,
+        right_columns_split_by_sep = args$right_columns_split_by_sep %||% columns_split_by_sep,
+        right_columns_split_name = args$right_columns_split_name %||% columns_split_name,
+        right_pie_group_by = args$right_pie_group_by %||% pie_group_by,
+        right_pie_group_by_sep = args$right_pie_group_by_sep %||% pie_group_by_sep,
+        right_pie_name = args$right_pie_name %||% pie_name,
+        right_rows_data = args$right_rows_data %||% rows_data,
+        right_columns_data = args$right_columns_data %||% columns_data,
+        keep_na = keep_na,
+        keep_empty = keep_empty
+    )
+
+    split_by <- split_by %||% "..."
+
+    palette <- check_palette(palette, names(hmdata$data))
+    palcolor <- check_palcolor(palcolor, names(hmdata$data))
+    pie_palette <- check_palette(pie_palette, names(hmdata$data))
+    pie_palcolor <- check_palcolor(pie_palcolor, names(hmdata$data))
 
     # ── Validate per-split legend params ──
     legend.position <- check_legend(
-        legend.position, names(datas), "legend.position"
+        legend.position, names(hmdata$data), "legend.position"
     )
     legend.direction <- check_legend(
-        legend.direction, names(datas), "legend.direction"
+        legend.direction, names(hmdata$data), "legend.direction"
     )
 
     # ── Build per-split plots ──
-    plots <- lapply(names(datas), function(nm) {
-        LinkedHeatmapAtomic(
-            datas[[nm]],
-            left = left,
-            right = right,
-            link_left_by = link_left_by,
-            link_right_by = link_right_by,
-            link_width_by = link_width_by,
-            link_width_scale = link_width_scale,
-            link_color = link_color,
-            link_alpha = link_alpha,
-            gap_width = gap_width,
-            palette = left$palette %||% right$palette %||% palette,
-            palcolor = left$palcolor %||% right$palcolor %||% palcolor,
-            palreverse = palreverse,
-            lower_quantile = lower_quantile,
-            upper_quantile = upper_quantile,
-            lower_cutoff = lower_cutoff,
-            upper_cutoff = upper_cutoff,
-            cluster_rows = cluster_rows,
-            cluster_columns = cluster_columns,
-            show_row_names = show_row_names,
-            show_column_names = show_column_names,
-            base_size = base_size,
-            left_aspect.ratio = left_aspect.ratio,
-            right_aspect.ratio = right_aspect.ratio,
-            seed = seed,
-            legend.position = legend.position[[nm]],
-            legend.direction = legend.direction[[nm]],
-            ...
-        )
+    plots <- lapply(names(hmdata$data), function(nm) {
+        default_title <- if (
+            length(hmdata$data) == 1 && identical(nm, "...")
+        ) {
+            NULL
+        } else {
+            nm
+        }
+        if (is.function(title)) {
+            title <- title(default_title)
+        } else {
+            title <- title %||% default_title
+        }
+
+        args_atomic <- args
+
+        args_atomic$data <- hmdata$data[[nm]]
+
+        args_atomic$left_values_by <- hmdata$left_values_by
+        args_atomic$right_values_by <- hmdata$right_values_by
+        args_atomic$left_rows_by <- hmdata$left_rows_by
+        args_atomic$right_rows_by <- hmdata$right_rows_by
+        args_atomic$rows_split_by <- hmdata$rows_split_by
+        args_atomic$left_columns_by <- hmdata$left_columns_by
+        args_atomic$right_columns_by <- hmdata$right_columns_by
+        args_atomic$left_columns_split_by <- hmdata$left_columns_split_by
+        args_atomic$right_columns_split_by <- hmdata$right_columns_split_by
+        args_atomic$left_pie_group_by <- hmdata$left_pie_group_by
+        args_atomic$right_pie_group_by <- hmdata$right_pie_group_by
+
+        args_atomic$palette <- palette[[nm]]
+        args_atomic$palcolor <- palcolor[[nm]]
+        args_atomic$palreverse <- palreverse
+
+        args_atomic$pie_size_name <- pie_size_name
+        args_atomic$pie_size <- pie_size
+        args_atomic$pie_values <- pie_values
+        args_atomic$pie_palette <- pie_palette[[nm]]
+        args_atomic$pie_palcolor <- pie_palcolor[[nm]]
+
+        args_atomic$bars_sample <- bars_sample
+        args_atomic$label <- label
+        args_atomic$label_size <- label_size
+        args_atomic$label_color <- label_color
+        args_atomic$mark <- mark
+        args_atomic$mark_color <- mark_color
+        args_atomic$mark_size <- mark_size
+        args_atomic$violin_fill <- violin_fill
+        args_atomic$boxplot_fill <- boxplot_fill
+        args_atomic$dot_size <- dot_size
+        args_atomic$dot_size_name <- dot_size_name
+
+        args_atomic$legend_items <- legend_items
+        args_atomic$legend_discrete <- legend_discrete
+        args_atomic$legend.position <- legend.position[[nm]]
+        args_atomic$legend.direction <- legend.direction[[nm]]
+
+        args_atomic$lower_quantile <- lower_quantile
+        args_atomic$upper_quantile <- upper_quantile
+        args_atomic$lower_cutoff <- lower_cutoff
+        args_atomic$upper_cutoff <- upper_cutoff
+
+        args_atomic$add_bg <- add_bg
+        args_atomic$bg_alpha <- bg_alpha
+        args_atomic$keep_na <- hmdata$keep_na
+        args_atomic$keep_empty <- hmdata$keep_empty
+
+        args_atomic$add_reticle <- add_reticle
+        args_atomic$reticle_color <- reticle_color
+
+        args_atomic$left_cluster_rows <- left_cluster_rows
+        args_atomic$right_cluster_rows <- right_cluster_rows
+        args_atomic$cluster_columns <- cluster_columns
+        args_atomic$show_row_names <- show_row_names
+        args_atomic$show_column_names <- show_column_names
+        args_atomic$border <- border
+        args_atomic$title <- title
+        args_atomic$column_title <- column_title
+        args_atomic$row_title <- row_title
+        args_atomic$na_col <- na_col
+        args_atomic$row_names_side <- row_names_side
+        args_atomic$column_names_side <- column_names_side
+        args_atomic$column_annotation <- column_annotation
+        args_atomic$column_annotation_side <- column_annotation_side
+        args_atomic$column_annotation_palette <- column_annotation_palette
+        args_atomic$column_annotation_palcolor <- column_annotation_palcolor
+        args_atomic$column_annotation_type <- column_annotation_type
+        args_atomic$column_annotation_params <- column_annotation_params
+        args_atomic$column_annotation_agg <- column_annotation_agg
+        args_atomic$row_annotation <- row_annotation
+        args_atomic$row_annotation_side <- row_annotation_side
+        args_atomic$row_annotation_palette <- row_annotation_palette
+        args_atomic$row_annotation_palcolor <- row_annotation_palcolor
+        args_atomic$row_annotation_type <- row_annotation_type
+        args_atomic$row_annotation_params <- row_annotation_params
+        args_atomic$row_annotation_agg <- row_annotation_agg
+
+        args_atomic$links_width_by <- links_width_by
+
+        args_atomic$alpha <- alpha
+        args_atomic$seed <- seed
+        args_atomic$base_size <- base_size
+        args_atomic$aspect.ratio <- aspect.ratio
+        args_atomic$draw_opts <- draw_opts
+        args_atomic$layer_fun_callback <- layer_fun_callback
+        args_atomic$cell_type <- cell_type
+        args_atomic$cell_agg <- cell_agg
+
+        do_call(LinkedHeatmapAtomic, args_atomic)
     })
 
-    names(plots) <- names(datas)
+    names(plots) <- names(hmdata$data)
 
     # ── Combine ──
     combine_plots(
         plots,
         combine = combine,
         split_by = split_by,
-        nrow = nrow, ncol = ncol, byrow = byrow
+        nrow = nrow,
+        ncol = ncol,
+        byrow = byrow,
+        axes = axes,
+        axis_titles = axis_titles,
+        guides = guides,
+        design = design
     )
 }

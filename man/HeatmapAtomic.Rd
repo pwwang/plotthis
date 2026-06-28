@@ -80,6 +80,7 @@ HeatmapAtomic(
   base_size = 1,
   aspect.ratio = NULL,
   draw_opts = list(),
+  return_ht = FALSE,
   layer_fun_callback = NULL,
   cell_type = "tile",
   cell_agg = NULL,
@@ -434,6 +435,8 @@ Note that the aspect ratio is not guaranteed to be perfectly preserved; it will 
 internally (\code{annotation_legend_list}, \code{padding}, \code{show_annotation_legend}, \code{annotation_legend_side},
 \code{column_title}) take precedence over any values supplied here.
 See \url{https://jokergoo.github.io/ComplexHeatmap/reference/draw-HeatmapList-method.html} for available options.}
+
+\item{return_ht}{Return a \code{ComplexHeatmap::prepare()}d heatmap object instead of drawing it. Default is \code{FALSE}.}
 
 \item{layer_fun_callback}{A function to add additional layers to the heatmap.
 The function should have the following arguments: \code{j}, \code{i}, \code{x}, \code{y}, \code{w}, \code{h}, \code{fill}, \code{sr} and \code{sc}.

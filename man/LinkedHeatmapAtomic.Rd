@@ -6,38 +6,115 @@
 \usage{
 LinkedHeatmapAtomic(
   data,
-  left,
-  right,
-  link_left_by,
-  link_right_by,
-  link_width_by = NULL,
-  link_width_scale = 5,
-  link_color = "grey40",
-  link_alpha = 0.6,
-  gap_width = 0.5,
+  left_values_by,
+  right_values_by,
+  left_rows_by,
+  right_rows_by,
+  left_columns_by,
+  right_columns_by,
+  left_columns_split_by = NULL,
+  right_columns_split_by = NULL,
+  left_pie_group_by = NULL,
+  right_pie_group_by = NULL,
+  rows_split_by = NULL,
+  values_fill = NA,
   palette = "RdBu",
   palcolor = NULL,
   palreverse = FALSE,
+  pie_size_name = "size",
+  pie_size = NULL,
+  pie_values = "length",
+  pie_palette = "Spectral",
+  pie_palcolor = NULL,
+  bars_sample = 100,
+  label = identity,
+  label_size = 10,
+  label_color = "black",
+  label_name = "label",
+  mark = identity,
+  mark_color = "black",
+  mark_size = 1,
+  mark_name = "mark",
+  violin_fill = NULL,
+  boxplot_fill = NULL,
+  dot_size = 8,
+  dot_size_name = "size",
+  legend_items = NULL,
+  legend_discrete = FALSE,
+  legend.position = "right",
+  legend.direction = "vertical",
   lower_quantile = 0,
   upper_quantile = 0.99,
   lower_cutoff = NULL,
   upper_cutoff = NULL,
-  cluster_rows = TRUE,
-  cluster_columns = TRUE,
-  show_row_names = TRUE,
-  show_column_names = TRUE,
-  row_names_side = NULL,
-  column_names_side = NULL,
-  base_size = 1,
+  add_bg = FALSE,
+  bg_alpha = 0.5,
+  keep_na = FALSE,
+  keep_empty = FALSE,
+  add_reticle = FALSE,
+  reticle_color = "grey",
+  cluster_columns = NULL,
+  cluster_rows = NULL,
+  show_row_names = NULL,
+  show_column_names = NULL,
+  border = TRUE,
+  title = NULL,
+  column_title = NULL,
+  row_title = NULL,
+  na_col = "grey85",
+  left_row_names_side = "left",
+  right_row_names_side = "right",
+  column_names_side = "bottom",
+  column_annotation = NULL,
+  column_annotation_side = "top",
+  column_annotation_palette = "Paired",
+  column_annotation_palcolor = NULL,
+  column_annotation_type = "auto",
+  column_annotation_params = list(),
+  column_annotation_agg = NULL,
+  row_annotation = NULL,
+  left_row_annotation_side = "left",
+  right_row_annotation_side = "right",
+  row_annotation_palette = "Paired",
+  row_annotation_palcolor = NULL,
+  row_annotation_type = "auto",
+  row_annotation_params = list(),
+  row_annotation_agg = NULL,
+  alpha = 1,
   seed = 8525,
-  debug = FALSE,
-  alignment_fudge = 0,
-  scale = NULL,
+  padding = 15,
+  base_size = 1,
+  aspect.ratio = NULL,
+  draw_opts = list(),
+  layer_fun_callback = NULL,
+  cell_type = c("tile", "bars", "label", "mark", "label+mark", "mark+label", "dot",
+    "violin", "boxplot", "pie"),
+  cell_agg = NULL,
   ...
 )
 }
 \arguments{
 \item{data}{A data frame}
+
+\item{palette}{Palette for heatmap color scale.}
+
+\item{palcolor}{Custom color vector for heatmap.}
+
+\item{palreverse}{Reverse the palette.}
+
+\item{lower_quantile, upper_quantile}{Quantile cutoffs for color scale.}
+
+\item{lower_cutoff, upper_cutoff}{Explicit cutoffs (override quantiles).}
+
+\item{cluster_rows, cluster_columns}{Whether to cluster rows/columns.}
+
+\item{show_row_names, show_column_names}{Whether to show names.}
+
+\item{seed}{Random seed.}
+
+\item{base_size}{Scaling factor for cell dimensions.}
+
+\item{...}{Additional arguments passed to ComplexHeatmap::Heatmap.}
 
 \item{left}{A named list with \code{rows_by}, \code{columns_by},
 \code{values_by}, \code{name}, and optionally \code{palette},
@@ -60,36 +137,10 @@ Each unique value maps to one row in the left heatmap.}
 
 \item{gap_width}{Width (inches) of the gap column between heatmaps.}
 
-\item{palette}{Palette for heatmap color scale.}
-
-\item{palcolor}{Custom color vector for heatmap.}
-
-\item{palreverse}{Reverse the palette.}
-
-\item{lower_quantile, upper_quantile}{Quantile cutoffs for color scale.}
-
-\item{lower_cutoff, upper_cutoff}{Explicit cutoffs (override quantiles).}
-
-\item{cluster_rows, cluster_columns}{Whether to cluster rows/columns.}
-
-\item{show_row_names, show_column_names}{Whether to show names.}
-
 \item{row_names_side, column_names_side}{Side for names.}
 
-\item{base_size}{Scaling factor for cell dimensions.}
-
-\item{seed}{Random seed.}
-
-\item{debug}{If TRUE, draw alignment guides for link positioning
-and print a dimension breakdown to the console.}
-
-\item{alignment_fudge}{Additional inches added to body_top_offset
-to correct systematic misalignment. Positive values shift the
-link anchor points DOWN (body appears lower than predicted).
-Start at 0 and adjust in 0.02-inch increments while using
-\code{debug = TRUE} to verify visually.}
-
-\item{...}{Additional arguments passed to ComplexHeatmap::Heatmap.}
+\item{left_aspect.ratio, right_aspect.ratio}{Aspect ratio (height/width) for
+cells in the left and right heatmaps. Default 1 gives square cells.}
 }
 \value{
 A patchwork-wrapped grob with height/width attributes.
