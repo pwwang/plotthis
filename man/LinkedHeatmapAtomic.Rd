@@ -53,8 +53,9 @@ LinkedHeatmapAtomic(
   keep_empty = FALSE,
   add_reticle = FALSE,
   reticle_color = "grey",
+  left_cluster_rows = NULL,
+  right_cluster_rows = NULL,
   cluster_columns = NULL,
-  cluster_rows = NULL,
   show_row_names = NULL,
   show_column_names = NULL,
   border = TRUE,
@@ -80,6 +81,11 @@ LinkedHeatmapAtomic(
   row_annotation_type = "auto",
   row_annotation_params = list(),
   row_annotation_agg = NULL,
+  links_span = 0.5,
+  links_width_by = NULL,
+  links_width_scale = 5,
+  links_color = "grey30",
+  links_alpha = 0.8,
   alpha = 1,
   seed = 8525,
   padding = 15,
@@ -94,58 +100,324 @@ LinkedHeatmapAtomic(
 )
 }
 \arguments{
-\item{data}{A data frame}
+\item{data}{A data frame in long format. Each row represents one
+observation; columns specify row/column membership for both left and
+right heatmaps as well as the values to encode as color.}
 
-\item{palette}{Palette for heatmap color scale.}
+\item{left_values_by, right_values_by}{Column name whose values determine
+the fill color of cells in the left / right heatmap.  These are the
+primary data columns visualized by the colour scale.}
 
-\item{palcolor}{Custom color vector for heatmap.}
+\item{left_rows_by, right_rows_by}{Column name that defines the rows of
+the left / right heatmap.  Each unique value becomes one row.}
 
-\item{palreverse}{Reverse the palette.}
+\item{left_columns_by, right_columns_by}{Column name that defines the
+columns of the left / right heatmap.  Each unique value becomes one
+column.}
 
-\item{lower_quantile, upper_quantile}{Quantile cutoffs for color scale.}
+\item{left_columns_split_by, right_columns_split_by}{Optional column name
+to split the columns of the left / right heatmap into groups (passed to
+\code{ComplexHeatmap::Heatmap} as \code{column_split}).}
 
-\item{lower_cutoff, upper_cutoff}{Explicit cutoffs (override quantiles).}
+\item{left_pie_group_by, right_pie_group_by}{When \code{cell_type = "pie"},
+column(s) to group values by within each pie cell for the left / right
+heatmap.  Multiple columns are concatenated.}
 
-\item{cluster_rows, cluster_columns}{Whether to cluster rows/columns.}
+\item{rows_split_by}{Optional column name to split the rows of \strong{both}
+heatmaps into groups (passed as \code{row_split}).  When provided, row
+names in the link table are prefixed with the split level to
+disambiguate rows across splits.}
 
-\item{show_row_names, show_column_names}{Whether to show names.}
+\item{values_fill}{A value used to fill missing cells in the matrix
+(passed to \code{HeatmapAtomic}).  Default is \code{NA} (cells with no
+data are left empty).}
 
-\item{seed}{Random seed.}
+\item{palette}{A character string naming a palette (see
+\code{\link{show_palettes}}) or a character vector of colours for the
+main heatmap colour scale.  Default \code{"RdBu"}.  Applied to both
+heatmaps unless overridden per-side via \code{...}.}
 
-\item{base_size}{Scaling factor for cell dimensions.}
+\item{palcolor}{A custom colour vector that overrides \code{palette} for
+the main heatmap colour scale.  Applied to both heatmaps unless
+overridden per-side.}
 
-\item{...}{Additional arguments passed to ComplexHeatmap::Heatmap.}
+\item{palreverse}{Logical; if \code{TRUE}, reverse the palette direction.}
 
-\item{left}{A named list with \code{rows_by}, \code{columns_by},
-\code{values_by}, \code{name}, and optionally \code{palette},
-\code{palcolor}, \code{cluster_rows}, \code{cluster_columns}.}
+\item{pie_size_name}{Legend title for the pie size when
+\code{cell_type = "pie"}.}
 
-\item{right}{Same structure as \code{left}.}
+\item{pie_size}{A numeric value or function returning the pie radius.
+When a function, it receives the count of groups in the pie and should
+return a radius.}
 
-\item{link_left_by}{Column in \code{data} that matches \code{left$rows_by}.
-Each unique value maps to one row in the left heatmap.}
+\item{pie_values}{A function or string (convertible via
+\code{\link[base]{match.arg}}) to compute the value represented by each
+pie slice.  Default \code{"length"} counts observations per group.}
 
-\item{link_right_by}{Column in \code{data} that matches \code{right$rows_by}.}
+\item{pie_palette, pie_palcolor}{Palette and custom colours for pie slice
+fill colours.}
 
-\item{link_width_by}{Column for link line width scaling.}
+\item{bars_sample}{Number of observations sampled per cell when
+\code{cell_type = "bars"}.  Default 100.}
 
-\item{link_width_scale}{Scaling factor for link widths (default 5).}
+\item{label}{A function to compute text labels when
+\code{cell_type = "label"} (or \code{"label+mark"}).  Receives the
+aggregated value for a cell and optionally row/column indices and names.
+See \code{\link{HeatmapAtomic}} for the full dispatch contract.}
 
-\item{link_color}{Color of link lines.}
+\item{label_size}{Default point size for label text (used as fallback
+when the \code{label} function does not return a \code{size} field).}
 
-\item{link_alpha}{Alpha transparency for link lines.}
+\item{label_color}{Default colour for label text (used as fallback when
+the \code{label} function does not return a \code{color} field).}
 
-\item{gap_width}{Width (inches) of the gap column between heatmaps.}
+\item{label_name}{Legend title for the label colour scale.}
 
-\item{row_names_side, column_names_side}{Side for names.}
+\item{mark}{A function to compute mark symbols when
+\code{cell_type = "mark"} (or \code{"label+mark"}).  Same dispatch
+contract as \code{label}.  See \code{\link{HeatmapAtomic}} for supported
+mark types.}
 
-\item{left_aspect.ratio, right_aspect.ratio}{Aspect ratio (height/width) for
-cells in the left and right heatmaps. Default 1 gives square cells.}
+\item{mark_color}{Default mark colour (fallback).}
+
+\item{mark_size}{Default mark stroke width in pt (fallback).}
+
+\item{mark_name}{Legend title for the mark colour scale.}
+
+\item{violin_fill}{A character vector of colours to use as fill for
+violin plots when \code{cell_type = "violin"}.  If \code{NULL}, the
+annotation colour is used.}
+
+\item{boxplot_fill}{A character vector of colours to use as fill for
+boxplots when \code{cell_type = "boxplot"}.  If \code{NULL}, the
+annotation colour is used.}
+
+\item{dot_size}{Dot size when \code{cell_type = "dot"}.  Can be a
+numeric value or a function.}
+
+\item{dot_size_name}{Legend title for the dot size.}
+
+\item{legend_items}{A named numeric vector specifying custom legend
+entries for the main colour scale.  Names become the displayed labels.}
+
+\item{legend_discrete}{Logical; if \code{TRUE}, treat the main colour
+scale as discrete.}
+
+\item{legend.position}{A character string specifying where to place the
+combined legend: \code{"right"} (default), \code{"left"}, \code{"top"},
+\code{"bottom"}, or \code{"none"}.}
+
+\item{legend.direction}{Legend stacking direction:
+\code{"vertical"} (default) or \code{"horizontal"}.}
+
+\item{lower_quantile, upper_quantile}{Quantiles used for clipping the
+colour scale when \code{lower_cutoff} / \code{upper_cutoff} are
+\code{NULL}.  Defaults are 0 and 0.99 respectively.}
+
+\item{lower_cutoff, upper_cutoff}{Explicit cutoffs for the colour scale.
+Values outside the range are clamped (winsorized).  Override
+\code{lower_quantile} / \code{upper_quantile} when set.}
+
+\item{add_bg}{Logical; if \code{TRUE}, add a background fill behind
+non-tile cell types.  Not used for \code{cell_type = "tile"} or
+\code{"bars"}.}
+
+\item{bg_alpha}{Numeric in \eqn{[0, 1]} for background transparency.}
+
+\item{keep_na, keep_empty}{Passed through to \code{HeatmapAtomic}.
+See \code{\link{common_args}} for details.}
+
+\item{add_reticle}{Logical; if \code{TRUE}, draw a reticle (crosshair
+pattern) over the heatmap.}
+
+\item{reticle_color}{Colour for the reticle lines.}
+
+\item{left_cluster_rows, right_cluster_rows}{Logical controlling whether
+rows are clustered in the left / right heatmap.  \code{NULL} (default)
+lets \code{HeatmapAtomic} decide based on
+\code{rows_orderby}/\code{cluster_rows}.}
+
+\item{cluster_columns}{Logical; cluster columns in both heatmaps.
+\code{NULL} lets \code{HeatmapAtomic} decide.}
+
+\item{show_row_names, show_column_names}{Logical; show row/column names.}
+
+\item{border}{Logical; draw a border around each heatmap.  Default
+\code{TRUE}.}
+
+\item{title}{A character string for the overall plot title.  A function
+can be used to generate a dynamic title from the default.}
+
+\item{column_title, row_title}{Character title displayed above the columns
+/ beside the rows of each heatmap.}
+
+\item{na_col}{Colour used for \code{NA} cells.  Default \code{"grey85"}.}
+
+\item{left_row_names_side, right_row_names_side}{Side for row names in the
+left / right heatmap.  Default \code{"left"} and \code{"right"}
+respectively (names face outward).}
+
+\item{column_names_side}{Side for column names.  Default
+\code{"bottom"}.}
+
+\item{column_annotation}{A character vector of column names, or a named
+list, specifying column annotations for both heatmaps.  See
+\code{\link{HeatmapAtomic}} for the full specification.}
+
+\item{column_annotation_side}{Side for column annotations:
+\code{"top"} (default) or \code{"bottom"}.  Can also be a named list
+for per-annotation control.}
+
+\item{column_annotation_palette, column_annotation_palcolor}{Palette and
+custom colours for column annotations.}
+
+\item{column_annotation_type}{Annotation type: \code{"auto"} (default),
+\code{"simple"}, \code{"pie"}, \code{"ring"}, \code{"bar"},
+\code{"violin"}, \code{"boxplot"}, \code{"density"}, \code{"label"}.
+Can be a named list for per-annotation control.}
+
+\item{column_annotation_params}{A named list of additional parameters
+passed to each column annotation function.  See
+\code{\link{HeatmapAtomic}} for details.}
+
+\item{column_annotation_agg}{A function or named list of functions to
+aggregate values for each column annotation.}
+
+\item{row_annotation, row_annotation_side, row_annotation_palette, row_annotation_palcolor, row_annotation_type, row_annotation_params, row_annotation_agg}{Row annotation equivalents of the \code{column_annotation_*} parameters.}
+
+\item{left_row_annotation_side, right_row_annotation_side}{Side for row
+annotations in the left / right heatmap.  Default \code{"left"} and
+\code{"right"} respectively.}
+
+\item{links_span}{Width (in inches) of the gap column between the two
+heatmaps where link curves are drawn.  Default 0.5.}
+
+\item{links_width_by}{Optional column name in \code{data} whose values
+determine the stroke width of each link line (e.g. interaction
+strength).  Values are min-max scaled to \eqn{[0, 1]} and multiplied by
+\code{links_width_scale}.}
+
+\item{links_width_scale}{Numeric scaling factor applied to the normalised
+link intensity values to produce final line widths (\code{lwd}).
+Default 5.}
+
+\item{links_color}{Colour of the link spline curves.  Default
+\code{"grey30"}.}
+
+\item{links_alpha}{Alpha transparency of link curves in \eqn{[0, 1]}.
+Default 0.8.}
+
+\item{alpha}{Alpha transparency for heatmap cells in \eqn{[0, 1]}.}
+
+\item{seed}{Random seed for reproducibility.  Default 8525.}
+
+\item{padding}{Padding around the heatmap in CSS order (top, right,
+bottom, left).  Supports 1–4 values.  Default 15 (mm).}
+
+\item{base_size}{A positive numeric scalar used as a scaling factor for
+the overall heatmap size.  Default 1 (no scaling).  Values > 1 enlarge
+all cell dimensions proportionally.}
+
+\item{aspect.ratio}{Height-to-width ratio of a single heatmap cell.
+When \code{NULL} (default), sensible defaults are chosen per
+\code{cell_type} (e.g. 1 for tiles, 0.5 for bars, 2 for violins).}
+
+\item{draw_opts}{A named list of additional arguments passed to
+\code{\link[ComplexHeatmap]{draw,HeatmapList-method}}.  Internally
+managed arguments (\code{padding}, \code{show_heatmap_legend}, etc.)
+take precedence.}
+
+\item{layer_fun_callback}{A function to add custom graphical layers on
+top of each heatmap cell.  Receives \code{j}, \code{i}, \code{x},
+\code{y}, \code{w}, \code{h}, \code{fill}, \code{sr}, \code{sc}.
+See \code{\link[ComplexHeatmap]{Heatmap}} for details.}
+
+\item{cell_type}{The type of cell to render.  One of \code{"tile"}
+(default), \code{"bars"}, \code{"label"}, \code{"mark"},
+\code{"label+mark"} (or \code{"mark+label"}), \code{"dot"},
+\code{"violin"}, \code{"boxplot"}, \code{"pie"}.  Different cell types
+use different \code{cell_fun} / \code{layer_fun} implementations.}
+
+\item{cell_agg}{A function to aggregate values within each cell when
+\code{cell_type = "tile"} or \code{"label"}.  Default is
+\code{\link[base]{mean}}.}
+
+\item{...}{Additional arguments passed to
+\code{\link[ComplexHeatmap]{Heatmap}}.  Arguments prefixed with
+\code{left_} or \code{right_} are routed to the corresponding heatmap
+(the prefix is stripped before passing).  Unprefixed arguments are
+passed to both heatmaps but can be overridden by a prefixed version.
+Notable examples:
+\itemize{
+\item \code{left_name}, \code{right_name} — legend titles for the
+left / right colour scales.
+\item \code{left_row_gap}, \code{right_row_gap} — per-side row gaps.
+\item \code{left_column_gap}, \code{right_column_gap} — per-side
+column gaps.
+\item \code{row_names_max_width}, \code{column_names_max_height} —
+passed through to \code{ComplexHeatmap::Heatmap}.
+}}
 }
 \value{
-A patchwork-wrapped grob with height/width attributes.
+A \code{patchwork}-wrapped grob (class \code{wrap_plots}) with
+\code{height} and \code{width} attributes (in inches).  The original
+\code{data} is stored in \code{p$data}.
 }
 \description{
-Draws two heatmaps side-by-side with link lines connecting matching rows.
+Draws two heatmaps side-by-side with spline link lines connecting matching
+rows across the left and right heatmaps.  This is the core implementation
+layer — it takes a \strong{single} data frame and a full set of left/right
+parameters, delegates to \code{\link{HeatmapAtomic}} (with
+\code{return_ht = TRUE}) to obtain prepared \code{ComplexHeatmap::Heatmap}
+objects, extracts exact dimension information, and then assembles
+everything into a composite \code{grid} layout.
 }
+\section{Architecture}{
+
+\enumerate{
+\item \strong{Parameter resolution} — extra arguments passed via
+\code{...} are split into left-specific and right-specific groups
+by prefix (\code{left_} vs \code{right_}).  Each group is merged
+with the shared defaults using \code{\%||\%} fallback chains,
+giving the caller full per-side override capability.
+\item \strong{Cell dimension pre-computation} — the internal helper
+\code{.get_dim_pre()} calculates exact cell width and height
+(in \code{"inches"} units) from \code{cell_type},
+\code{aspect.ratio}, \code{base_size}, and the unique row/column
+counts (including split groups).  These are passed as explicit
+\code{width} / \code{height} arguments to
+\code{ComplexHeatmap::Heatmap()} so that cells have a guaranteed
+physical size rather than using \code{null} units.
+\item \strong{Delegation to \code{HeatmapAtomic}} — both the left and
+right heatmaps are created by calling
+\code{do_call(HeatmapAtomic, ...)} with \code{return_ht = TRUE}.
+This returns the prepared \code{Heatmap} object (with
+\code{cell_w}/\code{cell_h} attributes) without drawing it.
+\item \strong{Dimension extraction} — exact component heights and widths
+are read from the prepared \code{Heatmap} objects via
+\code{ComplexHeatmap:::component_height()} and
+\code{ComplexHeatmap:::component_width()}.  These 9-element vectors
+break down every part of the heatmap (title, dendrogram, names,
+annotations, body) so the composite layout can be sized precisely.
+\item \strong{Link table construction} — rows in the left and right
+heatmaps are matched by grouping the input data on the row
+identifier columns (plus optional \code{rows_split_by}).  Each
+link's position is mapped to the ordered row index in its
+respective heatmap (respecting clustering order).
+\item \strong{Legend collection} — legends from both heatmaps are
+collected, packed via \code{ComplexHeatmap::packLegend()}, and
+placed according to \code{legend.position} (left, right, top, or
+bottom).
+\item \strong{Composite drawing} — a \code{grid.layout} is built
+dynamically based on the legend position.  Each heatmap is drawn
+inside a centered, exact-size viewport so
+\code{ComplexHeatmap::draw()} sizes the body to the pre-computed
+row/column counts.  Link lines are drawn as \code{grid.xspline()}
+curves in a dedicated gap column between the two heatmaps.
+\item \strong{Dimension attributes} — the final \code{patchwork}-wrapped
+grob carries \code{height} and \code{width} attributes (in inches)
+for consistent rendering in downstream layouts.
+}
+}
+
 \keyword{internal}

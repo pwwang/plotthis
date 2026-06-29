@@ -32,9 +32,7 @@ Rscript -e 'devtools::install()'
 Nearly every plot type follows this layering:
 
 1. **`*Atomic()`** (internal) — Core implementation. Takes a single data frame and returns a `ggplot` object. Handles faceting via `facet_plot()`. Does NOT handle `split_by` or `combine`.
-
 2. **`*Plot()`** (exported) — The public API. Handles `split_by` (splitting data by a column, processing `keep_na`/`keep_empty`, dispatching per split to `*Atomic()`, then combining results via `combine_plots()`). Handles per-split `palette`, `palcolor`, `legend.position`, `legend.direction`.
-
 3. **Optional intermediate functions** — e.g. `BarPlotSingle`, `BarPlotGrouped` — called by `*Atomic()` when there are significantly different rendering paths (with vs. without `group_by`).
 
 Each plot file also contains separate **`*Atomic()`** and exported **`*Plot()`** for related variants (e.g., `barplot.R` contains `BarPlotAtomic`/`BarPlot` plus `SplitBarPlotAtomic`/`SplitBarPlot`/`WaterfallPlot`).
@@ -43,20 +41,20 @@ Each plot file also contains separate **`*Atomic()`** and exported **`*Plot()`**
 
 Located in `R/utils.R` (931 lines). Functions used across all plot files:
 
-| Function | Purpose |
-|---|---|
-| `check_columns()` | Validates columns exist in data; optionally forces factor, concatenates multi-column input |
-| `check_keep_na()` / `check_keep_empty()` | Normalizes `keep_na`/`keep_empty` arguments (can be logical, character, or named list per column) |
-| `process_keep_na_empty()` | Applies NA/empty handling to data before plotting |
-| `norm_expansion()` | CSS-padding-style expansion normalization for ggplot axes |
-| `palette_this()` | Resolves palette names or character vectors to actual color vectors |
-| `check_palette()` / `check_palcolor()` | Validates per-split palette/color specifications |
-| `calculate_plot_dimensions()` | Computes `height`/`width` attributes stored on ggplot objects for consistent rendering |
-| `combine_plots()` | Wraps `patchwork::wrap_plots` with axis/guide/design options |
-| `facet_plot()` | Unified faceting wrapper handling facet_wrap/facet_grid with keep_empty levels |
-| `process_theme()` | Resolves theme string to theme function |
-| `validate_common_args()` | Validates seed, facet_by combinations |
-| `check_legend()` | Validates per-split legend parameters |
+| Function                                     | Purpose                                                                                              |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `check_columns()`                          | Validates columns exist in data; optionally forces factor, concatenates multi-column input           |
+| `check_keep_na()` / `check_keep_empty()` | Normalizes`keep_na`/`keep_empty` arguments (can be logical, character, or named list per column) |
+| `process_keep_na_empty()`                  | Applies NA/empty handling to data before plotting                                                    |
+| `norm_expansion()`                         | CSS-padding-style expansion normalization for ggplot axes                                            |
+| `palette_this()`                           | Resolves palette names or character vectors to actual color vectors                                  |
+| `check_palette()` / `check_palcolor()`   | Validates per-split palette/color specifications                                                     |
+| `calculate_plot_dimensions()`              | Computes`height`/`width` attributes stored on ggplot objects for consistent rendering            |
+| `combine_plots()`                          | Wraps`patchwork::wrap_plots` with axis/guide/design options                                        |
+| `facet_plot()`                             | Unified faceting wrapper handling facet_wrap/facet_grid with keep_empty levels                       |
+| `process_theme()`                          | Resolves theme string to theme function                                                              |
+| `validate_common_args()`                   | Validates seed, facet_by combinations                                                                |
+| `check_legend()`                           | Validates per-split legend parameters                                                                |
 
 ## Common parameters (inherited across all plots)
 
@@ -74,10 +72,12 @@ Defined via roxygen `@inheritParams common_args` in `R/common_args.R`:
 ## Testing conventions
 
 Uses `testthat`. Each test file in `tests/testthat/` creates a small synthetic data frame (seed 8525) and tests:
+
 - Returns a `ggplot` object (or `patchwork` when `combine = TRUE`, or `list` when `combine = FALSE`)
 - Plot has `height`/`width` attributes (numeric)
 - Parameter combinations produce valid outputs
 - Wrapper aliases (e.g., `WaterfallPlot`, `LollipopPlot`) return correct class
+- For smoke test, use `devtools::load_all()` to load the changes
 
 ## Theming and palettes
 
