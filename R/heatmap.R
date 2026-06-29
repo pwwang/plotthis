@@ -275,7 +275,7 @@
 #' @importFrom tidyr pivot_longer pivot_wider unite expand_grid
 #' @importFrom ggplot2 ggplotGrob theme_void
 #' @importFrom grid grid.rect grid.text grid.lines grid.points viewport gpar unit grid.draw is.unit
-#' @importFrom grid convertUnit grid.grabExpr
+#' @importFrom grid convertUnit grid.grabExpr grid.segments grid.circle grid.polygon unit.c
 #' @return An object of heatmap that is wrapped by `patchwork::wrap_plots()`
 #' @keywords internal
 HeatmapAtomic <- function(
@@ -844,7 +844,7 @@ HeatmapAtomic <- function(
                 title = values_by,
                 at = lgd_items,
                 labels = names(lgd_items),
-                legend_gp = grid::gpar(fill = hmargs$col(lgd_items)),
+                legend_gp = gpar(fill = hmargs$col(lgd_items)),
                 border = TRUE,
                 direction = legend.direction
             )
@@ -1533,7 +1533,7 @@ HeatmapAtomic <- function(
         .draw_mark_prim <- function(prim, xv, yv, wv, hv, col, lwd) {
             switch(
                 prim,
-                rect = grid::grid.rect(
+                rect = grid.rect(
                     x = xv,
                     y = yv,
                     width = wv,
@@ -1541,7 +1541,7 @@ HeatmapAtomic <- function(
                     gp = gpar(col = col, fill = NA, lwd = lwd)
                 ),
 
-                hline = grid::grid.segments(
+                hline = grid.segments(
                     x0 = xv - wv * 0.5,
                     y0 = yv,
                     x1 = xv + wv * 0.5,
@@ -1549,7 +1549,7 @@ HeatmapAtomic <- function(
                     gp = gpar(col = col, lwd = lwd)
                 ),
 
-                vline = grid::grid.segments(
+                vline = grid.segments(
                     x0 = xv,
                     y0 = yv - hv * 0.5,
                     x1 = xv,
@@ -1557,7 +1557,7 @@ HeatmapAtomic <- function(
                     gp = gpar(col = col, lwd = lwd)
                 ),
 
-                ldiag = grid::grid.segments(
+                ldiag = grid.segments(
                     x0 = xv - wv * 0.5,
                     y0 = yv - hv * 0.5,
                     x1 = xv + wv * 0.5,
@@ -1565,7 +1565,7 @@ HeatmapAtomic <- function(
                     gp = gpar(col = col, lwd = lwd)
                 ),
 
-                rdiag = grid::grid.segments(
+                rdiag = grid.segments(
                     x0 = xv - wv * 0.5,
                     y0 = yv + hv * 0.5,
                     x1 = xv + wv * 0.5,
@@ -1581,7 +1581,7 @@ HeatmapAtomic <- function(
                         convertUnit(hv[1L], "mm", valueOnly = TRUE)
                     ) *
                         0.25
-                    grid::grid.circle(
+                    grid.circle(
                         x = xv,
                         y = yv,
                         r = unit(.r_mm, "mm"),
@@ -1595,7 +1595,7 @@ HeatmapAtomic <- function(
                     .cos_t <- cos(.theta)
                     .sin_t <- sin(.theta)
                     for (k in seq_along(xv)) {
-                        grid::grid.polygon(
+                        grid.polygon(
                             x = xv[k] + wv[k] * 0.5 * .cos_t,
                             y = yv[k] + hv[k] * 0.5 * .sin_t,
                             gp = gpar(
@@ -1613,14 +1613,14 @@ HeatmapAtomic <- function(
                     hw <- wv * 0.5
                     hh <- hv * 0.5
                     for (k in seq_len(n)) {
-                        grid::grid.polygon(
-                            x = grid::unit.c(
+                        grid.polygon(
+                            x = unit.c(
                                 xv[k],
                                 xv[k] + hw[k],
                                 xv[k],
                                 xv[k] - hw[k]
                             ),
-                            y = grid::unit.c(
+                            y = unit.c(
                                 yv[k] + hh[k],
                                 yv[k],
                                 yv[k] - hh[k],
@@ -1643,8 +1643,8 @@ HeatmapAtomic <- function(
                         cy <- yv[k]
                         dx <- hw[k] * f
                         dy <- hh[k] * f
-                        grid::grid.polygon(
-                            x = grid::unit.c(
+                        grid.polygon(
+                            x = unit.c(
                                 cx - hw[k] + dx,
                                 cx + hw[k] - dx, # top edge: left → right
                                 cx + hw[k],
@@ -1654,7 +1654,7 @@ HeatmapAtomic <- function(
                                 cx - hw[k],
                                 cx - hw[k] # left edge: bottom → top
                             ),
-                            y = grid::unit.c(
+                            y = unit.c(
                                 cy + hh[k],
                                 cy + hh[k], # top edge
                                 cy + hh[k] - dy,
@@ -1912,7 +1912,7 @@ HeatmapAtomic <- function(
         .draw_mark_prim <- function(prim, xv, yv, wv, hv, col, lwd) {
             switch(
                 prim,
-                rect = grid::grid.rect(
+                rect = grid.rect(
                     x = xv,
                     y = yv,
                     width = wv,
@@ -1920,7 +1920,7 @@ HeatmapAtomic <- function(
                     gp = gpar(col = col, fill = NA, lwd = lwd)
                 ),
 
-                hline = grid::grid.segments(
+                hline = grid.segments(
                     x0 = xv - wv * 0.5,
                     y0 = yv,
                     x1 = xv + wv * 0.5,
@@ -1928,7 +1928,7 @@ HeatmapAtomic <- function(
                     gp = gpar(col = col, lwd = lwd)
                 ),
 
-                vline = grid::grid.segments(
+                vline = grid.segments(
                     x0 = xv,
                     y0 = yv - hv * 0.5,
                     x1 = xv,
@@ -1936,7 +1936,7 @@ HeatmapAtomic <- function(
                     gp = gpar(col = col, lwd = lwd)
                 ),
 
-                ldiag = grid::grid.segments(
+                ldiag = grid.segments(
                     x0 = xv - wv * 0.5,
                     y0 = yv - hv * 0.5,
                     x1 = xv + wv * 0.5,
@@ -1944,7 +1944,7 @@ HeatmapAtomic <- function(
                     gp = gpar(col = col, lwd = lwd)
                 ),
 
-                rdiag = grid::grid.segments(
+                rdiag = grid.segments(
                     x0 = xv - wv * 0.5,
                     y0 = yv + hv * 0.5,
                     x1 = xv + wv * 0.5,
@@ -1958,7 +1958,7 @@ HeatmapAtomic <- function(
                         convertUnit(hv[1L], "mm", valueOnly = TRUE)
                     ) *
                         0.25
-                    grid::grid.circle(
+                    grid.circle(
                         x = xv,
                         y = yv,
                         r = unit(.r_mm, "mm"),
@@ -1971,7 +1971,7 @@ HeatmapAtomic <- function(
                     .cos_t <- cos(.theta)
                     .sin_t <- sin(.theta)
                     for (k in seq_along(xv)) {
-                        grid::grid.polygon(
+                        grid.polygon(
                             x = xv[k] + wv[k] * 0.5 * .cos_t,
                             y = yv[k] + hv[k] * 0.5 * .sin_t,
                             gp = gpar(
@@ -1988,14 +1988,14 @@ HeatmapAtomic <- function(
                     hw <- wv * 0.5
                     hh <- hv * 0.5
                     for (k in seq_len(n)) {
-                        grid::grid.polygon(
-                            x = grid::unit.c(
+                        grid.polygon(
+                            x = unit.c(
                                 xv[k],
                                 xv[k] + hw[k],
                                 xv[k],
                                 xv[k] - hw[k]
                             ),
-                            y = grid::unit.c(
+                            y = unit.c(
                                 yv[k] + hh[k],
                                 yv[k],
                                 yv[k] - hh[k],
@@ -2018,8 +2018,8 @@ HeatmapAtomic <- function(
                         cy <- yv[k]
                         dx <- hw[k] * f
                         dy <- hh[k] * f
-                        grid::grid.polygon(
-                            x = grid::unit.c(
+                        grid.polygon(
+                            x = unit.c(
                                 cx - hw[k] + dx,
                                 cx + hw[k] - dx, # top edge: left → right
                                 cx + hw[k],
@@ -2029,7 +2029,7 @@ HeatmapAtomic <- function(
                                 cx - hw[k],
                                 cx - hw[k] # left edge: bottom → top
                             ),
-                            y = grid::unit.c(
+                            y = unit.c(
                                 cy + hh[k],
                                 cy + hh[k], # top edge
                                 cy + hh[k] - dy,
@@ -2798,8 +2798,6 @@ HeatmapAtomic <- function(
     }
     if (return_ht) {
         p <- ComplexHeatmap::prepare(p)
-        attr(p, "cell_w") <- cell_w
-        attr(p, "cell_h") <- cell_h
         attr(p, "legends") <- legends
         return(p)
     }

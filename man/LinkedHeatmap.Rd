@@ -496,6 +496,7 @@ correction.
 
 \examples{
 \donttest{
+set.seed(8525)
 # Define sparse ligand-receptor pairs
 pairs_df <- data.frame(
     ligand = c("Ligand1", "Ligand2", "Ligand3", "Ligand4", "Ligand5",

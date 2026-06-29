@@ -432,7 +432,7 @@ LinkedHeatmapAtomic <- function(
     left_args$dot_size_name <- left_args$dot_size_name %||% dot_size_name
     left_args$legend_items <- left_args$legend_items %||% legend_items
     left_args$legend_discrete <- left_args$legend_discrete %||% legend_discrete
-    left_args$legend.position <- left_args$legend.position %||% legend.position
+    left_args$legend.position <- "right"
     left_args$legend.direction <- left_args$legend.direction %||%
         legend.direction
     left_args$lower_quantile <- left_args$lower_quantile %||% lower_quantile
@@ -528,8 +528,7 @@ LinkedHeatmapAtomic <- function(
     right_args$legend_items <- right_args$legend_items %||% legend_items
     right_args$legend_discrete <- right_args$legend_discrete %||%
         legend_discrete
-    right_args$legend.position <- right_args$legend.position %||%
-        legend.position
+    right_args$legend.position <- "right"
     right_args$legend.direction <- right_args$legend.direction %||%
         legend.direction
     right_args$lower_quantile <- right_args$lower_quantile %||% lower_quantile
@@ -687,13 +686,6 @@ LinkedHeatmapAtomic <- function(
     # Get the order of the rows in the left heatmap after clustering (if any)
     left_row_order <- left_ht@row_order
     right_row_order <- right_ht@row_order
-
-    left_cell_w <- attr(left_ht, "cell_w")
-    left_cell_h <- attr(left_ht, "cell_h")
-    right_cell_w <- attr(right_ht, "cell_w")
-    right_cell_h <- attr(right_ht, "cell_h")
-
-    links_span <- 0.5
 
     # ── Extract exact dimensions from ComplexHeatmap prepared objects ──
     # component_height() returns a 9-element list (all internal gaps included):
@@ -1251,6 +1243,7 @@ LinkedHeatmapAtomic <- function(
 #' @seealso \code{\link{Heatmap}}
 #' @examples
 #' \donttest{
+#' set.seed(8525)
 #' # Define sparse ligand-receptor pairs
 #' pairs_df <- data.frame(
 #'     ligand = c("Ligand1", "Ligand2", "Ligand3", "Ligand4", "Ligand5",
