@@ -2,7 +2,7 @@
 % Please edit documentation in R/heatmap.R
 \name{HeatmapAtomic}
 \alias{HeatmapAtomic}
-\title{Atomic heatmap without split}
+\title{Atomic heatmap (internal)}
 \usage{
 HeatmapAtomic(
   data,
@@ -88,14 +88,15 @@ HeatmapAtomic(
 )
 }
 \arguments{
-\item{data}{A data frame used to create the heatmap.
-The data should be in a long form where each row represents a instance in the heatmap.}
+\item{data}{A data frame in long format. Each row represents one
+observation; columns specify row/column membership and the value to
+encode as colour.}
 
 \item{values_by}{A character of column name in \code{data} that contains the values to be plotted.
 This is required when \code{in_form} is \code{"long"}. For other formats, the values are pivoted into a column named by \code{values_by}.}
 
-\item{values_fill}{A value to fill in the missing values in the heatmap.
-When there is missing value in the data, the cluster_rows and cluster_columns will fail.}
+\item{values_fill}{A value used to fill missing cells in the matrix.
+Default \code{NA}.  Missing values prevent clustering when not filled.}
 
 \item{rows_by}{A vector of column names in \code{data} that contains the row information.
 This is used to create the rows of the heatmap.
@@ -111,144 +112,100 @@ which will be concatenated by \code{columns_by_sep} into a single column.}
 
 \item{columns_split_by}{A character of column name in \code{data} that contains the split information for columns.}
 
-\item{palette}{A character string specifying the palette of the heatmap cells.}
+\item{palette}{A character string naming a palette (see
+\code{\link{show_palettes}}) or a character vector of colours for the
+main heatmap colour scale.  Default \code{"RdBu"}.}
 
-\item{palcolor}{A character vector of colors to override the palette of the heatmap cells.}
+\item{palcolor}{A custom colour vector overriding \code{palette}.}
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
-\item{pie_size_name}{A character string specifying the name of the legend for the pie size.}
+\item{pie_size_name}{Legend title for the pie size.}
 
-\item{pie_size}{A numeric value or a function specifying the size of the pie chart.
-If it is a function, the function should take \code{count} as the argument and return the size.}
+\item{pie_size}{A numeric value or function returning the pie radius.
+When a function, it receives the count of groups in the pie.}
 
-\item{pie_values}{A function or character that can be converted to a function by \code{\link[=match.arg]{match.arg()}}
-to calculate the values for the pie chart. Default is "length".
-The function should take a vector of values as the argument and return a single value, for each
-group in \code{pie_group_by}.}
+\item{pie_values}{A function or string (convertible via
+\code{\link[base]{match.arg}}) to compute the value represented by
+each pie slice.  Default \code{"length"} counts observations per
+group.}
 
 \item{pie_group_by}{A character of column name in \code{data} that contains the group information for pie charts.
 This is used to create pie charts in the heatmap when \code{cell_type} is \code{"pie"}.}
 
-\item{pie_palette}{A character string specifying the palette of the pie chart.}
+\item{pie_palette, pie_palcolor}{Palette and custom colours for pie slice
+fill colours.}
 
-\item{pie_palcolor}{A character vector of colors to override the palette of the pie chart.}
+\item{bars_sample}{Number of observations sampled per cell when
+\code{cell_type = "bars"}.  Default 100.}
 
-\item{bars_sample}{An integer specifying the number of samples to draw the bars.}
+\item{label}{A function to compute text labels when
+\code{cell_type = "label"} (or \code{"label+mark"}).  Receives the
+aggregated value for a cell and optionally row/column indices and
+names.  See below for the full dispatch contract.}
 
-\item{label}{A function to calculate the labels for the heatmap cells.
-It can take either 1, 3, or 5 arguments. The first argument is the aggregated value for a single cell.
-If it takes 3 arguments, the second and third arguments are the row and column indices of that cell.
-If it takes 5 arguments, the second and third arguments are the row and column indices,
-and the fourth and fifth arguments are the row and column names.
-The function should return one of:
-\itemize{
-\item \code{NA} — no label is drawn for this cell.
-\item A character scalar — used as the label text; \code{label_size} and \code{label_color} are used for size and color.
-\item A named list with any of the following fields:
-\itemize{
-\item \code{label}: character scalar for the label text.
-\item \code{size}: numeric pt size (overrides \code{label_size}).
-\item \code{color}: character color string (overrides \code{label_color}).
-\item \code{legend}: character string used as the legend entry for this cell's color/label combination.
-\item \code{order}: integer controlling the position of this legend entry — smaller values appear first (top) in the legend.
-Entries without an \code{order} are appended after all explicitly ordered entries.
-For the indices, if you have the same dimension of data (same order of rows and columns) as the heatmap, you need to use \code{ComplexHeatmap::pindex()} to get the correct values.
-}
-}}
+\item{label_size}{Default point size for label text (used as fallback
+when the \code{label} function does not return a \code{size} field).}
 
-\item{label_size}{A numeric value specifying the default size (pt) of the labels when \code{cell_type = "label"}.
-Used as fallback when the \code{label} function does not return a \code{size} field.}
+\item{label_color}{Default colour for label text (fallback).}
 
-\item{label_color}{A character string specifying the default color of the labels when \code{cell_type = "label"}.
-Used as fallback when the \code{label} function does not return a \code{color} field. Default is \code{"black"}.}
+\item{label_name}{Legend title for the label colour scale.  The legend
+is shown automatically when the \code{label} function returns a
+\code{legend} field for at least one cell.}
 
-\item{label_name}{A character string specifying the title of the label legend. Default is \code{"label"}.
-The legend is shown automatically when the \code{label} function returns a list with a \code{legend} field for at least
-one cell — no extra configuration needed. Set \code{legend.position = "none"} to suppress all legends.}
+\item{mark}{A function to compute mark symbols when
+\code{cell_type = "mark"} (or \code{"label+mark"}).  Same dispatch
+contract as \code{label}.}
 
-\item{mark}{A function to calculate the marks drawn on top of heatmap cells when \code{cell_type = "mark"}.
-Same dispatch rules as \code{label} (1, 3, or 5 arguments).
-The function should return one of:
-\itemize{
-\item \code{NA} — no mark is drawn for this cell.
-\item A character scalar — the mark type string; \code{mark_color} and \code{mark_size} are used for appearance.
-\item A named list with any of the following fields:
-\itemize{
-\item \code{mark} (or first unnamed element): character scalar, the mark type string.
-\item \code{size}: numeric stroke width (lwd), overrides \code{mark_size}.
-\item \code{color}: character color string, overrides \code{mark_color}.
-\item \code{legend}: character string used as the legend entry key.
-\item \code{order}: integer controlling legend entry position (smaller = higher).
-\strong{Supported mark types:}
-}
-\item Primitives: \code{-} (h-line), \code{|} (v-line), \code{+} (cross), \code{/} (l-diag), \verb{\\} (r-diag),
-\code{x} (both diags), \code{o} (circle with gap), \verb{()} (circle touching edge), \verb{<>} (diamond).
-\item With rectangular border: \verb{[]}, \verb{[-]}, \verb{[|]}, \verb{[+]}, \verb{[/]}, \verb{[\]}, \verb{[x]}, \verb{[o]}, \verb{[()]}, \verb{[<>]}.
-\item With full circle: \verb{(-)}, \verb{(|)}, \verb{(+)}, \verb{(/)}, \verb{(\\)}, \code{(x)}, \code{(o)}, \verb{(<>)}.
-\item With diamond: \verb{<->}, \verb{<|>}, \verb{<+>}, \verb{</>}, \verb{<\\>}, \verb{<x>}, \verb{<o>}.
-\item Octagon (standalone or wrapper): \code{{}}, \verb{\{-\}}, \verb{\{|\}}, \verb{\{+\}}, \verb{\{/\}}, \verb{\{\\\\\}}, \code{{x}}, \code{{o}}, \verb{\{()\}}, \verb{\{<>\}}.
-\item Combinations: e.g. \verb{[(|)]}, \verb{[(-)]}, \verb{[(+)]}, \verb{[(/)]}, \verb{[(\\)]}, \verb{[(x)]}, \verb{[(o)]}, \verb{[(<>)]}.
-}
+\item{mark_color}{Default mark colour (fallback).}
 
-[]: R:\%5C
-[x]: R:x
-[o]: R:o
-[()]: R:()
-[<>]: R:\%3C\%3E
-[(|)]: R:(\%7C)
-[(-)]: R:(-)
-[(+)]: R:(+)
-[(/)]: R:(/)
-[(\)]: R:(\%5C\%5C)
-[(x)]: R:(x)
-[(o)]: R:(o)
-[(<>)]: R:(\%3C\%3E)}
+\item{mark_size}{Default mark stroke width (\code{lwd}) in pt (fallback).}
 
-\item{mark_color}{A character string specifying the default color of the marks when \code{cell_type = "mark"}.
-Used as fallback when the \code{mark} function does not return a \code{color} field. Default is \code{"black"}.}
+\item{mark_name}{Legend title for the mark colour scale.}
 
-\item{mark_size}{A numeric value specifying the default stroke width (lwd) of the marks when \code{cell_type = "mark"}.
-Used as fallback when the \code{mark} function does not return a \code{size} field. Default is \code{1}.}
+\item{violin_fill}{A character vector of colours to use as fill for
+violin plots when \code{cell_type = "violin"}.  If \code{NULL}, the
+annotation colour is used.}
 
-\item{mark_name}{A character string specifying the title of the mark legend. Default is \code{"mark"}.
-The legend is shown automatically when the \code{mark} function returns a list with a \code{legend} field.}
+\item{boxplot_fill}{A character vector of colours to use as fill for
+boxplots when \code{cell_type = "boxplot"}.  If \code{NULL}, the
+annotation colour is used.}
 
-\item{violin_fill}{A character vector of colors to override the fill color of the violin plot.
-If NULL, the fill color will be the same as the annotion.}
+\item{dot_size}{Dot size when \code{cell_type = "dot"}.  Can be a
+numeric value or a function.}
 
-\item{boxplot_fill}{A character vector of colors to override the fill color of the boxplot.
-If NULL, the fill color will be the same as the annotion.}
+\item{dot_size_name}{Legend title for the dot size.}
 
-\item{dot_size}{A numeric value specifying the size of the dot or a function to calculate the size
-from the values in the cell or a function to calculate the size from the values in the cell.}
+\item{legend_items}{A named numeric vector specifying custom legend
+entries for the main colour scale.  Names become the displayed labels.}
 
-\item{dot_size_name}{A character string specifying the name of the legend for the dot size.
-If NULL, the dot size legend will not be shown.}
-
-\item{legend_items}{A numeric vector with names to specifiy the items in the main legend.
-The names will be working as the labels of the legend items.}
-
-\item{legend_discrete}{A logical value indicating whether the main legend is discrete.}
+\item{legend_discrete}{Logical; if \code{TRUE}, treat the main colour
+scale as discrete.}
 
 \item{legend.position}{A character string specifying the position of the legend.
 if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
-\item{lower_quantile, upper_quantile, lower_cutoff, upper_cutoff}{Vector of minimum and maximum cutoff values or quantile values for each feature.
-It's applied to aggregated values when aggregated values are used (e.g. plot_type tile, label, etc).
-It's applied to raw values when raw values are used (e.g. plot_type bars, etc).}
+\item{lower_quantile, upper_quantile, lower_cutoff, upper_cutoff}{Quantile or explicit cutoffs for clipping the colour scale.  Applied
+to aggregated values for \code{tile} / \code{label} cell types; applied
+to raw values for \code{bars} / \code{violin} / \code{boxplot} types.}
 
-\item{add_bg}{A logical value indicating whether to add a background to the heatmap.
-Does not work with \code{cell_type = "bars"} or \code{cell_type = "tile"}.}
+\item{add_bg}{Logical; if \code{TRUE}, add a background fill behind
+non-tile cell types.  Not used for \code{cell_type = "tile"} or
+\code{"bars"}.}
 
-\item{bg_alpha}{A numeric value between 0 and 1 specifying the transparency of the background.}
+\item{bg_alpha}{Numeric in \eqn{[0, 1]} for background transparency.}
 
-\item{keep_na}{Whether we should keep NA groups in rows, columns and split_by variables. Default is FALSE.
-FALSE to remove NA groups; TRUE to keep NA groups.
-A vector of column names can also be provided to specify which columns to keep NA groups.
-Note that the record will be removed if any of the grouping columns has NA and is not specified to keep NA.}
+\item{keep_na}{A logical value or a character to replace the NA values in the data.
+It can also take a named list to specify different behavior for different columns.
+If TRUE or NA, NA values will be replaced with NA.
+If FALSE, NA values will be removed from the data before plotting.
+If a character string is provided, NA values will be replaced with the provided string.
+If a named vector/list is provided, the names should be the column names to apply the behavior to,
+and the values should be one of TRUE, FALSE, or a character string.
+Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
+for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.}
 
 \item{keep_empty}{One of FALSE, TRUE and "level". It can also take a named list to specify
 different behavior for different columns. Without a named list, the behavior applies to the
@@ -261,217 +218,259 @@ But they will be assigned colors from the palette to maintain consistency across
 Alias: \code{levels}}
 }}
 
-\item{add_reticle}{A logical value indicating whether to add a reticle to the heatmap.}
+\item{add_reticle}{Logical; if \code{TRUE}, draw a reticle (crosshair
+pattern) over the heatmap.}
 
-\item{reticle_color}{A character string specifying the color of the reticle.}
+\item{reticle_color}{Colour for the reticle lines.}
 
-\item{cluster_columns}{A logical value indicating whether to cluster the columns.
-If TRUE and columns_split_by is provided, the clustering will only be applied to the columns within the same split.}
+\item{cluster_columns}{Logical; cluster the columns.  If \code{TRUE} and
+\code{columns_split_by} is provided, clustering is applied within each
+split group.}
 
-\item{cluster_rows}{A logical value indicating whether to cluster the rows.
-If TRUE and rows_split_by is provided, the clustering will only be applied to the rows within the same split.}
+\item{cluster_rows}{Logical; cluster the rows.  If \code{TRUE} and
+\code{rows_split_by} is provided, clustering is applied within each
+split group.}
 
-\item{show_row_names}{A logical value indicating whether to show the row names.
-If TRUE, the legend of the row group annotation will be hidden.}
+\item{show_row_names}{Logical; show row names.  If \code{TRUE}, the
+legend of the row group annotation is hidden.}
 
-\item{show_column_names}{A logical value indicating whether to show the column names.
-If TRUE, the legend of the column group annotation will be hidden.}
+\item{show_column_names}{Logical; show column names.  If \code{TRUE},
+the legend of the column group annotation is hidden.}
 
-\item{border}{A logical value indicating whether to draw the border of the heatmap.
-If TRUE, the borders of the slices will be also drawn.}
+\item{border}{A logical value indicating whether to draw borders around
+the heatmap.  If \code{TRUE}, slice borders are also drawn.  Default
+\code{TRUE}.}
 
-\item{title}{The global (column) title of the heatmap}
+\item{title}{The global (column) title of the heatmap.}
 
-\item{column_title}{A character string/vector of the column name(s) to use as the title of the column group annotation.}
+\item{column_title}{Character string/vector used as the column group
+annotation title.}
 
-\item{row_title}{A character string/vector of the column name(s) to use as the title of the row group annotation.}
+\item{row_title}{Character string/vector used as the row group
+annotation title.}
 
-\item{na_col}{A character string specifying the color for missing values.
-The default is "grey85".}
+\item{na_col}{Colour for \code{NA} cells.  Default \code{"grey85"}.}
 
-\item{row_names_side}{A character string specifying the side of the row names.
-The default is "right".}
+\item{row_names_side}{Side for row names.  Default \code{"right"}.}
 
-\item{column_names_side}{A character string specifying the side of the column names.
-The default is "bottom".}
+\item{column_names_side}{Side for column names.  Default \code{"bottom"}.}
 
-\item{column_annotation}{A character string/vector of the column name(s) to use as the column annotation.
-Or a list with the keys as the names of the annotation and the values as the column names.}
+\item{column_annotation}{A character vector of column names, or a named
+list, specifying column annotations.  See the \strong{Annotations}
+section for the full specification.}
 
-\item{column_annotation_side}{A character string or named list specifying which side each column
-annotation is placed on. Accepts \code{"top"} (default) or \code{"bottom"}.
-\itemize{
-\item \strong{String:} All column annotations go to that side (e.g. \code{"bottom"}).
-\item \strong{Named list:} Per-annotation side control. Keys are annotation names or aliases
-(\code{.col}, \code{.col.split}, etc.). Values are \code{"top"} or \code{"bottom"}.
-Use the special \code{.default} key to set the side for unspecified annotations
-(e.g. \code{list(.default = "top", my_anno = "bottom")}).
-\item \strong{Ordering within each side:} Name annotations (\code{columns_by}) are always
-placed closest to the heatmap body; split annotations (\code{columns_split_by}) are
-placed farthest away; user-defined annotations sit in between.
-}
-\strong{Note:} Placing column annotations on \code{"bottom"} conflicts with
-\code{legend.position = "bottom"} — the legend may overlap the annotation names.
-Consider using a different legend position in that case.}
+\item{column_annotation_side}{A character string or named list
+specifying which side each column annotation is placed on.  Accepts
+\code{"top"} (default) or \code{"bottom"}.  With a named list, use
+keys \code{.col}, \code{.col.split}, and \code{.default} for
+per-annotation control.}
 
-\item{column_annotation_palette}{A character string specifying the palette of the column annotation.
-The default is "Paired".
-Could be a list with the keys as the names of the annotation and the values as the palettes.}
+\item{column_annotation_palette, column_annotation_palcolor}{Palette and
+custom colours for column annotations.  Can be a named list keyed by
+annotation name.}
 
-\item{column_annotation_palcolor}{A character vector of colors to override the palette of the column annotation.
-Could be a list with the keys as the names of the annotation and the values as the palcolors.}
+\item{column_annotation_type}{Annotation type: \code{"auto"} (default),
+\code{"simple"}, \code{"pie"}, \code{"ring"}, \code{"bar"},
+\code{"violin"}, \code{"boxplot"}, \code{"density"}, \code{"label"},
+\code{"points"}, \code{"lines"}.  Can be a named list for
+per-annotation control.  Aliases: \code{.col.split}, \code{.col}.}
 
-\item{column_annotation_type}{A character string specifying the type of the column annotation.
-The default is "auto". Other options are "simple", "pie", "ring", "bar", "violin", "boxplot", "density",
-"label".
-Could be a list with the keys as the names of the annotation and the values as the types.
-If the type is "auto", the type will be determined by the type and number of the column data.
-For split or name annotations, use aliases (e.g. \code{.col.split}, \code{.col}) to set the type.
-\itemize{
-\item \code{"simple"} — simple annotation via \code{\link[=anno_simple]{anno_simple()}} (for split/name annotations)
-\item \code{"label"} — Text label annotation via \code{\link[=anno_simple]{anno_simple()}}/\code{\link[=anno_block]{anno_block()}} (for split/name annotations)
-}}
+\item{column_annotation_params}{A named list of additional parameters
+passed to each column annotation function.  Use aliases
+\code{.col}/\code{.cols} for \code{columns_by} and
+\code{.col.split}/\code{.cols.split} for \code{columns_split_by}.
+Setting a key to \code{FALSE} disables that annotation;
+\code{$<key>$show_legend} controls its legend visibility.
+See \code{\link[ComplexHeatmap]{HeatmapAnnotation}} for details.}
 
-\item{column_annotation_params}{A list of parameters passed to the annotation function.
-Could be a list with the keys as the names of the annotation and the values as the parameters.
-For the name/split annotations, use aliases: \code{.col}/\code{.cols}/\code{.column}/\code{.columns} for \code{columns_by}, \code{.col.split}/\code{.cols.split}/\code{.column.split}/\code{.columns.split}
-for \code{columns_split_by}. Setting a key to \code{FALSE} disables that annotation.
-\verb{$<key>$show_legend} controls the legend for that annotation.
-For \code{"label"} type annotations, use \code{labels_gp} to style the label text
-(e.g. \code{labels_gp = grid::gpar(col = "white", fontsize = 12)}).
-See \code{\link[=anno_pie]{anno_pie()}}, \code{\link[=anno_ring]{anno_ring()}}, \code{\link[=anno_bar]{anno_bar()}}, \code{\link[=anno_violin]{anno_violin()}}, \code{\link[=anno_boxplot]{anno_boxplot()}}, \code{\link[=anno_density]{anno_density()}}, \code{\link[=anno_simple]{anno_simple()}}, \code{\link[=anno_points]{anno_points()}}, \code{\link[=anno_lines]{anno_lines()}} and \code{\link[=anno_block]{anno_block()}} for the parameters of each annotation function.}
+\item{column_annotation_agg}{A function or named list of functions to
+aggregate values for each column annotation.  Defaults vary by
+annotation type.}
 
-\item{column_annotation_agg}{A function or named list of functions to aggregate values for
-each column annotation. If a single function, it applies to all annotations. If a named list,
-keys are annotation names. Defaults vary by annotation type: \code{dplyr::first} for
-\code{"simple"}/\code{"points"}/\code{"lines"}, \code{function(x) paste(unique(x), collapse = ", ")}
-for \code{"label"}, and no aggregation for others (e.g. \code{"pie"}, \code{"violin"}).}
+\item{row_annotation, row_annotation_side, row_annotation_palette, row_annotation_palcolor, row_annotation_type, row_annotation_params, row_annotation_agg}{Row annotation equivalents of the \code{column_annotation_*}
+parameters.  Sides default to \code{"left"}.  Aliases: \code{.row}
+/\code{.rows} for \code{rows_by}, \code{.rows.split}/\code{.row.split}
+for \code{rows_split_by}.}
 
-\item{row_annotation}{A character string/vector of the column name(s) to use as the row annotation.
-Or a list with the keys as the names of the annotation and the values as the column names.}
+\item{flip}{Logical; if \code{TRUE}, swap rows and columns
+transparently.  The caller does not need to swap row- and
+column-related arguments manually.}
 
-\item{row_annotation_side}{A character string or named list specifying which side each row
-annotation is placed on. Accepts \code{"left"} (default) or \code{"right"}.
-\itemize{
-\item \strong{String:} All row annotations go to that side (e.g. \code{"right"}).
-\item \strong{Named list:} Per-annotation side control. Keys are annotation names or aliases
-(\code{.row}, \code{.rows.split}, etc.). Values are \code{"left"} or \code{"right"}.
-Use the special \code{.default} key to set the side for unspecified annotations
-(e.g. \code{list(.default = "left", .row = "right")}).
-\item \strong{Ordering within each side:} Name annotations (\code{rows_by}) are always
-placed closest to the heatmap body; split annotations (\code{rows_split_by}) are
-placed farthest away; user-defined annotations sit in between.
-}}
-
-\item{row_annotation_palette}{A character string specifying the palette of the row annotation.
-The default is "Paired".
-Could be a list with the keys as the names of the annotation and the values as the palettes.}
-
-\item{row_annotation_palcolor}{A character vector of colors to override the palette of the row annotation.
-Could be a list with the keys as the names of the annotation and the values as the palcolors.}
-
-\item{row_annotation_type}{A character string specifying the type of the row annotation.
-The default is "auto". Other options are "simple", "pie", "ring", "bar", "violin", "boxplot", "density",
-"label".
-Could be a list with the keys as the names of the annotation and the values as the types.
-If the type is "auto", the type will be determined by the type and number of the row data.
-For split or name annotations, use aliases (e.g. \code{.rows.split}, \code{.row}) to set the type.
-\itemize{
-\item \code{"simple"} — Simple annotation via \code{\link[=anno_simple]{anno_simple()}}. Only valid for row/column name and
-split label annotation
-\item \code{"label"} — Text label annotation via \code{\link[=anno_simple]{anno_simple()}}/\code{\link[=anno_block]{anno_block()}} (for split/name annotations)
-}}
-
-\item{row_annotation_params}{A list of parameters passed to the annotation function.
-Could be a list with the keys as the names of the annotation and the values as the parameters.
-For the name/split annotations, use aliases: \code{.row}/\code{.rows} for \code{rows_by}, \code{.rows.split}/\code{.row.split} for \code{rows_split_by}.
-Setting a key to \code{FALSE} disables that annotation. \verb{$<key>$show_legend} controls the legend.
-For \code{"label"} type row (name) annotations, use \code{label_rot} to control text rotation
-(default \code{-90} on the left side, \code{90} on the right side).
-For \code{"label"} type, use \code{labels_gp} to style the label text.
-Same structure as \code{column_annotation_params}.}
-
-\item{row_annotation_agg}{A function or named list of functions to aggregate values for
-each row annotation. Same behavior as \code{column_annotation_agg}.}
-
-\item{flip}{A logical value indicating whether to flip the heatmap.
-The idea is that, you can simply set \code{flip = TRUE} to flip the heatmap.
-You don't need to swap the arguments related to rows and columns, except those you specify via \code{...}
-that are passed to \code{ComplexHeatmap::Heatmap()} directly.}
-
-\item{alpha}{A numeric value between 0 and 1 specifying the transparency of the heatmap cells.}
+\item{alpha}{Alpha transparency for heatmap cells in \eqn{[0, 1]}.}
 
 \item{seed}{The random seed to use. Default is 8525.}
 
-\item{padding}{A numeric vector of length 4 specifying the padding of the heatmap in the order of top, right, bottom, left.
-Like padding in css. Note that it is different than the \code{padding} argument in \code{ComplexHeatmap::draw()}, which is the padding
-in the order of bottom, left, top, right.
-It also support 1, 2, 3 values like css padding.
-When 1 element is provided, it will be used for all sides.
-When 2 elements are provided, the first one will be used for top and bottom, and the second one will be used for left and right.
-When 3 elements are provided, the first one will be used for top, the second one will be used for left and right, and the third one will be used for bottom.
-When 4 elements are provided, they will be used for top, right, bottom, and left respectively.
-If no unit is provided, the default unit will be "mm".}
+\item{padding}{Padding around the heatmap in CSS order (top, right,
+bottom, left).  Supports 1–4 values.  Default 15 (mm).  Note that
+this is different from \code{ComplexHeatmap::draw()}'s \code{padding}
+argument which uses bottom-left-top-right order.}
 
-\item{base_size}{A positive numeric scalar used as a scaling factor for the overall heatmap size.
-Default is \code{1} (no scaling). Values greater than 1 enlarge the heatmap; values less than 1 shrink it.
-Internally, all calculated cell dimensions are multiplied by this factor.}
+\item{base_size}{A positive numeric scalar used as a scaling factor for
+the overall heatmap size.  Default 1 (no scaling).  Values > 1 enlarge
+all cell dimensions proportionally.}
 
-\item{aspect.ratio}{A positive numeric scalar giving the height-to-width ratio of a single heatmap
-cell. When \code{NULL} (default), sensible per-\code{cell_type} defaults are used:
-\itemize{
-\item \code{tile}, \code{label}, \code{dot}: square cells (ratio = 1).
-\item \code{bars}: wider-than-tall cells (ratio = 0.5) so individual bars are legible.
-\item \code{violin}, \code{boxplot}, \code{pie}: square cells with a larger base size (0.5 in) so embedded
-sub-plots have enough room.
-Provide an explicit value to override these defaults (e.g. \code{aspect.ratio = 2} for
-portrait cells, \code{aspect.ratio = 0.5} for landscape cells).
-Note that for \code{cell_type = "pie"} the cells are always drawn square by ComplexHeatmap
-regardless of this setting; use it primarily to budget the figure size.
-Note that the aspect ratio is not guaranteed to be perfectly preserved; it will also be restricted by the size and height/width ratio of the entire plot itself.
-}}
+\item{aspect.ratio}{Height-to-width ratio of a single heatmap cell.
+When \code{NULL} (default), sensible per-\code{cell_type} defaults are
+used: 1 for \code{tile}/\code{label}/\code{dot}, 0.5 for \code{bars},
+and 2 for \code{violin}/\code{boxplot}/\code{pie}.  The ratio is
+constrained by the overall plot dimensions.}
 
-\item{draw_opts}{A named list of additional arguments passed to \code{\link[ComplexHeatmap:draw-dispatch]{ComplexHeatmap::draw()}}. Arguments already managed
-internally (\code{annotation_legend_list}, \code{padding}, \code{show_annotation_legend}, \code{annotation_legend_side},
-\code{column_title}) take precedence over any values supplied here.
-See \url{https://jokergoo.github.io/ComplexHeatmap/reference/draw-HeatmapList-method.html} for available options.}
+\item{draw_opts}{A named list of additional arguments passed to
+\code{\link[ComplexHeatmap]{draw,HeatmapList-method}}.  Internally
+managed arguments take precedence.}
 
-\item{return_ht}{Return a \code{ComplexHeatmap::prepare()}d heatmap object instead of drawing it. Default is \code{FALSE}.}
+\item{return_ht}{Logical; if \code{TRUE}, return the prepared
+\code{ComplexHeatmap::Heatmap} object without drawing.  Used
+internally by \code{\link{LinkedHeatmapAtomic}}.}
 
-\item{layer_fun_callback}{A function to add additional layers to the heatmap.
-The function should have the following arguments: \code{j}, \code{i}, \code{x}, \code{y}, \code{w}, \code{h}, \code{fill}, \code{sr} and \code{sc}.
-Please also refer to the \code{layer_fun} argument in \code{ComplexHeatmap::Heatmap}.}
+\item{layer_fun_callback}{A function to add custom graphical layers on
+top of each heatmap cell.  Receives \code{j}, \code{i}, \code{x},
+\code{y}, \code{w}, \code{h}, \code{fill}, \code{sr}, \code{sc}.
+See \code{\link[ComplexHeatmap]{Heatmap}} for details.}
 
-\item{cell_type}{A character string specifying the type of the heatmap cells.
-The default is "tile" Other options are "bars", "label", "mark", "label+mark" (or equivalently "mark+label"),
-"dot", "violin", "boxplot" and "pie".
-Use "label+mark" to render both marks (drawn first, as background) and text labels (drawn on top)
-in each cell simultaneously, combining all \verb{label_*} and \verb{mark_*} parameters.
-Note that for pie chart, the values under columns specified by \code{rows} will not be used directly. Instead, the values
-will just be counted in different \code{pie_group_by} groups. \code{NA} values will not be counted.}
+\item{cell_type}{The type of cell to render.  One of \code{"tile"}
+(default), \code{"bars"}, \code{"label"}, \code{"mark"},
+\code{"label+mark"} (or \code{"mark+label"}), \code{"dot"},
+\code{"violin"}, \code{"boxplot"}, \code{"pie"}.  See the
+\strong{Cell types} section for details.}
 
-\item{cell_agg}{A function to aggregate the values in the cell, for the cell type "tile" and "label".
-The default is \code{mean}.}
+\item{cell_agg}{A function to aggregate values within each cell when
+\code{cell_type = "tile"} or \code{"label"}.  Default is
+\code{\link[base]{mean}}.}
 
-\item{...}{Other arguments passed to \code{\link[ComplexHeatmap:Heatmap]{ComplexHeatmap::Heatmap()}}
-When \code{row_names_max_width} is passed, a unit is expected. But you can also pass a numeric values,
-with a default unit "inches", or a string like "5inches" to specify the number and unit directly.
-Unmatched arguments will be warned and ignored.}
+\item{...}{Additional arguments passed to
+\code{\link[ComplexHeatmap]{Heatmap}}.  When
+\code{row_names_max_width} is passed, a \code{unit} is expected but
+numeric values (default unit \code{"inches"}) or strings like
+\code{"5inches"} are also accepted.  Unmatched arguments produce a
+warning.}
 }
 \value{
 An object of heatmap that is wrapped by \code{patchwork::wrap_plots()}
 }
 \description{
-Atomic heatmap without split
+Core implementation for drawing a single heatmap using
+\code{ComplexHeatmap::Heatmap}.  This function takes pre-processed data
+(already in long format with resolved row/column identifiers) and handles
+colour mapping, cell rendering, annotation construction, and the final
+\code{draw()} call.  It is the workhorse behind the exported
+\code{\link{Heatmap}} function and is also reused by
+\code{\link{LinkedHeatmapAtomic}} (via \code{return_ht = TRUE}).
 }
 \note{
-Removed parameters: \code{rows_palette}, \code{rows_palcolor}, \code{columns_palette}, \code{columns_palcolor},
-\code{columns_split_palette}, \code{columns_split_palcolor}, \code{rows_split_palette}, \code{rows_split_palcolor} —
-use \code{row_annotation_palette}/\code{row_annotation_palcolor} with key \code{.row} (alias for \code{rows_by}) or
-\code{.rows.split} (alias for \code{rows_split_by}); similarly \code{column_annotation_palette}/
-\code{column_annotation_palcolor} with \code{.col}/\code{.column} or \code{.col.split}/\code{.column.split}.
-Also removed: \code{row_name_annotation}, \code{row_name_legend}, \code{column_name_annotation}, \code{column_name_legend} —
-set \code{row_annotation_params$.row} to \code{FALSE} to disable the row name annotation; use \verb{$show_legend}
-inside the param entry to control legend visibility. Use \code{column_annotation_params$.col} similarly.
+Removed parameters: \code{rows_palette}, \code{rows_palcolor},
+\code{columns_palette}, \code{columns_palcolor},
+\code{columns_split_palette}, \code{columns_split_palcolor},
+\code{rows_split_palette}, \code{rows_split_palcolor} — use
+\code{row_annotation_palette}/\code{row_annotation_palcolor} with
+key \code{.row} or \code{.rows.split}, and
+\code{column_annotation_palette}/\code{column_annotation_palcolor}
+with \code{.col} or \code{.col.split}.  Also removed:
+\code{row_name_annotation}, \code{row_name_legend},
+\code{column_name_annotation}, \code{column_name_legend} — set
+\code{row_annotation_params$.row} / \code{column_annotation_params$.col}
+to \code{FALSE} and use \code{$show_legend} within the param entry.
 }
+\section{Architecture}{
+
+\enumerate{
+\item \strong{Annotation resolution} — row and column annotation
+parameters (side, type, palette, params, aggregation) are
+resolved with alias support (\code{.row}, \code{.col},
+\code{.rows.split}, etc.) so that built-in name/split annotations
+and user-defined annotations can be configured uniformly.
+\item \strong{Keep-NA / keep-empty handling} — \code{keep_na} and
+\code{keep_empty} are processed per column to control whether
+\code{NA} values and empty factor levels are preserved in the
+data before constructing the heatmap matrix.
+\item \strong{Flip} — when \code{flip = TRUE}, row and column
+parameters are swapped transparently so the caller does not need
+to manually swap every argument.
+\item \strong{Cell dimension calculation} — cell width and height are
+pre-computed from \code{cell_type}, \code{aspect.ratio},
+\code{base_size}, and the unique row/column counts (accounting
+for split groups).  These are passed as explicit
+\code{"inches"} units to \code{ComplexHeatmap::Heatmap()} so
+cells have guaranteed physical sizes.
+\item \strong{Colour mapping} — the main colour scale is built from
+\code{palette} / \code{palcolor} with optional quantile-based
+or explicit cutoff clamping.
+\item \strong{Cell function dispatch} — depending on
+\code{cell_type}, the appropriate \code{cell_fun} or
+\code{layer_fun} is installed (tile, bars, label, mark,
+label+mark, dot, violin, boxplot, pie).
+\item \strong{Annotation construction} — row and column annotations
+are built via \code{ComplexHeatmap::HeatmapAnnotation()} using
+the resolved type and parameters.
+\item \strong{Drawing} — the heatmap is drawn via
+\code{ComplexHeatmap::draw()} with controlled padding and legend
+collection.  When \code{return_ht = TRUE}, the prepared
+\code{Heatmap} object is returned without drawing.
+\item \strong{Dimension attributes} — the returned object carries
+\code{height} / \code{width} attributes (in inches) and
+\code{cell_w} / \code{cell_h} attributes for downstream layout
+calculations.
+}
+}
+
+\section{Label / mark dispatch contract}{
+
+The \code{label} and \code{mark} functions can take 1, 3, or 5
+arguments.  The first argument is always the aggregated value for a
+single cell.  With 3 arguments, the second and third are the row and
+column indices.  With 5 arguments, the fourth and fifth are the row
+and column names.  The function should return one of:
+\itemize{
+\item \code{NA} — nothing is drawn for this cell.
+\item A character scalar — used as the label text / mark type;
+default size and colour are used.
+\item A named list with fields \code{label}/\code{mark},
+\code{size}, \code{color}, \code{legend}, and \code{order}
+(all optional; smaller \code{order} appears first in the
+legend).
+}
+For label cells with custom indices, use
+\code{ComplexHeatmap::pindex()} to translate between data and heatmap
+coordinates.
+}
+
+\section{Supported mark types}{
+
+\itemize{
+\item \strong{Primitives:} \code{-} (h-line), \code{|} (v-line),
+\code{+} (cross), \code{/} (l-diag), \code{\\} (r-diag),
+\code{x} (both diags), \code{o} (circle), \code{()}
+(edge-touching circle), \code{<>} (diamond).
+\item \strong{With rectangular border:} \code{[]}, \code{[-]},
+\code{[|]}, \code{[+]}, \code{[/]}, \code{[\\]}, \code{[x]},
+\code{[o]}, \code{[()]}, \code{[<>]}.
+\item \strong{With full circle:} \code{(-)}, \code{(|)},
+\code{(+)}, \code{(/)}, \code{(\\)}, \code{(x)}, \code{(o)},
+\code{(<>)}.
+\item \strong{With diamond:} \code{<->}, \code{<|>}, \code{<+>},
+\code{</>}, \code{<\\>}, \code{<x>}, \code{<o>}.
+\item \strong{Octagon:} \code{\{\}}, \code{\{-\}}, \code{\{|\}},
+\code{\{+\}}, \code{\{/\}}, \code{\{\\\}}, \code{\{x\}},
+\code{\{o\}}, \code{\{()\}}, \code{\{<>\}}.
+\item \strong{Combinations:} e.g. \code{[(|)]}, \code{[(-)]},
+\code{[(+)]}, \code{[(/)]}, \code{[(\\]}, \code{[(x)]},
+\code{[(o)]}, \code{[(<>)]}.
+}
+}
+
+\section{Annotations}{
+
+Row and column annotations are built via
+\code{\link[ComplexHeatmap]{HeatmapAnnotation}}.  Built-in name
+annotations (for \code{rows_by} / \code{columns_by}) and split
+annotations (for \code{rows_split_by} / \code{columns_split_by}) are
+added automatically and can be configured using the aliases
+\code{.row} / \code{.col} and \code{.rows.split} / \code{.col.split}
+in \code{row_annotation_params}, \code{column_annotation_type}, etc.
+Setting an alias to \code{FALSE} in \code{*_params} disables that
+annotation.  Ordering within each side: name annotations are closest
+to the body, split annotations farthest away, user-defined annotations
+in between.
+}
+
 \keyword{internal}
