@@ -846,7 +846,7 @@ LinkedHeatmapAtomic <- function(
                     right_body_top_npc, right_body_range
                 )
                 grid.xspline(
-                    x = unit(c(0.1, 0.5, 0.9), "npc"),
+                    x = unit(c(0.15, 0.5, 0.85), "npc"),
                     y = unit(
                         c(y_left, mean(c(y_left, y_right)), y_right),
                         "npc"
