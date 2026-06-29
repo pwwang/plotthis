@@ -609,11 +609,8 @@ LinkedHeatmapAtomic <- function(
     plot_w <- total_w
     plot_h <- total_h
     if (show_legend) {
-        if (legend.position == "right" || legend.position == "left") {
-            plot_w <- total_w + legend_gap + legend_w
-        } else if (legend.position == "top" || legend.position == "bottom") {
-            plot_h <- total_h + legend_gap + legend_h
-        }
+        plot_w <- total_w + legend_gap + legend_w
+        plot_h <- total_h + legend_gap + legend_h
     }
 
     # ── Link position computation ──
@@ -636,74 +633,6 @@ LinkedHeatmapAtomic <- function(
 
     compute_y <- function(pos, n_rows, top_npc, range_npc) {
         top_npc - (pos - 0.5) / n_rows * range_npc
-    }
-
-    # ── Debug output ──
-    if (isTRUE(getOption("plotthis.debug.linkedheatmap", FALSE))) {
-
-        # Link span (Y range across all endpoints)
-        if (nrow(link_table) > 0) {
-            all_yL <- vapply(seq_len(nrow(link_table)), function(k) {
-                compute_y(link_table$pos_left[k], n_left_rows,
-                          left_body_top_npc, left_body_range)
-            }, numeric(1))
-            all_yR <- vapply(seq_len(nrow(link_table)), function(k) {
-                compute_y(link_table$pos_right[k], n_right_rows,
-                          right_body_top_npc, right_body_range)
-            }, numeric(1))
-            link_ymin <- min(all_yL, all_yR)
-            link_ymax <- max(all_yL, all_yR)
-            link_span <- link_ymax - link_ymin
-        } else {
-            link_ymin <- link_ymax <- link_span <- NA
-        }
-
-        # First and last row Y coordinates
-        left_y_row1  <- compute_y(1, n_left_rows,
-                                  left_body_top_npc, left_body_range)
-        left_y_last  <- compute_y(n_left_rows, n_left_rows,
-                                  left_body_top_npc, left_body_range)
-        right_y_row1 <- compute_y(1, n_right_rows,
-                                  right_body_top_npc, right_body_range)
-        right_y_last <- compute_y(n_right_rows, n_right_rows,
-                                  right_body_top_npc, right_body_range)
-
-        cat("\n── LinkedHeatmap Debug ──\n")
-        cat(sprintf("Body: L %.3f x %.3f in (%d x %d)  R %.3f x %.3f in (%d x %d)\n",
-                    left_body_w, left_body_h, n_left_rows, n_left_cols,
-                    right_body_w, right_body_h, n_right_rows, n_right_cols))
-        cat(sprintf("Top components: L=%.3f  R=%.3f  (CH [1:4])\\n",
-                    body_top_offset_left, body_top_offset_right))
-        cat(sprintf("Bot components: L=%.3f  R=%.3f  (CH [6:9])\\n",
-                    left_below_h, right_below_h))
-        cat(sprintf("Total: L=%.3f x %.3f  R=%.3f x %.3f\\n",
-                    left_total_w, left_total_h, right_total_w, right_total_h))
-        cat(sprintf("shared_h=%.3f  L_center=%.3f  R_center=%.3f\\n",
-                    total_h, left_center_offset, right_center_offset))
-        cat(sprintf("NPC body: L top=%.4f bot=%.4f range=%.4f\\n",
-                    left_body_top_npc, left_body_bot_npc, left_body_range))
-        cat(sprintf("NPC body: R top=%.4f bot=%.4f range=%.4f\\n",
-                    right_body_top_npc, right_body_bot_npc, right_body_range))
-        cat(sprintf("Row Y: L row1=%.4f  row%d=%.4f  R row1=%.4f  row%d=%.4f\\n",
-                    left_y_row1, n_left_rows, left_y_last,
-                    right_y_row1, n_right_rows, right_y_last))
-        if (!is.na(link_span)) {
-            cat(sprintf("Links: %d  span Y=%.4f-%.4f (%.4f) vs body L=%.4f R=%.4f\\n",
-                        nrow(link_table), link_ymin, link_ymax, link_span,
-                        left_body_range, right_body_range))
-            if (link_ymax > max(left_body_top_npc, right_body_top_npc) ||
-                link_ymin < min(left_body_bot_npc, right_body_bot_npc)) {
-                cat("  *** LINKS EXTEND BEYOND BODY ***\n")
-            }
-            cat(sprintf("  first: L%d->R%d  Y=(%.4f, %.4f)\\n",
-                        link_table$pos_left[1], link_table$pos_right[1],
-                        all_yL[1], all_yR[1]))
-            cat(sprintf("  last:  L%d->R%d  Y=(%.4f, %.4f)\\n",
-                        link_table$pos_left[nrow(link_table)],
-                        link_table$pos_right[nrow(link_table)],
-                        all_yL[nrow(link_table)], all_yR[nrow(link_table)]))
-        }
-        cat("─────────────────────────\n\n")
     }
 
     # ── Draw composite ──
@@ -816,7 +745,7 @@ LinkedHeatmapAtomic <- function(
                                       layout.pos.col = lg_col))
                 ComplexHeatmap::draw(
                     combined_legend,
-                    x = unit(0, "npc"),
+                    x = unit(0.05, "npc"),
                     just = "left"
                 )
             } else {
@@ -866,6 +795,10 @@ LinkedHeatmapAtomic <- function(
     p <- patchwork::wrap_plots(p)
 
     # ── Dimension attributes ──
+    # Legend dimensions are fixed (don't scale with the heatmap body), so we
+    # compute the aspect ratio from the body only, clamp body dimensions
+    # (reserving space for the legend), apply ratio correction, then add
+    # legend space back to get the final display dimensions.
     min_size_in <- 4
     max_size_in <- 64
     display_h <- max(min(plot_h, max_size_in), min_size_in)
@@ -876,9 +809,10 @@ LinkedHeatmapAtomic <- function(
     } else if (ratio < 1 && display_w == max_size_in) {
         display_h <- display_w * ratio
     }
-    attr(p, "height") <- display_h
-    attr(p, "width")  <- display_w
+    attr(p, "height") <- display_h + 1
+    attr(p, "width")  <- display_w + 1
 
+    p$data <- data
     p
 }
 
