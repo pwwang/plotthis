@@ -3,7 +3,7 @@
 \name{DotPlot}
 \alias{DotPlot}
 \alias{LollipopPlot}
-\title{Dot Plot / Scatter Plot / Lollipop Plot}
+\title{Dot Plot, Scatter Plot, and Lollipop Plot}
 \usage{
 DotPlot(
   data,
@@ -126,60 +126,95 @@ LollipopPlot(
 \arguments{
 \item{data}{A data frame.}
 
-\item{x}{A character vector specifying the column to use for the x-axis.
-A numeric column is expected.}
+\item{x}{A character string naming the column for the x-axis. Must be a
+numeric column (bars extend from 0 to the data value).}
 
-\item{y}{A character vector specifying the column to use for the y-axis.
-A factor/character column is expected.}
+\item{y}{A character string naming the column for the y-axis. Must be a
+factor or character column (each level gets a lollipop bar).}
 
-\item{x_sep}{A character vector to concatenate multiple columns in x. Default is "_".}
+\item{x_sep}{A character string used to join multiple \code{x} column values
+into a single factor level. Only used when x is non-numeric and multiple
+columns are provided. Default: \code{"_"}.}
 
-\item{y_sep}{A character vector to concatenate multiple columns in y. Default is "_".}
+\item{y_sep}{A character string used to join multiple \code{y} column values
+into a single factor level. Only used when y is non-numeric and multiple
+columns are provided. Default: \code{"_"}.}
 
-\item{flip}{A logical value indicating whether to flip the x and y axes. Default is FALSE.}
+\item{flip}{A logical value. If \code{TRUE}, the x and y axes are swapped via
+\code{coord_flip()}. Dimension calculation accounts for the flip.
+Default: \code{FALSE}.}
 
-\item{split_by}{The column(s) to split data by and plot separately.}
+\item{split_by}{The column(s) to split data by and generate separate plots
+for each level. The split column is processed for \code{keep_na} /
+\code{keep_empty} before splitting.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
+\item{split_by_sep}{A character string used to concatenate multiple
+\code{split_by} column values. Default: \code{"_"}.}
 
-\item{size_name}{A character vector specifying the name for the size legend.}
+\item{size_name}{A character string for the size legend title. When
+\code{NULL} (the default), the \code{size_by} column name is used.}
 
-\item{fill_name}{A character vector specifying the name for the fill legend.}
+\item{fill_name}{A character string for the fill colour-bar legend title.
+When \code{NULL} (the default), the \code{fill_by} column name is used.}
 
-\item{fill_cutoff_name}{A string for the fill cutoff legend title. Defaults to
+\item{fill_cutoff_name}{A character string for the fill cutoff legend title
+(shown when \code{fill_cutoff} is active). Defaults to
 \code{"<fill_by> <fill_cutoff>"}, e.g. \code{"mpg < 18"}.}
 
-\item{add_bg}{A logical value indicating whether to add a background color to the plot. Default is FALSE.}
+\item{add_bg}{A logical value. If \code{TRUE}, alternating background
+stripes are drawn behind the points via \code{\link{bg_layer}()}. The
+striped axis is determined by \code{bg_direction}. Requires the striped
+axis to be non-numeric. Default: \code{FALSE}.}
 
-\item{bg_palette}{A character vector specifying the palette for the background color. Default is "stripe".}
+\item{bg_palette}{A character string specifying the palette for the
+background stripe colours. Passed to \code{\link{bg_layer}()}.
+Default: \code{"stripe"}.}
 
-\item{bg_palcolor}{A character vector specifying the color for the background color.}
+\item{bg_palcolor}{A character vector of colours for the background stripes.
+Passed to \code{\link{bg_layer}()}. When \code{NULL} (default), colours
+are derived from \code{bg_palette}.}
 
-\item{bg_alpha}{A numeric value specifying the alpha for the background color. Default is 0.2.}
+\item{bg_alpha}{A numeric value in \code{[0, 1]} for the transparency of
+the background stripes. Default: \code{0.2}.}
 
-\item{bg_direction}{A character vector specifying the direction for the background color. Default is "vertical".
-Other options are "horizontal". "h" and "v" are also accepted.}
+\item{bg_direction}{A character string specifying which axis receives the
+alternating background stripes. \code{"vertical"} (default) stripes by x
+levels; \code{"horizontal"} stripes by y levels. Abbreviations \code{"v"}
+and \code{"h"} are also accepted.}
 
-\item{size_by}{Which column to use as the size of the dots. It must be a numeric column.
-If not provided, the size will be the count of the instances for each 'y' in 'x'.
-For 'ScatterPlot', it can be a single numeric value to specify the size of the dots.}
+\item{size_by}{A character string naming a numeric column whose values
+control dot size. When \code{NULL} (the default), the per-combination
+observation count is computed automatically (via \code{dplyr::summarise(n =
+  n())}) and used as the size variable. If \code{fill_by} is also present,
+the first value of \code{fill_by} per combination is retained with a
+warning. A single numeric value is also accepted and sets a constant dot
+size (used by \code{ScatterPlot}).}
 
-\item{fill_by}{Which column to use as the fill the dots. It must be a numeric column.
-If not provided, all dots will be filled with the same color at the middle of the palette.}
+\item{fill_by}{A character string naming a numeric column whose values
+control the fill colour of the dots (and lollipop inner bars). A
+continuous gradient from \code{palette} is applied via
+\code{scale_fill_gradientn()}. When \code{NULL} (the default), all dots
+are filled with a single constant colour from the middle of the palette.}
 
-\item{fill_cutoff}{A string specifying which values of the fill column to grey out.
-Format: an operator followed by a number, e.g. \code{"< 18"}, \code{"<= 18"},
-\code{"> 18"}, or \code{">= 18"}. Values matching the condition are shown in grey
-while the rest are colored by the fill gradient. The operator determines which
-side of the threshold is greyed out, independent of \code{palreverse}.
-A numeric value is also accepted as shorthand for \code{"<"} (e.g. \code{18}
-is equivalent to \code{"< 18"}).}
+\item{fill_cutoff}{A string expression specifying which values of
+\code{fill_by} to grey out. Format: an operator followed by a number,
+e.g. \code{"< 18"}, \code{"<= 18"}, \code{"> 18"}, or \code{">= 18"}.
+Values matching the condition are set to \code{NA} and rendered in grey
+(\code{"grey80"}), while the rest are coloured by the fill gradient. The
+operator determines which side of the threshold is greyed out,
+independent of \code{palreverse}. A numeric value is also accepted as
+shorthand for \code{"<"} (e.g. \code{18} is equivalent to
+\code{"< 18"}). Requires \code{fill_by} to be set.}
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
-\item{size_min}{A numeric value specifying the minimum size of the dots. Default is 1.}
+\item{size_min}{A numeric value for the smallest dot size in the
+\code{scale_size(range = c(size_min, size_max))} range.
+Default: \code{1}.}
 
-\item{size_max}{A numeric value specifying the maximum size of the dots. Default is 10.}
+\item{size_max}{A numeric value for the largest dot size in the
+\code{scale_size(range = c(size_min, size_max))} range.
+Default: \code{10}.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -195,18 +230,28 @@ If some values are missing, the values from the palette will be used (palcolor w
 
 \item{alpha}{A numeric value specifying the transparency of the plot.}
 
-\item{border_color}{A logical or character value specifying the border color of the dots
-and the outer shadow of lollipop bars. If TRUE, border color follows the fill color
-(same as fill_by column values) for dots, and lollipop bars have a black outer shadow
-with the inner bar following fill_by. If a color string, uses that constant color for
-both dots and bar shadows. If FALSE, no dot borders and no bar shadows (the inner
-colored bars remain visible). Default is "black".}
+\item{border_color}{Controls the dot border colour and lollipop outer-shadow
+appearance:
+\itemize{
+\item \code{TRUE} — dot borders and lollipop inner bars follow the
+\code{fill_by} gradient via \code{scale_color_gradientn()}; lollipop
+outer shadow is black.
+\item \code{"black"} (default) — constant black borders on dots and
+black outer shadow on lollipop bars.
+\item A colour string (e.g. \code{"red"}, \code{"#FF0000"}) — constant
+colour for both dot borders and lollipop outer shadows.
+\item \code{FALSE} — no dot borders and no lollipop outer shadow (the
+inner coloured bars remain visible in lollipop mode).
+}}
 
-\item{border_size}{A numeric value specifying the stroke width of the dot borders
-and the linewidth of the lollipop bars. Default is 0.5.}
+\item{border_size}{A numeric value for the stroke width of dot borders and
+the base linewidth of lollipop bars. In lollipop mode, the outer shadow
+uses \code{border_size * 4} and the inner bar uses \code{border_size * 2}.
+Default: \code{0.5}.}
 
-\item{border_alpha}{A numeric value specifying the transparency of the dot borders
-and lollipop bars. Default is 1.}
+\item{border_alpha}{A numeric value in \code{[0, 1]} controlling the
+transparency of dot borders and lollipop bar segments.
+Default: \code{1}.}
 
 \item{lower_quantile, upper_quantile}{Lower and upper quantiles for the continuous color/fill scale.
 The actual cutoffs are determined by these quantiles when \code{lower_cutoff} and
@@ -234,7 +279,8 @@ When facet_by is a single column and facet_wrap is used.}
 
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
 
-\item{seed}{The random seed to use. Default is 8525.}
+\item{seed}{The random seed for reproducibility. Passed to
+\code{validate_common_args()}. Default: \code{8525}.}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
@@ -274,115 +320,197 @@ But they will be assigned colors from the palette to maintain consistency across
 Alias: \code{levels}}
 }}
 
-\item{combine}{Whether to combine the plots into one when facet is FALSE. Default is TRUE.}
+\item{combine}{A logical value. If \code{TRUE} (the default), the list of
+per-split plots is combined into a single \code{patchwork} object. If
+\code{FALSE}, returns the raw list.}
 
-\item{nrow}{A numeric value specifying the number of rows in the facet.}
+\item{nrow, ncol, byrow}{Integers controlling the layout of combined plots via
+\code{patchwork::wrap_plots()}. \code{byrow = TRUE} (default) fills the
+layout row-wise.}
 
-\item{ncol}{A numeric value specifying the number of columns in the facet.}
+\item{axes, axis_titles}{Strings controlling how axes and axis titles are
+handled across combined plots. Passed to \code{\link{combine_plots}()}.
+See \code{?patchwork::wrap_plots} for options (\code{"keep"},
+\code{"collect"}, \code{"collect_x"}, \code{"collect_y"}).}
 
-\item{byrow}{A logical value indicating whether to fill the plots by row.}
+\item{guides}{A string controlling guide collection across combined plots.
+Passed to \code{\link{combine_plots}()}.}
 
-\item{axes}{A string specifying how axes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axes in individual plots.
-\item 'collect' will remove duplicated axes when placed in the same run of rows or columns of the layout.
-\item 'collect_x' and 'collect_y' will remove duplicated x-axes in the columns or duplicated y-axes in the rows respectively.
-}}
-
-\item{axis_titles}{A string specifying how axis titltes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axis titles in individual plots.
-\item 'collect' will remove duplicated titles in one direction and merge titles in the opposite direction.
-\item 'collect_x' and 'collect_y' control this for x-axis titles and y-axis titles respectively.
-}}
-
-\item{guides}{A string specifying how guides should be treated in the layout. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'collect' will collect guides below to the given nesting level, removing duplicates.
-\item 'keep' will stop collection at this level and let guides be placed alongside their plot.
-\item 'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.
-}}
-
-\item{design}{Specification of the location of areas in the layout, passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE. When specified, \code{nrow}, \code{ncol}, and \code{byrow} are ignored.
-See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details.}
+\item{design}{A custom layout specification for combined plots. Passed to
+\code{\link{combine_plots}()}. When specified, \code{nrow}, \code{ncol},
+and \code{byrow} are ignored.}
 
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object or wrap_plots object or a list of ggplot objects
+A \code{ggplot} object (single plot), a \code{patchwork} object
+(when \code{combine = TRUE} with \code{split_by}), or a list of
+\code{ggplot} objects (when \code{combine = FALSE}).
 
-A ggplot object or wrap_plots object or a list of ggplot objects
+A \code{ggplot} object (single plot), a \code{patchwork} object
+(when \code{combine = TRUE} with \code{split_by}), or a list of
+\code{ggplot} objects (when \code{combine = FALSE}).
 }
 \description{
-For \code{DotPlot}, X-axis and Y-axis could be either numeric or factor/character.
-When x-axis and y-axis are both numeric, the plot works as a scatter plot.
-\code{LollipopPlot} is an alias of \code{DotPlot} when \code{lollipop} = TRUE.
+\code{DotPlot()} renders a matrix of filled circles (dot plot) where dot
+size encodes one numeric variable and fill colour encodes another. Either
+axis can be numeric or factor, enabling four layout combinations:
+
+\itemize{
+\item \strong{Both axes factor} — a classic dot matrix (e.g. genes × cell
+types), where each cell is a dot whose size reflects expression magnitude
+and whose colour reflects a summary statistic.
+\item \strong{Both axes numeric} — a scatter plot, with dots positioned by
+x/y coordinates, sized by a third variable, and coloured by a fourth.
+\item \strong{One numeric, one factor} — a strip plot or (with
+\code{lollipop = TRUE}) a lollipop chart.
 }
+
+\code{LollipopPlot()} is a convenience wrapper that sets
+\code{lollipop = TRUE}, producing horizontal bars from the y-axis to each
+data point, capped by filled dots. It expects a numeric \code{x} and a
+factor/character \code{y}.
+
+Key features:
+\itemize{
+\item \strong{Auto-count:} when \code{size_by = NULL}, the per-combination
+observation count is computed automatically.
+\item \strong{fill_cutoff:} values in \code{fill_by} matching a threshold
+expression (e.g. \code{"< 18"}) are greyed out with a dedicated legend
+entry.
+\item \strong{Background stripes:} \code{add_bg = TRUE} draws alternating
+background bands along the discrete axis for visual grouping.
+\item \strong{Border modes:} \code{border_color} can track the fill
+gradient (\code{TRUE}), use a constant colour (\code{"black"}), or be
+suppressed (\code{FALSE}).
+\item \strong{Colour scale trimming:} \code{lower_quantile} /
+\code{upper_quantile} (or explicit \code{lower_cutoff} /
+\code{upper_cutoff}) trim the continuous fill scale extremes.
+}
+
+\code{LollipopPlot()} is a convenience wrapper around \code{DotPlot()}
+that sets \code{lollipop = TRUE}. It renders a horizontal bar extending
+from the y-axis (\code{x = 0}) to each data point, capped by a filled dot.
+The bar has a two-layer construction: an outer shadow (black or custom
+colour) and an inner coloured segment that follows the \code{fill_by}
+gradient. Dot size scales by \code{size_by} (or the per-combination
+observation count when \code{size_by = NULL}).
+
+Expects \code{x} to be a numeric column and \code{y} to be a factor or
+character column.
+}
+\section{split_by Workflow (DotPlot)}{
+
+
+When \code{split_by} is provided, the following pipeline executes:
+\enumerate{
+\item \strong{Column validation} — \code{check_columns()} resolves
+\code{split_by} (force_factor, allow_multi, concat_multi).
+\item \strong{NA / empty pre-processing} — \code{process_keep_na_empty()}
+handles \code{keep_na} / \code{keep_empty} for the split column before
+splitting, then removes the split column from the per-split
+\code{keep_na}/\code{keep_empty} lists.
+\item \strong{Data splitting} — splits \code{data} by \code{split_by}
+levels (preserving factor level order).
+\item \strong{Per-split palette / colour} — \code{check_palette()} and
+\code{check_palcolor()} resolve per-split palette and colour overrides.
+\item \strong{Per-split legend} — \code{check_legend()} resolves
+\code{legend.position} and \code{legend.direction} per split.
+\item \strong{Per-split title} — when \code{title} is a function, it
+receives the default title (the split level name) and can return a
+custom string; otherwise \code{title \%||\% split_level} is used.
+\item \strong{Dispatch} — each split subset is passed to
+\code{\link{DotPlotAtomic}} (with \code{lollipop = FALSE}).
+\item \strong{Combination} — \code{\link{combine_plots}()} assembles the
+list of plots via \code{patchwork::wrap_plots}, honouring
+\code{nrow}/\code{ncol}/\code{byrow}/\code{design}.
+}
+}
+
+\section{split_by Workflow (LollipopPlot)}{
+
+
+Same pipeline as \code{DotPlot} above, but dispatches to
+\code{\link{DotPlotAtomic}} with \code{lollipop = TRUE}.
+}
+
 \examples{
 \donttest{
 mtcars <- datasets::mtcars
 mtcars$carb <- factor(mtcars$carb)
 mtcars$gear <- factor(mtcars$gear)
+
+# --- Basic dot plot (factor × factor, size + fill) ---
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
         fill_by = "mpg", fill_cutoff = "< 18")
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
         fill_by = "mpg", fill_cutoff = "> 18")
+
+# --- Background stripes ---
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
         fill_by = "mpg", fill_cutoff = "< 18", add_bg = TRUE)
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
         fill_by = "mpg", fill_cutoff = "< 18", add_bg = TRUE,
         bg_direction = "h")
+
+# --- Faceting ---
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
         fill_by = "mpg", fill_cutoff = "< 18", facet_by = "cyl")
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
         fill_by = "mpg", fill_cutoff = "< 18", facet_by = "cyl",
         facet_scales = "free_x")
+
+# --- split_by ---
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
         fill_by = "mpg", fill_cutoff = "< 18", split_by = "cyl")
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
         fill_by = "mpg", fill_cutoff = "< 18", split_by = "cyl",
         palette = list("4" = "Set1", "6" = "Paired", "8" = "Reds"))
-# works as a scatter plot
+
+# --- Scatter plot (both axes numeric) ---
 DotPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
-        fill_by = "mpg", fill_cutoff = "< 18", fill_cutoff_name = "Small mpgs")
-# keep_na and keep_empty
+        fill_by = "mpg", fill_cutoff = "< 18",
+        fill_cutoff_name = "Small mpgs")
+
+# --- keep_na and keep_empty ---
 mtcars$carb[mtcars$carb == "1"] <- NA
 mtcars$gear[mtcars$gear == "3"] <- NA
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
         fill_by = "mpg", fill_cutoff = "< 18",
         keep_na = TRUE, keep_empty = TRUE)
-# border customization
+
+# --- Border customization ---
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
         fill_by = "mpg", border_color = "red", border_size = 2)
-# border_color = TRUE means the border color follows the fill color
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
         fill_by = "mpg", border_color = TRUE, border_size = 1.5,
         border_alpha = 0.5)
-# border_color = FALSE means no border
 DotPlot(mtcars, x = "carb", y = "gear",
         fill_by = "mpg", border_color = FALSE)
-# control fill color scale limits with quantiles
+
+# --- Colour scale trimming ---
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
         fill_by = "mpg", lower_quantile = 0.05, upper_quantile = 0.95)
-# explicit cutoff values
 DotPlot(mtcars, x = "carb", y = "gear", size_by = "wt",
         fill_by = "mpg", lower_cutoff = 15, upper_cutoff = 25)
 }
+\donttest{
+mtcars <- datasets::mtcars
+
+# --- Basic lollipop ---
 LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
              fill_by = "mpg")
+
+# --- Faceting ---
 LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
              fill_by = "mpg", fill_cutoff = "< 18", facet_by = "cyl",
              facet_scales = "free_y")
+
+# --- split_by ---
 LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
              split_by = "vs", palette = list("0" = "Reds", "1" = "Blues"))
-# border customization
+
+# --- Border customization ---
 LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
              fill_by = "mpg", border_color = "red", border_size = 2)
 LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
@@ -390,6 +518,5 @@ LollipopPlot(mtcars, x = "qsec", y = "drat", size_by = "wt",
              border_alpha = 0.5)
 LollipopPlot(mtcars, x = "qsec", y = "drat",
              fill_by = "mpg", border_color = FALSE)
-LollipopPlot(mtcars, x = "qsec", y = "drat",
-             fill_by = "mpg", border_color = FALSE)
+}
 }
