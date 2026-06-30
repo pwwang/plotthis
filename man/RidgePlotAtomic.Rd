@@ -44,45 +44,72 @@ RidgePlotAtomic(
 )
 }
 \arguments{
-\item{data}{A data frame
-It has two forms: wide and long.
-For the wide form, the values should under different 'group_by' columns.
-For the long form, the values should be under the 'x' column and the 'group_by' column should be provided,
-which should be a single column with the group names.}
+\item{data}{A data frame. Accepted in two forms:
+\itemize{
+\item \strong{long} (\code{in_form = "long"}): a numeric column (named by \code{x}) and a
+factor column (named by \code{group_by}) whose levels become y-axis ridges.
+\item \strong{wide} (\code{in_form = "wide"}): multiple numeric columns listed in
+\code{group_by} are gathered into \code{.x} / \code{.group} via \code{tidyr::pivot_longer()}.
+}}
 
-\item{x}{A character string specifying the column name for the values
-A numeric column is expected.
-If 'data' is in the wide form, 'x' should be NULL. The values will be taken from the data under 'group_by' columns.}
+\item{x}{A character string specifying the column name for the numeric
+values plotted on the x-axis. When \code{in_form = "wide"}, \code{x} should be
+\code{NULL}; the gathered values are stored in a synthetic \code{.x} column.}
 
-\item{in_form}{A character string specifying the form of the data. Default is "long".}
+\item{in_form}{A character string specifying whether \code{data} is in
+\code{"long"} (default) or \code{"wide"} format.}
 
-\item{group_by}{A character string specifying the column name to group the data
-These groups will be shown on the y-axis.}
+\item{group_by}{A character string specifying the column(s) whose levels
+define the individual ridges on the y-axis. Multiple columns are
+concatenated with \code{group_by_sep}. In wide mode, these are the column
+names to gather.}
 
-\item{group_by_sep}{A character string to concatenate the columns in \code{group_by} if multiple columns are provided
-If 'data' is in the wide form, the columns will not be concatenated.}
+\item{group_by_sep}{A character string used to join multiple \code{group_by}
+column values into a single factor level. In wide form the columns are
+not concatenated (each becomes its own ridge). Default: \code{"_"}.}
 
-\item{group_name}{A character string to name the legend of 'group_by', if 'legend.position' is not "none".}
+\item{group_name}{A character string used as the legend title for the
+\code{group_by} fill aesthetic. Defaults to the (concatenated) \code{group_by}
+column name.}
 
-\item{add_vline}{A numeric vector or a named list of numeric values to add vertical lines to the plot.
-If a named list is provided, the names should match the levels of 'group_by'.
-If \code{TRUE}, the vertical lines will be added at the mean of each group.}
+\item{add_vline}{A specification for vertical reference lines:
+\itemize{
+\item \code{NULL} or \code{FALSE}: no lines.
+\item \code{TRUE}: draw a line at the mean of each group.
+\item A numeric vector: draw the same lines for all groups.
+\item A named list of numeric vectors: per-group lines, where names should
+match \code{group_by} levels.
+}}
 
-\item{vline_type}{The type of line to draw for the vertical line.}
+\item{vline_type}{A character string specifying the line type for the
+vertical reference lines. Passed as \code{linetype} to \code{geom_vline()}.
+Default: \code{"solid"}.}
 
-\item{vline_color}{The color of the vertical line.
-If \code{TRUE}, the vertical lines will be colored according to the group colors.}
+\item{vline_color}{The colour of the vertical reference lines:
+\itemize{
+\item A literal colour value or vector (recycled): applied directly.
+\item \code{TRUE} (default): each line is coloured with a darkened blend of
+the corresponding ridge fill colour, computed via
+\code{blend_colors(mode = "multiply")}.
+}}
 
-\item{vline_width}{The width of the vertical line.}
+\item{vline_width}{A numeric value for the thickness of the vertical
+reference lines. Passed as \code{linewidth} to \code{geom_vline()}.
+Default: \code{0.5}.}
 
-\item{vline_alpha}{The alpha value of the vertical line.}
+\item{vline_alpha}{A numeric value in \verb{[0, 1]} for the transparency of
+the vertical reference lines. Default: \code{1}.}
 
-\item{flip}{A logical value. If TRUE, the plot will be flipped.}
+\item{flip}{A logical value. If \code{TRUE}, the axes are swapped via
+\code{coord_flip()}. X-axis text angle and grid-line placement are adjusted
+accordingly.}
 
-\item{alpha}{A numeric value specifying the alpha of the ridges.}
+\item{alpha}{A numeric value in \verb{[0, 1]} for the transparency of the
+ridge fill. Default: \code{0.8}.}
 
-\item{scale}{A numeric value to scale the ridges.
-See also \code{\link[ggridges]{geom_density_ridges}}.}
+\item{scale}{A numeric value controlling the vertical overlap of ridges.
+Passed to \code{ggridges::geom_density_ridges(scale = ...)}. Smaller values
+increase overlap. When \code{NULL}, ggridges auto-computes the scale.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -108,7 +135,9 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{ylab}{A character string specifying the y-axis label.}
 
-\item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
+\item{x_text_angle}{A numeric value specifying the angle (in degrees) for
+x-axis text when \code{flip = TRUE}. Used with \code{calc_just()} to compute
+optimal \code{hjust} / \code{vjust}. Default: \code{90}.}
 
 \item{keep_na}{A logical value or a character to replace the NA values in the data.
 It can also take a named list to specify different behavior for different columns.
@@ -131,7 +160,9 @@ But they will be assigned colors from the palette to maintain consistency across
 Alias: \code{levels}}
 }}
 
-\item{reverse}{A logical value. If TRUE, reverse the order of the groups on the y-axis.}
+\item{reverse}{A logical value. If \code{TRUE}, the y-axis group order is
+reversed. NA groups are renamed to the literal string \code{"NA"} and
+placed at the end.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
@@ -155,9 +186,84 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
-\item{...}{Additional arguments.}
+\item{...}{Additional arguments passed to \code{ggridges::geom_density_ridges()}
+(bandwidth, jittered_points, quantile_lines, etc.).}
 }
 \description{
-Atomic ridge plot
+Core implementation for ridge (joy) plots. Renders overlapping density curves
+for each group on the y-axis using \code{ggridges::geom_density_ridges()}, with
+optional vertical reference lines and wide-to-long data conversion.
+
+The function accepts data in two forms:
+\itemize{
+\item \strong{long form} (default) — a numeric \code{x} column plus a \code{group_by} factor
+column whose levels become the y-axis ridges.
+\item \strong{wide form} — multiple numeric columns named in \code{group_by} are gathered
+via \code{tidyr::pivot_longer()} into \code{.x} / \code{.group} columns, then processed
+identically to the long form.
 }
+
+Vertical reference lines (\code{add_vline}) can be specified as a numeric vector
+(same lines for all groups), a named list (per-group values), or \code{TRUE}
+(group means). When \code{vline_color = TRUE}, each line is coloured with a
+darkened blend of the corresponding ridge fill.
+}
+\section{Architecture}{
+
+\strong{RidgePlotAtomic} executes the following steps:
+\enumerate{
+\item \strong{ggplot dispatch} — selects \code{gglogger::ggplot} or \code{ggplot2::ggplot}.
+\item \strong{Wide-to-long conversion} — when \code{in_form = "wide"}, calls
+\code{tidyr::pivot_longer()} on the \code{group_by} columns, producing \code{.group}
+(factor) and \code{.x} (values). \code{x} and \code{group_by} are redirected to these
+synthetic columns.
+\item \strong{Column resolution} — \code{check_columns()} validates \code{x}, \code{group_by}
+(force_factor, allow_multi, concat_multi), and \code{facet_by}.
+\item \strong{Default group} — when \code{group_by} is \code{NULL}, a synthetic \code{.group}
+factor with a single space character level is created so the fill
+pipeline runs uniformly.
+\item \strong{Reverse ordering} — if \code{reverse = TRUE}, factor levels of \code{group_by}
+are reversed, flipping the y-axis ridge order.
+\item \strong{NA / empty handling} — \code{process_keep_na_empty()} filters data. When
+\code{reverse = TRUE} and any group value is \code{NA}, the NA level is renamed
+to the literal string \code{"NA"} and moved to the end of the factor so
+colour mapping and display remain consistent.
+\item \strong{Palette resolution} — \code{palette_this()} maps group levels to fill
+colours.
+\item \strong{Base ggplot} — initialises \code{ggplot(data, aes(x, y, fill))} with
+\code{group_by} on the y-axis.
+\item \strong{Ridge geometry} — \code{ggridges::geom_density_ridges(alpha, scale)}.
+When \code{scale} is \code{NULL}, ggridges auto-computes the overlap factor.
+\item \strong{Vertical reference lines} — if \code{add_vline} is not \code{NULL} / \code{FALSE}:
+\itemize{
+\item \code{add_vline = TRUE} → computes \code{tapply(x, group_by, mean)}.
+\item \code{vline_color = TRUE} → resolves per-group line colours by
+darkening each fill colour via \code{blend_colors(mode = "multiply")}.
+Named list elements are matched to factor levels.
+\item Adds \code{geom_vline(xintercept, linetype, linewidth, color, alpha)}.
+}
+\item \strong{Scales and labels} — \code{scale_y_discrete(drop = !keep_empty_group)},
+\code{scale_x_continuous()}, and \code{labs()}.
+\item \strong{Fill scale} — \code{scale_fill_manual()}. When \code{keep_empty_group = TRUE},
+\code{drop = FALSE}, \code{breaks}, and \code{limits} are set to preserve empty
+factor levels.
+\item \strong{Flip-aware theme} — when \code{flip = TRUE}:
+\itemize{
+\item \code{coord_flip()} is applied.
+\item x-axis text angle is set from \code{x_text_angle} with computed
+\code{hjust} / \code{vjust} via \code{calc_just()}.
+\item Major grid lines are drawn on the x-axis.
+\item When \code{flip = FALSE}, y-axis text is right-aligned and grid lines
+appear on the y-axis.
+}
+\item \strong{Theme application} — \code{do_call(theme, theme_args)} applies the
+resolved theme function, then \code{aspect.ratio} and legend position are
+set.
+\item \strong{Dimension calculation} — \code{calculate_plot_dimensions(base_height = 1, n_y = nlevels(group_by), y_scale_factor = 1, aspect.ratio, legend, flip)} sets \code{height} / \code{width} attributes. The base height of 1 unit
+per ridge keeps individual ridges compact.
+\item \strong{Faceting} — \code{facet_plot()} applies \code{facet_grid} / \code{facet_wrap}, with
+\code{drop = !keep_empty_facet}.
+}
+}
+
 \keyword{internal}

@@ -122,23 +122,31 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 
 \item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
 
-\item{group_name}{A character string to name the legend of group_by}
+\item{group_name}{A character string used as the legend title for the
+\code{group_by} aesthetic. When \code{NULL} (default), the (possibly concatenated)
+\code{group_by} column name is used.}
 
-\item{xtrans}{A character string specifying the transformation of the x-axis. Default is "identity".
-Other options see transform of \code{\link[ggplot2]{scale_x_continuous}}.}
+\item{xtrans}{A character string specifying the transformation applied to
+the x-axis. Passed to \code{ggplot2::scale_x_continuous(transform = ...)}.
+Supported values include \code{"identity"} (default), \code{"log10"}, \code{"log2"},
+\code{"sqrt"}, \code{"reverse"}, etc.}
 
-\item{ytrans}{A character string specifying the transformation of the y-axis. Default is "identity".
-Other options see transform of \code{\link[ggplot2]{scale_y_continuous}}.}
+\item{ytrans}{A character string specifying the transformation applied to
+the y-axis. Passed to \code{ggplot2::scale_y_continuous(transform = ...)}.
+Used by \code{trend_skip_zero} to correctly interpolate across zero bins on
+a transformed scale. Default: \code{"identity"}.}
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
-\item{flip}{A logical value. If TRUE, the plot will be flipped.}
+\item{flip}{A logical value. If \code{TRUE}, the x and y axes are swapped via
+\code{coord_flip()}. Dimension calculation accounts for the flip.}
 
-\item{position}{How should we position the values in each bin? Default is "identity".
-Unlike the default position = "stack" in \link[ggplot2:geom_histogram]{ggplot2::geom_histogram} or \link[ggplot2:geom_density]{ggplot2::geom_density},
-the default position is "identity" to show the actual count or density for each group.}
+\item{position}{A character string specifying the position adjustment for
+the bars or density curves. Default: \code{"identity"}, which shows the
+actual count / density per group (unlike \code{ggplot2}'s default \code{"stack"}).
+Other options: \code{"stack"}, \code{"dodge"}, \code{"fill"}.}
 
 \item{palette}{A character string specifying the palette to use.
 A named list or vector can be used to specify the palettes for different \code{split_by} values.}
@@ -156,13 +164,20 @@ Default is "theme_this".}
 
 \item{theme_args}{A list of arguments to pass to the theme function.}
 
-\item{add_bars}{A logical value. If TRUE, add lines to the plot to show the data distribution on the bottom.}
+\item{add_bars}{A logical value. If \code{TRUE}, a data-distribution rug is
+drawn along the y = 0 axis using \code{geom_linerange()}. Each group's bars
+are vertically offset to avoid overlap.}
 
-\item{bar_height}{A numeric value specifying the height of the bars. The actual height will be calculated based on the maximum density or count.}
+\item{bar_height}{A numeric value specifying the height (in data units,
+relative to the maximum y) of the rug bars added by \code{add_bars}.
+The actual pixel height scales with \code{max_y}. Default: \code{0.025}.}
 
-\item{bar_alpha}{A numeric value specifying the alpha of the bars.}
+\item{bar_alpha}{A numeric value in \verb{[0, 1]} for the transparency of the
+rug bars. Default: \code{1}.}
 
-\item{bar_width}{A numeric value specifying the width of the bars.}
+\item{bar_width}{A numeric value passed as the \code{linewidth} aesthetic of
+\code{geom_linerange()}. Controls the thickness of each rug tick.
+Default: \code{0.1}.}
 
 \item{keep_na}{A logical value or a character to replace the NA values in the data.
 It can also take a named list to specify different behavior for different columns.
@@ -270,28 +285,128 @@ See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details
 
 \item{...}{Additional arguments.}
 
-\item{bins}{A numeric value specifying the number of bins for the histogram.}
+\item{bins}{A numeric value specifying the number of bins for the histogram.
+Ignored when \code{type = "density"}. Defaults to \code{30} when neither \code{bins} nor
+\code{binwidth} is provided.}
 
-\item{binwidth}{A numeric value specifying the width of the bins for the histogram.}
+\item{binwidth}{A numeric value specifying the width of individual bins for
+the histogram. Ignored when \code{type = "density"}. Takes precedence over
+\code{bins} when both are set.}
 
-\item{trend_skip_zero}{A logical value. If TRUE, skip the zero count when drawing the trend line.}
+\item{trend_skip_zero}{A logical value. If \code{TRUE}, bins with zero count are
+set to \code{NA} before the trend line is computed, and \code{zoo::na.approx()} is
+used to interpolate across the gaps — producing a continuous curve even
+when some bins are empty. Requires \code{ytrans} to be correctly specified.
+Only applies when \code{type = "histogram"} and \code{use_trend} or \code{add_trend} is
+active.}
 
-\item{use_trend}{A logical value. If TRUE, use trend line instead of histogram.}
+\item{use_trend}{A logical value. If \code{TRUE}, the histogram bars are replaced
+entirely by a trend line (points + connecting line). Only applies when
+\code{type = "histogram"}.}
 
-\item{add_trend}{A logical value. If TRUE, add trend line to the histogram.}
+\item{add_trend}{A logical value. If \code{TRUE}, a trend line is overlaid on
+top of the histogram bars. Only applies when \code{type = "histogram"}.}
 
-\item{trend_alpha}{A numeric value specifying the alpha of the trend line and points}
+\item{trend_alpha}{A numeric value in \verb{[0, 1]} controlling the transparency
+of the trend points and line. Default: \code{1}.}
 
-\item{trend_linewidth}{A numeric value specifying the width of the trend line}
+\item{trend_linewidth}{A numeric value for the thickness of the trend line.
+Default: \code{0.8}.}
 
-\item{trend_pt_size}{A numeric value specifying the size of the trend points}
+\item{trend_pt_size}{A numeric value for the size of the trend points.
+Default: \code{1.5}.}
 }
 \value{
-A ggplot object or wrap_plots object or a list of ggplot objects
+A \code{ggplot} object (single plot), a \code{patchwork} / \code{wrap_plots} object
+(when \code{split_by} is provided and \code{combine = TRUE}), or a list of \code{ggplot}
+objects (when \code{split_by} is provided and \code{combine = FALSE}).
+
+A \code{ggplot} object (single plot), a \code{patchwork} / \code{wrap_plots} object
+(when \code{split_by} is provided and \code{combine = TRUE}), or a list of \code{ggplot}
+objects (when \code{split_by} is provided and \code{combine = FALSE}).
 }
 \description{
-Density plot and histogram to illustrate the distribution of the data.
+Density plot for visualising the distribution of a numeric variable. Uses
+\code{ggplot2::geom_density()} to render smooth kernel density estimates, with
+optional grouping, faceting, split-by splitting, and data-distribution rug
+bars along the baseline.
+
+This is the public entry point for density plots; the companion
+\code{Histogram()} function provides binned-histogram rendering.
+Both dispatch to the same internal engine (\code{DensityHistoPlotAtomic})
+with \code{type = "density"} or \code{type = "histogram"} respectively.
+
+Histogram for visualising the distribution of a numeric variable via binned
+counts. Uses \code{ggplot2::geom_histogram()}, with optional trend-line overlays,
+zero-skip interpolation, grouping, faceting, and split-by splitting.
+
+This is the histogram companion to \code{DensityPlot()}. Both dispatch to the
+same internal engine (\code{DensityHistoPlotAtomic}) with \code{type = "histogram"}
+or \code{type = "density"} respectively.
+
+When \code{use_trend = TRUE}, the histogram bars are replaced entirely by a
+point-and-line trend; when \code{add_trend = TRUE}, the trend is overlaid on top
+of the bars. The \code{trend_skip_zero} option uses \code{zoo::na.approx()} to
+interpolate across empty bins for a continuous trend curve — particularly
+useful with transformed y-axes.
 }
+\section{split_by Workflow}{
+
+
+When \code{split_by} is specified, \code{DensityPlot()} executes the following pipeline:
+\enumerate{
+\item \strong{Argument validation} — \code{validate_common_args()} checks the seed and
+facet-by consistency.
+\item \strong{NA / empty normalisation} — \code{check_keep_na()} / \code{check_keep_empty()}
+convert \code{keep_na} / \code{keep_empty} to per-column lists.
+\item \strong{Theme resolution} — \code{process_theme()} resolves the theme string to a
+theme function.
+\item \strong{Split column resolution} — \code{check_columns()} validates \code{split_by}
+(force_factor, concat_multi).
+\item \strong{Pre-filtering} — \code{process_keep_na_empty()} removes NA / empty levels
+from the split column, then \code{data} is split by \code{split_by} levels (order
+preserved).
+\item \strong{Per-split parameter resolution} — \code{check_palette()},
+\code{check_palcolor()}, \code{check_legend()} resolve palette, palcolor,
+legend.position, and legend.direction for each split.
+\item \strong{Per-split dispatch} — each split is passed to
+\code{DensityHistoPlotAtomic(type = "density", ...)} with its resolved
+parameters. Title defaults to the split level name unless \code{title} is
+a function.
+\item \strong{Combination} — \code{combine_plots()} assembles the list of plots via
+\code{patchwork::wrap_plots()}, applying \code{nrow}, \code{ncol}, \code{byrow}, \code{axes},
+\code{axis_titles}, \code{guides}, and \code{design}.
+}
+
+
+
+When \code{split_by} is specified, \code{Histogram()} executes the following pipeline:
+\enumerate{
+\item \strong{Argument validation} — \code{validate_common_args()} checks the seed and
+facet-by consistency.
+\item \strong{NA / empty normalisation} — \code{check_keep_na()} / \code{check_keep_empty()}
+convert \code{keep_na} / \code{keep_empty} to per-column lists.
+\item \strong{Theme resolution} — \code{process_theme()} resolves the theme string to a
+theme function.
+\item \strong{Split column resolution} — \code{check_columns()} validates \code{split_by}
+(force_factor, concat_multi).
+\item \strong{Pre-filtering} — \code{process_keep_na_empty()} removes NA / empty levels
+from the split column, then \code{data} is split by \code{split_by} levels (order
+preserved).
+\item \strong{Per-split parameter resolution} — \code{check_palette()},
+\code{check_palcolor()}, \code{check_legend()} resolve palette, palcolor,
+legend.position, and legend.direction for each split.
+\item \strong{Per-split dispatch} — each split is passed to
+\code{DensityHistoPlotAtomic(type = "histogram", ...)} with its resolved
+parameters (including \code{bins}, \code{binwidth}, \code{use_trend}, \code{add_trend},
+\code{trend_skip_zero}, \code{trend_alpha}, \code{trend_linewidth}, \code{trend_pt_size}).
+Title defaults to the split level name unless \code{title} is a function.
+\item \strong{Combination} — \code{combine_plots()} assembles the list of plots via
+\code{patchwork::wrap_plots()}, applying \code{nrow}, \code{ncol}, \code{byrow}, \code{axes},
+\code{axis_titles}, \code{guides}, and \code{design}.
+}
+}
+
 \examples{
 \donttest{
 set.seed(8525)
@@ -301,12 +416,17 @@ data <- data.frame(
     facet = sample(c("F1", "F2"), 1000, replace = TRUE)
 )
 
+# basic density
 DensityPlot(data, x = "x")
 DensityPlot(data, x = "x", group_by = "group")
+
+# NA / empty level handling
 DensityPlot(data, x = "x", group_by = "group",
     keep_na = TRUE, keep_empty = TRUE)
 DensityPlot(data, x = "x", group_by = "group",
     keep_na = TRUE, keep_empty = 'level')
+
+# faceting and splitting
 DensityPlot(data, x = "x", group_by = "group", facet_by = "facet")
 DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE)
 DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE,
@@ -319,14 +439,23 @@ data <- data.frame(
     facet = sample(c("F1", "F2"), 1000, replace = TRUE)
 )
 
+# basic histogram
 Histogram(data, x = "x")
 Histogram(data, x = "x", group_by = "group")
+
+# NA / empty level handling
 Histogram(data, x = "x", group_by = "group", keep_na = TRUE, keep_empty = 'level')
+
+# add_bars and trend overlays
 Histogram(data, x = "x", split_by = "facet", add_bars = TRUE)
 Histogram(data, x = "x", group_by = "group", add_trend = TRUE)
 Histogram(data, x = "x", group_by = "group", add_trend = TRUE, trend_skip_zero = TRUE)
+
+# use_trend replaces bars entirely
 Histogram(data, x = "x", group_by = "group", split_by = "facet",
  use_trend = TRUE, trend_pt_size = 3)
+
+# per-split palettes
 Histogram(data, x = "x", group_by = "group", split_by = "facet",
  palette = c(F1 = "Paired", F2 = "Spectral"))
 }

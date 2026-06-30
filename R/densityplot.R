@@ -1,33 +1,131 @@
 #' Atomic density/histogram plot
 #'
+#' @description
+#' Core implementation for density and histogram plots. This is the internal workhorse
+#' dispatched by both the `DensityPlot()` and `Histogram()` public wrappers. It
+#' renders a grouped density curve or histogram, with optional data-distribution
+#' bars along the y=0 axis, trend-line interpolation (histogram only), and full
+#' faceting support.
+#'
+#' The function supports two plotting modes selected by `type`:
+#' - **density** — renders `ggplot2::geom_density()` for each group.
+#' - **histogram** — renders `ggplot2::geom_histogram()` with optional trend
+#'   overlays (`use_trend`, `add_trend`), including zero-skip interpolation
+#'   (`trend_skip_zero`) that uses `zoo::na.approx()` to bridge gaps where a
+#'   bin has zero observations under a transformed y-axis.
+#'
+#' When `add_bars = TRUE`, a data rug is drawn along the bottom of the plot using
+#' `ggplot2::geom_linerange()`. Each group's bars are offset vertically so they
+#' stack without overlapping.
+#'
+#' @section Architecture:
+#' **DensityHistoPlotAtomic** executes the following steps:
+#'
+#' 1. **ggplot dispatch** — selects `gglogger::ggplot` or `ggplot2::ggplot`
+#'    based on `getOption("plotthis.gglogger.enabled")`.
+#' 2. **Type check** — `match.arg(type, c("density", "histogram"))`.
+#' 3. **Expansion normalization** — `norm_expansion()` converts the `expand`
+#'    vector into CSS-padding-style x/y components.
+#' 4. **Column resolution** — `check_columns()` validates `x`, `group_by`
+#'    (force_factor, allow_multi, concat_multi), and `facet_by`.
+#' 5. **Default group** — when `group_by` is `NULL`, a synthetic `.group`
+#'    factor with a single empty-string level is created so the colour-mapping
+#'    pipeline runs uniformly.
+#' 6. **Histogram bin default** — if `type = "histogram"` and neither `bins`
+#'    nor `binwidth` is set, `bins = 30` with a message.
+#' 7. **Add-bars pre-calculation** — when `add_bars = TRUE`:
+#'    - For density: max y = `max(density(x)$y) * 1.5`.
+#'    - For histogram: max y = max bin count from `cut(x, s)`.
+#'    - Computes `.ymin` and `.ymax` per row, offset by `bar_height * max_y`
+#'      for each group so rugs stack without colliding.
+#' 8. **NA / empty handling** — `process_keep_na_empty()` filters data and
+#'    `keep_empty` values are extracted for group and facet dimensions.
+#' 9. **Palette resolution** — `palette_this()` maps group levels to colours.
+#' 10. **Base ggplot + scales** — initialises `ggplot(data, aes(x, fill, color))`,
+#'     then adds `scale_fill_manual()` / `scale_color_manual()`. When
+#'     `keep_empty_group` is `TRUE`, `drop = FALSE`, `breaks`, and `limits`
+#'     are set to preserve empty factor levels.
+#' 11. **Geometry layer**:
+#'     - *Histogram (no trend)*: `geom_histogram(alpha, bins, binwidth, position)`.
+#'     - *Histogram (use_trend / add_trend)*: adds `stat_bin(geom = "point")`
+#'       for trend points + `stat_bin(geom = "line")` for the trend curve.
+#'       When `trend_skip_zero = TRUE`, an `after_stat()` expression sets zero
+#'       counts to `NA`, transforms y, applies `zoo::na.approx()` per
+#'       `..group..`, and inverts — producing a continuous trend that
+#'       interpolates over empty bins.
+#'     - *Density*: `geom_density(alpha, position)`.
+#' 12. **Add-bars geometry** — if `add_bars = TRUE`, `geom_linerange()` draws
+#'     vertical ticks at the pre-computed `.ymin` / `.ymax` positions.
+#' 13. **Scales, theme, labels** — x/y continuous scales with transforms,
+#'     theme applied via `do_call(theme, theme_args)`, and axis / title
+#'     labels (default y-lab: "Count" for histogram, "Density" for density).
+#' 14. **Flip** — optional `coord_flip()`.
+#' 15. **Dimension calculation** — `calculate_plot_dimensions(base_height = 3.5,
+#'     aspect.ratio, legend, flip)` sets `height` / `width` attributes.
+#' 16. **Faceting** — `facet_plot()` applies `facet_grid` / `facet_wrap`.
+#'
 #' @inheritParams common_args
-#' @param x A character string specifying the column name for the values
+#' @param x A character string specifying the column name for the x-axis values.
 #'   A numeric column is expected.
-#' @param group_by A character string specifying the column name to group the data
-#' @param group_by_sep A character string to concatenate the columns in `group_by` if multiple columns are provided
-#' @param group_name A character string to name the legend of group_by
-#' @param xtrans A character string specifying the transformation of the x-axis. Default is "identity".
-#'  Other options see transform of \code{\link[ggplot2]{scale_x_continuous}}.
-#' @param ytrans A character string specifying the transformation of the y-axis. Default is "identity".
-#'  Other options see transform of \code{\link[ggplot2]{scale_y_continuous}}.
-#' @param type A character string specifying the type of plot. Default is "density".
-#'  Other options are "histogram".
+#' @param group_by A character string specifying the column(s) to group the data
+#'   by. Multiple columns are concatenated with `group_by_sep`. Each group
+#'   receives a distinct fill and outline colour.
+#' @param group_by_sep A character string used to join multiple `group_by`
+#'   column values into a single factor level. Default: `"_"`.
+#' @param group_name A character string used as the legend title for the
+#'   `group_by` aesthetic. When `NULL` (default), the (possibly concatenated)
+#'   `group_by` column name is used.
+#' @param xtrans A character string specifying the transformation applied to
+#'   the x-axis. Passed to `ggplot2::scale_x_continuous(transform = ...)`.
+#'   Supported values include `"identity"` (default), `"log10"`, `"log2"`,
+#'   `"sqrt"`, `"reverse"`, etc.
+#' @param ytrans A character string specifying the transformation applied to
+#'   the y-axis. Passed to `ggplot2::scale_y_continuous(transform = ...)`.
+#'   Used by `trend_skip_zero` to correctly interpolate across zero bins on
+#'   a transformed scale. Default: `"identity"`.
+#' @param type A character string specifying the plot type. `"density"` (default)
+#'   renders `geom_density()`; `"histogram"` renders `geom_histogram()` with
+#'   optional trend overlays.
 #' @param bins A numeric value specifying the number of bins for the histogram.
-#' @param binwidth A numeric value specifying the width of the bins for the histogram.
-#' @param flip A logical value. If TRUE, the plot will be flipped.
-#' @param add_bars A logical value. If TRUE, add lines to the plot to show the data distribution on the bottom.
-#' @param bar_height A numeric value specifying the height of the bars. The actual height will be calculated based on the maximum density or count.
-#' @param bar_alpha A numeric value specifying the alpha of the bars.
-#' @param bar_width A numeric value specifying the width of the bars.
-#' @param position How should we position the values in each bin? Default is "identity".
-#'  Unlike the default position = "stack" in [ggplot2::geom_histogram] or [ggplot2::geom_density],
-#'  the default position is "identity" to show the actual count or density for each group.
-#' @param use_trend A logical value. If TRUE, use trend line instead of histogram.
-#' @param add_trend A logical value. If TRUE, add trend line to the histogram.
-#' @param trend_alpha A numeric value specifying the alpha of the trend line and points
-#' @param trend_linewidth A numeric value specifying the width of the trend line
-#' @param trend_pt_size A numeric value specifying the size of the trend points
-#' @param trend_skip_zero A logical value. If TRUE, skip the zero count when drawing the trend line.
+#'   Ignored when `type = "density"`. Defaults to `30` when neither `bins` nor
+#'   `binwidth` is provided.
+#' @param binwidth A numeric value specifying the width of individual bins for
+#'   the histogram. Ignored when `type = "density"`. Takes precedence over
+#'   `bins` when both are set.
+#' @param flip A logical value. If `TRUE`, the x and y axes are swapped via
+#'   `coord_flip()`. Dimension calculation accounts for the flip.
+#' @param add_bars A logical value. If `TRUE`, a data-distribution rug is
+#'   drawn along the y = 0 axis using `geom_linerange()`. Each group's bars
+#'   are vertically offset to avoid overlap.
+#' @param bar_height A numeric value specifying the height (in data units,
+#'   relative to the maximum y) of the rug bars added by `add_bars`.
+#'   The actual pixel height scales with `max_y`. Default: `0.025`.
+#' @param bar_alpha A numeric value in `[0, 1]` for the transparency of the
+#'   rug bars. Default: `1`.
+#' @param bar_width A numeric value passed as the `linewidth` aesthetic of
+#'   `geom_linerange()`. Controls the thickness of each rug tick.
+#'   Default: `0.1`.
+#' @param position A character string specifying the position adjustment for
+#'   the bars or density curves. Default: `"identity"`, which shows the
+#'   actual count / density per group (unlike `ggplot2`'s default `"stack"`).
+#'   Other options: `"stack"`, `"dodge"`, `"fill"`.
+#' @param use_trend A logical value. If `TRUE`, the histogram bars are replaced
+#'   entirely by a trend line (points + connecting line). Only applies when
+#'   `type = "histogram"`.
+#' @param add_trend A logical value. If `TRUE`, a trend line is overlaid on
+#'   top of the histogram bars. Only applies when `type = "histogram"`.
+#' @param trend_alpha A numeric value in `[0, 1]` controlling the transparency
+#'   of the trend points and line. Default: `1`.
+#' @param trend_linewidth A numeric value for the thickness of the trend line.
+#'   Default: `0.8`.
+#' @param trend_pt_size A numeric value for the size of the trend points.
+#'   Default: `1.5`.
+#' @param trend_skip_zero A logical value. If `TRUE`, bins with zero count are
+#'   set to `NA` before the trend line is computed, and `zoo::na.approx()` is
+#'   used to interpolate across the gaps — producing a continuous curve even
+#'   when some bins are empty. Requires `ytrans` to be correctly specified.
+#'   Only applies when `type = "histogram"` and `use_trend` or `add_trend` is
+#'   active.
 #' @importFrom utils getFromNamespace
 #' @importFrom zoo na.approx
 #' @importFrom ggplot2 geom_density scale_fill_manual labs theme geom_histogram coord_flip waiver
@@ -328,35 +426,134 @@ DensityHistoPlotAtomic <- function(
 
 #' Atomic ridge plot
 #'
+#' @description
+#' Core implementation for ridge (joy) plots. Renders overlapping density curves
+#' for each group on the y-axis using `ggridges::geom_density_ridges()`, with
+#' optional vertical reference lines and wide-to-long data conversion.
+#'
+#' The function accepts data in two forms:
+#' - **long form** (default) — a numeric `x` column plus a `group_by` factor
+#'   column whose levels become the y-axis ridges.
+#' - **wide form** — multiple numeric columns named in `group_by` are gathered
+#'   via `tidyr::pivot_longer()` into `.x` / `.group` columns, then processed
+#'   identically to the long form.
+#'
+#' Vertical reference lines (`add_vline`) can be specified as a numeric vector
+#' (same lines for all groups), a named list (per-group values), or `TRUE`
+#' (group means). When `vline_color = TRUE`, each line is coloured with a
+#' darkened blend of the corresponding ridge fill.
+#'
+#' @section Architecture:
+#' **RidgePlotAtomic** executes the following steps:
+#'
+#' 1. **ggplot dispatch** — selects `gglogger::ggplot` or `ggplot2::ggplot`.
+#' 2. **Wide-to-long conversion** — when `in_form = "wide"`, calls
+#'    `tidyr::pivot_longer()` on the `group_by` columns, producing `.group`
+#'    (factor) and `.x` (values). `x` and `group_by` are redirected to these
+#'    synthetic columns.
+#' 3. **Column resolution** — `check_columns()` validates `x`, `group_by`
+#'    (force_factor, allow_multi, concat_multi), and `facet_by`.
+#' 4. **Default group** — when `group_by` is `NULL`, a synthetic `.group`
+#'    factor with a single space character level is created so the fill
+#'    pipeline runs uniformly.
+#' 5. **Reverse ordering** — if `reverse = TRUE`, factor levels of `group_by`
+#'    are reversed, flipping the y-axis ridge order.
+#' 6. **NA / empty handling** — `process_keep_na_empty()` filters data. When
+#'    `reverse = TRUE` and any group value is `NA`, the NA level is renamed
+#'    to the literal string `"NA"` and moved to the end of the factor so
+#'    colour mapping and display remain consistent.
+#' 7. **Palette resolution** — `palette_this()` maps group levels to fill
+#'    colours.
+#' 8. **Base ggplot** — initialises `ggplot(data, aes(x, y, fill))` with
+#'    `group_by` on the y-axis.
+#' 9. **Ridge geometry** — `ggridges::geom_density_ridges(alpha, scale)`.
+#'    When `scale` is `NULL`, ggridges auto-computes the overlap factor.
+#' 10. **Vertical reference lines** — if `add_vline` is not `NULL` / `FALSE`:
+#'     - `add_vline = TRUE` → computes `tapply(x, group_by, mean)`.
+#'     - `vline_color = TRUE` → resolves per-group line colours by
+#'       darkening each fill colour via `blend_colors(mode = "multiply")`.
+#'       Named list elements are matched to factor levels.
+#'     - Adds `geom_vline(xintercept, linetype, linewidth, color, alpha)`.
+#' 11. **Scales and labels** — `scale_y_discrete(drop = !keep_empty_group)`,
+#'     `scale_x_continuous()`, and `labs()`.
+#' 12. **Fill scale** — `scale_fill_manual()`. When `keep_empty_group = TRUE`,
+#'     `drop = FALSE`, `breaks`, and `limits` are set to preserve empty
+#'     factor levels.
+#' 13. **Flip-aware theme** — when `flip = TRUE`:
+#'     - `coord_flip()` is applied.
+#'     - x-axis text angle is set from `x_text_angle` with computed
+#'       `hjust` / `vjust` via `calc_just()`.
+#'     - Major grid lines are drawn on the x-axis.
+#'     - When `flip = FALSE`, y-axis text is right-aligned and grid lines
+#'       appear on the y-axis.
+#' 14. **Theme application** — `do_call(theme, theme_args)` applies the
+#'     resolved theme function, then `aspect.ratio` and legend position are
+#'     set.
+#' 15. **Dimension calculation** — `calculate_plot_dimensions(base_height = 1,
+#'     n_y = nlevels(group_by), y_scale_factor = 1, aspect.ratio, legend,
+#'     flip)` sets `height` / `width` attributes. The base height of 1 unit
+#'     per ridge keeps individual ridges compact.
+#' 16. **Faceting** — `facet_plot()` applies `facet_grid` / `facet_wrap`, with
+#'     `drop = !keep_empty_facet`.
+#'
 #' @inheritParams common_args
-#' @param data A data frame
-#'  It has two forms: wide and long.
-#'  For the wide form, the values should under different 'group_by' columns.
-#'  For the long form, the values should be under the 'x' column and the 'group_by' column should be provided,
-#'  which should be a single column with the group names.
-#' @param x A character string specifying the column name for the values
-#'  A numeric column is expected.
-#'  If 'data' is in the wide form, 'x' should be NULL. The values will be taken from the data under 'group_by' columns.
-#' @param in_form A character string specifying the form of the data. Default is "long".
-#' @param group_by A character string specifying the column name to group the data
-#'  These groups will be shown on the y-axis.
-#' @param group_by_sep A character string to concatenate the columns in `group_by` if multiple columns are provided
-#'  If 'data' is in the wide form, the columns will not be concatenated.
-#' @param group_name A character string to name the legend of 'group_by', if 'legend.position' is not "none".
-#' @param flip A logical value. If TRUE, the plot will be flipped.
-#' @param alpha A numeric value specifying the alpha of the ridges.
-#' @param reverse A logical value. If TRUE, reverse the order of the groups on the y-axis.
-#' @param scale A numeric value to scale the ridges.
-#'  See also \code{\link[ggridges]{geom_density_ridges}}.
-#' @param add_vline A numeric vector or a named list of numeric values to add vertical lines to the plot.
-#' If a named list is provided, the names should match the levels of 'group_by'.
-#' If `TRUE`, the vertical lines will be added at the mean of each group.
-#' @param vline_type The type of line to draw for the vertical line.
-#' @param vline_color The color of the vertical line.
-#' If `TRUE`, the vertical lines will be colored according to the group colors.
-#' @param vline_width The width of the vertical line.
-#' @param vline_alpha The alpha value of the vertical line.
-#' @param ... Additional arguments.
+#' @param data A data frame. Accepted in two forms:
+#'   - **long** (`in_form = "long"`): a numeric column (named by `x`) and a
+#'     factor column (named by `group_by`) whose levels become y-axis ridges.
+#'   - **wide** (`in_form = "wide"`): multiple numeric columns listed in
+#'     `group_by` are gathered into `.x` / `.group` via `tidyr::pivot_longer()`.
+#' @param x A character string specifying the column name for the numeric
+#'   values plotted on the x-axis. When `in_form = "wide"`, `x` should be
+#'   `NULL`; the gathered values are stored in a synthetic `.x` column.
+#' @param in_form A character string specifying whether `data` is in
+#'   `"long"` (default) or `"wide"` format.
+#' @param group_by A character string specifying the column(s) whose levels
+#'   define the individual ridges on the y-axis. Multiple columns are
+#'   concatenated with `group_by_sep`. In wide mode, these are the column
+#'   names to gather.
+#' @param group_by_sep A character string used to join multiple `group_by`
+#'   column values into a single factor level. In wide form the columns are
+#'   not concatenated (each becomes its own ridge). Default: `"_"`.
+#' @param group_name A character string used as the legend title for the
+#'   `group_by` fill aesthetic. Defaults to the (concatenated) `group_by`
+#'   column name.
+#' @param flip A logical value. If `TRUE`, the axes are swapped via
+#'   `coord_flip()`. X-axis text angle and grid-line placement are adjusted
+#'   accordingly.
+#' @param alpha A numeric value in `[0, 1]` for the transparency of the
+#'   ridge fill. Default: `0.8`.
+#' @param reverse A logical value. If `TRUE`, the y-axis group order is
+#'   reversed. NA groups are renamed to the literal string `"NA"` and
+#'   placed at the end.
+#' @param scale A numeric value controlling the vertical overlap of ridges.
+#'   Passed to `ggridges::geom_density_ridges(scale = ...)`. Smaller values
+#'   increase overlap. When `NULL`, ggridges auto-computes the scale.
+#' @param add_vline A specification for vertical reference lines:
+#'   - `NULL` or `FALSE`: no lines.
+#'   - `TRUE`: draw a line at the mean of each group.
+#'   - A numeric vector: draw the same lines for all groups.
+#'   - A named list of numeric vectors: per-group lines, where names should
+#'     match `group_by` levels.
+#' @param vline_type A character string specifying the line type for the
+#'   vertical reference lines. Passed as `linetype` to `geom_vline()`.
+#'   Default: `"solid"`.
+#' @param vline_color The colour of the vertical reference lines:
+#'   - A literal colour value or vector (recycled): applied directly.
+#'   - `TRUE` (default): each line is coloured with a darkened blend of
+#'     the corresponding ridge fill colour, computed via
+#'     `blend_colors(mode = "multiply")`.
+#' @param vline_width A numeric value for the thickness of the vertical
+#'   reference lines. Passed as `linewidth` to `geom_vline()`.
+#'   Default: `0.5`.
+#' @param vline_alpha A numeric value in `[0, 1]` for the transparency of
+#'   the vertical reference lines. Default: `1`.
+#' @param x_text_angle A numeric value specifying the angle (in degrees) for
+#'   x-axis text when `flip = TRUE`. Used with `calc_just()` to compute
+#'   optimal `hjust` / `vjust`. Default: `90`.
+#' @param ... Additional arguments passed to `ggridges::geom_density_ridges()`
+#'   (bandwidth, jittered_points, quantile_lines, etc.).
+#' @importFrom tidyr pivot_longer
+#' @importFrom ggridges geom_density_ridges
 #' @keywords internal
 RidgePlotAtomic <- function(
     data,
@@ -607,13 +804,52 @@ RidgePlotAtomic <- function(
 
 #' Ridge Plot
 #'
-#' @description Ridge plot to illustrate the distribution of the data in different groups.
+#' @description
+#' Ridge (joy) plot for visualising the distribution of a numeric variable across
+#' multiple groups. Each group is rendered as a partially overlapping density
+#' curve along the y-axis, making it easy to compare distribution shapes, central
+#' tendency, and spread across categories.
+#'
+#' The function supports both **long** and **wide** data formats:
+#' - **Long form** (`in_form = "long"`, default) — a numeric column (`x`) plus a
+#'   factor column (`group_by`) whose levels become the y-axis ridges.
+#' - **Wide form** (`in_form = "wide"`) — multiple numeric columns listed in
+#'   `group_by` are gathered internally into long form.
+#'
+#' Optional vertical reference lines (`add_vline`) can mark group means,
+#' specific values, or per-group thresholds. Supports faceting, split-by
+#' splitting, and full palette customisation.
+#'
+#' @section split_by Workflow:
+#'
+#' When `split_by` is specified, `RidgePlot()` executes the following pipeline:
+#'
+#' 1. **Argument validation** — `validate_common_args()` checks the seed and
+#'    facet-by consistency.
+#' 2. **NA / empty normalisation** — `check_keep_na()` / `check_keep_empty()`
+#'    convert `keep_na` / `keep_empty` to per-column lists.
+#' 3. **Theme resolution** — `process_theme()` resolves the theme string to a
+#'    theme function.
+#' 4. **Split column resolution** — `check_columns()` validates `split_by`
+#'    (force_factor, concat_multi).
+#' 5. **Pre-filtering** — `process_keep_na_empty()` removes NA / empty levels
+#'    from the split column, then `data` is split by `split_by` levels (order
+#'    preserved).
+#' 6. **Per-split parameter resolution** — `check_palette()`,
+#'    `check_palcolor()`, `check_legend()` resolve palette, palcolor,
+#'    legend.position, and legend.direction for each split.
+#' 7. **Per-split dispatch** — each split is passed to `RidgePlotAtomic()` with
+#'    its resolved parameters. Title defaults to the split level name unless
+#'    `title` is a function (in which case it is called with the default).
+#' 8. **Combination** — `combine_plots()` assembles the list of plots via
+#'    `patchwork::wrap_plots()`, applying `nrow`, `ncol`, `byrow`, `axes`,
+#'    `axis_titles`, `guides`, and `design`.
+#'
 #' @inheritParams common_args
 #' @inheritParams RidgePlotAtomic
-#' @return A ggplot object or wrap_plots object or a list of ggplot objects.
-#'  If no `split_by` is provided, a single plot (ggplot object) will be returned.
-#'  If 'combine' is TRUE, a wrap_plots object will be returned.
-#'  If 'combine' is FALSE, a list of ggplot objects will be returned.
+#' @return A `ggplot` object (single plot), a `patchwork` / `wrap_plots` object
+#'   (when `split_by` is provided and `combine = TRUE`), or a list of `ggplot`
+#'   objects (when `split_by` is provided and `combine = FALSE`).
 #' @export
 #' @examples
 #' \donttest{
@@ -622,14 +858,20 @@ RidgePlotAtomic <- function(
 #'    x = c(rnorm(250, -1), rnorm(250, 1)),
 #'    group = factor(rep(c("A", NA, LETTERS[3:5]), each = 100), levels = LETTERS[1:6])
 #' )
-#' RidgePlot(data, x = "x")  # fallback to a density plot
+#'
+#' # basic usage
+#' RidgePlot(data, x = "x")  # single ridge (no group_by)
 #' RidgePlot(data, x = "x", add_vline = 0, vline_color = "black")
+#'
+#' # grouped ridges
 #' RidgePlot(data, x = "x", group_by = "group")
 #' RidgePlot(data, x = "x", group_by = "group",
 #'    keep_na = TRUE, keep_empty = TRUE)
 #' RidgePlot(data, x = "x", group_by = "group", reverse = TRUE)
 #' RidgePlot(data, x = "x", group_by = "group",
 #'    add_vline = TRUE, vline_color = TRUE, alpha = 0.7)
+#'
+#' # faceting
 #' RidgePlot(data, x = "x", facet_by = "group",
 #'    keep_na = TRUE, keep_empty = TRUE)
 #'
@@ -644,6 +886,8 @@ RidgePlotAtomic <- function(
 #' )
 #' RidgePlot(data_wide, group_by = LETTERS[1:5], in_form = "wide")
 #' RidgePlot(data_wide, group_by = LETTERS[1:5], in_form = "wide", facet_by = "group")
+#'
+#' # split_by with per-split palettes
 #' RidgePlot(data_wide, group_by = LETTERS[1:5], in_form = "wide", split_by = "group",
 #'    palette = list(a = "Reds", b = "Blues", c = "Greens", d = "Purples"))
 #' }
@@ -805,11 +1049,49 @@ RidgePlot <- function(
 
 #' Density Plot / Histogram
 #'
-#' @description Density plot and histogram to illustrate the distribution of the data.
+#' @description
+#' Density plot for visualising the distribution of a numeric variable. Uses
+#' `ggplot2::geom_density()` to render smooth kernel density estimates, with
+#' optional grouping, faceting, split-by splitting, and data-distribution rug
+#' bars along the baseline.
+#'
+#' This is the public entry point for density plots; the companion
+#' `Histogram()` function provides binned-histogram rendering.
+#' Both dispatch to the same internal engine (`DensityHistoPlotAtomic`)
+#' with `type = "density"` or `type = "histogram"` respectively.
+#'
+#' @section split_by Workflow:
+#'
+#' When `split_by` is specified, `DensityPlot()` executes the following pipeline:
+#'
+#' 1. **Argument validation** — `validate_common_args()` checks the seed and
+#'    facet-by consistency.
+#' 2. **NA / empty normalisation** — `check_keep_na()` / `check_keep_empty()`
+#'    convert `keep_na` / `keep_empty` to per-column lists.
+#' 3. **Theme resolution** — `process_theme()` resolves the theme string to a
+#'    theme function.
+#' 4. **Split column resolution** — `check_columns()` validates `split_by`
+#'    (force_factor, concat_multi).
+#' 5. **Pre-filtering** — `process_keep_na_empty()` removes NA / empty levels
+#'    from the split column, then `data` is split by `split_by` levels (order
+#'    preserved).
+#' 6. **Per-split parameter resolution** — `check_palette()`,
+#'    `check_palcolor()`, `check_legend()` resolve palette, palcolor,
+#'    legend.position, and legend.direction for each split.
+#' 7. **Per-split dispatch** — each split is passed to
+#'    `DensityHistoPlotAtomic(type = "density", ...)` with its resolved
+#'    parameters. Title defaults to the split level name unless `title` is
+#'    a function.
+#' 8. **Combination** — `combine_plots()` assembles the list of plots via
+#'    `patchwork::wrap_plots()`, applying `nrow`, `ncol`, `byrow`, `axes`,
+#'    `axis_titles`, `guides`, and `design`.
+#'
 #' @rdname densityhistoplot
 #' @inheritParams common_args
 #' @inheritParams DensityHistoPlotAtomic
-#' @return A ggplot object or wrap_plots object or a list of ggplot objects
+#' @return A `ggplot` object (single plot), a `patchwork` / `wrap_plots` object
+#'   (when `split_by` is provided and `combine = TRUE`), or a list of `ggplot`
+#'   objects (when `split_by` is provided and `combine = FALSE`).
 #' @export
 #' @examples
 #' \donttest{
@@ -820,12 +1102,17 @@ RidgePlot <- function(
 #'     facet = sample(c("F1", "F2"), 1000, replace = TRUE)
 #' )
 #'
+#' # basic density
 #' DensityPlot(data, x = "x")
 #' DensityPlot(data, x = "x", group_by = "group")
+#'
+#' # NA / empty level handling
 #' DensityPlot(data, x = "x", group_by = "group",
 #'     keep_na = TRUE, keep_empty = TRUE)
 #' DensityPlot(data, x = "x", group_by = "group",
 #'     keep_na = TRUE, keep_empty = 'level')
+#'
+#' # faceting and splitting
 #' DensityPlot(data, x = "x", group_by = "group", facet_by = "facet")
 #' DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE)
 #' DensityPlot(data, x = "x", split_by = "facet", add_bars = TRUE,
@@ -986,9 +1273,54 @@ DensityPlot <- function(
     )
 }
 
+#' @description
+#' Histogram for visualising the distribution of a numeric variable via binned
+#' counts. Uses `ggplot2::geom_histogram()`, with optional trend-line overlays,
+#' zero-skip interpolation, grouping, faceting, and split-by splitting.
+#'
+#' This is the histogram companion to `DensityPlot()`. Both dispatch to the
+#' same internal engine (`DensityHistoPlotAtomic`) with `type = "histogram"`
+#' or `type = "density"` respectively.
+#'
+#' When `use_trend = TRUE`, the histogram bars are replaced entirely by a
+#' point-and-line trend; when `add_trend = TRUE`, the trend is overlaid on top
+#' of the bars. The `trend_skip_zero` option uses `zoo::na.approx()` to
+#' interpolate across empty bins for a continuous trend curve — particularly
+#' useful with transformed y-axes.
+#'
+#' @section split_by Workflow:
+#'
+#' When `split_by` is specified, `Histogram()` executes the following pipeline:
+#'
+#' 1. **Argument validation** — `validate_common_args()` checks the seed and
+#'    facet-by consistency.
+#' 2. **NA / empty normalisation** — `check_keep_na()` / `check_keep_empty()`
+#'    convert `keep_na` / `keep_empty` to per-column lists.
+#' 3. **Theme resolution** — `process_theme()` resolves the theme string to a
+#'    theme function.
+#' 4. **Split column resolution** — `check_columns()` validates `split_by`
+#'    (force_factor, concat_multi).
+#' 5. **Pre-filtering** — `process_keep_na_empty()` removes NA / empty levels
+#'    from the split column, then `data` is split by `split_by` levels (order
+#'    preserved).
+#' 6. **Per-split parameter resolution** — `check_palette()`,
+#'    `check_palcolor()`, `check_legend()` resolve palette, palcolor,
+#'    legend.position, and legend.direction for each split.
+#' 7. **Per-split dispatch** — each split is passed to
+#'    `DensityHistoPlotAtomic(type = "histogram", ...)` with its resolved
+#'    parameters (including `bins`, `binwidth`, `use_trend`, `add_trend`,
+#'    `trend_skip_zero`, `trend_alpha`, `trend_linewidth`, `trend_pt_size`).
+#'    Title defaults to the split level name unless `title` is a function.
+#' 8. **Combination** — `combine_plots()` assembles the list of plots via
+#'    `patchwork::wrap_plots()`, applying `nrow`, `ncol`, `byrow`, `axes`,
+#'    `axis_titles`, `guides`, and `design`.
+#'
 #' @rdname densityhistoplot
 #' @inheritParams common_args
 #' @inheritParams DensityHistoPlotAtomic
+#' @return A `ggplot` object (single plot), a `patchwork` / `wrap_plots` object
+#'   (when `split_by` is provided and `combine = TRUE`), or a list of `ggplot`
+#'   objects (when `split_by` is provided and `combine = FALSE`).
 #' @export
 #' @examples
 #' set.seed(8525)
@@ -998,14 +1330,23 @@ DensityPlot <- function(
 #'     facet = sample(c("F1", "F2"), 1000, replace = TRUE)
 #' )
 #'
+#' # basic histogram
 #' Histogram(data, x = "x")
 #' Histogram(data, x = "x", group_by = "group")
+#'
+#' # NA / empty level handling
 #' Histogram(data, x = "x", group_by = "group", keep_na = TRUE, keep_empty = 'level')
+#'
+#' # add_bars and trend overlays
 #' Histogram(data, x = "x", split_by = "facet", add_bars = TRUE)
 #' Histogram(data, x = "x", group_by = "group", add_trend = TRUE)
 #' Histogram(data, x = "x", group_by = "group", add_trend = TRUE, trend_skip_zero = TRUE)
+#'
+#' # use_trend replaces bars entirely
 #' Histogram(data, x = "x", group_by = "group", split_by = "facet",
 #'  use_trend = TRUE, trend_pt_size = 3)
+#'
+#' # per-split palettes
 #' Histogram(data, x = "x", group_by = "group", split_by = "facet",
 #'  palette = c(F1 = "Paired", F2 = "Spectral"))
 Histogram <- function(

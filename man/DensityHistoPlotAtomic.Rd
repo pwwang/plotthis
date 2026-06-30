@@ -54,29 +54,44 @@ DensityHistoPlotAtomic(
 \arguments{
 \item{data}{A data frame.}
 
-\item{x}{A character string specifying the column name for the values
+\item{x}{A character string specifying the column name for the x-axis values.
 A numeric column is expected.}
 
-\item{group_by}{A character string specifying the column name to group the data}
+\item{group_by}{A character string specifying the column(s) to group the data
+by. Multiple columns are concatenated with \code{group_by_sep}. Each group
+receives a distinct fill and outline colour.}
 
-\item{group_by_sep}{A character string to concatenate the columns in \code{group_by} if multiple columns are provided}
+\item{group_by_sep}{A character string used to join multiple \code{group_by}
+column values into a single factor level. Default: \code{"_"}.}
 
-\item{group_name}{A character string to name the legend of group_by}
+\item{group_name}{A character string used as the legend title for the
+\code{group_by} aesthetic. When \code{NULL} (default), the (possibly concatenated)
+\code{group_by} column name is used.}
 
-\item{xtrans}{A character string specifying the transformation of the x-axis. Default is "identity".
-Other options see transform of \code{\link[ggplot2]{scale_x_continuous}}.}
+\item{xtrans}{A character string specifying the transformation applied to
+the x-axis. Passed to \code{ggplot2::scale_x_continuous(transform = ...)}.
+Supported values include \code{"identity"} (default), \code{"log10"}, \code{"log2"},
+\code{"sqrt"}, \code{"reverse"}, etc.}
 
-\item{ytrans}{A character string specifying the transformation of the y-axis. Default is "identity".
-Other options see transform of \code{\link[ggplot2]{scale_y_continuous}}.}
+\item{ytrans}{A character string specifying the transformation applied to
+the y-axis. Passed to \code{ggplot2::scale_y_continuous(transform = ...)}.
+Used by \code{trend_skip_zero} to correctly interpolate across zero bins on
+a transformed scale. Default: \code{"identity"}.}
 
-\item{type}{A character string specifying the type of plot. Default is "density".
-Other options are "histogram".}
+\item{type}{A character string specifying the plot type. \code{"density"} (default)
+renders \code{geom_density()}; \code{"histogram"} renders \code{geom_histogram()} with
+optional trend overlays.}
 
-\item{bins}{A numeric value specifying the number of bins for the histogram.}
+\item{bins}{A numeric value specifying the number of bins for the histogram.
+Ignored when \code{type = "density"}. Defaults to \code{30} when neither \code{bins} nor
+\code{binwidth} is provided.}
 
-\item{binwidth}{A numeric value specifying the width of the bins for the histogram.}
+\item{binwidth}{A numeric value specifying the width of individual bins for
+the histogram. Ignored when \code{type = "density"}. Takes precedence over
+\code{bins} when both are set.}
 
-\item{flip}{A logical value. If TRUE, the plot will be flipped.}
+\item{flip}{A logical value. If \code{TRUE}, the x and y axes are swapped via
+\code{coord_flip()}. Dimension calculation accounts for the flip.}
 
 \item{keep_na}{A logical value or a character to replace the NA values in the data.
 It can also take a named list to specify different behavior for different columns.
@@ -99,29 +114,48 @@ But they will be assigned colors from the palette to maintain consistency across
 Alias: \code{levels}}
 }}
 
-\item{add_bars}{A logical value. If TRUE, add lines to the plot to show the data distribution on the bottom.}
+\item{add_bars}{A logical value. If \code{TRUE}, a data-distribution rug is
+drawn along the y = 0 axis using \code{geom_linerange()}. Each group's bars
+are vertically offset to avoid overlap.}
 
-\item{bar_height}{A numeric value specifying the height of the bars. The actual height will be calculated based on the maximum density or count.}
+\item{bar_height}{A numeric value specifying the height (in data units,
+relative to the maximum y) of the rug bars added by \code{add_bars}.
+The actual pixel height scales with \code{max_y}. Default: \code{0.025}.}
 
-\item{bar_alpha}{A numeric value specifying the alpha of the bars.}
+\item{bar_alpha}{A numeric value in \verb{[0, 1]} for the transparency of the
+rug bars. Default: \code{1}.}
 
-\item{bar_width}{A numeric value specifying the width of the bars.}
+\item{bar_width}{A numeric value passed as the \code{linewidth} aesthetic of
+\code{geom_linerange()}. Controls the thickness of each rug tick.
+Default: \code{0.1}.}
 
-\item{position}{How should we position the values in each bin? Default is "identity".
-Unlike the default position = "stack" in \link[ggplot2:geom_histogram]{ggplot2::geom_histogram} or \link[ggplot2:geom_density]{ggplot2::geom_density},
-the default position is "identity" to show the actual count or density for each group.}
+\item{position}{A character string specifying the position adjustment for
+the bars or density curves. Default: \code{"identity"}, which shows the
+actual count / density per group (unlike \code{ggplot2}'s default \code{"stack"}).
+Other options: \code{"stack"}, \code{"dodge"}, \code{"fill"}.}
 
-\item{use_trend}{A logical value. If TRUE, use trend line instead of histogram.}
+\item{use_trend}{A logical value. If \code{TRUE}, the histogram bars are replaced
+entirely by a trend line (points + connecting line). Only applies when
+\code{type = "histogram"}.}
 
-\item{add_trend}{A logical value. If TRUE, add trend line to the histogram.}
+\item{add_trend}{A logical value. If \code{TRUE}, a trend line is overlaid on
+top of the histogram bars. Only applies when \code{type = "histogram"}.}
 
-\item{trend_alpha}{A numeric value specifying the alpha of the trend line and points}
+\item{trend_alpha}{A numeric value in \verb{[0, 1]} controlling the transparency
+of the trend points and line. Default: \code{1}.}
 
-\item{trend_linewidth}{A numeric value specifying the width of the trend line}
+\item{trend_linewidth}{A numeric value for the thickness of the trend line.
+Default: \code{0.8}.}
 
-\item{trend_pt_size}{A numeric value specifying the size of the trend points}
+\item{trend_pt_size}{A numeric value for the size of the trend points.
+Default: \code{1.5}.}
 
-\item{trend_skip_zero}{A logical value. If TRUE, skip the zero count when drawing the trend line.}
+\item{trend_skip_zero}{A logical value. If \code{TRUE}, bins with zero count are
+set to \code{NA} before the trend line is computed, and \code{zoo::na.approx()} is
+used to interpolate across the gaps — producing a continuous curve even
+when some bins are empty. Requires \code{ytrans} to be correctly specified.
+Only applies when \code{type = "histogram"} and \code{use_trend} or \code{add_trend} is
+active.}
 
 \item{palette}{A character string specifying the palette to use.
 A named list or vector can be used to specify the palettes for different \code{split_by} values.}
@@ -184,6 +218,75 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 \item{...}{Additional arguments.}
 }
 \description{
-Atomic density/histogram plot
+Core implementation for density and histogram plots. This is the internal workhorse
+dispatched by both the \code{DensityPlot()} and \code{Histogram()} public wrappers. It
+renders a grouped density curve or histogram, with optional data-distribution
+bars along the y=0 axis, trend-line interpolation (histogram only), and full
+faceting support.
+
+The function supports two plotting modes selected by \code{type}:
+\itemize{
+\item \strong{density} — renders \code{ggplot2::geom_density()} for each group.
+\item \strong{histogram} — renders \code{ggplot2::geom_histogram()} with optional trend
+overlays (\code{use_trend}, \code{add_trend}), including zero-skip interpolation
+(\code{trend_skip_zero}) that uses \code{zoo::na.approx()} to bridge gaps where a
+bin has zero observations under a transformed y-axis.
 }
+
+When \code{add_bars = TRUE}, a data rug is drawn along the bottom of the plot using
+\code{ggplot2::geom_linerange()}. Each group's bars are offset vertically so they
+stack without overlapping.
+}
+\section{Architecture}{
+
+\strong{DensityHistoPlotAtomic} executes the following steps:
+\enumerate{
+\item \strong{ggplot dispatch} — selects \code{gglogger::ggplot} or \code{ggplot2::ggplot}
+based on \code{getOption("plotthis.gglogger.enabled")}.
+\item \strong{Type check} — \code{match.arg(type, c("density", "histogram"))}.
+\item \strong{Expansion normalization} — \code{norm_expansion()} converts the \code{expand}
+vector into CSS-padding-style x/y components.
+\item \strong{Column resolution} — \code{check_columns()} validates \code{x}, \code{group_by}
+(force_factor, allow_multi, concat_multi), and \code{facet_by}.
+\item \strong{Default group} — when \code{group_by} is \code{NULL}, a synthetic \code{.group}
+factor with a single empty-string level is created so the colour-mapping
+pipeline runs uniformly.
+\item \strong{Histogram bin default} — if \code{type = "histogram"} and neither \code{bins}
+nor \code{binwidth} is set, \code{bins = 30} with a message.
+\item \strong{Add-bars pre-calculation} — when \code{add_bars = TRUE}:
+\itemize{
+\item For density: max y = \code{max(density(x)$y) * 1.5}.
+\item For histogram: max y = max bin count from \code{cut(x, s)}.
+\item Computes \code{.ymin} and \code{.ymax} per row, offset by \code{bar_height * max_y}
+for each group so rugs stack without colliding.
+}
+\item \strong{NA / empty handling} — \code{process_keep_na_empty()} filters data and
+\code{keep_empty} values are extracted for group and facet dimensions.
+\item \strong{Palette resolution} — \code{palette_this()} maps group levels to colours.
+\item \strong{Base ggplot + scales} — initialises \code{ggplot(data, aes(x, fill, color))},
+then adds \code{scale_fill_manual()} / \code{scale_color_manual()}. When
+\code{keep_empty_group} is \code{TRUE}, \code{drop = FALSE}, \code{breaks}, and \code{limits}
+are set to preserve empty factor levels.
+\item \strong{Geometry layer}:
+\itemize{
+\item \emph{Histogram (no trend)}: \code{geom_histogram(alpha, bins, binwidth, position)}.
+\item \emph{Histogram (use_trend / add_trend)}: adds \code{stat_bin(geom = "point")}
+for trend points + \code{stat_bin(geom = "line")} for the trend curve.
+When \code{trend_skip_zero = TRUE}, an \code{after_stat()} expression sets zero
+counts to \code{NA}, transforms y, applies \code{zoo::na.approx()} per
+\code{..group..}, and inverts — producing a continuous trend that
+interpolates over empty bins.
+\item \emph{Density}: \code{geom_density(alpha, position)}.
+}
+\item \strong{Add-bars geometry} — if \code{add_bars = TRUE}, \code{geom_linerange()} draws
+vertical ticks at the pre-computed \code{.ymin} / \code{.ymax} positions.
+\item \strong{Scales, theme, labels} — x/y continuous scales with transforms,
+theme applied via \code{do_call(theme, theme_args)}, and axis / title
+labels (default y-lab: "Count" for histogram, "Density" for density).
+\item \strong{Flip} — optional \code{coord_flip()}.
+\item \strong{Dimension calculation} — \code{calculate_plot_dimensions(base_height = 3.5, aspect.ratio, legend, flip)} sets \code{height} / \code{width} attributes.
+\item \strong{Faceting} — \code{facet_plot()} applies \code{facet_grid} / \code{facet_wrap}.
+}
+}
+
 \keyword{internal}
