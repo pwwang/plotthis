@@ -1,17 +1,37 @@
-#' Prepare the cutoff data for the ROC curve
+#' Prepare cutoff data for ROC curve annotation
+#'
+#' Internal helper that computes the sensitivity and specificity values for a
+#' set of user-supplied cutoff points (or computed via OptimalCutpoints methods)
+#' across categories defined by group_by and/or facet_by columns. Used by
+#' \code{ROCCurveAtomic()} to annotate the ROC curve with cutoff markers and labels.
+#'
+#' Cutoffs can be specified either as numeric values (raw score thresholds) or as
+#' method names from the \code{OptimalCutpoints} package for automatic optimal
+#' cutoff identification. When \code{n_cuts > 0}, \code{n_cuts} evenly-spaced
+#' quantile values of the score distribution are used as cutoffs.
 #'
 #' @param data A data frame with the truth and score columns.
-#' @param truth_by A character string of the column name that contains the true class labels.
+#' @param truth_by A character string of the column name that contains the true
+#'   class labels (binary, 0/1 or TRUE/FALSE).
 #' @param score_by A character string of the column name that contains the predicted scores.
-#' @param cat_by A character string of the column name to categorize/group the data.
-#' If specified, the cutoffs will be calculated for each category.
-#' @param cutoffs_at Vector of user supplied cutoffs to plot as points. If non-NULL,
-#' it will override the values of n_cuts and plot the observed cutoffs closest to the user-supplied ones.
-#' @param cutoffs_labels vector of user-supplied labels for the cutoffs. Must be a character vector of the
-#' same length as cutoffs_at.
-#' @param n_cuts An integer to specify the number of cuts on the ROC curve.
-#' @param increasing TRUE if the score is increasing with the truth (1), FALSE otherwise.
-#' @return A data frame with the cutoffs and the corresponding x and y values.
+#' @param cat_by A character string of the column name to categorise/group the data.
+#'   When specified, cutoffs are calculated separately for each category level,
+#'   enabling per-group or per-facet cutoff annotation.
+#' @param cutoffs_at A vector of user-supplied cutoff values to plot as points.
+#'   When non-NULL, overrides \code{n_cuts}. Supports both raw numeric values
+#'   and method names from \code{\link[OptimalCutpoints]{optimal.cutpoints}}.
+#' @param cutoffs_labels A character vector of user-supplied labels for the
+#'   cutoffs. Must be the same length as \code{cutoffs_at}. When NULL, labels
+#'   are generated automatically.
+#' @param cutoffs_accuracy A numeric value specifying the rounding precision
+#'   for automatically generated cutoff labels. Default: \code{0.001}.
+#' @param n_cuts An integer specifying the number of evenly-spaced quantile-based
+#'   cutoff points. Ignored when \code{cutoffs_at} is non-NULL. Default: \code{0}
+#'   (no quantile cutoffs).
+#' @param increasing A logical value. If TRUE (default), higher scores indicate
+#'   the positive class; if FALSE, lower scores indicate the positive class.
+#' @return A data frame with columns \code{cutoff}, \code{x} (1 - specificity),
+#'   \code{y} (sensitivity), \code{label}, and \code{cat_by} (the category name).
 #' @keywords internal
 get_cutoffs_data <- function(
     data,
@@ -202,86 +222,228 @@ get_cutoffs_data <- function(
 }
 
 
-#' Atomic ROC curve
+#' Atomic ROC curve (internal)
+#'
+#' Core implementation for drawing a single Receiver Operating Characteristic
+#' (ROC) curve. This is the internal workhorse behind the exported
+#' \code{\link{ROCCurve}} function. It takes a **single** data frame (no
+#' \code{split_by} support) and returns a \code{ggplot} object.
+#'
+#' The function produces an ROC curve using \code{plotROC::geom_roc()}, with
+#' the following capabilities:
+#' \itemize{
+#'   \item \strong{Multiple classifiers} — \code{score_by} accepts multiple
+#'   column names, automatically pivoting them into a grouped format so
+#'   several prediction scores can be compared on a single plot.
+#'   \item \strong{AUC calculation} — area under the curve is computed via
+#'   \code{plotROC::calc_auc()} and displayed either on the plot or in the
+#'   legend, controlled by \code{show_auc}.
+#'   \item \strong{Cutoff annotation} — user-specified cutoffs (numeric score
+#'   thresholds or named optimal-cutoff methods from the
+#'   \code{OptimalCutpoints} package) are rendered as markers with labels,
+#'   using \code{ggrepel::geom_text_repel()} for label placement.
+#'   \item \strong{Confidence intervals} — optional ROC confidence bands via
+#'   \code{plotROC::geom_rocci()}.
+#'   \item \strong{Axis flexibility} — supports reversed x-axis (displaying
+#'   specificity) and percent-scaled axes.
+#' }
+#'
+#' @section Architecture:
+#' \enumerate{
+#'   \item \strong{show_auc resolution} — \code{match.arg()} resolves
+#'   \code{show_auc} to one of \code{"auto"}, \code{"none"}, \code{"legend"},
+#'   or \code{"plot"}.
+#'   \item \strong{Column validation} — \code{\link{check_columns}()} validates
+#'   \code{truth_by} (single column), \code{score_by} (multiple allowed), and
+#'   \code{group_by} (factor, multi-column concatenated). An error is raised if
+#'   \code{group_by} is provided alongside multiple \code{score_by} columns.
+#'   \item \strong{Positive label encoding} — Converts \code{truth_by} to binary
+#'   numeric (0/1) with three paths:
+#'   \itemize{
+#'     \item \code{pos_label} provided: re-factor with \code{pos_label} as the
+#'     last level, then convert.
+#'     \item \code{truth_by} is a factor: warn that the last level is treated
+#'     as positive, then convert.
+#'     \item Non-numeric, non-factor: coerce to factor, warn, then convert.
+#'   }
+#'   \item \strong{Multi-score_by expansion} — When \code{score_by} contains
+#'   multiple columns, \code{tidyr::pivot_longer()} reshapes into a single
+#'   \code{.score} column with a \code{.group} identifier, which becomes the
+#'   \code{group_by} variable.
+#'   \item \strong{ggplot dispatch} — Selects \code{gglogger::ggplot} or
+#'   \code{ggplot2::ggplot} based on
+#'   \code{getOption("plotthis.gglogger.enabled")}.
+#'   \item \strong{Dummy group insertion} — When \code{group_by = NULL}, creates
+#'   a synthetic \code{..group} column (constant \code{""}) so the curve still
+#'   renders. The legend is suppressed (\code{"none"}).
+#'   \item \strong{Auto AUC placement} — When \code{show_auc = "auto"},
+#'   single-group or faceted plots place AUC on the plot; multi-group plots
+#'   place it in the legend.
+#'   \item \strong{Base ROC geometry} — \code{plotROC::geom_roc()} with
+#'   \code{aes(d = truth, m = score, color = group)}, controlling direction
+#'   via the \code{increasing} parameter.
+#'   \item \strong{AUC calculation} — Temporarily facets via
+#'   \code{\link{facet_plot}()}, then computes per-group (and per-facet) AUC
+#'   values via \code{plotROC::calc_auc()}.
+#'   \item \strong{Cutoff computation} — \code{get_cutoffs_data()} combines
+#'   \code{group_by} and \code{facet_by} columns into a \code{.cat} identifier
+#'   and computes per-category cutoff data, supporting both numeric thresholds
+#'   and named \code{OptimalCutpoints} methods.
+#'   \item \strong{Cutoff rendering} — When cutoff data is non-NULL, splits the
+#'   \code{.cat} column back into group/facet columns and adds
+#'   \code{geom_point()} (markers) and \code{geom_text_repel()} (labels) with
+#'   configurable size, shape, stroke, colour, and background styling.
+#'   \item \strong{Confidence intervals} — When \code{ci} is non-NULL,
+#'   \code{plotROC::geom_rocci()} is added with the provided arguments.
+#'   \item \strong{AUC display} — Three modes:
+#'   \itemize{
+#'     \item \code{"plot"}: \code{geom_text()} places AUC labels at a corner
+#'     position determined by \code{increasing} and \code{x_axis_reverse}.
+#'     \item \code{"legend"}: AUC values are appended to the
+#'     \code{scale_color_manual()} labels (with per-facet prefixes when
+#'     faceting is active).
+#'     \item \code{"none"}: group level names are used as-is.
+#'   }
+#'   \item \strong{Diagonal reference} — \code{geom_abline()} draws the
+#'   no-discrimination line (y = x, or y = -x when x-axis is reversed) as a
+#'   dashed grey line.
+#'   \item \strong{Color scale} — \code{scale_color_manual()} assigns
+#'   palette-derived colours via \code{\link{palette_this}()}, with
+#'   AUC-augmented labels when \code{show_auc = "legend"}.
+#'   \item \strong{Axis formatting} — Percent labels on y-axis (and x-axis)
+#'   when \code{percent = TRUE}. X-axis reversed (1 to 0) when
+#'   \code{x_axis_reverse = TRUE}, changing the axis label to
+#'   \code{"Specificity"}.
+#'   \item \strong{Labels and theme} — \code{labs()} sets title, subtitle, x,
+#'   and y labels. The theme, aspect ratio, legend position/direction, and
+#'   dashed grid lines are applied.
+#'   \item \strong{Dimension calculation} — \code{\link{calculate_plot_dimensions}()}
+#'   computes \code{height} and \code{width} attributes from
+#'   \code{base_height = 4.5}, aspect ratio, and legend metrics.
+#'   \item \strong{Attribute storage} — \code{auc} and \code{cutoffs} data
+#'   frames are stored as \code{attr(p, "auc")} and
+#'   \code{attr(p, "cutoffs")} for retrieval by the exported wrapper.
+#'   \item \strong{Faceting} — \code{\link{facet_plot}()} wraps the plot with
+#'   \code{facet_wrap} / \code{facet_grid} if \code{facet_by} is provided.
+#' }
 #'
 #' @inheritParams common_args
-#' @param data A data frame with the truth and score columns.
-#' See also https://cran.r-project.org/web/packages/plotROC/vignettes/examples.html.
-#' @param truth_by A character string of the column name that contains the true class labels.
-#' (a.k.a. the binary outcome, 1/0 or TRUE/FALSE.)
-#' @param score_by character strings of the column names that contains the predicted scores.
-#' When multiple columns are provided, the ROC curve is plotted for each column.
-#' @param pos_label A character string of the positive class label.
-#' When NULL, the labels will be handled by the `plotROC` package.
+#' @param data A data frame with the truth and score columns. See
+#'   \url{https://cran.r-project.org/web/packages/plotROC/vignettes/examples.html}
+#'   for the expected format.
+#' @param truth_by A character string naming the column that contains the true
+#'   class labels (binary outcome, 0/1 or TRUE/FALSE).
+#' @param score_by A character vector of column names containing the predicted
+#'   scores (classifier output values). When multiple columns are provided, each
+#'   column becomes a separate ROC curve grouped by a \code{.group} identifier.
+#'   When multiple columns are used, \code{group_by} must be NULL.
+#' @param pos_label A character string specifying the positive class label in
+#'   \code{truth_by}. When NULL (default), the labels are handled by the
+#'   \code{plotROC} package: if \code{truth_by} is a factor, the last level is
+#'   used; otherwise it is coerced to a factor with a warning.
 #' @param group_by A character vector of column names to group the ROC curve by.
-#' When `score_by` contains multiple columns, `group_by` should be NULL.
-#' @param group_by_sep A character string to separate the columns in `group_by`.
-#' @param group_name A character string to name the legend of the ROC curve groups.
-#' @param x_axis_reverse A logical to reverse the x-axis, that is from 1 to 0.
-#' @param percent A logical to display the x and y axis as percentages.
-#' @param ci A list of arguments to pass to [plotROC::geom_rocci()] to add confidence intervals.
-#' When NULL, no confidence intervals are added.
-#' @param n_cuts An integer to specify the number of cutpoints on the ROC curve.
-#' It will be the quantiles of the predicted scores.
-#' @param cutoffs_at Vector of user supplied cutoffs to plot as points. If non-NULL,
-#' it will override the values of n_cuts and plot the observed cutoffs closest to the user-supplied ones.
-#' Both `cutoffs_at` and `cutoffs.labels` will be passed to [plotROC::geom_roc()].
-#' Other than numeric values, the following special values are allowed. These values are the methods of
-#' [OptimalCutpoints::optimal.cutpoints()], they are literally:
-#' * "CB" (cost-benefit method);
-#' * "MCT" (minimizes Misclassification Cost Term);
-#' * "MinValueSp" (a minimum value set for Specificity);
-#' * "MinValueSe" (a minimum value set for Sensitivity);
-#' * "ValueSe" (a value set for Sensitivity);
-#' * "MinValueSpSe" (a minimum value set for Specificity and Sensitivity);
-#' * "MaxSp" (maximizes Specificity);
-#' * "MaxSe" (maximizes Sensitivity);
-#' * "MaxSpSe" (maximizes Sensitivity and Specificity simultaneously);
-#' * "MaxProdSpSe" (maximizes the product of Sensitivity and Specificity or Accuracy Area);
-#' * "ROC01" (minimizes distance between ROC plot and point (0,1));
-#' * "SpEqualSe" (Sensitivity = Specificity);
-#' * "Youden" (Youden Index);
-#' * "MaxEfficiency" (maximizes Efficiency or Accuracy, similar to minimize Error Rate);
-#' * "Minimax" (minimizes the most frequent error);
-#' * "MaxDOR" (maximizes Diagnostic Odds Ratio);
-#' * "MaxKappa" (maximizes Kappa Index);
-#' * "MinValueNPV" (a minimum value set for Negative Predictive Value);
-#' * "MinValuePPV" (a minimum value set for Positive Predictive Value);
-#' * "ValueNPV" (a value set for Negative Predictive Value);
-#' * "ValuePPV" (a value set for Positive Predictive Value);
-#' * "MinValueNPVPPV" (a minimum value set for Predictive Values);
-#' * "PROC01" (minimizes distance between PROC plot and point (0,1));
-#' * "NPVEqualPPV" (Negative Predictive Value = Positive Predictive Value);
-#' * "MaxNPVPPV" (maximizes Positive Predictive Value and Negative Predictive Value simultaneously);
-#' * "MaxSumNPVPPV" (maximizes the sum of the Predictive Values);
-#' * "MaxProdNPVPPV" (maximizes the product of Predictive Values);
-#' * "ValueDLR.Negative" (a value set for Negative Diagnostic Likelihood Ratio);
-#' * "ValueDLR.Positive" (a value set for Positive Diagnostic Likelihood Ratio);
-#' * "MinPvalue" (minimizes p-value associated with the statistical Chi-squared test which measures the association between
-#'   the marker and the binary result obtained on using the cutpoint);
-#' * "ObservedPrev" (The closest value to observed prevalence);
-#' * "MeanPrev" (The closest value to the mean of the diagnostic test values);
-#' * "PrevalenceMatching" (The value for which predicted prevalence is practically equal to observed prevalence).
-#' @param cutoffs_labels vector of user-supplied labels for the cutoffs. Must be a character vector of the
-#' same length as cutoffs_at.
-#' @param cutoffs_accuracy A numeric to specify the accuracy of the cutoff values to show.
-#' @param cutoffs_pt_size A numeric to specify the size of the cutoff points.
-#' @param cutoffs_pt_shape A numeric to specify the shape of the cutoff points.
-#' @param cutoffs_pt_stroke A numeric to specify the stroke of the cutoff points.
-#' @param cutoffs_labal_fg A character string to specify the color of the cutoff labels.
-#' @param cutoffs_label_size A numeric to specify the size of the cutoff labels.
-#' @param cutoffs_label_bg A character string to specify the background color of the cutoff labels.
-#' @param cutoffs_label_bg_r A numeric to specify the radius of the background of the cutoff labels.
-#' @param show_auc A character string to specify the position of the AUC values.
-#' * "auto" (default): Automatically determine the position based on the plot.
-#'   When there is a single group or 'facet_by' is provided, the AUC is placed on the plot.
-#'   Otherwise, the AUC is placed in the legend.
-#' * "none": Do not display the AUC values.
-#' * "legend": Display the AUC values in the legend.
-#' * "plot": Display the AUC values on the plot (left/right bottom corner).
-#' @param auc_accuracy A numeric to specify the accuracy of the AUC values.
-#' @param auc_size A numeric to specify the size of the AUC values when they are displayed on the plot.
-#' @return A ggplot object.
+#'   Each unique combination of group values renders a separate ROC curve.
+#'   When \code{score_by} contains multiple columns, \code{group_by} must be
+#'   NULL because the score columns themselves define the groups. Multiple
+#'   \code{group_by} columns are concatenated with \code{group_by_sep}.
+#' @param group_by_sep A character string used to separate concatenated
+#'   \code{group_by} columns. Default: \code{"_"}.
+#' @param group_name A character string to use as the legend title for the
+#'   ROC curve groups. When NULL (default), the \code{group_by} column name
+#'   is used.
+#' @param x_axis_reverse A logical value. If TRUE, the x-axis is reversed (from
+#'   1 to 0), displaying specificity instead of 1 - specificity. The x-axis
+#'   label automatically changes to \code{"Specificity"}. Default: FALSE.
+#' @param percent A logical value. If TRUE, the x and y axes are displayed as
+#'   percentages (0 to 100). Default: FALSE.
+#' @param ci A list of arguments passed to \code{plotROC::geom_rocci()} to add
+#'   confidence intervals to the ROC curve. When NULL (default), no confidence
+#'   intervals are drawn. Example: \code{ci = list(sig.level = 0.05)}.
+#' @param n_cuts An integer specifying the number of evenly-spaced quantile-based
+#'   cutoff points to annotate on the ROC curve. Quantiles are computed from the
+#'   \code{score_by} distribution. Default: \code{0} (no quantile cutoffs).
+#'   Ignored when \code{cutoffs_at} is non-NULL.
+#' @param cutoffs_at A vector of user-supplied cutoff values to annotate as
+#'   points on the ROC curve. When non-NULL, overrides \code{n_cuts}. Accepts
+#'   raw numeric score thresholds and/or named method strings from the
+#'   \code{\link[OptimalCutpoints]{optimal.cutpoints}} package for automatic
+#'   optimal cutoff identification. Both \code{cutoffs_at} and
+#'   \code{cutoffs.labels} are passed to \code{plotROC::geom_roc()}.
+#'   Supported method values are:
+#' \itemize{
+#'   \item \code{"CB"} (cost-benefit method);
+#'   \item \code{"MCT"} (minimises Misclassification Cost Term);
+#'   \item \code{"MinValueSp"} (a minimum value set for Specificity);
+#'   \item \code{"MinValueSe"} (a minimum value set for Sensitivity);
+#'   \item \code{"ValueSe"} (a value set for Sensitivity);
+#'   \item \code{"MinValueSpSe"} (a minimum value set for Specificity and Sensitivity);
+#'   \item \code{"MaxSp"} (maximises Specificity);
+#'   \item \code{"MaxSe"} (maximises Sensitivity);
+#'   \item \code{"MaxSpSe"} (maximises Sensitivity and Specificity simultaneously);
+#'   \item \code{"MaxProdSpSe"} (maximises the product of Sensitivity and Specificity);
+#'   \item \code{"ROC01"} (minimises distance between ROC plot and point (0,1));
+#'   \item \code{"SpEqualSe"} (Sensitivity = Specificity);
+#'   \item \code{"Youden"} (Youden Index);
+#'   \item \code{"MaxEfficiency"} (maximises Efficiency/Accuracy);
+#'   \item \code{"Minimax"} (minimises the most frequent error);
+#'   \item \code{"MaxDOR"} (maximises Diagnostic Odds Ratio);
+#'   \item \code{"MaxKappa"} (maximises Kappa Index);
+#'   \item \code{"MinValueNPV"} (a minimum value set for Negative Predictive Value);
+#'   \item \code{"MinValuePPV"} (a minimum value set for Positive Predictive Value);
+#'   \item \code{"ValueNPV"} (a value set for Negative Predictive Value);
+#'   \item \code{"ValuePPV"} (a value set for Positive Predictive Value);
+#'   \item \code{"MinValueNPVPPV"} (a minimum value set for Predictive Values);
+#'   \item \code{"PROC01"} (minimises distance between PROC plot and point (0,1));
+#'   \item \code{"NPVEqualPPV"} (Negative Predictive Value = Positive Predictive Value);
+#'   \item \code{"MaxNPVPPV"} (maximises Positive and Negative Predictive Values simultaneously);
+#'   \item \code{"MaxSumNPVPPV"} (maximises the sum of the Predictive Values);
+#'   \item \code{"MaxProdNPVPPV"} (maximises the product of Predictive Values);
+#'   \item \code{"ValueDLR.Negative"} (a value set for Negative Diagnostic Likelihood Ratio);
+#'   \item \code{"ValueDLR.Positive"} (a value set for Positive Diagnostic Likelihood Ratio);
+#'   \item \code{"MinPvalue"} (minimises p-value of the Chi-squared test);
+#'   \item \code{"ObservedPrev"} (closest value to observed prevalence);
+#'   \item \code{"MeanPrev"} (closest value to the mean of the test values);
+#'   \item \code{"PrevalenceMatching"} (predicted prevalence equals observed prevalence).
+#' }
+#' @param cutoffs_labels A character vector of user-supplied labels for the
+#'   cutoff points. Must be the same length as \code{cutoffs_at}. When NULL,
+#'   labels are generated automatically (score value or method name).
+#' @param cutoffs_accuracy A numeric value controlling the rounding precision of
+#'   automatically generated cutoff labels. Default: \code{0.01}.
+#' @param cutoffs_pt_size A numeric value specifying the size of the cutoff
+#'   point markers. Default: \code{5}.
+#' @param cutoffs_pt_shape A numeric value specifying the shape of the cutoff
+#'   point markers. Default: \code{4} (cross).
+#' @param cutoffs_pt_stroke A numeric value specifying the stroke width of the
+#'   cutoff point markers. Default: \code{1}.
+#' @param cutoffs_labal_fg A character string specifying the text colour of
+#'   the cutoff labels. Default: \code{"black"}.
+#' @param cutoffs_label_size A numeric value specifying the font size of the
+#'   cutoff labels. Default: \code{4}.
+#' @param cutoffs_label_bg A character string specifying the background colour
+#'   of the cutoff labels. Default: \code{"white"}.
+#' @param cutoffs_label_bg_r A numeric value specifying the background radius
+#'   of the cutoff labels (passed to \code{ggrepel::geom_text_repel()}).
+#'   Default: \code{0.1}.
+#' @param show_auc A character string specifying the display mode for AUC values:
+#' \itemize{
+#'   \item \code{"auto"} (default): Automatically determine the position. When
+#'   there is a single group or \code{facet_by} is provided, AUC is placed on
+#'   the plot; otherwise AUC is placed in the legend.
+#'   \item \code{"none"}: Do not display AUC values.
+#'   \item \code{"legend"}: Display AUC values in the legend labels.
+#'   \item \code{"plot"}: Display AUC values as text on the plot.
+#' }
+#' @param auc_accuracy A numeric value controlling the rounding precision of
+#'   AUC values in labels. Default: \code{0.01}.
+#' @param auc_size A numeric value specifying the font size of AUC labels when
+#'   displayed on the plot. Default: \code{4}.
+#' @param increasing A logical value. If TRUE (default), higher scores indicate
+#'   the positive class; if FALSE, lower scores indicate the positive class.
+#'   Controls the direction of comparison in the ROC analysis.
+#' @return A \code{ggplot} object with \code{height} and \code{width}
+#'   attributes (in inches) attached, plus \code{attr(p, "auc")} and
+#'   \code{attr(p, "cutoffs")} data frames.
 #' @keywords internal
 #' @importFrom dplyr mutate summarise pull
 #' @importFrom tidyr unite pivot_longer separate
@@ -652,13 +814,101 @@ ROCCurveAtomic <- function(
 
 #' ROC curve
 #'
-#' A wrapped function around `plotROC` package to create ROC curves.
+#' Draws one or more Receiver Operating Characteristic (ROC) curves for
+#' evaluating binary classifier performance. The function wraps
+#' \code{\link{ROCCurveAtomic}} with \code{split_by} handling, providing the
+#' ability to generate separate ROC curves per split level and combine them
+#' via \code{\link[patchwork]{wrap_plots}}.
+#'
+#' Key features:
+#' \itemize{
+#'   \item \strong{Multiple classifiers} — compare several prediction scores
+#'   side-by-side by providing multiple \code{score_by} columns.
+#'   \item \strong{AUC display} — area under the curve values shown on the
+#'   plot or in the legend, with configurable precision.
+#'   \item \strong{Optimal cutoffs} — identify and annotate optimal cutoff
+#'   points using any of the 30+ methods from the \code{OptimalCutpoints}
+#'   package, or supply custom numeric thresholds.
+#'   \item \strong{Confidence intervals} — add ROC confidence bands via
+#'   \code{plotROC::geom_rocci()}.
+#'   \item \strong{Axis orientation} — reverse x-axis to show specificity or
+#'   display axes as percentages.
+#'   \item \strong{Splitting and faceting} — split data into sub-plots via
+#'   \code{split_by} or facet within a single plot via \code{facet_by}.
+#' }
+#'
+#' @section split_by Workflow:
+#' When \code{split_by} is provided, the following pipeline executes:
+#' \enumerate{
+#'   \item \strong{Validation} — \code{\link{validate_common_args}()} checks
+#'   the random seed and \code{facet_by} configuration.
+#'   \item \strong{Column resolution} — \code{\link{check_columns}()} resolves
+#'   \code{split_by} (force_factor, allow_multi, concat_multi).
+#'   \item \strong{Data splitting} — Unused factor levels in \code{split_by}
+#'   are dropped via \code{droplevels()}, and the data is split by
+#'   \code{split_by} levels (preserving factor level order). If
+#'   \code{split_by} is NULL, the data is wrapped in a single-element list
+#'   named \code{"..."}.
+#'   \item \strong{Per-split resolution} — \code{\link{check_palette}()},
+#'   \code{\link{check_palcolor}()}, and \code{\link{check_legend}()} resolve
+#'   per-split palette, colour, legend.position, and legend.direction
+#'   overrides.
+#'   \item \strong{Per-split dispatch} — For each split:
+#'   \itemize{
+#'     \item Title resolution: if \code{title} is a function, it receives
+#'     the split level name; otherwise \code{title \%||\% split_level} is
+#'     used.
+#'     \item The \code{split_by} column is removed from the per-split data
+#'     frame to avoid conflicts with the ROC analysis.
+#'     \item \code{\link{ROCCurveAtomic}()} is called with the per-split
+#'     palette, palcolor, legend.position, and legend.direction.
+#'   }
+#'   \item \strong{Combination} — \code{\link{combine_plots}()} assembles the
+#'   list of plots via \code{patchwork::wrap_plots}, honouring
+#'   \code{nrow}/\code{ncol}/\code{byrow}/\code{design}.
+#'   \item \strong{AUC / cutoff collection} — When \code{combine = TRUE}, the
+#'   per-split \code{auc} and \code{cutoffs} attributes are collected into
+#'   combined data frames with a \code{split_by} column identifying the source
+#'   split, and stored as \code{attr(p, "auc")} and
+#'   \code{attr(p, "cutoffs")}.
+#' }
 #'
 #' @inheritParams common_args
 #' @inheritParams ROCCurveAtomic
-#' @return A `patch_work::wrap_plots` object or a list of them if `combine` is `FALSE`.
-#' You can retrieve the AUC values using `attr(p, "auc")` if `combine` is `TRUE`.
-#' If `combine` is `FALSE`, The AUC value of each plot can be retrieved using `attr(p[[i]], "auc")`.
+#' @param split_by The column(s) to split the data by and produce separate
+#'   ROC curve plots for each level. The \code{split_by} column is removed from
+#'   the per-split data to avoid interfering with ROC analysis. Multiple columns
+#'   are concatenated with \code{split_by_sep}.
+#' @param split_by_sep A character string used to separate concatenated
+#'   \code{split_by} columns. Default: \code{"_"}.
+#' @param seed A numeric seed for reproducibility. Default: \code{8525}.
+#'   Passed to \code{\link{validate_common_args}()}.
+#' @param combine A logical value. When TRUE (default), the list of per-split
+#'   plots is combined into a single \code{patchwork} object with
+#'   \code{attr(p, "auc")} and \code{attr(p, "cutoffs")} containing the
+#'   aggregated results. When FALSE, returns a named list of individual
+#'   \code{ggplot} objects.
+#' @param nrow,ncol Integer values specifying the number of rows and columns
+#'   in the combined plot layout. Passed to \code{\link[patchwork]{wrap_plots}}.
+#' @param byrow A logical value. If TRUE (default), the combined layout is
+#'   filled row-wise. Passed to \code{\link[patchwork]{wrap_plots}}.
+#' @param axes A character string specifying how axes are treated across the
+#'   combined layout. Passed to \code{\link{combine_plots}()}. Options:
+#'   \code{"keep"}, \code{"collect"}, \code{"collect_x"}, \code{"collect_y"}.
+#' @param axis_titles A character string specifying how axis titles are treated
+#'   across the combined layout. Defaults to \code{axes}. Passed to
+#'   \code{\link{combine_plots}()}.
+#' @param guides A character string specifying how legends are collected across
+#'   panels in the combined layout. Passed to \code{\link{combine_plots}()}.
+#' @param design A custom layout specification for the combined plot. Passed
+#'   to \code{\link{combine_plots}()}. When specified, \code{nrow},
+#'   \code{ncol}, and \code{byrow} are ignored.
+#' @return A \code{patchwork} object (when \code{combine = TRUE}) with
+#'   \code{attr(p, "auc")} and \code{attr(p, "cutoffs")} data frames
+#'   containing aggregated AUC values and cutoff information across all
+#'   splits. When \code{combine = FALSE}, returns a named list of
+#'   \code{ggplot} objects, each with their own \code{attr(p[[i]], "auc")}
+#'   and \code{attr(p[[i]], "cutoffs")}.
 #' @export
 #' @examples
 #' set.seed(8525)
@@ -671,24 +921,37 @@ ROCCurveAtomic <- function(
 #' data <- data.frame(D = D.ex, D.str = c("Healthy", "Ill")[D.ex + 1],
 #'   gender = gender, M1 = M1, M2 = M2)
 #'
+#' # --- Basic ROC curve ---
 #' ROCCurve(data, truth_by = "D", score_by = "M1")
-#' # will warn about the positive label
+#'
+#' # --- Will warn about the positive label ---
 #' ROCCurve(data, truth_by = "D.str", score_by = "M1")
+#'
+#' # --- Decreasing direction ---
 #' ROCCurve(data, truth_by = "D", score_by = "M1", increasing = FALSE)
-#' # Multiple ROC curves
+#'
+#' # --- Multiple ROC curves (multiple classifiers) ---
 #' ROCCurve(data, truth_by = "D", score_by = c("M1", "M2"), group_name = "Method")
+#'
+#' # --- Grouping by a column ---
 #' ROCCurve(data, truth_by = "D", score_by = "M1", group_by = "gender", show_auc = "plot")
-#' # Reverse the x-axis and display the axes as percentages
+#'
+#' # --- Reverse x-axis and display as percentages ---
 #' ROCCurve(data, truth_by = "D", score_by = "M1", x_axis_reverse = TRUE, percent = TRUE)
-#' # Pass additional arguments to geom_roc and make the curve black
+#'
+#' # --- Custom n_cuts and single colour ---
 #' ROCCurve(data, truth_by = "D", score_by = "M1", n_cuts = 10, palcolor = "black")
-#' # Add confidence intervals
+#'
+#' # --- Add confidence intervals ---
 #' ROCCurve(data, truth_by = "D", score_by = "M1", ci = list(sig.level = .01))
-#' # Facet by a column
+#'
+#' # --- Facet by a column ---
 #' ROCCurve(data, truth_by = "D", score_by = "M1", facet_by = "gender")
-#' # Show cutoffs
+#'
+#' # --- Show cutoffs ---
 #' ROCCurve(data, truth_by = "D", score_by = "M1", cutoffs_at = c(0, "ROC01", "SpEqualSe"))
-#' # Split by a column
+#'
+#' # --- Split by a column ---
 #' p <- ROCCurve(data, truth_by = "D", score_by = "M1", split_by = "gender",
 #'    cutoffs_at = c(0.2, "MaxSpSe"))
 #' p

@@ -2,7 +2,7 @@
 % Please edit documentation in R/roccurve.R
 \name{get_cutoffs_data}
 \alias{get_cutoffs_data}
-\title{Prepare the cutoff data for the ROC curve}
+\title{Prepare cutoff data for ROC curve annotation}
 \usage{
 get_cutoffs_data(
   data,
@@ -19,27 +19,47 @@ get_cutoffs_data(
 \arguments{
 \item{data}{A data frame with the truth and score columns.}
 
-\item{truth_by}{A character string of the column name that contains the true class labels.}
+\item{truth_by}{A character string of the column name that contains the true
+class labels (binary, 0/1 or TRUE/FALSE).}
 
 \item{score_by}{A character string of the column name that contains the predicted scores.}
 
-\item{cat_by}{A character string of the column name to categorize/group the data.
-If specified, the cutoffs will be calculated for each category.}
+\item{cat_by}{A character string of the column name to categorise/group the data.
+When specified, cutoffs are calculated separately for each category level,
+enabling per-group or per-facet cutoff annotation.}
 
-\item{cutoffs_at}{Vector of user supplied cutoffs to plot as points. If non-NULL,
-it will override the values of n_cuts and plot the observed cutoffs closest to the user-supplied ones.}
+\item{cutoffs_at}{A vector of user-supplied cutoff values to plot as points.
+When non-NULL, overrides \code{n_cuts}. Supports both raw numeric values
+and method names from \code{\link[OptimalCutpoints]{optimal.cutpoints}}.}
 
-\item{cutoffs_labels}{vector of user-supplied labels for the cutoffs. Must be a character vector of the
-same length as cutoffs_at.}
+\item{cutoffs_labels}{A character vector of user-supplied labels for the
+cutoffs. Must be the same length as \code{cutoffs_at}. When NULL, labels
+are generated automatically.}
 
-\item{n_cuts}{An integer to specify the number of cuts on the ROC curve.}
+\item{cutoffs_accuracy}{A numeric value specifying the rounding precision
+for automatically generated cutoff labels. Default: \code{0.001}.}
 
-\item{increasing}{TRUE if the score is increasing with the truth (1), FALSE otherwise.}
+\item{n_cuts}{An integer specifying the number of evenly-spaced quantile-based
+cutoff points. Ignored when \code{cutoffs_at} is non-NULL. Default: \code{0}
+(no quantile cutoffs).}
+
+\item{increasing}{A logical value. If TRUE (default), higher scores indicate
+the positive class; if FALSE, lower scores indicate the positive class.}
 }
 \value{
-A data frame with the cutoffs and the corresponding x and y values.
+A data frame with columns \code{cutoff}, \code{x} (1 - specificity),
+\code{y} (sensitivity), \code{label}, and \code{cat_by} (the category name).
 }
 \description{
-Prepare the cutoff data for the ROC curve
+Internal helper that computes the sensitivity and specificity values for a
+set of user-supplied cutoff points (or computed via OptimalCutpoints methods)
+across categories defined by group_by and/or facet_by columns. Used by
+\code{ROCCurveAtomic()} to annotate the ROC curve with cutoff markers and labels.
+}
+\details{
+Cutoffs can be specified either as numeric values (raw score thresholds) or as
+method names from the \code{OptimalCutpoints} package for automatic optimal
+cutoff identification. When \code{n_cuts > 0}, \code{n_cuts} evenly-spaced
+quantile values of the score distribution are used as cutoffs.
 }
 \keyword{internal}
