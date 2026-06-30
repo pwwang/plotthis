@@ -36,6 +36,8 @@
 <url><loc>https://pwwang.github.io/plotthis/reference/LinePlotAtomic.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/LinePlotGrouped.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/LinePlotSingle.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/LinkedHeatmap.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/LinkedHeatmapAtomic.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/ManhattanPlot.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/ManhattanPlotAtomic.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/Network.html</loc></url>
@@ -94,6 +96,7 @@
 <url><loc>https://pwwang.github.io/plotthis/reference/dimplot.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/do_call.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/dot-anno_ggcat.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/dot-apply_orderby.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/dot-check_annotation.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/dot-compute_velocity_on_grid.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/dot-gggrob.html</loc></url>
@@ -128,6 +131,7 @@
 <url><loc>https://pwwang.github.io/plotthis/reference/prepare_venn_data.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/process_heatmap_data.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/process_keep_na_empty.html</loc></url>
+<url><loc>https://pwwang.github.io/plotthis/reference/process_linkedheatmap_data.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/process_theme.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/radarplot.html</loc></url>
 <url><loc>https://pwwang.github.io/plotthis/reference/rgba_to_rgb.html</loc></url>

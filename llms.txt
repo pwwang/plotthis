@@ -196,6 +196,8 @@ Functions for plotting
   : Jitter Plot
 - [`LinePlot()`](https://pwwang.github.io/plotthis/reference/LinePlot.md)
   : Line Plot
+- [`LinkedHeatmap()`](https://pwwang.github.io/plotthis/reference/LinkedHeatmap.md)
+  : Linked Heatmap
 - [`ManhattanPlot()`](https://pwwang.github.io/plotthis/reference/ManhattanPlot.md)
   : ManhattanPlot
 - [`Network()`](https://pwwang.github.io/plotthis/reference/Network.md)

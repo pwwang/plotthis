@@ -64,22 +64,25 @@
 <div class="section level2">
 <h2 id="architecture-three-layer-function-pattern">Architecture: three-layer function pattern<a class="anchor" aria-label="anchor" href="#architecture-three-layer-function-pattern"></a></h2>
 <p>Nearly every plot type follows this layering:</p>
-<ol style="list-style-type: decimal"><li><p><strong><code>*Atomic()</code></strong> (internal) — Core implementation. Takes a single data frame and returns a <code>ggplot</code> object. Handles faceting via <code><a href="reference/facet_plot.html">facet_plot()</a></code>. Does NOT handle <code>split_by</code> or <code>combine</code>.</p></li>
-<li><p><strong><code>*Plot()</code></strong> (exported) — The public API. Handles <code>split_by</code> (splitting data by a column, processing <code>keep_na</code>/<code>keep_empty</code>, dispatching per split to <code>*Atomic()</code>, then combining results via <code><a href="reference/combine_plots.html">combine_plots()</a></code>). Handles per-split <code>palette</code>, <code>palcolor</code>, <code>legend.position</code>, <code>legend.direction</code>.</p></li>
-<li><p><strong>Optional intermediate functions</strong> — e.g. <code>BarPlotSingle</code>, <code>BarPlotGrouped</code> — called by <code>*Atomic()</code> when there are significantly different rendering paths (with vs. without <code>group_by</code>).</p></li>
+<ol style="list-style-type: decimal"><li>
+<strong><code>*Atomic()</code></strong> (internal) — Core implementation. Takes a single data frame and returns a <code>ggplot</code> object. Handles faceting via <code><a href="reference/facet_plot.html">facet_plot()</a></code>. Does NOT handle <code>split_by</code> or <code>combine</code>.</li>
+<li>
+<strong><code>*Plot()</code></strong> (exported) — The public API. Handles <code>split_by</code> (splitting data by a column, processing <code>keep_na</code>/<code>keep_empty</code>, dispatching per split to <code>*Atomic()</code>, then combining results via <code><a href="reference/combine_plots.html">combine_plots()</a></code>). Handles per-split <code>palette</code>, <code>palcolor</code>, <code>legend.position</code>, <code>legend.direction</code>.</li>
+<li>
+<strong>Optional intermediate functions</strong> — e.g. <code>BarPlotSingle</code>, <code>BarPlotGrouped</code> — called by <code>*Atomic()</code> when there are significantly different rendering paths (with vs. without <code>group_by</code>).</li>
 </ol><p>Each plot file also contains separate <strong><code>*Atomic()</code></strong> and exported <strong><code>*Plot()</code></strong> for related variants (e.g., <code>barplot.R</code> contains <code>BarPlotAtomic</code>/<code>BarPlot</code> plus <code>SplitBarPlotAtomic</code>/<code>SplitBarPlot</code>/<code>WaterfallPlot</code>).</p>
 </div>
 <div class="section level2">
 <h2 id="key-shared-utilities">Key shared utilities<a class="anchor" aria-label="anchor" href="#key-shared-utilities"></a></h2>
 <p>Located in <code>R/utils.R</code> (931 lines). Functions used across all plot files:</p>
-<table class="table"><colgroup><col width="50%"><col width="50%"></colgroup><thead><tr class="header"><th>Function</th>
+<table class="table"><colgroup><col width="30%"><col width="69%"></colgroup><thead><tr class="header"><th>Function</th>
 <th>Purpose</th>
 </tr></thead><tbody><tr class="odd"><td><code><a href="reference/check_columns.html">check_columns()</a></code></td>
 <td>Validates columns exist in data; optionally forces factor, concatenates multi-column input</td>
 </tr><tr class="even"><td>
 <code><a href="reference/check_keep_na.html">check_keep_na()</a></code> / <code><a href="reference/check_keep_empty.html">check_keep_empty()</a></code>
 </td>
-<td>Normalizes <code>keep_na</code>/<code>keep_empty</code> arguments (can be logical, character, or named list per column)</td>
+<td>Normalizes<code>keep_na</code>/<code>keep_empty</code> arguments (can be logical, character, or named list per column)</td>
 </tr><tr class="odd"><td><code><a href="reference/process_keep_na_empty.html">process_keep_na_empty()</a></code></td>
 <td>Applies NA/empty handling to data before plotting</td>
 </tr><tr class="even"><td><code><a href="reference/norm_expansion.html">norm_expansion()</a></code></td>
@@ -91,9 +94,9 @@
 </td>
 <td>Validates per-split palette/color specifications</td>
 </tr><tr class="odd"><td><code><a href="reference/calculate_plot_dimensions.html">calculate_plot_dimensions()</a></code></td>
-<td>Computes <code>height</code>/<code>width</code> attributes stored on ggplot objects for consistent rendering</td>
+<td>Computes<code>height</code>/<code>width</code> attributes stored on ggplot objects for consistent rendering</td>
 </tr><tr class="even"><td><code><a href="reference/combine_plots.html">combine_plots()</a></code></td>
-<td>Wraps <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">patchwork::wrap_plots</a></code> with axis/guide/design options</td>
+<td>Wraps<code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">patchwork::wrap_plots</a></code> with axis/guide/design options</td>
 </tr><tr class="odd"><td><code><a href="reference/facet_plot.html">facet_plot()</a></code></td>
 <td>Unified faceting wrapper handling facet_wrap/facet_grid with keep_empty levels</td>
 </tr><tr class="even"><td><code><a href="reference/process_theme.html">process_theme()</a></code></td>
@@ -127,8 +130,13 @@
 </ul></div>
 <div class="section level2">
 <h2 id="testing-conventions">Testing conventions<a class="anchor" aria-label="anchor" href="#testing-conventions"></a></h2>
-<p>Uses <code>testthat</code>. Each test file in <code>tests/testthat/</code> creates a small synthetic data frame (seed 8525) and tests: - Returns a <code>ggplot</code> object (or <code>patchwork</code> when <code>combine = TRUE</code>, or <code>list</code> when <code>combine = FALSE</code>) - Plot has <code>height</code>/<code>width</code> attributes (numeric) - Parameter combinations produce valid outputs - Wrapper aliases (e.g., <code>WaterfallPlot</code>, <code>LollipopPlot</code>) return correct class</p>
-</div>
+<p>Uses <code>testthat</code>. Each test file in <code>tests/testthat/</code> creates a small synthetic data frame (seed 8525) and tests:</p>
+<ul><li>Returns a <code>ggplot</code> object (or <code>patchwork</code> when <code>combine = TRUE</code>, or <code>list</code> when <code>combine = FALSE</code>)</li>
+<li>Plot has <code>height</code>/<code>width</code> attributes (numeric)</li>
+<li>Parameter combinations produce valid outputs</li>
+<li>Wrapper aliases (e.g., <code>WaterfallPlot</code>, <code>LollipopPlot</code>) return correct class</li>
+<li>For smoke test, use <code><a href="https://devtools.r-lib.org/reference/load_all.html" class="external-link">devtools::load_all()</a></code> to load the changes</li>
+</ul></div>
 <div class="section level2">
 <h2 id="theming-and-palettes">Theming and palettes<a class="anchor" aria-label="anchor" href="#theming-and-palettes"></a></h2>
 <ul><li>
