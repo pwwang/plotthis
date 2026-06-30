@@ -28,6 +28,8 @@
   combine_plots call
 - fix(combine_plots): refine data handling in combine_plots function for
   layer-specific data integrity
+- fix: include split_by in keep_na and keep_empty checks for
+  FeatureDimPlot function
 - style: use air to format all source files
 - chore: add .codegraph to .gitignore to exclude codegraph files from
   version control
