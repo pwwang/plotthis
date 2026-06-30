@@ -895,7 +895,7 @@ process_linkedheatmap_data <- function(
             data,
             left_rows_data,
             by = left_rows_by,
-            cr_split_by = left_rows_split_by,
+            cr_split_by = rows_split_by,
             split_by = split_by,
             which = "row"
         )
@@ -905,7 +905,7 @@ process_linkedheatmap_data <- function(
             data,
             right_rows_data,
             by = right_rows_by,
-            cr_split_by = right_rows_split_by,
+            cr_split_by = rows_split_by,
             split_by = split_by,
             which = "row"
         )

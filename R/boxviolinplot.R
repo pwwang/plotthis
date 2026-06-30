@@ -119,7 +119,7 @@
 #' @importFrom stats median quantile sd qt
 #' @importFrom rlang sym syms parse_expr
 #' @importFrom dplyr mutate ungroup first
-#' @importFrom ggplot2 geom_boxplot geom_violin geom_jitter geom_point geom_line geom_hline geom_vline layer_data geom_col geom_errorbar
+#' @importFrom ggplot2 geom_boxplot geom_violin geom_point geom_line geom_hline geom_vline layer_data geom_col geom_errorbar
 #' @importFrom ggplot2 scale_fill_manual scale_color_manual scale_shape_manual scale_linetype_manual stat_summary
 #' @importFrom ggplot2 labs theme element_line element_text position_dodge position_jitter coord_flip layer_scales
 #' @importFrom ggplot2 position_jitterdodge scale_shape_identity scale_size_manual scale_alpha_manual scale_y_continuous

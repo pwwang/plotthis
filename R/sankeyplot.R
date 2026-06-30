@@ -48,7 +48,7 @@
 #' @keywords internal
 #' @importFrom utils combn
 #' @importFrom rlang sym syms %||% dots_n
-#' @importFrom dplyr %>% group_by summarise n ungroup cur_group_id mutate add_count
+#' @importFrom dplyr %>% group_by summarise n ungroup mutate add_count
 #' @importFrom tidyr pivot_wider pivot_longer
 #' @importFrom ggnewscale new_scale_fill
 #' @importFrom ggplot2 geom_col scale_fill_manual geom_label after_stat scale_x_discrete scale_y_continuous labs coord_flip

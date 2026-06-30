@@ -63,8 +63,6 @@ LinkedHeatmapAtomic(
   column_title = NULL,
   row_title = NULL,
   na_col = "grey85",
-  left_row_names_side = "left",
-  right_row_names_side = "right",
   column_names_side = "bottom",
   column_annotation = NULL,
   column_annotation_side = "top",
@@ -74,8 +72,6 @@ LinkedHeatmapAtomic(
   column_annotation_params = list(),
   column_annotation_agg = NULL,
   row_annotation = NULL,
-  left_row_annotation_side = "left",
-  right_row_annotation_side = "right",
   row_annotation_palette = "Paired",
   row_annotation_palcolor = NULL,
   row_annotation_type = "auto",
@@ -253,10 +249,6 @@ can be used to generate a dynamic title from the default.}
 
 \item{na_col}{Colour used for \code{NA} cells.  Default \code{"grey85"}.}
 
-\item{left_row_names_side, right_row_names_side}{Side for row names in the
-left / right heatmap.  Default \code{"left"} and \code{"right"}
-respectively (names face outward).}
-
 \item{column_names_side}{Side for column names.  Default
 \code{"bottom"}.}
 
@@ -283,11 +275,7 @@ passed to each column annotation function.  See
 \item{column_annotation_agg}{A function or named list of functions to
 aggregate values for each column annotation.}
 
-\item{row_annotation, row_annotation_side, row_annotation_palette, row_annotation_palcolor, row_annotation_type, row_annotation_params, row_annotation_agg}{Row annotation equivalents of the \code{column_annotation_*} parameters.}
-
-\item{left_row_annotation_side, right_row_annotation_side}{Side for row
-annotations in the left / right heatmap.  Default \code{"left"} and
-\code{"right"} respectively.}
+\item{row_annotation, row_annotation_palette, row_annotation_palcolor, row_annotation_type, row_annotation_params, row_annotation_agg}{Row annotation equivalents of the \code{column_annotation_*} parameters.}
 
 \item{links_span}{Width (in inches) of the gap column between the two
 heatmaps where link curves are drawn.  Default 0.5.}

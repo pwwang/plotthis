@@ -11,7 +11,7 @@
 #' @keywords internal
 #' @importFrom rlang sym
 #' @importFrom dplyr lead if_else mutate %>% group_by summarise n
-#' @importFrom tidyr complete replace_na
+#' @importFrom tidyr complete
 #' @importFrom ggplot2 coord_polar geom_col scale_fill_manual labs element_blank guide_legend
 #' @importFrom ggrepel geom_label_repel
 PieChartAtomic <- function(

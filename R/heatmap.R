@@ -271,7 +271,7 @@
 #'  \code{row_annotation_params$.row} / \code{column_annotation_params$.col}
 #'  to \code{FALSE} and use \code{$show_legend} within the param entry.
 #' @importFrom circlize colorRamp2
-#' @importFrom dplyr group_by across ungroup %>% all_of summarise first slice_sample everything group_map
+#' @importFrom dplyr group_by across ungroup %>% all_of summarise first everything group_map
 #' @importFrom tidyr pivot_longer pivot_wider unite expand_grid
 #' @importFrom ggplot2 ggplotGrob theme_void
 #' @importFrom grid grid.rect grid.text grid.lines grid.points viewport gpar unit grid.draw is.unit

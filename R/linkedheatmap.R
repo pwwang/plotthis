@@ -173,9 +173,6 @@
 #' @param column_title,row_title Character title displayed above the columns
 #'  / beside the rows of each heatmap.
 #' @param na_col Colour used for \code{NA} cells.  Default \code{"grey85"}.
-#' @param left_row_names_side,right_row_names_side Side for row names in the
-#'  left / right heatmap.  Default \code{"left"} and \code{"right"}
-#'  respectively (names face outward).
 #' @param column_names_side Side for column names.  Default
 #'  \code{"bottom"}.
 #'
@@ -197,11 +194,8 @@
 #' @param column_annotation_agg A function or named list of functions to
 #'  aggregate values for each column annotation.
 #'
-#' @param row_annotation,row_annotation_side,row_annotation_palette,row_annotation_palcolor,row_annotation_type,row_annotation_params,row_annotation_agg
+#' @param row_annotation,row_annotation_palette,row_annotation_palcolor,row_annotation_type,row_annotation_params,row_annotation_agg
 #'  Row annotation equivalents of the \code{column_annotation_*} parameters.
-#' @param left_row_annotation_side,right_row_annotation_side Side for row
-#'  annotations in the left / right heatmap.  Default \code{"left"} and
-#'  \code{"right"} respectively.
 #'
 #' @param links_span Width (in inches) of the gap column between the two
 #'  heatmaps where link curves are drawn.  Default 0.5.
@@ -341,8 +335,6 @@ LinkedHeatmapAtomic <- function(
     column_title = NULL,
     row_title = NULL,
     na_col = "grey85",
-    left_row_names_side = "left",
-    right_row_names_side = "right",
     column_names_side = "bottom",
     column_annotation = NULL,
     column_annotation_side = "top",
@@ -352,8 +344,6 @@ LinkedHeatmapAtomic <- function(
     column_annotation_params = list(),
     column_annotation_agg = NULL,
     row_annotation = NULL,
-    left_row_annotation_side = "left",
-    right_row_annotation_side = "right",
     row_annotation_palette = "Paired",
     row_annotation_palcolor = NULL,
     row_annotation_type = "auto",
@@ -394,10 +384,20 @@ LinkedHeatmapAtomic <- function(
     rest_args <- list(...)
     # The arguments in rest_args that don't begin with "right_" prefix
     left_args <- rest_args[!grepl("^right_", names(rest_args))]
-    # Replace all left_ prefix
+    # Replace all left_ prefix and then remove the duplicate arguments that have
+    # been passed to left_args
+    # The duplicated ones to remove are the ones without `left_` prefix
+    # For example, `left_row_names_side` and `row_names_side`, the one
+    # to be removed is `row_names_side`
+    left_names_with_prefix <- names(left_args)[grepl("^left_", names(left_args))]
+    left_names_without_prefix <- gsub("^left_", "", left_names_with_prefix)
+    left_args <- left_args[!names(left_args) %in% left_names_without_prefix]
     names(left_args) <- gsub("^left_", "", names(left_args))
 
     right_args <- rest_args[!grepl("^left_", names(rest_args))]
+    right_names_with_prefix <- names(right_args)[grepl("^right_", names(right_args))]
+    right_names_without_prefix <- gsub("^right_", "", right_names_with_prefix)
+    right_args <- right_args[!names(right_args) %in% right_names_without_prefix]
     names(right_args) <- gsub("^right_", "", names(right_args))
 
     # ── Resolve left/right parameters ──
@@ -453,7 +453,6 @@ LinkedHeatmapAtomic <- function(
     left_args$column_title <- left_args$column_title %||% column_title
     left_args$row_title <- left_args$row_title %||% row_title
     left_args$na_col <- left_args$na_col %||% na_col
-    left_args$row_names_side <- left_row_names_side
     left_args$column_names_side <- left_args$column_names_side %||%
         column_names_side
     left_args$column_annotation <- left_args[["column_annotation"]] %||%
@@ -472,8 +471,6 @@ LinkedHeatmapAtomic <- function(
         column_annotation_agg
     left_args$row_annotation <- left_args[["row_annotation"]] %||%
         row_annotation
-    left_args$row_annotation_side <- left_args$row_annotation_side %||%
-        row_annotation_side
     left_args$row_annotation_palette <- left_args$row_annotation_palette %||%
         row_annotation_palette
     left_args$row_annotation_palcolor <- left_args$row_annotation_palcolor %||%
@@ -550,7 +547,6 @@ LinkedHeatmapAtomic <- function(
     right_args$column_title <- right_args$column_title %||% column_title
     right_args$row_title <- right_args$row_title %||% row_title
     right_args$na_col <- right_args$na_col %||% na_col
-    right_args$row_names_side <- right_row_names_side
     right_args$column_names_side <- right_args$column_names_side %||%
         column_names_side
     right_args$column_annotation <- right_args[["column_annotation"]] %||%
@@ -569,8 +565,6 @@ LinkedHeatmapAtomic <- function(
         column_annotation_agg
     right_args$row_annotation <- right_args[["row_annotation"]] %||%
         row_annotation
-    right_args$row_annotation_side <- right_args$row_annotation_side %||%
-        row_annotation_side
     right_args$row_annotation_palette <- right_args$row_annotation_palette %||%
         row_annotation_palette
     right_args$row_annotation_palcolor <- right_args$row_annotation_palcolor %||%
@@ -709,10 +703,12 @@ LinkedHeatmapAtomic <- function(
         )
     }
 
-    left_ch <- .ch_to_in(ComplexHeatmap:::component_height(left_ht))
-    right_ch <- .ch_to_in(ComplexHeatmap:::component_height(right_ht))
-    left_cw <- .ch_to_in(ComplexHeatmap:::component_width(left_ht))
-    right_cw <- .ch_to_in(ComplexHeatmap:::component_width(right_ht))
+    component_height <- utils::getFromNamespace("component_height", "ComplexHeatmap")
+    component_width <- utils::getFromNamespace("component_width", "ComplexHeatmap")
+    left_ch <- .ch_to_in(component_height(left_ht))
+    right_ch <- .ch_to_in(component_height(right_ht))
+    left_cw <- .ch_to_in(component_width(left_ht))
+    right_cw <- .ch_to_in(component_width(right_ht))
 
     # Body dimensions (component [5] is the body)
     left_body_h <- left_ch[5]
@@ -1225,6 +1221,9 @@ LinkedHeatmapAtomic <- function(
 #' @param row_names_side Default side for row names.  Used as fallback for
 #'  \code{left_row_names_side} / \code{right_row_names_side}.  Default
 #'  \code{"right"}.
+#' @param row_annotation_side Default side for row annotations.  Used as
+#'  fallback for \code{left_row_annotation_side} /
+#'  \code{right_row_annotation_side}.  Default \code{"left"}.
 #' @param flip Logical; must be \code{FALSE} for linked heatmaps (flipping
 #'  is not supported).  Default \code{FALSE}.
 #' @param ... Additional arguments passed to \code{\link{LinkedHeatmapAtomic}}.

@@ -337,7 +337,11 @@ passed to each column annotation function.  See
 \item{column_annotation_agg}{A function or named list of functions to
 aggregate values for each column annotation.}
 
-\item{row_annotation, row_annotation_side, row_annotation_palette, row_annotation_palcolor, row_annotation_type, row_annotation_params, row_annotation_agg}{Row annotation equivalents of the \code{column_annotation_*} parameters.}
+\item{row_annotation, row_annotation_palette, row_annotation_palcolor, row_annotation_type, row_annotation_params, row_annotation_agg}{Row annotation equivalents of the \code{column_annotation_*} parameters.}
+
+\item{row_annotation_side}{Default side for row annotations.  Used as
+fallback for \code{left_row_annotation_side} /
+\code{right_row_annotation_side}.  Default \code{"left"}.}
 
 \item{links_width_by}{Optional column name in \code{data} whose values
 determine the stroke width of each link line (e.g. interaction

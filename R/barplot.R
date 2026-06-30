@@ -1400,7 +1400,7 @@ BarPlot <- function(
 #' @importFrom stringr str_wrap
 #' @importFrom forcats fct_relabel
 #' @importFrom dplyr .data
-#' @importFrom ggplot2 aes geom_vline geom_col geom_text scale_fill_manual labs scale_y_discrete position_nudge scale_alpha_continuous
+#' @importFrom ggplot2 aes geom_vline geom_col geom_text scale_fill_manual labs scale_y_discrete scale_alpha_continuous
 #' @importFrom ggplot2 scale_alpha_continuous guide_none guide_legend
 #' @importFrom scales rescale
 SplitBarPlotAtomic <- function(
