@@ -40,14 +40,25 @@ ClustreePlot(
 \arguments{
 \item{data}{A data frame.}
 
-\item{prefix}{A character string of the prefix of the columns to plot.
-The columns with the prefix will be used to plot the tree.}
+\item{prefix}{A character string specifying the common prefix of the
+resolution columns in \code{data}. All columns whose names start with
+this prefix are selected as resolution columns. The suffix after the
+prefix is parsed as a numeric resolution value. Supports \code{"_"}
+and \code{"."} as separators between the prefix and the resolution
+value (e.g. \code{"res_0.5"} or \code{"p.0.5"}).}
 
-\item{flip}{A logical value to flip the tree.}
+\item{flip}{A logical value. If \code{TRUE}, the tree is flipped so that
+resolutions are displayed on the x-axis (left to right) and cluster
+assignments are shown as row labels on the y-axis.
+Default: \code{FALSE}.}
 
-\item{split_by}{The column(s) to split data by and plot separately.}
+\item{split_by}{The column(s) to split data by and generate separate
+clustree plots for each level. Each split level produces an independent
+clustree plot via \code{\link{ClustreePlotAtomic}}.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
+\item{split_by_sep}{A character string used to concatenate multiple
+\code{split_by} column values when \code{split_by} specifies more than
+one column. Default: \code{"_"}.}
 
 \item{palette}{A character string specifying the palette to use.
 A named list or vector can be used to specify the palettes for different \code{split_by} values.}
@@ -58,9 +69,14 @@ If some values are missing, the values from the palette will be used (palcolor w
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
-\item{edge_palette}{A character string of the palette name to color the edges.}
+\item{edge_palette}{A character string specifying the palette name for
+the edge colour gradient. Edges are coloured by the number of
+transitioning cells between clusters at adjacent resolutions, using
+\code{ggraph::scale_edge_color_gradientn()}. Default: \code{"Spectral"}.}
 
-\item{edge_palcolor}{A character vector of colors to color the edges.}
+\item{edge_palcolor}{A character vector of custom colours for the edge
+colour gradient. When \code{NULL} (the default), colours are derived
+from \code{edge_palette}.}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
@@ -94,59 +110,107 @@ Default is "theme_this".}
 
 \item{theme_args}{A list of arguments to pass to the theme function.}
 
-\item{combine}{Whether to combine the plots into one when facet is FALSE. Default is TRUE.}
+\item{combine}{A logical value. If \code{TRUE} (the default), the list
+of per-split plots is combined into a single \code{patchwork} object.
+If \code{FALSE}, returns the raw list of \code{ggplot} objects.}
 
-\item{nrow}{A numeric value specifying the number of rows in the facet.}
+\item{nrow, ncol, byrow}{Integers controlling the layout of combined plots
+via \code{patchwork::wrap_plots()}. \code{byrow = TRUE} (default)
+fills the layout row-wise. Ignored when \code{design} is provided.}
 
-\item{ncol}{A numeric value specifying the number of columns in the facet.}
+\item{seed}{The random seed for reproducibility. Passed to
+\code{validate_common_args()}. Default: \code{8525}.}
 
-\item{byrow}{A logical value indicating whether to fill the plots by row.}
+\item{axes, axis_titles}{Strings controlling how axes and axis titles are
+handled across combined plots. Passed to \code{\link{combine_plots}()}.
+See \code{?patchwork::wrap_plots} for options (\code{"keep"},
+\code{"collect"}, \code{"collect_x"}, \code{"collect_y"}).}
 
-\item{seed}{The random seed to use. Default is 8525.}
+\item{guides}{A string controlling guide collection across combined
+plots. Passed to \code{\link{combine_plots}()}.}
 
-\item{axes}{A string specifying how axes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axes in individual plots.
-\item 'collect' will remove duplicated axes when placed in the same run of rows or columns of the layout.
-\item 'collect_x' and 'collect_y' will remove duplicated x-axes in the columns or duplicated y-axes in the rows respectively.
-}}
+\item{design}{A custom layout specification for combined plots. Passed
+to \code{\link{combine_plots}()}. When specified, \code{nrow},
+\code{ncol}, and \code{byrow} are ignored.}
 
-\item{axis_titles}{A string specifying how axis titltes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axis titles in individual plots.
-\item 'collect' will remove duplicated titles in one direction and merge titles in the opposite direction.
-\item 'collect_x' and 'collect_y' control this for x-axis titles and y-axis titles respectively.
-}}
-
-\item{guides}{A string specifying how guides should be treated in the layout. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'collect' will collect guides below to the given nesting level, removing duplicates.
-\item 'keep' will stop collection at this level and let guides be placed alongside their plot.
-\item 'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.
-}}
-
-\item{design}{Specification of the location of areas in the layout, passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE. When specified, \code{nrow}, \code{ncol}, and \code{byrow} are ignored.
-See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details.}
-
-\item{...}{Additional arguments.}
+\item{...}{Additional arguments passed to \code{clustree::clustree()}.
+Commonly used overrides include \code{node_size_range},
+\code{node_text_size}, \code{layout} (default: \code{"sugiyama"}),
+\code{show_axis}, and \code{node_text_colour}. Note that \code{x}
+(the data) and \code{prefix} are set internally and cannot be
+overridden here.}
 }
 \value{
-A ggplot object or wrap_plots object or a list of ggplot objects
+A \code{ggplot} object (single plot), a \code{patchwork} object
+(when \code{combine = TRUE} with \code{split_by}), or a \code{list} of
+\code{ggplot} objects (when \code{combine = FALSE}).
 }
 \description{
-A plot visualizing Clusterings at Different Resolutions
+Creates a clustree (clustering tree) plot visualising how cluster
+assignments change across increasing clustering resolutions. The plot
+helps identify stable clustering solutions and understand the hierarchical
+relationships among clusters at different resolution thresholds.
+
+The function expects a data frame with columns named by a common
+\code{prefix} followed by numeric resolution values (e.g.
+\code{"res_0.1"}, \code{"res_0.3"}, \code{"res_0.5"}). Each column
+contains cluster labels (factor or character) for every observation at
+that resolution.
+
+Internally, the function uses \code{clustree::clustree()} to compute a
+\code{ggraph}-based tree layout where nodes are clusters and edges
+represent cells transitioning between clusters at adjacent resolutions.
+Edge colour and width encode the number of transitioning cells.
+
+Key features:
+\itemize{
+\item \strong{Resolution-level node colouring} — each resolution
+receives a distinct colour from the selected \code{palette}.
+\item \strong{Edge gradient} — edges are coloured by transition count
+using a separate \code{edge_palette} colour gradient.
+\item \strong{Flip support} — \code{flip = TRUE} places resolutions
+on the x-axis for left-to-right reading.
+\item \strong{Split by groups} — \code{split_by} generates per-group
+clustree plots that are combined via \code{patchwork}.
+\item \strong{Automatic dimensions} — plot height and width are
+automatically computed based on the number of resolutions, clusters,
+and the legend configuration.
 }
+}
+\section{split_by Workflow (ClustreePlot)}{
+
+
+When \code{split_by} is provided, the following pipeline executes:
+\enumerate{
+\item \strong{Argument validation} — \code{validate_common_args()}
+checks the \code{seed} value and sets the random seed.
+\item \strong{Theme resolution} — \code{process_theme()} resolves the
+\code{theme} string or function to a theme function.
+\item \strong{Split column validation} — \code{check_columns()}
+resolves \code{split_by} with \code{force_factor = TRUE,
+  allow_multi = TRUE, concat_multi = TRUE}.
+\item \strong{Data splitting} — splits \code{data} by \code{split_by}
+levels (unused levels dropped), preserving factor level order.
+\item \strong{Per-split palette / colour / legend} —
+\code{check_palette()}, \code{check_palcolor()}, and
+\code{check_legend()} resolve per-split overrides for
+\code{palette}, \code{palcolor}, \code{legend.position}, and
+\code{legend.direction}.
+\item \strong{Per-split title} — when \code{title} is a function, it
+receives the default title (the split level name) and can return a
+custom string; otherwise \code{title \%||\% split_level} is used.
+\item \strong{Dispatch} — each split subset is passed to
+\code{\link{ClustreePlotAtomic}} with the per-split parameters.
+\item \strong{Combination} — \code{\link{combine_plots}()} assembles
+the list of plots via \code{patchwork::wrap_plots}, honouring
+\code{nrow}/\code{ncol}/\code{byrow}/\code{design}.
+}
+}
+
 \examples{
 \donttest{
 set.seed(8525)
-N = 100
+N <- 100
 data <- data.frame(
     p.0.4 = sample(LETTERS[1:5], N, replace = TRUE),
     p.0.5 = sample(LETTERS[1:6], N, replace = TRUE),
@@ -158,9 +222,16 @@ data <- data.frame(
     split = sample(1:2, N, replace = TRUE)
 )
 
+# --- Basic clustree plot ---
 ClustreePlot(data, prefix = "p")
+
+# --- Flipped layout (resolutions on x-axis) ---
 ClustreePlot(data, prefix = "p", flip = TRUE)
+
+# --- Split by group ---
 ClustreePlot(data, prefix = "p", split_by = "split")
+
+# --- Split by group with per-split palettes ---
 ClustreePlot(data, prefix = "p", split_by = "split",
              palette = c("1" = "Set1", "2" = "Paired"))
 }

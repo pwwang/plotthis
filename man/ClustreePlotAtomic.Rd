@@ -2,7 +2,7 @@
 % Please edit documentation in R/clustreeplot.R
 \name{ClustreePlotAtomic}
 \alias{ClustreePlotAtomic}
-\title{Atomic function for clustree plot}
+\title{Atomic clustree plot}
 \usage{
 ClustreePlotAtomic(
   data,
@@ -30,13 +30,21 @@ ClustreePlotAtomic(
 \arguments{
 \item{data}{A data frame.}
 
-\item{prefix}{A character string of the prefix of the columns to plot.
-The columns with the prefix will be used to plot the tree.}
+\item{prefix}{A character string specifying the common prefix of the
+resolution columns in \code{data}. All columns whose names start with
+this prefix are selected as resolution columns. The suffix after the
+prefix is parsed as a numeric resolution value. Supports \code{"_"}
+and \code{"."} as separators between the prefix and the resolution
+value (e.g. \code{"res_0.5"} or \code{"p.0.5"}).}
 
-\item{flip}{A logical value to flip the tree.}
+\item{flip}{A logical value. If \code{TRUE}, the tree is flipped so that
+resolutions are displayed on the x-axis (left to right) and cluster
+assignments are shown as row labels on the y-axis.
+Default: \code{FALSE}.}
 
-\item{alpha}{A numeric value of the transparency of the nodes.
-Only used when \code{node_alpha} is not provided in \code{...}.}
+\item{alpha}{A numeric value in \code{[0, 1]} specifying the transparency
+of the nodes in the clustree plot. Only used when \code{node_alpha} is
+not explicitly provided via \code{...}. Default: \code{0.85}.}
 
 \item{palette}{A character string specifying the palette to use.
 A named list or vector can be used to specify the palettes for different \code{split_by} values.}
@@ -47,9 +55,14 @@ If some values are missing, the values from the palette will be used (palcolor w
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
-\item{edge_palette}{A character string of the palette name to color the edges.}
+\item{edge_palette}{A character string specifying the palette name for
+the edge colour gradient. Edges are coloured by the number of
+transitioning cells between clusters at adjacent resolutions, using
+\code{ggraph::scale_edge_color_gradientn()}. Default: \code{"Spectral"}.}
 
-\item{edge_palcolor}{A character vector of colors to color the edges.}
+\item{edge_palcolor}{A character vector of custom colours for the edge
+colour gradient. When \code{NULL} (the default), colours are derived
+from \code{edge_palette}.}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
@@ -83,9 +96,125 @@ Default is "theme_this".}
 
 \item{theme_args}{A list of arguments to pass to the theme function.}
 
-\item{...}{Other arguments passed to \code{clustree::clustree}.}
+\item{...}{Additional arguments passed to \code{clustree::clustree()}.
+Commonly used overrides include \code{node_size_range},
+\code{node_text_size}, \code{layout} (default: \code{"sugiyama"}),
+\code{show_axis}, and \code{node_text_colour}. Note that \code{x}
+(the data) and \code{prefix} are set internally and cannot be
+overridden here.}
+}
+\value{
+A \code{ggplot} object with \code{height} and \code{width}
+attributes.
 }
 \description{
-Atomic function for clustree plot
+Core implementation for clustree (clustering tree) plots. This internal
+function renders a tree-based visualisation showing how cluster assignments
+change across increasing clustering resolutions. It is called by the
+exported \code{ClustreePlot()} function.
 }
+\details{
+The function expects a data frame containing columns named with a common
+\code{prefix} followed by numeric resolution values (e.g. \code{"res_0.1"},
+\code{"res_0.3"}, \code{"res_0.5"}). Each column represents cluster
+assignments at a given resolution, and the tree visualises how cells (rows)
+transition between clusters as resolution increases.
+
+The core layout is produced via \code{clustree::clustree()}, which computes
+a \code{ggraph} layout (default: \code{"sugiyama"}) linking clusters across
+adjacent resolutions. Nodes represent clusters and edges represent cell
+transitions; edge width and colour encode the number of transitioning cells.
+Cluster labels are overlaid on each node via \code{ggplot2::geom_text()}.
+
+Key features:
+\itemize{
+\item \strong{Resolution-level node colouring} — each resolution level
+receives a distinct colour from \code{palette} via
+\code{ggplot2::scale_color_manual()}.
+\item \strong{Edge gradient} — edges are coloured by transition count
+using \code{ggraph::scale_edge_color_gradientn()} with the
+\code{edge_palette} gradient.
+\item \strong{Flip support} — \code{flip = TRUE} places resolutions on
+the x-axis with cluster IDs as y-axis row labels for left-to-right
+reading.
+\item \strong{Automatic dimension calculation} — plot height and width
+are sized based on the number of resolutions, number of clusters, and
+legend configuration, with different formulae for flipped vs. non-flipped
+layouts.
+}
+}
+\section{Architecture}{
+
+
+\strong{ClustreePlotAtomic} executes the following steps:
+\enumerate{
+\item \strong{Column selection} — selects all columns whose names start
+with \code{prefix} via \code{dplyr::starts_with()}.
+\item \strong{NA filtering} — removes rows with any missing values via
+\code{stats::complete.cases()}.
+\item \strong{Expansion normalisation} — \code{\link{norm_expansion}()}
+parses the \code{expand} argument for continuous x and y axes.
+\item \strong{Empty data guard} — stops with an informative error if no
+columns match the prefix or no complete rows remain.
+\item \strong{Resolution parsing} — extracts the suffix after
+\code{prefix} from each column name and strips leading separators
+(\code{"_"} or \code{"."}) if present. Values are converted to numeric
+and sorted. Column names are rewritten to use the original prefix for
+consistent \code{clustree} processing.
+\item \strong{Cluster counting} — computes the number of unique clusters
+at the highest resolution (\code{max_clusters}), used for dimension
+calculation in the non-flipped layout.
+\item \strong{Argument merging} — builds a call to
+\code{clustree::clustree()} by merging user-supplied \code{...} with
+sensible defaults for \code{node_alpha}, \code{edge_width},
+\code{show_axis}, \code{layout} (\code{"sugiyama"}),
+\code{node_size_range} (\code{c(6, 12)}), \code{node_text_size}
+(\code{3}), and \code{node_text_colour} (\code{"black"}).
+\item \strong{clustree execution} — calls
+\code{gglogger::register(clustree::clustree)} with the merged arguments
+to produce the base \code{ggplot} object.
+\item \strong{Node labels} — overlays \code{ggplot2::geom_text()} with
+the cluster label from the \code{clustree} output, using the configured
+text size and colour.
+\item \strong{Resolution colour scale} — applies
+\code{ggplot2::scale_color_manual()} with one colour per resolution
+level using \code{palette_this()}. The colour legend is suppressed (the
+edge gradient legend serves as the primary guide).
+\item \strong{Edge colour scale} — applies
+\code{ggraph::scale_edge_color_gradientn()} with the
+\code{edge_palette} palette, encoding transition counts via a
+colour-bar guide with black frame and ticks.
+\item \strong{Theme and labels} — applies the selected theme and sets
+\code{title}, \code{subtitle}, x-axis label, and y-axis label (default
+y-label is the \code{prefix} with trailing separator stripped).
+\item \strong{Flip branch} (\code{flip = TRUE}):
+\itemize{
+\item Resolutions are placed on the x-axis (horizontal); clusters
+become y-axis rows.
+\item Width scales with \code{max(3, 0.5 + nres * 1.0)}; height
+scales with \code{max(3, 0.5 + max_clusters * 0.5)} (or via
+aspect.ratio).
+\item \code{scale_y_reverse()} + \code{coord_flip()} reorients the
+layout so resolutions read left-to-right.
+\item Horizontal grid lines are dashed grey80; y-axis text and
+ticks are suppressed.
+}
+\item \strong{Non-flip branch} (\code{flip = FALSE}, default):
+\itemize{
+\item Resolutions are on the y-axis (rows); clusters spread across
+the x-axis (columns).
+\item Width scales with \code{max(3, 0.5 + max_clusters * 0.5)};
+height scales with \code{max(3, 0.5 + nres * 1.0)}
+(or via aspect.ratio).
+\item \code{coord_cartesian(clip = "off")} and
+\code{scale_y_continuous()} show resolution labels on the y-axis.
+\item Vertical grid lines are dashed grey80; x-axis text and ticks
+are suppressed.
+}
+\item \strong{Dimension storage} — \code{\link{calculate_plot_dimensions}()}
+computes \code{height} and \code{width} attributes, stored on the
+\code{ggplot} object.
+}
+}
+
 \keyword{internal}
