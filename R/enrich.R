@@ -77,38 +77,159 @@ adjust_network_layout <- function(
     return(layout)
 }
 
-#' Atomic Enrichment Map
+#' Atomic enrichment map (internal)
+#'
+#' @description
+#' Core implementation for drawing a single enrichment map -- a gene-set
+#' similarity network where nodes represent enriched terms, node fill colour
+#' encodes cluster membership, node size encodes the number of genes per
+#' term, and edge thickness encodes the number of overlapping genes between
+#' pairs of terms.  This is the workhorse behind the exported
+#' \code{\link{EnrichMap}} function -- it takes a **single** data frame (no
+#' \code{split_by} support) and returns a \code{ggplot} object.
+#'
+#' The function constructs an undirected graph from the term-term gene
+#' overlap matrix, computes a force-directed layout, detects term clusters
+#' via igraph community detection, and renders the result as a labelled
+#' network plot with ggforce hull annotations around each cluster.
+#'
+#' @section Architecture:
+#' \enumerate{
+#'   \item \strong{ggplot dispatch} -- selects \code{gglogger::ggplot} or
+#'         \code{ggplot2::ggplot} based on
+#'         \code{getOption("plotthis.gglogger.enabled")}.
+#'   \item \strong{Data format conversion} -- if \code{data} inherits from
+#'         \code{"enrichResult"}, converts via \code{as.data.frame()}; if
+#'         \code{in_form == "enrichr"}, calls
+#'         \code{\link{prepare_enrichr_result}()} to rename columns and
+#'         infer GeneRatio/BgRatio.
+#'   \item \strong{Column validation} -- \code{\link{check_columns}()}
+#'         verifies that \code{Description}, \code{GeneRatio},
+#'         \code{pvalue}, \code{p.adjust}, and \code{geneID} are present.
+#'   \item \strong{Top-term selection} -- when \code{top_term} is not
+#'         \code{NULL}, selects the top N terms by the chosen \code{metric}
+#'         via \code{dplyr::slice_min()}.
+#'   \item \strong{Metric transformation} -- computes
+#'         \eqn{-\log_{10}(metric)} as the node scoring variable.  Splits
+#'         \code{geneID} on \code{"/"} to obtain per-term gene lists.
+#'   \item \strong{ID assignment} -- uses the \code{ID} column if present;
+#'         otherwise falls back to row names or generates synthetic IDs
+#'         (\code{"GS1"}, \code{"GS2"}, \dots).
+#'   \item \strong{Edge construction} -- creates all pairwise combinations
+#'         (\code{utils::combn()}) of term IDs and computes the overlap
+#'         count (intersection of geneID elements) as edge weight.  Edges
+#'         with weight 0 are dropped.
+#'   \item \strong{igraph graph construction} --
+#'         \code{igraph::graph_from_data_frame()} builds an undirected
+#'         graph from the edge list, with node attributes from the term
+#'         data.
+#'   \item \strong{Layout computation} -- dispatches to the chosen igraph
+#'         layout function (\code{layout_with_*}) or one of the built-in
+#'         shortcuts (\code{"circle"}, \code{"tree"}, \code{"grid"}).
+#'   \item \strong{Cluster detection} -- runs the chosen igraph clustering
+#'         algorithm (\code{cluster_*}) to group related terms into
+#'         modules.
+#'   \item \strong{Node coordinates} -- extracts vertex positions and
+#'         cluster assignments into a data frame with \code{dim1},
+#'         \code{dim2}, and \code{clusters} columns.
+#'   \item \strong{Keyword extraction} -- when \code{show_keyword = TRUE},
+#'         tokenizes \code{Description} text, filters words by
+#'         \code{minchar} and \code{words_excluded}, scores remaining
+#'         words by summed \code{metric} per cluster, and keeps the top
+#'         \code{nlabel} keywords.  Otherwise, the term \code{Description}
+#'         texts themselves are used as keywords.
+#'   \item \strong{Gene keyword extraction} -- always computes per-cluster
+#'         gene-level keywords (top \code{nlabel} genes by summed
+#'         \code{metric}) for the feature legend mode.
+#'   \item \strong{Mark layer} -- \code{ggforce::geom_mark_*()} (ellipse,
+#'         rect, circle, or text) draws cluster hulls with labels
+#'         containing the cluster ID and either term or feature keywords.
+#'   \item \strong{Edge rendering} -- \code{ggplot2::geom_segment()} draws
+#'         edges with line width proportional to overlap weight.
+#'   \item \strong{Node rendering} -- \code{ggplot2::geom_point(shape = 21)}
+#'         draws nodes sized by \code{Count} and filled by cluster
+#'         membership.
+#'   \item \strong{Scale configuration} -- \code{scale_size()} for node
+#'         size, \code{scale_linewidth()} for edge width,
+#'         \code{scale_fill_manual()} for cluster colours with custom
+#'         legend labels (term keywords or gene keywords depending on
+#'         \code{label}).
+#'   \item \strong{Theme and dimensions} -- applies the resolved theme,
+#'         sets aspect ratio and legend position, then calls
+#'         \code{\link{calculate_plot_dimensions}()} to attach
+#'         \code{height}/\code{width} attributes.
+#' }
 #'
 #' @inheritParams common_args
-#' @param data A data frame containing the data to be plotted.
-#'  It should be in the format of clusterProfiler enrichment result,
-#'  which includes the columns: ID, Description, GeneRatio, BgRatio, pvalue, p.adjust,
-#'  qvalue, geneID and Count.
-#'  * The `ID`, `qvalue`, `BgRatio`, and `Count` columns are optional.
-#'  * The `Description` is the description of the term.
-#'  * The `GeneRatio` is the number of genes in the term divided by the total number of genes in the input list.
-#'  * The `BgRatio` is the number of genes in the term divided by the total number of genes in the background list (all terms).
-#'  * The `Count` column, if given, should be the same as the first number in GeneRatio.
-#' @param top_term An integer specifying the number of top terms to show.
-#' @param metric A character string specifying the metric to use for the size of the nodes.
-#'  It is also used to order the terms when selected the top terms.
-#'  Either "pvalue" or "p.adjust". The default is "p.adjust".
-#' @param layout A character string specifying the layout of the graph.
-#'  Either "circle", "tree", "grid" or other layout functions in `igraph`.
-#' @param minchar An integer specifying the minimum number of characters to show in the keyword.
-#' @param cluster A character string specifying the clustering method.
-#'  Either "fast_greedy", "walktrap", "edge_betweenness", "infomap" or other clustering functions in `igraph`.
-#' @param show_keyword A logical value specifying whether to show the keyword instead of Description/Term in the plot.
-#' @param nlabel An integer specifying the number of labels to show in each cluster.
-#' @param character_width The width of the characters used to wrap the keyword.
-#' @param mark A character string specifying the mark to use for the nodes.
-#'  Either "ellipse", "rect", "circle", "text" or other mark functions in `ggforce`.
-#' @param label A character string specifying the label to show in the legend.
-#'  Either "term" or "feature". The default is "term".
-#' @param labelsize A numeric value specifying the size of the label.
-#' @param expand A numeric vector of length 2 specifying the expansion of the x and y axis.
-#' @param words_excluded A character vector specifying the words to exclude in the keyword.
-#' @return A ggplot object
+#' @param data A data frame containing enrichment results in clusterProfiler
+#'  format with at least the columns: \code{Description}, \code{GeneRatio},
+#'  \code{pvalue}, \code{p.adjust}, and \code{geneID}.
+#'  \itemize{
+#'    \item \code{ID}, \code{qvalue}, \code{BgRatio}, and \code{Count} are
+#'          optional.
+#'    \item \code{Description} is the term description, displayed as the
+#'          default keyword.
+#'    \item \code{GeneRatio} is the fraction of input genes annotated to
+#'          the term (e.g. \code{"10/500"}).
+#'    \item \code{BgRatio} is the fraction of background genes annotated
+#'          to the term (e.g. \code{"50/20000"}).
+#'    \item \code{Count}, if given, must equal the numerator of
+#'          \code{GeneRatio}.
+#'    \item \code{geneID} contains gene symbols separated by \code{"/"}.
+#'  }
+#' @param in_form A character string specifying the input format.
+#'  When \code{"auto"} (default), the function infers the format from the
+#'  column names: clusterProfiler columns (\code{pvalue}, \code{p.adjust},
+#'  \code{qvalue}) or Enrichr columns (\code{P.value},
+#'  \code{Adjusted.P.value}).  Other options are \code{"clusterProfiler"}
+#'  and \code{"enrichr"}.
+#' @param top_term An integer specifying the maximum number of terms to
+#'  include.  Terms are ranked by \code{metric} (ascending).  Default
+#'  \code{100}.
+#' @param metric A character string specifying the significance metric
+#'  used for top-term selection and node scoring: \code{"p.adjust"}
+#'  (default) or \code{"pvalue"}.  The value is transformed as
+#'  \eqn{-\log_{10}(metric)}.
+#' @param layout A character string naming the igraph layout algorithm.
+#'  Built-in shortcuts: \code{"circle"}, \code{"tree"}, \code{"grid"}.
+#'  Otherwise, the suffix passed to \code{layout_with_<layout>} in igraph
+#'  (e.g. \code{"fr"} for Fruchterman-Reingold, \code{"kk"} for
+#'  Kamada-Kawai).  Default \code{"fr"}.
+#' @param minchar An integer specifying the minimum character length for
+#'  words to be included as keywords when \code{show_keyword = TRUE}.
+#'  Default \code{2}.
+#' @param cluster A character string naming the igraph community detection
+#'  algorithm.  The suffix passed to \code{cluster_<cluster>} in igraph
+#'  (e.g. \code{"fast_greedy"}, \code{"walktrap"},
+#'  \code{"edge_betweenness"}, \code{"infomap"}).  Default
+#'  \code{"fast_greedy"}.
+#' @param show_keyword A logical value.  When \code{TRUE}, the
+#'  \code{Description} text is tokenized and the most significant words
+#'  per cluster are shown as keywords.  When \code{FALSE} (default), the
+#'  original term descriptions are used as labels.
+#' @param nlabel An integer specifying the number of keywords or term
+#'  descriptions to show per cluster in the legend labels.  Default
+#'  \code{4}.
+#' @param character_width An integer specifying the maximum width (in
+#'  characters) at which keyword labels are wrapped via
+#'  \code{strwrap(width = character_width)}.  Default \code{50}.
+#' @param mark A character string naming the ggforce hull function.
+#'  One of \code{"ellipse"} (default), \code{"rect"}, \code{"circle"}, or
+#'  \code{"text"} -- passed as the suffix to \code{geom_mark_<mark>}.
+#' @param label A character string specifying what information to display
+#'  in the legend labels.  Either \code{"term"} (default; shows top term
+#'  descriptions/keywords per cluster) or \code{"feature"} (shows top
+#'  gene symbols per cluster).
+#' @param labelsize A numeric value specifying the font size of the
+#'  cluster labels drawn by the ggforce mark layer.  Default \code{5}.
+#' @param expand A numeric vector of length 2 (or 4) specifying the
+#'  expansion of the x and y axes, processed via
+#'  \code{\link{norm_expansion}()}.  Default \code{c(0.4, 0.4)}.
+#' @param words_excluded A character vector of words to exclude from
+#'  keyword extraction when \code{show_keyword = TRUE}.  Defaults to
+#'  \code{plotthis::words_excluded}.
+#' @return A \code{ggplot} object with \code{height} and \code{width}
+#'  attributes (in inches) attached.
 #' @keywords internal
 #' @importFrom utils combn
 #' @importFrom dplyr slice_min slice_head reframe distinct group_by arrange reframe desc
@@ -449,16 +570,124 @@ EnrichMapAtomic <- function(
     p
 }
 
-#' Atomic Enrichment Network
+#' Atomic enrichment network (internal)
+#'
+#' @description
+#' Core implementation for drawing a single enrichment network -- a
+#' term-gene bipartite graph where enriched terms and their member genes
+#' are shown as interconnected nodes.  Term nodes are displayed as numbered
+#' filled circles with a colour-coded legend; gene nodes are displayed as
+#' labelled rectangles coloured by a blend of the term colours they belong
+#' to.  This is the workhorse behind the exported \code{\link{EnrichNetwork}}
+#' function -- it takes a **single** data frame (no \code{split_by} support)
+#' and returns a \code{ggplot} object.
+#'
+#' The function constructs a bipartite graph between terms and genes,
+#' computes a force-directed layout, optionally adjusts node positions to
+#' reduce overlap, blends term colours for shared genes, and renders the
+#' result as a labelled network.
+#'
+#' @section Architecture:
+#' \enumerate{
+#'   \item \strong{ggplot dispatch} -- selects \code{gglogger::ggplot} or
+#'         \code{ggplot2::ggplot} based on
+#'         \code{getOption("plotthis.gglogger.enabled")}.
+#'   \item \strong{Data format conversion} -- if \code{data} inherits from
+#'         \code{"enrichResult"}, converts via \code{as.data.frame()}.
+#'   \item \strong{Column validation} -- \code{\link{check_columns}()}
+#'         verifies that \code{Description}, \code{GeneRatio},
+#'         \code{pvalue}, \code{p.adjust}, and \code{geneID} are present.
+#'   \item \strong{Top-term selection} -- when \code{top_term} is not
+#'         \code{NULL}, selects the top N terms by \code{metric} via
+#'         \code{dplyr::slice_min()}.
+#'   \item \strong{Metric and description preparation} -- computes
+#'         \eqn{-\log_{10}(metric)} as the scoring variable.  Wraps
+#'         \code{Description} text to \code{character_width} and parses
+#'         \code{geneID} by splitting on \code{"/"}.
+#'   \item \strong{Gene-term unnesting} -- unnests the \code{geneID}
+#'         column to produce a gene-term mapping table.
+#'   \item \strong{Bipartite node construction} -- creates nodes for both
+#'         terms (\code{class = "term"}) and genes (\code{class = "gene"}),
+#'         carrying the \code{Database} attribute if present.
+#'   \item \strong{Bipartite edge construction} -- edges connect each term
+#'         to its member genes with uniform weight (\code{weight = 1}).
+#'   \item \strong{igraph graph construction} --
+#'         \code{igraph::graph_from_data_frame()} builds an undirected
+#'         bipartite graph.
+#'   \item \strong{Layout computation} -- dispatches to the chosen igraph
+#'         layout function (\code{layout_with_*}) or built-in shortcuts
+#'         (\code{"circle"}, \code{"tree"}, \code{"grid"}).
+#'   \item \strong{Layout adjustment} -- when \code{layoutadjust = TRUE}
+#'         (default), calls \code{\link{adjust_network_layout}()} to push
+#'         overlapping nodes apart based on label width and a repulsion
+#'         simulation.
+#'   \item \strong{Node coordinates} -- extracts vertex positions into
+#'         \code{dim1} and \code{dim2} columns.
+#'   \item \strong{Colour computation} -- palette colours are assigned to
+#'         term nodes.  Gene node colours are computed by blending the
+#'         colours of all connected terms via the specified
+#'         \code{blendmode} using \code{blend_colors()}.
+#'   \item \strong{Label colour} -- each node's text colour is chosen as
+#'         black or white based on the luminance of its fill colour (sum
+#'         of RGB channels > 510).
+#'   \item \strong{Numeric labels} -- term nodes receive sequential integer
+#'         labels; gene nodes display their gene symbol.
+#'   \item \strong{Custom legend key} -- \code{draw_key_cust()} renders
+#'         term legend entries as numbered circles via
+#'         \code{ggrepel::shadowtextGrob()}.
+#'   \item \strong{Edge rendering} -- \code{ggplot2::geom_segment()} draws
+#'         edges coloured by the source term (legend suppressed).
+#'   \item \strong{Gene node rendering} -- \code{ggplot2::geom_label()}
+#'         displays gene symbols with fill colour blended from connected
+#'         terms.
+#'   \item \strong{Term node rendering} -- two \code{geom_point()} layers
+#'         draw black-outlined circles filled with the term colour, with
+#'         \code{draw_key_cust} as the key glyph.
+#'   \item \strong{Term labels} -- \code{ggrepel::geom_text_repel()}
+#'         places the numeric term labels with white text on a black
+#'         background.
+#'   \item \strong{Scale configuration} -- \code{scale_color_identity()}
+#'         and \code{scale_fill_identity()} with a manual legend mapping
+#'         term colours to term descriptions.
+#'   \item \strong{Theme and dimensions} -- applies the resolved theme,
+#'         sets aspect ratio and legend position, then calls
+#'         \code{\link{calculate_plot_dimensions}()} to attach
+#'         \code{height}/\code{width} attributes.
+#' }
 #'
 #' @inheritParams common_args
-#' @param data A data frame containing the data to be plotted.
-#' @param layoutadjust A logical value specifying whether to adjust the layout of the network.
-#' @param adjscale A numeric value specifying the scale of the adjustment.
-#' @param adjiter A numeric value specifying the number of iterations for the adjustment.
-#' @param blendmode A character string specifying the blend mode of the colors.
-#'  Either "blend", "average", "multiply" and "screen".
-#' @return A ggplot object
+#' @param data A data frame containing enrichment results in clusterProfiler
+#'  format (see \code{\link{EnrichMapAtomic}} for the expected columns).
+#' @param top_term An integer specifying the maximum number of terms to
+#'  include.  Terms are ranked by \code{metric} (ascending).  Default
+#'  \code{6}.
+#' @param metric A character string specifying the significance metric for
+#'  top-term selection: \code{"p.adjust"} (default) or \code{"pvalue"}.
+#' @param character_width An integer specifying the maximum width (in
+#'  characters) at which term descriptions are wrapped via
+#'  \code{strwrap(width = character_width)}.  Default \code{50}.
+#' @param layout A character string naming the igraph layout algorithm.
+#'  Built-in shortcuts: \code{"circle"}, \code{"tree"}, \code{"grid"}.
+#'  Otherwise, the suffix passed to \code{layout_with_<layout>} in igraph.
+#'  Default \code{"fr"}.
+#' @param layoutadjust A logical value.  When \code{TRUE} (default),
+#'  applies \code{\link{adjust_network_layout}()} after the initial layout
+#'  to reduce node overlap based on label width and a repulsion simulation.
+#' @param adjscale A numeric value controlling the scale of the layout
+#'  adjustment.  Passed as the \code{scale} argument to
+#'  \code{\link{adjust_network_layout}()}.  Default \code{60}.
+#' @param adjiter A numeric value controlling the number of iterations for
+#'  the layout adjustment.  Passed as the \code{iter} argument to
+#'  \code{\link{adjust_network_layout}()}.  Default \code{100}.
+#' @param blendmode A character string specifying how gene colours are
+#'  computed from the colours of the terms they belong to.  One of
+#'  \code{"blend"} (default), \code{"average"}, \code{"multiply"}, or
+#'  \code{"screen"}.  Passed to \code{blend_colors()}.
+#' @param labelsize A numeric value specifying the font size of the
+#'  numeric term labels displayed via \code{ggrepel::geom_text_repel()}.
+#'  Default \code{5}.
+#' @return A \code{ggplot} object with \code{height} and \code{width}
+#'  attributes (in inches) attached.
 #' @keywords internal
 #' @importFrom utils getFromNamespace
 #' @importFrom grDevices col2rgb
@@ -792,30 +1021,94 @@ prepare_enrichr_result <- function(data, dbname = "Database", n_input = NULL) {
     data
 }
 
-#' Enrichment Map/Network
+#' Enrichment Map and Enrichment Network
 #'
-#' `EnrichMap` is a function to plot the enrichment map.
-#' `EnrichNetwork` is a function to plot the enrichment network.
+#' @description
+#' \code{EnrichMap} draws an enrichment map -- a gene-set similarity network
+#' where each node is an enriched term, node size encodes the number of
+#' associated genes, node fill colour encodes cluster membership (detected
+#' via igraph community detection), and edge thickness encodes the number
+#' of overlapping genes between term pairs.  The plot uses a force-directed
+#' layout to arrange terms, and ggforce hull annotations group terms into
+#' clusters.  Keyword or term-description labels appear in the legend.
+#'
+#' \code{EnrichNetwork} draws an enrichment network -- a term-gene bipartite
+#' graph where term nodes are shown as numbered circles and gene nodes as
+#' labelled rectangles.  Gene node colours are blended from the colours of
+#' all terms they belong to.  A force-directed layout positions the nodes,
+#' with optional overlap adjustment for better readability.
+#'
+#' Both functions accept enrichment results from clusterProfiler or Enrichr
+#' (the latter is auto-detected and preprocessed via
+#' \code{\link{prepare_enrichr_result}()}).
+#'
+#' @section split_by Workflow (EnrichMap):
+#'
+#' When \code{split_by} is provided, \code{EnrichMap()} executes the
+#' following pipeline:
+#' \enumerate{
+#'   \item \strong{Argument validation} --
+#'         \code{\link{validate_common_args}()} checks the seed.
+#'   \item \strong{Input format detection} -- \code{match.arg()} resolves
+#'         \code{in_form}; \code{"auto"} mode infers the format from
+#'         column names.
+#'   \item \strong{Enrichr preprocessing} -- when format is \code{"enrichr"},
+#'         calls \code{\link{prepare_enrichr_result}()} to rename columns
+#'         and infer GeneRatio/BgRatio.
+#'   \item \strong{Split column resolution} --
+#'         \code{\link{check_columns}()} validates \code{split_by}
+#'         (force_factor, allow_multi, concat_multi).
+#'   \item \strong{Data splitting} -- splits \code{data} by
+#'         \code{split_by} levels, preserving factor level order.
+#'   \item \strong{Per-split palette/colour} --
+#'         \code{\link{check_palette}()} and
+#'         \code{\link{check_palcolor}()} resolve per-split palette and
+#'         colour overrides.
+#'   \item \strong{Per-split legend} -- \code{\link{check_legend}()}
+#'         resolves \code{legend.position} and \code{legend.direction}
+#'         per split.
+#'   \item \strong{Per-split title} -- when \code{title} is a function,
+#'         it receives the default title (the split level name); otherwise
+#'         \code{title \%||\% split_level} is used.
+#'   \item \strong{Dispatch} -- each split subset is passed to
+#'         \code{\link{EnrichMapAtomic}} with its resolved parameters.
+#'   \item \strong{Combination} -- \code{\link{combine_plots}()} assembles
+#'         the list of plots via \code{patchwork::wrap_plots}, honouring
+#'         \code{nrow}/\code{ncol}/\code{byrow}/\code{axes}/
+#'         \code{axis_titles}/\code{guides}/\code{design}.
+#' }
 #'
 #' @rdname enrichmap1
 #' @inheritParams common_args
 #' @inheritParams EnrichMapAtomic
-#' @param data A data frame containing the data to be plotted.
-#'  It should be in the format of clusterProfiler enrichment result,
-#'  which includes the columns: ID, Description, GeneRatio, BgRatio, pvalue, p.adjust,
-#'  qvalue, geneID and Count.
-#'  * The `ID`, `qvalue` and `Count` columns are optional.
-#'  * The `Description` is the description of the term.
-#'  * The `GeneRatio` is the number of genes in the term divided by the total number of genes in the input list.
-#'  * The `BgRatio` is the number of genes in the term divided by the total number of genes in the background list (all terms).
-#'  * The `Count` column, if given, should be the same as the first number in GeneRatio.
-#'
-#'  If you have enrichment results from multiple databases, you can combine them into one data frame and add a column (e.g. Database)
-#'  to indicate the database.
-#'  You can plot them in a single plot using the `split_by` argument (e.g. `split_by = "Database"`).
+#' @param data A data frame containing enrichment results in clusterProfiler
+#'  format with at least the columns: \code{Description}, \code{GeneRatio},
+#'  \code{pvalue}, \code{p.adjust}, and \code{geneID}.
+#'  \itemize{
+#'    \item \code{ID}, \code{qvalue}, \code{BgRatio}, and \code{Count} are
+#'          optional.
+#'    \item \code{Description} is the term description.
+#'    \item \code{GeneRatio} is the fraction of input genes annotated to
+#'          the term (e.g. \code{"10/500"}).
+#'    \item \code{BgRatio} is the fraction of background genes annotated
+#'          to the term (e.g. \code{"50/20000"}).
+#'    \item \code{Count}, if given, must equal the numerator of
+#'          \code{GeneRatio}.
+#'  }
+#'  If you have enrichment results from multiple databases, you can combine
+#'  them into one data frame and add a column (e.g. \code{Database}) to
+#'  indicate the source.  Use \code{split_by = "Database"} to plot them
+#'  side by side.
 #' @param in_form A character string specifying the input format.
-#' Either "auto", "clusterProfiler", "clusterprofiler" or "enrichr".
-#' The default is "auto", which will try to infer the input format.
+#'  When \code{"auto"} (default), the function infers the format from the
+#'  column names: clusterProfiler columns (\code{pvalue}, \code{p.adjust},
+#'  \code{qvalue}) or Enrichr columns (\code{P.value},
+#'  \code{Adjusted.P.value}).  Other options are \code{"clusterProfiler"},
+#'  \code{"clusterprofiler"}, and \code{"enrichr"}.
+#' @return A \code{ggplot} object (single plot), a \code{patchwork} /
+#'  \code{wrap_plots} object (when \code{split_by} is provided and
+#'  \code{combine = TRUE}), or a list of \code{ggplot} objects (when
+#'  \code{split_by} is provided and \code{combine = FALSE}).
 #' @export
 #' @examples
 #' \donttest{
@@ -981,26 +1274,29 @@ EnrichMap <- function(
     )
 }
 
+#' @section split_by Workflow (EnrichNetwork):
+#'
+#' When \code{split_by} is provided, \code{EnrichNetwork()} executes the
+#' same pipeline as \code{EnrichMap()} above, but dispatches each split
+#' subset to \code{\link{EnrichNetworkAtomic}}.
+#'
 #' @rdname enrichmap1
 #' @inheritParams common_args
 #' @inheritParams EnrichNetworkAtomic
-#' @param data A data frame containing the data to be plotted.
-#'  It should be in the format of clusterProfiler enrichment result,
-#'  which includes the columns: ID, Description, GeneRatio, BgRatio, pvalue, p.adjust,
-#'  qvalue, geneID and Count.
-#'  * The `ID`, `qvalue` and `Count` columns are optional.
-#'  * The `Description` is the description of the term.
-#'  * The `GeneRatio` is the number of genes in the term divided by the total number of genes in the input list.
-#'  * The `BgRatio` is the number of genes in the term divided by the total number of genes in the background list (all terms).
-#'  * The `Count` column, if given, should be the same as the first number in GeneRatio.
-#'
-#'  If you have enrichment results from multiple databases, you can combine them into one data frame and add a column (e.g. Database)
-#'  to indicate the database.
-#'  You can plot them in a single plot using the `split_by` argument (e.g. `split_by = "Database"`).
+#' @param data A data frame containing enrichment results in clusterProfiler
+#'  format (see \code{\link{EnrichMap}} for the expected columns).
+#'  If you have enrichment results from multiple databases, you can combine
+#'  them into one data frame and add a column (e.g. \code{Database}) to
+#'  indicate the source.  Use \code{split_by = "Database"} to plot them
+#'  side by side.
 #' @param in_form A character string specifying the input format.
-#' Either "auto", "clusterProfiler", "clusterprofiler" or "enrichr".
-#' The default is "auto", which will try to infer the input format.
-#' @return A ggplot object or wrap_plots object or a list of ggplot objects
+#'  When \code{"auto"} (default), the function infers the format from the
+#'  column names.  Other options are \code{"clusterProfiler"},
+#'  \code{"clusterprofiler"}, and \code{"enrichr"}.
+#' @return A \code{ggplot} object (single plot), a \code{patchwork} /
+#'  \code{wrap_plots} object (when \code{split_by} is provided and
+#'  \code{combine = TRUE}), or a list of \code{ggplot} objects (when
+#'  \code{split_by} is provided and \code{combine = FALSE}).
 #' @export
 #' @examples
 #' \donttest{

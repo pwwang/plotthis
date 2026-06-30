@@ -3,7 +3,7 @@
 \name{EnrichMap}
 \alias{EnrichMap}
 \alias{EnrichNetwork}
-\title{Enrichment Map/Network}
+\title{Enrichment Map and Enrichment Network}
 \usage{
 EnrichMap(
   data,
@@ -87,57 +87,71 @@ EnrichNetwork(
 )
 }
 \arguments{
-\item{data}{A data frame containing the data to be plotted.
-It should be in the format of clusterProfiler enrichment result,
-which includes the columns: ID, Description, GeneRatio, BgRatio, pvalue, p.adjust,
-qvalue, geneID and Count.
-\itemize{
-\item The \code{ID}, \code{qvalue} and \code{Count} columns are optional.
-\item The \code{Description} is the description of the term.
-\item The \code{GeneRatio} is the number of genes in the term divided by the total number of genes in the input list.
-\item The \code{BgRatio} is the number of genes in the term divided by the total number of genes in the background list (all terms).
-\item The \code{Count} column, if given, should be the same as the first number in GeneRatio.
-}
-
-If you have enrichment results from multiple databases, you can combine them into one data frame and add a column (e.g. Database)
-to indicate the database.
-You can plot them in a single plot using the \code{split_by} argument (e.g. \code{split_by = "Database"}).}
+\item{data}{A data frame containing enrichment results in clusterProfiler
+format (see \code{\link{EnrichMap}} for the expected columns).
+If you have enrichment results from multiple databases, you can combine
+them into one data frame and add a column (e.g. \code{Database}) to
+indicate the source.  Use \code{split_by = "Database"} to plot them
+side by side.}
 
 \item{in_form}{A character string specifying the input format.
-Either "auto", "clusterProfiler", "clusterprofiler" or "enrichr".
-The default is "auto", which will try to infer the input format.}
+When \code{"auto"} (default), the function infers the format from the
+column names.  Other options are \code{"clusterProfiler"},
+\code{"clusterprofiler"}, and \code{"enrichr"}.}
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
-\item{top_term}{An integer specifying the number of top terms to show.}
+\item{top_term}{An integer specifying the maximum number of terms to
+include.  Terms are ranked by \code{metric} (ascending).  Default
+\code{100}.}
 
-\item{metric}{A character string specifying the metric to use for the size of the nodes.
-It is also used to order the terms when selected the top terms.
-Either "pvalue" or "p.adjust". The default is "p.adjust".}
+\item{metric}{A character string specifying the significance metric
+used for top-term selection and node scoring: \code{"p.adjust"}
+(default) or \code{"pvalue"}.  The value is transformed as
+\eqn{-\log_{10}(metric)}.}
 
-\item{layout}{A character string specifying the layout of the graph.
-Either "circle", "tree", "grid" or other layout functions in \code{igraph}.}
+\item{layout}{A character string naming the igraph layout algorithm.
+Built-in shortcuts: \code{"circle"}, \code{"tree"}, \code{"grid"}.
+Otherwise, the suffix passed to \code{layout_with_<layout>} in igraph
+(e.g. \code{"fr"} for Fruchterman-Reingold, \code{"kk"} for
+Kamada-Kawai).  Default \code{"fr"}.}
 
-\item{minchar}{An integer specifying the minimum number of characters to show in the keyword.}
+\item{minchar}{An integer specifying the minimum character length for
+words to be included as keywords when \code{show_keyword = TRUE}.
+Default \code{2}.}
 
-\item{cluster}{A character string specifying the clustering method.
-Either "fast_greedy", "walktrap", "edge_betweenness", "infomap" or other clustering functions in \code{igraph}.}
+\item{cluster}{A character string naming the igraph community detection
+algorithm.  The suffix passed to \code{cluster_<cluster>} in igraph
+(e.g. \code{"fast_greedy"}, \code{"walktrap"},
+\code{"edge_betweenness"}, \code{"infomap"}).  Default
+\code{"fast_greedy"}.}
 
-\item{show_keyword}{A logical value specifying whether to show the keyword instead of Description/Term in the plot.}
+\item{show_keyword}{A logical value.  When \code{TRUE}, the
+\code{Description} text is tokenized and the most significant words
+per cluster are shown as keywords.  When \code{FALSE} (default), the
+original term descriptions are used as labels.}
 
-\item{nlabel}{An integer specifying the number of labels to show in each cluster.}
+\item{nlabel}{An integer specifying the number of keywords or term
+descriptions to show per cluster in the legend labels.  Default
+\code{4}.}
 
-\item{character_width}{The width of the characters used to wrap the keyword.}
+\item{character_width}{An integer specifying the maximum width (in
+characters) at which keyword labels are wrapped via
+\code{strwrap(width = character_width)}.  Default \code{50}.}
 
-\item{mark}{A character string specifying the mark to use for the nodes.
-Either "ellipse", "rect", "circle", "text" or other mark functions in \code{ggforce}.}
+\item{mark}{A character string naming the ggforce hull function.
+One of \code{"ellipse"} (default), \code{"rect"}, \code{"circle"}, or
+\code{"text"} -- passed as the suffix to \code{geom_mark_<mark>}.}
 
-\item{label}{A character string specifying the label to show in the legend.
-Either "term" or "feature". The default is "term".}
+\item{label}{A character string specifying what information to display
+in the legend labels.  Either \code{"term"} (default; shows top term
+descriptions/keywords per cluster) or \code{"feature"} (shows top
+gene symbols per cluster).}
 
-\item{labelsize}{A numeric value specifying the size of the label.}
+\item{labelsize}{A numeric value specifying the font size of the
+cluster labels drawn by the ggforce mark layer.  Default \code{5}.}
 
 \item{expand}{The values to expand the x and y axes. It is like CSS padding.
 When a single value is provided, it is used for both axes on both sides.
@@ -225,22 +239,99 @@ See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details
 
 \item{...}{Additional arguments.}
 
-\item{layoutadjust}{A logical value specifying whether to adjust the layout of the network.}
+\item{layoutadjust}{A logical value.  When \code{TRUE} (default),
+applies \code{\link{adjust_network_layout}()} after the initial layout
+to reduce node overlap based on label width and a repulsion simulation.}
 
-\item{adjscale}{A numeric value specifying the scale of the adjustment.}
+\item{adjscale}{A numeric value controlling the scale of the layout
+adjustment.  Passed as the \code{scale} argument to
+\code{\link{adjust_network_layout}()}.  Default \code{60}.}
 
-\item{adjiter}{A numeric value specifying the number of iterations for the adjustment.}
+\item{adjiter}{A numeric value controlling the number of iterations for
+the layout adjustment.  Passed as the \code{iter} argument to
+\code{\link{adjust_network_layout}()}.  Default \code{100}.}
 
-\item{blendmode}{A character string specifying the blend mode of the colors.
-Either "blend", "average", "multiply" and "screen".}
+\item{blendmode}{A character string specifying how gene colours are
+computed from the colours of the terms they belong to.  One of
+\code{"blend"} (default), \code{"average"}, \code{"multiply"}, or
+\code{"screen"}.  Passed to \code{blend_colors()}.}
 }
 \value{
-A ggplot object or wrap_plots object or a list of ggplot objects
+A \code{ggplot} object (single plot), a \code{patchwork} /
+\code{wrap_plots} object (when \code{split_by} is provided and
+\code{combine = TRUE}), or a list of \code{ggplot} objects (when
+\code{split_by} is provided and \code{combine = FALSE}).
+
+A \code{ggplot} object (single plot), a \code{patchwork} /
+\code{wrap_plots} object (when \code{split_by} is provided and
+\code{combine = TRUE}), or a list of \code{ggplot} objects (when
+\code{split_by} is provided and \code{combine = FALSE}).
 }
 \description{
-\code{EnrichMap} is a function to plot the enrichment map.
-\code{EnrichNetwork} is a function to plot the enrichment network.
+\code{EnrichMap} draws an enrichment map -- a gene-set similarity network
+where each node is an enriched term, node size encodes the number of
+associated genes, node fill colour encodes cluster membership (detected
+via igraph community detection), and edge thickness encodes the number
+of overlapping genes between term pairs.  The plot uses a force-directed
+layout to arrange terms, and ggforce hull annotations group terms into
+clusters.  Keyword or term-description labels appear in the legend.
+
+\code{EnrichNetwork} draws an enrichment network -- a term-gene bipartite
+graph where term nodes are shown as numbered circles and gene nodes as
+labelled rectangles.  Gene node colours are blended from the colours of
+all terms they belong to.  A force-directed layout positions the nodes,
+with optional overlap adjustment for better readability.
+
+Both functions accept enrichment results from clusterProfiler or Enrichr
+(the latter is auto-detected and preprocessed via
+\code{\link{prepare_enrichr_result}()}).
 }
+\section{split_by Workflow (EnrichMap)}{
+
+
+When \code{split_by} is provided, \code{EnrichMap()} executes the
+following pipeline:
+\enumerate{
+\item \strong{Argument validation} --
+\code{\link{validate_common_args}()} checks the seed.
+\item \strong{Input format detection} -- \code{match.arg()} resolves
+\code{in_form}; \code{"auto"} mode infers the format from
+column names.
+\item \strong{Enrichr preprocessing} -- when format is \code{"enrichr"},
+calls \code{\link{prepare_enrichr_result}()} to rename columns
+and infer GeneRatio/BgRatio.
+\item \strong{Split column resolution} --
+\code{\link{check_columns}()} validates \code{split_by}
+(force_factor, allow_multi, concat_multi).
+\item \strong{Data splitting} -- splits \code{data} by
+\code{split_by} levels, preserving factor level order.
+\item \strong{Per-split palette/colour} --
+\code{\link{check_palette}()} and
+\code{\link{check_palcolor}()} resolve per-split palette and
+colour overrides.
+\item \strong{Per-split legend} -- \code{\link{check_legend}()}
+resolves \code{legend.position} and \code{legend.direction}
+per split.
+\item \strong{Per-split title} -- when \code{title} is a function,
+it receives the default title (the split level name); otherwise
+\code{title \%||\% split_level} is used.
+\item \strong{Dispatch} -- each split subset is passed to
+\code{\link{EnrichMapAtomic}} with its resolved parameters.
+\item \strong{Combination} -- \code{\link{combine_plots}()} assembles
+the list of plots via \code{patchwork::wrap_plots}, honouring
+\code{nrow}/\code{ncol}/\code{byrow}/\code{axes}/
+\code{axis_titles}/\code{guides}/\code{design}.
+}
+}
+
+\section{split_by Workflow (EnrichNetwork)}{
+
+
+When \code{split_by} is provided, \code{EnrichNetwork()} executes the
+same pipeline as \code{EnrichMap()} above, but dispatches each split
+subset to \code{\link{EnrichNetworkAtomic}}.
+}
+
 \examples{
 \donttest{
 data(enrich_example)

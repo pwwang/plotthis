@@ -2,7 +2,7 @@
 % Please edit documentation in R/enrich.R
 \name{EnrichNetworkAtomic}
 \alias{EnrichNetworkAtomic}
-\title{Atomic Enrichment Network}
+\title{Atomic enrichment network (internal)}
 \usage{
 EnrichNetworkAtomic(
   data,
@@ -33,16 +33,45 @@ EnrichNetworkAtomic(
 )
 }
 \arguments{
-\item{data}{A data frame containing the data to be plotted.}
+\item{data}{A data frame containing enrichment results in clusterProfiler
+format (see \code{\link{EnrichMapAtomic}} for the expected columns).}
 
-\item{layoutadjust}{A logical value specifying whether to adjust the layout of the network.}
+\item{top_term}{An integer specifying the maximum number of terms to
+include.  Terms are ranked by \code{metric} (ascending).  Default
+\code{6}.}
 
-\item{adjscale}{A numeric value specifying the scale of the adjustment.}
+\item{metric}{A character string specifying the significance metric for
+top-term selection: \code{"p.adjust"} (default) or \code{"pvalue"}.}
 
-\item{adjiter}{A numeric value specifying the number of iterations for the adjustment.}
+\item{character_width}{An integer specifying the maximum width (in
+characters) at which term descriptions are wrapped via
+\code{strwrap(width = character_width)}.  Default \code{50}.}
 
-\item{blendmode}{A character string specifying the blend mode of the colors.
-Either "blend", "average", "multiply" and "screen".}
+\item{layout}{A character string naming the igraph layout algorithm.
+Built-in shortcuts: \code{"circle"}, \code{"tree"}, \code{"grid"}.
+Otherwise, the suffix passed to \code{layout_with_<layout>} in igraph.
+Default \code{"fr"}.}
+
+\item{layoutadjust}{A logical value.  When \code{TRUE} (default),
+applies \code{\link{adjust_network_layout}()} after the initial layout
+to reduce node overlap based on label width and a repulsion simulation.}
+
+\item{adjscale}{A numeric value controlling the scale of the layout
+adjustment.  Passed as the \code{scale} argument to
+\code{\link{adjust_network_layout}()}.  Default \code{60}.}
+
+\item{adjiter}{A numeric value controlling the number of iterations for
+the layout adjustment.  Passed as the \code{iter} argument to
+\code{\link{adjust_network_layout}()}.  Default \code{100}.}
+
+\item{blendmode}{A character string specifying how gene colours are
+computed from the colours of the terms they belong to.  One of
+\code{"blend"} (default), \code{"average"}, \code{"multiply"}, or
+\code{"screen"}.  Passed to \code{blend_colors()}.}
+
+\item{labelsize}{A numeric value specifying the font size of the
+numeric term labels displayed via \code{ggrepel::geom_text_repel()}.
+Default \code{5}.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -82,9 +111,92 @@ This is useful when split_by is used and the title needs to be dynamic.}
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object
+A \code{ggplot} object with \code{height} and \code{width}
+attributes (in inches) attached.
 }
 \description{
-Atomic Enrichment Network
+Core implementation for drawing a single enrichment network -- a
+term-gene bipartite graph where enriched terms and their member genes
+are shown as interconnected nodes.  Term nodes are displayed as numbered
+filled circles with a colour-coded legend; gene nodes are displayed as
+labelled rectangles coloured by a blend of the term colours they belong
+to.  This is the workhorse behind the exported \code{\link{EnrichNetwork}}
+function -- it takes a \strong{single} data frame (no \code{split_by} support)
+and returns a \code{ggplot} object.
+
+The function constructs a bipartite graph between terms and genes,
+computes a force-directed layout, optionally adjusts node positions to
+reduce overlap, blends term colours for shared genes, and renders the
+result as a labelled network.
 }
+\section{Architecture}{
+
+\enumerate{
+\item \strong{ggplot dispatch} -- selects \code{gglogger::ggplot} or
+\code{ggplot2::ggplot} based on
+\code{getOption("plotthis.gglogger.enabled")}.
+\item \strong{Data format conversion} -- if \code{data} inherits from
+\code{"enrichResult"}, converts via \code{as.data.frame()}.
+\item \strong{Column validation} -- \code{\link{check_columns}()}
+verifies that \code{Description}, \code{GeneRatio},
+\code{pvalue}, \code{p.adjust}, and \code{geneID} are present.
+\item \strong{Top-term selection} -- when \code{top_term} is not
+\code{NULL}, selects the top N terms by \code{metric} via
+\code{dplyr::slice_min()}.
+\item \strong{Metric and description preparation} -- computes
+\eqn{-\log_{10}(metric)} as the scoring variable.  Wraps
+\code{Description} text to \code{character_width} and parses
+\code{geneID} by splitting on \code{"/"}.
+\item \strong{Gene-term unnesting} -- unnests the \code{geneID}
+column to produce a gene-term mapping table.
+\item \strong{Bipartite node construction} -- creates nodes for both
+terms (\code{class = "term"}) and genes (\code{class = "gene"}),
+carrying the \code{Database} attribute if present.
+\item \strong{Bipartite edge construction} -- edges connect each term
+to its member genes with uniform weight (\code{weight = 1}).
+\item \strong{igraph graph construction} --
+\code{igraph::graph_from_data_frame()} builds an undirected
+bipartite graph.
+\item \strong{Layout computation} -- dispatches to the chosen igraph
+layout function (\code{layout_with_*}) or built-in shortcuts
+(\code{"circle"}, \code{"tree"}, \code{"grid"}).
+\item \strong{Layout adjustment} -- when \code{layoutadjust = TRUE}
+(default), calls \code{\link{adjust_network_layout}()} to push
+overlapping nodes apart based on label width and a repulsion
+simulation.
+\item \strong{Node coordinates} -- extracts vertex positions into
+\code{dim1} and \code{dim2} columns.
+\item \strong{Colour computation} -- palette colours are assigned to
+term nodes.  Gene node colours are computed by blending the
+colours of all connected terms via the specified
+\code{blendmode} using \code{blend_colors()}.
+\item \strong{Label colour} -- each node's text colour is chosen as
+black or white based on the luminance of its fill colour (sum
+of RGB channels > 510).
+\item \strong{Numeric labels} -- term nodes receive sequential integer
+labels; gene nodes display their gene symbol.
+\item \strong{Custom legend key} -- \code{draw_key_cust()} renders
+term legend entries as numbered circles via
+\code{ggrepel::shadowtextGrob()}.
+\item \strong{Edge rendering} -- \code{ggplot2::geom_segment()} draws
+edges coloured by the source term (legend suppressed).
+\item \strong{Gene node rendering} -- \code{ggplot2::geom_label()}
+displays gene symbols with fill colour blended from connected
+terms.
+\item \strong{Term node rendering} -- two \code{geom_point()} layers
+draw black-outlined circles filled with the term colour, with
+\code{draw_key_cust} as the key glyph.
+\item \strong{Term labels} -- \code{ggrepel::geom_text_repel()}
+places the numeric term labels with white text on a black
+background.
+\item \strong{Scale configuration} -- \code{scale_color_identity()}
+and \code{scale_fill_identity()} with a manual legend mapping
+term colours to term descriptions.
+\item \strong{Theme and dimensions} -- applies the resolved theme,
+sets aspect ratio and legend position, then calls
+\code{\link{calculate_plot_dimensions}()} to attach
+\code{height}/\code{width} attributes.
+}
+}
+
 \keyword{internal}

@@ -2,7 +2,7 @@
 % Please edit documentation in R/enrich.R
 \name{EnrichMapAtomic}
 \alias{EnrichMapAtomic}
-\title{Atomic Enrichment Map}
+\title{Atomic enrichment map (internal)}
 \usage{
 EnrichMapAtomic(
   data,
@@ -38,49 +38,87 @@ EnrichMapAtomic(
 )
 }
 \arguments{
-\item{data}{A data frame containing the data to be plotted.
-It should be in the format of clusterProfiler enrichment result,
-which includes the columns: ID, Description, GeneRatio, BgRatio, pvalue, p.adjust,
-qvalue, geneID and Count.
+\item{data}{A data frame containing enrichment results in clusterProfiler
+format with at least the columns: \code{Description}, \code{GeneRatio},
+\code{pvalue}, \code{p.adjust}, and \code{geneID}.
 \itemize{
-\item The \code{ID}, \code{qvalue}, \code{BgRatio}, and \code{Count} columns are optional.
-\item The \code{Description} is the description of the term.
-\item The \code{GeneRatio} is the number of genes in the term divided by the total number of genes in the input list.
-\item The \code{BgRatio} is the number of genes in the term divided by the total number of genes in the background list (all terms).
-\item The \code{Count} column, if given, should be the same as the first number in GeneRatio.
+\item \code{ID}, \code{qvalue}, \code{BgRatio}, and \code{Count} are
+optional.
+\item \code{Description} is the term description, displayed as the
+default keyword.
+\item \code{GeneRatio} is the fraction of input genes annotated to
+the term (e.g. \code{"10/500"}).
+\item \code{BgRatio} is the fraction of background genes annotated
+to the term (e.g. \code{"50/20000"}).
+\item \code{Count}, if given, must equal the numerator of
+\code{GeneRatio}.
+\item \code{geneID} contains gene symbols separated by \code{"/"}.
 }}
 
-\item{top_term}{An integer specifying the number of top terms to show.}
+\item{in_form}{A character string specifying the input format.
+When \code{"auto"} (default), the function infers the format from the
+column names: clusterProfiler columns (\code{pvalue}, \code{p.adjust},
+\code{qvalue}) or Enrichr columns (\code{P.value},
+\code{Adjusted.P.value}).  Other options are \code{"clusterProfiler"}
+and \code{"enrichr"}.}
 
-\item{metric}{A character string specifying the metric to use for the size of the nodes.
-It is also used to order the terms when selected the top terms.
-Either "pvalue" or "p.adjust". The default is "p.adjust".}
+\item{top_term}{An integer specifying the maximum number of terms to
+include.  Terms are ranked by \code{metric} (ascending).  Default
+\code{100}.}
 
-\item{layout}{A character string specifying the layout of the graph.
-Either "circle", "tree", "grid" or other layout functions in \code{igraph}.}
+\item{metric}{A character string specifying the significance metric
+used for top-term selection and node scoring: \code{"p.adjust"}
+(default) or \code{"pvalue"}.  The value is transformed as
+\eqn{-\log_{10}(metric)}.}
 
-\item{minchar}{An integer specifying the minimum number of characters to show in the keyword.}
+\item{layout}{A character string naming the igraph layout algorithm.
+Built-in shortcuts: \code{"circle"}, \code{"tree"}, \code{"grid"}.
+Otherwise, the suffix passed to \code{layout_with_<layout>} in igraph
+(e.g. \code{"fr"} for Fruchterman-Reingold, \code{"kk"} for
+Kamada-Kawai).  Default \code{"fr"}.}
 
-\item{cluster}{A character string specifying the clustering method.
-Either "fast_greedy", "walktrap", "edge_betweenness", "infomap" or other clustering functions in \code{igraph}.}
+\item{minchar}{An integer specifying the minimum character length for
+words to be included as keywords when \code{show_keyword = TRUE}.
+Default \code{2}.}
 
-\item{show_keyword}{A logical value specifying whether to show the keyword instead of Description/Term in the plot.}
+\item{cluster}{A character string naming the igraph community detection
+algorithm.  The suffix passed to \code{cluster_<cluster>} in igraph
+(e.g. \code{"fast_greedy"}, \code{"walktrap"},
+\code{"edge_betweenness"}, \code{"infomap"}).  Default
+\code{"fast_greedy"}.}
 
-\item{nlabel}{An integer specifying the number of labels to show in each cluster.}
+\item{show_keyword}{A logical value.  When \code{TRUE}, the
+\code{Description} text is tokenized and the most significant words
+per cluster are shown as keywords.  When \code{FALSE} (default), the
+original term descriptions are used as labels.}
 
-\item{character_width}{The width of the characters used to wrap the keyword.}
+\item{nlabel}{An integer specifying the number of keywords or term
+descriptions to show per cluster in the legend labels.  Default
+\code{4}.}
 
-\item{words_excluded}{A character vector specifying the words to exclude in the keyword.}
+\item{character_width}{An integer specifying the maximum width (in
+characters) at which keyword labels are wrapped via
+\code{strwrap(width = character_width)}.  Default \code{50}.}
 
-\item{mark}{A character string specifying the mark to use for the nodes.
-Either "ellipse", "rect", "circle", "text" or other mark functions in \code{ggforce}.}
+\item{words_excluded}{A character vector of words to exclude from
+keyword extraction when \code{show_keyword = TRUE}.  Defaults to
+\code{plotthis::words_excluded}.}
 
-\item{label}{A character string specifying the label to show in the legend.
-Either "term" or "feature". The default is "term".}
+\item{mark}{A character string naming the ggforce hull function.
+One of \code{"ellipse"} (default), \code{"rect"}, \code{"circle"}, or
+\code{"text"} -- passed as the suffix to \code{geom_mark_<mark>}.}
 
-\item{labelsize}{A numeric value specifying the size of the label.}
+\item{label}{A character string specifying what information to display
+in the legend labels.  Either \code{"term"} (default; shows top term
+descriptions/keywords per cluster) or \code{"feature"} (shows top
+gene symbols per cluster).}
 
-\item{expand}{A numeric vector of length 2 specifying the expansion of the x and y axis.}
+\item{labelsize}{A numeric value specifying the font size of the
+cluster labels drawn by the ggforce mark layer.  Default \code{5}.}
+
+\item{expand}{A numeric vector of length 2 (or 4) specifying the
+expansion of the x and y axes, processed via
+\code{\link{norm_expansion}()}.  Default \code{c(0.4, 0.4)}.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -120,9 +158,90 @@ This is useful when split_by is used and the title needs to be dynamic.}
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object
+A \code{ggplot} object with \code{height} and \code{width}
+attributes (in inches) attached.
 }
 \description{
-Atomic Enrichment Map
+Core implementation for drawing a single enrichment map -- a gene-set
+similarity network where nodes represent enriched terms, node fill colour
+encodes cluster membership, node size encodes the number of genes per
+term, and edge thickness encodes the number of overlapping genes between
+pairs of terms.  This is the workhorse behind the exported
+\code{\link{EnrichMap}} function -- it takes a \strong{single} data frame (no
+\code{split_by} support) and returns a \code{ggplot} object.
+
+The function constructs an undirected graph from the term-term gene
+overlap matrix, computes a force-directed layout, detects term clusters
+via igraph community detection, and renders the result as a labelled
+network plot with ggforce hull annotations around each cluster.
 }
+\section{Architecture}{
+
+\enumerate{
+\item \strong{ggplot dispatch} -- selects \code{gglogger::ggplot} or
+\code{ggplot2::ggplot} based on
+\code{getOption("plotthis.gglogger.enabled")}.
+\item \strong{Data format conversion} -- if \code{data} inherits from
+\code{"enrichResult"}, converts via \code{as.data.frame()}; if
+\code{in_form == "enrichr"}, calls
+\code{\link{prepare_enrichr_result}()} to rename columns and
+infer GeneRatio/BgRatio.
+\item \strong{Column validation} -- \code{\link{check_columns}()}
+verifies that \code{Description}, \code{GeneRatio},
+\code{pvalue}, \code{p.adjust}, and \code{geneID} are present.
+\item \strong{Top-term selection} -- when \code{top_term} is not
+\code{NULL}, selects the top N terms by the chosen \code{metric}
+via \code{dplyr::slice_min()}.
+\item \strong{Metric transformation} -- computes
+\eqn{-\log_{10}(metric)} as the node scoring variable.  Splits
+\code{geneID} on \code{"/"} to obtain per-term gene lists.
+\item \strong{ID assignment} -- uses the \code{ID} column if present;
+otherwise falls back to row names or generates synthetic IDs
+(\code{"GS1"}, \code{"GS2"}, \dots).
+\item \strong{Edge construction} -- creates all pairwise combinations
+(\code{utils::combn()}) of term IDs and computes the overlap
+count (intersection of geneID elements) as edge weight.  Edges
+with weight 0 are dropped.
+\item \strong{igraph graph construction} --
+\code{igraph::graph_from_data_frame()} builds an undirected
+graph from the edge list, with node attributes from the term
+data.
+\item \strong{Layout computation} -- dispatches to the chosen igraph
+layout function (\code{layout_with_*}) or one of the built-in
+shortcuts (\code{"circle"}, \code{"tree"}, \code{"grid"}).
+\item \strong{Cluster detection} -- runs the chosen igraph clustering
+algorithm (\code{cluster_*}) to group related terms into
+modules.
+\item \strong{Node coordinates} -- extracts vertex positions and
+cluster assignments into a data frame with \code{dim1},
+\code{dim2}, and \code{clusters} columns.
+\item \strong{Keyword extraction} -- when \code{show_keyword = TRUE},
+tokenizes \code{Description} text, filters words by
+\code{minchar} and \code{words_excluded}, scores remaining
+words by summed \code{metric} per cluster, and keeps the top
+\code{nlabel} keywords.  Otherwise, the term \code{Description}
+texts themselves are used as keywords.
+\item \strong{Gene keyword extraction} -- always computes per-cluster
+gene-level keywords (top \code{nlabel} genes by summed
+\code{metric}) for the feature legend mode.
+\item \strong{Mark layer} -- \code{ggforce::geom_mark_*()} (ellipse,
+rect, circle, or text) draws cluster hulls with labels
+containing the cluster ID and either term or feature keywords.
+\item \strong{Edge rendering} -- \code{ggplot2::geom_segment()} draws
+edges with line width proportional to overlap weight.
+\item \strong{Node rendering} -- \code{ggplot2::geom_point(shape = 21)}
+draws nodes sized by \code{Count} and filled by cluster
+membership.
+\item \strong{Scale configuration} -- \code{scale_size()} for node
+size, \code{scale_linewidth()} for edge width,
+\code{scale_fill_manual()} for cluster colours with custom
+legend labels (term keywords or gene keywords depending on
+\code{label}).
+\item \strong{Theme and dimensions} -- applies the resolved theme,
+sets aspect ratio and legend position, then calls
+\code{\link{calculate_plot_dimensions}()} to attach
+\code{height}/\code{width} attributes.
+}
+}
+
 \keyword{internal}
