@@ -1,3 +1,66 @@
+## Version 0.13.0
+
+- feat: add split_by parameter to combine_plots for enhanced data composition, especially for split plots
+- feat: add LinkedHeatmap and supporting functions with documentation and tests
+- feat: uniform plotting data access from plot objects
+- feat: use a fast do.call across all plotting functions
+- feat(dotplot): add border customization options for dots and lollipop bars (#32)
+- feat(dotplot): update fill_cutoff parameter to accept string operators and improve documentation (#31)
+- feat(combine_plots): enhance split_by functionality to ensure combined data is accessible and correctly structured
+- feat: add prepare_continuous_color_scale() utility and refactor DimPlot
+- feat: add color scale quantile/cutoff params to DotPlot, ScatterPlot, BarPlot, SplitBarPlot (#30)
+- fix(chordplot): correct handling of split_by parameter when combining plots
+- fix(heatmap): remove return_grob parameter and wrap heatmap with patchwork
+- fix(radarplot): correct assignment of split_by variable and update combine_plots call
+- fix(combine_plots): refine data handling in combine_plots function for layer-specific data integrity
+- style: use air to format all source files
+- docs: enhance documentation for color palette usage and plotting data access
+- docs(Heatmap): refactor HeatmapAtomic documentation for clarity and consistency
+- chore: add .codegraph to .gitignore to exclude codegraph files from version control
+- chore: remove unused imports and clean up parameter documentation across multiple files
+
+## Version 0.12.1
+
+- feat: enhance check_palcolor function to handle character palcolor input more robustly
+- feat: add position_dodge_preserve parameter to BoxViolinPlot and BoxViolinPlotAtomic for enhanced dodging control
+- feat: add CLAUDE.md for project guidance and development workflow documentation
+- feat(Heatmap): add block and label annotation types with unified building, per-annotation side control, reordering, validation, and split_by support
+- feat(dotplot): add size_min and size_max parameters for dot size control (#29)
+- fix(.Rbuildignore): add CLAUDE.md and PDF files to ignore list
+- refactor(Heatmap): move utils to a separate file
+- refactor: update dplyr and tidyr functions to use all_of for column selection
+- docs: add \donttest examples for CorPlot and DensityPlot functions
+- test(DotPlot): suppress warnings when using fill_by for size calculation
+- test(ManhattanPlot): update highlight threshold from 1e-5 to 1e-3
+
+## Version 0.12.0
+
+- chore: update .Rbuildignore and .gitignore to exclude .vscode directory
+- refactor(Heatmap): remove deprecated annotation parameters and introduce alias support
+- feat(Heatmap): add default dimensions for simple annotations in Heatmap function
+- fix(Heatmap): resolve annotation name and legend overlap issue in ComplexHeatmap
+- feat: set default figure dimensions in pkgdown and basic design vignette
+- test: add unit tests for plot functions
+- ci: add missing 'remotes' package to workflow dependencies
+- fix(Heatmap): add validation to ensure data is not empty in process_heatmap_data function
+- feat(Heatmap): add draw_opts parameter for additional drawing options
+- feat(Heatmap): add aspect.ratio parameter for cell dimension control
+- fix(Heatmap): update cell dimension calculations to use actual matrix dimensions
+- fix(Heatmap): improve handling of annotation names to prevent overlap with legends
+- feat(Heatmap): add alignment options for heatmap and annotation legends
+- feat(Heatmap): add label customization options including color, size, and legend title
+- feat(Heatmap): add support for marks on heatmap cells with customization options
+- feat(Heatmap): add base_size parameter for scaling heatmap size
+- feat(Heatmap): enhance more aliases support for row and column annotations
+- feat(Heatmap): improve aspect ratio handling and dimension constraints for heatmap plots
+- feat(Heatmap): add support for combined label and mark cell type
+- feat(Heatmap): add octagon mark type support for heatmap cells
+
+## Version 0.11.1
+
+- feat(BoxPlot): add support for bar plots with error bars
+- chore: add additional repositories link to DESCRIPTION file for ggmanh
+
 ## Version 0.11.0
 
 - feat(palette): add tableau color palettes to palette list
