@@ -2982,8 +2982,8 @@ FeatureDimPlot <- function(
         names(plots) <- features
         split_by <- ".features"
     } else {
-        keep_na <- check_keep_na(keep_na, c(facet_by, stat_by))
-        keep_empty <- check_keep_empty(keep_empty, c(facet_by, stat_by))
+        keep_na <- check_keep_na(keep_na, c(facet_by, stat_by, split_by))
+        keep_empty <- check_keep_empty(keep_empty, c(facet_by, stat_by, split_by))
 
         split_by <- check_columns(
             data,
