@@ -2,7 +2,7 @@
 % Please edit documentation in R/rarefractionplot.R
 \name{RarefactionPlot}
 \alias{RarefactionPlot}
-\title{RarefactionPlot}
+\title{Rarefaction / extrapolation plot}
 \usage{
 RarefactionPlot(
   data,
@@ -48,25 +48,39 @@ RarefactionPlot(
 \arguments{
 \item{data}{A data frame.}
 
-\item{type}{three types of plots: sample-size-based rarefaction/extrapolation curve (\code{type = 1});
-sample completeness curve (\code{type = 2}); coverage-based rarefaction/extrapolation curve (\code{type = 3}).}
+\item{type}{An integer specifying the curve type: \code{1} for
+sample-size-based rarefaction/extrapolation, \code{2} for sample
+completeness, or \code{3} for coverage-based rarefaction/extrapolation.
+A vector of types can be passed and the data will be fortifed for all of
+them; faceting or splitting then separates the panels.  Default: \code{1}.}
 
-\item{se}{a logical variable to display confidence interval around the estimated sampling curve.
-Default to \code{NULL} which means TRUE if the data has the lower and upper bounds.}
+\item{se}{A logical value indicating whether to display confidence intervals
+as semi-transparent ribbons around the estimated curve.  When \code{NULL}
+(the default), it resolves to \code{TRUE} if the fortifed data contains
+\code{y.lwr} and \code{y.upr} columns, and \code{FALSE} otherwise.}
 
 \item{group_by}{Columns to group the data for plotting
 For those plotting functions that do not support multiple groups,
 They will be concatenated into one column, using \code{group_by_sep} as the separator}
 
-\item{group_by_sep}{A character string indicating how to separate the group_by column if both "q" and "group" are used.
-for 'group_by'. Default to "_".}
+\item{group_by_sep}{A character string used to join multiple
+\code{group_by} column values when \code{group_by} has length > 1.
+Also used by the exported function for the group concatenation.
+Default: \code{"_"}.}
 
-\item{group_name}{A character string indicating the name of the group, showing as the legend title.}
+\item{group_name}{A character string used as the title for the colour
+(and shape) legend.  When \code{NULL} (the default), the value of
+\code{group_by} is used.}
 
-\item{split_by}{A character string indicating how to split the data and plots
-Possible values are "q" and "group"}
+\item{split_by}{A character vector specifying how to split the data into
+separate sub-plots.  Must be one or both of \code{"q"} (diversity order)
+and \code{"group"} (assemblage/site).  Multiple values are concatenated
+with \code{split_by_sep}.  Cannot overlap with \code{group_by} or
+\code{facet_by}.  Default: \code{NULL}.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
+\item{split_by_sep}{A character string used to join multiple
+\code{split_by} column values when \code{split_by} has length > 1.
+Default: \code{"_"}.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -84,9 +98,11 @@ If some values are missing, the values from the palette will be used (palcolor w
 
 \item{alpha}{A numeric value specifying the transparency of the plot.}
 
-\item{pt_size}{A numeric value specifying the size of the points.}
+\item{pt_size}{A numeric value specifying the size of the observed-data
+points.  Default: \code{3}.}
 
-\item{line_width}{A numeric value specifying the width of the lines.}
+\item{line_width}{A numeric value specifying the width of the rarefaction /
+extrapolation lines.  Default: \code{1}.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
@@ -120,55 +136,99 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{ylab}{A character string specifying the y-axis label.}
 
-\item{seed}{The random seed to use. Default is 8525.}
+\item{seed}{A numeric seed for reproducibility.  Passed to
+\code{\link{validate_common_args}()}.  Default: \code{8525}.}
 
-\item{combine}{Whether to combine the plots into one when facet is FALSE. Default is TRUE.}
+\item{combine}{Logical; when \code{TRUE} (default), returns a combined
+\code{patchwork} object.  When \code{FALSE}, returns a named list of
+individual \code{ggplot} objects.}
 
-\item{nrow}{A numeric value specifying the number of rows in the facet.}
+\item{ncol, nrow}{Integer number of columns / rows for the combined layout
+(passed to \code{\link[patchwork]{wrap_plots}}).}
 
-\item{ncol}{A numeric value specifying the number of columns in the facet.}
+\item{byrow}{Logical; fill the combined layout by row.  Default \code{TRUE}.}
 
-\item{byrow}{A logical value indicating whether to fill the plots by row.}
+\item{axes}{A character string specifying how axes should be treated across
+the combined layout (passed to \code{\link{combine_plots}()}).}
 
-\item{axes}{A string specifying how axes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axes in individual plots.
-\item 'collect' will remove duplicated axes when placed in the same run of rows or columns of the layout.
-\item 'collect_x' and 'collect_y' will remove duplicated x-axes in the columns or duplicated y-axes in the rows respectively.
-}}
+\item{axis_titles}{A character string specifying how axis titles should be
+treated across the combined layout.  Defaults to \code{axes}.}
 
-\item{axis_titles}{A string specifying how axis titltes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axis titles in individual plots.
-\item 'collect' will remove duplicated titles in one direction and merge titles in the opposite direction.
-\item 'collect_x' and 'collect_y' control this for x-axis titles and y-axis titles respectively.
-}}
+\item{guides}{A character string specifying how guides (legends) should be
+collected across panels (passed to \code{\link{combine_plots}()}).}
 
-\item{guides}{A string specifying how guides should be treated in the layout. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'collect' will collect guides below to the given nesting level, removing duplicates.
-\item 'keep' will stop collection at this level and let guides be placed alongside their plot.
-\item 'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.
-}}
+\item{design}{A custom layout design for the combined plot (passed to
+\code{\link{combine_plots}()}).}
 
-\item{design}{Specification of the location of areas in the layout, passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE. When specified, \code{nrow}, \code{ncol}, and \code{byrow} are ignored.
-See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details.}
-
-\item{...}{Additional arguments.}
+\item{...}{Additional arguments passed to \code{\link[iNEXT]{iNEXT}} when
+\code{data} is not already an \code{iNEXT} object.  Common options include
+\code{q} (diversity order, default \code{c(0, 1, 2)}), \code{datatype}
+(\code{"abundance"} or \code{"incidence"}), and \code{nboot} (number of
+bootstrap replicates).}
 }
 \value{
-A ggplot object or wrap_plots object or a list of ggplot objects
+A \code{ggplot} object (single split), a \code{patchwork} object
+(multiple splits with \code{combine = TRUE}), or a named list of
+\code{ggplot} objects (when \code{combine = FALSE}), each with
+\code{height} and \code{width} attributes in inches.
 }
 \description{
-This function generates a rarefraction plot for a given dataset.
+Draws rarefaction and extrapolation curves for biodiversity data using the
+\code{iNEXT} package.  Accepts raw species-abundance / incidence-frequency
+lists (which are passed to \code{\link[iNEXT]{iNEXT}()} for estimation) or
+pre-computed \code{iNEXT} objects.
+
+The function supports three curve types (sample-size-based, sample
+completeness, and coverage-based), diversity orders (\code{q}), per-group
+colouring, faceting, and splitting into separate sub-plots via
+\code{split_by}.  Observed data are marked with points, rarefaction lines
+are solid, and extrapolation segments are dashed.  Confidence intervals are
+shown as semi-transparent ribbons.
 }
+\section{split_by workflow}{
+
+When \code{split_by} is provided:
+\enumerate{
+\item \code{\link{validate_common_args}()} checks the \code{seed} and
+\code{facet_by} validity.
+\item The \code{type} argument is validated (must be one or more of
+1, 2, 3).
+\item \code{group_by}, \code{split_by}, and \code{facet_by} are validated
+for allowed values (\code{"q"} and/or \code{"group"}) and checked
+for mutual exclusivity — no parameter may overlap with another.
+\item If \code{data} is not an \code{iNEXT} object, it is passed to
+\code{\link[iNEXT]{iNEXT}()} with \code{...} (which may contain
+\code{q}, \code{datatype}, \code{nboot}, etc.).
+\item The \code{iNEXT} object is fortifed via
+\code{\link[ggplot2]{fortify}()} for the requested \code{type}s.
+Columns \code{Assemblage} and \code{Order.q} are renamed to
+\code{group} and \code{q}, respectively.
+\item The \code{se} parameter is resolved: if \code{NULL} it becomes
+\code{TRUE} when the fortifed data contains \code{y.lwr} /
+\code{y.upr} columns.
+\item A \code{lty} column is created (factor with levels
+\code{"Rarefaction"} and \code{"Extrapolation"}) to distinguish the
+two line phases via solid / dashed linetypes.
+\item \code{group_by}, \code{split_by}, and \code{facet_by} are processed
+via \code{\link{check_columns}()} with \code{force_factor = TRUE}
+and multi-column concatenation.
+\item If \code{group_by} is \code{NULL}, a dummy \code{".group"} column
+is created and the legend is hidden.
+\item The data is split by \code{split_by} (preserving level order).  If
+\code{split_by} is \code{NULL}, the data is wrapped in a
+single-element list with name \code{"..."}.
+\item Per-split \code{palette}, \code{palcolor},
+\code{legend.position}, and \code{legend.direction} are resolved
+via \code{\link{check_palette}()}, \code{\link{check_palcolor}()},
+and \code{\link{check_legend}()}.
+\item \code{\link{RarefactionPlotAtomic}()} is called for each split.
+If \code{title} is a function, it receives the split level name and
+can generate dynamic titles.
+\item Results are combined via \code{\link{combine_plots}()} (when
+\code{combine = TRUE}) or returned as a named list.
+}
+}
+
 \examples{
 \donttest{
 set.seed(8525)
@@ -178,11 +238,21 @@ spider <- list(
      2, 2, 2, 2, rep(1, 14))
 )
 
+# Basic sample-size-based rarefaction (type = 1)
 RarefactionPlot(spider)
+
+# Multiple diversity orders with faceting
 RarefactionPlot(spider, q = c(0, 1, 2), facet_by = "q")
+
+# Multiple diversity orders split into sub-plots
 RarefactionPlot(spider, q = c(0, 1, 2), split_by = "q")
+
+# Per-split palettes
 RarefactionPlot(spider, q = c(0, 1, 2), split_by = "q",
                 palette = c("0" = "Paired", "1" = "Set1", "2" = "Dark2"))
+
+# Coverage-based rarefaction (type = 3) with
+# group_by = "q" and facet_by = "group"
 RarefactionPlot(spider, q = c(0, 1, 2), group_by = "q",
  facet_by = "group", palette = "Set1", type = 3)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/rarefractionplot.R
 \name{RarefactionPlotAtomic}
 \alias{RarefactionPlotAtomic}
-\title{RarefactionPlotAtomic}
+\title{Atomic rarefaction / extrapolation plot (internal)}
 \usage{
 RarefactionPlotAtomic(
   data,
@@ -34,30 +34,51 @@ RarefactionPlotAtomic(
 )
 }
 \arguments{
-\item{data}{An iNEXT object or a list of data that will be handled by \link[iNEXT:iNEXT]{iNEXT::iNEXT}.}
+\item{data}{A data frame produced by \code{\link[ggplot2]{fortify}()} on an
+\code{iNEXT} object.  Expected to contain columns \code{x} (sample size or
+coverage), \code{y} (diversity or coverage estimate), \code{Method}
+(\code{"Observed"}, \code{"Rarefaction"}, \code{"Extrapolation"}),
+\code{y.lwr} / \code{y.upr} (confidence bounds, optional), \code{datatype}
+(\code{"abundance"} or \code{"incidence"}), \code{group} (assemblage name,
+renamed from \code{Assemblage}), and \code{q} (diversity order, renamed
+from \code{Order.q}).}
 
-\item{type}{three types of plots: sample-size-based rarefaction/extrapolation curve (\code{type = 1});
-sample completeness curve (\code{type = 2}); coverage-based rarefaction/extrapolation curve (\code{type = 3}).}
+\item{type}{An integer specifying the curve type: \code{1} for
+sample-size-based rarefaction/extrapolation, \code{2} for sample
+completeness, or \code{3} for coverage-based rarefaction/extrapolation.
+A vector of types can be passed and the data will be fortifed for all of
+them; faceting or splitting then separates the panels.  Default: \code{1}.}
 
-\item{se}{a logical variable to display confidence interval around the estimated sampling curve.
-Default to \code{NULL} which means TRUE if the data has the lower and upper bounds.}
+\item{se}{A logical value indicating whether to display confidence intervals
+as semi-transparent ribbons around the estimated curve.  When \code{NULL}
+(the default), it resolves to \code{TRUE} if the fortifed data contains
+\code{y.lwr} and \code{y.upr} columns, and \code{FALSE} otherwise.}
 
-\item{group_by}{A character string indicating how to group the data (color the lines).
-Possible values are "q" and "group"}
+\item{group_by}{A character vector specifying how to group the data for
+colouring the lines.  Must be one or both of \code{"q"} (diversity order)
+and \code{"group"} (assemblage/site).  Multiple values are concatenated
+with \code{group_by_sep}.  When \code{NULL}, a dummy \code{".group"}
+column is created and the legend is hidden.  Default: \code{"group"}.}
 
-\item{group_name}{A character string indicating the name of the group, showing as the legend title.}
+\item{group_name}{A character string used as the title for the colour
+(and shape) legend.  When \code{NULL} (the default), the value of
+\code{group_by} is used.}
 
-\item{pt_size}{A numeric value specifying the size of the points.}
+\item{pt_size}{A numeric value specifying the size of the observed-data
+points.  Default: \code{3}.}
 
-\item{line_width}{A numeric value specifying the width of the lines.}
+\item{line_width}{A numeric value specifying the width of the rarefaction /
+extrapolation lines.  Default: \code{1}.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
 
 \item{theme_args}{A list of arguments to pass to the theme function.}
 
-\item{palette}{A character string specifying the palette to use.
-A named list or vector can be used to specify the palettes for different \code{split_by} values.}
+\item{palette}{A character string specifying the colour palette to use.
+A named list or vector can be used to specify palettes for different
+\code{split_by} levels in the exported \code{\link{RarefactionPlot}}.
+Default: \code{"Spectral"}.}
 
 \item{palcolor}{A character string specifying the color to use in the palette.
 A named list can be used to specify the colors for different \code{split_by} values.
@@ -65,10 +86,12 @@ If some values are missing, the values from the palette will be used (palcolor w
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
-\item{alpha}{A numeric value specifying the transparency of the plot.}
+\item{alpha}{A numeric value between 0 and 1 specifying the transparency
+of the confidence-interval ribbon fill.  Default: \code{0.2}.}
 
-\item{facet_by}{A character string indicating how to facet the data and plots
-Possible values are "q" and "group"}
+\item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
+Otherwise, the data will be split by \code{split_by} and generate multiple plots
+and combine them into one using \code{patchwork::wrap_plots}}
 
 \item{facet_scales}{Whether to scale the axes of facets. Default is "fixed"
 Other options are "free", "free_x", "free_y". See \code{ggplot2::facet_wrap}}
@@ -98,12 +121,89 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{ylab}{A character string specifying the y-axis label.}
 
-\item{...}{Additional arguments to pass to \link[iNEXT:iNEXT]{iNEXT::iNEXT} when \code{data} is not an iNEXT object.}
+\item{...}{Additional arguments (currently unused in the atomic function;
+accepted for forward compatibility with the exported wrapper).}
 }
 \value{
-A ggplot object.
+A \code{ggplot} object with \code{height} and \code{width}
+attributes (in inches) attached.
 }
 \description{
-This function generates a rarefraction plot for a given dataset.
+Core implementation for drawing a single rarefaction (or extrapolation)
+curve from biodiversity data.  This is the workhorse behind the exported
+\code{\link{RarefactionPlot}} — it takes a \strong{single} fortifed data frame
+(produced by \code{\link[ggplot2]{fortify}()} on an \code{iNEXT} object)
+and returns a \code{ggplot} object.
+
+The function renders three types of curves:
+\enumerate{
+\item \strong{Sample-size-based} (\code{type = 1}) — species diversity
+as a function of sample size (number of individuals or sampling
+units), with rarefaction (interpolation) and extrapolation segments.
+\item \strong{Sample completeness} (\code{type = 2}) — sample coverage
+as a function of sample size.
+\item \strong{Coverage-based} (\code{type = 3}) — species diversity as a
+function of sample coverage.
 }
+
+Observed data points are marked with \code{geom_point()} (shape per group),
+the rarefaction / extrapolation lines are drawn with \code{geom_line()}
+using a solid/dashed linetype to distinguish the two phases, and
+confidence intervals are rendered as semi-transparent ribbons when
+\code{se = TRUE} and the fortifed data contains \code{y.lwr} / \code{y.upr}
+columns.
+}
+\section{Architecture}{
+
+\enumerate{
+\item \strong{ggplot dispatch} — selects \code{gglogger::ggplot} or
+\code{ggplot2::ggplot} based on
+\code{getOption("plotthis.gglogger.enabled")}.
+\item \strong{Axis labels} — set according to the combination of
+\code{type} and the data's \code{datatype} attribute
+(\code{"abundance"} vs. \code{"incidence"}):
+\itemize{
+\item \code{type = 2}: x = "Number of individuals" or
+"Number of sampling units", y = "Sample coverage".
+\item \code{type = 3 || 4}: x = "Sample coverage",
+y = "Species diversity".
+\item \code{type = 1} (abundance): x = "Number of individuals",
+y = "Species diversity".
+\item \code{type = 1} (incidence): x = "Number of sampling units",
+y = "Species diversity".
+}
+\item \strong{Group name fallback} — if \code{group_name} is \code{NULL},
+it is set to the value of \code{group_by} (i.e. \code{"q"} or
+\code{"group"}).
+\item \strong{Base ggplot} — initialises \code{ggplot(data, aes(x, y,
+        color = group_by))}.
+\item \strong{Observed data points} — \code{geom_point()} on rows where
+\code{Method == "Observed"}, with shape mapped to the group variable.
+\item \strong{Colour scale} — \code{scale_color_manual()} using
+\code{\link{palette_this}()}.  The legend is suppressed when
+\code{group_by} is the dummy \code{".group"}.
+\item \strong{Shape scale} — \code{scale_shape_discrete()} with the same
+legend-suppression logic.
+\item \strong{Rarefaction / extrapolation lines} — \code{geom_line()}
+with linetype mapped to the \code{lty} column (\code{"Rarefaction"}
+vs. \code{"Extrapolation"}).
+\item \strong{Linetype scale} — \code{scale_linetype_manual()} with
+\code{solid} and \code{dashed} values, legend key width set to
+1 cm.
+\item \strong{Theme and labels} — \code{do_call(theme, theme_args)},
+\code{panel.grid.major} (grey80 dashed), aspect ratio, legend
+position / direction, and title / subtitle.
+\item \strong{Confidence ribbon} — when \code{se = TRUE}, a
+\code{geom_ribbon(aes(ymin = y.lwr, ymax = y.upr, fill = group_by))}
+is added with the same per-group palette at transparency
+\code{alpha}.
+\item \strong{Dimension calculation} — \code{\link{calculate_plot_dimensions}()}
+computes \code{height} / \code{width} attributes from
+\code{base_height = 4.5}, \code{aspect.ratio}, and legend metrics.
+\item \strong{Faceting} — \code{\link{facet_plot}()} wraps the plot with
+\code{facet_wrap} / \code{facet_grid} if \code{facet_by} is
+provided.
+}
+}
+
 \keyword{internal}
