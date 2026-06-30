@@ -2,7 +2,7 @@
 % Please edit documentation in R/jitterplot.R
 \name{JitterPlotAtomic}
 \alias{JitterPlotAtomic}
-\title{Atomic Jitter plot}
+\title{Atomic jitter plot (internal)}
 \usage{
 JitterPlotAtomic(
   data,
@@ -76,16 +76,25 @@ JitterPlotAtomic(
 \arguments{
 \item{data}{A data frame.}
 
-\item{x}{A character string of the column name to plot on the x-axis.
-A character/factor column is expected. If multiple columns are provided, the columns will be concatenated with \code{x_sep}.}
+\item{x}{A character string specifying the column name for the x-axis.
+Must be character or factor.  Multiple columns can be provided; they are
+concatenated with \code{x_sep} as the separator.  When \code{in_form} is
+\code{"wide"}, the \code{x} columns are used as key columns and pivoted
+to long format (they are not concatenated).}
 
-\item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.
-When \code{in_form} is "wide", \code{x} columns will not be concatenated.}
+\item{x_sep}{A character string used to join multiple \code{x} columns.
+Default \code{"_"}.  Ignored when \code{x} is a single column or when
+\code{in_form} is \code{"wide"}.}
 
-\item{y}{A character string of the column name to plot on the y-axis. A numeric column is expected.
-When \code{in_form} is "wide", \code{y} is not required. The values under \code{x} columns will be used as y-values.}
+\item{y}{A character string specifying the numeric column for the y-axis.
+Required when \code{in_form} is \code{"long"} (default).  When
+\code{in_form} is \code{"wide"}, \code{y} is not required — the values
+under the \code{x} columns are used as y-values.}
 
-\item{in_form}{A character string to specify the input data type. Either "long" or "wide".}
+\item{in_form}{A character string specifying the input data format.  Either
+\code{"long"} (default) or \code{"wide"}.  In \code{"long"} format,
+\code{x} and \code{y} are separate columns.  In \code{"wide"} format, the
+\code{x} columns contain the y-values and are pivoted to a key-value pair.}
 
 \item{keep_na}{A logical value or a character to replace the NA values in the data.
 It can also take a named list to specify different behavior for different columns.
@@ -108,29 +117,39 @@ But they will be assigned colors from the palette to maintain consistency across
 Alias: \code{levels}}
 }}
 
-\item{sort_x}{A character string to specify the sorting of x-axis, chosen from "none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median".
-\itemize{
-\item \code{none} means no sorting (as-is).
-\item \code{mean_asc} sorts the x-axis by ascending mean of y-values.
-\item \code{mean_desc} sorts the x-axis by descending mean of y-values.
-\item \code{mean} is an alias for \code{mean_asc}.
-\item \code{median_asc} sorts the x-axis by ascending median of y-values.
-\item \code{median_desc} sorts the x-axis by descending median of y-values.
-\item \code{median} is an alias for \code{median_asc}.
-}}
+\item{sort_x}{A character string controlling x-axis level reordering by
+y-value summaries.  One of \code{"none"}, \code{"mean_asc"},
+\code{"mean_desc"}, \code{"mean"}, \code{"median_asc"},
+\code{"median_desc"}, \code{"median"}.  \code{"none"} leaves the levels
+as-is.  \code{"mean_asc"} / \code{"mean"} sorts by ascending mean of y.
+\code{"mean_desc"} sorts by descending mean.  \code{"median_asc"} /
+\code{"median"} sorts by ascending median.  \code{"median_desc"} sorts by
+descending median.  Default: \code{"none"}.}
 
-\item{flip}{A logical value to flip the plot.}
+\item{flip}{A logical value.  When \code{TRUE}, the x and y axes are
+swapped via \code{coord_flip} and the x-axis factor levels are reversed.
+Dimension calculation accounts for the flip.  Default: \code{FALSE}.}
 
-\item{group_by}{A character string to dodge the points.}
+\item{group_by}{A character vector of column names for dodging the points.
+Each unique combination becomes a separate dodge group and the points are
+offset horizontally via \code{position_jitterdodge} to reduce overlap.
+Multiple columns are concatenated with \code{group_by_sep}.  When
+\code{NULL} (default), no dodging is applied — only jitter via
+\code{position_jitter}.}
 
-\item{group_by_sep}{A character string to concatenate the columns in \code{group_by}, if multiple columns are provided.}
+\item{group_by_sep}{A character string used to join multiple
+\code{group_by} columns.  Default \code{"_"}.}
 
-\item{group_name}{A character string to name the legend of dodge.}
+\item{group_name}{A character string for the dodge-group legend title.
+When \code{NULL} (default), the \code{group_by} column name is used.}
 
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
 
-\item{order_by}{A string of expression passed to \code{dplyr::arrange()} to order the data to get the
-top \code{nlabel} points for labeling. Default is \code{-({y}^2 + {size_by}^2)} (similar to VolcanoPlot).}
+\item{order_by}{A string expression passed to \code{\link[dplyr]{arrange}()}
+to determine which points are labelled.  Evaluated within each x-group
+(and facet panel when \code{facet_by} is set).  Default:
+\code{"-({y}^2 + {size_by}^2)"}, which selects points farthest from the
+origin in y-size radial distance, analogous to VolcanoPlot.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -146,7 +165,8 @@ If some values are missing, the values from the palette will be used (palcolor w
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
-\item{alpha}{Point transparency.}
+\item{alpha}{A numeric value in \code{[0, 1]} controlling point
+transparency.  Default: \code{1}.}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
@@ -155,54 +175,119 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
-\item{shape}{A numeric value to specify the point shape.
-Shapes 21–25 have borders; border behavior is controlled by \code{border}.}
+\item{shape}{A numeric value specifying the point shape (ggplot2 point
+shape codes).  Shapes 21–25 are filled shapes with borders; for these
+shapes the border behaviour is controlled by \code{border}.  Default:
+\code{21} (filled circle).}
 
-\item{border}{A logical or character value to specify the border of points when the shape has border (21–25).
-If TRUE, border color follows the point color (same as fill). If a color string, uses that constant border color.
-If FALSE, no border.}
+\item{border}{Controls the border of points when the shape has a border
+(21–25).  If \code{TRUE}, the border colour follows the point fill colour
+(same as the group colour).  If a single colour string (e.g.
+\code{"black"}), uses that constant border colour for all points.  If
+\code{FALSE}, no border is drawn (\code{NA}).  Default: \code{"black"}.}
 
-\item{size_by}{A numeric column name or a single numeric value for the point size.
-When a column, sizes are scaled (see scatter plots).}
+\item{size_by}{A numeric column name or a single numeric value controlling
+point size.  When a column name is provided, sizes are scaled using
+\code{scale_size_area(max_size = 6)} and a size legend is shown.  When a
+single numeric value, all points use that constant size.  Default:
+\code{2}.}
 
-\item{size_name}{Legend title for size when \code{size_by} is a column.}
+\item{size_name}{A character string for the size legend title.  When
+\code{NULL} (default) and \code{size_by} is a column, the column name is
+used.  Ignored when \code{size_by} is a single numeric value.}
 
-\item{size_trans}{A function or a name of a global function to transform \code{size_by} (when \code{size_by} is a column).
-The legend shows original (untransformed) values.}
+\item{size_trans}{A function or a function name (as a string) to transform
+the \code{size_by} values for size mapping.  The transformed values
+determine the point size on the plot, but the legend labels show the
+original (untransformed) values.  When \code{NULL} (default), no
+transformation is applied.}
 
-\item{jitter_width, jitter_height}{Jitter parameters.}
+\item{y_nbreaks}{A numeric value hinting at the number of break intervals
+for the y-axis.  Passed to \code{scale_y_continuous}.  Default: \code{4}.}
 
-\item{y_max, y_min}{Numeric or quantile strings ("q95", "q5") for y limits computation (used for fixed coord).}
+\item{jitter_width}{A numeric value controlling the amount of horizontal
+jitter (in x-axis units).  Passed to \code{position_jitter} /
+\code{position_jitterdodge}.  Default: \code{0.5}.}
 
-\item{y_trans, y_nbreaks}{Axis settings.}
+\item{jitter_height}{A numeric value controlling the amount of vertical
+jitter (in y-axis units).  Passed to \code{position_jitter} /
+\code{position_jitterdodge}.  Default: \code{0}.}
 
-\item{add_bg}{A logical value to add background to the plot.}
+\item{y_max, y_min}{Numeric values or quantile strings (e.g. \code{"q95"},
+\code{"q5"}) for y-axis limits used in \code{coord_cartesian} /
+\code{coord_flip}.  When \code{NULL} (default), the data range is used.
+When a quantile string, the corresponding quantile of the y-values is
+computed via \code{\link[stats]{quantile}()}.}
 
-\item{bg_palette}{A character string to specify the palette of the background.}
+\item{y_trans}{A character string specifying a transformation for the
+y-axis (e.g. \code{"log10"}, \code{"sqrt"}).  Passed to
+\code{\link[ggplot2]{scale_y_continuous}}.  Default: \code{"identity"}.}
 
-\item{bg_palcolor}{A character vector to specify the colors of the background.}
+\item{add_bg}{A logical value.  When \code{TRUE}, alternating background
+stripes are drawn behind the points via \code{\link{bg_layer}()}, using
+the x-axis level order.  Default: \code{FALSE}.}
 
-\item{bg_alpha}{A numeric value to specify the transparency of the background.}
+\item{bg_palette}{A character string specifying the palette for the
+background stripe colours.  Passed to \code{\link{bg_layer}()}.
+Default: \code{"stripe"}.}
 
-\item{add_hline}{Add one or more horizontal reference lines at the given y-value(s).}
+\item{bg_palcolor}{A character vector of colours for the background
+stripes.  Passed to \code{\link{bg_layer}()}.  When \code{NULL} (default),
+colours are derived from \code{bg_palette}.}
 
-\item{hline_type}{The line type for the horizontal reference line(s).}
+\item{bg_alpha}{A numeric value in \code{[0, 1]} for the transparency of
+the background stripes.  Default: \code{0.2}.}
 
-\item{hline_width}{The line width for the horizontal reference line(s).}
+\item{add_hline}{One or more numeric values specifying y-values at which
+to draw horizontal reference lines.  When \code{NULL} (default), no
+reference lines are drawn.}
 
-\item{hline_color}{The color for the horizontal reference line(s).}
+\item{hline_type}{A character string specifying the line type for the
+horizontal reference line(s).  Default: \code{"solid"}.}
 
-\item{hline_alpha}{The alpha for the horizontal reference line(s).}
+\item{hline_width}{A numeric value specifying the line width for the
+horizontal reference line(s).  Default: \code{0.5}.}
 
-\item{labels}{A vector of row names or indices to label the points.}
+\item{hline_color}{A character string specifying the colour for the
+horizontal reference line(s).  Default: \code{"black"}.}
 
-\item{label_by}{A character column name to use as the label text. If NULL, rownames are used.}
+\item{hline_alpha}{A numeric value in \code{[0, 1]} specifying the alpha
+(transparency) for the horizontal reference line(s).  Default: \code{1}.}
 
-\item{nlabel}{Number of points to label per x-group when \code{labels} is NULL (top by y^2 + size^2).}
+\item{labels}{A vector of row names or row indices specifying which points
+to label.  When \code{NULL} (default) and \code{nlabel > 0}, the top
+\code{nlabel} points per x-group are selected automatically.}
 
-\item{label_size, label_fg, label_bg, label_bg_r}{Label aesthetics.}
+\item{label_by}{A character string naming a column whose values are used
+as label text.  When \code{NULL} (default), row names are used as labels.}
 
-\item{highlight, highlight_color, highlight_size, highlight_alpha}{Highlighted point options.}
+\item{nlabel}{An integer specifying the number of points to label per
+x-group when \code{labels} is \code{NULL}.  Points are selected by
+descending order of \code{order_by}.  Default: \code{5}.  Set to
+\code{0} to suppress automatic labelling.}
+
+\item{label_size, label_fg, label_bg, label_bg_r}{Label aesthetics for
+\code{\link[ggrepel]{geom_text_repel}}.  \code{label_size}: text size
+(default \code{3}).  \code{label_fg}: text colour (default
+\code{"black"}).  \code{label_bg}: background (halo) colour for the label
+text (default \code{"white"}).  \code{label_bg_r}: background border
+radius (default \code{0.1}).}
+
+\item{highlight}{A specification of which points to highlight.  Can be:
+\code{TRUE} (highlight all points), a numeric vector of row indices, a
+single character string parsed as an \R expression, or a character vector
+of row names.  When a point is highlighted, an overlay \code{geom_point}
+is drawn on top with \code{highlight_color}, \code{highlight_size}, and
+\code{highlight_alpha}.  Default: \code{NULL} (no highlighting).}
+
+\item{highlight_color}{A character string specifying the colour of
+highlighted points.  Default: \code{"red2"}.}
+
+\item{highlight_size}{A numeric value specifying the size of highlighted
+points.  Default: \code{1}.}
+
+\item{highlight_alpha}{A numeric value in \code{[0, 1]} specifying the
+transparency of highlighted points.  Default: \code{1}.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
@@ -234,9 +319,142 @@ This is useful when split_by is used and the title needs to be dynamic.}
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object
+A \code{ggplot} object with \code{height} and \code{width}
+attributes (in inches) attached.
 }
 \description{
-Atomic Jitter plot
+Core implementation for drawing a single jittered point plot.  This is the
+workhorse behind the exported \code{\link{JitterPlot}} function — it takes a
+\strong{single} data frame (no \code{split_by} support) and returns a
+\code{ggplot} object.  The plot displays individual data points with random
+jitter along the x-axis (and optionally the y-axis) to reveal the
+distribution of values within each x category, making it especially useful
+for visualising overlapping discrete data.
+
+The function provides extensive annotation features including point labelling
+(via \code{\link[ggrepel]{geom_text_repel}} with automatic top-n selection
+using a configurable distance metric), point highlighting, optional dodging
+via \code{group_by}, and horizontal reference lines.  It supports both long
+and wide input formats, quantile-based axis limits, and x-axis reordering by
+y-value summaries (mean or median).
 }
+\section{Architecture}{
+
+\enumerate{
+\item \strong{ggplot dispatch} — selects \code{gglogger::ggplot} or
+\code{ggplot2::ggplot} based on
+\code{getOption("plotthis.gglogger.enabled")}.
+\item \strong{in_form handling} — when \code{in_form = "wide"}, the x
+columns are pivoted to long format via
+\code{\link[tidyr]{pivot_longer}()}, creating a key column
+\code{.x} and a value column \code{.y}.
+\item \strong{Column resolution} — \code{x}, \code{y}, \code{group_by},
+and \code{facet_by} are validated and transformed via
+\code{\link{check_columns}}.  Multi-column inputs for \code{x} and
+\code{group_by} are concatenated into single columns using their
+respective separators (\code{x_sep}, \code{group_by_sep}).
+\item \strong{NA / empty-level handling} — \code{\link{process_keep_na_empty}()}
+applies \code{keep_na} and \code{keep_empty} policies.  Per-column
+\code{keep_empty} settings are extracted for \code{x},
+\code{group_by}, and \code{facet_by} independently.  When
+\code{facet_by} has more than one column, the \code{keep_empty}
+values for all facet columns must be identical.
+\item \strong{sort_x resolution} — \code{match.arg()} normalises the
+\code{sort_x} argument, and per-group (\code{x}, \code{group_by},
+\code{facet_by}) means and medians of \code{y} are computed for
+subsequent reordering.
+\item \strong{y-axis limit computation} — \code{y_max} and \code{y_min}
+support raw numeric values or quantile strings (e.g. \code{"q95"}),
+which are resolved via \code{\link[stats]{quantile}()}.  These
+limits are used for fixed \code{coord_cartesian} / \code{coord_flip}.
+\item \strong{Highlight flag} — when \code{highlight} is provided, a
+logical column \code{.highlight} is created.  Values can be
+\code{TRUE} (all points), a numeric vector of row indices, a single
+character string parsed as an \R expression, or a character vector
+matched against row names.
+\item \strong{Label preparation} — labels are resolved from
+\code{label_by} or row names.  When \code{labels} is \code{NULL}
+and \code{nlabel > 0}, the top \code{nlabel} points per x-group are
+selected by descending order of \code{order_by} (default:
+\code{-({y}^2 + {size_by}^2)}, the radial distance from zero in
+y-size space, analogous to VolcanoPlot).  When \code{facet_by} is
+active, the ranking is nested within each facet panel.
+\item \strong{x-axis reordering} — when \code{sort_x} is not
+\code{"none"}, the x-axis factor levels are reordered by the
+per-group mean or median via \code{\link[stats]{reorder}()}.
+\item \strong{Flip handling} — when \code{flip = TRUE}, the x-axis
+factor levels are reversed and the aspect ratio is inverted.
+\item \strong{Colour assignment} — \code{\link{palette_this}()} assigns
+colours to the levels of \code{group_by} (or \code{x} when
+\code{group_by} is \code{NULL}), including \code{NA} levels which
+are relabelled as \code{"NA"}.
+\item \strong{Background layer} — when \code{add_bg = TRUE}, alternating
+background stripes are drawn via \code{\link{bg_layer}()} using the
+x-axis level order.
+\item \strong{Position jitter} — when \code{group_by} is \code{NULL},
+\code{\link[ggplot2]{position_jitter}()} is used.  When
+\code{group_by} is provided, \code{\link[ggplot2]{position_jitterdodge}()}
+is used so points are dodged by group before jittering.
+\item \strong{Pre-compute jittered positions} — a temporary \code{ggplot}
+is built and rendered via \code{ggplot_build()} to extract the
+actual jittered coordinates.  These are stored as \code{.x_jittered}
+and \code{.y_jittered} columns and used by the label layer because
+\code{geom_text_repel} does not natively respect
+\code{position_jitter} / \code{position_jitterdodge}.
+\item \strong{Point layer} — \code{geom_point()} is built with the
+appropriate aesthetic mapping: fill (for shapes 21–25) or colour
+(for other shapes) mapped to the grouping variable.  Border
+behaviour for shapes 21–25 is controlled by \code{border}
+(constant string, mapped to group colour, or \code{NA}).  When
+\code{size_by} is a column, size is mapped via \code{aes(size)}.
+\item \strong{Discrete colour/fill scales} —
+\code{scale_fill_manual()} or \code{scale_color_manual()} with the
+assigned palette colours.  When \code{keep_empty} is \code{TRUE}
+for the colour column, \code{drop = FALSE} and explicit
+\code{breaks} / \code{limits} preserve empty levels.  An additional
+\code{scale_color_manual()} is added for border colour when
+\code{border = TRUE}.
+\item \strong{Size scale} — when \code{size_by} is a column,
+\code{scale_size_area(max_size = 6)} is applied.  If
+\code{size_trans} is provided, the legend labels show the original
+(untransformed) values while the mapping uses transformed values.
+\item \strong{Highlight overlay} — if any points are highlighted, a
+second \code{geom_point()} layer is drawn on top using the
+\code{highlight_color}, \code{highlight_size}, and
+\code{highlight_alpha} settings.  The highlight layer does not
+affect the legend.
+\item \strong{Label layer} — if any points are selected for labelling,
+\code{\link[ggrepel]{geom_text_repel}()} is rendered at the
+pre-computed jittered coordinates.
+\item \strong{Horizontal reference lines} — when \code{add_hline} is
+provided, \code{geom_hline()} is drawn using the specified line
+aesthetics.
+\item \strong{Axes and labels} — \code{scale_x_discrete()} (with
+\code{drop = !isTRUE(keep_empty_x)}),
+\code{scale_y_continuous(trans = y_trans, n.breaks = y_nbreaks)},
+and \code{labs()} set the axis scale properties and titles.
+\item \strong{Coordinate system} — when \code{flip = TRUE},
+\code{coord_flip()} is used with (or without) fixed y-limits
+depending on free-scale faceting.  When \code{flip = FALSE},
+\code{coord_cartesian()} sets the y-axis limits unless free scales
+are in use.
+\item \strong{Theme} — \code{do_call(theme, theme_args)} applies the
+selected theme, with additional \code{aspect.ratio}, x-axis text
+rotation, legend position, and legend direction adjustments.
+Panel grid lines are styled: major y-axis lines (dashed grey) for
+non-flipped plots; major x-axis lines for flipped plots.
+\item \strong{Dimension calculation} — \code{\link{calculate_plot_dimensions}()}
+computes plot height and width from the x-axis category count,
+\code{aspect.ratio}, dodge group count, legend metrics, and label
+character width.  The minimum dimensions account for x-axis label
+length.  The resulting \code{height} / \code{width} attributes are
+stored on the \code{ggplot} object.  For flipped plots, the width
+is set to at least \code{max(width, height)}.
+\item \strong{Faceting} — \code{\link{facet_plot}()} wraps the plot
+with \code{facet_wrap} / \code{facet_grid} if \code{facet_by} is
+provided, respecting the \code{keep_empty} setting for facet
+variables.
+}
+}
+
 \keyword{internal}

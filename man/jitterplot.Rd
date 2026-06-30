@@ -2,7 +2,7 @@
 % Please edit documentation in R/jitterplot.R
 \name{JitterPlot}
 \alias{JitterPlot}
-\title{Jitter Plot}
+\title{Jitter plot}
 \usage{
 JitterPlot(
   data,
@@ -86,20 +86,31 @@ JitterPlot(
 \arguments{
 \item{data}{A data frame.}
 
-\item{x}{A character string of the column name to plot on the x-axis.
-A character/factor column is expected. If multiple columns are provided, the columns will be concatenated with \code{x_sep}.}
+\item{x}{A character string specifying the column name for the x-axis.
+Must be character or factor.  Multiple columns can be provided; they are
+concatenated with \code{x_sep} as the separator.  When \code{in_form} is
+\code{"wide"}, the \code{x} columns are used as key columns and pivoted
+to long format (they are not concatenated).}
 
-\item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.
-When \code{in_form} is "wide", \code{x} columns will not be concatenated.}
+\item{x_sep}{A character string used to join multiple \code{x} columns.
+Default \code{"_"}.  Ignored when \code{x} is a single column or when
+\code{in_form} is \code{"wide"}.}
 
-\item{y}{A character string of the column name to plot on the y-axis. A numeric column is expected.
-When \code{in_form} is "wide", \code{y} is not required. The values under \code{x} columns will be used as y-values.}
+\item{y}{A character string specifying the numeric column for the y-axis.
+Required when \code{in_form} is \code{"long"} (default).  When
+\code{in_form} is \code{"wide"}, \code{y} is not required — the values
+under the \code{x} columns are used as y-values.}
 
-\item{in_form}{A character string to specify the input data type. Either "long" or "wide".}
+\item{in_form}{A character string specifying the input data format.  Either
+\code{"long"} (default) or \code{"wide"}.  In \code{"long"} format,
+\code{x} and \code{y} are separate columns.  In \code{"wide"} format, the
+\code{x} columns contain the y-values and are pivoted to a key-value pair.}
 
-\item{split_by}{The column(s) to split data by and plot separately.}
+\item{split_by}{The column(s) to split the data by and produce separate
+sub-plots.  Multiple columns are concatenated with \code{split_by_sep}.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
+\item{split_by_sep}{A character string to separate concatenated
+\code{split_by} columns.  Default \code{"_"}.}
 
 \item{keep_na}{A logical value or a character to replace the NA values in the data.
 It can also take a named list to specify different behavior for different columns.
@@ -122,29 +133,39 @@ But they will be assigned colors from the palette to maintain consistency across
 Alias: \code{levels}}
 }}
 
-\item{sort_x}{A character string to specify the sorting of x-axis, chosen from "none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc", "median".
-\itemize{
-\item \code{none} means no sorting (as-is).
-\item \code{mean_asc} sorts the x-axis by ascending mean of y-values.
-\item \code{mean_desc} sorts the x-axis by descending mean of y-values.
-\item \code{mean} is an alias for \code{mean_asc}.
-\item \code{median_asc} sorts the x-axis by ascending median of y-values.
-\item \code{median_desc} sorts the x-axis by descending median of y-values.
-\item \code{median} is an alias for \code{median_asc}.
-}}
+\item{sort_x}{A character string controlling x-axis level reordering by
+y-value summaries.  One of \code{"none"}, \code{"mean_asc"},
+\code{"mean_desc"}, \code{"mean"}, \code{"median_asc"},
+\code{"median_desc"}, \code{"median"}.  \code{"none"} leaves the levels
+as-is.  \code{"mean_asc"} / \code{"mean"} sorts by ascending mean of y.
+\code{"mean_desc"} sorts by descending mean.  \code{"median_asc"} /
+\code{"median"} sorts by ascending median.  \code{"median_desc"} sorts by
+descending median.  Default: \code{"none"}.}
 
-\item{flip}{A logical value to flip the plot.}
+\item{flip}{A logical value.  When \code{TRUE}, the x and y axes are
+swapped via \code{coord_flip} and the x-axis factor levels are reversed.
+Dimension calculation accounts for the flip.  Default: \code{FALSE}.}
 
-\item{group_by}{A character string to dodge the points.}
+\item{group_by}{A character vector of column names for dodging the points.
+Each unique combination becomes a separate dodge group and the points are
+offset horizontally via \code{position_jitterdodge} to reduce overlap.
+Multiple columns are concatenated with \code{group_by_sep}.  When
+\code{NULL} (default), no dodging is applied — only jitter via
+\code{position_jitter}.}
 
-\item{group_by_sep}{A character string to concatenate the columns in \code{group_by}, if multiple columns are provided.}
+\item{group_by_sep}{A character string used to join multiple
+\code{group_by} columns.  Default \code{"_"}.}
 
-\item{group_name}{A character string to name the legend of dodge.}
+\item{group_name}{A character string for the dodge-group legend title.
+When \code{NULL} (default), the \code{group_by} column name is used.}
 
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
 
-\item{order_by}{A string of expression passed to \code{dplyr::arrange()} to order the data to get the
-top \code{nlabel} points for labeling. Default is \code{-({y}^2 + {size_by}^2)} (similar to VolcanoPlot).}
+\item{order_by}{A string expression passed to \code{\link[dplyr]{arrange}()}
+to determine which points are labelled.  Evaluated within each x-group
+(and facet panel when \code{facet_by} is set).  Default:
+\code{"-({y}^2 + {size_by}^2)"}, which selects points farthest from the
+origin in y-size radial distance, analogous to VolcanoPlot.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -160,7 +181,8 @@ If some values are missing, the values from the palette will be used (palcolor w
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
-\item{alpha}{Point transparency.}
+\item{alpha}{A numeric value in \code{[0, 1]} controlling point
+transparency.  Default: \code{1}.}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
@@ -169,54 +191,119 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
-\item{shape}{A numeric value to specify the point shape.
-Shapes 21–25 have borders; border behavior is controlled by \code{border}.}
+\item{shape}{A numeric value specifying the point shape (ggplot2 point
+shape codes).  Shapes 21–25 are filled shapes with borders; for these
+shapes the border behaviour is controlled by \code{border}.  Default:
+\code{21} (filled circle).}
 
-\item{border}{A logical or character value to specify the border of points when the shape has border (21–25).
-If TRUE, border color follows the point color (same as fill). If a color string, uses that constant border color.
-If FALSE, no border.}
+\item{border}{Controls the border of points when the shape has a border
+(21–25).  If \code{TRUE}, the border colour follows the point fill colour
+(same as the group colour).  If a single colour string (e.g.
+\code{"black"}), uses that constant border colour for all points.  If
+\code{FALSE}, no border is drawn (\code{NA}).  Default: \code{"black"}.}
 
-\item{size_by}{A numeric column name or a single numeric value for the point size.
-When a column, sizes are scaled (see scatter plots).}
+\item{size_by}{A numeric column name or a single numeric value controlling
+point size.  When a column name is provided, sizes are scaled using
+\code{scale_size_area(max_size = 6)} and a size legend is shown.  When a
+single numeric value, all points use that constant size.  Default:
+\code{2}.}
 
-\item{size_name}{Legend title for size when \code{size_by} is a column.}
+\item{size_name}{A character string for the size legend title.  When
+\code{NULL} (default) and \code{size_by} is a column, the column name is
+used.  Ignored when \code{size_by} is a single numeric value.}
 
-\item{size_trans}{A function or a name of a global function to transform \code{size_by} (when \code{size_by} is a column).
-The legend shows original (untransformed) values.}
+\item{size_trans}{A function or a function name (as a string) to transform
+the \code{size_by} values for size mapping.  The transformed values
+determine the point size on the plot, but the legend labels show the
+original (untransformed) values.  When \code{NULL} (default), no
+transformation is applied.}
 
-\item{jitter_width, jitter_height}{Jitter parameters.}
+\item{y_nbreaks}{A numeric value hinting at the number of break intervals
+for the y-axis.  Passed to \code{scale_y_continuous}.  Default: \code{4}.}
 
-\item{y_max, y_min}{Numeric or quantile strings ("q95", "q5") for y limits computation (used for fixed coord).}
+\item{jitter_width}{A numeric value controlling the amount of horizontal
+jitter (in x-axis units).  Passed to \code{position_jitter} /
+\code{position_jitterdodge}.  Default: \code{0.5}.}
 
-\item{y_trans, y_nbreaks}{Axis settings.}
+\item{jitter_height}{A numeric value controlling the amount of vertical
+jitter (in y-axis units).  Passed to \code{position_jitter} /
+\code{position_jitterdodge}.  Default: \code{0}.}
 
-\item{add_bg}{A logical value to add background to the plot.}
+\item{y_max, y_min}{Numeric values or quantile strings (e.g. \code{"q95"},
+\code{"q5"}) for y-axis limits used in \code{coord_cartesian} /
+\code{coord_flip}.  When \code{NULL} (default), the data range is used.
+When a quantile string, the corresponding quantile of the y-values is
+computed via \code{\link[stats]{quantile}()}.}
 
-\item{bg_palette}{A character string to specify the palette of the background.}
+\item{y_trans}{A character string specifying a transformation for the
+y-axis (e.g. \code{"log10"}, \code{"sqrt"}).  Passed to
+\code{\link[ggplot2]{scale_y_continuous}}.  Default: \code{"identity"}.}
 
-\item{bg_palcolor}{A character vector to specify the colors of the background.}
+\item{add_bg}{A logical value.  When \code{TRUE}, alternating background
+stripes are drawn behind the points via \code{\link{bg_layer}()}, using
+the x-axis level order.  Default: \code{FALSE}.}
 
-\item{bg_alpha}{A numeric value to specify the transparency of the background.}
+\item{bg_palette}{A character string specifying the palette for the
+background stripe colours.  Passed to \code{\link{bg_layer}()}.
+Default: \code{"stripe"}.}
 
-\item{add_hline}{Add one or more horizontal reference lines at the given y-value(s).}
+\item{bg_palcolor}{A character vector of colours for the background
+stripes.  Passed to \code{\link{bg_layer}()}.  When \code{NULL} (default),
+colours are derived from \code{bg_palette}.}
 
-\item{hline_type}{The line type for the horizontal reference line(s).}
+\item{bg_alpha}{A numeric value in \code{[0, 1]} for the transparency of
+the background stripes.  Default: \code{0.2}.}
 
-\item{hline_width}{The line width for the horizontal reference line(s).}
+\item{add_hline}{One or more numeric values specifying y-values at which
+to draw horizontal reference lines.  When \code{NULL} (default), no
+reference lines are drawn.}
 
-\item{hline_color}{The color for the horizontal reference line(s).}
+\item{hline_type}{A character string specifying the line type for the
+horizontal reference line(s).  Default: \code{"solid"}.}
 
-\item{hline_alpha}{The alpha for the horizontal reference line(s).}
+\item{hline_width}{A numeric value specifying the line width for the
+horizontal reference line(s).  Default: \code{0.5}.}
 
-\item{labels}{A vector of row names or indices to label the points.}
+\item{hline_color}{A character string specifying the colour for the
+horizontal reference line(s).  Default: \code{"black"}.}
 
-\item{label_by}{A character column name to use as the label text. If NULL, rownames are used.}
+\item{hline_alpha}{A numeric value in \code{[0, 1]} specifying the alpha
+(transparency) for the horizontal reference line(s).  Default: \code{1}.}
 
-\item{nlabel}{Number of points to label per x-group when \code{labels} is NULL (top by y^2 + size^2).}
+\item{labels}{A vector of row names or row indices specifying which points
+to label.  When \code{NULL} (default) and \code{nlabel > 0}, the top
+\code{nlabel} points per x-group are selected automatically.}
 
-\item{label_size, label_fg, label_bg, label_bg_r}{Label aesthetics.}
+\item{label_by}{A character string naming a column whose values are used
+as label text.  When \code{NULL} (default), row names are used as labels.}
 
-\item{highlight, highlight_color, highlight_size, highlight_alpha}{Highlighted point options.}
+\item{nlabel}{An integer specifying the number of points to label per
+x-group when \code{labels} is \code{NULL}.  Points are selected by
+descending order of \code{order_by}.  Default: \code{5}.  Set to
+\code{0} to suppress automatic labelling.}
+
+\item{label_size, label_fg, label_bg, label_bg_r}{Label aesthetics for
+\code{\link[ggrepel]{geom_text_repel}}.  \code{label_size}: text size
+(default \code{3}).  \code{label_fg}: text colour (default
+\code{"black"}).  \code{label_bg}: background (halo) colour for the label
+text (default \code{"white"}).  \code{label_bg_r}: background border
+radius (default \code{0.1}).}
+
+\item{highlight}{A specification of which points to highlight.  Can be:
+\code{TRUE} (highlight all points), a numeric vector of row indices, a
+single character string parsed as an \R expression, or a character vector
+of row names.  When a point is highlighted, an overlay \code{geom_point}
+is drawn on top with \code{highlight_color}, \code{highlight_size}, and
+\code{highlight_alpha}.  Default: \code{NULL} (no highlighting).}
+
+\item{highlight_color}{A character string specifying the colour of
+highlighted points.  Default: \code{"red2"}.}
+
+\item{highlight_size}{A numeric value specifying the size of highlighted
+points.  Default: \code{1}.}
+
+\item{highlight_alpha}{A numeric value in \code{[0, 1]} specifying the
+transparency of highlighted points.  Default: \code{1}.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
@@ -243,58 +330,84 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{ylab}{A character string specifying the y-axis label.}
 
-\item{seed}{The random seed to use. Default is 8525.}
+\item{seed}{A numeric seed for reproducibility.  Passed to
+\code{\link{validate_common_args}()}.  Default: \code{8525}.}
 
-\item{combine}{Whether to combine the plots into one when facet is FALSE. Default is TRUE.}
+\item{combine}{Logical; when \code{TRUE} (default), returns a combined
+\code{patchwork} object.  When \code{FALSE}, returns a named list of
+individual \code{ggplot} objects.}
 
-\item{nrow}{A numeric value specifying the number of rows in the facet.}
+\item{ncol, nrow}{Integer number of columns / rows for the combined layout
+(passed to \code{\link[patchwork]{wrap_plots}}).}
 
-\item{ncol}{A numeric value specifying the number of columns in the facet.}
+\item{byrow}{Logical; fill the combined layout by row.  Default
+\code{TRUE} (passed to \code{\link[patchwork]{wrap_plots}}).}
 
-\item{byrow}{A logical value indicating whether to fill the plots by row.}
+\item{axes}{A character string specifying how axes should be treated
+across the combined layout (passed to \code{\link[patchwork]{wrap_plots}}).}
 
-\item{axes}{A string specifying how axes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axes in individual plots.
-\item 'collect' will remove duplicated axes when placed in the same run of rows or columns of the layout.
-\item 'collect_x' and 'collect_y' will remove duplicated x-axes in the columns or duplicated y-axes in the rows respectively.
-}}
+\item{axis_titles}{A character string specifying how axis titles should be
+treated across the combined layout.  Defaults to \code{axes}.}
 
-\item{axis_titles}{A string specifying how axis titltes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axis titles in individual plots.
-\item 'collect' will remove duplicated titles in one direction and merge titles in the opposite direction.
-\item 'collect_x' and 'collect_y' control this for x-axis titles and y-axis titles respectively.
-}}
+\item{guides}{A character string specifying how guides (legends) should be
+collected across panels (passed to \code{\link{combine_plots}()}).}
 
-\item{guides}{A string specifying how guides should be treated in the layout. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'collect' will collect guides below to the given nesting level, removing duplicates.
-\item 'keep' will stop collection at this level and let guides be placed alongside their plot.
-\item 'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.
-}}
-
-\item{design}{Specification of the location of areas in the layout, passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE. When specified, \code{nrow}, \code{ncol}, and \code{byrow} are ignored.
-See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details.}
+\item{design}{A custom layout design for the combined plot (passed to
+\code{\link{combine_plots}()}).}
 
 \item{...}{Additional arguments.}
 }
 \value{
-The Jitter plot(s).
-When \code{split_by} is not provided, it returns a ggplot object.
-When \code{split_by} is provided, it returns a object of plots wrapped by \code{patchwork::wrap_plots} if \code{combine = TRUE};
-otherwise, it returns a list of ggplot objects.
+A \code{ggplot} object (when \code{split_by} is \code{NULL}), a
+\code{patchwork} object (when \code{split_by} is provided and
+\code{combine = TRUE}), or a named list of \code{ggplot} objects (when
+\code{combine = FALSE}).  All \code{ggplot} objects have \code{height}
+and \code{width} attributes in inches.
 }
 \description{
-Jittered point plot with optional background, highlight, labels and faceting.
+Draws a jittered point plot showing the distribution of numeric y-values
+across a discrete x-axis.  Each data point is rendered with random jitter
+along the x-axis (and optionally the y-axis) to reduce overplotting, making
+it easy to visualise data density, spread, and outliers within each category.
+
+The function supports \strong{x-axis reordering} by y-value summaries
+(mean or median), \strong{group dodging} via \code{group_by} to compare
+subgroups side-by-side, \strong{point labelling} with automatic top-n
+selection using a configurable distance metric (default: radial distance
+\code{y^2 + size^2}), \strong{point highlighting} for emphasis, optional
+\strong{horizontal reference lines}, and \strong{wide-format input} via
+\code{in_form}.  Colour control, faceting, and splitting into separate
+sub-plots via \code{split_by} are supported.
 }
+\section{split_by workflow}{
+
+When \code{split_by} is provided:
+\enumerate{
+\item \code{\link{validate_common_args}()} validates the \code{seed}.
+\item \code{\link{check_keep_na}()} and \code{\link{check_keep_empty}()}
+normalise the \code{keep_na} / \code{keep_empty} arguments for all
+relevant columns (\code{x}, \code{split_by}, \code{group_by},
+\code{facet_by}).
+\item The \code{split_by} column is validated via
+\code{\link{check_columns}()} with \code{force_factor = TRUE}.
+Multiple \code{split_by} columns are concatenated with
+\code{split_by_sep}.
+\item If \code{split_by} is not \code{NULL}, the data frame is split
+(preserving factor level order).  If \code{split_by} is
+\code{NULL}, the data is wrapped in a single-element list with
+name \code{"..."}.
+\item Per-split \code{palette}, \code{palcolor},
+\code{legend.position}, and \code{legend.direction} are resolved
+via \code{\link{check_palette}()}, \code{\link{check_palcolor}()},
+and \code{\link{check_legend}()}.
+\item \code{\link{JitterPlotAtomic}()} is called for each split.  If
+\code{title} is a function, it receives the split level name and
+can generate dynamic titles.
+\item Results are combined via \code{\link{combine_plots}()} (when
+\code{combine = TRUE}) or returned as a named list.
+}
+}
+
 \examples{
 \donttest{
 set.seed(8525)
