@@ -7,7 +7,7 @@
 \alias{SpatShapesPlot.SpatVector}
 \alias{SpatShapesPlot.data.frame}
 \alias{SpatPointsPlot}
-\title{Plots for spatial elements}
+\title{Spatial visualization functions for terra objects and point data}
 \usage{
 SpatImagePlot(
   data,
@@ -242,21 +242,26 @@ SpatPointsPlot(
 )
 }
 \arguments{
-\item{data}{A \code{SpatRaster} or \code{SpatVector} object from the \code{terra} package,
-or a data.frame for \code{SpatShapesPlot} or \code{SpatPointsPlot}.}
+\item{data}{A \code{SpatRaster}, \code{SpatVector}, or \code{data.frame}
+depending on the function. See individual function descriptions.}
 
-\item{ext}{A \code{terra}'s \code{SpatExtent} object or a numeric vector of length 4 specifying the extent as \code{c(xmin, xmax, ymin, ymax)}. Default is NULL.}
+\item{ext}{A numeric vector of length 4 \code{c(xmin, xmax, ymin, ymax)}
+or a \code{terra::SpatExtent} object. Default is \code{NULL} (use full
+extent).}
 
-\item{raster}{Whether to raster the plot. Default is NULL.}
+\item{raster}{Whether to rasterize for efficient rendering of large
+datasets. Default is \code{NULL} (auto-detect: rasterize when
+\code{ncell > 1e6} or \code{nrow > 1e6}). Uses
+\code{scattermore::geom_scattermore()} for points.}
 
-\item{raster_dpi}{A numeric vector of the raster dpi. Default is c(512, 512).}
+\item{raster_dpi}{A numeric vector of length 1 or 2 specifying the
+raster output resolution in pixels. Default is \code{c(512, 512)}.}
 
-\item{flip_y}{Whether to flip the y-axis direction. Default is TRUE.
-This is useful for visualizing spatial data with the origin at the top left corner.}
+\item{flip_y}{Whether to negate the y-coordinates so the axis labels can
+be displayed with reversed sign. Default is \code{TRUE}.}
 
-\item{palette}{A character string specifying the color palette to use.
-For \code{SpatImagePlot}, if the data has 3 channels (RGB), it will be used as a color identity and
-this argument will be ignored.}
+\item{palette}{A character string specifying the palette to use.
+A named list or vector can be used to specify the palettes for different \code{split_by} values.}
 
 \item{palcolor}{A character string specifying the color to use in the palette.
 A named list can be used to specify the colors for different \code{split_by} values.
@@ -268,7 +273,10 @@ If some values are missing, the values from the palette will be used (palcolor w
 
 \item{fill_name}{A character string for the fill legend title.}
 
-\item{return_layer}{Whether to return the layers or the plot. Default is FALSE.}
+\item{return_layer}{Whether to return a list of ggplot layers instead
+of a complete plot. Default is \code{FALSE}. When \code{TRUE}, the
+returned list has a \code{"scales"} attribute for layer conflict
+detection, allowing multiple spatial layers in a single custom ggplot.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -292,33 +300,52 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{seed}{The random seed to use. Default is 8525.}
 
-\item{add_border}{Whether to add a border around the masks in \code{SpatMasksPlot}. Default is TRUE.}
+\item{add_border}{Whether to add polygon borders around mask regions in
+\code{SpatMasksPlot}. Default is \code{TRUE}.}
 
-\item{border_color}{A character string of the border color. Default is "black".}
+\item{border_color}{A character string for the border color. Default is
+\code{"black"}. When \code{TRUE} in \code{SpatShapesPlot} or
+\code{SpatPointsPlot}, the border maps to the same variable as fill.}
 
-\item{border_size}{A numeric value of the border width. Default is 0.5.}
+\item{border_size}{A numeric value for the border line width.
+Default is \code{0.5}.}
 
-\item{border_alpha}{A numeric value of the border transparency. Default is 1.}
+\item{border_alpha}{A numeric value for the border transparency.
+Default is \code{1}.}
 
-\item{x}{A character string specifying the x-axis column name for \code{SpatPointsPlot} or \code{SpatShapesPlot} when \code{data} is a data.frame.
-If \code{data} is a \code{SpatRaster} or \code{SpatVector}, this argument is ignored.}
+\item{x}{A character string specifying the x coordinate column for
+\code{SpatPointsPlot} and \code{SpatShapesPlot} (when \code{data} is a
+data frame). Auto-detected from common column names when \code{NULL}.}
 
-\item{y}{A character string specifying the y-axis column name for \code{SpatPointsPlot} or \code{SpatShapesPlot} when \code{data} is a data.frame.
-If \code{data} is a \code{SpatRaster} or \code{SpatVector}, this argument is ignored.}
+\item{y}{A character string specifying the y coordinate column for
+\code{SpatPointsPlot} and \code{SpatShapesPlot} (when \code{data} is a
+data frame). Auto-detected from common column names when \code{NULL}.}
 
-\item{group}{A character string specifying the grouping column for \code{SpatShapesPlot} when \code{data} is a data.frame.}
+\item{group}{A character string specifying the grouping column for
+\code{SpatShapesPlot} when \code{data} is a data.frame. Each unique
+value in this column defines a separate polygon.}
 
-\item{fill_by}{A character string or vector specifying the column(s) to fill the shapes in \code{SpatShapesPlot}.}
+\item{fill_by}{A character string or vector specifying the column(s) to
+map to fill color in \code{SpatShapesPlot}. When multiple columns are
+provided (all must be numeric), the data is reshaped and faceted.
+When a single string that does not match a column name, it is treated
+as a fixed fill color.}
 
-\item{highlight}{A character vector of the row names to highlight. Default is NULL.}
+\item{highlight}{A character vector of row names to highlight, a filter
+expression string (e.g., \code{'cat == "A"'}), or \code{TRUE}
+(highlight all). Highlighted points are overlaid with larger markers.}
 
-\item{highlight_alpha}{A numeric value of the highlight transparency. Default is 1.}
+\item{highlight_alpha}{A numeric value for highlight transparency.
+Default is \code{1}.}
 
-\item{highlight_size}{A numeric value of the highlight size. Default is 1.}
+\item{highlight_size}{A numeric value for the highlight marker size.
+Default is \code{1}.}
 
-\item{highlight_color}{A character string of the highlight color. Default is "black".}
+\item{highlight_color}{A character string for the highlight marker
+color. Default is \code{"black"}.}
 
-\item{highlight_stroke}{A numeric value of the highlight stroke. Default is 0.8.}
+\item{highlight_stroke}{A numeric value for the highlight stroke width
+(added to \code{border_size}). Default is \code{0.8}.}
 
 \item{facet_scales}{Whether to scale the axes of facets. Default is "fixed"
 Other options are "free", "free_x", "free_y". See \code{ggplot2::facet_wrap}}
@@ -331,103 +358,245 @@ When facet_by is a single column and facet_wrap is used.}
 
 \item{facet_byrow}{A logical value indicating whether to fill the plots by row. Default is TRUE.}
 
-\item{color_by}{A character string specifying the column to color the points in \code{SpatPointsPlot}.}
+\item{color_by}{A character string or vector specifying the column(s) to
+map to point color in \code{SpatPointsPlot}. Multiple numeric columns
+trigger faceting.}
 
-\item{size_by}{A character string specifying the column to size the points in \code{SpatPointsPlot}.}
+\item{size_by}{A character string specifying the column to map to point
+size in \code{SpatPointsPlot}. Mutually exclusive with \code{size}.}
 
-\item{size}{Alias of \code{size_by} when size is a numeric value.}
+\item{size}{A numeric value for a fixed point size in
+\code{SpatPointsPlot}. Alias for \code{size_by} when given a scalar.}
 
-\item{lower_quantile, upper_quantile, lower_cutoff, upper_cutoff}{Vector of minimum and maximum cutoff values or quantile values for each numeric value.}
+\item{lower_quantile, upper_quantile}{Lower and upper quantiles for the continuous color/fill scale.
+The actual cutoffs are determined by these quantiles when \code{lower_cutoff} and
+\code{upper_cutoff} are \code{NULL}. Defaults: \code{lower_quantile = 0}, \code{upper_quantile = 0.99}.}
 
-\item{color_name}{A character string for the color legend title in \code{SpatPointsPlot}.}
+\item{lower_cutoff, upper_cutoff}{Explicit lower and upper cutoffs for the continuous color/fill scale.
+When \code{NULL} (the default), the cutoffs are determined by \code{lower_quantile} and
+\code{upper_quantile} via \code{\link[stats]{quantile}}. Values outside the
+\code{[lower_cutoff, upper_cutoff]} range are clamped (winsorized) to the nearest cutoff value.}
 
-\item{size_name}{A character string for the size legend title in \code{SpatPointsPlot}.}
+\item{color_name}{A character string for the color legend title.}
 
-\item{shape}{A numeric value or character string specifying the shape of the points in \code{SpatPointsPlot}.}
+\item{size_name}{A character string for the size legend title.}
 
-\item{hex}{Whether to use hex plot. Default is FALSE.}
+\item{shape}{A numeric value (21--25 for border shapes) or character
+string specifying the point shape in \code{SpatPointsPlot}.
+Default is \code{16} (filled circle).}
 
-\item{hex_linewidth}{A numeric value of the hex line width. Default is 0.5.}
+\item{hex}{Whether to use hexagonal binning in \code{SpatPointsPlot}.
+Requires a numeric \code{color_by}. Default is \code{FALSE}.}
 
-\item{hex_count}{Whether to count the hex.}
+\item{hex_linewidth}{A numeric value for the hex bin border width.
+Default is \code{0.5}.}
 
-\item{hex_bins}{A numeric value of the hex bins. Default is 50.}
+\item{hex_count}{Whether to show hex bin count as point opacity.
+Default is \code{FALSE}.}
 
-\item{hex_binwidth}{A numeric value of the hex bin width. Default is NULL.}
+\item{hex_bins}{A numeric value for the number of hex bins.
+Default is \code{50}.}
 
-\item{label}{Whether to show the labels of groups. Default is FALSE.}
+\item{hex_binwidth}{A numeric value for the hex bin width.
+Default is \code{NULL}.}
 
-\item{label_size}{A numeric value of the label size. Default is 4.}
+\item{label}{Whether to show group labels in \code{SpatPointsPlot}.
+Default is \code{FALSE}. Requires a categorical \code{color_by}.}
 
-\item{label_fg}{A character string of the label foreground color. Default is "white".}
+\item{label_size}{A numeric value for the label text size.
+Default is \code{4}.}
 
-\item{label_bg}{A character string of the label background color. Default is "black".}
+\item{label_fg}{A character string for the label text color.
+Default is \code{"white"}.}
 
-\item{label_bg_r}{A numeric value of the background ratio of the labels. Default is 0.1.}
+\item{label_bg}{A character string for the label background color.
+Default is \code{"black"}.}
 
-\item{label_repel}{Whether to repel the labels. Default is FALSE.}
+\item{label_bg_r}{A numeric value for the label background corner
+radius ratio. Default is \code{0.1}.}
 
-\item{label_repulsion}{A numeric value of the label repulsion. Default is 20.}
+\item{label_repel}{Whether to repel labels from each other and from
+data points. Default is \code{FALSE}.}
 
-\item{label_pt_size}{A numeric value of the label point size. Default is 1.}
+\item{label_repulsion}{A numeric value for the repulsion force.
+Default is \code{20}.}
 
-\item{label_pt_color}{A character string of the label point color. Default is "black".}
+\item{label_pt_size}{A numeric value for the label anchor point size.
+Default is \code{1}.}
 
-\item{label_segment_color}{A character string of the label segment color. Default is "black".}
+\item{label_pt_color}{A character string for the label anchor point
+color. Default is \code{"black"}.}
 
-\item{label_insitu}{Whether to place the raw labels (group names) in the center of the points with the corresponding group.
-Default is FALSE, which uses numbers instead of raw labels.}
+\item{label_segment_color}{A character string for the label connector
+line color. Default is \code{"black"}.}
 
-\item{label_pos}{A character string or a function specifying the position of the labels.
-\itemize{
-\item "mean": Place labels at the mean position of the points in each group.
-Same as \code{function(x) mean(x, na.rm = TRUE)}.
-\item "center": Place labels at the center of the points in each group.
-Same as \code{function(x) mean(range(x, na.rm = TRUE))}.
-\item "median": Place labels at the median position of the points in each group.
-Same as \code{function(x) median(x, na.rm = TRUE)}.
-\item "first": Place labels at the first point in each group.
-Same as \code{function(x) x[1]}.
-\item "last": Place labels at the last point in each group.
-Same as \code{function(x) x[length(x)]}.
-\item "random": Place labels at a random point in each group.
-Same as \code{function(x) sample(x, 1)}.
-\item "min": Place labels at the minimum position (both x and y) of the points in each group.
-Same as \code{function(x) min(x, na.rm = TRUE)}.
-\item "max": Place labels at the maximum position (both x and y) of the points in each group.
-Same as \code{function(x) max(x, na.rm = TRUE)}.
-}}
+\item{label_insitu}{Whether to place raw group names as labels
+instead of numeric indices. Default is \code{FALSE}.}
 
-\item{graph}{A character string of column names or the indexes in the data for the graph data. Default is NULL.
-If "@graph" is provided, the graph data will be extracted from the data attribute 'graph'.
-The graph data should be an adjacency matrix (numeric matrix) with row and column names matching the point IDs.
-Or a data.frame with x, xend, y, yend and value columns. If so,
-\code{graph_x}, \code{graph_y}, \code{graph_xend}, \code{graph_yend}, and \code{graph_value} arguments can be used to specify the column names.}
+\item{label_pos}{A character string or function specifying how label
+positions are computed per group. Options: \code{"median"} (default),
+\code{"mean"}, \code{"center"}, \code{"first"}, \code{"last"},
+\code{"random"}, \code{"min"}, \code{"max"}, or a custom function
+that takes a numeric vector and returns a single value.}
 
-\item{graph_x}{A character string of the x column name for the graph data.}
+\item{graph}{Graph/network edge data for \code{SpatPointsPlot}. Can be
+a square adjacency matrix with row/column names matching \code{data},
+a data.frame with edge coordinates (see \code{graph_x} etc.), a column
+name or index, or \code{"@graph"} (extracts from the \code{data}
+attribute named \code{"graph"}). Default is \code{NULL}.}
 
-\item{graph_y}{A character string of the y column name for the graph data.}
+\item{graph_x}{A character string for the x start coordinate column
+in the graph data.}
 
-\item{graph_xend}{A character string of the xend column name for the graph data.}
+\item{graph_y}{A character string for the y start coordinate column
+in the graph data.}
 
-\item{graph_yend}{A character string of the yend column name for the graph data.}
+\item{graph_xend}{A character string for the x end coordinate column
+in the graph data.}
 
-\item{graph_value}{A character string of the value column name for the graph data.}
+\item{graph_yend}{A character string for the y end coordinate column
+in the graph data.}
 
-\item{edge_size}{A numeric vector of the edge size range. Default is c(0.05, 0.5).}
+\item{graph_value}{A character string for the edge weight column
+in the graph data.}
 
-\item{edge_alpha}{A numeric value of the edge transparency. Default is 0.1.}
+\item{edge_size}{A numeric vector of length 2 specifying the line width
+range for graph edges. Default is \code{c(0.05, 0.5)}.}
 
-\item{edge_color}{A character string of the edge color. Default is "grey40".}
+\item{edge_alpha}{A numeric value for graph edge transparency.
+Default is \code{0.1}.}
+
+\item{edge_color}{A character string for the graph edge color.
+Default is \code{"grey40"}.}
+}
+\value{
+A \code{ggplot} object with \code{height} and \code{width}
+attributes when \code{return_layer = FALSE} (the default). When
+\code{return_layer = TRUE}, a list of \code{ggplot} layers with a
+\code{"scales"} attribute is returned. When faceted via multiple
+\code{fill_by} or \code{color_by} columns, a faceted \code{ggplot}
+is returned.
 }
 \description{
-\itemize{
-\item \code{SpatImagePlot}: Plot a SpatRaster object as an image.
-\item \code{SpatMasksPlot}: Plot a SpatRaster object as masks.
-\item \code{SpatShapesPlot}: Plot a SpatVector object as shapes.
-\item \code{SpatPointsPlot}: Plot a data.frame of points with spatial coordinates.
+These functions provide publication-quality spatial visualizations built on
+\pkg{ggplot2}, supporting raster images, categorical masks, vector shapes,
+and point data from the \pkg{terra} package or standard data frames.
+}
+\details{
+\describe{
+\item{\code{SpatImagePlot}}{Render a \code{SpatRaster} as a raster image.
+Supports single-layer continuous values (with gradient fill) and 3-channel
+RGB data (with automatic color identity scaling).}
+\item{\code{SpatMasksPlot}}{Render a \code{SpatRaster} as a categorical
+mask overlay. Zero-valued cells are treated as transparent background;
+optional polygon borders can be added around mask regions.}
+\item{\code{SpatShapesPlot}}{Render spatial shapes (polygons) from a
+\code{SpatVector} or a data frame of vertex coordinates. Supports
+single and multi-column fill mapping with automatic faceting.}
+\item{\code{SpatPointsPlot}}{Render spatial points from a data frame with
+support for color/size/fill mapping, hex binning, rasterized rendering,
+network/graph overlays, labels, and point highlighting.}
 }
 }
+\section{Rendering Pipeline for SpatImagePlot}{
+
+\enumerate{
+\item \strong{Extent cropping} — if \code{ext} is provided, the
+\code{SpatRaster} is cropped via \code{terra::crop()}. An error is
+raised if no cells remain within the extent.
+\item \strong{Auto-rasterization} — if the raster exceeds 1e6 cells (or
+\code{raster = TRUE}), the raster is aggregated via
+\code{terra::aggregate()} to a target resolution of \code{raster_dpi}.
+\item \strong{Y-axis flipping} — when \code{flip_y = TRUE}, the raster
+is flipped vertically via \code{\link{.flip_y}()} and its y-extent is
+negated so that axis labels can be displayed with reversed sign.
+\item \strong{RGB detection} — if the raster has exactly 3 layers, they
+are treated as red/green/blue channels: each channel is rescaled to
+0--255 and combined into a hex color via \code{rgb()}. A
+\code{scale_fill_identity()} is used with no legend guide.
+\item \strong{Single-layer rendering} — otherwise, the raster is
+converted to an x/y/value data frame and rendered via
+\code{geom_raster()} with \code{scale_fill_gradientn()}.
+\item \strong{Layer return or full assembly} — if
+\code{return_layer = TRUE}, the list of layers (with a \code{"scales"}
+attribute set to \code{"fill"}) is returned. Otherwise,
+\code{\link{.wrap_spatial_layers}()} assembles a complete ggplot with
+\code{coord_sf(expand = 0)}, theme, labels, legend, and dimension
+attributes.
+}
+}
+
+\section{Rendering Pipeline for SpatMasksPlot}{
+
+\enumerate{
+\item \strong{Extent cropping} — if \code{ext} is provided, the
+\code{SpatRaster} is cropped via \code{terra::crop()}.
+\item \strong{Y-axis flipping} — when \code{flip_y = TRUE}, the raster
+is flipped vertically and its y-extent is negated.
+\item \strong{Background masking} — cells with value 0 are set to
+\code{NA} so they render as transparent via
+\code{na.value = "transparent"}.
+\item \strong{Raster layer} — the mask is converted to an x/y/value data
+frame and rendered via \code{geom_raster()} with a gradient fill scale.
+\item \strong{Optional borders} — when \code{add_border = TRUE}, the
+mask values are polygonized via \code{terra::as.polygons()}, converted
+to sf, and overlaid as unfilled \code{geom_sf()} with the specified
+\code{border_color}, \code{border_size}, and \code{border_alpha}.
+\item \strong{Layer return or full assembly} — if
+\code{return_layer = TRUE}, the layers are returned; otherwise,
+\code{\link{.wrap_spatial_layers}()} creates the complete ggplot.
+}
+}
+
+\section{Rendering Pipeline for SpatPointsPlot}{
+
+\enumerate{
+\item \strong{Column resolution} — \code{x} and \code{y} coordinates are
+resolved from the data, auto-detecting common column names
+(\code{"x"}, \code{"X"}, \code{"sdimx"}, etc. for x; \code{"y"},
+\code{"Y"}, \code{"sdimy"}, etc. for y) when not explicitly provided.
+\item \strong{Extent cropping} — if \code{ext} is provided, rows
+outside the extent are filtered.
+\item \strong{Y-axis flipping} — when \code{flip_y = TRUE}, the y
+coordinate column is negated via \code{\link{.flip_y}()}.
+\item \strong{Multi-column faceting} — when \code{color_by} has multiple
+columns (all numeric), the data is reshaped to long format with a
+\code{.facet_var} column and faceted via \code{facet_plot()}.
+\item \strong{Cutoff winsorization} — for numeric \code{color_by},
+values outside \code{[lower_cutoff, upper_cutoff]} (derived from
+quantiles or explicit values) are clamped to the nearest cutoff.
+\item \strong{Graph / network edges} — if \code{graph} is provided,
+edges are resolved from an adjacency matrix, data.frame, or data
+attribute, and rendered as \code{geom_segment()} segments with line
+width proportional to edge weight.
+\item \strong{Main point layer} — one of three rendering modes:
+\describe{
+\item{\emph{Regular}}{(\code{hex = FALSE}, \code{raster = FALSE}) —
+\code{geom_point()} with shape, size, color, and fill aesthetic
+mappings. Shapes 21--25 support separate fill and border colors.}
+\item{\emph{Hex}}{(\code{hex = TRUE}) — \code{geom_hex()} or
+\code{stat_summary_hex()} for binned aggregation of numeric
+\code{color_by} values.}
+\item{\emph{Raster}}{(\code{raster = TRUE}) —
+\code{scattermore::geom_scattermore()} for efficient rendering of
+large datasets (>1e6 rows).}
+}
+\item \strong{Highlight} — if \code{highlight} is specified,
+highlighted points are overlaid as larger, colored markers using
+\code{geom_point()} or \code{scattermore::geom_scattermore()}.
+\item \strong{Labels} — if \code{label = TRUE} and \code{color_by} is a
+categorical column, group centroid positions are computed via
+\code{aggregate()} with the \code{label_pos} function, and labels are
+rendered via \code{ggrepel::geom_text_repel()} with optional
+background styling and repulsion.
+\item \strong{Layer return or full assembly} — if
+\code{return_layer = TRUE}, the layers are returned; otherwise,
+\code{\link{.wrap_spatial_layers}()} creates the complete ggplot and
+\code{\link{facet_plot}()} is applied when multi-column faceting
+is active.
+}
+}
+
 \examples{
 \donttest{
 set.seed(8525)

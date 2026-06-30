@@ -1,25 +1,34 @@
-#' @title Flip values on the y-axis direction, and negate the Y-Coordinates of SpatRaster, SpatVector Object and data.frame
+#' @title Flip y-coordinates for spatial data objects
 #'
 #' @description
-#' These internal functions flip the y-coordinates of `SpatRaster` and `SpatVector` objects from the `terra` package.
-#' For rasters, the function vertically flips the raster and adjusts its extent accordingly.
-#' For vectors, the function negates the y-coordinates of all geometries.
-#' For data frames, it negates the values in the specified y column.
+#' These internal S3 methods flip the y-coordinates of \code{SpatRaster},
+#' \code{SpatVector}, and \code{data.frame} objects.
 #'
-#' @param data A `SpatRaster` or `SpatVector` object from the `terra` package, or a data.frame with x and y columns.
+#' For rasters, the raster is flipped vertically and its extent is negated.
+#' For vectors, the y-coordinates of all geometries are negated.
+#' For data frames, the specified y column is negated.
+#'
+#' @param data A \code{SpatRaster}, \code{SpatVector}, or \code{data.frame}.
+#' @param y A character string specifying the y column name for \code{data.frame}
+#'   input. Ignored for \code{SpatRaster} and \code{SpatVector}. Default is \code{"y"}.
+#' @param ... Additional arguments (not used).
 #'
 #' @return
-#' For `SpatRaster` input, a `SpatRaster` object with flipped y-coordinates and adjusted extent.
-#' For `SpatVector` input, a `SpatVector` object with y-coordinates negated.
-#' For `data.frame` input, a data frame with the specified y column negated.
+#' For \code{SpatRaster} input, a \code{SpatRaster} flipped vertically with
+#' negated y-extent. For \code{SpatVector} input, a \code{SpatVector} with
+#' negated y-coordinates. For \code{data.frame} input, a data frame with the
+#' specified \code{y} column negated.
 #'
 #' @details
-#' These functions are intended for internal use to facilitate coordinate transformations.
-#' When visualizing spatial data, it is often necessary to flip the y-axis to put the origin at the top left corner.
-#' However, a lot of elements have to be visualized with [ggplot2::geom_sf()], which won't work with
-#' [ggplot2::scale_y_reverse()]. See also [this GitHub issue comment](https://github.com/tidyverse/ggplot2/issues/4021#issuecomment-650787582).
-#' So we need these functions to flip the values along the y-axis and negate the y-coordinates.
-#' This way, we can remove the negative sign from the y-axis labels to mimick the behavior of `scale_y_reverse()`.#'
+#' These functions are intended for internal use to facilitate coordinate
+#' transformations. When visualizing spatial data, it is often necessary to
+#' flip the y-axis to put the origin at the top-left corner. However,
+#' \code{\link[ggplot2]{geom_sf}()} does not work with
+#' \code{\link[ggplot2]{scale_y_reverse}()}. See
+#' \href{https://github.com/tidyverse/ggplot2/issues/4021#issuecomment-650787582}{this
+#' GitHub comment} for details. These functions negate the y-coordinates so
+#' that the axis labels can be displayed with reversed sign, mimicking
+#' \code{scale_y_reverse()}.
 #'
 #' @keywords internal
 #' @rdname dot_flip_y
@@ -207,97 +216,251 @@
     return(p)
 }
 
-#' Plots for spatial elements
+#' Spatial visualization functions for terra objects and point data
 #'
-#' * `SpatImagePlot`: Plot a SpatRaster object as an image.
-#' * `SpatMasksPlot`: Plot a SpatRaster object as masks.
-#' * `SpatShapesPlot`: Plot a SpatVector object as shapes.
-#' * `SpatPointsPlot`: Plot a data.frame of points with spatial coordinates.
+#' These functions provide publication-quality spatial visualizations built on
+#' \pkg{ggplot2}, supporting raster images, categorical masks, vector shapes,
+#' and point data from the \pkg{terra} package or standard data frames.
+#'
+#' \describe{
+#'   \item{\code{SpatImagePlot}}{Render a \code{SpatRaster} as a raster image.
+#'     Supports single-layer continuous values (with gradient fill) and 3-channel
+#'     RGB data (with automatic color identity scaling).}
+#'   \item{\code{SpatMasksPlot}}{Render a \code{SpatRaster} as a categorical
+#'     mask overlay. Zero-valued cells are treated as transparent background;
+#'     optional polygon borders can be added around mask regions.}
+#'   \item{\code{SpatShapesPlot}}{Render spatial shapes (polygons) from a
+#'     \code{SpatVector} or a data frame of vertex coordinates. Supports
+#'     single and multi-column fill mapping with automatic faceting.}
+#'   \item{\code{SpatPointsPlot}}{Render spatial points from a data frame with
+#'     support for color/size/fill mapping, hex binning, rasterized rendering,
+#'     network/graph overlays, labels, and point highlighting.}
+#' }
+#'
+#' @section Rendering Pipeline for SpatImagePlot:
+#' \enumerate{
+#'   \item \strong{Extent cropping} — if \code{ext} is provided, the
+#'     \code{SpatRaster} is cropped via \code{terra::crop()}. An error is
+#'     raised if no cells remain within the extent.
+#'   \item \strong{Auto-rasterization} — if the raster exceeds 1e6 cells (or
+#'     \code{raster = TRUE}), the raster is aggregated via
+#'     \code{terra::aggregate()} to a target resolution of \code{raster_dpi}.
+#'   \item \strong{Y-axis flipping} — when \code{flip_y = TRUE}, the raster
+#'     is flipped vertically via \code{\link{.flip_y}()} and its y-extent is
+#'     negated so that axis labels can be displayed with reversed sign.
+#'   \item \strong{RGB detection} — if the raster has exactly 3 layers, they
+#'     are treated as red/green/blue channels: each channel is rescaled to
+#'     0--255 and combined into a hex color via \code{rgb()}. A
+#'     \code{scale_fill_identity()} is used with no legend guide.
+#'   \item \strong{Single-layer rendering} — otherwise, the raster is
+#'     converted to an x/y/value data frame and rendered via
+#'     \code{geom_raster()} with \code{scale_fill_gradientn()}.
+#'   \item \strong{Layer return or full assembly} — if
+#'     \code{return_layer = TRUE}, the list of layers (with a \code{"scales"}
+#'     attribute set to \code{"fill"}) is returned. Otherwise,
+#'     \code{\link{.wrap_spatial_layers}()} assembles a complete ggplot with
+#'     \code{coord_sf(expand = 0)}, theme, labels, legend, and dimension
+#'     attributes.
+#' }
+#'
+#' @section Rendering Pipeline for SpatMasksPlot:
+#' \enumerate{
+#'   \item \strong{Extent cropping} — if \code{ext} is provided, the
+#'     \code{SpatRaster} is cropped via \code{terra::crop()}.
+#'   \item \strong{Y-axis flipping} — when \code{flip_y = TRUE}, the raster
+#'     is flipped vertically and its y-extent is negated.
+#'   \item \strong{Background masking} — cells with value 0 are set to
+#'     \code{NA} so they render as transparent via
+#'     \code{na.value = "transparent"}.
+#'   \item \strong{Raster layer} — the mask is converted to an x/y/value data
+#'     frame and rendered via \code{geom_raster()} with a gradient fill scale.
+#'   \item \strong{Optional borders} — when \code{add_border = TRUE}, the
+#'     mask values are polygonized via \code{terra::as.polygons()}, converted
+#'     to sf, and overlaid as unfilled \code{geom_sf()} with the specified
+#'     \code{border_color}, \code{border_size}, and \code{border_alpha}.
+#'   \item \strong{Layer return or full assembly} — if
+#'     \code{return_layer = TRUE}, the layers are returned; otherwise,
+#'     \code{\link{.wrap_spatial_layers}()} creates the complete ggplot.
+#' }
+#'
+#' @section Rendering Pipeline for SpatPointsPlot:
+#' \enumerate{
+#'   \item \strong{Column resolution} — \code{x} and \code{y} coordinates are
+#'     resolved from the data, auto-detecting common column names
+#'     (\code{"x"}, \code{"X"}, \code{"sdimx"}, etc. for x; \code{"y"},
+#'     \code{"Y"}, \code{"sdimy"}, etc. for y) when not explicitly provided.
+#'   \item \strong{Extent cropping} — if \code{ext} is provided, rows
+#'     outside the extent are filtered.
+#'   \item \strong{Y-axis flipping} — when \code{flip_y = TRUE}, the y
+#'     coordinate column is negated via \code{\link{.flip_y}()}.
+#'   \item \strong{Multi-column faceting} — when \code{color_by} has multiple
+#'     columns (all numeric), the data is reshaped to long format with a
+#'     \code{.facet_var} column and faceted via \code{facet_plot()}.
+#'   \item \strong{Cutoff winsorization} — for numeric \code{color_by},
+#'     values outside \code{[lower_cutoff, upper_cutoff]} (derived from
+#'     quantiles or explicit values) are clamped to the nearest cutoff.
+#'   \item \strong{Graph / network edges} — if \code{graph} is provided,
+#'     edges are resolved from an adjacency matrix, data.frame, or data
+#'     attribute, and rendered as \code{geom_segment()} segments with line
+#'     width proportional to edge weight.
+#'   \item \strong{Main point layer} — one of three rendering modes:
+#'     \describe{
+#'       \item{\emph{Regular}}{(\code{hex = FALSE}, \code{raster = FALSE}) —
+#'         \code{geom_point()} with shape, size, color, and fill aesthetic
+#'         mappings. Shapes 21--25 support separate fill and border colors.}
+#'       \item{\emph{Hex}}{(\code{hex = TRUE}) — \code{geom_hex()} or
+#'         \code{stat_summary_hex()} for binned aggregation of numeric
+#'         \code{color_by} values.}
+#'       \item{\emph{Raster}}{(\code{raster = TRUE}) —
+#'         \code{scattermore::geom_scattermore()} for efficient rendering of
+#'         large datasets (>1e6 rows).}
+#'     }
+#'   \item \strong{Highlight} — if \code{highlight} is specified,
+#'     highlighted points are overlaid as larger, colored markers using
+#'     \code{geom_point()} or \code{scattermore::geom_scattermore()}.
+#'   \item \strong{Labels} — if \code{label = TRUE} and \code{color_by} is a
+#'     categorical column, group centroid positions are computed via
+#'     \code{aggregate()} with the \code{label_pos} function, and labels are
+#'     rendered via \code{ggrepel::geom_text_repel()} with optional
+#'     background styling and repulsion.
+#'   \item \strong{Layer return or full assembly} — if
+#'     \code{return_layer = TRUE}, the layers are returned; otherwise,
+#'     \code{\link{.wrap_spatial_layers}()} creates the complete ggplot and
+#'     \code{\link{facet_plot}()} is applied when multi-column faceting
+#'     is active.
+#' }
 #'
 #' @rdname spatialplots
 #' @concept spatial
 #' @inheritParams common_args
-#' @param data A `SpatRaster` or `SpatVector` object from the `terra` package,
-#' or a data.frame for `SpatShapesPlot` or `SpatPointsPlot`.
-#' @param x A character string specifying the x-axis column name for `SpatPointsPlot` or `SpatShapesPlot` when `data` is a data.frame.
-#' If `data` is a `SpatRaster` or `SpatVector`, this argument is ignored.
-#' @param y A character string specifying the y-axis column name for `SpatPointsPlot` or `SpatShapesPlot` when `data` is a data.frame.
-#' If `data` is a `SpatRaster` or `SpatVector`, this argument is ignored.
-#' @param group A character string specifying the grouping column for `SpatShapesPlot` when `data` is a data.frame.
-#' @param ext A `terra`'s `SpatExtent` object or a numeric vector of length 4 specifying the extent as `c(xmin, xmax, ymin, ymax)`. Default is NULL.
-#' @param flip_y Whether to flip the y-axis direction. Default is TRUE.
-#' This is useful for visualizing spatial data with the origin at the top left corner.
-#' @param palette A character string specifying the color palette to use.
-#' For `SpatImagePlot`, if the data has 3 channels (RGB), it will be used as a color identity and
-#' this argument will be ignored.
-#' @param fill_by A character string or vector specifying the column(s) to fill the shapes in `SpatShapesPlot`.
+#' @param data A \code{SpatRaster}, \code{SpatVector}, or \code{data.frame}
+#'   depending on the function. See individual function descriptions.
+#' @param x A character string specifying the x coordinate column for
+#'   \code{SpatPointsPlot} and \code{SpatShapesPlot} (when \code{data} is a
+#'   data frame). Auto-detected from common column names when \code{NULL}.
+#' @param y A character string specifying the y coordinate column for
+#'   \code{SpatPointsPlot} and \code{SpatShapesPlot} (when \code{data} is a
+#'   data frame). Auto-detected from common column names when \code{NULL}.
+#' @param group A character string specifying the grouping column for
+#'   \code{SpatShapesPlot} when \code{data} is a data.frame. Each unique
+#'   value in this column defines a separate polygon.
+#' @param ext A numeric vector of length 4 \code{c(xmin, xmax, ymin, ymax)}
+#'   or a \code{terra::SpatExtent} object. Default is \code{NULL} (use full
+#'   extent).
+#' @param flip_y Whether to negate the y-coordinates so the axis labels can
+#'   be displayed with reversed sign. Default is \code{TRUE}.
+#' @param fill_by A character string or vector specifying the column(s) to
+#'   map to fill color in \code{SpatShapesPlot}. When multiple columns are
+#'   provided (all must be numeric), the data is reshaped and faceted.
+#'   When a single string that does not match a column name, it is treated
+#'   as a fixed fill color.
 #' @param fill_name A character string for the fill legend title.
-#' @param color_by A character string specifying the column to color the points in `SpatPointsPlot`.
-#' @param color_name A character string for the color legend title in `SpatPointsPlot`.
-#' @param size_by A character string specifying the column to size the points in `SpatPointsPlot`.
-#' @param size Alias of `size_by` when size is a numeric value.
-#' @param size_name A character string for the size legend title in `SpatPointsPlot`.
-#' @param lower_quantile,upper_quantile,lower_cutoff,upper_cutoff Vector of minimum and maximum cutoff values or quantile values for each numeric value.
-#' @param shape A numeric value or character string specifying the shape of the points in `SpatPointsPlot`.
-#' @param add_border Whether to add a border around the masks in `SpatMasksPlot`. Default is TRUE.
-#' @param border_color A character string of the border color. Default is "black".
-#' @param border_size A numeric value of the border width. Default is 0.5.
-#' @param border_alpha A numeric value of the border transparency. Default is 1.
-#' @param raster Whether to raster the plot. Default is NULL.
-#' @param raster_dpi A numeric vector of the raster dpi. Default is c(512, 512).
-#' @param hex Whether to use hex plot. Default is FALSE.
-#' @param hex_linewidth A numeric value of the hex line width. Default is 0.5.
-#' @param hex_count Whether to count the hex.
-#' @param hex_bins A numeric value of the hex bins. Default is 50.
-#' @param hex_binwidth A numeric value of the hex bin width. Default is NULL.
-#' @param label Whether to show the labels of groups. Default is FALSE.
-#' @param label_size A numeric value of the label size. Default is 4.
-#' @param label_fg A character string of the label foreground color. Default is "white".
-#' @param label_bg A character string of the label background color. Default is "black".
-#' @param label_bg_r A numeric value of the background ratio of the labels. Default is 0.1.
-#' @param label_repel Whether to repel the labels. Default is FALSE.
-#' @param label_repulsion A numeric value of the label repulsion. Default is 20.
-#' @param label_pt_size A numeric value of the label point size. Default is 1.
-#' @param label_pt_color A character string of the label point color. Default is "black".
-#' @param label_segment_color A character string of the label segment color. Default is "black".
-#' @param label_insitu Whether to place the raw labels (group names) in the center of the points with the corresponding group.
-#' Default is FALSE, which uses numbers instead of raw labels.
-#' @param label_pos A character string or a function specifying the position of the labels.
-#' * "mean": Place labels at the mean position of the points in each group.
-#'   Same as `function(x) mean(x, na.rm = TRUE)`.
-#' * "center": Place labels at the center of the points in each group.
-#'   Same as `function(x) mean(range(x, na.rm = TRUE))`.
-#' * "median": Place labels at the median position of the points in each group.
-#'   Same as `function(x) median(x, na.rm = TRUE)`.
-#' * "first": Place labels at the first point in each group.
-#'   Same as `function(x) x[1]`.
-#' * "last": Place labels at the last point in each group.
-#'   Same as `function(x) x[length(x)]`.
-#' * "random": Place labels at a random point in each group.
-#'   Same as `function(x) sample(x, 1)`.
-#' * "min": Place labels at the minimum position (both x and y) of the points in each group.
-#'   Same as `function(x) min(x, na.rm = TRUE)`.
-#' * "max": Place labels at the maximum position (both x and y) of the points in each group.
-#'   Same as `function(x) max(x, na.rm = TRUE)`.
-#' @param highlight A character vector of the row names to highlight. Default is NULL.
-#' @param highlight_alpha A numeric value of the highlight transparency. Default is 1.
-#' @param highlight_size A numeric value of the highlight size. Default is 1.
-#' @param highlight_color A character string of the highlight color. Default is "black".
-#' @param highlight_stroke A numeric value of the highlight stroke. Default is 0.8.
-#' @param graph A character string of column names or the indexes in the data for the graph data. Default is NULL.
-#' If "@graph" is provided, the graph data will be extracted from the data attribute 'graph'.
-#' The graph data should be an adjacency matrix (numeric matrix) with row and column names matching the point IDs.
-#' Or a data.frame with x, xend, y, yend and value columns. If so,
-#' `graph_x`, `graph_y`, `graph_xend`, `graph_yend`, and `graph_value` arguments can be used to specify the column names.
-#' @param graph_x A character string of the x column name for the graph data.
-#' @param graph_y A character string of the y column name for the graph data.
-#' @param graph_xend A character string of the xend column name for the graph data.
-#' @param graph_yend A character string of the yend column name for the graph data.
-#' @param graph_value A character string of the value column name for the graph data.
-#' @param edge_size A numeric vector of the edge size range. Default is c(0.05, 0.5).
-#' @param edge_alpha A numeric value of the edge transparency. Default is 0.1.
-#' @param edge_color A character string of the edge color. Default is "grey40".
-#' @param return_layer Whether to return the layers or the plot. Default is FALSE.
+#' @param color_by A character string or vector specifying the column(s) to
+#'   map to point color in \code{SpatPointsPlot}. Multiple numeric columns
+#'   trigger faceting.
+#' @param color_name A character string for the color legend title.
+#' @param size_by A character string specifying the column to map to point
+#'   size in \code{SpatPointsPlot}. Mutually exclusive with \code{size}.
+#' @param size A numeric value for a fixed point size in
+#'   \code{SpatPointsPlot}. Alias for \code{size_by} when given a scalar.
+#' @param size_name A character string for the size legend title.
+#' @param shape A numeric value (21--25 for border shapes) or character
+#'   string specifying the point shape in \code{SpatPointsPlot}.
+#'   Default is \code{16} (filled circle).
+#' @param add_border Whether to add polygon borders around mask regions in
+#'   \code{SpatMasksPlot}. Default is \code{TRUE}.
+#' @param border_color A character string for the border color. Default is
+#'   \code{"black"}. When \code{TRUE} in \code{SpatShapesPlot} or
+#'   \code{SpatPointsPlot}, the border maps to the same variable as fill.
+#' @param border_size A numeric value for the border line width.
+#'   Default is \code{0.5}.
+#' @param border_alpha A numeric value for the border transparency.
+#'   Default is \code{1}.
+#' @param raster Whether to rasterize for efficient rendering of large
+#'   datasets. Default is \code{NULL} (auto-detect: rasterize when
+#'   \code{ncell > 1e6} or \code{nrow > 1e6}). Uses
+#'   \code{scattermore::geom_scattermore()} for points.
+#' @param raster_dpi A numeric vector of length 1 or 2 specifying the
+#'   raster output resolution in pixels. Default is \code{c(512, 512)}.
+#' @param hex Whether to use hexagonal binning in \code{SpatPointsPlot}.
+#'   Requires a numeric \code{color_by}. Default is \code{FALSE}.
+#' @param hex_linewidth A numeric value for the hex bin border width.
+#'   Default is \code{0.5}.
+#' @param hex_count Whether to show hex bin count as point opacity.
+#'   Default is \code{FALSE}.
+#' @param hex_bins A numeric value for the number of hex bins.
+#'   Default is \code{50}.
+#' @param hex_binwidth A numeric value for the hex bin width.
+#'   Default is \code{NULL}.
+#' @param label Whether to show group labels in \code{SpatPointsPlot}.
+#'   Default is \code{FALSE}. Requires a categorical \code{color_by}.
+#' @param label_size A numeric value for the label text size.
+#'   Default is \code{4}.
+#' @param label_fg A character string for the label text color.
+#'   Default is \code{"white"}.
+#' @param label_bg A character string for the label background color.
+#'   Default is \code{"black"}.
+#' @param label_bg_r A numeric value for the label background corner
+#'   radius ratio. Default is \code{0.1}.
+#' @param label_repel Whether to repel labels from each other and from
+#'   data points. Default is \code{FALSE}.
+#' @param label_repulsion A numeric value for the repulsion force.
+#'   Default is \code{20}.
+#' @param label_pt_size A numeric value for the label anchor point size.
+#'   Default is \code{1}.
+#' @param label_pt_color A character string for the label anchor point
+#'   color. Default is \code{"black"}.
+#' @param label_segment_color A character string for the label connector
+#'   line color. Default is \code{"black"}.
+#' @param label_insitu Whether to place raw group names as labels
+#'   instead of numeric indices. Default is \code{FALSE}.
+#' @param label_pos A character string or function specifying how label
+#'   positions are computed per group. Options: \code{"median"} (default),
+#'   \code{"mean"}, \code{"center"}, \code{"first"}, \code{"last"},
+#'   \code{"random"}, \code{"min"}, \code{"max"}, or a custom function
+#'   that takes a numeric vector and returns a single value.
+#' @param highlight A character vector of row names to highlight, a filter
+#'   expression string (e.g., \code{'cat == "A"'}), or \code{TRUE}
+#'   (highlight all). Highlighted points are overlaid with larger markers.
+#' @param highlight_alpha A numeric value for highlight transparency.
+#'   Default is \code{1}.
+#' @param highlight_size A numeric value for the highlight marker size.
+#'   Default is \code{1}.
+#' @param highlight_color A character string for the highlight marker
+#'   color. Default is \code{"black"}.
+#' @param highlight_stroke A numeric value for the highlight stroke width
+#'   (added to \code{border_size}). Default is \code{0.8}.
+#' @param graph Graph/network edge data for \code{SpatPointsPlot}. Can be
+#'   a square adjacency matrix with row/column names matching \code{data},
+#'   a data.frame with edge coordinates (see \code{graph_x} etc.), a column
+#'   name or index, or \code{"@graph"} (extracts from the \code{data}
+#'   attribute named \code{"graph"}). Default is \code{NULL}.
+#' @param graph_x A character string for the x start coordinate column
+#'   in the graph data.
+#' @param graph_y A character string for the y start coordinate column
+#'   in the graph data.
+#' @param graph_xend A character string for the x end coordinate column
+#'   in the graph data.
+#' @param graph_yend A character string for the y end coordinate column
+#'   in the graph data.
+#' @param graph_value A character string for the edge weight column
+#'   in the graph data.
+#' @param edge_size A numeric vector of length 2 specifying the line width
+#'   range for graph edges. Default is \code{c(0.05, 0.5)}.
+#' @param edge_alpha A numeric value for graph edge transparency.
+#'   Default is \code{0.1}.
+#' @param edge_color A character string for the graph edge color.
+#'   Default is \code{"grey40"}.
+#' @param return_layer Whether to return a list of ggplot layers instead
+#'   of a complete plot. Default is \code{FALSE}. When \code{TRUE}, the
+#'   returned list has a \code{"scales"} attribute for layer conflict
+#'   detection, allowing multiple spatial layers in a single custom ggplot.
+#' @return A \code{ggplot} object with \code{height} and \code{width}
+#'   attributes when \code{return_layer = FALSE} (the default). When
+#'   \code{return_layer = TRUE}, a list of \code{ggplot} layers with a
+#'   \code{"scales"} attribute is returned. When faceted via multiple
+#'   \code{fill_by} or \code{color_by} columns, a faceted \code{ggplot}
+#'   is returned.
 #' @importFrom rlang %||% sym parse_exprs
 #' @importFrom ggplot2 scale_fill_gradientn aes guide_colorbar element_blank
 #' @importFrom ggplot2 geom_sf ylim labs coord_sf geom_hex stat_summary_hex
