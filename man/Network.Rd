@@ -79,96 +79,174 @@ Network(
 )
 }
 \arguments{
-\item{links}{A data frame containing the links between nodes.}
+\item{links}{A data frame containing the edge list. Must contain the
+\code{from} and \code{to} columns specifying source and target node
+identifiers. Additional columns can be referenced by other parameters
+(e.g., \code{link_weight_by}, \code{link_type_by},
+\code{link_color_by}).}
 
-\item{nodes}{A data frame containing the nodes.
-This is optional. The names of the nodes are extracted from the links data frame.
-If \code{"@nodes"} is provided, the nodes data frame will be extracted from the attribute \code{nodes} of the links data frame.}
+\item{nodes}{An optional data frame of node metadata. When provided,
+columns such as \code{node_size_by}, \code{node_color_by},
+\code{node_shape_by}, and \code{node_fill_by} can reference its
+columns. When \code{NULL}, the node set is inferred from the unique
+values in the \code{from} and \code{to} columns. If a single character
+string starting with \code{"@"}, the nodes data frame is extracted
+from the corresponding attribute of \code{links} (e.g.
+\code{"@nodes"} extracts \code{attr(links, "nodes")}).}
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
-\item{split_nodes}{A logical value specifying whether to split the nodes data.
-If TRUE, the nodes data will also be split by the \code{split_by} column.}
+\item{split_nodes}{A logical value. When \code{TRUE} and
+\code{split_by} is provided, the \code{nodes} data frame is split by
+the same \code{split_by} column in addition to the links. Both data
+frames must have a column with the same name as \code{split_by}.
+Default \code{FALSE}.}
 
-\item{from}{A character string specifying the column name of the links data frame for the source nodes.
-Default is the first column of the links data frame.}
+\item{from}{A character string specifying the column name in
+\code{links} for the source node identifiers. Defaults to
+\code{"from"}, or the first column of \code{links} if that column
+name does not exist. Multiple columns can be provided; they are
+concatenated with \code{from_sep}.}
 
-\item{from_sep}{A character string to concatenate the columns in \code{from}, if multiple columns are provided.}
+\item{from_sep}{A character string to join multiple \code{from}
+columns. Default \code{"_"}. Ignored when \code{from} is a single
+column.}
 
-\item{to}{A character string specifying the column name of the links data frame for the target nodes.
-Default is the second column of the links data frame.}
+\item{to}{A character string specifying the column name in
+\code{links} for the target node identifiers. Defaults to
+\code{"to"}, or the second column of \code{links} if that column
+name does not exist. Multiple columns can be provided; they are
+concatenated with \code{to_sep}.}
 
-\item{to_sep}{A character string to concatenate the columns in \code{to}, if multiple columns are provided.}
+\item{to_sep}{A character string to join multiple \code{to} columns.
+Default \code{"_"}. Ignored when \code{to} is a single column.}
 
-\item{node_by}{A character string specifying the column name of the nodes data frame for the node names.
-Default is the first column of the nodes data frame.}
+\item{node_by}{A character string specifying the column name in
+\code{nodes} for the node identifiers. These must match the values
+in the \code{from} / \code{to} columns of \code{links}. Defaults to
+\code{"name"}, or the first column of \code{nodes} if that column
+name does not exist. Multiple columns can be provided; they are
+concatenated with \code{node_by_sep}.}
 
-\item{node_by_sep}{A character string to concatenate the columns in \code{node_by}, if multiple columns are provided.}
+\item{node_by_sep}{A character string to join multiple
+\code{node_by} columns. Default \code{"_"}. Ignored when
+\code{node_by} is a single column.}
 
-\item{link_weight_by}{A numeric value or a character string specifying the column name of the links data frame for the link weight.
-If a numeric value is provided, all links will have the same weight.
-This determines the width of the links.}
+\item{link_weight_by}{A numeric value or a character string. If
+numeric, all edges receive that constant line width. If a column
+name, the edge line width is mapped to that column. Default
+\code{2}.}
 
-\item{link_weight_name}{A character string specifying the name of the link weight in the legend.}
+\item{link_weight_name}{A character string for the link weight legend
+title. When \code{NULL} (default), the column name from
+\code{link_weight_by} is used. Only relevant when
+\code{link_weight_by} is a column name.}
 
-\item{link_type_by}{A character string specifying the type of the links.
-This can be "solid", "dashed", "dotted", or a column name from the links data frame.
-It has higher priority when it is a column name.}
+\item{link_type_by}{A character string or a column name specifying
+the edge linetype. Can be \code{"solid"}, \code{"dashed"},
+\code{"dotted"}, etc. If a column name from \code{links} is
+supplied, the linetype is mapped to that column (with a version
+check for ggplot2 4.0.0, where mapping is unsupported and a
+warning is issued). Default \code{"solid"}.}
 
-\item{link_type_name}{A character string specifying the name of the link type in the legend.}
+\item{link_type_name}{A character string for the link linetype legend
+title. When \code{NULL} (default), the column name from
+\code{link_type_by} is used. Only relevant when
+\code{link_type_by} is a column name.}
 
-\item{node_size_by}{A numeric value or a character string specifying the column name of the nodes data frame for the node size.
-If a numeric value is provided, all nodes will have the same size.}
+\item{node_size_by}{A numeric value or a character string. If
+numeric, all nodes receive that constant point size. If a column
+name, the size is mapped to that column. Default \code{15}.}
 
-\item{node_size_name}{A character string specifying the name of the node size in the legend.}
+\item{node_size_name}{A character string for the node size legend
+title. When \code{NULL} (default), the column name from
+\code{node_size_by} is used. Only relevant when
+\code{node_size_by} is a column name.}
 
-\item{node_color_by}{A character string specifying the color of the nodes.
-This can be a color name, a hex code, or a column name from the nodes data frame.
-It has higher priority when it is a column name.}
+\item{node_color_by}{A character string specifying the node colour.
+If a colour name or hex code (e.g. \code{"black"}), all nodes
+receive that constant colour. If a column name from \code{nodes} is
+supplied, the colour is mapped to that column. Default
+\code{"black"}.}
 
-\item{node_color_name}{A character string specifying the name of the node color in the legend.}
+\item{node_color_name}{A character string for the node colour legend
+title. When \code{NULL} (default), the column name from
+\code{node_color_by} is used. Only relevant when
+\code{node_color_by} is a column name.}
 
-\item{node_shape_by}{A numeric value or a character string specifying the column name of the nodes data frame for the node shape.
-If a numeric value is provided, all nodes will have the same shape.}
+\item{node_shape_by}{A numeric value or a character string. If
+numeric, all nodes receive that constant shape (see
+\code{\link[ggplot2]{shape}}). If a column name, the shape is
+mapped to that column (cast to factor). Default \code{21} (filled
+circle with border).}
 
-\item{node_shape_name}{A character string specifying the name of the node shape in the legend.}
+\item{node_shape_name}{A character string for the node shape legend
+title. When \code{NULL} (default), the column name from
+\code{node_shape_by} is used. Only relevant when
+\code{node_shape_by} is a column name.}
 
-\item{node_fill_by}{A character string specifying the fill color of the nodes.
-This can be a color name, a hex code, or a column name from the nodes data frame.
-It has higher priority when it is a column name.}
+\item{node_fill_by}{A character string specifying the node fill
+colour. If a colour name or hex code (e.g. \code{"grey20"}), all
+nodes receive that constant fill. If a column name from
+\code{nodes} is supplied, the fill is mapped to that column.
+Default \code{"grey20"}.}
 
-\item{node_fill_name}{A character string specifying the name of the node fill in the legend.}
+\item{node_fill_name}{A character string for the node fill legend
+title. When \code{NULL} (default), the column name from
+\code{node_fill_by} is used. Only relevant when
+\code{node_fill_by} is a column name.}
 
-\item{link_alpha}{A numeric value specifying the transparency of the links.}
+\item{link_alpha}{A numeric value specifying the transparency
+(alpha) of the edge lines. Between \code{0} (invisible) and
+\code{1} (opaque). Default \code{1}.}
 
-\item{node_alpha}{A numeric value specifying the transparency of the nodes.
-It only works when the nodes are filled.}
+\item{node_alpha}{A numeric value specifying the fill transparency
+of the nodes. Only applies when \code{node_shape_by} is one of the
+filled shapes (21--25). Default \code{0.95}.}
 
-\item{node_stroke}{A numeric value specifying the stroke of the nodes.}
+\item{node_stroke}{A numeric value specifying the border stroke
+width of the node points. Default \code{1.5}.}
 
-\item{cluster_scale}{A character string specifying how to scale the clusters.
-It can be "fill", "color", or "shape".}
+\item{cluster_scale}{A character string specifying which node
+aesthetic is overridden by cluster membership. One of
+\code{"fill"}, \code{"color"}, or \code{"shape"}. The value is
+matched via \code{\link{match.arg}}; default is \code{"fill"}.}
 
-\item{node_size_range}{A numeric vector specifying the range of the node size.}
+\item{node_size_range}{A numeric vector of length 2 giving the
+minimum and maximum node size (in ggplot2 point units) when
+\code{node_size_by} is a column name. Default \code{c(5, 20)}.}
 
-\item{link_weight_range}{A numeric vector specifying the range of the link weight.}
+\item{link_weight_range}{A numeric vector of length 2 giving the
+minimum and maximum edge line width (in mm) when
+\code{link_weight_by} is a column name. Default
+\code{c(0.5, 5)}.}
 
-\item{link_arrow_offset}{A numeric value specifying the offset of the link arrows.
-So that they won't overlap with the nodes.}
+\item{link_arrow_offset}{A numeric value (in points) specifying the
+offset distance for the arrow end cap from the target node.
+Prevents arrow heads from overlapping the node points. Only
+relevant when \code{directed = TRUE}. Default \code{20}.}
 
-\item{link_curvature}{A numeric value specifying the curvature of the links.}
+\item{link_curvature}{A numeric value controlling the curvature of
+the edges. \code{0} (default) produces straight edges; positive
+values curve them away from the direct path.}
 
-\item{link_color_by}{A character string specifying the colors of the link. It can be:
+\item{link_color_by}{A character string controlling how edge colour
+is determined. Options:
 \itemize{
-\item "from" means the color of the link is determined by the source node.
-\item "to" means the color of the link is determined by the target node.
-\item Otherwise, the color of the link is determined by the column name from the links data frame.
+\item \code{"from"} (default) -- colour follows the source node's
+fill or colour aesthetic.
+\item \code{"to"} -- colour follows the target node's fill or
+colour.
+\item A column name from \code{links} -- colour is mapped
+directly to that column.
 }}
 
-\item{link_color_name}{A character string specifying the name of the link color in the legend.
-Only used when \code{link_color_by} is a column name.}
+\item{link_color_name}{A character string for the edge colour legend
+title. Only used when \code{link_color_by} is a column name (not
+\code{"from"} or \code{"to"}). When \code{NULL} (default), the
+column name is used.}
 
 \item{palette}{A character string specifying the palette to use.
 A named list or vector can be used to specify the palettes for different \code{split_by} values.}
@@ -179,42 +257,76 @@ If some values are missing, the values from the palette will be used (palcolor w
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
-\item{link_palette}{A character string specifying the palette of the links.
-When \code{link_color_by} is "from" or "to", the palette of the links defaults to the palette of the nodes.}
+\item{link_palette}{A character string specifying the palette for
+edge colours when they are mapped. When \code{link_color_by} is
+\code{"from"} or \code{"to"}, defaults to the node
+\code{palette}. Otherwise defaults to \code{"Set1"}.}
 
-\item{link_palcolor}{A character vector specifying the colors of the link palette.
-When \code{link_color_by} is "from" or "to", the colors of the link palette defaults to the colors of the node palette.}
+\item{link_palcolor}{A character vector specifying custom colours
+for the edge palette. When \code{link_color_by} is \code{"from"}
+or \code{"to"}, defaults to the node \code{palcolor}. Otherwise
+defaults to \code{NULL}.}
 
-\item{directed}{A logical value specifying whether the graph is directed.}
+\item{directed}{A logical value. When \code{TRUE}, edges are drawn
+with arrow heads and an end-cap offset. Default \code{TRUE}.}
 
-\item{layout}{A character string specifying the layout of the graph.
-It can be "circle", "tree", "grid", or a layout function from igraph.}
+\item{layout}{A character string or an \code{igraph_layout_spec}
+object specifying the node placement algorithm. Built-in shortcuts:
+\code{"circle"} (circular layout), \code{"tree"} (hierarchical
+tree), \code{"grid"} (grid layout). Any other string is prefixed
+with \code{"layout_with_"} and called as an igraph function (e.g.
+\code{"fr"} for Fruchterman--Reingold, \code{"kk"} for
+Kamada--Kawai). Default \code{"circle"}.}
 
-\item{cluster}{A character string specifying the clustering method.
-It can be "none", "fast_greedy", "walktrap", "edge_betweenness", "infomap", or a clustering function from igraph.}
+\item{cluster}{A character string specifying the community detection
+algorithm. One of \code{"none"}, \code{"fast_greedy"},
+\code{"walktrap"}, \code{"edge_betweenness"}, \code{"infomap"}, or
+a custom clustering function from igraph. When not \code{"none"},
+cluster membership overrides the aesthetic selected by
+\code{cluster_scale}. Default \code{"none"}.}
 
-\item{add_mark}{A logical value specifying whether to add mark for the clusters to the plot.}
+\item{add_mark}{A logical value. When \code{TRUE} (and
+\code{cluster != "none"}), an enclosure mark is drawn around each
+cluster's nodes. Default \code{FALSE}.}
 
-\item{mark_expand}{A unit value specifying the expansion of the mark.}
+\item{mark_expand}{A \code{\link[grid]{unit}} object specifying the
+extra space around points within a cluster mark. Default
+\code{unit(10, "mm")}.}
 
-\item{mark_type}{A character string specifying the type of the mark.
-It can be "hull", "ellipse", "rect", "circle", or a mark function from ggforce.}
+\item{mark_type}{A character string specifying the mark geometry.
+One of \code{"hull"}, \code{"ellipse"}, \code{"rect"}, or
+\code{"circle"}, corresponding to ggforce's \code{geom_mark_hull},
+\code{geom_mark_ellipse}, \code{geom_mark_rect}, and
+\code{geom_mark_circle}. The value is matched via
+\code{\link{match.arg}}; default is \code{"hull"}.}
 
-\item{mark_alpha}{A numeric value specifying the transparency of the mark.}
+\item{mark_alpha}{A numeric value for the fill transparency of
+cluster marks. Default \code{0.1}.}
 
-\item{mark_linetype}{A numeric value specifying the line type of the mark.}
+\item{mark_linetype}{A numeric or character value specifying the
+border line type of the cluster marks. Default \code{1} (solid).}
 
-\item{add_label}{A logical value specifying whether to add label to the nodes to the plot.}
+\item{add_label}{A logical value. When \code{TRUE} (default), node
+identifiers are drawn as repulsive text labels via
+\code{\link[ggrepel]{geom_text_repel}}.}
 
-\item{label_size}{A numeric value specifying the size of the label.}
+\item{label_size}{A numeric value for the font size of node labels.
+Scaled by the theme base size. Default \code{3}.}
 
-\item{label_fg}{A character string specifying the foreground color of the label.}
+\item{label_fg}{A character string specifying the text colour of
+node labels. Default \code{"white"}.}
 
-\item{label_bg}{A character string specifying the background color of the label.}
+\item{label_bg}{A character string specifying the background colour
+of node labels. Default \code{"black"}.}
 
-\item{label_bg_r}{A numeric value specifying the background ratio of the label.}
+\item{label_bg_r}{A numeric value specifying the background box
+radius (as a fraction of label height). Passed to
+\code{\link[ggrepel]{geom_text_repel}}'s \code{bg.r} argument.
+Default \code{0.1}.}
 
-\item{arrow}{An arrow object for the links.}
+\item{arrow}{A \code{\link[ggplot2]{arrow}} object for the link
+arrow heads. Only used when \code{directed = TRUE}. Default is
+\code{arrow(type = "closed", length = unit(0.1, "inches"))}.}
 
 \item{title}{A character string specifying the title of the plot.
 A function can be used to generate the title based on the default title.
@@ -282,13 +394,59 @@ See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object or wrap_plots object or a list of ggplot objects
+A \code{ggplot} object (no \code{split_by}), a
+\code{patchwork} object (\code{combine = TRUE}), or a named list of
+\code{ggplot} objects (\code{combine = FALSE}), each with
+\code{height} and \code{width} attributes in inches.
 }
 \description{
-Plot a network graph
+Draws a network graph from a links (edge list) data frame and an optional
+nodes (vertex metadata) data frame. The graph is constructed via
+\code{\link[igraph]{igraph}}, laid out with igraph layout algorithms, and
+rendered with \code{\link[ggraph]{ggraph}}. Supports directed or
+undirected edges, variable link widths/linetypes/colours, node
+sizes/shapes/colours/fills, community detection with enclosure marks,
+automatic node labels, and a wide range of layout options.
+
+When \code{links} (and optionally \code{nodes}) contain a
+\code{split_by} column, separate sub-plots are generated for each split
+level and combined via \code{\link[patchwork]{patchwork}}. Unlike most
+other plot types, \code{Network} operates on two data frames; splitting
+may affect both.
 }
+\section{split_by workflow}{
+
+When \code{split_by} is provided:
+\enumerate{
+\item \strong{Column validation} -- The \code{split_by} column is
+validated in \code{links} via \code{\link{check_columns}},
+force-converted to a factor, and empty levels are dropped.
+\item \strong{Node split} -- If \code{split_nodes = TRUE} and
+\code{nodes} is provided, the same \code{split_by} column is
+validated in \code{nodes}. It must be identical in name to the
+links \code{split_by} or an error is raised. Empty levels are
+also dropped.
+\item \strong{Data splitting} -- The \code{links} data frame is
+split by the \code{split_by} levels into a named list,
+preserving factor level order.
+\item \strong{Attach node splits} -- If \code{split_nodes = TRUE},
+the \code{nodes} data frame is split identically. Each split's
+node data is attached as the \code{"nodes"} attribute on the
+corresponding links split.
+\item \strong{Dispatch to atomic} -- \code{\link{NetworkAtomic}} is
+called for each split. The \code{nodes} argument is passed as
+\code{"@nodes"} when \code{split_nodes = TRUE} so that it is
+extracted from the attribute. If \code{title} is a function, it
+receives the split level name for dynamic title generation.
+\item \strong{Combination} -- Results are combined via
+\code{\link{combine_plots}()} (when \code{combine = TRUE}) or
+returned as a named list of \code{ggplot} objects.
+}
+}
+
 \examples{
 \donttest{
+# Create example data
 actors <- data.frame(
   name = c("Alice", "Bob", "Cecil", "David", "Esmeralda"),
   age = c(48, 33, 45, 34, 21),
@@ -303,13 +461,32 @@ relations <- data.frame(
   friendship = c(4, 5, 5, 2, 1, 1, 2, 1, 3, 4),
   type = c(1, 1, 1, 1, 1, 2, 2, 2, 2, 2)
 )
+
+# Basic network
 Network(relations, actors)
-Network(relations, actors, theme = "theme_blank", theme_args = list(add_coord = FALSE))
-Network(relations, actors, link_weight_by = "friendship", node_size_by = "age",
- link_weight_name = "FRIENDSHIP", node_fill_by = "gender", link_color_by = "to",
- link_type_by = "type", node_color_by = "black", layout = "circle", link_curvature = 0.2)
-Network(relations, actors, layout = "tree", directed = FALSE, cluster = "fast_greedy",
- add_mark = TRUE)
+
+# Blank theme with no coordinate axes
+Network(relations, actors, theme = "theme_blank",
+        theme_args = list(add_coord = FALSE))
+
+# Mapped aesthetics with custom layout
+Network(relations, actors,
+        link_weight_by = "friendship",
+        node_size_by = "age",
+        link_weight_name = "FRIENDSHIP",
+        node_fill_by = "gender",
+        link_color_by = "to",
+        link_type_by = "type",
+        node_color_by = "black",
+        layout = "circle",
+        link_curvature = 0.2)
+
+# Tree layout with clustering and marks
+Network(relations, actors, layout = "tree",
+        directed = FALSE, cluster = "fast_greedy",
+        add_mark = TRUE)
+
+# Split by a column
 Network(relations, actors, split_by = "type")
 }
 }
