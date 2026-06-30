@@ -2,7 +2,7 @@
 % Please edit documentation in R/sankeyplot.R
 \name{SankeyPlotAtomic}
 \alias{SankeyPlotAtomic}
-\title{Atomic Sankey plot}
+\title{Atomic Sankey / alluvial diagram (internal)}
 \usage{
 SankeyPlotAtomic(
   data,
@@ -56,65 +56,113 @@ SankeyPlotAtomic(
 \arguments{
 \item{data}{A data frame.}
 
-\item{in_form}{A character string to specify the format of the data.
-Possible values are "auto", "long", "lodes", "wide", "alluvia", and "counts".}
+\item{in_form}{A character string specifying the input data format.
+One of \code{"auto"} (default), \code{"long"}, \code{"lodes"},
+\code{"wide"}, \code{"alluvia"}, or \code{"counts"}.
+\code{"long"} is an alias for \code{"lodes"}; \code{"wide"} is an alias for
+\code{"alluvia"}.  See the \code{data} parameter of \code{\link{SankeyPlot}}
+for format descriptions.}
 
-\item{x}{A character string of the column name to plot on the x-axis.
-See \code{data} for more details.}
+\item{x}{A character vector of column name(s) for the x-axis categories.
+Each unique value or concatenated pair represents a time point, state, or
+position along the horizontal axis.  Behaviour depends on \code{in_form}:
+for \code{"lodes"} at least one column is expected; for \code{"alluvia"}
+and \code{"counts"} at least two columns are required.  In the latter two
+cases \code{x_sep} is not used.}
 
-\item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.}
+\item{x_sep}{A character string to join multiple \code{x} columns when
+\code{in_form} is \code{"lodes"} or auto-determined as lodes.
+Default \code{"_"}.}
 
-\item{y}{A character string of the column name to plot on the y-axis.
-When \code{in_form} is "counts", \code{y} will be ignored. Otherwise, it defaults to the count of each \code{x}, \code{stratum}, \code{alluvium} and \code{links_fill_by}.}
+\item{y}{A character string specifying the numeric column for the y-axis
+(frequency / value).  When \code{NULL} (default), the count of observations
+per combination of \code{x}, \code{stratum}, \code{alluvium},
+\code{links_fill_by}, and \code{facet_by} is computed automatically.
+Ignored when \code{in_form} is \code{"counts"}.}
 
-\item{stratum}{A character string of the column name to group the nodes for each \code{x}.
-See \code{data} for more details.}
+\item{stratum}{A character string specifying the column that defines the
+node categories at each x-axis position.  Each unique value becomes a
+stratum (node block) at each x position.  When \code{NULL}, defaults to
+\code{links_fill_by}.  Multiple columns are concatenated with
+\code{stratum_sep}.  Ignored in \code{"alluvia"} format.}
 
-\item{stratum_sep}{A character string to concatenate the columns in \code{stratum}, if multiple columns are provided.}
+\item{stratum_sep}{A character string to join multiple \code{stratum}
+columns.  Default \code{"_"}.}
 
-\item{alluvium}{A character string of the column name to define the links.
-See \code{data} for more details.}
+\item{alluvium}{A character string specifying the column that identifies
+individual flows (alluvia) across x-axis positions.  Each unique value
+represents a single observational unit tracked across positions.  When
+\code{NULL} in \code{"counts"} format, an auto-generated identifier is
+created.  Multiple columns are concatenated with \code{alluvium_sep}.
+Ignored in \code{"alluvia"} format.}
 
-\item{alluvium_sep}{A character string to concatenate the columns in \code{alluvium}, if multiple columns are provided.}
+\item{alluvium_sep}{A character string to join multiple \code{alluvium}
+columns.  Default \code{"_"}.}
 
-\item{flow}{A logical value to use \link[ggalluvial:geom_flow]{ggalluvial::geom_flow} instead of \link[ggalluvial:geom_alluvium]{ggalluvial::geom_alluvium}.}
+\item{flow}{A logical value.  When \code{FALSE} (default),
+\code{\link[ggalluvial]{geom_alluvium}()} is used for the links.  When
+\code{TRUE}, \code{\link[ggalluvial]{geom_flow}()} is used instead, which
+draws the flows with a directional gradient between x positions.}
 
-\item{nodes_color}{A character string to color the nodes.
-Use a special value ".fill" to use the same color as the fill.}
+\item{nodes_color}{A character string specifying the border colour of the
+node (stratum) rectangles.  Use the special value \code{".fill"} to match
+the border colour to the node fill colour.  Default \code{"grey30"}.}
 
-\item{links_fill_by}{A character string of the column name to fill the links.}
+\item{links_fill_by}{A character string specifying the column that
+determines the fill colour of the links (alluvia / flows).  When
+\code{NULL} in \code{"lodes"} format, defaults to \code{alluvium}.  In
+\code{"counts"} format with the \code{"."} prefix, this parameter is
+required.  Multiple columns are concatenated with
+\code{links_fill_by_sep}.}
 
-\item{links_fill_by_sep}{A character string to concatenate the columns in \code{links_fill_by}, if multiple columns are provided.}
+\item{links_fill_by_sep}{A character string to join multiple
+\code{links_fill_by} columns.  Default \code{"_"}.}
 
-\item{links_name}{A character string to name the legend of links.}
+\item{links_name}{A character string for the legend title of the link fill
+scale.  When \code{NULL} (default), the \code{links_fill_by} column name
+is used.}
 
-\item{links_color}{A character string to color the borders of links.
-Use a special value ".fill" to use the same color as the fill.}
+\item{links_color}{A character string specifying the border colour of the
+links (alluvia / flows).  Use the special value \code{".fill"} to match
+the link border colour to the link fill colour.  Default \code{"gray80"}.}
 
-\item{nodes_palette}{A character string to specify the palette of nodes fill.}
+\item{nodes_palette}{A character string specifying the colour palette for
+the node (stratum) fill.  Passed to \code{\link{palette_this}()}.
+Default \code{"Paired"}.}
 
-\item{nodes_palcolor}{A character vector to specify the colors of nodes fill.}
+\item{nodes_palcolor}{A character vector of custom colours for the node
+fill, used as \code{palcolor} in \code{\link{palette_this}()}.  When
+\code{NULL} (default), the palette colours are used directly.}
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
-\item{nodes_alpha}{A numeric value to specify the transparency of nodes fill.}
+\item{nodes_alpha}{A numeric value in \eqn{[0, 1]} controlling the
+transparency of the node (stratum) fill.  Default \code{1}.}
 
-\item{nodes_label}{A logical value to show the labels on the nodes.}
+\item{nodes_label}{A logical value.  When \code{TRUE}, stratum labels are
+drawn inside each node using \code{\link[ggplot2]{geom_label}()} with
+\code{\link[ggalluvial]{StatStratum}}.  Default \code{FALSE}.}
 
-\item{nodes_width}{A numeric value to specify the width of nodes.}
+\item{nodes_width}{A numeric value (typically 0–1) specifying the width of
+the node (stratum) rectangles as a fraction of the x-axis spacing.
+Default \code{0.25}.}
 
-\item{nodes_label_miny}{A numeric value to specify the minimum y (frequency) to show the labels.}
+\item{nodes_label_miny}{A numeric value specifying the minimum y
+(frequency) threshold for displaying node labels.  Nodes with y-values
+below this threshold are not labelled.  Default \code{0}.}
 
-\item{nodes_legend}{Controls how the legend of nodes will be shown. Possible values are:
-\itemize{
-\item "merge": Merge the legends of nodes. That is only one legend will be shown for all nodes.
-\item "separate": Show the legends of nodes separately. That is, nodes on each \code{x} will have their own legend.
-\item "none": Do not show the legend of nodes.
-\item "auto": Automatically determine how to show the legend.
-When \code{nodes_label} is TRUE, "none" will apply.
-When \code{nodes_label} is FALSE, and if stratum is the same as links_fill_by, "none" will apply.
-If there is any overlapping values between the nodes on different \code{x},
-"merge" will apply. Otherwise, "separate" will apply.
+\item{nodes_legend}{Controls how the node legend is displayed.  One of:
+\describe{
+\item{\code{"auto"} (default)}{Automatically determined:
+if \code{nodes_label = TRUE}, or if \code{stratum} is identical to
+\code{links_fill_by} with matching colours, the legend is hidden.
+Otherwise, overlapping stratum values across x positions are checked:
+any overlap produces a merged legend; no overlap produces separate
+legends per x position.}
+\item{\code{"merge"}}{A single merged legend for all nodes.}
+\item{\code{"separate"}}{One legend per x-axis position, generated via
+separate \code{\link[ggplot2]{scale_fill_manual}()} layers.}
+\item{\code{"none"}}{No node legend is shown.}
 }}
 
 \item{expand}{The values to expand the x and y axes. It is like CSS padding.
@@ -127,13 +175,19 @@ When the axis is discrete, the values will be applied as 'add' to the 'expansion
 When the axis is continuous, the values will be applied as 'mult' to the 'expansion' function.
 See also \url{https://ggplot2.tidyverse.org/reference/expansion.html}}
 
-\item{links_palette}{A character string to specify the palette of links fill.}
+\item{links_palette}{A character string specifying the colour palette for
+the link fill.  Passed to \code{\link{palette_this}()}.
+Default \code{"Paired"}.}
 
-\item{links_palcolor}{A character vector to specify the colors of links fill.}
+\item{links_palcolor}{A character vector of custom colours for the link
+fill, used as \code{palcolor} in \code{\link{palette_this}()}.  When
+\code{NULL} (default), the palette colours are used directly.}
 
-\item{links_alpha}{A numeric value to specify the transparency of links fill.}
+\item{links_alpha}{A numeric value in \eqn{[0, 1]} controlling the
+transparency of the link fill.  Default \code{0.6}.}
 
-\item{legend.box}{A character string to specify the box of the legend, either "vertical" or "horizontal".}
+\item{legend.box}{A character string specifying the arrangement of legend
+boxes, either \code{"vertical"} (default) or \code{"horizontal"}.}
 
 \item{keep_empty}{One of FALSE, TRUE and "level". It can also take a named list to specify
 different behavior for different columns. Without a named list, the behavior applies to the
@@ -155,7 +209,9 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
-\item{flip}{A logical value to flip the plot.}
+\item{flip}{A logical value.  When \code{TRUE},
+\code{\link[ggplot2]{coord_flip}()} is applied to swap the x and y axes.
+Default \code{FALSE}.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -187,12 +243,122 @@ When facet_by is a single column and facet_wrap is used.}
 
 \item{facet_byrow}{A logical value indicating whether to fill the plots by row. Default is TRUE.}
 
-\item{...}{Other arguments to pass to \link[ggalluvial:geom_alluvium]{ggalluvial::geom_alluvium} or \link[ggalluvial:geom_flow]{ggalluvial::geom_flow}.}
+\item{...}{Additional arguments passed to
+\code{\link[ggalluvial]{geom_alluvium}()} or
+\code{\link[ggalluvial]{geom_flow}()}, depending on the \code{flow}
+setting.  For \code{geom_flow} with a distinct \code{links_fill_by}
+column, passing \code{stat = "alluvium"} preserves the fill variable.}
 }
 \value{
-A ggplot object
+A \code{ggplot} object with \code{height} and \code{width}
+attributes (in inches) attached.
 }
 \description{
-Plot a Sankey plot without splitting the data.
+Core implementation for drawing a Sankey (alluvial) diagram using
+\code{\link[ggalluvial]{geom_alluvium}} (or \code{\link[ggalluvial]{geom_flow}})
+and \code{\link[ggalluvial]{geom_stratum}}.  This function takes a \strong{single}
+data frame (no \code{split_by} support) and returns a \code{ggplot} object
+with faceting applied.
+
+The function supports five input formats (\code{in_form}) which control how
+the data columns are interpreted.  Nodes (strata) are rendered as vertical
+blocks whose fill colour and alpha can be customised independently of the
+links (alluvia / flows) connecting them.  Link colours can match node
+colours or use a separate palette; link borders can be set to a fixed colour
+or to follow the fill colour (\code{links_color = ".fill"}).
+
+Automatic legend resolution determines whether nodes on different x-axis
+positions receive a merged legend or separate legends, based on overlaps
+between stratum values across positions.
 }
+\section{Architecture}{
+
+\enumerate{
+\item \strong{Format resolution} — \code{in_form} is matched and aliased
+(\code{"long"} → \code{"lodes"}, \code{"wide"} → \code{"alluvia"}).
+\item \strong{Data parsing by format} — one of five code paths executes:
+\itemize{
+\item \strong{Lodes / long} — \code{x}, \code{stratum}, \code{alluvium},
+and \code{links_fill_by} are validated via
+\code{\link{check_columns}()}.  Multi-column inputs are
+concatenated with their respective separators.  When \code{y} is
+\code{NULL}, counts are computed per (\code{x}, \code{stratum},
+\code{alluvium}, \code{links_fill_by}, \code{facet_by}).
+\item \strong{Counts} (x without \code{"."} prefix) — numeric \code{x}
+columns are pivoted to long form via
+\code{\link[tidyr]{pivot_longer}()}, creating the y-axis from the
+cell values.  \code{alluvium} and \code{stratum} default to
+\code{links_fill_by}.
+\item \strong{Counts with source node} (x with \code{"."} as first
+element, \code{is_flowcounts}) — same as counts but also injects
+\code{links_fill_by} values as an additional first column of
+nodes, visualising how flows originate from source groups.
+\item \strong{Alluvia / wide} — validated via
+\code{\link[ggalluvial]{is_alluvia_form}()} and converted to lodes
+form via \code{\link[ggalluvial]{to_lodes_form}()}.
+\code{stratum} and \code{alluvium} are ignored.
+\item \strong{Auto / fallback} — when no other branch matches, the lodes
+path is attempted and validated via
+\code{\link[ggalluvial]{is_lodes_form}()}.
+}
+\item \strong{Palette assignment} — \code{\link{palette_this}()} resolves
+colours for both nodes (\code{nodes_palette} / \code{nodes_palcolor})
+and links (\code{links_palette} / \code{links_palcolor}).
+\item \strong{Flow-counts guide logic} — when \code{is_flowcounts} is
+\code{TRUE}, the links guide is suppressed if the first-column node
+colours match the link colours, avoiding redundant legends.  When
+the palettes are identical but colours differ (too few colours in
+the palette), the first-column node colours are reused.
+\item \strong{Legend auto-detection} — when \code{nodes_legend = "auto"}:
+if \code{nodes_label = TRUE} or if \code{stratum} and
+\code{links_fill_by} share identical values and colours, the nodes
+legend is hidden.  Otherwise, overlapping stratum values across
+x-axis positions are checked: any overlap triggers a merged legend;
+no overlap produces separate legends per position.
+\item \strong{Base ggplot} — constructed with \code{aes(x = x,
+        stratum = stratum, alluvium = alluvium, y = y)}.
+\item \strong{Separate node fill layers} — when \code{stratum} differs
+from \code{links_fill_by} and \code{nodes_legend = "separate"}, a
+\code{\link[ggplot2]{geom_col}()} +
+\code{\link[ggplot2]{scale_fill_manual}()} layer pair is added per
+x-axis position, each followed by
+\code{\link[ggnewscale]{new_scale_fill}()} to produce independent
+legends.
+\item \strong{Link rendering} — \code{\link[ggalluvial]{geom_alluvium}()}
+(default) or \code{\link[ggalluvial]{geom_flow}()} when
+\code{flow = TRUE}.  When \code{links_color = ".fill"}, the colour
+aesthetic is mapped to \code{links_fill_by} and the colour scale
+guide is suppressed.  For \code{geom_flow} with a distinct
+\code{stratum} and \code{links_fill_by}, \code{stat = "alluvium"}
+is forced to preserve the fill variable through the flow stat
+transformation.
+\item \strong{Link fill scale} — \code{\link[ggplot2]{scale_fill_manual}()}
+with \code{links_colors} and the resolved \code{links_guide}.
+\item \strong{Node rendering} — \code{\link[ggalluvial]{geom_stratum}()}
+with \code{nodes_color} (border) and \code{nodes_alpha}.  When
+\code{nodes_color = ".fill"}, the colour aesthetic maps to
+\code{stratum}.
+\item \strong{Node fill scale} — \code{\link[ggplot2]{scale_fill_manual}()}
+with \code{nodes_colors}.  The guide is \code{"none"} when
+\code{nodes_legend} is \code{"none"} or \code{"separate"}
+(already handled by per-position layers); otherwise \code{"legend"}.
+\item \strong{Labels} — when \code{nodes_label = TRUE},
+\code{\link[ggplot2]{geom_label}()} with
+\code{stat = \link[ggalluvial]{StatStratum}} and
+\code{min.y = nodes_label_miny}.
+\item \strong{Axes, theme, labels} — \code{\link[ggplot2]{scale_x_discrete}()},
+\code{\link[ggplot2]{scale_y_continuous}()}, custom theme, plot
+title / subtitle, axis labels, and aesthetic adjustments (aspect
+ratio, legend position / direction, grid removal, x-text angle).
+\item \strong{Coordinate flip} — when \code{flip = TRUE},
+\code{\link[ggplot2]{coord_flip}()} swaps the axes.
+\item \strong{Dimension calculation} — \code{\link{calculate_plot_dimensions}()}
+computes \code{height} and \code{width} attributes from the number
+of x-axis positions, legend metrics, and flip state, scaled by
+\code{aspect.ratio}.
+\item \strong{Faceting} — \code{\link{facet_plot}()} wraps the result
+when \code{facet_by} is provided.
+}
+}
+
 \keyword{internal}
