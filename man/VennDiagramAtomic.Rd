@@ -2,7 +2,7 @@
 % Please edit documentation in R/venndiagram.R
 \name{VennDiagramAtomic}
 \alias{VennDiagramAtomic}
-\title{Atomic Venn diagram}
+\title{Atomic Venn / Euler diagram (internal)}
 \usage{
 VennDiagramAtomic(
   data,
@@ -34,71 +34,62 @@ VennDiagramAtomic(
 \arguments{
 \item{data}{A data frame.}
 
-\item{in_form}{A character string indicating the datatype of the input data.
-Possible values are "long", "wide", "list", "venn" or NULL.
-"long" indicates the data is in long format.
-"wide" indicates the data is in wide format.
-"list" indicates the data is a list.
-"venn" indicates the data is a VennPlotData object.
-"auto" indicates the function will detect the datatype of the input data.
+\item{in_form}{A character string specifying the input format.  One of
+\code{"auto"} (default; detect automatically via
+\code{\link{detect_venn_datatype}()}), \code{"long"}, \code{"wide"},
+\code{"list"}, or \code{"venn"}.}
 
-A long format data would look like:
-\preformatted{
-group_by id_by
-A        a1
-A        a2
-B        a1
-B        a3
-...
-}
-
-A wide format data would look like:
-\preformatted{
-A    B
-TRUE TRUE
-TRUE FALSE
-FALSE TRUE
-...
-}
-
-A list format data would look like:
-\preformatted{
-list(A = c("a1", "a2"), B = c("a1", "a3"))
-}}
-
-\item{group_by}{A character string specifying the column name of the data frame to group the data.
-When in_form is "wide", it should be the columns for the groups.}
+\item{group_by}{A character string (or vector) specifying the column name(s)
+that define the set membership.  For \code{in_form = "long"}, this is the
+grouping column; for \code{in_form = "wide"}, these are the set columns
+(must be logical or 0/1); when \code{NULL} and \code{data} is a data
+frame, all columns are treated as sets (wide format).}
 
 \item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
 
-\item{id_by}{A character string specifying the column name of the data frame to identify the instances.
-Required when \code{group_by} is a single column and data is a data frame.}
+\item{id_by}{A character string specifying the column name that identifies
+individual elements.  Required for long-format data; ignored otherwise.}
 
-\item{label}{A character string specifying the label to show on the Venn diagram.
-Possible values are "count", "percent", "both", "none" and a function.
-"count" indicates the count of the intersection. "percent" indicates the percentage of the intersection.
-"both" indicates both the count and the percentage of the intersection. "none" indicates no label.
-If it is a function, if takes a data frame as input and returns a character vector as label.
-The data frame has columns "id", "X", "Y", "name", "item" and "count".}
+\item{label}{A character string or function controlling the text shown in
+each intersection region.  One of:
+\itemize{
+\item \code{"count"} (default) — the raw count of elements in that region.
+\item \code{"percent"} — the percentage of the total element count.
+\item \code{"both"} — count and percentage on separate lines.
+\item \code{"none"} — no region labels are drawn.
+\item A \strong{function} — receives a data frame with columns
+\code{"id"}, \code{"X"}, \code{"Y"}, \code{"name"}, \code{"item"},
+and \code{"count"}, and must return a character vector of labels.
+}}
 
-\item{label_fg}{A character string specifying the color of the label text.}
+\item{label_fg}{A character string specifying the colour of the label text.}
 
-\item{label_size}{A numeric value specifying the size of the label text.}
+\item{label_size}{A numeric value specifying the font size of the label
+text.  When \code{NULL} (the default), auto-sized at 3.5 for region labels
+and 4 for set labels, scaled by \code{base_size / 12}.}
 
-\item{label_bg}{A character string specifying the background color of the label.}
+\item{label_bg}{A character string specifying the background colour of the
+label text (passed to \code{\link[ggrepel]{geom_text_repel}()} as
+\code{bg.color}).  Default \code{"white"}.}
 
-\item{label_bg_r}{A numeric value specifying the radius of the background of the label.}
+\item{label_bg_r}{A numeric value specifying the corner radius of the label
+background rectangle (passed as \code{bg.r}).  Default \code{0.1}.}
 
-\item{fill_mode}{A character string specifying the fill mode of the Venn diagram.
-Possible values are "count", "set", "count_rev".
-"count" indicates the fill color is based on the count of the intersection.
-"set" indicates the fill color is based on the set of the intersection.
-"count_rev" indicates the fill color is based on the count of the intersection in reverse order.
-The palette will be continuous for "count" and "count_rev". The palette will be discrete for "set".}
+\item{fill_mode}{A character string specifying how intersection regions are
+coloured.  One of:
+\itemize{
+\item \code{"count"} — continuous gradient based on element count
+(default palette: \code{"Spectral"}).
+\item \code{"count_rev"} — continuous gradient with reversed count order.
+\item \code{"set"} — discrete blended colours per set combination
+(default palette: \code{"Paired"}).  No legend is drawn.
+}}
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
-\item{fill_name}{A character string to name the legend of colorbar.}
+\item{fill_name}{A character string for the colour bar legend title when
+\code{fill_mode} is \code{"count"} or \code{"count_rev"}.  Ignored when
+\code{fill_mode = "set"}.}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
@@ -130,9 +121,65 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object with Venn diagram
+A \code{ggplot} object with \code{height} and \code{width}
+attributes (in inches) attached.
 }
 \description{
-Atomic Venn diagram
+Core implementation for drawing a Venn or Euler diagram that visualises
+the overlap relationships among multiple sets.  Supports four input formats
+(long, wide, list, and pre-computed \code{VennPlotData}) which are
+normalised by \code{\link{prepare_venn_data}()} into the internal
+\code{VennPlotData} representation used by \pkg{ggVennDiagram}.
+
+Intersection regions can be filled either by a continuous colour gradient
+based on the element count (\code{fill_mode = "count"} or \code{"count_rev"})
+or by blended set colours (\code{fill_mode = "set"}).  Region labels can
+display the raw count, the percentage of total elements, both, nothing, or
+a custom function result.  Set labels always show the set name and its
+total element count.
 }
+\section{Architecture}{
+
+\enumerate{
+\item \strong{Data type detection} — \code{\link{detect_venn_datatype}()}
+identifies whether \code{data} is in long, wide, list, or
+\code{VennPlotData} format.
+\item \strong{Data preparation} — \code{\link{prepare_venn_data}()}
+converts the input into a \code{VennPlotData} object suitable for
+rendering by \pkg{ggVennDiagram}.
+\item \strong{Geometry extraction} — \pkg{ggVennDiagram} utilities
+(\code{venn_regionedge()}, \code{venn_setedge()},
+\code{venn_regionlabel()}, \code{venn_setlabel()}) compute polygon
+vertices and label positions for all sets and their intersections.
+\item \strong{Fill resolution} — When \code{fill_mode = "set"},
+\code{\link{palette_this}()} assigns colours to each set; the
+\code{blend_colors()} helper blends the colours of overlapping sets
+for each intersection region.  When \code{fill_mode = "count"} or
+\code{"count_rev"}, a continuous gradient is applied across regions
+via \code{scale_fill_gradientn()} with a colour bar legend.
+\item \strong{Label computation} — Region labels are formatted per the
+\code{label} parameter: raw count, percentage, both, none, or a
+custom function that receives a data frame with columns
+\code{"id"}, \code{"X"}, \code{"Y"}, \code{"name"}, \code{"item"},
+and \code{"count"}.  Set labels are formatted as
+\code{"setName\\n(count)"}.
+\item \strong{Plot assembly} — \code{geom_polygon()} draws filled
+regions; \code{geom_path()} draws set outlines; two
+\code{\link[ggrepel]{geom_text_repel}()} layers add region labels
+and set labels.  For \code{fill_mode = "set"}, colours are mapped
+directly (no aesthetic mapping, no legend); for count modes, a
+\code{scale_fill_gradientn()} continuous scale is used.
+\item \strong{Theme and coordinate system} — \code{coord_equal()}
+enforces a square aspect ratio.  The theme removes all axis text,
+ticks, titles, grid lines, and panel borders.  The x-axis
+expansion is widened to accommodate set label text width.
+\item \strong{Dimension calculation} —
+\code{\link{calculate_plot_dimensions}()} computes \code{height}
+and \code{width} attributes (in inches) from \code{base_height},
+\code{aspect.ratio}, and legend metrics.  When
+\code{fill_mode = "set"}, the legend position is forced to
+\code{"none"}.
+}
+}
+
 \keyword{internal}

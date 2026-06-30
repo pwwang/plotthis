@@ -2,27 +2,37 @@
 % Please edit documentation in R/venndiagram.R
 \name{detect_venn_datatype}
 \alias{detect_venn_datatype}
-\title{Detect the datatype of the input data of Venn diagram}
+\title{Detect the input data format for Venn diagram processing}
 \usage{
 detect_venn_datatype(data, group_by = NULL, id_by = NULL)
 }
 \arguments{
-\item{data}{A data frame or a list or a VennPlotData object.}
+\item{data}{A data frame, a named list, or a \code{VennPlotData} object.
+Data frames are classified as \code{"long"} when a single non-\code{NULL}
+\code{group_by} is provided, or \code{"wide"} when \code{group_by} has two
+or more columns or is \code{NULL}.}
 
-\item{group_by}{A character string specifying the column name of the data frame to group the data.}
+\item{group_by}{A character string specifying the column name(s) identifying
+the set membership.  A single non-\code{NULL} column indicates long format.
+Two or more columns, or \code{NULL}, indicate wide format.}
 
-\item{id_by}{A character string specifying the column name of the data frame to identify the instances.
-Required when \code{group_by} is a single column and data is a data frame.}
+\item{id_by}{A character string specifying the column name that identifies
+individual elements.  Required when \code{group_by} is a single column and
+\code{data} is a data frame.  Ignored for other input types.}
 }
 \value{
-A character string indicating the datatype of the input data or error message if invalid.
-Possible values are "long", "wide", "list" and "venn".
-"long" indicates the data is in long format.
-"wide" indicates the data is in wide format.
-"list" indicates the data is a list.
-"venn" indicates the data is a VennPlotData object.
+A character string indicating the detected data format:
+\code{"long"}, \code{"wide"}, \code{"list"}, or \code{"venn"}.  Stops with
+an error if the data does not match any recognised type.
 }
 \description{
-Detect the datatype of the input data of Venn diagram
+Examines the structure of \code{data} and determines which of the four
+supported formats it conforms to:
+\itemize{
+\item \code{"long"} — a data frame with one row per element-set pair.
+\item \code{"wide"} — a data frame with logical/0-1 columns per set.
+\item \code{"list"} — a named list of element vectors per set.
+\item \code{"venn"} — a pre-computed \code{VennPlotData} object.
+}
 }
 \keyword{internal}

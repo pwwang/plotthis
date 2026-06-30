@@ -2,7 +2,7 @@
 % Please edit documentation in R/venndiagram.R
 \name{VennDiagram}
 \alias{VennDiagram}
-\title{Venn diagram}
+\title{Venn / Euler diagram}
 \usage{
 VennDiagram(
   data,
@@ -45,41 +45,17 @@ VennDiagram(
 \arguments{
 \item{data}{A data frame.}
 
-\item{in_form}{A character string indicating the datatype of the input data.
-Possible values are "long", "wide", "list", "venn" or NULL.
-"long" indicates the data is in long format.
-"wide" indicates the data is in wide format.
-"list" indicates the data is a list.
-"venn" indicates the data is a VennPlotData object.
-"auto" indicates the function will detect the datatype of the input data.
+\item{in_form}{A character string specifying the input format.  One of
+\code{"auto"} (default; detect automatically via
+\code{\link{detect_venn_datatype}()}), \code{"long"}, \code{"wide"},
+\code{"list"}, or \code{"venn"}.}
 
-A long format data would look like:
-\preformatted{
-group_by id_by
-A        a1
-A        a2
-B        a1
-B        a3
-...
-}
+\item{split_by}{The column(s) to split the data by and produce separate
+Venn diagrams per subgroup.  Only supported when \code{data} is a data
+frame.  Multiple columns are concatenated with \code{split_by_sep}.}
 
-A wide format data would look like:
-\preformatted{
-A    B
-TRUE TRUE
-TRUE FALSE
-FALSE TRUE
-...
-}
-
-A list format data would look like:
-\preformatted{
-list(A = c("a1", "a2"), B = c("a1", "a3"))
-}}
-
-\item{split_by}{The column(s) to split data by and plot separately.}
-
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
+\item{split_by_sep}{A character string to separate concatenated
+\code{split_by} columns.  Default \code{"_"}.}
 
 \item{group_by}{Columns to group the data for plotting
 For those plotting functions that do not support multiple groups,
@@ -87,34 +63,49 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 
 \item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
 
-\item{id_by}{A character string specifying the column name of the data frame to identify the instances.
-Required when \code{group_by} is a single column and data is a data frame.}
+\item{id_by}{A character string specifying the column name that identifies
+individual elements.  Required for long-format data; ignored otherwise.}
 
-\item{label}{A character string specifying the label to show on the Venn diagram.
-Possible values are "count", "percent", "both", "none" and a function.
-"count" indicates the count of the intersection. "percent" indicates the percentage of the intersection.
-"both" indicates both the count and the percentage of the intersection. "none" indicates no label.
-If it is a function, if takes a data frame as input and returns a character vector as label.
-The data frame has columns "id", "X", "Y", "name", "item" and "count".}
+\item{label}{A character string or function controlling the text shown in
+each intersection region.  One of:
+\itemize{
+\item \code{"count"} (default) — the raw count of elements in that region.
+\item \code{"percent"} — the percentage of the total element count.
+\item \code{"both"} — count and percentage on separate lines.
+\item \code{"none"} — no region labels are drawn.
+\item A \strong{function} — receives a data frame with columns
+\code{"id"}, \code{"X"}, \code{"Y"}, \code{"name"}, \code{"item"},
+and \code{"count"}, and must return a character vector of labels.
+}}
 
-\item{label_fg}{A character string specifying the color of the label text.}
+\item{label_fg}{A character string specifying the colour of the label text.}
 
-\item{label_size}{A numeric value specifying the size of the label text.}
+\item{label_size}{A numeric value specifying the font size of the label
+text.  When \code{NULL} (the default), auto-sized at 3.5 for region labels
+and 4 for set labels, scaled by \code{base_size / 12}.}
 
-\item{label_bg}{A character string specifying the background color of the label.}
+\item{label_bg}{A character string specifying the background colour of the
+label text (passed to \code{\link[ggrepel]{geom_text_repel}()} as
+\code{bg.color}).  Default \code{"white"}.}
 
-\item{label_bg_r}{A numeric value specifying the radius of the background of the label.}
+\item{label_bg_r}{A numeric value specifying the corner radius of the label
+background rectangle (passed as \code{bg.r}).  Default \code{0.1}.}
 
-\item{fill_mode}{A character string specifying the fill mode of the Venn diagram.
-Possible values are "count", "set", "count_rev".
-"count" indicates the fill color is based on the count of the intersection.
-"set" indicates the fill color is based on the set of the intersection.
-"count_rev" indicates the fill color is based on the count of the intersection in reverse order.
-The palette will be continuous for "count" and "count_rev". The palette will be discrete for "set".}
+\item{fill_mode}{A character string specifying how intersection regions are
+coloured.  One of:
+\itemize{
+\item \code{"count"} — continuous gradient based on element count
+(default palette: \code{"Spectral"}).
+\item \code{"count_rev"} — continuous gradient with reversed count order.
+\item \code{"set"} — discrete blended colours per set combination
+(default palette: \code{"Paired"}).  No legend is drawn.
+}}
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
-\item{fill_name}{A character string to name the legend of colorbar.}
+\item{fill_name}{A character string for the colour bar legend title when
+\code{fill_mode} is \code{"count"} or \code{"count_rev"}.  Ignored when
+\code{fill_mode = "set"}.}
 
 \item{palette}{A character string specifying the palette to use.
 A named list or vector can be used to specify the palettes for different \code{split_by} values.}
@@ -143,70 +134,101 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
-\item{combine}{Whether to combine the plots into one when facet is FALSE. Default is TRUE.}
+\item{combine}{Logical; when \code{TRUE} (default), returns a combined
+\code{patchwork} object.  When \code{FALSE}, returns a named list of
+individual \code{ggplot} objects.}
 
-\item{nrow}{A numeric value specifying the number of rows in the facet.}
+\item{ncol, nrow}{Integer number of columns / rows for the combined layout
+when \code{combine = TRUE}.}
 
-\item{ncol}{A numeric value specifying the number of columns in the facet.}
+\item{byrow}{Logical; fill the combined layout by row (default \code{TRUE}).}
 
-\item{byrow}{A logical value indicating whether to fill the plots by row.}
+\item{seed}{A numeric seed for reproducibility.  Default \code{8525}.}
 
-\item{seed}{The random seed to use. Default is 8525.}
+\item{axes, axis_titles}{Character strings specifying how axes and axis
+titles are handled across the combined layout.}
 
-\item{axes}{A string specifying how axes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axes in individual plots.
-\item 'collect' will remove duplicated axes when placed in the same run of rows or columns of the layout.
-\item 'collect_x' and 'collect_y' will remove duplicated x-axes in the columns or duplicated y-axes in the rows respectively.
-}}
+\item{guides}{A character string specifying how legends are collected
+across panels in the combined layout.}
 
-\item{axis_titles}{A string specifying how axis titltes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axis titles in individual plots.
-\item 'collect' will remove duplicated titles in one direction and merge titles in the opposite direction.
-\item 'collect_x' and 'collect_y' control this for x-axis titles and y-axis titles respectively.
-}}
-
-\item{guides}{A string specifying how guides should be treated in the layout. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'collect' will collect guides below to the given nesting level, removing duplicates.
-\item 'keep' will stop collection at this level and let guides be placed alongside their plot.
-\item 'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.
-}}
-
-\item{design}{Specification of the location of areas in the layout, passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE. When specified, \code{nrow}, \code{ncol}, and \code{byrow} are ignored.
-See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details.}
+\item{design}{A custom layout specification for the combined plot.
+Passed to \code{\link[patchwork]{wrap_plots}()}.}
 
 \item{...}{Additional arguments.}
 }
 \value{
-A combined ggplot object or wrap_plots object or a list of ggplot objects
+A \code{ggplot} object (single split), a \code{patchwork} object
+(combined sub-plots), or a named list of \code{ggplot} objects (when
+\code{combine = FALSE}), each with \code{height} and \code{width}
+attributes in inches.
 }
 \description{
-Venn diagram
+Draws Venn or Euler diagrams that visualise the overlap relationships among
+multiple sets.  Supports four input formats: long (one row per element-set
+pair), wide (logical/0-1 columns per set), a named list (element vectors
+per set), and a pre-computed \code{VennPlotData} object.
+
+Intersection regions can be filled by a continuous colour gradient encoding
+the element count (\code{fill_mode = "count"} / \code{"count_rev"}) or by
+blended set colours (\code{fill_mode = "set"}).  Region labels can display
+counts, percentages, both, or a custom function.  Set labels always show
+the set name and its total element count.
+
+Use \code{split_by} to produce separate Venn diagrams for each level of a
+grouping variable.  Note that \code{split_by} is only supported when
+\code{data} is a data frame (list and \code{VennPlotData} inputs cannot be
+split).
 }
+\section{split_by Workflow}{
+
+When a non-\code{NULL} \code{split_by} is provided and the input is a
+data frame:
+\enumerate{
+\item \strong{Validation} — an error is raised if \code{data} is not a
+data frame (list and \code{VennPlotData} input cannot be split).
+\item \strong{Column resolution} — \code{split_by} is validated and
+optionally concatenated via \code{\link{check_columns}()} with
+\code{force_factor = TRUE} and \code{allow_multi = TRUE}.
+\item \strong{Data splitting} — the data frame is split by the unique
+levels of the \code{split_by} column, preserving factor level
+order.  Empty levels are dropped via \code{droplevels()}.
+\item \strong{Per-split colour and legend resolution} —
+\code{\link{check_palette}()}, \code{\link{check_palcolor}()},
+and \code{\link{check_legend}()} resolve per-split palettes,
+custom colours, legend positions, and legend directions.
+\item \strong{Atomic dispatch} — \code{\link{VennDiagramAtomic}()} is
+called for each subset.  When \code{title} is a function, it
+receives the split level name for dynamic title generation.
+\item \strong{Combination} — results are passed to
+\code{\link{combine_plots}()} which returns a combined
+\code{patchwork} object (when \code{combine = TRUE}) or a named
+list of individual ggplot objects (when \code{combine = FALSE}).
+}
+}
+
 \examples{
 \donttest{
 set.seed(8525)
-data = list(
+data <- list(
     A = sort(sample(letters, 8)),
     B = sort(sample(letters, 8)),
     C = sort(sample(letters, 8)),
     D = sort(sample(letters, 8))
 )
 
+# Basic Venn diagram with count labels
 VennDiagram(data)
+
+# Fill by set membership (blended colours)
 VennDiagram(data, fill_mode = "set")
+
+# Show both count and percentage
 VennDiagram(data, label = "both")
-# label with a function
+
+# Custom label function using set names
 VennDiagram(data, label = function(df) df$name)
+
+# Custom palette and transparency
 VennDiagram(data, palette = "material-indigo", alpha = 0.6)
 }
 }
