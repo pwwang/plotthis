@@ -50,85 +50,67 @@ VelocityPlot(
 )
 }
 \arguments{
-\item{embedding}{A matrix or data.frame of dimension n_obs x n_dim specifying the embedding coordinates of the cells.}
+\item{embedding}{A matrix or data frame of dimension n_obs x n_dim specifying the low-dimensional embedding coordinates (e.g., UMAP, t-SNE) of the cells. The first two columns are used for the x and y axes.}
 
-\item{v_embedding}{A matrix or data.frame of dimension n_obs x n_dim specifying the velocity vectors of the cells.}
+\item{v_embedding}{A matrix or data frame of dimension n_obs x n_dim specifying the velocity vectors for each cell. Must have the same dimensions as \code{embedding}.}
 
-\item{plot_type}{A character string specifying the type of plot to create. Options are "raw", "grid", or "stream". Default is "raw".}
+\item{plot_type}{A character string specifying the visualization method. \code{"raw"} plots arrows directly from each cell's embedding position. \code{"grid"} averages velocities onto a regular grid and plots arrows at grid points. \code{"stream"} computes smooth streamline paths from the gridded velocity field. Default is \code{"raw"}.}
 
-\item{split_by}{An optional character string specifying a variable to split the plot by. Not supported yet.}
+\item{split_by}{Not supported for VelocityPlot. Setting this parameter will raise an error.}
 
-\item{group_by}{An optional character string specifying a variable to group the cells by.}
+\item{group_by}{An optional vector of the same length as the number of rows in \code{embedding} specifying a grouping variable for cells. When provided, arrows are colored by group using \code{group_palette}. Only applies to \code{plot_type = "raw"}; ignored with a warning for \code{"grid"} and \code{"stream"}. Default is \code{NULL}.}
 
-\item{group_name}{An optional character string specifying the name of the grouping variable in legend. Default is "Group".}
+\item{group_name}{A character string specifying the legend title for the grouping variable. Default is \code{"Group"}.}
 
-\item{group_palette}{A character string specifying the color palette to use for grouping. Default is "Paired".}
+\item{group_palette}{A character string specifying the color palette to use for the grouping variable. Passed to \code{\link{palette_this}}. Default is \code{"Paired"}.}
 
-\item{group_palcolor}{An optional character vector specifying the colors to use for grouping. If NULL, the colors will be generated from the group_palette.}
+\item{group_palcolor}{An optional character vector of specific colors for the grouping variable. If \code{NULL}, colors are generated from \code{group_palette}. Default is \code{NULL}.}
 
-\item{n_neighbors}{An optional numeric value specifying the number of nearest neighbors for each grid point. Default is ceiling(ncol(embedding) / 50).}
+\item{n_neighbors}{An integer value specifying the number of nearest neighbors for computing grid velocities. Only used when \code{plot_type} is \code{"grid"} or \code{"stream"}. Default is \code{ceiling(nrow(embedding) / 50)}.}
 
-\item{density}{An optional numeric value specifying the density of the grid points along each dimension. Default is 1.}
+\item{density}{A numeric value specifying the grid density along each dimension. Only used when \code{plot_type} is \code{"grid"} or \code{"stream"}. For \code{plot_type = "raw"}, when \code{density} is between 0 and 1, it specifies the fraction of cells to randomly subsample. Default is 1.}
 
-\item{smooth}{An optional numeric value specifying the smoothing factor for the velocity vectors. Default is 0.5.}
+\item{smooth}{A numeric value specifying the standard deviation multiplier for the Gaussian kernel when averaging cell velocities onto grid points. Only used when \code{plot_type} is \code{"grid"} or \code{"stream"}. Default is 0.5.}
 
-\item{scale}{An optional numeric value specifying the scaling factor for the velocity vectors. Default is 1.}
+\item{scale}{A numeric value specifying the scaling factor for the velocity vectors. Applied to raw and grid arrows. For \code{plot_type = "stream"}, this is fixed to 1 internally. Default is 1.}
 
-\item{min_mass}{An optional numeric value specifying the minimum mass required for a grid point to be considered. Default is 1.}
+\item{min_mass}{A numeric value specifying the minimum mass threshold for retaining grid points. Only used when \code{plot_type} is \code{"grid"} or \code{"stream"}. Default is 1.}
 
-\item{cutoff_perc}{An optional numeric value specifying the percentile cutoff for removing low-density grid points. Default is 5.}
+\item{cutoff_perc}{A numeric value specifying the percentile cutoff for removing low-density grid points. Only used when \code{plot_type} is \code{"stream"}. Default is 5.}
 
-\item{arrow_angle}{An optional numeric value specifying the angle of the arrowheads in degrees for velocity arrows. Default is 20.}
+\item{arrow_angle}{A numeric value specifying the angle of the arrowheads in degrees. Applied to \code{\link[grid]{arrow}} when \code{plot_type} is \code{"raw"} or \code{"grid"}. Default is 20.}
 
-\item{arrow_color}{A character string specifying the color of the velocity arrowheads. Default is "black".}
+\item{arrow_color}{A character string specifying the color of the velocity arrows. For \code{plot_type = "stream"}, this sets only the arrowhead color. Default is \code{"black"}.}
 
-\item{arrow_alpha}{A numeric value specifying the transparency of the velocity arrows. Default is 1 (fully opaque).
-Only works for \code{plot_type = "raw"} and \code{plot_type = "grid"}. For \code{plot_type = "stream"}, use \code{streamline_alpha} instead.}
+\item{arrow_alpha}{A numeric value between 0 and 1 specifying the transparency of the velocity arrows. Only used when \code{plot_type = "raw"} or \code{"grid"}; for \code{plot_type = "stream"}, use \code{streamline_alpha} instead. Default is 1.}
 
-\item{keep_na}{A logical value or a character to replace the NA values in the data.
-It can also take a named list to specify different behavior for different columns.
-If TRUE or NA, NA values will be replaced with NA.
-If FALSE, NA values will be removed from the data before plotting.
-If a character string is provided, NA values will be replaced with the provided string.
-If a named vector/list is provided, the names should be the column names to apply the behavior to,
-and the values should be one of TRUE, FALSE, or a character string.
-Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
-for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.}
+\item{keep_na}{A logical or character value specifying how to handle NA values in \code{group_by}. Unlike other plot functions, VelocityPlot does not support named lists for per-column control. See \code{keep_na} in \code{common_args} for details of supported values. Default is \code{FALSE}.}
 
-\item{keep_empty}{One of FALSE, TRUE and "level". It can also take a named list to specify
-different behavior for different columns. Without a named list, the behavior applies to the
-categorical/character columns used on the plot, for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.
-\itemize{
-\item{\code{FALSE} (default): Drop empty factor levels from the data before plotting.}
-\item{\code{TRUE}: Keep empty factor levels and show them as a separate category in the plot.}
-\item{\code{"level"}: Keep empty factor levels, but do not show them in the plot.
-But they will be assigned colors from the palette to maintain consistency across multiple plots.
-Alias: \code{levels}}
-}}
+\item{keep_empty}{One of \code{FALSE}, \code{TRUE}, or \code{"level"} specifying how to handle empty factor levels in \code{group_by}. Unlike other plot functions, VelocityPlot does not support named lists for per-column control. See \code{keep_empty} in \code{common_args} for details. Default is \code{FALSE}.}
 
-\item{streamline_l}{An optional numeric value specifying the length of the velocity streamlines. Default is 5.}
+\item{streamline_l}{A numeric value specifying the integration length of the streamlines. Passed to \code{\link[metR]{geom_streamline}} as the \code{L} parameter. Default is 5.}
 
-\item{streamline_minl}{An optional numeric value specifying the minimum length of the velocity streamlines. Default is 1.}
+\item{streamline_minl}{A numeric value specifying the minimum streamline length. Shorter streamlines are not drawn. Passed to \code{\link[metR]{geom_streamline}} as the \code{min.L} parameter. Default is 1.}
 
-\item{streamline_res}{An optional numeric value specifying the resolution of the velocity streamlines. Default is 1.}
+\item{streamline_res}{A numeric value specifying the resolution of the streamline integration. Passed to \code{\link[metR]{geom_streamline}} as the \code{res} parameter. Default is 1.}
 
-\item{streamline_n}{An optional numeric value specifying the number of velocity streamlines to draw. Default is 15.}
+\item{streamline_n}{A numeric value specifying the number of streamlines to draw. Passed to \code{\link[metR]{geom_streamline}} as the \code{n} parameter. Default is 15.}
 
-\item{streamline_width}{A numeric vector of length 2 specifying the width of the velocity streamlines. Default is c(0, 0.8).}
+\item{streamline_width}{A numeric vector of length 2 specifying the range of line widths for streamlines. Passed to \code{scale_size(range = ...)}. Only used when \code{streamline_color} is \code{NULL}. Default is \code{c(0, 0.8)}.}
 
-\item{streamline_alpha}{A numeric value specifying the transparency of the velocity streamlines. Default is 1 (fully opaque).}
+\item{streamline_alpha}{A numeric value between 0 and 1 specifying the transparency of the velocity streamlines. Default is 1.}
 
-\item{streamline_color}{A character string specifying the color of the velocity streamlines.}
+\item{streamline_color}{An optional character string specifying a fixed color for streamlines. When \code{NULL} (the default), streamlines are colored by velocity magnitude using \code{streamline_palette}.}
 
-\item{streamline_palette}{A character string specifying the color palette to use for the velocity streamlines. Default is "RdYlBu".}
+\item{streamline_palette}{A character string specifying the color palette for streamline velocity magnitude. Passed to \code{\link{palette_this}}. Only used when \code{streamline_color} is \code{NULL}. Default is \code{"RdYlBu"}.}
 
-\item{streamline_palcolor}{An optional character vector specifying the colors to use for the velocity streamlines. If NULL, the colors will be generated from the streamline_palette.}
+\item{streamline_palcolor}{An optional character vector of specific colors for the streamline velocity gradient. If \code{NULL}, colors are generated from \code{streamline_palette}. Default is \code{NULL}.}
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
-\item{streamline_bg_color}{A character string specifying the background color of the velocity streamlines. Default is "white".}
+\item{streamline_bg_color}{A character string specifying the background (outline) color applied to streamlines to create a stroke effect. Default is \code{"white"}.}
 
-\item{streamline_bg_stroke}{A numeric value specifying the background stroke width of the velocity streamlines. Default is 0.5.}
+\item{streamline_bg_stroke}{A numeric value specifying the additional line width of the background stroke relative to the foreground streamline. Default is 0.5.}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
@@ -152,22 +134,45 @@ Default is "theme_this".}
 
 \item{theme_args}{A list of arguments to pass to the theme function.}
 
-\item{return_layer}{A logical value indicating whether to return the ggplot layer instead of the full plot. Default is FALSE.}
+\item{return_layer}{A logical value indicating whether to return only the ggplot layers instead of the full assembled plot. When \code{TRUE}, returns a list of ggplot layers suitable for combining with other ggplot objects. Default is \code{FALSE}.}
 
 \item{seed}{The random seed to use. Default is 8525.}
 }
 \value{
-A ggplot object representing the cell velocity plot or a ggplot layer if \code{return_layer} is TRUE.
+A ggplot object representing the cell velocity plot, with \code{height} and \code{width} attributes set for consistent rendering. If \code{return_layer = TRUE}, returns a list of ggplot layers instead.
 }
 \description{
-The plot shows the velocity vectors of the cells in a specified reduction space.
+Plots RNA velocity vectors on a low-dimensional embedding (e.g., UMAP, t-SNE)
+to visualize the direction and magnitude of cellular state transitions. Supports
+three visualization modes: raw arrows at each cell position, arrows on a regular
+grid, and streamline paths. Optionally colors arrows by cell metadata groups.
 }
+\section{Rendering Pipeline}{
+
+The \code{VelocityPlot} function proceeds through the following steps:
+\enumerate{
+\item{\strong{Input validation} --- Verifies that \code{embedding} and \code{v_embedding} are matrices or data frames of equal dimensions, that \code{group_by} matches the number of rows (if provided), and that \code{split_by} is \code{NULL} (unsupported and raises an error).}
+\item{\strong{Axis label resolution} --- Uses the column names of \code{embedding} as axis labels, falling back to \code{"Reduction 1"} and \code{"Reduction 2"} when column names are \code{NULL}.}
+\item{\strong{Grouping setup} --- Converts \code{group_by} to a factor and applies \code{keep_na} / \code{keep_empty} logic to filter or recode missing values and empty factor levels.}
+\item{\strong{Plot-type dispatch} --- Branches on \code{plot_type}:}
+\itemize{
+\item{\strong{raw} --- Optionally subsamples cells when \code{density < 1}, scales velocity vectors by \code{scale}, computes arrow lengths proportional to the embedding range, and renders \code{\link[ggplot2]{geom_segment}} with arrowheads. When \code{group_by} is provided, arrows are colored by group using \code{group_palette}.}
+\item{\strong{grid} --- Delegates to \code{\link{.compute_velocity_on_grid}} to interpolate the sparse cell velocities onto a regular grid, then renders \code{\link[ggplot2]{geom_segment}} with arrowheads at each grid point. \code{group_by} is ignored with a warning.}
+\item{\strong{stream} --- Delegates to \code{\link{.compute_velocity_on_grid}} with \code{adjust_for_stream = TRUE}, then renders smooth streamline paths via \code{\link[metR]{geom_streamline}}. When \code{streamline_color} is provided, streamlines use a fixed color with a background stroke; when \code{NULL}, streamlines are colored by velocity magnitude using \code{streamline_palette}. \code{group_by} is ignored with a warning.}
+}
+\item{\strong{Layer return or plot assembly} --- If \code{return_layer = TRUE}, returns the list of ggplot layers. Otherwise, constructs a full \code{ggplot} object with labels, theme, aspect ratio, legend configuration, and \code{height} / \code{width} attributes via \code{\link{calculate_plot_dimensions}()}.}
+}
+}
+
 \examples{
 \donttest{
 data(dim_example)
 dim_example$clusters[dim_example$clusters == "Ductal"] <- NA
 
+# Basic velocity plot with group coloring
 VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], group_by = dim_example$clusters)
+
+# Handle NA groups with keep_na / keep_empty
 VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], group_by = dim_example$clusters,
     keep_na = TRUE, keep_empty = TRUE)
 VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], group_by = dim_example$clusters,
@@ -177,5 +182,5 @@ VelocityPlot(dim_example[, 1:2], dim_example[, 3:4], group_by = dim_example$clus
 }
 }
 \seealso{
-\code{\link[=DimPlot]{DimPlot()}} \code{\link[=FeatureDimPlot]{FeatureDimPlot()}}
+\code{\link{DimPlot}} \code{\link{FeatureDimPlot}}
 }
