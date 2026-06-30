@@ -2,7 +2,7 @@
 % Please edit documentation in R/corplot.R
 \name{CorPlot}
 \alias{CorPlot}
-\title{CorPlot}
+\title{Correlation scatter plot}
 \usage{
 CorPlot(
   data,
@@ -76,56 +76,89 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 
 \item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
 
-\item{group_name}{The name of the group in the legend.}
+\item{group_name}{A character string used as the colour legend title.
+When \code{NULL}, the \code{group_by} column name is used.}
 
-\item{split_by}{The column(s) to split data by and plot separately.}
+\item{split_by}{The column(s) to split the data by and produce separate
+sub-plots.  Multiple columns are concatenated with \code{split_by_sep}.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
+\item{split_by_sep}{A character string to separate concatenated
+\code{split_by} columns.  Default \code{"_"}.}
 
-\item{pt_size}{The size of the points.}
+\item{pt_size}{A numeric value specifying the size of the points.
+Default: \code{2}.}
 
-\item{pt_shape}{The shape of the points.}
+\item{pt_shape}{A numeric value specifying the shape of the points
+(see \code{\link[ggplot2]{geom_point}}).  Default: \code{16} (filled
+circle).}
 
-\item{raster}{Whether to use raster graphics for plotting.}
+\item{raster}{A logical value.  When \code{TRUE}, uses
+\code{scattermore::geom_scattermore()} for efficient rendering of
+large datasets.  Default: \code{FALSE}.}
 
 \item{alpha}{A numeric value specifying the transparency of the plot.}
 
-\item{raster_dpi}{The DPI of the raster graphics.}
+\item{raster_dpi}{An integer vector of length 1 or 2 specifying the
+raster resolution in (width, height) pixels.  When a single value is
+provided, it is recycled.  Default: \code{c(512, 512)}.}
 
-\item{highlight}{The items to be highlighted.
-Could be either a vector of rownames if data has rownames, or a vector of indices, or
-An expression that can be evaluated by \code{dplyr::filter} to get the highlighted items.}
+\item{highlight}{Specifies which points to emphasise.  Can be:
+\itemize{
+\item \code{TRUE} — highlight all points.
+\item A character expression (e.g. \code{'Species == "setosa"'}) —
+evaluated via \code{dplyr::filter}.
+\item A character vector — matched against rownames of the data.
+\item A numeric vector — treated as row indices.
+}
+Default: \code{NULL} (no highlighting).}
 
-\item{highlight_color}{The color of the highlighted points.}
+\item{highlight_color}{A character string specifying the colour of the
+highlighted point borders.  Default: \code{"black"}.}
 
-\item{highlight_size}{The size of the highlighted points.}
+\item{highlight_size}{A numeric value specifying the size of the
+highlighted points (the inner fill).  Default: \code{1}.}
 
-\item{highlight_alpha}{The alpha of the highlighted points.}
+\item{highlight_alpha}{A numeric value specifying the alpha transparency
+of the highlighted points.  Default: \code{1}.}
 
-\item{highlight_stroke}{The stroke of the highlighted points.}
+\item{highlight_stroke}{A numeric value specifying the stroke width of
+the highlighted point borders.  The outer layer size is
+\code{highlight_size + highlight_stroke}.  Default: \code{0.8}.}
 
-\item{anno_items}{The items to be annotated on the plot.
-Available items: "eq", "r2", "p", "spearman", "pearson", "kendall", "n".}
+\item{anno_items}{A character vector specifying which statistics to
+display as text annotation.  Available items: \code{"eq"} (regression
+equation), \code{"r2"} (R-squared), \code{"p"} (p-value),
+\code{"spearman"}, \code{"pearson"}, \code{"kendall"},
+\code{"n"} (observation count).  Default: \code{c("eq", "r2", "p")}.}
 
-\item{anno_size}{The size of the annotation text.}
+\item{anno_size}{A numeric value specifying the font size of the
+annotation text (scaled by \code{base_size / 12}).  Default: \code{3}.}
 
-\item{anno_fg}{The color of the annotation text.}
+\item{anno_fg}{A character string specifying the colour of the
+annotation text.  Default: \code{"black"}.}
 
-\item{anno_bg}{The background color of the annotation text.}
+\item{anno_bg}{A character string specifying the background colour of
+the annotation text boxes.  Default: \code{"white"}.}
 
-\item{anno_bg_r}{The radius of the background of the annotation text.}
+\item{anno_bg_r}{A numeric value specifying the corner radius of the
+annotation text background boxes.  Default: \code{0.1}.}
 
-\item{anno_position}{The position of the annotation text.
-Available positions: "topleft", "topright", "bottomleft", "bottomright".
-Shortcuts: "tl", "tr", "bl", "br".}
+\item{anno_position}{A character string specifying the corner position
+of the annotation text.  One of \code{"topleft"} (alias \code{"tl"}),
+\code{"topright"} (\code{"tr"}), \code{"bottomleft"} (\code{"bl"}),
+\code{"bottomright"} (\code{"br"}).}
 
-\item{add_smooth}{Whether to add a linear regression line.}
+\item{add_smooth}{A logical value.  When \code{TRUE} (default), a linear
+regression line (\code{geom_smooth(method = "lm")}) is added.}
 
-\item{smooth_color}{The color of the regression line.}
+\item{smooth_color}{A character string specifying the colour of the
+regression line.  Default: \code{"red2"}.}
 
-\item{smooth_width}{The width of the regression line.}
+\item{smooth_width}{A numeric value specifying the linewidth of the
+regression line.  Default: \code{1.5}.}
 
-\item{smooth_se}{Whether to add the standard error band to the regression line.}
+\item{smooth_se}{A logical value.  When \code{TRUE}, a standard error
+band is drawn around the regression line.  Default: \code{FALSE}.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -173,64 +206,93 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
-\item{seed}{The random seed to use. Default is 8525.}
+\item{seed}{A numeric seed for reproducibility.  Passed to
+\code{\link{validate_common_args}()}.}
 
-\item{combine}{Whether to combine the plots into one when facet is FALSE. Default is TRUE.}
+\item{combine}{Logical; when \code{TRUE} (default), returns a combined
+\code{patchwork} object.  When \code{FALSE}, returns a named list of
+individual \code{ggplot} objects.}
 
-\item{nrow}{A numeric value specifying the number of rows in the facet.}
+\item{ncol, nrow}{Integer number of columns / rows for the combined
+layout (passed to \code{\link[patchwork]{wrap_plots}}).}
 
-\item{ncol}{A numeric value specifying the number of columns in the facet.}
+\item{byrow}{Logical; fill the combined layout by row.  Default
+\code{TRUE}.}
 
-\item{byrow}{A logical value indicating whether to fill the plots by row.}
+\item{axes}{A character string specifying how axes should be treated
+across the combined layout (passed to
+\code{\link[patchwork]{wrap_plots}}).}
 
-\item{axes}{A string specifying how axes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axes in individual plots.
-\item 'collect' will remove duplicated axes when placed in the same run of rows or columns of the layout.
-\item 'collect_x' and 'collect_y' will remove duplicated x-axes in the columns or duplicated y-axes in the rows respectively.
-}}
+\item{axis_titles}{A character string specifying how axis titles should
+be treated across the combined layout.  Defaults to \code{axes}.}
 
-\item{axis_titles}{A string specifying how axis titltes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axis titles in individual plots.
-\item 'collect' will remove duplicated titles in one direction and merge titles in the opposite direction.
-\item 'collect_x' and 'collect_y' control this for x-axis titles and y-axis titles respectively.
-}}
+\item{guides}{A character string specifying how guides (legends) should
+be collected across panels (passed to \code{\link{combine_plots}()}).}
 
-\item{guides}{A string specifying how guides should be treated in the layout. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'collect' will collect guides below to the given nesting level, removing duplicates.
-\item 'keep' will stop collection at this level and let guides be placed alongside their plot.
-\item 'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.
-}}
-
-\item{design}{Specification of the location of areas in the layout, passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE. When specified, \code{nrow}, \code{ncol}, and \code{byrow} are ignored.
-See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details.}
+\item{design}{A custom layout design for the combined plot (passed to
+\code{\link{combine_plots}()}).}
 
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object or a list of ggplot objects if \code{combine} is \code{FALSE}.
+A \code{ggplot} object (when \code{split_by} is \code{NULL}),
+a \code{patchwork} object (when \code{combine = TRUE}), or a named
+list of \code{ggplot} objects (when \code{combine = FALSE}), each
+with \code{height} and \code{width} attributes in inches.
 }
 \description{
-Generate scatter correlation plot for two variables.
+Draws a scatter plot of two numeric variables with a linear regression
+line, optional correlation statistics, and point highlighting.  This is
+the public entry point that wraps \code{\link{CorPlotAtomic}} with
+\code{split_by} support.
+
+Key features include \strong{group-based colouring} (\code{group_by}),
+\strong{point highlighting} by expression, rowname, or index,
+\strong{annotation items} (regression equation, R-squared, p-value,
+Spearman/Pearson/Kendall rho, N), \strong{raster rendering} for large
+datasets, \strong{faceting} (\code{facet_by}), and \strong{splitting}
+into separate sub-plots via \code{split_by}.
 }
+\section{split_by workflow}{
+
+When \code{split_by} is provided:
+\enumerate{
+\item The \code{split_by} column is validated via
+\code{\link{check_columns}()} with \code{force_factor = TRUE}.
+Empty levels are dropped (\code{droplevels()}).
+\item The data frame is split by \code{split_by} (preserving level
+order).  If \code{split_by} is \code{NULL}, the data is wrapped
+in a single-element list with name \code{"..."}.
+\item Per-split \code{palette}, \code{palcolor},
+\code{legend.position}, and \code{legend.direction} are resolved
+via \code{\link{check_palette}()}, \code{\link{check_palcolor}()},
+and \code{\link{check_legend}()}.
+\item \code{\link{CorPlotAtomic}()} is called for each split.  When
+\code{title} is a function, it receives the split level name and
+can generate dynamic titles.
+\item Results are combined via \code{\link{combine_plots}()} (when
+\code{combine = TRUE}) or returned as a named list.
+}
+}
+
 \examples{
 \donttest{
 data(iris)
+
+# Basic scatter with group colours
 CorPlot(iris, "Sepal.Length", "Sepal.Width", group_by = "Species")
+
+# Highlight a specific group with custom stroke
 CorPlot(iris, "Sepal.Length", "Sepal.Width", group_by = "Species",
- highlight = 'Species == "setosa"', highlight_stroke = 1.5,
- anno_items = c("eq", "pearson"), anno_position = "bottomright")
-CorPlot(iris, "Sepal.Length", "Sepal.Width", facet_by = "Species", facet_scales = "free")
+    highlight = 'Species == "setosa"', highlight_stroke = 1.5,
+    anno_items = c("eq", "pearson"), anno_position = "bottomright")
+
+# Faceted by species
+CorPlot(iris, "Sepal.Length", "Sepal.Width", facet_by = "Species",
+    facet_scales = "free")
+
+# Per-split palettes
 CorPlot(iris, "Sepal.Length", "Sepal.Width", split_by = "Species",
-        palette = c(setosa = "Set1", versicolor = "Dark2", virginica = "Paired"))
+    palette = c(setosa = "Set1", versicolor = "Dark2", virginica = "Paired"))
 }
 }

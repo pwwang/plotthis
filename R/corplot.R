@@ -1,37 +1,159 @@
 #' Atomic Correlation Plot
 #'
-#' @description Generate scatter correlation plot for two variables.
+#' @description
+#' Core implementation for drawing a scatter plot of two variables with a
+#' linear regression line, optional correlation statistics, and point
+#' highlighting.  This is the workhorse behind the exported
+#' \code{\link{CorPlot}} — it takes a \strong{single} data frame (no
+#' \code{split_by} support) and returns a \code{ggplot} object with
+#' faceting applied.
+#'
+#' The function supports \strong{group-based colouring} (\code{group_by}),
+#' point highlighting by expression or rowname, multiple annotation items
+#' (regression equation, R-squared, p-value, Spearman/Pearson/Kendall
+#' correlation, N), raster rendering for large datasets, configurable
+#' regression line style, and faceting.
+#'
+#' @section Architecture:
+#' \enumerate{
+#'   \item \strong{ggplot dispatch} — selects \code{gglogger::ggplot} or
+#'         \code{ggplot2::ggplot} based on
+#'         \code{getOption("plotthis.gglogger.enabled")}.
+#'   \item \strong{Parameter normalisation} — \code{match.arg()} resolves
+#'         \code{anno_position} abbreviations (\code{"tl"}, \code{"tr"},
+#'         \code{"bl"}, \code{"br"}) to their full forms.
+#'         \code{raster_dpi} is expanded to length 2 when given as a scalar.
+#'   \item \strong{Column resolution} — \code{x}, \code{y}, and
+#'         \code{group_by} are validated via \code{\link{check_columns}}.
+#'         Multi-column \code{group_by} is concatenated with
+#'         \code{group_by_sep}.
+#'   \item \strong{Grouping fallback} — when \code{group_by = NULL}, a dummy
+#'         \code{.group} column is created and the legend is suppressed
+#'         (\code{legend.position = "none"}).
+#'   \item \strong{Annotation data calculation} — the data is grouped by
+#'         \code{facet_by} and a linear model (\code{lm(y ~ x)}) is fitted
+#'         per group.  Each requested \code{anno_items} is computed:
+#'         \itemize{
+#'           \item \code{"eq"} — regression equation \code{y = a + bx}.
+#'           \item \code{"r2"} — R-squared of the model.
+#'           \item \code{"p"} — p-value of the x coefficient.
+#'           \item \code{"spearman"} — Spearman's rho.
+#'           \item \code{"pearson"} — Pearson's r.
+#'           \item \code{"kendall"} — Kendall's tau.
+#'           \item \code{"n"} — number of observations.
+#'         }
+#'         The results are stored in an \code{annodata} data frame for
+#'         \code{geom_text_repel}.
+#'   \item \strong{Highlight parsing} — the \code{highlight} argument is
+#'         resolved into a \code{.highlight} logical column:
+#'         \itemize{
+#'           \item \code{TRUE} — highlights all points.
+#'           \item A character expression — evaluated via
+#'                 \code{dplyr::filter} to select rows.
+#'           \item A character vector — matched against rownames of the data.
+#'           \item A numeric vector — treated as row indices.
+#'         }
+#'   \item \strong{Point rendering} — two branches:
+#'         \itemize{
+#'           \item \strong{Raster mode} (\code{raster = TRUE}) — uses
+#'                 \code{scattermore::geom_scattermore()} for efficient
+#'                 rendering of large datasets.  Highlighted points are drawn
+#'                 in two layers (stroke + fill).
+#'           \item \strong{Vector mode} (\code{raster = FALSE}, default) —
+#'                 uses \code{ggplot2::geom_point()} with configurable size,
+#'                 shape, and alpha.  Highlighted points get an outer stroke
+#'                 via a second point layer.
+#'         }
+#'   \item \strong{Regression line} — \code{geom_smooth(method = "lm")}
+#'         draws the linear regression line with optional standard error band
+#'         (\code{smooth_se}).
+#'   \item \strong{Annotation text} — \code{ggrepel::geom_text_repel()}
+#'         places the computed annotations at the specified
+#'         \code{anno_position} corner, with background styling.
+#'   \item \strong{Colour scale} — \code{scale_color_manual()} maps group
+#'         levels to colours via \code{\link{palette_this}()}.
+#'   \item \strong{Labels and theme} — \code{labs()} sets titles and axis
+#'         labels.  The theme is applied via \code{do_call()}, with
+#'         \code{aspect.ratio}, \code{legend.position}, and
+#'         \code{legend.direction} enforced.
+#'   \item \strong{Dimension calculation} — \code{\link{calculate_plot_dimensions}()}
+#'         computes \code{height} and \code{width} attributes from
+#'         \code{base_height = 4.5}, \code{aspect.ratio}, legend metrics, and
+#'         the number of group levels.
+#'   \item \strong{Faceting} — \code{\link{facet_plot}()} applies
+#'         \code{facet_wrap} / \code{facet_grid} if \code{facet_by} is
+#'         provided.
+#' }
+#'
 #' @inheritParams common_args
-#' @param x, y The column names of the data to be plotted.
-#' @param group_by The column name of the data to be used for grouping.
-#'  Different groups will be plotted in different colors.
-#' @param group_by_sep The separator used to concatenate multiple columns in `group_by`.
-#' @param group_name The name of the group in the legend.
-#' @param pt_size The size of the points.
-#' @param pt_shape The shape of the points.
-#' @param raster Whether to use raster graphics for plotting.
-#' @param raster_dpi The DPI of the raster graphics.
-#' @param highlight The items to be highlighted.
-#'  Could be either a vector of rownames if data has rownames, or a vector of indices, or
-#'  An expression that can be evaluated by \code{dplyr::filter} to get the highlighted items.
-#' @param highlight_color The color of the highlighted points.
-#' @param highlight_size The size of the highlighted points.
-#' @param highlight_alpha The alpha of the highlighted points.
-#' @param highlight_stroke The stroke of the highlighted points.
-#' @param anno_items The items to be annotated on the plot.
-#'  Available items: "eq", "r2", "p", "spearman", "pearson", "kendall", "n".
-#' @param anno_size The size of the annotation text.
-#' @param anno_fg The color of the annotation text.
-#' @param anno_bg The background color of the annotation text.
-#' @param anno_bg_r The radius of the background of the annotation text.
-#' @param anno_position The position of the annotation text.
-#'  Available positions: "topleft", "topright", "bottomleft", "bottomright".
-#'  Shortcuts: "tl", "tr", "bl", "br".
-#' @param add_smooth Whether to add a linear regression line.
-#' @param smooth_color The color of the regression line.
-#' @param smooth_width The width of the regression line.
-#' @param smooth_se Whether to add the standard error band to the regression line.
-#' @return A ggplot object.
+#' @param x A character string specifying the column name for the x-axis.
+#'  Must be numeric.
+#' @param y A character string specifying the column name for the y-axis.
+#'  Must be numeric.
+#' @param group_by A character vector of column names to colour the points
+#'  by.  Each unique combination becomes a separate group in the legend.
+#'  Multiple columns are concatenated with \code{group_by_sep}.  When
+#'  \code{NULL}, all points are a single colour and the legend is hidden.
+#' @param group_by_sep A character string to separate concatenated
+#'  \code{group_by} columns.  Default \code{"_"}.
+#' @param group_name A character string used as the colour legend title.
+#'  When \code{NULL}, the \code{group_by} column name is used.
+#' @param pt_size A numeric value specifying the size of the points.
+#'  Default: \code{2}.
+#' @param pt_shape A numeric value specifying the shape of the points
+#'  (see \code{\link[ggplot2]{geom_point}}).  Default: \code{16} (filled
+#'  circle).
+#' @param raster A logical value.  When \code{TRUE}, uses
+#'  \code{scattermore::geom_scattermore()} for efficient rendering of
+#'  large datasets.  Default: \code{FALSE}.
+#' @param raster_dpi An integer vector of length 1 or 2 specifying the
+#'  raster resolution in (width, height) pixels.  When a single value is
+#'  provided, it is recycled.  Default: \code{c(512, 512)}.
+#' @param highlight Specifies which points to emphasise.  Can be:
+#'  \itemize{
+#'    \item \code{TRUE} — highlight all points.
+#'    \item A character expression (e.g. \code{'Species == "setosa"'}) —
+#'          evaluated via \code{dplyr::filter}.
+#'    \item A character vector — matched against rownames of the data.
+#'    \item A numeric vector — treated as row indices.
+#'  }
+#'  Default: \code{NULL} (no highlighting).
+#' @param highlight_color A character string specifying the colour of the
+#'  highlighted point borders.  Default: \code{"black"}.
+#' @param highlight_size A numeric value specifying the size of the
+#'  highlighted points (the inner fill).  Default: \code{1}.
+#' @param highlight_alpha A numeric value specifying the alpha transparency
+#'  of the highlighted points.  Default: \code{1}.
+#' @param highlight_stroke A numeric value specifying the stroke width of
+#'  the highlighted point borders.  The outer layer size is
+#'  \code{highlight_size + highlight_stroke}.  Default: \code{0.8}.
+#' @param anno_items A character vector specifying which statistics to
+#'  display as text annotation.  Available items: \code{"eq"} (regression
+#'  equation), \code{"r2"} (R-squared), \code{"p"} (p-value),
+#'  \code{"spearman"}, \code{"pearson"}, \code{"kendall"},
+#'  \code{"n"} (observation count).  Default: \code{c("eq", "r2", "p")}.
+#' @param anno_size A numeric value specifying the font size of the
+#'  annotation text (scaled by \code{base_size / 12}).  Default: \code{3}.
+#' @param anno_fg A character string specifying the colour of the
+#'  annotation text.  Default: \code{"black"}.
+#' @param anno_bg A character string specifying the background colour of
+#'  the annotation text boxes.  Default: \code{"white"}.
+#' @param anno_bg_r A numeric value specifying the corner radius of the
+#'  annotation text background boxes.  Default: \code{0.1}.
+#' @param anno_position A character string specifying the corner position
+#'  of the annotation text.  One of \code{"topleft"} (alias \code{"tl"}),
+#'  \code{"topright"} (\code{"tr"}), \code{"bottomleft"} (\code{"bl"}),
+#'  \code{"bottomright"} (\code{"br"}).
+#' @param add_smooth A logical value.  When \code{TRUE} (default), a linear
+#'  regression line (\code{geom_smooth(method = "lm")}) is added.
+#' @param smooth_color A character string specifying the colour of the
+#'  regression line.  Default: \code{"red2"}.
+#' @param smooth_width A numeric value specifying the linewidth of the
+#'  regression line.  Default: \code{1.5}.
+#' @param smooth_se A logical value.  When \code{TRUE}, a standard error
+#'  band is drawn around the regression line.  Default: \code{FALSE}.
+#' @return A \code{ggplot} object with \code{height} and \code{width}
+#'  attributes (in inches) attached.
 #' @keywords internal
 #' @importFrom stats cor lm coef
 #' @importFrom rlang syms sym
@@ -396,23 +518,89 @@ CorPlotAtomic <- function(
     )
 }
 
-#' CorPlot
+#' Correlation scatter plot
 #'
-#' @description Generate scatter correlation plot for two variables.
+#' @description
+#' Draws a scatter plot of two numeric variables with a linear regression
+#' line, optional correlation statistics, and point highlighting.  This is
+#' the public entry point that wraps \code{\link{CorPlotAtomic}} with
+#' \code{split_by} support.
+#'
+#' Key features include \strong{group-based colouring} (\code{group_by}),
+#' \strong{point highlighting} by expression, rowname, or index,
+#' \strong{annotation items} (regression equation, R-squared, p-value,
+#' Spearman/Pearson/Kendall rho, N), \strong{raster rendering} for large
+#' datasets, \strong{faceting} (\code{facet_by}), and \strong{splitting}
+#' into separate sub-plots via \code{split_by}.
+#'
+#' @section split_by workflow:
+#' When \code{split_by} is provided:
+#' \enumerate{
+#'   \item The \code{split_by} column is validated via
+#'         \code{\link{check_columns}()} with \code{force_factor = TRUE}.
+#'         Empty levels are dropped (\code{droplevels()}).
+#'   \item The data frame is split by \code{split_by} (preserving level
+#'         order).  If \code{split_by} is \code{NULL}, the data is wrapped
+#'         in a single-element list with name \code{"..."}.
+#'   \item Per-split \code{palette}, \code{palcolor},
+#'         \code{legend.position}, and \code{legend.direction} are resolved
+#'         via \code{\link{check_palette}()}, \code{\link{check_palcolor}()},
+#'         and \code{\link{check_legend}()}.
+#'   \item \code{\link{CorPlotAtomic}()} is called for each split.  When
+#'         \code{title} is a function, it receives the split level name and
+#'         can generate dynamic titles.
+#'   \item Results are combined via \code{\link{combine_plots}()} (when
+#'         \code{combine = TRUE}) or returned as a named list.
+#' }
+#'
 #' @inheritParams common_args
 #' @inheritParams CorPlotAtomic
-#' @return A ggplot object or a list of ggplot objects if `combine` is `FALSE`.
+#' @param split_by The column(s) to split the data by and produce separate
+#'  sub-plots.  Multiple columns are concatenated with \code{split_by_sep}.
+#' @param split_by_sep A character string to separate concatenated
+#'  \code{split_by} columns.  Default \code{"_"}.
+#' @param seed A numeric seed for reproducibility.  Passed to
+#'  \code{\link{validate_common_args}()}.
+#' @param combine Logical; when \code{TRUE} (default), returns a combined
+#'  \code{patchwork} object.  When \code{FALSE}, returns a named list of
+#'  individual \code{ggplot} objects.
+#' @param ncol,nrow Integer number of columns / rows for the combined
+#'  layout (passed to \code{\link[patchwork]{wrap_plots}}).
+#' @param byrow Logical; fill the combined layout by row.  Default
+#'  \code{TRUE}.
+#' @param axes A character string specifying how axes should be treated
+#'  across the combined layout (passed to
+#'  \code{\link[patchwork]{wrap_plots}}).
+#' @param axis_titles A character string specifying how axis titles should
+#'  be treated across the combined layout.  Defaults to \code{axes}.
+#' @param guides A character string specifying how guides (legends) should
+#'  be collected across panels (passed to \code{\link{combine_plots}()}).
+#' @param design A custom layout design for the combined plot (passed to
+#'  \code{\link{combine_plots}()}).
+#' @return A \code{ggplot} object (when \code{split_by} is \code{NULL}),
+#'  a \code{patchwork} object (when \code{combine = TRUE}), or a named
+#'  list of \code{ggplot} objects (when \code{combine = FALSE}), each
+#'  with \code{height} and \code{width} attributes in inches.
 #' @export
 #' @examples
 #' \donttest{
 #' data(iris)
+#'
+#' # Basic scatter with group colours
 #' CorPlot(iris, "Sepal.Length", "Sepal.Width", group_by = "Species")
+#'
+#' # Highlight a specific group with custom stroke
 #' CorPlot(iris, "Sepal.Length", "Sepal.Width", group_by = "Species",
-#'  highlight = 'Species == "setosa"', highlight_stroke = 1.5,
-#'  anno_items = c("eq", "pearson"), anno_position = "bottomright")
-#' CorPlot(iris, "Sepal.Length", "Sepal.Width", facet_by = "Species", facet_scales = "free")
+#'     highlight = 'Species == "setosa"', highlight_stroke = 1.5,
+#'     anno_items = c("eq", "pearson"), anno_position = "bottomright")
+#'
+#' # Faceted by species
+#' CorPlot(iris, "Sepal.Length", "Sepal.Width", facet_by = "Species",
+#'     facet_scales = "free")
+#'
+#' # Per-split palettes
 #' CorPlot(iris, "Sepal.Length", "Sepal.Width", split_by = "Species",
-#'         palette = c(setosa = "Set1", versicolor = "Dark2", virginica = "Paired"))
+#'     palette = c(setosa = "Set1", versicolor = "Dark2", virginica = "Paired"))
 #' }
 CorPlot <- function(
     data,
@@ -595,37 +783,141 @@ CorPlot <- function(
 
 #' Atomic Correlation Pairs Plot
 #'
-#' @description Generate a grid of scatter correlation plots for all pairs of variables.
+#' @description
+#' Core implementation for drawing a correlation pairs (scatterplot matrix)
+#' grid.  This is the workhorse behind the exported
+#' \code{\link{CorPairsPlot}} — it takes a \strong{single} data frame (no
+#' \code{split_by} support) and returns a \code{patchwork} object.
+#'
+#' The grid arranges all pairwise scatter plots of selected columns.  The
+#' upper or lower triangle displays correlation tiles (fill) while the
+#' opposite triangle displays scatter plots with regression lines.  The
+#' diagonal can show density plots, violin plots, histograms, box plots,
+#' or a simple diagonal line.
+#'
+#' The function supports \strong{four layout orientations} (\code{layout}),
+#' \strong{three correlation methods} (\code{cor_method}), configurable
+#' diagonal plots using other plotthis functions, and custom correlation
+#' tile formatting.
+#'
+#' @section Architecture:
+#' \enumerate{
+#'   \item \strong{ggplot dispatch} — selects \code{gglogger::ggplot} or
+#'         \code{ggplot2::ggplot} based on
+#'         \code{getOption("plotthis.gglogger.enabled")}.
+#'   \item \strong{facet_by guard} — raises an error if \code{facet_by} is
+#'         provided (not supported in pairs plots; use \code{split_by}
+#'         instead).
+#'   \item \strong{Column resolution} — when \code{columns} is \code{NULL},
+#'         all columns (except \code{group_by}) are used.  Otherwise,
+#'         \code{columns} are validated via \code{\link{check_columns}()}.
+#'         At least two columns are required.
+#'   \item \strong{Default diag_type} — when \code{diag_type} is \code{NULL},
+#'         it defaults to \code{"density"} (no \code{group_by}) or
+#'         \code{"violin"} (with \code{group_by}).
+#'   \item \strong{Layout determination} — \code{get_plot_info()} is called
+#'         for each cell \code{(i, j)} to determine:
+#'         \itemize{
+#'           \item \strong{Type}: \code{layout} (diagonal line),
+#'                 \code{"cor"} (scatter plot with regression),
+#'                 \code{"fill"} (correlation tile).
+#'           \item \strong{Axis/label positions}: which sides of the cell
+#'                 should show x-axis, y-axis, x-label, and y-label, based
+#'                 on the cell's location in the matrix and the chosen
+#'                 layout.
+#'         }
+#'   \item \strong{Cell rendering} — \code{get_plot()} draws each cell
+#'         based on its \code{info$type}:
+#'         \itemize{
+#'           \item \strong{Diagonal, \code{diag_type = "none"}} — draws an
+#'                 X or backslash diagonal line via \code{geom_line()}.
+#'           \item \strong{Diagonal, \code{"density"}} — delegates to
+#'                 \code{\link{DensityPlot}()}.
+#'           \item \strong{Diagonal, \code{"violin"}} — delegates to
+#'                 \code{\link{ViolinPlot}()}; requires \code{group_by}.
+#'           \item \strong{Diagonal, \code{"histogram"}} — delegates to
+#'                 \code{\link{Histogram}()}.
+#'           \item \strong{Diagonal, \code{"box"}} — delegates to
+#'                 \code{\link{BoxPlot}()}; requires \code{group_by}.
+#'           \item \strong{Off-diagonal, \code{"cor"}} — delegates to
+#'                 \code{\link{CorPlot}()} for the scatter plot with
+#'                 regression line.
+#'           \item \strong{Off-diagonal, \code{"fill"}} — draws a
+#'                 \code{geom_tile()} filled by the correlation value
+#'                 with \code{scale_fill_gradientn()} and displays the
+#'                 formatted correlation via
+#'                 \code{ggrepel::geom_text_repel()}.
+#'         }
+#'   \item \strong{Axis/label positioning} — axes, axis titles, and labels
+#'         are positioned at the margins of the full grid based on
+#'         \code{info$xaxis}, \code{info$yaxis}, \code{info$xlab},
+#'         \code{info$ylab} using \code{scale_x_*}/\code{scale_y_*} with
+#'         appropriate \code{position} arguments.
+#'   \item \strong{Layout assembly} — all cell plots are arranged into a
+#'         matrix via \code{patchwork::wrap_plots()} with
+#'         \code{ncol = length(columns)}.  Guides are collected, and the
+#'         title/subtitle are added via \code{plot_annotation()}.  The
+#'         result is wrapped in \code{patchwork::wrap_elements()} so the
+#'         title displays correctly.
+#'   \item \strong{Dimension calculation} — \code{\link{calculate_plot_dimensions}()}
+#'         computes \code{height} and \code{width} attributes from
+#'         \code{base_height = sqrt(length(columns)) * 4}, a fixed aspect
+#'         ratio of 1, and legend metrics.
+#' }
+#'
 #' @inheritParams common_args
-#' @param columns The column names of the data to be plotted.
-#'  If NULL, all columns, except `group_by`, will be used.
-#' @param group_by The column name of the data to be used for grouping.
-#'  Different groups will be plotted in different colors.
-#' @param group_by_sep The separator used to concatenate multiple columns in `group_by`.
-#' @param group_name The name of the group in the legend.
-#' @param diag_type The type of the diagonal plots.
-#'  Available types: "density", "violin", "histogram", "box", "none".
-#' @param diag_args A list of additional arguments to be passed to the diagonal plots.
-#' @param layout The layout of the plots.
-#'  Available layouts: ".\\", "\\.", "/.", "./".
-#'  * '\\' or '/' means the diagonal plots are on the top-left to bottom-right diagonal.
-#'  * '.' means where the scatter plots are.
-#' @param cor_method The method to calculate the correlation.
-#'  Available methods: "pearson", "spearman", "kendall".
-#'  The correlation will be shown in the other triangle of the scatter plots.
-#' @param cor_palette The color palette for the correlation tile plots.
-#' @param cor_palcolor Custom colors used to create a color palette for the correlation tile plots.
-#' @param cor_size The size of the correlation text.
-#' @param cor_format The format of the correlation text. Default is "corr: %.2f".
-#'  It will be formatted using \code{sprintf(cor_format, corr)}.
-#' @param cor_fg The color of the correlation text.
-#' @param cor_bg The background color of the correlation text.
-#' @param cor_bg_r The radius of the background of the correlation text.
-#' @param palette The color palette for the scatter plots and default palette for the diagonal plots.
-#' @param palcolor Custom colors used to create a color palette for the scatter plots and diagonal plots.
-#' @param ... Additional arguments to pass to \code{\link{CorPlot}}.
-#' @details `theme` and `theme_args` are also supported, they will be passed to each individual plot.
-#' @return A `patch_work::wrap_plots` object.
+#' @param columns A character vector of column names to include in the
+#'  pairs plot.  When \code{NULL} (default), all columns except
+#'  \code{group_by} are used.  At least two columns are required.
+#' @param group_by A character vector of column names to colour the
+#'  scatter points by.  Each unique combination becomes a separate group.
+#'  Required for \code{diag_type = "violin"} and \code{diag_type = "box"}.
+#'  Multiple columns are concatenated with \code{group_by_sep}.
+#' @param group_by_sep A character string to separate concatenated
+#'  \code{group_by} columns.  Default \code{"_"}.
+#' @param group_name A character string used as the colour legend title
+#'  in the scatter plots.  When \code{NULL}, the \code{group_by} column
+#'  name is used.
+#' @param diag_type A character string specifying the plot type for
+#'  diagonal cells.  One of \code{"density"}, \code{"violin"},
+#'  \code{"histogram"}, \code{"box"}, or \code{"none"} (diagonal line).
+#'  Default: \code{"density"} (no \code{group_by}) or \code{"violin"}
+#'  (with \code{group_by}).
+#' @param diag_args A named list of additional arguments passed to the
+#'  diagonal plot function (\code{\link{DensityPlot}},
+#'  \code{\link{ViolinPlot}}, \code{\link{Histogram}}, or
+#'  \code{\link{BoxPlot}}).  Default: \code{list()}.
+#' @param layout A character string specifying the layout orientation.
+#'  One of the following codes (dot = scatter, backslash/slash =
+#'  diagonal): \code{.\\}, \code{\\\.}, \code{/.}, \code{./}.
+#'  Default: \code{.\\}.
+#' @param cor_method A character string specifying the correlation method
+#'  for the fill tiles.  One of \code{"pearson"}, \code{"spearman"},
+#'  \code{"kendall"}.  Default: \code{"pearson"}.
+#' @param cor_palette A character string specifying the colour palette for
+#'  the correlation fill tiles.  Default: \code{"RdBu"}.
+#' @param cor_palcolor A character vector of custom colours used to create
+#'  the correlation tile palette.  When \code{NULL}, the palette's default
+#'  colours are used.
+#' @param cor_size A numeric value specifying the font size of the
+#'  correlation text in the fill tiles.  Default: \code{3}.
+#' @param cor_format A character string specifying a glue template for
+#'  formatting the correlation text.  The template is evaluated by
+#'  \code{glue::glue()} with access to \code{corr} (the correlation value),
+#'  \code{x}, and \code{y} (the column names).  Default:
+#'  \code{"corr: \\{round(corr, 2)\\}"}.
+#' @param cor_fg A character string specifying the colour of the
+#'  correlation text.  Default: \code{"black"}.
+#' @param cor_bg A character string specifying the background colour of
+#'  the correlation text boxes.  Default: \code{"white"}.
+#' @param cor_bg_r A numeric value specifying the corner radius of the
+#'  correlation text background boxes.  Default: \code{0.1}.
+#' @param ... Additional arguments passed to the underlying
+#'  \code{\link{CorPlot}} for the scatter plot cells.
+#' @details \code{theme} and \code{theme_args} are supported and passed to
+#'   each individual cell plot.
+#' @return A \code{patchwork} object with \code{height} and \code{width}
+#'  attributes (in inches) attached.
 #' @importFrom ggplot2 waiver geom_tile element_blank scale_fill_gradientn guide_colorbar scale_x_continuous
 #' @importFrom ggplot2 geom_line scale_y_continuous
 #' @importFrom ggrepel geom_text_repel
@@ -1076,12 +1368,71 @@ CorPairsPlotAtomic <- function(
     p
 }
 
-#' CorPairsPlot
+#' Correlation pairs (scatterplot matrix)
 #'
-#' @description Generate a grid of scatter correlation plots for all pairs of variables.
+#' @description
+#' Draws a grid of pairwise scatter plots for selected numeric columns,
+#' arranged in a scatterplot matrix layout.  The upper or lower triangle
+#' displays correlation tiles while the opposite triangle shows scatter
+#' plots with regression lines.  Diagonal cells can show density plots,
+#' violin plots, histograms, box plots, or a simple diagonal line.
+#'
+#' \strong{NOTE:} The \code{facet_by} parameter is \strong{not supported}
+#' in CorPairsPlot (an error is raised if provided).  Use
+#' \code{split_by} instead to create separate correlation pair matrices
+#' per group.
+#'
+#' The function supports \strong{four layout orientations} (\code{layout}),
+#' \strong{three correlation methods}, configurable diagonal plots via
+#' other plotthis functions, custom correlation tile formatting, and
+#' splitting into separate sub-plots via \code{split_by}.
+#'
+#' @section split_by workflow:
+#' When \code{split_by} is provided:
+#' \enumerate{
+#'   \item The \code{split_by} column is validated via
+#'         \code{\link{check_columns}()} with \code{force_factor = TRUE}.
+#'         Empty levels are dropped.
+#'   \item The data frame is split by \code{split_by} (preserving level
+#'         order).  If \code{split_by} is \code{NULL}, the data is wrapped
+#'         in a single-element list with name \code{"..."}.  The
+#'         \code{split_by} column is removed from each split's data before
+#'         plotting.
+#'   \item Per-split \code{palette}, \code{palcolor},
+#'         \code{legend.position}, and \code{legend.direction} are resolved
+#'         via \code{\link{check_palette}()}, \code{\link{check_palcolor}()},
+#'         and \code{\link{check_legend}()}.
+#'   \item \code{\link{CorPairsPlotAtomic}()} is called for each split.
+#'         When \code{title} is a function, it receives the split level
+#'         name and can generate dynamic titles.
+#'   \item Results are combined via \code{\link{combine_plots}()} (when
+#'         \code{combine = TRUE}) or returned as a named list.
+#' }
+#'
 #' @inheritParams common_args
 #' @inheritParams CorPairsPlotAtomic
-#' @return A `patch_work::wrap_plots` object or a list of them if `combine` is `FALSE`.
+#' @param split_by The column(s) to split the data by and produce separate
+#'  sub-plots.  Multiple columns are concatenated with \code{split_by_sep}.
+#' @param split_by_sep A character string to separate concatenated
+#'  \code{split_by} columns.  Default \code{"_"}.
+#' @param seed A numeric seed for reproducibility.
+#' @param combine Logical; when \code{TRUE} (default), returns a combined
+#'  \code{patchwork} object.  When \code{FALSE}, returns a named list of
+#'  individual \code{patchwork} objects.
+#' @param ncol,nrow Integer number of columns / rows for the combined
+#'  layout.
+#' @param byrow Logical; fill the combined layout by row.  Default
+#'  \code{TRUE}.
+#' @param axes A character string specifying how axes should be treated
+#'  across the combined layout.
+#' @param axis_titles A character string specifying how axis titles should
+#'  be treated across the combined layout.  Defaults to \code{axes}.
+#' @param guides A character string specifying how guides (legends) should
+#'  be collected across panels.
+#' @param design A custom layout design for the combined plot.
+#' @return A \code{patchwork} object (when \code{combine = TRUE}) or a
+#'  named list of \code{patchwork} objects (when \code{combine = FALSE}),
+#'  each with \code{height} and \code{width} attributes in inches.
 #' @export
 #' @importFrom glue glue
 #' @examples
@@ -1092,22 +1443,32 @@ CorPairsPlotAtomic <- function(
 #' data$z <- -data$x + data$y + rnorm(100, 20, 1)
 #' data$g <- sample(1:4, 100, replace = TRUE)
 #'
-#' CorPairsPlot(data, diag_type = "histogram", diag_args = list(bins = 30, palette = "Paired"),
-#'  layout = "/.")
+#' # Histogram diagonal, slash layout
+#' CorPairsPlot(data, diag_type = "histogram",
+#'     diag_args = list(bins = 30, palette = "Paired"),
+#'     layout = "/.")
 #'
+#' # No diagonal with axis title styling
 #' CorPairsPlot(data, group_by = "g", diag_type = "none", layout = "./",
-#'  theme_args = list(axis.title = element_textbox(
-#'      color = "black", box.color = "grey20", size = 16, halign = 0.5, fill = "grey90",
-#'      linetype = 1, width = grid::unit(1, "npc"), padding = ggplot2::margin(5, 5, 5, 5))))
+#'     theme_args = list(axis.title = element_textbox(
+#'         color = "black", box.color = "grey20", size = 16, halign = 0.5,
+#'         fill = "grey90", linetype = 1,
+#'         width = grid::unit(1, "npc"),
+#'         padding = ggplot2::margin(5, 5, 5, 5))))
 #'
+#' # Violin diagonal with custom format
 #' CorPairsPlot(data, group_by = "g", diag_type = "violin", layout = "\\.",
-#'   cor_format = "{x}\n{y}\ncorr: {round(corr, 2)}")
+#'     cor_format = "{x}\n{y}\ncorr: {round(corr, 2)}")
 #'
+#' # Per-split with bottom legend
 #' CorPairsPlot(data, split_by = "g", diag_type = "none", layout = ".\\",
-#'  legend.position = "bottom", legend.direction = "horizontal", group_name = "group")
+#'     legend.position = "bottom", legend.direction = "horizontal",
+#'     group_name = "group")
 #'
+#' # Per-split with custom palette colours
 #' CorPairsPlot(data, split_by = "g",
-#'  palcolor = list("1" = "red", "2" = "blue", "3" = "green", "4" = "yellow"))
+#'     palcolor = list("1" = "red", "2" = "blue", "3" = "green",
+#'                     "4" = "yellow"))
 #' }
 CorPairsPlot <- function(
     data,

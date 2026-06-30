@@ -38,55 +38,78 @@ CorPairsPlotAtomic(
 \arguments{
 \item{data}{A data frame.}
 
-\item{columns}{The column names of the data to be plotted.
-If NULL, all columns, except \code{group_by}, will be used.}
+\item{columns}{A character vector of column names to include in the
+pairs plot.  When \code{NULL} (default), all columns except
+\code{group_by} are used.  At least two columns are required.}
 
-\item{group_by}{The column name of the data to be used for grouping.
-Different groups will be plotted in different colors.}
+\item{group_by}{A character vector of column names to colour the
+scatter points by.  Each unique combination becomes a separate group.
+Required for \code{diag_type = "violin"} and \code{diag_type = "box"}.
+Multiple columns are concatenated with \code{group_by_sep}.}
 
-\item{group_by_sep}{The separator used to concatenate multiple columns in \code{group_by}.}
+\item{group_by_sep}{A character string to separate concatenated
+\code{group_by} columns.  Default \code{"_"}.}
 
-\item{group_name}{The name of the group in the legend.}
+\item{group_name}{A character string used as the colour legend title
+in the scatter plots.  When \code{NULL}, the \code{group_by} column
+name is used.}
 
-\item{diag_type}{The type of the diagonal plots.
-Available types: "density", "violin", "histogram", "box", "none".}
+\item{diag_type}{A character string specifying the plot type for
+diagonal cells.  One of \code{"density"}, \code{"violin"},
+\code{"histogram"}, \code{"box"}, or \code{"none"} (diagonal line).
+Default: \code{"density"} (no \code{group_by}) or \code{"violin"}
+(with \code{group_by}).}
 
-\item{diag_args}{A list of additional arguments to be passed to the diagonal plots.}
+\item{diag_args}{A named list of additional arguments passed to the
+diagonal plot function (\code{\link{DensityPlot}},
+\code{\link{ViolinPlot}}, \code{\link{Histogram}}, or
+\code{\link{BoxPlot}}).  Default: \code{list()}.}
 
-\item{layout}{The layout of the plots.
-Available layouts: ".\\", "\\.", "/.", "./".
-\itemize{
-\item '\\' or '/' means the diagonal plots are on the top-left to bottom-right diagonal.
-\item '.' means where the scatter plots are.
-}}
+\item{layout}{A character string specifying the layout orientation.
+One of the following codes (dot = scatter, backslash/slash =
+diagonal): \code{.\\}, \code{\\\.}, \code{/.}, \code{./}.
+Default: \code{.\\}.}
 
-\item{cor_method}{The method to calculate the correlation.
-Available methods: "pearson", "spearman", "kendall".
-The correlation will be shown in the other triangle of the scatter plots.}
+\item{cor_method}{A character string specifying the correlation method
+for the fill tiles.  One of \code{"pearson"}, \code{"spearman"},
+\code{"kendall"}.  Default: \code{"pearson"}.}
 
-\item{cor_palette}{The color palette for the correlation tile plots.}
+\item{cor_palette}{A character string specifying the colour palette for
+the correlation fill tiles.  Default: \code{"RdBu"}.}
 
-\item{cor_palcolor}{Custom colors used to create a color palette for the correlation tile plots.}
+\item{cor_palcolor}{A character vector of custom colours used to create
+the correlation tile palette.  When \code{NULL}, the palette's default
+colours are used.}
 
-\item{cor_size}{The size of the correlation text.}
+\item{cor_size}{A numeric value specifying the font size of the
+correlation text in the fill tiles.  Default: \code{3}.}
 
-\item{cor_format}{The format of the correlation text. Default is "corr: \%.2f".
-It will be formatted using \code{sprintf(cor_format, corr)}.}
+\item{cor_format}{A character string specifying a glue template for
+formatting the correlation text.  The template is evaluated by
+\code{glue::glue()} with access to \code{corr} (the correlation value),
+\code{x}, and \code{y} (the column names).  Default:
+\code{"corr: \\{round(corr, 2)\\}"}.}
 
-\item{cor_fg}{The color of the correlation text.}
+\item{cor_fg}{A character string specifying the colour of the
+correlation text.  Default: \code{"black"}.}
 
-\item{cor_bg}{The background color of the correlation text.}
+\item{cor_bg}{A character string specifying the background colour of
+the correlation text boxes.  Default: \code{"white"}.}
 
-\item{cor_bg_r}{The radius of the background of the correlation text.}
+\item{cor_bg_r}{A numeric value specifying the corner radius of the
+correlation text background boxes.  Default: \code{0.1}.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
 
 \item{theme_args}{A list of arguments to pass to the theme function.}
 
-\item{palette}{The color palette for the scatter plots and default palette for the diagonal plots.}
+\item{palette}{A character string specifying the palette to use.
+A named list or vector can be used to specify the palettes for different \code{split_by} values.}
 
-\item{palcolor}{Custom colors used to create a color palette for the scatter plots and diagonal plots.}
+\item{palcolor}{A character string specifying the color to use in the palette.
+A named list can be used to specify the colors for different \code{split_by} values.
+If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).}
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
@@ -107,15 +130,99 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{seed}{The random seed to use. Default is 8525.}
 
-\item{...}{Additional arguments to pass to \code{\link{CorPlot}}.}
+\item{...}{Additional arguments passed to the underlying
+\code{\link{CorPlot}} for the scatter plot cells.}
 }
 \value{
-A \code{patch_work::wrap_plots} object.
+A \code{patchwork} object with \code{height} and \code{width}
+attributes (in inches) attached.
 }
 \description{
-Generate a grid of scatter correlation plots for all pairs of variables.
+Core implementation for drawing a correlation pairs (scatterplot matrix)
+grid.  This is the workhorse behind the exported
+\code{\link{CorPairsPlot}} — it takes a \strong{single} data frame (no
+\code{split_by} support) and returns a \code{patchwork} object.
+
+The grid arranges all pairwise scatter plots of selected columns.  The
+upper or lower triangle displays correlation tiles (fill) while the
+opposite triangle displays scatter plots with regression lines.  The
+diagonal can show density plots, violin plots, histograms, box plots,
+or a simple diagonal line.
+
+The function supports \strong{four layout orientations} (\code{layout}),
+\strong{three correlation methods} (\code{cor_method}), configurable
+diagonal plots using other plotthis functions, and custom correlation
+tile formatting.
 }
 \details{
-\code{theme} and \code{theme_args} are also supported, they will be passed to each individual plot.
+\code{theme} and \code{theme_args} are supported and passed to
+each individual cell plot.
 }
+\section{Architecture}{
+
+\enumerate{
+\item \strong{ggplot dispatch} — selects \code{gglogger::ggplot} or
+\code{ggplot2::ggplot} based on
+\code{getOption("plotthis.gglogger.enabled")}.
+\item \strong{facet_by guard} — raises an error if \code{facet_by} is
+provided (not supported in pairs plots; use \code{split_by}
+instead).
+\item \strong{Column resolution} — when \code{columns} is \code{NULL},
+all columns (except \code{group_by}) are used.  Otherwise,
+\code{columns} are validated via \code{\link{check_columns}()}.
+At least two columns are required.
+\item \strong{Default diag_type} — when \code{diag_type} is \code{NULL},
+it defaults to \code{"density"} (no \code{group_by}) or
+\code{"violin"} (with \code{group_by}).
+\item \strong{Layout determination} — \code{get_plot_info()} is called
+for each cell \code{(i, j)} to determine:
+\itemize{
+\item \strong{Type}: \code{layout} (diagonal line),
+\code{"cor"} (scatter plot with regression),
+\code{"fill"} (correlation tile).
+\item \strong{Axis/label positions}: which sides of the cell
+should show x-axis, y-axis, x-label, and y-label, based
+on the cell's location in the matrix and the chosen
+layout.
+}
+\item \strong{Cell rendering} — \code{get_plot()} draws each cell
+based on its \code{info$type}:
+\itemize{
+\item \strong{Diagonal, \code{diag_type = "none"}} — draws an
+X or backslash diagonal line via \code{geom_line()}.
+\item \strong{Diagonal, \code{"density"}} — delegates to
+\code{\link{DensityPlot}()}.
+\item \strong{Diagonal, \code{"violin"}} — delegates to
+\code{\link{ViolinPlot}()}; requires \code{group_by}.
+\item \strong{Diagonal, \code{"histogram"}} — delegates to
+\code{\link{Histogram}()}.
+\item \strong{Diagonal, \code{"box"}} — delegates to
+\code{\link{BoxPlot}()}; requires \code{group_by}.
+\item \strong{Off-diagonal, \code{"cor"}} — delegates to
+\code{\link{CorPlot}()} for the scatter plot with
+regression line.
+\item \strong{Off-diagonal, \code{"fill"}} — draws a
+\code{geom_tile()} filled by the correlation value
+with \code{scale_fill_gradientn()} and displays the
+formatted correlation via
+\code{ggrepel::geom_text_repel()}.
+}
+\item \strong{Axis/label positioning} — axes, axis titles, and labels
+are positioned at the margins of the full grid based on
+\code{info$xaxis}, \code{info$yaxis}, \code{info$xlab},
+\code{info$ylab} using \code{scale_x_*}/\code{scale_y_*} with
+appropriate \code{position} arguments.
+\item \strong{Layout assembly} — all cell plots are arranged into a
+matrix via \code{patchwork::wrap_plots()} with
+\code{ncol = length(columns)}.  Guides are collected, and the
+title/subtitle are added via \code{plot_annotation()}.  The
+result is wrapped in \code{patchwork::wrap_elements()} so the
+title displays correctly.
+\item \strong{Dimension calculation} — \code{\link{calculate_plot_dimensions}()}
+computes \code{height} and \code{width} attributes from
+\code{base_height = sqrt(length(columns)) * 4}, a fixed aspect
+ratio of 1, and legend metrics.
+}
+}
+
 \keyword{internal}

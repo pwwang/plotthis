@@ -56,61 +56,97 @@ CorPlotAtomic(
 \arguments{
 \item{data}{A data frame.}
 
-\item{x, }{y The column names of the data to be plotted.}
+\item{x}{A character string specifying the column name for the x-axis.
+Must be numeric.}
 
-\item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
+\item{y}{A character string specifying the column name for the y-axis.
+Must be numeric.}
 
-\item{group_by}{The column name of the data to be used for grouping.
-Different groups will be plotted in different colors.}
+\item{group_by}{A character vector of column names to colour the points
+by.  Each unique combination becomes a separate group in the legend.
+Multiple columns are concatenated with \code{group_by_sep}.  When
+\code{NULL}, all points are a single colour and the legend is hidden.}
 
-\item{group_by_sep}{The separator used to concatenate multiple columns in \code{group_by}.}
+\item{group_by_sep}{A character string to separate concatenated
+\code{group_by} columns.  Default \code{"_"}.}
 
-\item{group_name}{The name of the group in the legend.}
+\item{group_name}{A character string used as the colour legend title.
+When \code{NULL}, the \code{group_by} column name is used.}
 
-\item{pt_size}{The size of the points.}
+\item{pt_size}{A numeric value specifying the size of the points.
+Default: \code{2}.}
 
-\item{pt_shape}{The shape of the points.}
+\item{pt_shape}{A numeric value specifying the shape of the points
+(see \code{\link[ggplot2]{geom_point}}).  Default: \code{16} (filled
+circle).}
 
 \item{alpha}{A numeric value specifying the transparency of the plot.}
 
-\item{raster}{Whether to use raster graphics for plotting.}
+\item{raster}{A logical value.  When \code{TRUE}, uses
+\code{scattermore::geom_scattermore()} for efficient rendering of
+large datasets.  Default: \code{FALSE}.}
 
-\item{raster_dpi}{The DPI of the raster graphics.}
+\item{raster_dpi}{An integer vector of length 1 or 2 specifying the
+raster resolution in (width, height) pixels.  When a single value is
+provided, it is recycled.  Default: \code{c(512, 512)}.}
 
-\item{highlight}{The items to be highlighted.
-Could be either a vector of rownames if data has rownames, or a vector of indices, or
-An expression that can be evaluated by \code{dplyr::filter} to get the highlighted items.}
+\item{highlight}{Specifies which points to emphasise.  Can be:
+\itemize{
+\item \code{TRUE} — highlight all points.
+\item A character expression (e.g. \code{'Species == "setosa"'}) —
+evaluated via \code{dplyr::filter}.
+\item A character vector — matched against rownames of the data.
+\item A numeric vector — treated as row indices.
+}
+Default: \code{NULL} (no highlighting).}
 
-\item{highlight_color}{The color of the highlighted points.}
+\item{highlight_color}{A character string specifying the colour of the
+highlighted point borders.  Default: \code{"black"}.}
 
-\item{highlight_size}{The size of the highlighted points.}
+\item{highlight_size}{A numeric value specifying the size of the
+highlighted points (the inner fill).  Default: \code{1}.}
 
-\item{highlight_alpha}{The alpha of the highlighted points.}
+\item{highlight_alpha}{A numeric value specifying the alpha transparency
+of the highlighted points.  Default: \code{1}.}
 
-\item{highlight_stroke}{The stroke of the highlighted points.}
+\item{highlight_stroke}{A numeric value specifying the stroke width of
+the highlighted point borders.  The outer layer size is
+\code{highlight_size + highlight_stroke}.  Default: \code{0.8}.}
 
-\item{anno_items}{The items to be annotated on the plot.
-Available items: "eq", "r2", "p", "spearman", "pearson", "kendall", "n".}
+\item{anno_items}{A character vector specifying which statistics to
+display as text annotation.  Available items: \code{"eq"} (regression
+equation), \code{"r2"} (R-squared), \code{"p"} (p-value),
+\code{"spearman"}, \code{"pearson"}, \code{"kendall"},
+\code{"n"} (observation count).  Default: \code{c("eq", "r2", "p")}.}
 
-\item{anno_size}{The size of the annotation text.}
+\item{anno_size}{A numeric value specifying the font size of the
+annotation text (scaled by \code{base_size / 12}).  Default: \code{3}.}
 
-\item{anno_fg}{The color of the annotation text.}
+\item{anno_fg}{A character string specifying the colour of the
+annotation text.  Default: \code{"black"}.}
 
-\item{anno_bg}{The background color of the annotation text.}
+\item{anno_bg}{A character string specifying the background colour of
+the annotation text boxes.  Default: \code{"white"}.}
 
-\item{anno_bg_r}{The radius of the background of the annotation text.}
+\item{anno_bg_r}{A numeric value specifying the corner radius of the
+annotation text background boxes.  Default: \code{0.1}.}
 
-\item{anno_position}{The position of the annotation text.
-Available positions: "topleft", "topright", "bottomleft", "bottomright".
-Shortcuts: "tl", "tr", "bl", "br".}
+\item{anno_position}{A character string specifying the corner position
+of the annotation text.  One of \code{"topleft"} (alias \code{"tl"}),
+\code{"topright"} (\code{"tr"}), \code{"bottomleft"} (\code{"bl"}),
+\code{"bottomright"} (\code{"br"}).}
 
-\item{add_smooth}{Whether to add a linear regression line.}
+\item{add_smooth}{A logical value.  When \code{TRUE} (default), a linear
+regression line (\code{geom_smooth(method = "lm")}) is added.}
 
-\item{smooth_color}{The color of the regression line.}
+\item{smooth_color}{A character string specifying the colour of the
+regression line.  Default: \code{"red2"}.}
 
-\item{smooth_width}{The width of the regression line.}
+\item{smooth_width}{A numeric value specifying the linewidth of the
+regression line.  Default: \code{1.5}.}
 
-\item{smooth_se}{Whether to add the standard error band to the regression line.}
+\item{smooth_se}{A logical value.  When \code{TRUE}, a standard error
+band is drawn around the regression line.  Default: \code{FALSE}.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -163,9 +199,94 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object.
+A \code{ggplot} object with \code{height} and \code{width}
+attributes (in inches) attached.
 }
 \description{
-Generate scatter correlation plot for two variables.
+Core implementation for drawing a scatter plot of two variables with a
+linear regression line, optional correlation statistics, and point
+highlighting.  This is the workhorse behind the exported
+\code{\link{CorPlot}} — it takes a \strong{single} data frame (no
+\code{split_by} support) and returns a \code{ggplot} object with
+faceting applied.
+
+The function supports \strong{group-based colouring} (\code{group_by}),
+point highlighting by expression or rowname, multiple annotation items
+(regression equation, R-squared, p-value, Spearman/Pearson/Kendall
+correlation, N), raster rendering for large datasets, configurable
+regression line style, and faceting.
 }
+\section{Architecture}{
+
+\enumerate{
+\item \strong{ggplot dispatch} — selects \code{gglogger::ggplot} or
+\code{ggplot2::ggplot} based on
+\code{getOption("plotthis.gglogger.enabled")}.
+\item \strong{Parameter normalisation} — \code{match.arg()} resolves
+\code{anno_position} abbreviations (\code{"tl"}, \code{"tr"},
+\code{"bl"}, \code{"br"}) to their full forms.
+\code{raster_dpi} is expanded to length 2 when given as a scalar.
+\item \strong{Column resolution} — \code{x}, \code{y}, and
+\code{group_by} are validated via \code{\link{check_columns}}.
+Multi-column \code{group_by} is concatenated with
+\code{group_by_sep}.
+\item \strong{Grouping fallback} — when \code{group_by = NULL}, a dummy
+\code{.group} column is created and the legend is suppressed
+(\code{legend.position = "none"}).
+\item \strong{Annotation data calculation} — the data is grouped by
+\code{facet_by} and a linear model (\code{lm(y ~ x)}) is fitted
+per group.  Each requested \code{anno_items} is computed:
+\itemize{
+\item \code{"eq"} — regression equation \code{y = a + bx}.
+\item \code{"r2"} — R-squared of the model.
+\item \code{"p"} — p-value of the x coefficient.
+\item \code{"spearman"} — Spearman's rho.
+\item \code{"pearson"} — Pearson's r.
+\item \code{"kendall"} — Kendall's tau.
+\item \code{"n"} — number of observations.
+}
+The results are stored in an \code{annodata} data frame for
+\code{geom_text_repel}.
+\item \strong{Highlight parsing} — the \code{highlight} argument is
+resolved into a \code{.highlight} logical column:
+\itemize{
+\item \code{TRUE} — highlights all points.
+\item A character expression — evaluated via
+\code{dplyr::filter} to select rows.
+\item A character vector — matched against rownames of the data.
+\item A numeric vector — treated as row indices.
+}
+\item \strong{Point rendering} — two branches:
+\itemize{
+\item \strong{Raster mode} (\code{raster = TRUE}) — uses
+\code{scattermore::geom_scattermore()} for efficient
+rendering of large datasets.  Highlighted points are drawn
+in two layers (stroke + fill).
+\item \strong{Vector mode} (\code{raster = FALSE}, default) —
+uses \code{ggplot2::geom_point()} with configurable size,
+shape, and alpha.  Highlighted points get an outer stroke
+via a second point layer.
+}
+\item \strong{Regression line} — \code{geom_smooth(method = "lm")}
+draws the linear regression line with optional standard error band
+(\code{smooth_se}).
+\item \strong{Annotation text} — \code{ggrepel::geom_text_repel()}
+places the computed annotations at the specified
+\code{anno_position} corner, with background styling.
+\item \strong{Colour scale} — \code{scale_color_manual()} maps group
+levels to colours via \code{\link{palette_this}()}.
+\item \strong{Labels and theme} — \code{labs()} sets titles and axis
+labels.  The theme is applied via \code{do_call()}, with
+\code{aspect.ratio}, \code{legend.position}, and
+\code{legend.direction} enforced.
+\item \strong{Dimension calculation} — \code{\link{calculate_plot_dimensions}()}
+computes \code{height} and \code{width} attributes from
+\code{base_height = 4.5}, \code{aspect.ratio}, legend metrics, and
+the number of group levels.
+\item \strong{Faceting} — \code{\link{facet_plot}()} applies
+\code{facet_wrap} / \code{facet_grid} if \code{facet_by} is
+provided.
+}
+}
+
 \keyword{internal}

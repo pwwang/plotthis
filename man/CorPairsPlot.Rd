@@ -2,7 +2,7 @@
 % Please edit documentation in R/corplot.R
 \name{CorPairsPlot}
 \alias{CorPairsPlot}
-\title{CorPairsPlot}
+\title{Correlation pairs (scatterplot matrix)}
 \usage{
 CorPairsPlot(
   data,
@@ -48,8 +48,9 @@ CorPairsPlot(
 \arguments{
 \item{data}{A data frame.}
 
-\item{columns}{The column names of the data to be plotted.
-If NULL, all columns, except \code{group_by}, will be used.}
+\item{columns}{A character vector of column names to include in the
+pairs plot.  When \code{NULL} (default), all columns except
+\code{group_by} are used.  At least two columns are required.}
 
 \item{group_by}{Columns to group the data for plotting
 For those plotting functions that do not support multiple groups,
@@ -57,42 +58,60 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 
 \item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
 
-\item{group_name}{The name of the group in the legend.}
+\item{group_name}{A character string used as the colour legend title
+in the scatter plots.  When \code{NULL}, the \code{group_by} column
+name is used.}
 
-\item{split_by}{The column(s) to split data by and plot separately.}
+\item{split_by}{The column(s) to split the data by and produce separate
+sub-plots.  Multiple columns are concatenated with \code{split_by_sep}.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
+\item{split_by_sep}{A character string to separate concatenated
+\code{split_by} columns.  Default \code{"_"}.}
 
-\item{diag_type}{The type of the diagonal plots.
-Available types: "density", "violin", "histogram", "box", "none".}
+\item{diag_type}{A character string specifying the plot type for
+diagonal cells.  One of \code{"density"}, \code{"violin"},
+\code{"histogram"}, \code{"box"}, or \code{"none"} (diagonal line).
+Default: \code{"density"} (no \code{group_by}) or \code{"violin"}
+(with \code{group_by}).}
 
-\item{diag_args}{A list of additional arguments to be passed to the diagonal plots.}
+\item{diag_args}{A named list of additional arguments passed to the
+diagonal plot function (\code{\link{DensityPlot}},
+\code{\link{ViolinPlot}}, \code{\link{Histogram}}, or
+\code{\link{BoxPlot}}).  Default: \code{list()}.}
 
-\item{layout}{The layout of the plots.
-Available layouts: ".\\", "\\.", "/.", "./".
-\itemize{
-\item '\\' or '/' means the diagonal plots are on the top-left to bottom-right diagonal.
-\item '.' means where the scatter plots are.
-}}
+\item{layout}{A character string specifying the layout orientation.
+One of the following codes (dot = scatter, backslash/slash =
+diagonal): \code{.\\}, \code{\\\.}, \code{/.}, \code{./}.
+Default: \code{.\\}.}
 
-\item{cor_method}{The method to calculate the correlation.
-Available methods: "pearson", "spearman", "kendall".
-The correlation will be shown in the other triangle of the scatter plots.}
+\item{cor_method}{A character string specifying the correlation method
+for the fill tiles.  One of \code{"pearson"}, \code{"spearman"},
+\code{"kendall"}.  Default: \code{"pearson"}.}
 
-\item{cor_palette}{The color palette for the correlation tile plots.}
+\item{cor_palette}{A character string specifying the colour palette for
+the correlation fill tiles.  Default: \code{"RdBu"}.}
 
-\item{cor_palcolor}{Custom colors used to create a color palette for the correlation tile plots.}
+\item{cor_palcolor}{A character vector of custom colours used to create
+the correlation tile palette.  When \code{NULL}, the palette's default
+colours are used.}
 
-\item{cor_size}{The size of the correlation text.}
+\item{cor_size}{A numeric value specifying the font size of the
+correlation text in the fill tiles.  Default: \code{3}.}
 
-\item{cor_format}{The format of the correlation text. Default is "corr: \%.2f".
-It will be formatted using \code{sprintf(cor_format, corr)}.}
+\item{cor_format}{A character string specifying a glue template for
+formatting the correlation text.  The template is evaluated by
+\code{glue::glue()} with access to \code{corr} (the correlation value),
+\code{x}, and \code{y} (the column names).  Default:
+\code{"corr: \\{round(corr, 2)\\}"}.}
 
-\item{cor_fg}{The color of the correlation text.}
+\item{cor_fg}{A character string specifying the colour of the
+correlation text.  Default: \code{"black"}.}
 
-\item{cor_bg}{The background color of the correlation text.}
+\item{cor_bg}{A character string specifying the background colour of
+the correlation text boxes.  Default: \code{"white"}.}
 
-\item{cor_bg_r}{The radius of the background of the correlation text.}
+\item{cor_bg_r}{A numeric value specifying the corner radius of the
+correlation text background boxes.  Default: \code{0.1}.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -123,55 +142,77 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
-\item{seed}{The random seed to use. Default is 8525.}
+\item{seed}{A numeric seed for reproducibility.}
 
-\item{combine}{Whether to combine the plots into one when facet is FALSE. Default is TRUE.}
+\item{combine}{Logical; when \code{TRUE} (default), returns a combined
+\code{patchwork} object.  When \code{FALSE}, returns a named list of
+individual \code{patchwork} objects.}
 
-\item{nrow}{A numeric value specifying the number of rows in the facet.}
+\item{ncol, nrow}{Integer number of columns / rows for the combined
+layout.}
 
-\item{ncol}{A numeric value specifying the number of columns in the facet.}
+\item{byrow}{Logical; fill the combined layout by row.  Default
+\code{TRUE}.}
 
-\item{byrow}{A logical value indicating whether to fill the plots by row.}
+\item{axes}{A character string specifying how axes should be treated
+across the combined layout.}
 
-\item{axes}{A string specifying how axes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axes in individual plots.
-\item 'collect' will remove duplicated axes when placed in the same run of rows or columns of the layout.
-\item 'collect_x' and 'collect_y' will remove duplicated x-axes in the columns or duplicated y-axes in the rows respectively.
-}}
+\item{axis_titles}{A character string specifying how axis titles should
+be treated across the combined layout.  Defaults to \code{axes}.}
 
-\item{axis_titles}{A string specifying how axis titltes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axis titles in individual plots.
-\item 'collect' will remove duplicated titles in one direction and merge titles in the opposite direction.
-\item 'collect_x' and 'collect_y' control this for x-axis titles and y-axis titles respectively.
-}}
+\item{guides}{A character string specifying how guides (legends) should
+be collected across panels.}
 
-\item{guides}{A string specifying how guides should be treated in the layout. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'collect' will collect guides below to the given nesting level, removing duplicates.
-\item 'keep' will stop collection at this level and let guides be placed alongside their plot.
-\item 'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.
-}}
-
-\item{design}{Specification of the location of areas in the layout, passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE. When specified, \code{nrow}, \code{ncol}, and \code{byrow} are ignored.
-See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details.}
+\item{design}{A custom layout design for the combined plot.}
 
 \item{...}{Additional arguments.}
 }
 \value{
-A \code{patch_work::wrap_plots} object or a list of them if \code{combine} is \code{FALSE}.
+A \code{patchwork} object (when \code{combine = TRUE}) or a
+named list of \code{patchwork} objects (when \code{combine = FALSE}),
+each with \code{height} and \code{width} attributes in inches.
 }
 \description{
-Generate a grid of scatter correlation plots for all pairs of variables.
+Draws a grid of pairwise scatter plots for selected numeric columns,
+arranged in a scatterplot matrix layout.  The upper or lower triangle
+displays correlation tiles while the opposite triangle shows scatter
+plots with regression lines.  Diagonal cells can show density plots,
+violin plots, histograms, box plots, or a simple diagonal line.
+
+\strong{NOTE:} The \code{facet_by} parameter is \strong{not supported}
+in CorPairsPlot (an error is raised if provided).  Use
+\code{split_by} instead to create separate correlation pair matrices
+per group.
+
+The function supports \strong{four layout orientations} (\code{layout}),
+\strong{three correlation methods}, configurable diagonal plots via
+other plotthis functions, custom correlation tile formatting, and
+splitting into separate sub-plots via \code{split_by}.
 }
+\section{split_by workflow}{
+
+When \code{split_by} is provided:
+\enumerate{
+\item The \code{split_by} column is validated via
+\code{\link{check_columns}()} with \code{force_factor = TRUE}.
+Empty levels are dropped.
+\item The data frame is split by \code{split_by} (preserving level
+order).  If \code{split_by} is \code{NULL}, the data is wrapped
+in a single-element list with name \code{"..."}.  The
+\code{split_by} column is removed from each split's data before
+plotting.
+\item Per-split \code{palette}, \code{palcolor},
+\code{legend.position}, and \code{legend.direction} are resolved
+via \code{\link{check_palette}()}, \code{\link{check_palcolor}()},
+and \code{\link{check_legend}()}.
+\item \code{\link{CorPairsPlotAtomic}()} is called for each split.
+When \code{title} is a function, it receives the split level
+name and can generate dynamic titles.
+\item Results are combined via \code{\link{combine_plots}()} (when
+\code{combine = TRUE}) or returned as a named list.
+}
+}
+
 \examples{
 \donttest{
 set.seed(8525)
@@ -180,21 +221,31 @@ data$y <- rnorm(100, 10, sd = 0.5)
 data$z <- -data$x + data$y + rnorm(100, 20, 1)
 data$g <- sample(1:4, 100, replace = TRUE)
 
-CorPairsPlot(data, diag_type = "histogram", diag_args = list(bins = 30, palette = "Paired"),
- layout = "/.")
+# Histogram diagonal, slash layout
+CorPairsPlot(data, diag_type = "histogram",
+    diag_args = list(bins = 30, palette = "Paired"),
+    layout = "/.")
 
+# No diagonal with axis title styling
 CorPairsPlot(data, group_by = "g", diag_type = "none", layout = "./",
- theme_args = list(axis.title = element_textbox(
-     color = "black", box.color = "grey20", size = 16, halign = 0.5, fill = "grey90",
-     linetype = 1, width = grid::unit(1, "npc"), padding = ggplot2::margin(5, 5, 5, 5))))
+    theme_args = list(axis.title = element_textbox(
+        color = "black", box.color = "grey20", size = 16, halign = 0.5,
+        fill = "grey90", linetype = 1,
+        width = grid::unit(1, "npc"),
+        padding = ggplot2::margin(5, 5, 5, 5))))
 
+# Violin diagonal with custom format
 CorPairsPlot(data, group_by = "g", diag_type = "violin", layout = "\\\\.",
-  cor_format = "{x}\n{y}\ncorr: {round(corr, 2)}")
+    cor_format = "{x}\n{y}\ncorr: {round(corr, 2)}")
 
+# Per-split with bottom legend
 CorPairsPlot(data, split_by = "g", diag_type = "none", layout = ".\\\\",
- legend.position = "bottom", legend.direction = "horizontal", group_name = "group")
+    legend.position = "bottom", legend.direction = "horizontal",
+    group_name = "group")
 
+# Per-split with custom palette colours
 CorPairsPlot(data, split_by = "g",
- palcolor = list("1" = "red", "2" = "blue", "3" = "green", "4" = "yellow"))
+    palcolor = list("1" = "red", "2" = "blue", "3" = "green",
+                    "4" = "yellow"))
 }
 }
