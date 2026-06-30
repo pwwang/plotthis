@@ -2,7 +2,7 @@
 % Please edit documentation in R/qqplot.R
 \name{QQPlotAtomic}
 \alias{QQPlotAtomic}
-\title{Atomic QQ plot}
+\title{Atomic QQ/PP plot}
 \usage{
 QQPlotAtomic(
   data,
@@ -40,40 +40,43 @@ QQPlotAtomic(
 \arguments{
 \item{data}{A data frame.}
 
-\item{val}{A character string of the column name for the values to plot.
-A numeric column is expected.}
+\item{val}{A character string naming the numeric column whose distribution
+is compared against the theoretical distribution.}
 
-\item{val_trans}{A function to transform the values before plotting.
-Default is NULL, which means no transformation.}
+\item{val_trans}{A transformation function applied to the \code{val}
+column before plotting. For example, \code{log} or \code{sqrt}.
+Default: \code{NULL} (no transformation).}
 
-\item{type}{A character string to specify the type of plot.
-Default is "qq", which means QQ plot.
-Other options are "pp", which means PP plot.}
+\item{type}{A character string specifying the plot type. Either
+\code{"qq"} (quantile-quantile, the default) or \code{"pp"}
+(probability-probability). Partial matching is supported.}
 
-\item{band}{A list of arguments to pass to \code{\link[qqplotr:stat_qq_band]{qqplotr::stat_qq_band()}} or
-\code{\link[qqplotr:stat_pp_band]{qqplotr::stat_pp_band()}}, depending on the value of \code{type}.
-Default is NULL, which means no band.
-If an empty list or TRUE is provided, the default arguments will be used.
-Multiple bands can be added by providing a list of lists.}
+\item{band}{A list of arguments passed to \code{\link[qqplotr]{stat_qq_band}}
+or \code{\link[qqplotr]{stat_pp_band}}, depending on \code{type}.
+Set to \code{TRUE} or an empty list to use default arguments.
+Set to \code{NULL} (the default) to suppress bands entirely.
+To add multiple bands, provide a list of lists, each containing
+arguments for one band (e.g. different \code{bandType} or
+\code{distribution}). Each band can also include a custom
+\code{mapping} aesthetic to control its fill colour legend entry.}
 
-\item{line}{A list of arguments to pass to \code{\link[qqplotr:stat_qq_line]{qqplotr::stat_qq_line()}} or
-\code{\link[qqplotr:stat_pp_line]{qqplotr::stat_pp_line()}}, depending on the value of \code{type}.
-Default is \code{list()}, which means to add a line with default arguments.
-If \code{NULL} is provided, no line will be added.}
+\item{line}{A list of arguments passed to \code{\link[qqplotr]{stat_qq_line}}
+or \code{\link[qqplotr]{stat_pp_line}}, depending on \code{type}.
+Default: \code{list()} (adds a reference line with default arguments).
+Set to \code{NULL} to omit the line entirely.}
 
-\item{point}{A list of arguments to pass to \code{\link[qqplotr:stat_qq_point]{qqplotr::stat_qq_point()}} or
-\code{\link[qqplotr:stat_pp_point]{qqplotr::stat_pp_point()}}, depending on the value of \code{type}.
-Default is \code{list()}, which means to add points with default arguments.
-If \code{NULL} is provided, no points will be added (not recommended).}
+\item{point}{A list of arguments passed to \code{\link[qqplotr]{stat_qq_point}}
+or \code{\link[qqplotr]{stat_pp_point}}, depending on \code{type}.
+Default: \code{list()} (adds points with default arguments).
+Set to \code{NULL} to omit points (not recommended).}
 
-\item{fill_name}{A character string to name the legend of fill.
-Default is "Band Type".}
+\item{fill_name}{A character string for the fill legend title used
+when bands are present. Default: \code{"Bands"}.}
 
-\item{band_alpha}{A numeric value to set the alpha of all bands.
-Default is 0.5.
-It is a shortcut for setting alpha of all bands. You can override it by
-setting \code{alpha} in \code{band} argument.
-For example, \code{band = list(list(alpha = 0.3), list(alpha = 0.7))}.}
+\item{band_alpha}{A numeric value in \code{[0, 1]} setting the
+transparency of all bands. Individual bands can override this via
+\code{alpha} inside the \code{band} argument list.
+Default: \code{0.5}.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -117,12 +120,14 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{subtitle}{A character string specifying the subtitle of the plot.}
 
-\item{seed}{A numeric value to set the seed for random number generation.
-Default is 8525.}
+\item{seed}{A numeric value for the random seed used internally.
+Default: \code{8525}. Passed to \code{\link{set.seed}}.}
 
-\item{xlim}{A numeric vector of length 2 to set the x-axis limits.}
+\item{xlim}{A numeric vector of length 2 specifying the x-axis limits.
+Default: \code{NULL} (use data range).}
 
-\item{ylim}{A numeric vector of length 2 to set the y-axis limits.}
+\item{ylim}{A numeric vector of length 2 specifying the y-axis limits.
+Default: \code{NULL} (use data range).}
 
 \item{xlab}{A character string specifying the x-axis label.}
 
@@ -131,9 +136,104 @@ Default is 8525.}
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object
+A \code{ggplot} object with \code{height} and \code{width}
+attributes (in inches).
 }
 \description{
-Atomic QQ plot
+Core implementation for drawing a single quantile-quantile (QQ) or
+probability-probability (PP) plot. This is the internal workhorse
+dispatched by the exported \code{\link{QQPlot}} function -- it takes a
+\strong{single} data frame (no \code{split_by} support) and returns a
+\code{ggplot} object. The function compares the empirical distribution
+of a numeric variable against a theoretical distribution (default:
+standard normal) via the \pkg{qqplotr} package.
+
+Two plot types are supported via the \code{type} parameter:
+\itemize{
+\item \strong{QQ plot} (\code{type = "qq"}, the default) -- plots
+sample quantiles against theoretical quantiles. Deviations from the
+reference line indicate departures from the assumed distribution
+(skewness, heavy tails, outliers).
+\item \strong{PP plot} (\code{type = "pp"}) -- plots empirical
+cumulative probability against theoretical cumulative probability.
+PP plots are more sensitive to deviations in the centre of the
+distribution, while QQ plots are more sensitive at the tails.
 }
+
+The function can overlay \strong{confidence bands} (\code{band}) around
+the reference line using several methods (pointwise confidence intervals,
+Kolmogorov-Smirnov, Tukey's simultaneous intervals, or bootstrap).
+Multiple bands can be combined and each receives a separate fill colour
+from the \code{palette}.
+}
+\section{Architecture}{
+
+
+\strong{QQPlotAtomic} executes the following steps:
+\enumerate{
+\item \strong{ggplot dispatch} -- selects \code{gglogger::ggplot} or
+\code{ggplot2::ggplot} based on
+\code{getOption("plotthis.gglogger.enabled")}.
+\item \strong{Type validation} -- \code{match.arg()} resolves
+\code{type} to \code{"qq"} or \code{"pp"}.
+\item \strong{Input validation} -- \code{stopifnot()} checks that
+\code{band} is \code{TRUE}, a list, or \code{NULL}; \code{line} and
+\code{point} are lists or \code{NULL}; and \code{xlim}/\code{ylim}
+are numeric vectors of length 2 or \code{NULL}.
+\item \strong{Column resolution} -- \code{\link{check_columns}()}
+validates the \code{val} column.
+\item \strong{Value transformation} -- when \code{val_trans} is
+provided, it is applied to the \code{val} column (e.g. log-transform).
+\item \strong{Base ggplot} -- initialises
+\code{ggplot(data, aes(sample = !!sym(val)))}. The \code{sample}
+aesthetic is the standard interface for \pkg{qqplotr}.
+\item \strong{Band rendering} -- when \code{band} is not \code{NULL}:
+\enumerate{
+\item Selects the band stat function:
+\code{qqplotr::stat_qq_band} for QQ plots or
+\code{qqplotr::stat_pp_band} for PP plots.
+\item Converts \code{band = TRUE} to an empty list (default
+arguments).
+\item Normalises a single band (non-list or named list) into a
+list-of-lists format.
+\item Iterates over bands, assigning each a default fill aesthetic
+(\code{"Band_1"}, \code{"Band_2"}, ..., up to a maximum of 10).
+The user can override the fill mapping via \code{mapping} inside
+each band's argument list.
+\item Sets \code{alpha} per band, falling back to the
+\code{band_alpha} parameter.
+\item Adds each band to the plot via \code{do_call(band_fn, bnd)}.
+}
+\item \strong{Legend position resolution} -- if no bands were rendered
+or all bands use default \code{"Band_"} names, the legend defaults to
+\code{"none"} (when \code{legend.position} is a \code{waiver});
+otherwise defaults to \code{"right"}.
+\item \strong{Reference line} -- when \code{line} is not \code{NULL},
+adds \code{qqplotr::stat_qq_line} (QQ) or
+\code{qqplotr::stat_pp_line} (PP) via \code{do_call()}.
+\item \strong{Points} -- when \code{point} is not \code{NULL}, adds
+\code{qqplotr::stat_qq_point} (QQ) or
+\code{qqplotr::stat_pp_point} (PP) via \code{do_call()}.
+\item \strong{Fill colour scale} -- when bands are present,
+\code{scale_fill_manual()} is added with colours resolved via
+\code{\link{palette_this}()} using the band names, \code{palette},
+\code{palcolor}, and \code{palreverse}. The legend title is set to
+\code{fill_name}.
+\item \strong{Axis limits} -- \code{ggplot2::xlim()} and
+\code{ggplot2::ylim()} are applied if \code{xlim} or \code{ylim} are
+set.
+\item \strong{Labels and theme} -- \code{labs(title, subtitle, x, y)}
+with fallback to \code{val} for axis labels; \code{do_call(theme,
+  theme_args)}; \code{ggplot2::theme()} with \code{aspect.ratio},
+\code{panel.grid.major} (grey80, dashed), \code{legend.position},
+and \code{legend.direction}.
+\item \strong{Dimension calculation} --
+\code{\link{calculate_plot_dimensions}()} with \code{base_height =
+  4.5}, \code{aspect.ratio}, and legend metrics (number of bands, band
+name character width).
+\item \strong{Faceting} -- \code{\link{facet_plot}()} applies
+\code{facet_wrap} / \code{facet_grid} if \code{facet_by} is provided.
+}
+}
+
 \keyword{internal}
