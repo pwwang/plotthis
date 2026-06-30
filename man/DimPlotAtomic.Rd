@@ -370,34 +370,33 @@ colours (used in \code{"raw"} plot type). Default is \code{"Set2"}.}
 \item{velocity_group_palcolor}{A character vector of specific colours for velocity groups.
 Default is \code{NULL} (auto-resolved from \code{velocity_group_palette}).}
 
-\item{arrow_angle}{An optional numeric value specifying the angle of the arrowheads in degrees for velocity arrows. Default is 20.}
+\item{arrow_angle}{A numeric value specifying the angle of the arrowheads in degrees. Applied to \code{\link[grid]{arrow}} when \code{plot_type} is \code{"raw"} or \code{"grid"}. Default is 20.}
 
-\item{arrow_color}{A character string specifying the color of the velocity arrowheads. Default is "black".}
+\item{arrow_color}{A character string specifying the color of the velocity arrows. For \code{plot_type = "stream"}, this sets only the arrowhead color. Default is \code{"black"}.}
 
-\item{streamline_l}{An optional numeric value specifying the length of the velocity streamlines. Default is 5.}
+\item{streamline_l}{A numeric value specifying the integration length of the streamlines. Passed to \code{\link[metR]{geom_streamline}} as the \code{L} parameter. Default is 5.}
 
-\item{streamline_minl}{An optional numeric value specifying the minimum length of the velocity streamlines. Default is 1.}
+\item{streamline_minl}{A numeric value specifying the minimum streamline length. Shorter streamlines are not drawn. Passed to \code{\link[metR]{geom_streamline}} as the \code{min.L} parameter. Default is 1.}
 
-\item{streamline_res}{An optional numeric value specifying the resolution of the velocity streamlines. Default is 1.}
+\item{streamline_res}{A numeric value specifying the resolution of the streamline integration. Passed to \code{\link[metR]{geom_streamline}} as the \code{res} parameter. Default is 1.}
 
-\item{streamline_n}{An optional numeric value specifying the number of velocity streamlines to draw. Default is 15.}
+\item{streamline_n}{A numeric value specifying the number of streamlines to draw. Passed to \code{\link[metR]{geom_streamline}} as the \code{n} parameter. Default is 15.}
 
-\item{arrow_alpha}{A numeric value specifying the transparency of the velocity arrows. Default is 1 (fully opaque).
-Only works for \code{plot_type = "raw"} and \code{plot_type = "grid"}. For \code{plot_type = "stream"}, use \code{streamline_alpha} instead.}
+\item{arrow_alpha}{A numeric value between 0 and 1 specifying the transparency of the velocity arrows. Only used when \code{plot_type = "raw"} or \code{"grid"}; for \code{plot_type = "stream"}, use \code{streamline_alpha} instead. Default is 1.}
 
-\item{streamline_width}{A numeric vector of length 2 specifying the width of the velocity streamlines. Default is c(0, 0.8).}
+\item{streamline_width}{A numeric vector of length 2 specifying the range of line widths for streamlines. Passed to \code{scale_size(range = ...)}. Only used when \code{streamline_color} is \code{NULL}. Default is \code{c(0, 0.8)}.}
 
-\item{streamline_alpha}{A numeric value specifying the transparency of the velocity streamlines. Default is 1 (fully opaque).}
+\item{streamline_alpha}{A numeric value between 0 and 1 specifying the transparency of the velocity streamlines. Default is 1.}
 
-\item{streamline_color}{A character string specifying the color of the velocity streamlines.}
+\item{streamline_color}{An optional character string specifying a fixed color for streamlines. When \code{NULL} (the default), streamlines are colored by velocity magnitude using \code{streamline_palette}.}
 
-\item{streamline_palette}{A character string specifying the color palette to use for the velocity streamlines. Default is "RdYlBu".}
+\item{streamline_palette}{A character string specifying the color palette for streamline velocity magnitude. Passed to \code{\link{palette_this}}. Only used when \code{streamline_color} is \code{NULL}. Default is \code{"RdYlBu"}.}
 
-\item{streamline_palcolor}{An optional character vector specifying the colors to use for the velocity streamlines. If NULL, the colors will be generated from the streamline_palette.}
+\item{streamline_palcolor}{An optional character vector of specific colors for the streamline velocity gradient. If \code{NULL}, colors are generated from \code{streamline_palette}. Default is \code{NULL}.}
 
-\item{streamline_bg_color}{A character string specifying the background color of the velocity streamlines. Default is "white".}
+\item{streamline_bg_color}{A character string specifying the background (outline) color applied to streamlines to create a stroke effect. Default is \code{"white"}.}
 
-\item{streamline_bg_stroke}{A numeric value specifying the background stroke width of the velocity streamlines. Default is 0.5.}
+\item{streamline_bg_stroke}{A numeric value specifying the additional line width of the background stroke relative to the foreground streamline. Default is 0.5.}
 
 \item{keep_na}{A logical value or a character to replace the NA values in the data.
 It can also take a named list to specify different behavior for different columns.
