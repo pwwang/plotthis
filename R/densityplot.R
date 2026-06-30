@@ -553,7 +553,6 @@ DensityHistoPlotAtomic <- function(
 #' @param ... Additional arguments passed to `ggridges::geom_density_ridges()`
 #'   (bandwidth, jittered_points, quantile_lines, etc.).
 #' @importFrom tidyr pivot_longer
-#' @importFrom ggridges geom_density_ridges
 #' @keywords internal
 RidgePlotAtomic <- function(
     data,
