@@ -2,7 +2,7 @@
 % Please edit documentation in R/wordcloudplot.R
 \name{WordCloudPlotAtomic}
 \alias{WordCloudPlotAtomic}
-\title{Word cloud without data splitting}
+\title{Word cloud plot (internal)}
 \usage{
 WordCloudPlotAtomic(
   data,
@@ -40,34 +40,52 @@ WordCloudPlotAtomic(
 \arguments{
 \item{data}{A data frame.}
 
-\item{word_by}{A character string of the column name to use as the word.
-A character column is expected.}
+\item{word_by}{A character string specifying the column name containing
+pre-tokenized words. A character column is expected. Use this when your
+data already has one word per row (or a list of words per row). Mutually
+exclusive with \code{sentence_by}.}
 
-\item{sentence_by}{A character string of the column name to split the sentence.
-A character column is expected.
-Either \code{word_by} or \code{sentence_by} should be specified.}
+\item{sentence_by}{A character string specifying the column name containing
+sentences or phrases to be split into individual words. A character column
+is expected. The text is lowercased and punctuation is removed before
+splitting on whitespace boundaries. Mutually exclusive with
+\code{word_by}.}
 
-\item{count_by}{A character string of the column name for the count of the word/sentence.
-A numeric column is expected.
-If NULL, the count of the word/sentence will be used.}
+\item{count_by}{A character string specifying the numeric column for the
+count or frequency of each word. When \code{NULL} (the default), each
+occurrence counts as 1. Must be \code{NULL} when \code{sentence_by} is
+used, as counts are derived from the number of occurrences after splitting.}
 
-\item{score_by}{A character string of the column name for the score of the word/sentence.
-A numeric column is expected, used for the color of the word cloud.
-If NULL, the score will be set to 1.}
+\item{score_by}{A character string specifying the numeric column for the
+score of each word, mapped to the text colour via a continuous gradient.
+When \code{NULL} (the default), all words receive a score of 1 and are
+coloured at the low end of the palette.}
 
-\item{count_name}{A character string to name the legend of count.}
+\item{count_name}{A character string for the size legend title. When
+\code{NULL} (the default), \code{"Count"} is used.}
 
-\item{score_name}{A character string to name the legend of score.}
+\item{score_name}{A character string for the colour-bar legend title. When
+\code{NULL} (the default), \code{"Score"} is used.}
 
-\item{words_excluded}{A character vector of words to exclude from the word cloud.}
+\item{words_excluded}{A character vector of words to exclude from the word
+cloud. Matching is case-insensitive. Defaults to
+\code{plotthis::words_excluded}, a built-in set of common English stop
+words.}
 
-\item{score_agg}{A function to aggregate the scores. Default is \code{mean}.}
+\item{score_agg}{A function to aggregate the scores when multiple
+observations of the same word exist. Default is \code{mean}. Other
+options include \code{sum}, \code{median}, or a custom function.}
 
-\item{minchar}{A numeric value specifying the minimum number of characters for the word.}
+\item{minchar}{A numeric value specifying the minimum number of characters
+a word must have to be included. Words with fewer characters are filtered
+out. Default: \code{2}.}
 
-\item{word_size}{A numeric vector specifying the range of the word size.}
+\item{word_size}{A numeric vector of length 2 specifying the range of font
+sizes (in mm) for the words. Passed to \code{scale_size(range =
+ word_size)}. Default: \code{c(2, 8)}.}
 
-\item{top_words}{A numeric value specifying the number of top words to show.}
+\item{top_words}{A numeric value specifying the maximum number of words to
+display, selected by highest score. Default: \code{100}.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
@@ -118,9 +136,120 @@ This is useful when split_by is used and the title needs to be dynamic.}
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object
+A \code{ggplot} object with \code{height} and \code{width}
+attributes (in inches) attached.
 }
 \description{
-Word cloud without data splitting
+Core implementation for drawing a word cloud plot. This is the workhorse
+behind the exported \code{\link{WordCloudPlot}} function — it takes a
+\strong{single} data frame (no \code{split_by} support) and returns a
+\code{ggplot} object rendered via
+\code{\link[ggwordcloud]{geom_text_wordcloud}}.
+
+The function supports two input modes:
+\itemize{
+\item \strong{Pre-tokenized words} (\code{word_by}) — each row contains
+a single word (or multiple words in a list column that is unnested).
+\item \strong{Sentence splitting} (\code{sentence_by}) — each row
+contains a sentence or phrase; the function splits the text into
+individual words after removing punctuation and lowercasing.
 }
+
+Words are displayed with \strong{font size} proportional to a count
+variable (\code{count_by}) and \strong{colour} based on a continuous
+score variable (\code{score_by}). Text filtering options allow removal of
+short words, common stop words, and bracketed patterns.
+}
+\section{Architecture}{
+
+\enumerate{
+\item \strong{ggplot dispatch} — selects \code{gglogger::ggplot} or
+\code{ggplot2::ggplot} based on
+\code{getOption("plotthis.gglogger.enabled")}.
+\item \strong{Input validation} — ensures exactly one of \code{word_by}
+or \code{sentence_by} is specified. Errors if both are provided
+or neither is provided. When \code{sentence_by} is used,
+\code{count_by} must be \code{NULL} (counts are derived from
+occurrences after splitting).
+\item \strong{Column resolution} — \code{facet_by}, \code{count_by},
+and \code{score_by} are validated and transformed via
+\code{\link{check_columns}}.
+\item \strong{Default values} — when \code{score_by} is \code{NULL}, a
+synthetic \code{.score} column with value \code{1} is created.
+When \code{count_by} is \code{NULL}, a synthetic \code{.count}
+column with value \code{1} is created.
+\item \strong{Sentence splitting branch} (when \code{sentence_by} is set):
+\itemize{
+\item The \code{sentence_by} column is validated via
+\code{\link{check_columns}}.
+\item Text is lowercased, punctuation is removed, and the
+string is split into individual words on whitespace
+boundaries.
+\item Words are unnested into separate rows via
+\code{\link[tidyr]{unnest}}.
+\item Data is grouped by word (and \code{facet_by} columns
+when present) and aggregated: \code{sum(count_by)} and
+\code{score_agg(score_by)}. Separate aggregation
+templates handle 0, 1, or 2 \code{facet_by} columns.
+}
+\item \strong{Word branch} (when \code{word_by} is set):
+\itemize{
+\item The \code{word_by} column is validated via
+\code{\link{check_columns}}.
+\item Column values are unnested into separate rows (supports
+list columns where a row may contain multiple words).
+\item Data is grouped by word (and \code{facet_by} columns
+when present) and aggregated similarly to the sentence
+branch.
+}
+\item \strong{Text filtering pipeline} — the aggregated data is
+processed sequentially:
+\itemize{
+\item Words matching the pattern \verb{[.*]} (bracketed
+content) are removed.
+\item Words with fewer than \code{minchar} characters are
+removed.
+\item Words listed in \code{words_excluded} are removed
+(case-insensitive matching).
+\item Duplicate rows are removed.
+\item The top \code{top_words} words by score are retained
+via \code{\link[dplyr]{slice_max}}.
+}
+\item \strong{Angle assignment} — each word is randomly assigned a
+rotation angle of 0 (60\\% probability) or 90 degrees (40\\%
+probability), creating the characteristic word cloud appearance.
+\item \strong{Colour scale preparation} —
+\code{\link{palette_this}()} with \code{type = "continuous"}
+generates a smooth gradient for the \code{score} variable. A
+\code{colors_value} sequence is created spanning
+\code{min(score)} to \code{quantile(score, 0.99)} for colour
+interpolation.
+\item \strong{Plot assembly} — the \code{ggplot} object is built with:
+\itemize{
+\item \code{ggwordcloud::geom_text_wordcloud()} renders the
+words with \code{rm_outside = TRUE}, square shape, and
+eccentricity of 1.
+\item \code{scale_color_gradientn()} maps the score to the
+continuous colour gradient, with a colour-bar legend
+(titled by \code{score_name} or \code{"Score"}).
+\item \code{scale_size()} maps the count to font size within
+the \code{word_size} range, with a size legend (titled
+by \code{count_name} or \code{"Count"}).
+\item \code{coord_flip()} swaps the axes (word cloud
+convention).
+\item \code{do_call(theme, theme_args)} applies the selected
+theme; \code{aspect.ratio}, \code{legend.position}, and
+\code{legend.direction} are set directly.
+}
+\item \strong{Dimension calculation} —
+\code{\link{calculate_plot_dimensions}()} computes plot height
+and width using \code{base_height = 4.5}, \code{aspect.ratio},
+and legend metrics. The resulting \code{height} / \code{width}
+attributes are stored on the \code{ggplot} object.
+\item \strong{Faceting} — \code{\link{facet_plot}()} wraps the plot
+with \code{facet_wrap} or \code{facet_grid} if \code{facet_by}
+is provided, up to a maximum of 2 facet columns.
+}
+}
+
 \keyword{internal}

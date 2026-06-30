@@ -2,7 +2,7 @@
 % Please edit documentation in R/wordcloudplot.R
 \name{WordCloudPlot}
 \alias{WordCloudPlot}
-\title{Word Cloud Plot}
+\title{Word cloud plot}
 \usage{
 WordCloudPlot(
   data,
@@ -50,38 +50,56 @@ WordCloudPlot(
 \arguments{
 \item{data}{A data frame.}
 
-\item{word_by}{A character string of the column name to use as the word.
-A character column is expected.}
+\item{word_by}{A character string specifying the column name containing
+pre-tokenized words. A character column is expected. Use this when your
+data already has one word per row (or a list of words per row). Mutually
+exclusive with \code{sentence_by}.}
 
-\item{sentence_by}{A character string of the column name to split the sentence.
-A character column is expected.
-Either \code{word_by} or \code{sentence_by} should be specified.}
+\item{sentence_by}{A character string specifying the column name containing
+sentences or phrases to be split into individual words. A character column
+is expected. The text is lowercased and punctuation is removed before
+splitting on whitespace boundaries. Mutually exclusive with
+\code{word_by}.}
 
-\item{count_by}{A character string of the column name for the count of the word/sentence.
-A numeric column is expected.
-If NULL, the count of the word/sentence will be used.}
+\item{count_by}{A character string specifying the numeric column for the
+count or frequency of each word. When \code{NULL} (the default), each
+occurrence counts as 1. Must be \code{NULL} when \code{sentence_by} is
+used, as counts are derived from the number of occurrences after splitting.}
 
-\item{score_by}{A character string of the column name for the score of the word/sentence.
-A numeric column is expected, used for the color of the word cloud.
-If NULL, the score will be set to 1.}
+\item{score_by}{A character string specifying the numeric column for the
+score of each word, mapped to the text colour via a continuous gradient.
+When \code{NULL} (the default), all words receive a score of 1 and are
+coloured at the low end of the palette.}
 
-\item{count_name}{A character string to name the legend of count.}
+\item{count_name}{A character string for the size legend title. When
+\code{NULL} (the default), \code{"Count"} is used.}
 
-\item{score_name}{A character string to name the legend of score.}
+\item{score_name}{A character string for the colour-bar legend title. When
+\code{NULL} (the default), \code{"Score"} is used.}
 
 \item{split_by}{The column(s) to split data by and plot separately.}
 
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
-\item{words_excluded}{A character vector of words to exclude from the word cloud.}
+\item{words_excluded}{A character vector of words to exclude from the word
+cloud. Matching is case-insensitive. Defaults to
+\code{plotthis::words_excluded}, a built-in set of common English stop
+words.}
 
-\item{score_agg}{A function to aggregate the scores. Default is \code{mean}.}
+\item{score_agg}{A function to aggregate the scores when multiple
+observations of the same word exist. Default is \code{mean}. Other
+options include \code{sum}, \code{median}, or a custom function.}
 
-\item{minchar}{A numeric value specifying the minimum number of characters for the word.}
+\item{minchar}{A numeric value specifying the minimum number of characters
+a word must have to be included. Words with fewer characters are filtered
+out. Default: \code{2}.}
 
-\item{word_size}{A numeric vector specifying the range of the word size.}
+\item{word_size}{A numeric vector of length 2 specifying the range of font
+sizes (in mm) for the words. Passed to \code{scale_size(range =
+ word_size)}. Default: \code{c(2, 8)}.}
 
-\item{top_words}{A numeric value specifying the number of top words to show.}
+\item{top_words}{A numeric value specifying the maximum number of words to
+display, selected by highest score. Default: \code{100}.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
@@ -171,16 +189,90 @@ See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object or wrap_plots object or a list of ggplot objects
+A \code{ggplot} object (when no \code{split_by} is used), a
+\code{patchwork} object (when \code{combine = TRUE} and
+\code{split_by} is used), or a named list of \code{ggplot} objects
+(when \code{combine = FALSE}), each with \code{height} and
+\code{width} attributes in inches.
 }
 \description{
-Word cloud plot to illustrate the count/frequency of words.
+Draws a word cloud plot that visualises word frequency and importance.
+Words are displayed with font size proportional to a count variable and
+colour based on a continuous score variable, using
+\code{\link[ggwordcloud]{geom_text_wordcloud}} for rendering.
+
+The function supports \strong{pre-tokenised words} (via \code{word_by})
+and \strong{sentence splitting} (via \code{sentence_by}). Sentences are
+automatically lowercased, stripped of punctuation, and split into
+individual words before aggregation. Common stop words can be excluded
+via \code{words_excluded}, and the number of displayed words is
+controlled by \code{top_words}.
+
+The word cloud can be \strong{faceted} (via \code{facet_by}) or
+\strong{split} into separate sub-plots via \code{split_by}. When
+\code{split_by} is used, each split level receives its own word cloud,
+and the results are combined into a single layout via
+\code{\link{combine_plots}}.
 }
+\section{split_by workflow}{
+
+When \code{split_by} is provided:
+\enumerate{
+\item \code{\link{validate_common_args}()} validates the \code{seed}
+and \code{facet_by} constraints (maximum 2 facet columns).
+\item The \code{theme} argument is resolved via
+\code{\link{process_theme}()}.
+\item The \code{split_by} column(s) are validated and transformed via
+\code{\link{check_columns}()} with \code{force_factor = TRUE}
+and \code{concat_multi = TRUE}.
+\item The data frame is split by \code{split_by} (preserving factor
+level order). If \code{split_by} is \code{NULL}, the data is
+wrapped in a single-element list with name \code{"..."}.
+\item Per-split \code{palette}, \code{palcolor},
+\code{legend.position}, and \code{legend.direction} are resolved
+via \code{\link{check_palette}()}, \code{\link{check_palcolor}()},
+and \code{\link{check_legend}()}.
+\item \code{\link{WordCloudPlotAtomic}()} is called for each split. If
+\code{title} is a function, it receives the split level name and
+can generate dynamic titles per sub-plot.
+\item Results are combined via \code{\link{combine_plots}()} (when
+\code{combine = TRUE}) or returned as a named list (when
+\code{combine = FALSE}).
+}
+}
+
 \examples{
+\donttest{
+set.seed(8525)
 data <- data.frame(
-   word = c("apple", "banana", "cherry", "date", "elderberry"),
-   count = c(10, 20, 30, 40, 50),
-   score = c(1, 2, 3, 4, 5)
+    word = c("apple", "banana", "cherry", "date", "elderberry",
+             "fig", "grape", "honeydew", "kiwi", "lemon"),
+    count = c(10, 20, 30, 40, 50, 15, 25, 35, 45, 55),
+    score = c(1, 2, 3, 4, 5, 1.5, 2.5, 3.5, 4.5, 5.5),
+    facet = rep(c("Group1", "Group2"), each = 5),
+    split = rep(c("A", "B"), 5)
 )
-WordCloudPlot(data, word_by = "word", count_by = "count", score_by = "score")
+
+# Basic word cloud with word, count, and score columns
+WordCloudPlot(data, word_by = "word",
+              count_by = "count", score_by = "score")
+
+# Word cloud using sentence_by (sentences split into words)
+data_sent <- data.frame(
+    sentence = c("The quick brown fox jumps over the lazy dog",
+                 "A quick brown dog jumps over a lazy fox"),
+    score = c(10, 5)
+)
+WordCloudPlot(data_sent, sentence_by = "sentence", score_by = "score")
+
+# Word cloud with faceting
+WordCloudPlot(data, word_by = "word",
+              count_by = "count", score_by = "score",
+              facet_by = "facet")
+
+# Word cloud split by a grouping variable
+WordCloudPlot(data, word_by = "word",
+              count_by = "count", score_by = "score",
+              split_by = "split")
+}
 }
