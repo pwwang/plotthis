@@ -55,11 +55,14 @@ AreaPlot(
 
 \item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
 
-\item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.}
+\item{x_sep}{A character string used to join multiple \code{x} columns.
+Default \code{"_"}.  Ignored when \code{x} is a single column.}
 
-\item{split_by}{The column(s) to split data by and plot separately.}
+\item{split_by}{The column(s) to split the data by and produce separate
+sub-plots.  Multiple columns are concatenated with \code{split_by_sep}.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
+\item{split_by_sep}{A character string to separate concatenated
+\code{split_by} columns.  Default \code{"_"}.}
 
 \item{group_by}{Columns to group the data for plotting
 For those plotting functions that do not support multiple groups,
@@ -67,9 +70,13 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 
 \item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
 
-\item{group_name}{A character string to name the legend of fill.}
+\item{group_name}{A character string used as the fill legend title.
+When \code{NULL}, the \code{group_by} column name is used.}
 
-\item{scale_y}{A logical value to scale the y-axis by the total number in each x-axis group.}
+\item{scale_y}{A logical value.  When \code{TRUE}, y-values are scaled to
+proportions within each (\code{x}, \code{facet_by}) group so that each
+x position stacks to 1.0.  The y-axis labels switch from numeric to
+percent format automatically.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -142,56 +149,78 @@ But they will be assigned colors from the palette to maintain consistency across
 Alias: \code{levels}}
 }}
 
-\item{seed}{The random seed to use. Default is 8525.}
+\item{seed}{A numeric seed for reproducibility.  Passed to
+\code{\link{validate_common_args}()}.}
 
-\item{combine}{Whether to combine the plots into one when facet is FALSE. Default is TRUE.}
+\item{combine}{Logical; when \code{TRUE} (default), returns a combined
+\code{patchwork} object.  When \code{FALSE}, returns a named list of
+individual \code{ggplot} objects.}
 
-\item{nrow}{A numeric value specifying the number of rows in the facet.}
+\item{ncol, nrow}{Integer number of columns / rows for the combined layout
+(passed to \code{\link[patchwork]{wrap_plots}}).}
 
-\item{ncol}{A numeric value specifying the number of columns in the facet.}
+\item{byrow}{Logical; fill the combined layout by row.  Default \code{TRUE}
+(passed to \code{\link[patchwork]{wrap_plots}}).}
 
-\item{byrow}{A logical value indicating whether to fill the plots by row.}
+\item{axes}{A character string specifying how axes should be treated across
+the combined layout (passed to \code{\link[patchwork]{wrap_plots}}).}
 
-\item{axes}{A string specifying how axes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axes in individual plots.
-\item 'collect' will remove duplicated axes when placed in the same run of rows or columns of the layout.
-\item 'collect_x' and 'collect_y' will remove duplicated x-axes in the columns or duplicated y-axes in the rows respectively.
-}}
+\item{axis_titles}{A character string specifying how axis titles should be
+treated across the combined layout.  Defaults to \code{axes}.}
 
-\item{axis_titles}{A string specifying how axis titltes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axis titles in individual plots.
-\item 'collect' will remove duplicated titles in one direction and merge titles in the opposite direction.
-\item 'collect_x' and 'collect_y' control this for x-axis titles and y-axis titles respectively.
-}}
+\item{guides}{A character string specifying how guides (legends) should be
+collected across panels.  Default \code{"collect"} (passed to
+\code{\link{combine_plots}()}).}
 
-\item{guides}{A string specifying how guides should be treated in the layout. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'collect' will collect guides below to the given nesting level, removing duplicates.
-\item 'keep' will stop collection at this level and let guides be placed alongside their plot.
-\item 'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.
-}}
-
-\item{design}{Specification of the location of areas in the layout, passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE. When specified, \code{nrow}, \code{ncol}, and \code{byrow} are ignored.
-See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details.}
+\item{design}{A custom layout design for the combined plot (passed to
+\code{\link{combine_plots}()}).}
 
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object or wrap_plots object or a list of ggplot objects
+A \code{ggplot} object, a \code{patchwork} object, or a named list
+of \code{ggplot} objects (when \code{combine = FALSE}), each with
+\code{height} and \code{width} attributes in inches.
 }
 \description{
-A plot showing how one or more groups' numeric values change over the
-progression of a another variable
+Draws a stacked area plot showing how one or more groups' numeric values
+(or counts) accumulate across the progression of a discrete x-axis
+variable.  Each group is rendered as a filled area stacked from baseline,
+making it easy to compare both individual magnitudes and the total across
+categories.
+
+The function supports \strong{count aggregation} (omit \code{y} to plot
+observation counts per x-category), \strong{proportion scaling}
+(\code{scale_y = TRUE} normalises each x position to 100\\%), per-group
+colour control, faceting, and splitting into separate sub-plots via
+\code{split_by}.
 }
+\section{split_by workflow}{
+
+When \code{split_by} is provided:
+\enumerate{
+\item \code{\link{check_keep_na}()} and \code{\link{check_keep_empty}()}
+normalise the \code{keep_na} / \code{keep_empty} arguments for all
+columns (\code{x}, \code{split_by}, \code{group_by}, \code{facet_by}).
+\item The \code{split_by} column is validated and its NA / empty levels
+are processed via \code{\link{process_keep_na_empty}()}.  It is
+then removed from the per-column \code{keep_na} / \code{keep_empty}
+lists.
+\item The data frame is split by \code{split_by} (preserving level
+order).  If \code{split_by} is \code{NULL}, the data is wrapped in
+a single-element list with name \code{"..."}.
+\item Per-split \code{palette}, \code{palcolor},
+\code{legend.position}, and \code{legend.direction} are resolved
+via \code{\link{check_palette}()}, \code{\link{check_palcolor}()},
+and \code{\link{check_legend}()}.
+\item \code{\link{AreaPlotAtomic}()} is called for each split.  If
+\code{title} is a function, it receives the split level name and
+can generate dynamic titles.
+\item Results are combined via \code{\link{combine_plots}()} (when
+\code{combine = TRUE}) or returned as a named list.
+}
+}
+
 \examples{
 \donttest{
 set.seed(8525)
@@ -201,31 +230,60 @@ data <- data.frame(
     group = rep(c("F1", "F2"), each = 4),
     split = rep(c("X", "Y"), 4)
 )
+# Basic stacked area
 AreaPlot(data, x = "x", y = "y", group_by = "group")
+
+# Scaled to proportions
 AreaPlot(data, x = "x", y = "y", group_by = "group",
          scale_y = TRUE)
+
+# Split into sub-plots (no group_by — single-colour fill)
 AreaPlot(data, x = "x", y = "y", split_by = "group")
-AreaPlot(data, x = "x", y = "y", split_by = "group", palette = c(F1 = "Blues", F2 = "Reds"))
-AreaPlot(data, x = "x", y = "y", group_by = "group", split_by = "split",
-    legend.direction = c(X = "horizontal", Y = "vertical"),
-    legend.position = c(X = "top", Y = "right"))
+
+# Per-split palettes
+AreaPlot(data, x = "x", y = "y", split_by = "group",
+         palette = c(F1 = "Blues", F2 = "Reds"))
+
+# Per-split legend positioning
+AreaPlot(data, x = "x", y = "y", group_by = "group",
+         split_by = "split",
+         legend.direction = c(X = "horizontal", Y = "vertical"),
+         legend.position = c(X = "top", Y = "right"))
 
 # How keep_na and keep_empty work
 data <- data.frame(
-    x = factor(rep(c("A", NA, "C", "D"), 3), levels = c("A", "B", "C", "D")),
+    x = factor(rep(c("A", NA, "C", "D"), 3),
+               levels = c("A", "B", "C", "D")),
     y = c(1, 3, 6, 4, 2, 5, 7, 8, 4, 2, 3, 5),
-    group = factor(sample(rep(c("F1", NA, "F3"), each = 4)), levels = c("F1", "F2", "F3")),
-    split = factor(sample(rep(c("X", "Y", NA), 4)), levels = c("X", "Y", "Z")),
-    facet = factor(sample(rep(c("M", "N", NA), 4)), levels = c("M", "N", "O"))
+    group = factor(sample(rep(c("F1", NA, "F3"), each = 4)),
+                   levels = c("F1", "F2", "F3")),
+    split = factor(sample(rep(c("X", "Y", NA), 4)),
+                   levels = c("X", "Y", "Z")),
+    facet = factor(sample(rep(c("M", "N", NA), 4)),
+                   levels = c("M", "N", "O"))
 )
 
+# Default: NA and empty levels dropped
 AreaPlot(data, x = "x", y = "y", group_by = "group")
-AreaPlot(data, x = "x", y = "y", group_by = "group", keep_na = TRUE, keep_empty = TRUE)
-AreaPlot(data, x = "x", y = "y", group_by = "group", keep_na = TRUE, keep_empty = "level")
-AreaPlot(data, x = "x", y = "y", group_by = "group", keep_na = FALSE, keep_empty = TRUE)
+
+# Keep NA and empty levels
 AreaPlot(data, x = "x", y = "y", group_by = "group",
-    keep_na = list(x = TRUE, group = FALSE), keep_empty = list(x = FALSE, group = TRUE))
+         keep_na = TRUE, keep_empty = TRUE)
+
+# Keep NA, assign empty levels colours but don't show them
 AreaPlot(data, x = "x", y = "y", group_by = "group",
-    keep_na = list(x = FALSE, group = TRUE), keep_empty = list(x = TRUE, group = FALSE))
+         keep_na = TRUE, keep_empty = "level")
+
+# Drop NA, keep empty levels
+AreaPlot(data, x = "x", y = "y", group_by = "group",
+         keep_na = FALSE, keep_empty = TRUE)
+
+# Per-column keep_na / keep_empty via named lists
+AreaPlot(data, x = "x", y = "y", group_by = "group",
+         keep_na = list(x = TRUE, group = FALSE),
+         keep_empty = list(x = FALSE, group = TRUE))
+AreaPlot(data, x = "x", y = "y", group_by = "group",
+         keep_na = list(x = FALSE, group = TRUE),
+         keep_empty = list(x = TRUE, group = FALSE))
 }
 }

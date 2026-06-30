@@ -1,21 +1,92 @@
-#' Atomic area plot
+#' Atomic area plot (internal)
+#'
+#' @description
+#' Core implementation for drawing a single stacked area plot.  This is the
+#' workhorse behind the exported \code{\link{AreaPlot}} function — it takes a
+#' **single** data frame (no \code{split_by} support) and returns a
+#' \code{ggplot} object.  The plot shows how one or more groups' numeric values
+#' (or counts) accumulate across a discrete x-axis, with each group rendered
+#' as a filled area stacked from baseline.
+#'
+#' @section Architecture:
+#' \enumerate{
+#'   \item \strong{Column resolution} — \code{x}, \code{y}, \code{group_by},
+#'         and \code{facet_by} are validated and transformed via
+#'         \code{\link{check_columns}}.  Multi-column inputs for \code{x} and
+#'         \code{group_by} are concatenated into single columns using their
+#'         respective separators (\code{x_sep}, \code{group_by_sep}).
+#'   \item \strong{NA / empty-level handling} — \code{\link{process_keep_na_empty}()}
+#'         applies \code{keep_na} and \code{keep_empty} policies.  Per-column
+#'         \code{keep_empty} settings are extracted for \code{x},
+#'         \code{group_by}, and \code{facet_by} independently.  The facet
+#'         columns must have identical \code{keep_empty} values.
+#'   \item \strong{Count aggregation} — when \code{y = NULL}, the count of
+#'         observations in each unique (\code{x}, \code{group_by},
+#'         \code{facet_by}) combination is computed as a new \code{.count}
+#'         column.  Factor levels are preserved after aggregation.
+#'   \item \strong{Proportion scaling} — when \code{scale_y = TRUE}, the
+#'         y-values are divided by the sum within each (\code{x},
+#'         \code{facet_by}) group, producing a proportion (0–1).  Percent
+#'         labels are used automatically on the y-axis.
+#'   \item \strong{Empty-fill guard} — when \code{group_by = NULL} (no
+#'         grouping), a dummy \code{.fill} factor is created so the single
+#'         area still draws with the first palette colour.  The legend is
+#'         suppressed (\code{legend.position = "none"}).
+#'   \item \strong{Colour mapping} — \code{\link{palette_this}()} assigns
+#'         colours to all \code{group_by} levels, including \code{NA}
+#'         (defaulting to \code{"grey80"}).
+#'   \item \strong{Data completion} — \code{\link[tidyr]{complete}()} pads
+#'         all \code{x} × \code{group_by} (× \code{facet_by}) combinations
+#'         with \code{y = 0}.  This prevents \code{\link[ggplot2]{geom_area}()}
+#'         from interpolating across missing groups, which would otherwise
+#'         cause stacked areas to exceed the correct total.
+#'   \item \strong{x-axis numeric mapping} — the discrete x variable is
+#'         converted to a numeric position column (\code{.x_numeric}) so
+#'         \code{geom_area()} can draw continuous area fills between x
+#'         positions.  \code{NA} levels are placed at position
+#'         \code{n_levels + 1}.
+#'   \item \strong{Plot assembly} — the \code{ggplot} object is built with
+#'         \code{geom_area(position = position_stack(vjust = 0.5))},
+#'         \code{scale_x_discrete()} (breaks from factor levels),
+#'         \code{scale_y_continuous()} (percent labels when scaled), and
+#'         \code{scale_fill_manual()} with per-group colours.  The fill
+#'         scale \code{drop} argument is controlled by
+#'         \code{keep_empty_group}.
+#'   \item \strong{Dimension calculation} — \code{\link{calculate_plot_dimensions}()}
+#'         computes plot height and width from the x-axis category count,
+#'         \code{aspect.ratio}, and legend metrics.  The resulting
+#'         \code{height} / \code{width} attributes are stored on the
+#'         \code{ggplot} object.
+#'   \item \strong{Faceting} — \code{\link{facet_plot}()} wraps the plot
+#'         with \code{facet_wrap} / \code{facet_grid} if \code{facet_by} is
+#'         provided, respecting the \code{keep_empty} setting for facet
+#'         variables.
+#' }
 #'
 #' @inheritParams common_args
-#' @param x A character string of the column name to plot on the x-axis.
-#'  A character/factor column is expected.
-#' @param x_sep A character string to concatenate the columns in `x`, if multiple columns are provided.
-#' @param y A character string of the column name to plot on the y-axis.
-#'  A numeric column is expected.
-#'  If NULL, the count of the x-axis column will be used.
-#' @param scale_y A logical value to scale the y-axis by the total number in each x-axis group.
-#' @param group_by A character vector of column names to fill the area plot by.
-#'  If NULL, the plot will be filled by the first color of the palette.
-#'  If multiple columns are provided, the columns will be concatenated with
-#'  `group_by_sep` and used as the fill column.
-#' @param group_by_sep A character string to separate the columns in `group_by`.
-#' @param group_name A character string to name the legend of fill.
+#' @param x A character string specifying the column name to plot on the
+#'  x-axis.  Must be character or factor.  Multiple columns can be provided;
+#'  they are concatenated with \code{x_sep} as the separator.
+#' @param x_sep A character string used to join multiple \code{x} columns.
+#'  Default \code{"_"}.  Ignored when \code{x} is a single column.
+#' @param y A character string specifying the numeric column for the y-axis.
+#'  When \code{NULL}, the count of observations in each (\code{x},
+#'  \code{group_by}, \code{facet_by}) combination is used.
+#' @param scale_y A logical value.  When \code{TRUE}, y-values are scaled to
+#'  proportions within each (\code{x}, \code{facet_by}) group so that each
+#'  x position stacks to 1.0.  The y-axis labels switch from numeric to
+#'  percent format automatically.
+#' @param group_by A character vector of column names to fill the areas by.
+#'  Each unique combination becomes a separate stacked area.  Multiple
+#'  columns are concatenated with \code{group_by_sep}.  When \code{NULL},
+#'  a single filled area is drawn (no grouping) and the legend is hidden.
+#' @param group_by_sep A character string to separate concatenated
+#'  \code{group_by} columns.  Default \code{"_"}.
+#' @param group_name A character string used as the fill legend title.
+#'  When \code{NULL}, the \code{group_by} column name is used.
 #' @keywords internal
-#' @return A ggplot object
+#' @return A \code{ggplot} object with \code{height} and \code{width}
+#'  attributes (in inches) attached.
 #' @importFrom rlang syms :=
 #' @importFrom dplyr summarise n %>%
 #' @importFrom ggplot2 geom_area scale_x_discrete scale_y_continuous scale_fill_manual
@@ -292,11 +363,70 @@ AreaPlotAtomic <- function(
 
 #' Area plot
 #'
-#' @description A plot showing how one or more groups' numeric values change over the
-#'  progression of a another variable
+#' @description
+#' Draws a stacked area plot showing how one or more groups' numeric values
+#' (or counts) accumulate across the progression of a discrete x-axis
+#' variable.  Each group is rendered as a filled area stacked from baseline,
+#' making it easy to compare both individual magnitudes and the total across
+#' categories.
+#'
+#' The function supports \strong{count aggregation} (omit \code{y} to plot
+#' observation counts per x-category), \strong{proportion scaling}
+#' (\code{scale_y = TRUE} normalises each x position to 100\%), per-group
+#' colour control, faceting, and splitting into separate sub-plots via
+#' \code{split_by}.
+#'
+#' @section split_by workflow:
+#' When \code{split_by} is provided:
+#' \enumerate{
+#'   \item \code{\link{check_keep_na}()} and \code{\link{check_keep_empty}()}
+#'         normalise the \code{keep_na} / \code{keep_empty} arguments for all
+#'         columns (\code{x}, \code{split_by}, \code{group_by}, \code{facet_by}).
+#'   \item The \code{split_by} column is validated and its NA / empty levels
+#'         are processed via \code{\link{process_keep_na_empty}()}.  It is
+#'         then removed from the per-column \code{keep_na} / \code{keep_empty}
+#'         lists.
+#'   \item The data frame is split by \code{split_by} (preserving level
+#'         order).  If \code{split_by} is \code{NULL}, the data is wrapped in
+#'         a single-element list with name \code{"..."}.
+#'   \item Per-split \code{palette}, \code{palcolor},
+#'         \code{legend.position}, and \code{legend.direction} are resolved
+#'         via \code{\link{check_palette}()}, \code{\link{check_palcolor}()},
+#'         and \code{\link{check_legend}()}.
+#'   \item \code{\link{AreaPlotAtomic}()} is called for each split.  If
+#'         \code{title} is a function, it receives the split level name and
+#'         can generate dynamic titles.
+#'   \item Results are combined via \code{\link{combine_plots}()} (when
+#'         \code{combine = TRUE}) or returned as a named list.
+#' }
+#'
 #' @inheritParams common_args
 #' @inheritParams AreaPlotAtomic
-#' @return A ggplot object or wrap_plots object or a list of ggplot objects
+#' @param split_by The column(s) to split the data by and produce separate
+#'  sub-plots.  Multiple columns are concatenated with \code{split_by_sep}.
+#' @param split_by_sep A character string to separate concatenated
+#'  \code{split_by} columns.  Default \code{"_"}.
+#' @param seed A numeric seed for reproducibility.  Passed to
+#'  \code{\link{validate_common_args}()}.
+#' @param combine Logical; when \code{TRUE} (default), returns a combined
+#'  \code{patchwork} object.  When \code{FALSE}, returns a named list of
+#'  individual \code{ggplot} objects.
+#' @param ncol,nrow Integer number of columns / rows for the combined layout
+#'  (passed to \code{\link[patchwork]{wrap_plots}}).
+#' @param byrow Logical; fill the combined layout by row.  Default \code{TRUE}
+#'  (passed to \code{\link[patchwork]{wrap_plots}}).
+#' @param axes A character string specifying how axes should be treated across
+#'  the combined layout (passed to \code{\link[patchwork]{wrap_plots}}).
+#' @param axis_titles A character string specifying how axis titles should be
+#'  treated across the combined layout.  Defaults to \code{axes}.
+#' @param guides A character string specifying how guides (legends) should be
+#'  collected across panels.  Default \code{"collect"} (passed to
+#'  \code{\link{combine_plots}()}).
+#' @param design A custom layout design for the combined plot (passed to
+#'  \code{\link{combine_plots}()}).
+#' @return A \code{ggplot} object, a \code{patchwork} object, or a named list
+#'  of \code{ggplot} objects (when \code{combine = FALSE}), each with
+#'  \code{height} and \code{width} attributes in inches.
 #' @importFrom ggplot2 waiver
 #' @export
 #' @examples
@@ -308,32 +438,61 @@ AreaPlotAtomic <- function(
 #'     group = rep(c("F1", "F2"), each = 4),
 #'     split = rep(c("X", "Y"), 4)
 #' )
+#' # Basic stacked area
 #' AreaPlot(data, x = "x", y = "y", group_by = "group")
+#'
+#' # Scaled to proportions
 #' AreaPlot(data, x = "x", y = "y", group_by = "group",
 #'          scale_y = TRUE)
+#'
+#' # Split into sub-plots (no group_by — single-colour fill)
 #' AreaPlot(data, x = "x", y = "y", split_by = "group")
-#' AreaPlot(data, x = "x", y = "y", split_by = "group", palette = c(F1 = "Blues", F2 = "Reds"))
-#' AreaPlot(data, x = "x", y = "y", group_by = "group", split_by = "split",
-#'     legend.direction = c(X = "horizontal", Y = "vertical"),
-#'     legend.position = c(X = "top", Y = "right"))
+#'
+#' # Per-split palettes
+#' AreaPlot(data, x = "x", y = "y", split_by = "group",
+#'          palette = c(F1 = "Blues", F2 = "Reds"))
+#'
+#' # Per-split legend positioning
+#' AreaPlot(data, x = "x", y = "y", group_by = "group",
+#'          split_by = "split",
+#'          legend.direction = c(X = "horizontal", Y = "vertical"),
+#'          legend.position = c(X = "top", Y = "right"))
 #'
 #' # How keep_na and keep_empty work
 #' data <- data.frame(
-#'     x = factor(rep(c("A", NA, "C", "D"), 3), levels = c("A", "B", "C", "D")),
+#'     x = factor(rep(c("A", NA, "C", "D"), 3),
+#'                levels = c("A", "B", "C", "D")),
 #'     y = c(1, 3, 6, 4, 2, 5, 7, 8, 4, 2, 3, 5),
-#'     group = factor(sample(rep(c("F1", NA, "F3"), each = 4)), levels = c("F1", "F2", "F3")),
-#'     split = factor(sample(rep(c("X", "Y", NA), 4)), levels = c("X", "Y", "Z")),
-#'     facet = factor(sample(rep(c("M", "N", NA), 4)), levels = c("M", "N", "O"))
+#'     group = factor(sample(rep(c("F1", NA, "F3"), each = 4)),
+#'                    levels = c("F1", "F2", "F3")),
+#'     split = factor(sample(rep(c("X", "Y", NA), 4)),
+#'                    levels = c("X", "Y", "Z")),
+#'     facet = factor(sample(rep(c("M", "N", NA), 4)),
+#'                    levels = c("M", "N", "O"))
 #' )
 #'
+#' # Default: NA and empty levels dropped
 #' AreaPlot(data, x = "x", y = "y", group_by = "group")
-#' AreaPlot(data, x = "x", y = "y", group_by = "group", keep_na = TRUE, keep_empty = TRUE)
-#' AreaPlot(data, x = "x", y = "y", group_by = "group", keep_na = TRUE, keep_empty = "level")
-#' AreaPlot(data, x = "x", y = "y", group_by = "group", keep_na = FALSE, keep_empty = TRUE)
+#'
+#' # Keep NA and empty levels
 #' AreaPlot(data, x = "x", y = "y", group_by = "group",
-#'     keep_na = list(x = TRUE, group = FALSE), keep_empty = list(x = FALSE, group = TRUE))
+#'          keep_na = TRUE, keep_empty = TRUE)
+#'
+#' # Keep NA, assign empty levels colours but don't show them
 #' AreaPlot(data, x = "x", y = "y", group_by = "group",
-#'     keep_na = list(x = FALSE, group = TRUE), keep_empty = list(x = TRUE, group = FALSE))
+#'          keep_na = TRUE, keep_empty = "level")
+#'
+#' # Drop NA, keep empty levels
+#' AreaPlot(data, x = "x", y = "y", group_by = "group",
+#'          keep_na = FALSE, keep_empty = TRUE)
+#'
+#' # Per-column keep_na / keep_empty via named lists
+#' AreaPlot(data, x = "x", y = "y", group_by = "group",
+#'          keep_na = list(x = TRUE, group = FALSE),
+#'          keep_empty = list(x = FALSE, group = TRUE))
+#' AreaPlot(data, x = "x", y = "y", group_by = "group",
+#'          keep_na = list(x = FALSE, group = TRUE),
+#'          keep_empty = list(x = TRUE, group = FALSE))
 #' }
 AreaPlot <- function(
     data,
