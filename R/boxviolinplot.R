@@ -1,119 +1,236 @@
-#' Atomic Box/Violin plot
+#' Atomic Box / Violin / Bar / Beeswarm plot (internal)
+#'
+#' @description
+#' Core implementation for drawing box plots, violin plots, bar plots (mean
+#' ± error bars), or beeswarm plots.  This is the workhorse behind
+#' \code{\link{BoxPlot}}, \code{\link{ViolinPlot}}, and
+#' \code{\link{BeeswarmPlot}} — it takes a **single** data frame (no
+#' \code{split_by} support) and returns a \code{ggplot} object.
+#'
+#' The \code{base} parameter selects the primary geometry:
+#' \itemize{
+#'   \item \code{"box"} — \code{geom_boxplot()}
+#'   \item \code{"violin"} — \code{geom_violin()}
+#'   \item \code{"bar"} — \code{stat_summary(fun = mean, geom = "col")}
+#'         with optional error bars (SEM, SD, or CI).
+#'   \item \code{"none"} — no primary geometry (used by
+#'         \code{\link{BeeswarmPlot}} to draw beeswarm points alone).
+#' }
+#'
+#' @section Architecture:
+#' \enumerate{
+#'   \item \strong{Wide-to-long conversion} — when \code{in_form = "wide"},
+#'         data is pivoted via \code{tidyr::pivot_longer()}.  The
+#'         \code{keep_na} / \code{keep_empty} lists are filtered to the new
+#'         column names.
+#'   \item \strong{Column resolution} — \code{x}, \code{y}, \code{group_by},
+#'         \code{facet_by}, and \code{paired_by} are validated via
+#'         \code{\link{check_columns}}.
+#'   \item \strong{NA / empty-level handling} — per-column
+#'         \code{keep_empty} settings are extracted for \code{x},
+#'         \code{group_by}, and \code{facet_by} independently.
+#'   \item \strong{Beeswarm validation} — if \code{add_beeswarm = TRUE},
+#'         the \code{ggbeeswarm} package is required.  Beeswarm is disabled
+#'         (with a warning) when \code{paired_by} is provided.
+#'   \item \strong{Paired data validation} — structural checks ensure each
+#'         (\code{x}, \code{paired_by}) combination has exactly 2
+#'         observations (one per group when \code{group_by} is present).
+#'         Paired observations force \code{add_point = TRUE}.
+#'   \item \strong{Summary statistics} — \code{.y_mean} and
+#'         \code{.y_median} are pre-computed per (\code{x}, \code{group_by},
+#'         \code{facet_by}) for use in trend lines and fill modes.
+#'   \item \strong{y-axis limits} — \code{y_max} / \code{y_min} accept
+#'         numeric values or quantile notation (\code{"q95"},
+#'         \code{"q5"}).  For bar plots, the limit is extended upward by
+#'         the error bar extent.
+#'   \item \strong{Highlight} — \code{highlight} can be \code{TRUE} (all
+#'         points), a numeric index vector, a logical expression string, or
+#'         a character vector of row names.
+#'   \item \strong{sort_x} — an R expression string (e.g.,
+#'         \code{"mean(y)"}) evaluated per x-level to reorder categories.
+#'   \item \strong{Flip transformation} — when \code{flip = TRUE}, factor
+#'         levels are reversed and \code{aspect.ratio} is inverted.
+#'   \item \strong{Base geometry} — the primary geom is added:
+#'         \code{geom_boxplot()}, \code{geom_violin()}, or
+#'         \code{stat_summary(fun = mean, geom = "col")}.  Error bars
+#'         (SEM / SD / CI) are layered on bar plots via a custom
+#'         \code{stat_summary(fun.data = ...)}.
+#'   \item \strong{Fill mode} — \code{fill_mode} controls colour mapping:
+#'         \itemize{
+#'           \item \code{"dodge"} — fill by \code{group_by} (discrete).
+#'           \item \code{"x"} — fill by x-axis categories (discrete).
+#'           \item \code{"mean"} / \code{"median"} — fill by pre-computed
+#'                 mean/median (continuous gradient).
+#'         }
+#'   \item \strong{Box overlay} — when \code{add_box = TRUE} on a non-box
+#'         base, a box plot is overlaid via \code{ggnewscale::new_scale_fill()}
+#'         with a white fill/black outline.
+#'   \item \strong{Statistical comparisons} — two pathways:
+#'         \itemize{
+#'           \item \strong{Pairwise} (\code{comparisons}) — uses
+#'                 \code{ggpubr::geom_pwc()} with automatic or explicit
+#'                 comparison pairs.  Data is preprocessed to avoid test
+#'                 failures from zero-variance or all-NA groups.
+#'           \item \strong{Multiple-group} (\code{multiplegroup_comparisons})
+#'                 — uses \code{ggpubr::stat_compare_means()} for omnibus
+#'                 tests (e.g., Kruskal-Wallis).
+#'         }
+#'         After comparison layers are added, \code{y_max_use} is expanded to
+#'         accommodate significance brackets.
+#'   \item \strong{Points} — jittered points (\code{geom_point()} with
+#'         \code{position_jitterdodge}) or beeswarm points
+#'         (\code{ggbeeswarm::geom_beeswarm()}).  Paired observations
+#'         add connecting lines (\code{geom_line()}) between matched
+#'         subjects.
+#'   \item \strong{Trend lines} — \code{stat_summary(fun = first)} draws
+#'         lines connecting group medians.  When \code{trend_color} is
+#'         \code{NULL} and \code{group_by} is present, lines are coloured
+#'         per group.
+#'   \item \strong{Reference lines} — \code{geom_hline()} at the specified
+#'         y-intercept.
+#'   \item \strong{Stat summary points} — a custom \code{stat_summary()}
+#'         point layer displaying a user-specified summary statistic
+#'         (e.g., mean) with a shape legend entry.
+#'   \item \strong{Stack layout} — when \code{stack = TRUE}, facets are
+#'         arranged with shared strip labels and negative panel spacing for
+#'         a compact stacked appearance.
+#'   \item \strong{Dimension calculation} — \code{calculate_plot_dimensions()}
+#'         accounts for the number of x-levels × dodge groups, flip state,
+#'         and stack layout adjustments.  Minimum dimensions are enforced
+#'         from label character widths.
+#'   \item \strong{Faceting} — \code{\link{facet_plot}()} wraps the result
+#'         with the appropriate strip position based on flip/stack state.
+#' }
 #'
 #' @inheritParams common_args
-#' @param x A character string of the column name to plot on the x-axis.
-#'  A character/factor column is expected. If multiple columns are provided, the columns will be concatenated with `x_sep`.
-#' @param x_sep A character string to concatenate the columns in `x`, if multiple columns are provided.
-#'  When `in_form` is "wide", `x` columns will not be concatenated.
-#' @param y A character string of the column name to plot on the y-axis. A numeric column is expected.
-#'  When `in_form` is "wide", `y` is not required. The values under `x` columns will be used as y-values.
-#' @param base A character string to specify the base plot type. Either "box", "violin", "bar" or "none" (used by BeeswarmPlot).
-#'  When "bar", bars showing the mean values are plotted. This is mutually exclusive with `add_box`.
-#' @param add_errorbar A character string to specify the type of error bars to add to bar plots.
-#'  Only available when `base = "bar"`. Case insensitive. Available options are:
-#'  * "SEM" (default): Standard error of the mean.
-#'  * "SD": Standard deviation.
-#'  * "CI" or "CIXX" (e.g., "CI95"): Confidence interval. "CI" defaults to "CI95" (95\% CI).
-#'  * "none": No error bars.
-#' @param errorbar_color A character string to specify the color of the error bars. Default is "black".
-#' @param errorbar_width A numeric value to specify the width of the error bar caps. Default is 0.5.
-#' @param errorbar_linewidth A numeric value to specify the line width of the error bars. Default is 0.75.
-#' @param in_form A character string to specify the input data type. Either "long" or "wide".
-#' @param sort_x An expression (in character string) to order x-axis.
-#' For example, "mean(y)" will order the x-axis by the mean of y. Default is NULL, which means keeping the original order of x.
-#' Note that when keep_empty is TRUE for x, the empty x levels will always be placed at the end of the x-axis.
-#' @param flip A logical value to flip the plot.
-#' @param group_by A character string of the column name to dodge the boxes/violins
-#' @param group_by_sep A character string to concatenate the columns in `group_by`, if multiple columns are provided.
-#' @param group_name A character string to name the legend of dodge.
-#' @param paired_by A character string of the column name identifying paired observations for paired tests.
-#' @param fill_mode A character string to specify the fill mode. Either "dodge", "x", "mean", "median".
-#' @param add_point A logical value to add (jitter) points to the plot.
-#' @param pt_color A character string to specify the color of the points.
-#' @param pt_size A numeric value to specify the size of the points.
-#' @param pt_alpha A numeric value to specify the transparency of the points.
-#' @param jitter_width A numeric value to specify the width of the jitter.
-#' Defaults to 0.5, but when paired_by is provided, it will be set to 0.
-#' @param jitter_height A numeric value to specify the height of the jitter.
-#' @param add_beeswarm A logical value to add beeswarm points to the plot instead of jittered points.
-#'  When TRUE, points are positioned using the beeswarm algorithm to avoid overlap while showing density.
-#'  Requires the ggbeeswarm package to be installed.
-#' @param beeswarm_method A character string to specify the beeswarm method. Either "swarm", "compactswarm", "hex",
-#'  "square", or "center". Default is "swarm". See ggbeeswarm::geom_beeswarm for details.
-#' @param beeswarm_cex A numeric value to specify the scaling for adjusting point spacing in beeswarm.
-#'  Default is 1. Larger values space out points more.
-#' @param beeswarm_priority A character string to specify point layout priority. Either "ascending", "descending",
-#'  "density", or "random". Default is "ascending".
-#' @param beeswarm_dodge A numeric value to specify the dodge width for beeswarm points when group_by is provided.
-#'  Default is 0.9
-#' @param position_dodge_preserve Should dodging preserve the "total" width of all elements at a position, or the width of a "single" element?
-#' @param stack A logical value whether to stack the facetted plot by 'facet_by'.
-#' @param y_max A numeric value or a character string to specify the maximum value of the y-axis.
-#' You can also use quantile notation like "q95" to specify the 95th percentile.
-#' When comparisons are set and a numeric y_max is provided, it will be used to set the y-axis limit, including
-#' the significance labels.
-#' @param y_min A numeric value or a character string to specify the minimum value of the y-axis.
-#' You can also use quantile notation like "q5" to specify the 5th percentile.
-#' @param y_trans A character string to specify the transformation of the y-axis.
-#' @param y_nbreaks A numeric value to specify the number of breaks in the y-axis.
-#' @param step_increase A numeric value to specify the step increase in fraction of total height for every
-#' additional comparison of the significance labels.
-#' @param symnum_args A list of arguments to pass to the function `symnum` for symbolic number coding of p-values.
-#' For example, `symnum_args <- list(cutpoints = c(0, 0.0001, 0.001, 0.01, 0.05, Inf), symbols = c("****", "***", "**", "*", "ns"))`.
-#' In other words, we use the following convention for symbols indicating statistical significance:
-#' * `ns`: p > 0.05
-#' * `*`: p <= 0.05
-#' * `**`: p <= 0.01
-#' * `***`: p <= 0.001
-#' * `****`: p <= 0.0001
-#' @param add_box A logical value to add box plot to the plot.
-#' @param box_color A character string to specify the color of the box plot.
-#' @param box_width A numeric value to specify the width of the box plot.
-#' @param box_ptsize A numeric value to specify the size of the box plot points in the middle.
-#' @param add_trend A logical value to add trend line to the plot.
-#' @param trend_color A character string to specify the color of the trend line.
-#' This won't work when `group_by` is specified, the trend line will be colored by the `group_by` variable.#'
-#' @param trend_linewidth A numeric value to specify the width of the trend line.
-#' @param trend_ptsize A numeric value to specify the size of the trend line points.
-#' @param add_stat A character string to add statistical test to the plot.
-#' @param stat_name A character string to specify the name of the stat legend.
-#' @param stat_color A character string to specify the color of the statistical test.
-#' @param stat_size A numeric value to specify the size of the statistical test.
-#' @param stat_stroke A numeric value to specify the stroke of the statistical test.
-#' @param stat_shape A numeric value to specify the shape of the statistical test.
-#' @param add_bg A logical value to add background to the plot.
-#' @param bg_palette A character string to specify the palette of the background.
-#' @param bg_palcolor A character vector to specify the colors of the background.
-#' @param bg_alpha A numeric value to specify the transparency of the background.
-#' @param add_line A character string to add a line to the plot.
-#' @param line_color A character string to specify the color of the line.
-#' @param line_width A numeric value to specify the size of the line.
-#' @param line_type A numeric value to specify the type of the line.
-#' @param highlight A vector of character strings to highlight the points.
-#'   It should be a subset of the row names of the data.
-#'   If TRUE, it will highlight all points.
-#' @param highlight_color A character string to specify the color of the highlighted points.
-#' @param highlight_size A numeric value to specify the size of the highlighted points.
-#' @param highlight_alpha A numeric value to specify the transparency of the highlighted points.
-#' @param comparisons A logical value or a list of vectors to perform pairwise comparisons.
-#' If `TRUE`, it will perform pairwise comparisons for all pairs.
-#' @param ref_group A character string to specify the reference group for comparisons.
-#' @param pairwise_method A character string to specify the pairwise comparison method.
-#' @param multiplegroup_comparisons A logical value to perform multiple group comparisons.
-#' @param multiple_method A character string to specify the multiple group comparison method.
-#' @param sig_label A character string to specify the label of the significance test.
-#' For multiple group comparisons (`multiplegroup_comparisons = TRUE`), it must be either "p.format" or "p.signif".
-#' For pairwise comparisons, it can be:
-#' * the column containing the label (e.g.: label = "p" or label = "p.adj"), where p is the p-value.
-#'   Other possible values are "p.signif", "p.adj.signif", "p.format", "p.adj.format".
-#' * an expression that can be formatted by the glue() package.
-#'   For example, when specifying `label = "Wilcoxon, p = {p}"`, the expression `{p}` will be replaced by its value.
-#' * a combination of plotmath expressions and glue expressions.
-#'   You may want some of the statistical parameter in italic; for example: `label = "Wilcoxon, p= {p}"`
-#'   See https://rpkgs.datanovia.com/ggpubr/reference/geom_pwc.html for more details.
-#' @param sig_labelsize A numeric value to specify the size of the significance test label.
-#' @param hide_ns A logical value to hide the non-significant comparisons.
-#' @return A ggplot object
+#' @param base A character string specifying the primary plot type:
+#'  \code{"box"} (box plot), \code{"violin"} (violin plot), \code{"bar"}
+#'  (mean bars with optional error bars), or \code{"none"} (no primary
+#'  geometry, used by beeswarm plots).
+#' @param x A character string of column name(s) for the x-axis.
+#'  Character/factor columns are expected.  Multiple columns are
+#'  concatenated with \code{x_sep}.
+#' @param x_sep A character string to join multiple \code{x} columns.
+#'  Default \code{"_"}.
+#' @param y A character string of the numeric column for the y-axis.
+#'  Not required when \code{in_form = "wide"} (data values are taken from
+#'  the \code{x} columns).
+#' @param in_form A character string: \code{"long"} (default) or
+#'  \code{"wide"}.  In wide form, \code{x} columns are pivoted to long
+#'  format.
+#' @param sort_x An R expression string (e.g., \code{"mean(y)"}) to order
+#'  x-axis categories.  Default \code{NULL} keeps the original order.
+#'  When \code{keep_empty_x} is \code{TRUE}, empty levels are placed last.
+#' @param flip Logical; if \code{TRUE}, swap the x and y axes.
+#' @param group_by A character vector of column name(s) to dodge the
+#'  boxes/violins by.  Multiple columns are concatenated with
+#'  \code{group_by_sep}.
+#' @param group_by_sep A character string to separate concatenated
+#'  \code{group_by} columns.  Default \code{"_"}.
+#' @param group_name A character string for the dodge legend title.
+#' @param paired_by A character string naming a column that identifies
+#'  paired observations.  Forces \code{add_point = TRUE} and connects
+#'  paired observations with lines.
+#' @param fill_mode A character string controlling fill colour mapping:
+#'  \code{"dodge"} (fill by \code{group_by}, discrete),
+#'  \code{"x"} (fill by x-axis categories, discrete),
+#'  \code{"mean"} or \code{"median"} (fill by pre-computed statistic,
+#'  continuous gradient).
+#' @param position_dodge_preserve Passed to
+#'  \code{\link[ggplot2]{position_dodge}()}: \code{"total"} preserves the
+#'  overall group width; \code{"single"} preserves individual element width.
+#' @param add_point Logical; add jittered or beeswarm points to the plot.
+#' @param pt_color Colour of the points.  When \code{add_beeswarm = TRUE}
+#'  and \code{pt_color} is \code{NULL}, points are coloured by the fill
+#'  variable.
+#' @param pt_size Numeric size of the points.  Default computed from
+#'  data size: \code{min(3000 / nrow(data), 0.6)}.
+#' @param pt_alpha Numeric transparency of the points.
+#' @param jitter_width Numeric width of the jitter.  Defaults to
+#'  \code{0.5}, but set to \code{0} when \code{paired_by} is provided.
+#' @param jitter_height Numeric height of the jitter.  Default \code{0}.
+#' @param add_beeswarm Logical; use \code{ggbeeswarm::geom_beeswarm()} for
+#'  non-overlapping point layout instead of jitter.  Requires the
+#'  \code{ggbeeswarm} package.
+#' @param beeswarm_method Beeswarm layout method: \code{"swarm"},
+#'  \code{"compactswarm"}, \code{"hex"}, \code{"square"}, or
+#'  \code{"center"}.
+#' @param beeswarm_cex Numeric scaling for point spacing.  Larger values
+#'  spread points more.
+#' @param beeswarm_priority Point layout priority: \code{"ascending"},
+#'  \code{"descending"}, \code{"density"}, or \code{"random"}.
+#' @param beeswarm_dodge Numeric dodge width for beeswarm points when
+#'  \code{group_by} is provided.  Default \code{0.9}.
+#' @param add_box Logical; overlay a box plot on the primary geometry.
+#'  Mutually exclusive with \code{base = "box"} and \code{base = "bar"}.
+#' @param box_color Colour of the overlaid box plot outline and fill.
+#' @param box_width Width of the overlaid box plot.
+#' @param box_ptsize Size of the median point in the overlaid box plot.
+#' @param add_errorbar Type of error bars for bar plots (\code{base = "bar"}):
+#'  \code{"SEM"} (standard error of the mean, default), \code{"SD"}
+#'  (standard deviation), \code{"CI"} or \code{"CI95"} (95\% confidence
+#'  interval), or \code{"none"}.  Silently ignored for non-bar bases.
+#' @param errorbar_color Colour of the error bar lines and caps.
+#' @param errorbar_width Width of the error bar caps.
+#' @param errorbar_linewidth Line width of the error bars.
+#' @param add_trend Logical; add trend lines connecting group medians.
+#' @param trend_color Colour of the trend line.  When \code{NULL} and
+#'  \code{group_by} is present, lines are coloured per group.
+#' @param trend_linewidth Width of the trend line.
+#' @param trend_ptsize Size of the trend line points.
+#' @param add_stat A summary function (e.g., \code{mean}, \code{median}) to
+#'  display as a point with a shape legend entry.
+#' @param stat_name Legend title for the stat summary shape.
+#' @param stat_color Colour of the stat summary point.
+#' @param stat_size Size of the stat summary point.
+#' @param stat_stroke Stroke width of the stat summary point.
+#' @param stat_shape Shape (an integer) for the stat summary point.  Uses
+#'  \code{scale_shape_identity()} so the shape is rendered directly.
+#' @param add_bg Logical; add alternating background stripes.
+#' @param bg_palette Palette for the background stripes.
+#' @param bg_palcolor Custom colours for the background stripes.
+#' @param bg_alpha Alpha transparency for the background stripes.
+#' @param add_line A numeric y-intercept for a horizontal reference line.
+#' @param line_color Colour of the reference line.
+#' @param line_width Width of the reference line.
+#' @param line_type Linetype of the reference line.
+#' @param highlight A specification of points to highlight: \code{TRUE}
+#'  (all), a numeric index vector, a logical expression string, or a
+#'  character vector of row names.
+#' @param highlight_color Colour of highlighted points.
+#' @param highlight_size Size of highlighted points.
+#' @param highlight_alpha Alpha of highlighted points.
+#' @param comparisons A logical value (\code{TRUE} for all pairs) or a list
+#'  of two-element vectors specifying pairwise comparisons.  Only available
+#'  when \code{fill_mode = "dodge"} (i.e., \code{group_by} is present).
+#' @param ref_group A character string specifying the reference group for
+#'  comparisons.
+#' @param pairwise_method Method for pairwise tests.  Default
+#'  \code{"wilcox.test"}.
+#' @param multiplegroup_comparisons Logical; perform an omnibus test
+#'  (e.g., Kruskal-Wallis) across all groups.
+#' @param multiple_method Method for the omnibus test.  Default
+#'  \code{"kruskal.test"}.
+#' @param sig_label Label format for significance annotations.  For
+#'  pairwise comparisons: \code{"p.format"}, \code{"p.signif"}, or a
+#'  \pkg{glue} template (e.g., \code{"p = {p}"}).  For multiple-group
+#'  tests: \code{"p.format"} or \code{"p.signif"}.
+#' @param sig_labelsize Size of the significance label text.
+#' @param hide_ns Logical; hide non-significant comparison labels.
+#' @param symnum_args A list of arguments passed to
+#'  \code{\link[stats]{symnum}} for symbolic p-value coding.
+#' @param step_increase Fractional step increase for stacking significance
+#'  brackets when multiple comparisons exist.
+#' @param stack Logical; stack facetted panels in a compact layout with
+#'  shared strip labels.
+#' @param y_max,y_min Numeric y-axis limits, or quantile notation strings
+#'  (e.g., \code{"q95"} for the 95th percentile, \code{"q5"} for the
+#'  5th percentile).
+#' @param y_trans A character string for y-axis transformation
+#'  (e.g., \code{"log10"}).
+#' @param y_nbreaks Integer number of y-axis breaks.
+#' @return A \code{ggplot} object, possibly faceted, with \code{height}
+#'  and \code{width} attributes (in inches) attached.
 #' @keywords internal
 #' @importFrom utils combn
 #' @importFrom stats median quantile sd qt
@@ -1651,12 +1768,51 @@ BoxViolinPlotAtomic <- function(
     )
 }
 
-#' Box/Violin plot
+#' Box / Violin / Bar / Beeswarm plot (internal)
+#'
+#' @description
+#' Internal wrapper that handles \code{split_by} processing and dispatches
+#' to \code{\link{BoxViolinPlotAtomic}} for each split.  This is the
+#' intermediate layer between the three public APIs
+#' (\code{\link{BoxPlot}}, \code{\link{ViolinPlot}}, and
+#' \code{\link{BeeswarmPlot}}) and the core implementation.
+#'
+#' @section split_by workflow:
+#' When \code{split_by} is provided:
+#' \enumerate{
+#'   \item \code{\link{check_keep_na}()} and \code{\link{check_keep_empty}()}
+#'         normalise the \code{keep_na} / \code{keep_empty} arguments.
+#'   \item The \code{split_by} column is validated and its NA / empty levels
+#'         are processed.  It is then removed from the per-column lists.
+#'   \item The data is split by \code{split_by} (preserving level order).
+#'         If \code{split_by} is \code{NULL}, the data is wrapped in a
+#'         single-element list with name \code{"..."}.
+#'   \item Per-split \code{palette}, \code{palcolor},
+#'         \code{legend.position}, and \code{legend.direction} are resolved.
+#'   \item \code{\link{BoxViolinPlotAtomic}()} is called for each split.
+#'         When \code{title} is a function, it receives the split level name
+#'         for dynamic titles.
+#'   \item Results are combined via \code{\link{combine_plots}()}.
+#' }
 #'
 #' @rdname BoxViolinPlot-internal
 #' @inheritParams common_args
 #' @inheritParams BoxViolinPlotAtomic
-#' @return A combined ggplot object or wrap_plots object or a list of ggplot objects
+#' @param split_by The column(s) to split the data by for separate sub-plots.
+#' @param split_by_sep Separator for concatenated \code{split_by} columns.
+#' @param seed A numeric seed for reproducibility.
+#' @param combine Logical; when \code{TRUE} (default), returns a combined
+#'  \code{patchwork} object.  When \code{FALSE}, returns a named list of
+#'  \code{ggplot} objects.
+#' @param ncol,nrow Integer number of columns / rows for the combined layout.
+#' @param byrow Logical; fill the combined layout by row (default \code{TRUE}).
+#' @param axes,axis_titles Character strings for axis handling in the
+#'  combined layout.
+#' @param guides Character string for legend collection across panels.
+#' @param design A custom layout design for the combined plot.
+#' @return A \code{ggplot} object, a \code{patchwork} object, or a named list
+#'  of \code{ggplot} objects (when \code{combine = FALSE}), each with
+#'  \code{height} and \code{width} attributes in inches.
 #' @keywords internal
 #' @importFrom rlang %||%
 BoxViolinPlot <- function(
@@ -1936,18 +2092,42 @@ BoxViolinPlot <- function(
     )
 }
 
-#' Box / Violin / Bar Plot
+#' Box / Bar plot
 #'
 #' @description
-#'  Box plot, bar plot (mean values), or violin plot with optional jitter points, trend line, statistical test, background, line, and highlight.
-#'  When `base = "bar"`, bars show the mean values with optional error bars (SEM, SD, or CI).
+#' Draws box plots or bar plots (mean ± error bars) with extensive
+#' customisation options.  Supports jittered or beeswarm points, paired
+#' observations with connecting lines, trend lines, statistical test
+#' annotations (pairwise or omnibus), background stripes, reference lines,
+#' point highlighting, and custom summary statistic overlays.
+#'
+#' This is the public API — it delegates to \code{\link{BoxViolinPlot}}
+#' with \code{base = "box"} or \code{base = "bar"}, which in turn dispatches
+#' to \code{\link{BoxViolinPlotAtomic}} for each \code{split_by} level.
+#'
+#' @section Bar plots (\code{base = "bar"}):
+#' When \code{base = "bar"}, bars display group means with optional error
+#' bars.  \code{add_errorbar} controls the error bar type:
+#' \itemize{
+#'   \item \code{"SEM"} (default) — standard error of the mean.
+#'   \item \code{"SD"} — standard deviation.
+#'   \item \code{"CI"} or \code{"CI95"} — 95\% confidence interval.
+#'   \item \code{"none"} — no error bars.
+#' }
+#' Error bars are computed via a custom \code{stat_summary(fun.data = ...)}
+#' that handles per-group mean, SD, and sample size.
+#'
 #' @rdname boxviolinplot
-#' @return The Box / Violin plot(s).
-#'  When `split_by` is not provided, it returns a ggplot object.
-#'  When `split_by` is provided, it returns a object of plots wrapped by `patchwork::wrap_plots` if `combine = TRUE`;
-#'  otherwise, it returns a list of ggplot objects.
-#' @export
 #' @inheritParams BoxViolinPlot
+#' @param base A character string: \code{"box"} (default) or \code{"bar"}.
+#'  Bar plots show group means with optional error bars.
+#' @param add_errorbar Type of error bars for bar plots.  See Details.
+#' @param errorbar_color,errorbar_width,errorbar_linewidth Error bar
+#'  appearance controls.
+#' @return A \code{ggplot} object, a \code{patchwork} object, or a named list
+#'  of \code{ggplot} objects (when \code{combine = FALSE}), each with
+#'  \code{height} and \code{width} attributes in inches.
+#' @export
 #' @examples
 #' \donttest{
 #' set.seed(8525)
@@ -1958,21 +2138,26 @@ BoxViolinPlot <- function(
 #'     group2 = sample(c("h1", "h2", "h3", "h4"), 320, replace = TRUE)
 #' )
 #'
+#' # Basic box plot
 #' BoxPlot(data, x = "x", y = "y")
+#'
+#' # With beeswarm points
 #' BoxPlot(data, x = "x", y = "y", add_beeswarm = TRUE, pt_color = "grey30")
+#'
+#' # Stacked + flipped + faceted
 #' BoxPlot(data,
 #'     x = "x", y = "y",
 #'     stack = TRUE, flip = TRUE, facet_by = "group1",
-#'     add_bg = TRUE, bg_palette = "Paired"
-#' )
+#'     add_bg = TRUE, bg_palette = "Paired")
+#'
+#' # Stacked + flipped + split_by with per-split colours
 #' BoxPlot(data,
 #'     x = "x", y = "y",
 #'     stack = TRUE, flip = TRUE, split_by = "group1",
 #'     add_bg = TRUE, bg_palette = "Paired",
-#'     palcolor = list(g1 = c("red", "blue"), g2 = c("blue", "red"))
-#' )
+#'     palcolor = list(g1 = c("red", "blue"), g2 = c("blue", "red")))
 #'
-#' # sort_x
+#' # sort_x — order by mean(y)
 #' data <- data.frame(
 #'   x = factor(rep(LETTERS[1:5], each = 40),
 #'      levels = c(LETTERS[1:2], "unused", LETTERS[3:5])),
@@ -1982,77 +2167,57 @@ BoxViolinPlot <- function(
 #' BoxPlot(data, x = "x", y = "y", sort_x = "mean(y)", keep_empty = TRUE)
 #' BoxPlot(data, x = "x", y = "y", sort_x = "mean(-y)", keep_empty = TRUE)
 #'
-#' # wide form data
-#' data_wide <- data.frame(
-#'     A = rnorm(100),
-#'     B = rnorm(100),
-#'     C = rnorm(100)
-#' )
+#' # Wide-form data
+#' data_wide <- data.frame(A = rnorm(100), B = rnorm(100), C = rnorm(100))
 #' BoxPlot(data_wide, x = c("A", "B", "C"), in_form = "wide")
 #'
+#' # Paired observations with connecting lines and paired test
 #' paired_data <- data.frame(
 #'     subject = rep(paste0("s", 1:10), each = 2),
 #'     visit = rep(c("pre", "post"), times = 10),
-#'     value = rnorm(20)
-#' )
-#' # paired plot with connected lines and paired test
-#' BoxPlot(
-#'     paired_data,
+#'     value = rnorm(20))
+#' BoxPlot(paired_data,
 #'     x = "visit", y = "value", comparisons = TRUE,
-#'     paired_by = "subject", add_point = TRUE
-#' )
+#'     paired_by = "subject", add_point = TRUE)
+#'
+#' # Paired + grouped
 #' paired_group_data <- data.frame(
 #'     subject = rep(paste0("s", 1:6), each = 2),
 #'     x = rep(c("A", "B"), each = 6),
 #'     group = rep(c("before", "after"), times = 6),
-#'     value = rnorm(12)
-#' )
-#' BoxPlot(
-#'     paired_group_data,
+#'     value = rnorm(12))
+#' BoxPlot(paired_group_data,
 #'     x = "x", y = "value",
 #'     paired_by = "subject", group_by = "group",
-#'     comparisons = TRUE, pt_size = 3, pt_color = "red"
-#' )
+#'     comparisons = TRUE, pt_size = 3, pt_color = "red")
 #'
-#' # keep_na and keep_empty example
+#' # keep_na and keep_empty examples
 #' data <- data.frame(
 #'     x = factor(rep(c(LETTERS[1:3], NA, LETTERS[5:8]), each = 40),
 #'        levels = c(LETTERS[1:8])),
 #'     y = c(rnorm(160), rnorm(160, mean = 1)),
 #'     group1 = sample(c("g1", "g2"), 320, replace = TRUE),
 #'     group2 = factor(sample(c("h1", NA, "h3", "h4"), 320, replace = TRUE),
-#'        levels = c("h1", "h2", "h3", "h4"))
-#' )
+#'        levels = c("h1", "h2", "h3", "h4")))
 #'
-#' BoxPlot(data, x = "x", y = "y",
-#'     title = "keep_na = FALSE; keep_empty = FALSE")
+#' BoxPlot(data, x = "x", y = "y")
+#' BoxPlot(data, x = "x", y = "y", keep_na = TRUE, keep_empty = TRUE)
 #' BoxPlot(data, x = "x", y = "y", keep_na = TRUE, keep_empty = TRUE,
-#'     title = "keep_na = TRUE; keep_empty = TRUE")
-#' BoxPlot(data, x = "x", y = "y", keep_na = TRUE, keep_empty = TRUE,
-#'     title = "keep_na = TRUE; keep_empty = TRUE", facet_by = "group2")
-#' BoxPlot(data, x = "x", y = "y", keep_na = TRUE, keep_empty = 'level',
-#'     title = "keep_na = TRUE; keep_empty = 'level'")
+#'         facet_by = "group2")
+#' BoxPlot(data, x = "x", y = "y", keep_na = TRUE, keep_empty = 'level')
+#' BoxPlot(data, x = "x", y = "y", group_by = "group2")
 #' BoxPlot(data, x = "x", y = "y", group_by = "group2",
-#'     title = "keep_na = FALSE; keep_empty = FALSE; group_by = 'group2'")
+#'         keep_na = TRUE, keep_empty = TRUE)
 #' BoxPlot(data, x = "x", y = "y", group_by = "group2",
-#'     keep_na = TRUE, keep_empty = TRUE,
-#'     title = "keep_na = TRUE; keep_empty = TRUE; group_by = 'group2'")
-#' BoxPlot(data, x = "x", y = "y", group_by = "group2",
-#'     keep_na = TRUE, keep_empty = 'level',
-#'     title = "keep_na = TRUE; keep_empty = 'level'; group_by = 'group2'")
-#' BoxPlot(data, x = "x", y = "y", group_by = "group2",
-#'     keep_na = list(x = TRUE, group2 = FALSE),
-#'     keep_empty = list(x = FALSE, group2 = TRUE),
-#'     title = "keep_na: x=TRUE, group2=FALSE\nkeep_empty: x=FALSE, group2=TRUE"
-#' )
-#' BoxPlot(data, x = "x", y = "y", group_by = "group2",
-#'     keep_na = list(x = FALSE, group2 = TRUE),
-#'     keep_empty = list(x = TRUE, group2 = FALSE),
-#'     title = "keep_na: x=FALSE, group2=TRUE\nkeep_empty: x=TRUE, group2=FALSE"
-#' )
+#'         keep_na = TRUE, keep_empty = 'level')
 #'
-#' # Bar plot (base = "bar") shows mean values with error bars
-#' data$y <- abs(data$y)  # make y values positive for better bar plot visualization
+#' # Per-column keep_na / keep_empty
+#' BoxPlot(data, x = "x", y = "y", group_by = "group2",
+#'         keep_na = list(x = TRUE, group2 = FALSE),
+#'         keep_empty = list(x = FALSE, group2 = TRUE))
+#'
+#' # Bar plot (base = "bar")
+#' data$y <- abs(data$y)
 #' BoxPlot(data, x = "x", y = "y", base = "bar")
 #' BoxPlot(data, x = "x", y = "y", base = "bar", add_errorbar = "SD")
 #' BoxPlot(data, x = "x", y = "y", base = "bar", add_errorbar = "CI95")
@@ -2060,7 +2225,7 @@ BoxViolinPlot <- function(
 #' BoxPlot(data, x = "x", y = "y", base = "bar", group_by = "group1")
 #' BoxPlot(data, x = "x", y = "y", base = "bar", add_point = TRUE)
 #' BoxPlot(data, x = "x", y = "y", base = "bar",
-#'     fill_mode = "mean", palette = "Blues")
+#'         fill_mode = "mean", palette = "Blues")
 #' }
 BoxPlot <- function(
     data,
@@ -2263,9 +2428,21 @@ BoxPlot <- function(
     )
 }
 
+#' Violin plot
+#'
+#' @description
+#' Draws violin plots with extensive customisation options.  Supports jittered
+#' or beeswarm points, box plot overlays, trend lines, statistical test
+#' annotations, background stripes, reference lines, point highlighting,
+#' and custom summary statistic overlays.
+#'
+#' This is the public API — it delegates to \code{\link{BoxViolinPlot}}
+#' with \code{base = "violin"}, which dispatches to
+#' \code{\link{BoxViolinPlotAtomic}} for each \code{split_by} level.
+#'
 #' @rdname boxviolinplot
-#' @export
 #' @inheritParams BoxViolinPlot
+#' @export
 #' @examples
 #' \donttest{
 #' ViolinPlot(data, x = "x", y = "y")
@@ -2276,34 +2453,47 @@ BoxPlot <- function(
 #' ViolinPlot(data, x = "x", y = "y", add_stat = mean)
 #' ViolinPlot(data, x = "x", y = "y", add_bg = TRUE)
 #' ViolinPlot(data, x = "x", y = "y", add_line = 0)
+#'
+#' # Grouped
 #' ViolinPlot(data, x = "x", y = "y", group_by = "group1")
+#'
+#' # Grouped + faceted + box overlay
 #' ViolinPlot(data,
 #'     x = "x", y = "y", group_by = "group1",
-#'     facet_by = "group2", add_box = TRUE
-#' )
-#' ViolinPlot(data, x = "x", y = "y", add_point = TRUE, highlight = 'group1 == "g1"',
-#'     alpha = 0.8, highlight_size = 1.5, pt_size = 1, add_box = TRUE)
+#'     facet_by = "group2", add_box = TRUE)
+#'
+#' # Highlight
+#' ViolinPlot(data,
+#'     x = "x", y = "y", add_point = TRUE,
+#'     highlight = 'group1 == "g1"', alpha = 0.8,
+#'     highlight_size = 1.5, pt_size = 1, add_box = TRUE)
+#'
+#' # Pairwise comparisons with formatted labels
 #' ViolinPlot(data,
 #'     x = "x", y = "y", group_by = "group1",
-#'     comparisons = TRUE, sig_label = "p = {p}"
-#' )
+#'     comparisons = TRUE, sig_label = "p = {p}")
+#'
+#' # Explicit comparison list + hide non-significant
 #' ViolinPlot(data,
 #'     x = "x", y = "y", sig_label = "p.format", hide_ns = TRUE,
-#'     facet_by = "group2", comparisons = list(c("D", "E"))
-#' )
+#'     facet_by = "group2", comparisons = list(c("D", "E")))
+#'
+#' # Continuous fill (mean) + omnibus test
 #' ViolinPlot(data,
 #'     x = "x", y = "y", fill_mode = "mean",
-#'     facet_by = "group2", palette = "Blues", multiplegroup_comparisons = TRUE
-#' )
+#'     facet_by = "group2", palette = "Blues",
+#'     multiplegroup_comparisons = TRUE)
+#'
+#' # Per-split palettes
 #' ViolinPlot(data,
 #'     x = "x", y = "y", fill_mode = "mean",
-#'     split_by = "group1", palette = c(g1 = "Blues", g2 = "Reds")
-#' )
+#'     split_by = "group1", palette = c(g1 = "Blues", g2 = "Reds"))
+#'
+#' # Stacked faceting
 #' ViolinPlot(data,
 #'     x = "x", y = "y", stack = TRUE,
 #'     facet_by = "group2", add_box = TRUE, add_bg = TRUE,
-#'     bg_palette = "Paired"
-#' )
+#'     bg_palette = "Paired")
 #' }
 ViolinPlot <- function(
     data,
@@ -2504,29 +2694,47 @@ ViolinPlot <- function(
     )
 }
 
+#' Beeswarm plot
+#'
+#' @description
+#' Draws beeswarm plots — points arranged by the beeswarm algorithm to
+#' avoid overlap while displaying the distribution density.  This is a
+#' convenience wrapper that delegates to \code{\link{BoxViolinPlot}} with
+#' \code{base = "none"} and \code{add_beeswarm = TRUE}.
+#'
+#' Requires the \pkg{ggbeeswarm} package.  To get a beeswarm plot WITH a
+#' box plot, use \code{BeeswarmPlot(..., add_box = TRUE)}.  To get a violin
+#' plot with beeswarm points, use \code{ViolinPlot(..., add_beeswarm = TRUE)}.
+#'
 #' @rdname boxviolinplot
-#' @export
 #' @inheritParams BoxViolinPlot
-#' @param add_violin Logical, whether to add violin plot behind the beeswarm points.
-#' Adding violin to a beeswarm plot is actually not supported. A message will be shown to
-#' remind users to use `ViolinPlot(..., add_beeswarm = TRUE)` instead.
+#' @param add_violin Logical; whether to add a violin plot behind the
+#'  beeswarm points.  **Not supported** — the function will stop with an
+#'  error directing you to use \code{ViolinPlot(..., add_beeswarm = TRUE)}
+#'  instead.
+#' @export
 #' @examples
 #' \donttest{
-#' # Beeswarm plot examples
+#' # Basic beeswarm
 #' BeeswarmPlot(data, x = "x", y = "y")
+#'
+#' # Control point size
 #' BeeswarmPlot(data, x = "x", y = "y", pt_size = 1)
+#'
+#' # Beeswarm with box overlay
 #' BeeswarmPlot(data, x = "x", y = "y", add_box = TRUE, pt_color = "grey30")
-#' # Equivalent to:
-#' # BoxPlot(data, x = "x", y = "y", add_beeswarm = TRUE, pt_color = "grey30")
 #'
+#' # Grouped
 #' BeeswarmPlot(data, x = "x", y = "y", group_by = "group1")
-#' # no dodging
-#' BeeswarmPlot(data, x = "x", y = "y", group_by = "group1", beeswarm_dodge = NULL)
 #'
+#' # Grouped without dodging
+#' BeeswarmPlot(data, x = "x", y = "y", group_by = "group1",
+#'              beeswarm_dodge = NULL)
+#'
+#' # Hex layout with wider spacing
 #' BeeswarmPlot(data,
 #'     x = "x", y = "y", beeswarm_method = "hex",
-#'     beeswarm_cex = 2
-#' )
+#'     beeswarm_cex = 2)
 #' }
 BeeswarmPlot <- function(
     data,

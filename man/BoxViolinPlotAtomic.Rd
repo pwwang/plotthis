@@ -2,7 +2,7 @@
 % Please edit documentation in R/boxviolinplot.R
 \name{BoxViolinPlotAtomic}
 \alias{BoxViolinPlotAtomic}
-\title{Atomic Box/Violin plot}
+\title{Atomic Box / Violin / Bar / Beeswarm plot (internal)}
 \usage{
 BoxViolinPlotAtomic(
   data,
@@ -103,25 +103,31 @@ BoxViolinPlotAtomic(
 \arguments{
 \item{data}{A data frame.}
 
-\item{x}{A character string of the column name to plot on the x-axis.
-A character/factor column is expected. If multiple columns are provided, the columns will be concatenated with \code{x_sep}.}
+\item{x}{A character string of column name(s) for the x-axis.
+Character/factor columns are expected.  Multiple columns are
+concatenated with \code{x_sep}.}
 
-\item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.
-When \code{in_form} is "wide", \code{x} columns will not be concatenated.}
+\item{x_sep}{A character string to join multiple \code{x} columns.
+Default \code{"_"}.}
 
-\item{y}{A character string of the column name to plot on the y-axis. A numeric column is expected.
-When \code{in_form} is "wide", \code{y} is not required. The values under \code{x} columns will be used as y-values.}
+\item{y}{A character string of the numeric column for the y-axis.
+Not required when \code{in_form = "wide"} (data values are taken from
+the \code{x} columns).}
 
-\item{base}{A character string to specify the base plot type. Either "box", "violin", "bar" or "none" (used by BeeswarmPlot).
-When "bar", bars showing the mean values are plotted. This is mutually exclusive with \code{add_box}.}
+\item{base}{A character string specifying the primary plot type:
+\code{"box"} (box plot), \code{"violin"} (violin plot), \code{"bar"}
+(mean bars with optional error bars), or \code{"none"} (no primary
+geometry, used by beeswarm plots).}
 
-\item{in_form}{A character string to specify the input data type. Either "long" or "wide".}
+\item{in_form}{A character string: \code{"long"} (default) or
+\code{"wide"}.  In wide form, \code{x} columns are pivoted to long
+format.}
 
-\item{sort_x}{An expression (in character string) to order x-axis.
-For example, "mean(y)" will order the x-axis by the mean of y. Default is NULL, which means keeping the original order of x.
-Note that when keep_empty is TRUE for x, the empty x levels will always be placed at the end of the x-axis.}
+\item{sort_x}{An R expression string (e.g., \code{"mean(y)"}) to order
+x-axis categories.  Default \code{NULL} keeps the original order.
+When \code{keep_empty_x} is \code{TRUE}, empty levels are placed last.}
 
-\item{flip}{A logical value to flip the plot.}
+\item{flip}{Logical; if \code{TRUE}, swap the x and y axes.}
 
 \item{keep_empty}{One of FALSE, TRUE and "level". It can also take a named list to specify
 different behavior for different columns. Without a named list, the behavior applies to the
@@ -144,35 +150,38 @@ and the values should be one of TRUE, FALSE, or a character string.
 Without a named vector/list, the behavior applies to categorical/character columns used on the plot,
 for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.}
 
-\item{group_by}{A character string of the column name to dodge the boxes/violins}
+\item{group_by}{A character vector of column name(s) to dodge the
+boxes/violins by.  Multiple columns are concatenated with
+\code{group_by_sep}.}
 
-\item{group_by_sep}{A character string to concatenate the columns in \code{group_by}, if multiple columns are provided.}
+\item{group_by_sep}{A character string to separate concatenated
+\code{group_by} columns.  Default \code{"_"}.}
 
-\item{group_name}{A character string to name the legend of dodge.}
+\item{group_name}{A character string for the dodge legend title.}
 
-\item{paired_by}{A character string of the column name identifying paired observations for paired tests.}
+\item{paired_by}{A character string naming a column that identifies
+paired observations.  Forces \code{add_point = TRUE} and connects
+paired observations with lines.}
 
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
 
-\item{step_increase}{A numeric value to specify the step increase in fraction of total height for every
-additional comparison of the significance labels.}
+\item{step_increase}{Fractional step increase for stacking significance
+brackets when multiple comparisons exist.}
 
-\item{position_dodge_preserve}{Should dodging preserve the "total" width of all elements at a position, or the width of a "single" element?}
+\item{position_dodge_preserve}{Passed to
+\code{\link[ggplot2]{position_dodge}()}: \code{"total"} preserves the
+overall group width; \code{"single"} preserves individual element width.}
 
-\item{fill_mode}{A character string to specify the fill mode. Either "dodge", "x", "mean", "median".}
+\item{fill_mode}{A character string controlling fill colour mapping:
+\code{"dodge"} (fill by \code{group_by}, discrete),
+\code{"x"} (fill by x-axis categories, discrete),
+\code{"mean"} or \code{"median"} (fill by pre-computed statistic,
+continuous gradient).}
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
-\item{symnum_args}{A list of arguments to pass to the function \code{symnum} for symbolic number coding of p-values.
-For example, \code{symnum_args <- list(cutpoints = c(0, 0.0001, 0.001, 0.01, 0.05, Inf), symbols = c("****", "***", "**", "*", "ns"))}.
-In other words, we use the following convention for symbols indicating statistical significance:
-\itemize{
-\item \code{ns}: p > 0.05
-\item \code{*}: p <= 0.05
-\item \verb{**}: p <= 0.01
-\item \verb{***}: p <= 0.001
-\item \verb{****}: p <= 0.0001
-}}
+\item{symnum_args}{A list of arguments passed to
+\code{\link[stats]{symnum}} for symbolic p-value coding.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -195,146 +204,144 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
-\item{add_point}{A logical value to add (jitter) points to the plot.}
+\item{add_point}{Logical; add jittered or beeswarm points to the plot.}
 
-\item{pt_color}{A character string to specify the color of the points.}
+\item{pt_color}{Colour of the points.  When \code{add_beeswarm = TRUE}
+and \code{pt_color} is \code{NULL}, points are coloured by the fill
+variable.}
 
-\item{pt_size}{A numeric value to specify the size of the points.}
+\item{pt_size}{Numeric size of the points.  Default computed from
+data size: \code{min(3000 / nrow(data), 0.6)}.}
 
-\item{pt_alpha}{A numeric value to specify the transparency of the points.}
+\item{pt_alpha}{Numeric transparency of the points.}
 
-\item{y_nbreaks}{A numeric value to specify the number of breaks in the y-axis.}
+\item{y_nbreaks}{Integer number of y-axis breaks.}
 
-\item{jitter_width}{A numeric value to specify the width of the jitter.
-Defaults to 0.5, but when paired_by is provided, it will be set to 0.}
+\item{jitter_width}{Numeric width of the jitter.  Defaults to
+\code{0.5}, but set to \code{0} when \code{paired_by} is provided.}
 
-\item{jitter_height}{A numeric value to specify the height of the jitter.}
+\item{jitter_height}{Numeric height of the jitter.  Default \code{0}.}
 
-\item{stack}{A logical value whether to stack the facetted plot by 'facet_by'.}
+\item{stack}{Logical; stack facetted panels in a compact layout with
+shared strip labels.}
 
-\item{y_max}{A numeric value or a character string to specify the maximum value of the y-axis.
-You can also use quantile notation like "q95" to specify the 95th percentile.
-When comparisons are set and a numeric y_max is provided, it will be used to set the y-axis limit, including
-the significance labels.}
+\item{y_max, y_min}{Numeric y-axis limits, or quantile notation strings
+(e.g., \code{"q95"} for the 95th percentile, \code{"q5"} for the
+5th percentile).}
 
-\item{y_min}{A numeric value or a character string to specify the minimum value of the y-axis.
-You can also use quantile notation like "q5" to specify the 5th percentile.}
+\item{y_trans}{A character string for y-axis transformation
+(e.g., \code{"log10"}).}
 
-\item{y_trans}{A character string to specify the transformation of the y-axis.}
+\item{add_beeswarm}{Logical; use \code{ggbeeswarm::geom_beeswarm()} for
+non-overlapping point layout instead of jitter.  Requires the
+\code{ggbeeswarm} package.}
 
-\item{add_beeswarm}{A logical value to add beeswarm points to the plot instead of jittered points.
-When TRUE, points are positioned using the beeswarm algorithm to avoid overlap while showing density.
-Requires the ggbeeswarm package to be installed.}
+\item{beeswarm_method}{Beeswarm layout method: \code{"swarm"},
+\code{"compactswarm"}, \code{"hex"}, \code{"square"}, or
+\code{"center"}.}
 
-\item{beeswarm_method}{A character string to specify the beeswarm method. Either "swarm", "compactswarm", "hex",
-"square", or "center". Default is "swarm". See ggbeeswarm::geom_beeswarm for details.}
+\item{beeswarm_cex}{Numeric scaling for point spacing.  Larger values
+spread points more.}
 
-\item{beeswarm_cex}{A numeric value to specify the scaling for adjusting point spacing in beeswarm.
-Default is 1. Larger values space out points more.}
+\item{beeswarm_priority}{Point layout priority: \code{"ascending"},
+\code{"descending"}, \code{"density"}, or \code{"random"}.}
 
-\item{beeswarm_priority}{A character string to specify point layout priority. Either "ascending", "descending",
-"density", or "random". Default is "ascending".}
+\item{beeswarm_dodge}{Numeric dodge width for beeswarm points when
+\code{group_by} is provided.  Default \code{0.9}.}
 
-\item{beeswarm_dodge}{A numeric value to specify the dodge width for beeswarm points when group_by is provided.
-Default is 0.9}
+\item{add_box}{Logical; overlay a box plot on the primary geometry.
+Mutually exclusive with \code{base = "box"} and \code{base = "bar"}.}
 
-\item{add_box}{A logical value to add box plot to the plot.}
+\item{box_color}{Colour of the overlaid box plot outline and fill.}
 
-\item{box_color}{A character string to specify the color of the box plot.}
+\item{box_width}{Width of the overlaid box plot.}
 
-\item{box_width}{A numeric value to specify the width of the box plot.}
+\item{box_ptsize}{Size of the median point in the overlaid box plot.}
 
-\item{box_ptsize}{A numeric value to specify the size of the box plot points in the middle.}
+\item{add_errorbar}{Type of error bars for bar plots (\code{base = "bar"}):
+\code{"SEM"} (standard error of the mean, default), \code{"SD"}
+(standard deviation), \code{"CI"} or \code{"CI95"} (95\\% confidence
+interval), or \code{"none"}.  Silently ignored for non-bar bases.}
 
-\item{add_errorbar}{A character string to specify the type of error bars to add to bar plots.
-Only available when \code{base = "bar"}. Case insensitive. Available options are:
-\itemize{
-\item "SEM" (default): Standard error of the mean.
-\item "SD": Standard deviation.
-\item "CI" or "CIXX" (e.g., "CI95"): Confidence interval. "CI" defaults to "CI95" (95\\% CI).
-\item "none": No error bars.
-}}
+\item{errorbar_color}{Colour of the error bar lines and caps.}
 
-\item{errorbar_color}{A character string to specify the color of the error bars. Default is "black".}
+\item{errorbar_width}{Width of the error bar caps.}
 
-\item{errorbar_width}{A numeric value to specify the width of the error bar caps. Default is 0.5.}
+\item{errorbar_linewidth}{Line width of the error bars.}
 
-\item{errorbar_linewidth}{A numeric value to specify the line width of the error bars. Default is 0.75.}
+\item{add_trend}{Logical; add trend lines connecting group medians.}
 
-\item{add_trend}{A logical value to add trend line to the plot.}
+\item{trend_color}{Colour of the trend line.  When \code{NULL} and
+\code{group_by} is present, lines are coloured per group.}
 
-\item{trend_color}{A character string to specify the color of the trend line.
-This won't work when \code{group_by} is specified, the trend line will be colored by the \code{group_by} variable.#'}
+\item{trend_linewidth}{Width of the trend line.}
 
-\item{trend_linewidth}{A numeric value to specify the width of the trend line.}
+\item{trend_ptsize}{Size of the trend line points.}
 
-\item{trend_ptsize}{A numeric value to specify the size of the trend line points.}
+\item{add_stat}{A summary function (e.g., \code{mean}, \code{median}) to
+display as a point with a shape legend entry.}
 
-\item{add_stat}{A character string to add statistical test to the plot.}
+\item{stat_name}{Legend title for the stat summary shape.}
 
-\item{stat_name}{A character string to specify the name of the stat legend.}
+\item{stat_color}{Colour of the stat summary point.}
 
-\item{stat_color}{A character string to specify the color of the statistical test.}
+\item{stat_size}{Size of the stat summary point.}
 
-\item{stat_size}{A numeric value to specify the size of the statistical test.}
+\item{stat_stroke}{Stroke width of the stat summary point.}
 
-\item{stat_stroke}{A numeric value to specify the stroke of the statistical test.}
+\item{stat_shape}{Shape (an integer) for the stat summary point.  Uses
+\code{scale_shape_identity()} so the shape is rendered directly.}
 
-\item{stat_shape}{A numeric value to specify the shape of the statistical test.}
+\item{add_bg}{Logical; add alternating background stripes.}
 
-\item{add_bg}{A logical value to add background to the plot.}
+\item{bg_palette}{Palette for the background stripes.}
 
-\item{bg_palette}{A character string to specify the palette of the background.}
+\item{bg_palcolor}{Custom colours for the background stripes.}
 
-\item{bg_palcolor}{A character vector to specify the colors of the background.}
+\item{bg_alpha}{Alpha transparency for the background stripes.}
 
-\item{bg_alpha}{A numeric value to specify the transparency of the background.}
+\item{add_line}{A numeric y-intercept for a horizontal reference line.}
 
-\item{add_line}{A character string to add a line to the plot.}
+\item{line_color}{Colour of the reference line.}
 
-\item{line_color}{A character string to specify the color of the line.}
+\item{line_width}{Width of the reference line.}
 
-\item{line_width}{A numeric value to specify the size of the line.}
+\item{line_type}{Linetype of the reference line.}
 
-\item{line_type}{A numeric value to specify the type of the line.}
+\item{highlight}{A specification of points to highlight: \code{TRUE}
+(all), a numeric index vector, a logical expression string, or a
+character vector of row names.}
 
-\item{highlight}{A vector of character strings to highlight the points.
-It should be a subset of the row names of the data.
-If TRUE, it will highlight all points.}
+\item{highlight_color}{Colour of highlighted points.}
 
-\item{highlight_color}{A character string to specify the color of the highlighted points.}
+\item{highlight_size}{Size of highlighted points.}
 
-\item{highlight_size}{A numeric value to specify the size of the highlighted points.}
+\item{highlight_alpha}{Alpha of highlighted points.}
 
-\item{highlight_alpha}{A numeric value to specify the transparency of the highlighted points.}
+\item{comparisons}{A logical value (\code{TRUE} for all pairs) or a list
+of two-element vectors specifying pairwise comparisons.  Only available
+when \code{fill_mode = "dodge"} (i.e., \code{group_by} is present).}
 
-\item{comparisons}{A logical value or a list of vectors to perform pairwise comparisons.
-If \code{TRUE}, it will perform pairwise comparisons for all pairs.}
+\item{ref_group}{A character string specifying the reference group for
+comparisons.}
 
-\item{ref_group}{A character string to specify the reference group for comparisons.}
+\item{pairwise_method}{Method for pairwise tests.  Default
+\code{"wilcox.test"}.}
 
-\item{pairwise_method}{A character string to specify the pairwise comparison method.}
+\item{multiplegroup_comparisons}{Logical; perform an omnibus test
+(e.g., Kruskal-Wallis) across all groups.}
 
-\item{multiplegroup_comparisons}{A logical value to perform multiple group comparisons.}
+\item{multiple_method}{Method for the omnibus test.  Default
+\code{"kruskal.test"}.}
 
-\item{multiple_method}{A character string to specify the multiple group comparison method.}
+\item{sig_label}{Label format for significance annotations.  For
+pairwise comparisons: \code{"p.format"}, \code{"p.signif"}, or a
+\pkg{glue} template (e.g., \code{"p = {p}"}).  For multiple-group
+tests: \code{"p.format"} or \code{"p.signif"}.}
 
-\item{sig_label}{A character string to specify the label of the significance test.
-For multiple group comparisons (\code{multiplegroup_comparisons = TRUE}), it must be either "p.format" or "p.signif".
-For pairwise comparisons, it can be:
-\itemize{
-\item the column containing the label (e.g.: label = "p" or label = "p.adj"), where p is the p-value.
-Other possible values are "p.signif", "p.adj.signif", "p.format", "p.adj.format".
-\item an expression that can be formatted by the glue() package.
-For example, when specifying \code{label = "Wilcoxon, p = {p}"}, the expression \code{{p}} will be replaced by its value.
-\item a combination of plotmath expressions and glue expressions.
-You may want some of the statistical parameter in italic; for example: \code{label = "Wilcoxon, p= {p}"}
-See https://rpkgs.datanovia.com/ggpubr/reference/geom_pwc.html for more details.
-}}
+\item{sig_labelsize}{Size of the significance label text.}
 
-\item{sig_labelsize}{A numeric value to specify the size of the significance test label.}
-
-\item{hide_ns}{A logical value to hide the non-significant comparisons.}
+\item{hide_ns}{Logical; hide non-significant comparison labels.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
@@ -366,9 +373,111 @@ This is useful when split_by is used and the title needs to be dynamic.}
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object
+A \code{ggplot} object, possibly faceted, with \code{height}
+and \code{width} attributes (in inches) attached.
 }
 \description{
-Atomic Box/Violin plot
+Core implementation for drawing box plots, violin plots, bar plots (mean
+± error bars), or beeswarm plots.  This is the workhorse behind
+\code{\link{BoxPlot}}, \code{\link{ViolinPlot}}, and
+\code{\link{BeeswarmPlot}} — it takes a \strong{single} data frame (no
+\code{split_by} support) and returns a \code{ggplot} object.
+
+The \code{base} parameter selects the primary geometry:
+\itemize{
+\item \code{"box"} — \code{geom_boxplot()}
+\item \code{"violin"} — \code{geom_violin()}
+\item \code{"bar"} — \code{stat_summary(fun = mean, geom = "col")}
+with optional error bars (SEM, SD, or CI).
+\item \code{"none"} — no primary geometry (used by
+\code{\link{BeeswarmPlot}} to draw beeswarm points alone).
 }
+}
+\section{Architecture}{
+
+\enumerate{
+\item \strong{Wide-to-long conversion} — when \code{in_form = "wide"},
+data is pivoted via \code{tidyr::pivot_longer()}.  The
+\code{keep_na} / \code{keep_empty} lists are filtered to the new
+column names.
+\item \strong{Column resolution} — \code{x}, \code{y}, \code{group_by},
+\code{facet_by}, and \code{paired_by} are validated via
+\code{\link{check_columns}}.
+\item \strong{NA / empty-level handling} — per-column
+\code{keep_empty} settings are extracted for \code{x},
+\code{group_by}, and \code{facet_by} independently.
+\item \strong{Beeswarm validation} — if \code{add_beeswarm = TRUE},
+the \code{ggbeeswarm} package is required.  Beeswarm is disabled
+(with a warning) when \code{paired_by} is provided.
+\item \strong{Paired data validation} — structural checks ensure each
+(\code{x}, \code{paired_by}) combination has exactly 2
+observations (one per group when \code{group_by} is present).
+Paired observations force \code{add_point = TRUE}.
+\item \strong{Summary statistics} — \code{.y_mean} and
+\code{.y_median} are pre-computed per (\code{x}, \code{group_by},
+\code{facet_by}) for use in trend lines and fill modes.
+\item \strong{y-axis limits} — \code{y_max} / \code{y_min} accept
+numeric values or quantile notation (\code{"q95"},
+\code{"q5"}).  For bar plots, the limit is extended upward by
+the error bar extent.
+\item \strong{Highlight} — \code{highlight} can be \code{TRUE} (all
+points), a numeric index vector, a logical expression string, or
+a character vector of row names.
+\item \strong{sort_x} — an R expression string (e.g.,
+\code{"mean(y)"}) evaluated per x-level to reorder categories.
+\item \strong{Flip transformation} — when \code{flip = TRUE}, factor
+levels are reversed and \code{aspect.ratio} is inverted.
+\item \strong{Base geometry} — the primary geom is added:
+\code{geom_boxplot()}, \code{geom_violin()}, or
+\code{stat_summary(fun = mean, geom = "col")}.  Error bars
+(SEM / SD / CI) are layered on bar plots via a custom
+\code{stat_summary(fun.data = ...)}.
+\item \strong{Fill mode} — \code{fill_mode} controls colour mapping:
+\itemize{
+\item \code{"dodge"} — fill by \code{group_by} (discrete).
+\item \code{"x"} — fill by x-axis categories (discrete).
+\item \code{"mean"} / \code{"median"} — fill by pre-computed
+mean/median (continuous gradient).
+}
+\item \strong{Box overlay} — when \code{add_box = TRUE} on a non-box
+base, a box plot is overlaid via \code{ggnewscale::new_scale_fill()}
+with a white fill/black outline.
+\item \strong{Statistical comparisons} — two pathways:
+\itemize{
+\item \strong{Pairwise} (\code{comparisons}) — uses
+\code{ggpubr::geom_pwc()} with automatic or explicit
+comparison pairs.  Data is preprocessed to avoid test
+failures from zero-variance or all-NA groups.
+\item \strong{Multiple-group} (\code{multiplegroup_comparisons})
+— uses \code{ggpubr::stat_compare_means()} for omnibus
+tests (e.g., Kruskal-Wallis).
+}
+After comparison layers are added, \code{y_max_use} is expanded to
+accommodate significance brackets.
+\item \strong{Points} — jittered points (\code{geom_point()} with
+\code{position_jitterdodge}) or beeswarm points
+(\code{ggbeeswarm::geom_beeswarm()}).  Paired observations
+add connecting lines (\code{geom_line()}) between matched
+subjects.
+\item \strong{Trend lines} — \code{stat_summary(fun = first)} draws
+lines connecting group medians.  When \code{trend_color} is
+\code{NULL} and \code{group_by} is present, lines are coloured
+per group.
+\item \strong{Reference lines} — \code{geom_hline()} at the specified
+y-intercept.
+\item \strong{Stat summary points} — a custom \code{stat_summary()}
+point layer displaying a user-specified summary statistic
+(e.g., mean) with a shape legend entry.
+\item \strong{Stack layout} — when \code{stack = TRUE}, facets are
+arranged with shared strip labels and negative panel spacing for
+a compact stacked appearance.
+\item \strong{Dimension calculation} — \code{calculate_plot_dimensions()}
+accounts for the number of x-levels × dodge groups, flip state,
+and stack layout adjustments.  Minimum dimensions are enforced
+from label character widths.
+\item \strong{Faceting} — \code{\link{facet_plot}()} wraps the result
+with the appropriate strip position based on flip/stack state.
+}
+}
+
 \keyword{internal}

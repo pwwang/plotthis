@@ -2,7 +2,7 @@
 % Please edit documentation in R/boxviolinplot.R
 \name{BoxViolinPlot}
 \alias{BoxViolinPlot}
-\title{Box/Violin plot}
+\title{Box / Violin / Bar / Beeswarm plot (internal)}
 \usage{
 BoxViolinPlot(
   data,
@@ -113,36 +113,32 @@ BoxViolinPlot(
 
 \item{x}{A character string specifying the column name of the data frame to plot for the x-axis.}
 
-\item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.
-When \code{in_form} is "wide", \code{x} columns will not be concatenated.}
+\item{x_sep}{A character string to join multiple \code{x} columns.
+Default \code{"_"}.}
 
 \item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
 
-\item{base}{A character string to specify the base plot type. Either "box", "violin", "bar" or "none" (used by BeeswarmPlot).
-When "bar", bars showing the mean values are plotted. This is mutually exclusive with \code{add_box}.}
+\item{base}{A character string specifying the primary plot type:
+\code{"box"} (box plot), \code{"violin"} (violin plot), \code{"bar"}
+(mean bars with optional error bars), or \code{"none"} (no primary
+geometry, used by beeswarm plots).}
 
-\item{in_form}{A character string to specify the input data type. Either "long" or "wide".}
+\item{in_form}{A character string: \code{"long"} (default) or
+\code{"wide"}.  In wide form, \code{x} columns are pivoted to long
+format.}
 
-\item{split_by}{The column(s) to split data by and plot separately.}
+\item{split_by}{The column(s) to split the data by for separate sub-plots.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
+\item{split_by_sep}{Separator for concatenated \code{split_by} columns.}
 
-\item{symnum_args}{A list of arguments to pass to the function \code{symnum} for symbolic number coding of p-values.
-For example, \code{symnum_args <- list(cutpoints = c(0, 0.0001, 0.001, 0.01, 0.05, Inf), symbols = c("****", "***", "**", "*", "ns"))}.
-In other words, we use the following convention for symbols indicating statistical significance:
-\itemize{
-\item \code{ns}: p > 0.05
-\item \code{*}: p <= 0.05
-\item \verb{**}: p <= 0.01
-\item \verb{***}: p <= 0.001
-\item \verb{****}: p <= 0.0001
-}}
+\item{symnum_args}{A list of arguments passed to
+\code{\link[stats]{symnum}} for symbolic p-value coding.}
 
-\item{sort_x}{An expression (in character string) to order x-axis.
-For example, "mean(y)" will order the x-axis by the mean of y. Default is NULL, which means keeping the original order of x.
-Note that when keep_empty is TRUE for x, the empty x levels will always be placed at the end of the x-axis.}
+\item{sort_x}{An R expression string (e.g., \code{"mean(y)"}) to order
+x-axis categories.  Default \code{NULL} keeps the original order.
+When \code{keep_empty_x} is \code{TRUE}, empty levels are placed last.}
 
-\item{flip}{A logical value to flip the plot.}
+\item{flip}{Logical; if \code{TRUE}, swap the x and y axes.}
 
 \item{keep_empty}{One of FALSE, TRUE and "level". It can also take a named list to specify
 different behavior for different columns. Without a named list, the behavior applies to the
@@ -171,20 +167,28 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 
 \item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
 
-\item{group_name}{A character string to name the legend of dodge.}
+\item{group_name}{A character string for the dodge legend title.}
 
-\item{paired_by}{A character string of the column name identifying paired observations for paired tests.}
+\item{paired_by}{A character string naming a column that identifies
+paired observations.  Forces \code{add_point = TRUE} and connects
+paired observations with lines.}
 
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
 
-\item{step_increase}{A numeric value to specify the step increase in fraction of total height for every
-additional comparison of the significance labels.}
+\item{step_increase}{Fractional step increase for stacking significance
+brackets when multiple comparisons exist.}
 
-\item{fill_mode}{A character string to specify the fill mode. Either "dodge", "x", "mean", "median".}
+\item{fill_mode}{A character string controlling fill colour mapping:
+\code{"dodge"} (fill by \code{group_by}, discrete),
+\code{"x"} (fill by x-axis categories, discrete),
+\code{"mean"} or \code{"median"} (fill by pre-computed statistic,
+continuous gradient).}
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
-\item{position_dodge_preserve}{Should dodging preserve the "total" width of all elements at a position, or the width of a "single" element?}
+\item{position_dodge_preserve}{Passed to
+\code{\link[ggplot2]{position_dodge}()}: \code{"total"} preserves the
+overall group width; \code{"single"} preserves individual element width.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -207,142 +211,139 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
-\item{add_point}{A logical value to add (jitter) points to the plot.}
+\item{add_point}{Logical; add jittered or beeswarm points to the plot.}
 
-\item{pt_color}{A character string to specify the color of the points.}
+\item{pt_color}{Colour of the points.  When \code{add_beeswarm = TRUE}
+and \code{pt_color} is \code{NULL}, points are coloured by the fill
+variable.}
 
-\item{pt_size}{A numeric value to specify the size of the points.}
+\item{pt_size}{Numeric size of the points.  Default computed from
+data size: \code{min(3000 / nrow(data), 0.6)}.}
 
-\item{pt_alpha}{A numeric value to specify the transparency of the points.}
+\item{pt_alpha}{Numeric transparency of the points.}
 
-\item{jitter_width}{A numeric value to specify the width of the jitter.
-Defaults to 0.5, but when paired_by is provided, it will be set to 0.}
+\item{jitter_width}{Numeric width of the jitter.  Defaults to
+\code{0.5}, but set to \code{0} when \code{paired_by} is provided.}
 
-\item{jitter_height}{A numeric value to specify the height of the jitter.}
+\item{jitter_height}{Numeric height of the jitter.  Default \code{0}.}
 
-\item{stack}{A logical value whether to stack the facetted plot by 'facet_by'.}
+\item{stack}{Logical; stack facetted panels in a compact layout with
+shared strip labels.}
 
-\item{y_max}{A numeric value or a character string to specify the maximum value of the y-axis.
-You can also use quantile notation like "q95" to specify the 95th percentile.
-When comparisons are set and a numeric y_max is provided, it will be used to set the y-axis limit, including
-the significance labels.}
+\item{y_max, y_min}{Numeric y-axis limits, or quantile notation strings
+(e.g., \code{"q95"} for the 95th percentile, \code{"q5"} for the
+5th percentile).}
 
-\item{y_min}{A numeric value or a character string to specify the minimum value of the y-axis.
-You can also use quantile notation like "q5" to specify the 5th percentile.}
+\item{add_beeswarm}{Logical; use \code{ggbeeswarm::geom_beeswarm()} for
+non-overlapping point layout instead of jitter.  Requires the
+\code{ggbeeswarm} package.}
 
-\item{add_beeswarm}{A logical value to add beeswarm points to the plot instead of jittered points.
-When TRUE, points are positioned using the beeswarm algorithm to avoid overlap while showing density.
-Requires the ggbeeswarm package to be installed.}
+\item{beeswarm_method}{Beeswarm layout method: \code{"swarm"},
+\code{"compactswarm"}, \code{"hex"}, \code{"square"}, or
+\code{"center"}.}
 
-\item{beeswarm_method}{A character string to specify the beeswarm method. Either "swarm", "compactswarm", "hex",
-"square", or "center". Default is "swarm". See ggbeeswarm::geom_beeswarm for details.}
+\item{beeswarm_cex}{Numeric scaling for point spacing.  Larger values
+spread points more.}
 
-\item{beeswarm_cex}{A numeric value to specify the scaling for adjusting point spacing in beeswarm.
-Default is 1. Larger values space out points more.}
+\item{beeswarm_priority}{Point layout priority: \code{"ascending"},
+\code{"descending"}, \code{"density"}, or \code{"random"}.}
 
-\item{beeswarm_priority}{A character string to specify point layout priority. Either "ascending", "descending",
-"density", or "random". Default is "ascending".}
+\item{beeswarm_dodge}{Numeric dodge width for beeswarm points when
+\code{group_by} is provided.  Default \code{0.9}.}
 
-\item{beeswarm_dodge}{A numeric value to specify the dodge width for beeswarm points when group_by is provided.
-Default is 0.9}
+\item{add_box}{Logical; overlay a box plot on the primary geometry.
+Mutually exclusive with \code{base = "box"} and \code{base = "bar"}.}
 
-\item{add_box}{A logical value to add box plot to the plot.}
+\item{box_color}{Colour of the overlaid box plot outline and fill.}
 
-\item{box_color}{A character string to specify the color of the box plot.}
+\item{box_width}{Width of the overlaid box plot.}
 
-\item{box_width}{A numeric value to specify the width of the box plot.}
+\item{box_ptsize}{Size of the median point in the overlaid box plot.}
 
-\item{box_ptsize}{A numeric value to specify the size of the box plot points in the middle.}
+\item{add_errorbar}{Type of error bars for bar plots (\code{base = "bar"}):
+\code{"SEM"} (standard error of the mean, default), \code{"SD"}
+(standard deviation), \code{"CI"} or \code{"CI95"} (95\\% confidence
+interval), or \code{"none"}.  Silently ignored for non-bar bases.}
 
-\item{add_errorbar}{A character string to specify the type of error bars to add to bar plots.
-Only available when \code{base = "bar"}. Case insensitive. Available options are:
-\itemize{
-\item "SEM" (default): Standard error of the mean.
-\item "SD": Standard deviation.
-\item "CI" or "CIXX" (e.g., "CI95"): Confidence interval. "CI" defaults to "CI95" (95\\% CI).
-\item "none": No error bars.
-}}
+\item{errorbar_color}{Colour of the error bar lines and caps.}
 
-\item{errorbar_color}{A character string to specify the color of the error bars. Default is "black".}
+\item{errorbar_width}{Width of the error bar caps.}
 
-\item{errorbar_width}{A numeric value to specify the width of the error bar caps. Default is 0.5.}
+\item{errorbar_linewidth}{Line width of the error bars.}
 
-\item{errorbar_linewidth}{A numeric value to specify the line width of the error bars. Default is 0.75.}
+\item{add_trend}{Logical; add trend lines connecting group medians.}
 
-\item{add_trend}{A logical value to add trend line to the plot.}
+\item{trend_color}{Colour of the trend line.  When \code{NULL} and
+\code{group_by} is present, lines are coloured per group.}
 
-\item{trend_color}{A character string to specify the color of the trend line.
-This won't work when \code{group_by} is specified, the trend line will be colored by the \code{group_by} variable.#'}
+\item{trend_linewidth}{Width of the trend line.}
 
-\item{trend_linewidth}{A numeric value to specify the width of the trend line.}
+\item{trend_ptsize}{Size of the trend line points.}
 
-\item{trend_ptsize}{A numeric value to specify the size of the trend line points.}
+\item{add_stat}{A summary function (e.g., \code{mean}, \code{median}) to
+display as a point with a shape legend entry.}
 
-\item{add_stat}{A character string to add statistical test to the plot.}
+\item{stat_name}{Legend title for the stat summary shape.}
 
-\item{stat_name}{A character string to specify the name of the stat legend.}
+\item{stat_color}{Colour of the stat summary point.}
 
-\item{stat_color}{A character string to specify the color of the statistical test.}
+\item{stat_size}{Size of the stat summary point.}
 
-\item{stat_size}{A numeric value to specify the size of the statistical test.}
+\item{stat_stroke}{Stroke width of the stat summary point.}
 
-\item{stat_stroke}{A numeric value to specify the stroke of the statistical test.}
+\item{stat_shape}{Shape (an integer) for the stat summary point.  Uses
+\code{scale_shape_identity()} so the shape is rendered directly.}
 
-\item{stat_shape}{A numeric value to specify the shape of the statistical test.}
+\item{add_bg}{Logical; add alternating background stripes.}
 
-\item{add_bg}{A logical value to add background to the plot.}
+\item{bg_palette}{Palette for the background stripes.}
 
-\item{bg_palette}{A character string to specify the palette of the background.}
+\item{bg_palcolor}{Custom colours for the background stripes.}
 
-\item{bg_palcolor}{A character vector to specify the colors of the background.}
+\item{bg_alpha}{Alpha transparency for the background stripes.}
 
-\item{bg_alpha}{A numeric value to specify the transparency of the background.}
+\item{add_line}{A numeric y-intercept for a horizontal reference line.}
 
-\item{add_line}{A character string to add a line to the plot.}
+\item{line_color}{Colour of the reference line.}
 
-\item{line_color}{A character string to specify the color of the line.}
+\item{line_width}{Width of the reference line.}
 
-\item{line_width}{A numeric value to specify the size of the line.}
+\item{line_type}{Linetype of the reference line.}
 
-\item{line_type}{A numeric value to specify the type of the line.}
+\item{highlight}{A specification of points to highlight: \code{TRUE}
+(all), a numeric index vector, a logical expression string, or a
+character vector of row names.}
 
-\item{highlight}{A vector of character strings to highlight the points.
-It should be a subset of the row names of the data.
-If TRUE, it will highlight all points.}
+\item{highlight_color}{Colour of highlighted points.}
 
-\item{highlight_color}{A character string to specify the color of the highlighted points.}
+\item{highlight_size}{Size of highlighted points.}
 
-\item{highlight_size}{A numeric value to specify the size of the highlighted points.}
+\item{highlight_alpha}{Alpha of highlighted points.}
 
-\item{highlight_alpha}{A numeric value to specify the transparency of the highlighted points.}
+\item{comparisons}{A logical value (\code{TRUE} for all pairs) or a list
+of two-element vectors specifying pairwise comparisons.  Only available
+when \code{fill_mode = "dodge"} (i.e., \code{group_by} is present).}
 
-\item{comparisons}{A logical value or a list of vectors to perform pairwise comparisons.
-If \code{TRUE}, it will perform pairwise comparisons for all pairs.}
+\item{ref_group}{A character string specifying the reference group for
+comparisons.}
 
-\item{ref_group}{A character string to specify the reference group for comparisons.}
+\item{pairwise_method}{Method for pairwise tests.  Default
+\code{"wilcox.test"}.}
 
-\item{pairwise_method}{A character string to specify the pairwise comparison method.}
+\item{multiplegroup_comparisons}{Logical; perform an omnibus test
+(e.g., Kruskal-Wallis) across all groups.}
 
-\item{multiplegroup_comparisons}{A logical value to perform multiple group comparisons.}
+\item{multiple_method}{Method for the omnibus test.  Default
+\code{"kruskal.test"}.}
 
-\item{multiple_method}{A character string to specify the multiple group comparison method.}
+\item{sig_label}{Label format for significance annotations.  For
+pairwise comparisons: \code{"p.format"}, \code{"p.signif"}, or a
+\pkg{glue} template (e.g., \code{"p = {p}"}).  For multiple-group
+tests: \code{"p.format"} or \code{"p.signif"}.}
 
-\item{sig_label}{A character string to specify the label of the significance test.
-For multiple group comparisons (\code{multiplegroup_comparisons = TRUE}), it must be either "p.format" or "p.signif".
-For pairwise comparisons, it can be:
-\itemize{
-\item the column containing the label (e.g.: label = "p" or label = "p.adj"), where p is the p-value.
-Other possible values are "p.signif", "p.adj.signif", "p.format", "p.adj.format".
-\item an expression that can be formatted by the glue() package.
-For example, when specifying \code{label = "Wilcoxon, p = {p}"}, the expression \code{{p}} will be replaced by its value.
-\item a combination of plotmath expressions and glue expressions.
-You may want some of the statistical parameter in italic; for example: \code{label = "Wilcoxon, p= {p}"}
-See https://rpkgs.datanovia.com/ggpubr/reference/geom_pwc.html for more details.
-}}
+\item{sig_labelsize}{Size of the significance label text.}
 
-\item{sig_labelsize}{A numeric value to specify the size of the significance test label.}
-
-\item{hide_ns}{A logical value to hide the non-significant comparisons.}
+\item{hide_ns}{Logical; hide non-significant comparison labels.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
@@ -369,53 +370,55 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{ylab}{A character string specifying the y-axis label.}
 
-\item{seed}{The random seed to use. Default is 8525.}
+\item{seed}{A numeric seed for reproducibility.}
 
-\item{combine}{Whether to combine the plots into one when facet is FALSE. Default is TRUE.}
+\item{combine}{Logical; when \code{TRUE} (default), returns a combined
+\code{patchwork} object.  When \code{FALSE}, returns a named list of
+\code{ggplot} objects.}
 
-\item{nrow}{A numeric value specifying the number of rows in the facet.}
+\item{ncol, nrow}{Integer number of columns / rows for the combined layout.}
 
-\item{ncol}{A numeric value specifying the number of columns in the facet.}
+\item{byrow}{Logical; fill the combined layout by row (default \code{TRUE}).}
 
-\item{byrow}{A logical value indicating whether to fill the plots by row.}
+\item{axes, axis_titles}{Character strings for axis handling in the
+combined layout.}
 
-\item{axes}{A string specifying how axes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axes in individual plots.
-\item 'collect' will remove duplicated axes when placed in the same run of rows or columns of the layout.
-\item 'collect_x' and 'collect_y' will remove duplicated x-axes in the columns or duplicated y-axes in the rows respectively.
-}}
+\item{guides}{Character string for legend collection across panels.}
 
-\item{axis_titles}{A string specifying how axis titltes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axis titles in individual plots.
-\item 'collect' will remove duplicated titles in one direction and merge titles in the opposite direction.
-\item 'collect_x' and 'collect_y' control this for x-axis titles and y-axis titles respectively.
-}}
-
-\item{guides}{A string specifying how guides should be treated in the layout. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'collect' will collect guides below to the given nesting level, removing duplicates.
-\item 'keep' will stop collection at this level and let guides be placed alongside their plot.
-\item 'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.
-}}
-
-\item{design}{Specification of the location of areas in the layout, passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE. When specified, \code{nrow}, \code{ncol}, and \code{byrow} are ignored.
-See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details.}
+\item{design}{A custom layout design for the combined plot.}
 
 \item{...}{Additional arguments.}
 }
 \value{
-A combined ggplot object or wrap_plots object or a list of ggplot objects
+A \code{ggplot} object, a \code{patchwork} object, or a named list
+of \code{ggplot} objects (when \code{combine = FALSE}), each with
+\code{height} and \code{width} attributes in inches.
 }
 \description{
-Box/Violin plot
+Internal wrapper that handles \code{split_by} processing and dispatches
+to \code{\link{BoxViolinPlotAtomic}} for each split.  This is the
+intermediate layer between the three public APIs
+(\code{\link{BoxPlot}}, \code{\link{ViolinPlot}}, and
+\code{\link{BeeswarmPlot}}) and the core implementation.
 }
+\section{split_by workflow}{
+
+When \code{split_by} is provided:
+\enumerate{
+\item \code{\link{check_keep_na}()} and \code{\link{check_keep_empty}()}
+normalise the \code{keep_na} / \code{keep_empty} arguments.
+\item The \code{split_by} column is validated and its NA / empty levels
+are processed.  It is then removed from the per-column lists.
+\item The data is split by \code{split_by} (preserving level order).
+If \code{split_by} is \code{NULL}, the data is wrapped in a
+single-element list with name \code{"..."}.
+\item Per-split \code{palette}, \code{palcolor},
+\code{legend.position}, and \code{legend.direction} are resolved.
+\item \code{\link{BoxViolinPlotAtomic}()} is called for each split.
+When \code{title} is a function, it receives the split level name
+for dynamic titles.
+\item Results are combined via \code{\link{combine_plots}()}.
+}
+}
+
 \keyword{internal}
