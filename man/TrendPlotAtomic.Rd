@@ -2,7 +2,7 @@
 % Please edit documentation in R/trendplot.R
 \name{TrendPlotAtomic}
 \alias{TrendPlotAtomic}
-\title{Atomic trend plot}
+\title{Atomic trend plot (internal)}
 \usage{
 TrendPlotAtomic(
   data,
@@ -40,25 +40,32 @@ TrendPlotAtomic(
 \arguments{
 \item{data}{A data frame.}
 
-\item{x}{A character string of the column name to plot on the x-axis.
-A character/factor column is expected.}
+\item{x}{A character string specifying the column name to plot on the
+x-axis. Must be character or factor. Multiple columns can be provided;
+they are concatenated with \code{x_sep} as the separator.}
 
-\item{y}{A character string of the column name to plot on the y-axis.
-A numeric column is expected.
-If NULL, the count of the x-axis column will be used.}
+\item{y}{A character string specifying the numeric column for the y-axis.
+When \code{NULL}, the count of observations in each (\code{x},
+\code{group_by}, \code{facet_by}) combination is used.}
 
-\item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.}
+\item{x_sep}{A character string used to join multiple \code{x} columns.
+Default \code{"_"}. Ignored when \code{x} is a single column.}
 
-\item{group_by}{A character vector of column names to fill the area plot by.
-If NULL, the plot will be filled by the first color of the palette.
-If multiple columns are provided, the columns will be concatenated with
-\code{group_by_sep} and used as the fill column.}
+\item{group_by}{A character vector of column names to fill the bars and
+areas by. Each unique combination becomes a separate stacked segment.
+Multiple columns are concatenated with \code{group_by_sep}. When
+\code{NULL}, a single filled bar/area is drawn and the legend is hidden.}
 
-\item{group_by_sep}{A character string to separate the columns in \code{group_by}.}
+\item{group_by_sep}{A character string to separate concatenated
+\code{group_by} columns. Default \code{"_"}.}
 
-\item{group_name}{A character string to name the legend of fill.}
+\item{group_name}{A character string used as the fill legend title.
+When \code{NULL}, the \code{group_by} column name is used.}
 
-\item{scale_y}{A logical value to scale the y-axis by the total number in each x-axis group.}
+\item{scale_y}{A logical value. When \code{TRUE}, y-values are scaled to
+proportions within each (\code{x}, \code{facet_by}) group so that each
+x position stacks to 1.0. The y-axis labels switch from numeric to
+percent format automatically.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -134,9 +141,84 @@ for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.}
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object
+A \code{ggplot} object with \code{height} and \code{width}
+attributes (in inches) attached.
 }
 \description{
-Atomic trend plot
+Core implementation for drawing a single trend plot. This is the workhorse
+behind the exported \code{\link{TrendPlot}} function -- it takes a \strong{single}
+data frame (no \code{split_by} support) and returns a \code{ggplot} object.
+A trend plot combines stacked bars (\code{\link[ggplot2]{geom_col}()}) with
+a semi-transparent area background (\code{\link[ggplot2]{geom_area}()}) to
+show how one or more groups accumulate across a discrete x-axis. This hybrid
+style sits between a bar plot and an area plot, preserving the discrete
+category separation of bars while softening the visual with an area fill.
+
+The function supports count aggregation (omit \code{y} to plot observation
+counts per x-category), proportion scaling (\code{scale_y = TRUE} normalises
+each x position to 100\\%), per-group colour control, and faceting.
 }
+\section{Architecture}{
+
+\enumerate{
+\item \strong{Column resolution} -- \code{x}, \code{y}, \code{group_by},
+and \code{facet_by} are validated and transformed via
+\code{\link{check_columns}}. Multi-column inputs for \code{x} and
+\code{group_by} are concatenated into single columns using their
+respective separators (\code{x_sep}, \code{group_by_sep}).
+\item \strong{Count aggregation} -- when \code{y = NULL}, the count of
+observations in each unique (\code{x}, \code{group_by},
+\code{facet_by}) combination is computed as a new \code{.count}
+column. Factor levels are preserved after aggregation.
+\item \strong{Proportion scaling} -- when \code{scale_y = TRUE}, the
+y-values are divided by the sum within each (\code{x},
+\code{facet_by}) group, producing a proportion (0--1). Percent
+labels are used automatically on the y-axis.
+\item \strong{NA / empty-level handling} --
+\code{\link{process_keep_na_empty}()} applies \code{keep_na} and
+\code{keep_empty} policies. Per-column \code{keep_empty} settings
+are extracted for \code{x}, \code{group_by}, and \code{facet_by}
+independently. The facet columns must have identical
+\code{keep_empty} values. Note that \code{keep_empty = TRUE} is
+not supported globally because empty categories would break the
+continuity of the x-axis.
+\item \strong{Group fill setup} -- when \code{group_by = NULL}, a dummy
+\code{.fill} factor is created so the single group still draws with
+the first palette colour. The legend is suppressed
+(\code{legend.position = "none"}).
+\item \strong{Data completion} -- \code{\link[tidyr]{complete}()} pads
+all \code{x} by \code{group_by} (by \code{facet_by})
+combinations with \code{y = 0}. This prevents
+\code{\link[ggplot2]{geom_area}()} from interpolating across missing
+groups, which would otherwise cause stacked areas to exceed the
+correct total.
+\item \strong{Area layer construction} -- the completed data is expanded
+by duplicating each row and offsetting the x-axis positions by
+\eqn{\pm 0.2} on a numeric scale, creating discrete-width area
+strips that align perfectly with the bars.
+\item \strong{Colour mapping} -- \code{\link{palette_this}()} assigns
+colours to all \code{group_by} levels, including \code{NA}
+(defaulting to \code{"grey80"}).
+\item \strong{Plot assembly} -- the \code{ggplot} object is built with
+\code{geom_area()} (at half \code{alpha}, grey outline) as a
+background fill, overlaid with \code{geom_col()} (full \code{alpha},
+black outline, width 0.4) as the foreground bars. Both layers use
+\code{position_stack(vjust = 0.5)}. The x-axis uses
+\code{scale_x_discrete()} and the y-axis uses
+\code{scale_y_continuous()} (percent labels when scaled). The
+fill scale \code{drop} argument is controlled by
+\code{keep_empty_group}.
+\item \strong{Dimension calculation} --
+\code{\link{calculate_plot_dimensions}()} computes plot height and
+width from the x-axis category count, \code{aspect.ratio}, and
+legend metrics. The base height increases for plots with 10 or more
+x categories (from 4.5 to 6.5 inches). The resulting \code{height}
+and \code{width} attributes are stored on the \code{ggplot} object.
+\item \strong{Faceting} -- \code{\link{facet_plot}()} wraps the plot with
+\code{facet_wrap} / \code{facet_grid} if \code{facet_by} is
+provided, respecting the \code{keep_empty} setting for facet
+variables.
+}
+}
+
 \keyword{internal}
