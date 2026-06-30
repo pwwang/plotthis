@@ -2,7 +2,7 @@
 % Please edit documentation in R/radarplot.R
 \name{RadarPlotAtomic}
 \alias{RadarPlotAtomic}
-\title{Atomic Radar plot}
+\title{Atomic radar/spider plot (internal)}
 \usage{
 RadarPlotAtomic(
   data,
@@ -48,55 +48,80 @@ RadarPlotAtomic(
 \arguments{
 \item{data}{A data frame.}
 
-\item{x}{A character string of the column name to plot on the x-axis/circles.
-A character/factor column is expected.}
+\item{x}{A character string specifying the column name of the data
+frame to plot on the x-axis (the radial categories).  Must be
+character or factor.  Multiple columns can be provided; they are
+concatenated with \code{x_sep} as the separator.}
 
-\item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.}
+\item{x_sep}{A character string used to join multiple \code{x}
+columns.  Default \code{"_"}.  Ignored when \code{x} is a single
+column.}
 
-\item{group_by}{A character string of the column name(s) to group the data (the lines) by.
-Character/factor column(s) is expected.}
+\item{group_by}{A character vector of column names to group the
+data into separate filled polygons.  Each unique combination
+becomes a distinct polygon layer.  Multiple columns are
+concatenated with \code{group_by_sep}.  When \code{NULL}, a
+single polygon is drawn with no legend.}
 
-\item{group_by_sep}{A character string to concatenate the columns in \code{group_by}, if multiple columns are provided.}
+\item{group_by_sep}{A character string used to join multiple
+\code{group_by} columns.  Default \code{"_"}.}
 
-\item{y}{A character string of the column name to plot on the y-axis.
-A numeric column is expected.
-If NULL, the count of the x-axis column in each group will be used.}
+\item{y}{A character string specifying the numeric column for the
+radial axis.  When \code{NULL}, the count of observations in each
+(\code{x}, \code{group_by}, \code{facet_by}) combination is used.}
 
-\item{group_name}{A character string to name the legend of group.}
+\item{group_name}{A character string used as the colour/fill legend
+title.  When \code{NULL}, the \code{group_by} column name is used.}
 
-\item{groups}{A character vector of group values (in the \code{group_by} column) to include in the plot. If NULL, all groups will be included.
-This can be used to exclude certain groups from the plot or to specify the order of groups in the legend.
-Only applicable when \code{group_by} is provided.
-And this implies \code{keep_empty} for \code{group_by} is FALSE, which means the groups not in the data will not be shown in the legend.}
+\item{groups}{A character vector of group values (in the
+\code{group_by} column) to include in the plot.  When \code{NULL},
+all groups are included.  This can control which groups appear and
+their legend order.  Implies \code{keep_empty = FALSE} for the
+\code{group_by} column: groups not present in the data are not
+shown in the legend.}
 
-\item{scale_y}{How should the y-axis be scaled? Default is "group".
-Other options are "global", "x" and "none".
+\item{scale_y}{How should the radial axis be scaled?  Default is
+\code{"group"}.  Options are \code{"group"}, \code{"global"},
+\code{"x"}, and \code{"none"}.
 \itemize{
-\item If "group", the y-axis will be scaled to the fraction within each group.
-\item If "global", the y-axis will be scaled to the fraction of the total.
-\item If "x", the y-axis will be scaled to the fraction of the total within each x-axis group.
-\item If "none", the y-axis will be scaled to the count of each x-axis group.
+\item{\code{"group"} — scaled to the fraction within each group.}
+\item{\code{"global"} — scaled to the fraction of the total.}
+\item{\code{"x"} — scaled to the fraction within each x-axis category.}
+\item{\code{"none"} — raw counts or values, no scaling.}
 }}
 
-\item{y_min}{A numeric value to set the minimum value of the y-axis.}
+\item{y_min}{A numeric value setting the minimum of the radial
+axis.  Default \code{0}.}
 
-\item{y_max}{A numeric value to set the maximum value of the y-axis.}
+\item{y_max}{A numeric value setting the maximum of the radial
+axis.  When \code{NULL}, the maximum data value is used.}
 
-\item{y_nbreaks}{A numeric value to set the number of breaks in the y-axis.}
+\item{y_nbreaks}{A numeric value for the number of breaks
+(concentric grid lines) on the radial axis.  Default \code{4}.}
 
-\item{polygon}{A logical value to draw the polygons instead of the circles as panel grid.}
+\item{polygon}{A logical value.  When \code{TRUE}, the background
+grid is drawn as a polygon (spider chart style); when
+\code{FALSE} (default), concentric circles are used (radar chart
+style).}
 
-\item{fill}{A logical value to fill the polygons with colors.}
+\item{fill}{A logical value.  When \code{TRUE} (default), the data
+polygons are filled with the group colour.  When \code{FALSE},
+only outlines are drawn.}
 
-\item{linewidth}{A numeric value to set the width of the lines.}
+\item{linewidth}{A numeric value for the width of the polygon
+outline lines.  Default \code{1}.}
 
-\item{pt_size}{A numeric value to set the size of the points.}
+\item{pt_size}{A numeric value for the size of the data point
+markers.  Default \code{4}.}
 
-\item{max_charwidth}{A numeric value to set the maximum character width for the x labels.}
+\item{max_charwidth}{A numeric value for the maximum character
+width of x-axis labels before wrapping.  Default \code{16}.}
 
-\item{bg_color}{A character string to set the background color of the plot.}
+\item{bg_color}{A character string specifying the background fill
+colour.  Default \code{"grey80"}.}
 
-\item{bg_alpha}{A numeric value to set the transparency of the background color.}
+\item{bg_alpha}{A numeric value for the transparency of the
+background fill.  Default \code{0.1}.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -166,9 +191,100 @@ This is useful when split_by is used and the title needs to be dynamic.}
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object
+A \code{ggplot} object with \code{height} and \code{width}
+attributes (in inches) attached.
 }
 \description{
-Atomic Radar plot
+Core implementation for drawing a single radar (or spider) chart.  This
+is the workhorse behind the exported \code{\link{RadarPlot}} and
+\code{\link{SpiderPlot}} functions — it takes a \strong{single} data frame
+(no \code{split_by} support) and returns a \code{ggplot} object.
+
+Radar charts display multivariate data on a two-dimensional polar
+coordinate system where each variable (x-axis category) is placed
+along a radial axis evenly spaced around the circle.  The data values
+are connected by lines forming a polygon (or multiple polygons when
+\code{group_by} is provided).  When \code{polygon = FALSE} (the
+default) the grid is rendered as concentric circles (classic radar
+chart); when \code{polygon = TRUE} straight polygonal grid lines are
+used (spider chart variant).
+
+The polar coordinate system is implemented via a local
+\code{coord_radar()} helper that extends
+\code{ggplot2::CoordPolar} with \code{is_linear = TRUE}, allowing
+discrete x-axis positions to be mapped to evenly spaced angular
+coordinates.
 }
+\section{Architecture}{
+
+\enumerate{
+\item \strong{Column resolution} — \code{x}, \code{y},
+\code{group_by}, and \code{facet_by} are validated and
+transformed via \code{\link{check_columns}}.  Multi-column
+inputs for \code{x} and \code{group_by} are concatenated
+using \code{x_sep} and \code{group_by_sep}.
+\item \strong{Group setup} — When \code{group_by} is \code{NULL},
+a dummy \code{.group} factor is created so polygons still
+draw.  The legend is suppressed.  When \code{groups} is
+provided, data is filtered to only those group levels.
+\item \strong{Count aggregation} — When \code{y = NULL}, the count
+of observations in each unique (\code{x}, \code{group_by},
+\code{facet_by}) combination is computed.  Factor levels
+are preserved after aggregation.
+\item \strong{Proportion scaling} — The \code{scale_y} argument
+controls y-value normalisation: \code{"group"} scales within
+each group, \code{"global"} within each facet (or the whole
+dataset), \code{"x"} within each x category, and
+\code{"none"} leaves values raw.  Percent labels are used
+for scaled modes.
+\item \strong{NA / empty-level handling} —
+\code{\link{process_keep_na_empty}()} applies \code{keep_na}
+and \code{keep_empty} policies.  Per-column \code{keep_empty}
+settings for \code{x}, \code{group_by}, and \code{facet_by}
+are extracted; facet columns must share the same value.
+\item \strong{Coordinate setup} — The local \code{coord_radar()}
+creates a \code{CoordPolar} subclass with
+\code{is_linear = TRUE}, placing discrete x positions at
+evenly spaced angles.
+\item \strong{Y-axis range} — \code{y_min}, \code{y_max}, and
+\code{y_nbreaks} determine the radial axis limits and
+the number of concentric grid lines.
+\item \strong{Colour mapping} — \code{\link{palette_this}()}
+assigns colours to all \code{group_by} levels, including
+\code{NA} (defaulting to \code{"grey80"}).
+\item \strong{Background layer} — When \code{polygon = TRUE}, a
+polygonal background fills the area between \code{y_min} and
+\code{y_max}.  When \code{polygon = FALSE}, a smooth circular
+background is interpolated via 360 sample points.
+\item \strong{Radial grid lines} — \code{geom_path()} draws
+radial lines from \code{y_min} to \code{y_max} at each
+x-axis position, respecting facets.
+\item \strong{Polygon grid} — When \code{polygon = TRUE},
+concentric polygonal grid lines are drawn at each break
+level via \code{geom_polygon()}.
+\item \strong{Data rendering} — \code{geom_polygon()} draws the
+filled (or unfilled) polygons for each group.
+\code{geom_point()} adds points at each observation.
+Radial axis labels are rendered as text at a fixed
+angular offset.
+\item \strong{Scale configuration} — \code{scale_y_continuous()}
+sets the radial axis limits and breaks.
+\code{scale_x_discrete()} positions the category labels.
+Colour scales use \code{scale_fill_manual()} and
+\code{scale_color_manual()} with \code{drop} controlled
+by \code{keep_empty_group}.
+\item \strong{Circular grid lines} — When \code{polygon = FALSE},
+dashed circular grid lines are styled via
+\code{panel.grid.major.y}.
+\item \strong{Dimension calculation} —
+\code{\link{calculate_plot_dimensions}()} computes plot
+height and width from \code{aspect.ratio}, legend metrics,
+and a base height.
+\item \strong{Faceting} — \code{\link{facet_plot}()} wraps the
+plot with \code{facet_wrap} / \code{facet_grid} if
+\code{facet_by} is supplied, respecting the
+\code{keep_empty} setting for facet variables.
+}
+}
+
 \keyword{internal}

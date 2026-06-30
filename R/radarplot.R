@@ -1,38 +1,157 @@
-#' Atomic Radar plot
+#' Atomic radar/spider plot (internal)
+#'
+#' @description
+#' Core implementation for drawing a single radar (or spider) chart.  This
+#' is the workhorse behind the exported \code{\link{RadarPlot}} and
+#' \code{\link{SpiderPlot}} functions — it takes a **single** data frame
+#' (no \code{split_by} support) and returns a \code{ggplot} object.
+#'
+#' Radar charts display multivariate data on a two-dimensional polar
+#' coordinate system where each variable (x-axis category) is placed
+#' along a radial axis evenly spaced around the circle.  The data values
+#' are connected by lines forming a polygon (or multiple polygons when
+#' \code{group_by} is provided).  When \code{polygon = FALSE} (the
+#' default) the grid is rendered as concentric circles (classic radar
+#' chart); when \code{polygon = TRUE} straight polygonal grid lines are
+#' used (spider chart variant).
+#'
+#' The polar coordinate system is implemented via a local
+#' \code{coord_radar()} helper that extends
+#' \code{ggplot2::CoordPolar} with \code{is_linear = TRUE}, allowing
+#' discrete x-axis positions to be mapped to evenly spaced angular
+#' coordinates.
+#'
+#' @section Architecture:
+#' \enumerate{
+#'   \item \strong{Column resolution} — \code{x}, \code{y},
+#'         \code{group_by}, and \code{facet_by} are validated and
+#'         transformed via \code{\link{check_columns}}.  Multi-column
+#'         inputs for \code{x} and \code{group_by} are concatenated
+#'         using \code{x_sep} and \code{group_by_sep}.
+#'   \item \strong{Group setup} — When \code{group_by} is \code{NULL},
+#'         a dummy \code{.group} factor is created so polygons still
+#'         draw.  The legend is suppressed.  When \code{groups} is
+#'         provided, data is filtered to only those group levels.
+#'   \item \strong{Count aggregation} — When \code{y = NULL}, the count
+#'         of observations in each unique (\code{x}, \code{group_by},
+#'         \code{facet_by}) combination is computed.  Factor levels
+#'         are preserved after aggregation.
+#'   \item \strong{Proportion scaling} — The \code{scale_y} argument
+#'         controls y-value normalisation: \code{"group"} scales within
+#'         each group, \code{"global"} within each facet (or the whole
+#'         dataset), \code{"x"} within each x category, and
+#'         \code{"none"} leaves values raw.  Percent labels are used
+#'         for scaled modes.
+#'   \item \strong{NA / empty-level handling} —
+#'         \code{\link{process_keep_na_empty}()} applies \code{keep_na}
+#'         and \code{keep_empty} policies.  Per-column \code{keep_empty}
+#'         settings for \code{x}, \code{group_by}, and \code{facet_by}
+#'         are extracted; facet columns must share the same value.
+#'   \item \strong{Coordinate setup} — The local \code{coord_radar()}
+#'         creates a \code{CoordPolar} subclass with
+#'         \code{is_linear = TRUE}, placing discrete x positions at
+#'         evenly spaced angles.
+#'   \item \strong{Y-axis range} — \code{y_min}, \code{y_max}, and
+#'         \code{y_nbreaks} determine the radial axis limits and
+#'         the number of concentric grid lines.
+#'   \item \strong{Colour mapping} — \code{\link{palette_this}()}
+#'         assigns colours to all \code{group_by} levels, including
+#'         \code{NA} (defaulting to \code{"grey80"}).
+#'   \item \strong{Background layer} — When \code{polygon = TRUE}, a
+#'         polygonal background fills the area between \code{y_min} and
+#'         \code{y_max}.  When \code{polygon = FALSE}, a smooth circular
+#'         background is interpolated via 360 sample points.
+#'   \item \strong{Radial grid lines} — \code{geom_path()} draws
+#'         radial lines from \code{y_min} to \code{y_max} at each
+#'         x-axis position, respecting facets.
+#'   \item \strong{Polygon grid} — When \code{polygon = TRUE},
+#'         concentric polygonal grid lines are drawn at each break
+#'         level via \code{geom_polygon()}.
+#'   \item \strong{Data rendering} — \code{geom_polygon()} draws the
+#'         filled (or unfilled) polygons for each group.
+#'         \code{geom_point()} adds points at each observation.
+#'         Radial axis labels are rendered as text at a fixed
+#'         angular offset.
+#'   \item \strong{Scale configuration} — \code{scale_y_continuous()}
+#'         sets the radial axis limits and breaks.
+#'         \code{scale_x_discrete()} positions the category labels.
+#'         Colour scales use \code{scale_fill_manual()} and
+#'         \code{scale_color_manual()} with \code{drop} controlled
+#'         by \code{keep_empty_group}.
+#'   \item \strong{Circular grid lines} — When \code{polygon = FALSE},
+#'         dashed circular grid lines are styled via
+#'         \code{panel.grid.major.y}.
+#'   \item \strong{Dimension calculation} —
+#'         \code{\link{calculate_plot_dimensions}()} computes plot
+#'         height and width from \code{aspect.ratio}, legend metrics,
+#'         and a base height.
+#'   \item \strong{Faceting} — \code{\link{facet_plot}()} wraps the
+#'         plot with \code{facet_wrap} / \code{facet_grid} if
+#'         \code{facet_by} is supplied, respecting the
+#'         \code{keep_empty} setting for facet variables.
+#' }
 #'
 #' @inheritParams common_args
-#' @param x A character string of the column name to plot on the x-axis/circles.
-#'  A character/factor column is expected.
-#' @param x_sep A character string to concatenate the columns in `x`, if multiple columns are provided.
-#' @param group_by A character string of the column name(s) to group the data (the lines) by.
-#'  Character/factor column(s) is expected.
-#' @param groups A character vector of group values (in the `group_by` column) to include in the plot. If NULL, all groups will be included.
-#' This can be used to exclude certain groups from the plot or to specify the order of groups in the legend.
-#' Only applicable when `group_by` is provided.
-#' And this implies `keep_empty` for `group_by` is FALSE, which means the groups not in the data will not be shown in the legend.
-#' @param group_by_sep A character string to concatenate the columns in `group_by`, if multiple columns are provided.
-#' @param y A character string of the column name to plot on the y-axis.
-#'  A numeric column is expected.
-#'  If NULL, the count of the x-axis column in each group will be used.
-#' @param group_name A character string to name the legend of group.
-#' @param scale_y How should the y-axis be scaled? Default is "group".
-#'  Other options are "global", "x" and "none".
-#'  * If "group", the y-axis will be scaled to the fraction within each group.
-#'  * If "global", the y-axis will be scaled to the fraction of the total.
-#'  * If "x", the y-axis will be scaled to the fraction of the total within each x-axis group.
-#'  * If "none", the y-axis will be scaled to the count of each x-axis group.
-#' @param y_min A numeric value to set the minimum value of the y-axis.
-#' @param y_max A numeric value to set the maximum value of the y-axis.
-#' @param y_nbreaks A numeric value to set the number of breaks in the y-axis.
-#' @param polygon A logical value to draw the polygons instead of the circles as panel grid.
-#' @param bg_color A character string to set the background color of the plot.
-#' @param bg_alpha A numeric value to set the transparency of the background color.
-#' @param fill A logical value to fill the polygons with colors.
-#' @param linewidth A numeric value to set the width of the lines.
-#' @param pt_size A numeric value to set the size of the points.
-#' @param max_charwidth A numeric value to set the maximum character width for the x labels.
-#' @return A ggplot object
+#' @param x A character string specifying the column name of the data
+#'  frame to plot on the x-axis (the radial categories).  Must be
+#'  character or factor.  Multiple columns can be provided; they are
+#'  concatenated with \code{x_sep} as the separator.
+#' @param x_sep A character string used to join multiple \code{x}
+#'  columns.  Default \code{"_"}.  Ignored when \code{x} is a single
+#'  column.
+#' @param y A character string specifying the numeric column for the
+#'  radial axis.  When \code{NULL}, the count of observations in each
+#'  (\code{x}, \code{group_by}, \code{facet_by}) combination is used.
+#' @param group_by A character vector of column names to group the
+#'  data into separate filled polygons.  Each unique combination
+#'  becomes a distinct polygon layer.  Multiple columns are
+#'  concatenated with \code{group_by_sep}.  When \code{NULL}, a
+#'  single polygon is drawn with no legend.
+#' @param group_by_sep A character string used to join multiple
+#'  \code{group_by} columns.  Default \code{"_"}.
+#' @param group_name A character string used as the colour/fill legend
+#'  title.  When \code{NULL}, the \code{group_by} column name is used.
+#' @param groups A character vector of group values (in the
+#'  \code{group_by} column) to include in the plot.  When \code{NULL},
+#'  all groups are included.  This can control which groups appear and
+#'  their legend order.  Implies \code{keep_empty = FALSE} for the
+#'  \code{group_by} column: groups not present in the data are not
+#'  shown in the legend.
+#' @param scale_y How should the radial axis be scaled?  Default is
+#'  \code{"group"}.  Options are \code{"group"}, \code{"global"},
+#'  \code{"x"}, and \code{"none"}.
+#'  \itemize{
+#'    \item{\code{"group"} — scaled to the fraction within each group.}
+#'    \item{\code{"global"} — scaled to the fraction of the total.}
+#'    \item{\code{"x"} — scaled to the fraction within each x-axis category.}
+#'    \item{\code{"none"} — raw counts or values, no scaling.}
+#'  }
+#' @param y_min A numeric value setting the minimum of the radial
+#'  axis.  Default \code{0}.
+#' @param y_max A numeric value setting the maximum of the radial
+#'  axis.  When \code{NULL}, the maximum data value is used.
+#' @param y_nbreaks A numeric value for the number of breaks
+#'  (concentric grid lines) on the radial axis.  Default \code{4}.
+#' @param polygon A logical value.  When \code{TRUE}, the background
+#'  grid is drawn as a polygon (spider chart style); when
+#'  \code{FALSE} (default), concentric circles are used (radar chart
+#'  style).
+#' @param bg_color A character string specifying the background fill
+#'  colour.  Default \code{"grey80"}.
+#' @param bg_alpha A numeric value for the transparency of the
+#'  background fill.  Default \code{0.1}.
+#' @param fill A logical value.  When \code{TRUE} (default), the data
+#'  polygons are filled with the group colour.  When \code{FALSE},
+#'  only outlines are drawn.
+#' @param linewidth A numeric value for the width of the polygon
+#'  outline lines.  Default \code{1}.
+#' @param pt_size A numeric value for the size of the data point
+#'  markers.  Default \code{4}.
+#' @param max_charwidth A numeric value for the maximum character
+#'  width of x-axis labels before wrapping.  Default \code{16}.
 #' @keywords internal
+#' @return A \code{ggplot} object with \code{height} and \code{width}
+#'  attributes (in inches) attached.
 #' @importFrom rlang syms
 #' @importFrom dplyr summarise n %>% distinct ungroup
 #' @importFrom tidyr complete
@@ -500,13 +619,85 @@ RadarPlotAtomic <- function(
 
 #' Radar plot / Spider plot
 #'
-#' @description Create a radar plot or spider plot for a series of data.
-#'   Radar plot uses circles as the plot grid and Spider plot uses polygons.
+#' @description
+#' Draws a radar chart (concentric circular grid) or spider chart
+#' (polygonal grid) displaying multivariate data in a two-dimensional
+#' polar coordinate system.  Each x-axis category is placed at an
+#' evenly spaced angular position around the chart, and numeric values
+#' are plotted along the radial axis.
+#'
+#' The function supports \strong{count aggregation} (omit \code{y} to
+#' plot observation counts), \strong{proportion scaling} (via
+#' \code{scale_y}), per-group colour control, faceting, and splitting
+#' into separate sub-plots via \code{split_by}.
+#'
+#' \code{\link{SpiderPlot}} is an alias that renders the same data with
+#' polygonal grid lines (spider chart style) by using
+#' \code{polygon = TRUE}.
+#'
+#' @section split_by Workflow:
+#' When \code{split_by} is provided:
+#' \enumerate{
+#'   \item \code{\link{check_keep_na}()} and
+#'         \code{\link{check_keep_empty}()} normalise the
+#'         \code{keep_na} / \code{keep_empty} arguments for all
+#'         relevant columns (\code{x}, \code{split_by},
+#'         \code{group_by}, \code{facet_by}).
+#'   \item The \code{split_by} column is validated and its NA / empty
+#'         levels are processed via
+#'         \code{\link{process_keep_na_empty}()}.  It is then removed
+#'         from the per-column \code{keep_na} / \code{keep_empty}
+#'         lists.
+#'   \item The data frame is split by \code{split_by} (preserving
+#'         level order).  If \code{split_by} is \code{NULL}, the data
+#'         is wrapped in a single-element list with name \code{"..."}.
+#'   \item Per-split \code{palette}, \code{palcolor},
+#'         \code{legend.position}, and \code{legend.direction} are
+#'         resolved via \code{\link{check_palette}()},
+#'         \code{\link{check_palcolor}()}, and
+#'         \code{\link{check_legend}()}.
+#'   \item \code{\link{RadarPlotAtomic}()} is called for each split
+#'         with \code{polygon = FALSE}.  If \code{title} is a
+#'         function, it receives the split level name and can generate
+#'         dynamic titles.
+#'   \item Results are combined via \code{\link{combine_plots}()}
+#'         (when \code{combine = TRUE}) or returned as a named list.
+#' }
+#'
 #' @rdname radarplot
 #' @inheritParams common_args
 #' @inheritParams RadarPlotAtomic
+#' @param split_by The column(s) to split the data by and produce
+#'  separate sub-plots.  Multiple columns are concatenated with
+#'  \code{split_by_sep}.
+#' @param split_by_sep A character string to separate concatenated
+#'  \code{split_by} columns.  Default \code{"_"}.
+#' @param seed A numeric seed for reproducibility.  Passed to
+#'  \code{\link{validate_common_args}()}.
+#' @param combine Logical; when \code{TRUE} (default), returns a
+#'  combined \code{patchwork} object.  When \code{FALSE}, returns a
+#'  named list of individual \code{ggplot} objects.
+#' @param ncol,nrow Integer number of columns / rows for the combined
+#'  layout (passed to \code{\link[patchwork]{wrap_plots}}).
+#' @param byrow Logical; fill the combined layout by row.  Default
+#'  \code{TRUE} (passed to \code{\link[patchwork]{wrap_plots}}).
+#' @param axes A character string specifying how axes should be
+#'  treated across the combined layout (passed to
+#'  \code{\link[patchwork]{wrap_plots}}).
+#' @param axis_titles A character string specifying how axis titles
+#'  should be treated across the combined layout.  Defaults to
+#'  \code{axes}.
+#' @param guides A character string specifying how guides (legends)
+#'  should be collected across panels (passed to
+#'  \code{\link{combine_plots}()}).
+#' @param design A custom layout design for the combined plot (passed
+#'  to \code{\link{combine_plots}()}).
 #' @importFrom ggplot2 waiver
-#' @return A ggplot object or wrap_plots object or a list of ggplot objects
+#' @return A \code{ggplot} object (when \code{combine = TRUE} and
+#'  \code{split_by} is \code{NULL}), a \code{patchwork} object (when
+#'  \code{combine = TRUE} and \code{split_by} is provided), or a named
+#'  list of \code{ggplot} objects (when \code{combine = FALSE}), each
+#'  with \code{height} and \code{width} attributes in inches.
 #' @export
 RadarPlot <- function(
     data,
@@ -670,41 +861,102 @@ RadarPlot <- function(
 }
 
 #' @rdname radarplot
-#' @inheritParams RadarPlot
+#' @description
+#' A variant of \code{\link{RadarPlot}} that renders the chart with
+#' straight polygonal grid lines (spider chart) instead of concentric
+#' circles.  Internally, it calls \code{\link{RadarPlotAtomic}} with
+#' \code{polygon = TRUE} but is otherwise identical to
+#' \code{\link{RadarPlot}} in behaviour and parameters.
+#'
+#' @inheritParams common_args
+#' @inheritParams RadarPlotAtomic
+#' @param split_by The column(s) to split the data by and produce
+#'  separate sub-plots.  Multiple columns are concatenated with
+#'  \code{split_by_sep}.
+#' @param split_by_sep A character string to separate concatenated
+#'  \code{split_by} columns.  Default \code{"_"}.
+#' @param seed A numeric seed for reproducibility.  Passed to
+#'  \code{\link{validate_common_args}()}.
+#' @param combine Logical; when \code{TRUE} (default), returns a
+#'  combined \code{patchwork} object.  When \code{FALSE}, returns a
+#'  named list of individual \code{ggplot} objects.
+#' @param ncol,nrow Integer number of columns / rows for the combined
+#'  layout (passed to \code{\link[patchwork]{wrap_plots}}).
+#' @param byrow Logical; fill the combined layout by row.  Default
+#'  \code{TRUE} (passed to \code{\link[patchwork]{wrap_plots}}).
+#' @param axes A character string specifying how axes should be
+#'  treated across the combined layout (passed to
+#'  \code{\link[patchwork]{wrap_plots}}).
+#' @param axis_titles A character string specifying how axis titles
+#'  should be treated across the combined layout.  Defaults to
+#'  \code{axes}.
+#' @param guides A character string specifying how guides (legends)
+#'  should be collected across panels (passed to
+#'  \code{\link{combine_plots}()}).
+#' @param design A custom layout design for the combined plot (passed
+#'  to \code{\link{combine_plots}()}).
 #' @export
 #' @importFrom ggplot2 waiver
+#' @return A \code{ggplot} object (when \code{combine = TRUE} and
+#'  \code{split_by} is \code{NULL}), a \code{patchwork} object (when
+#'  \code{combine = TRUE} and \code{split_by} is provided), or a named
+#'  list of \code{ggplot} objects (when \code{combine = FALSE}), each
+#'  with \code{height} and \code{width} attributes in inches.
 #' @examples
 #' \donttest{
 #' set.seed(8525)
-#' # use the count
+#'
+#' # --- Radar chart with observation counts ---
 #' data <- data.frame(
-#'    x = factor(
-#'     c(rep("A", 20), rep("B", 30), rep(NA, 30), rep("D", 40), rep("E", 50)),
-#'     levels = LETTERS[1:5]
-#'    ),
-#'    group = factor(
-#'     sample(c("G1", NA, "G3", "G4"), 170, replace = TRUE),
-#'     levels = c("G1", "G2", "G3", "G4")
-#'    )
+#'     x = factor(
+#'         c(rep("A", 20), rep("B", 30), rep(NA, 30), rep("D", 40), rep("E", 50)),
+#'         levels = LETTERS[1:5]
+#'     ),
+#'     group = factor(
+#'         sample(c("G1", NA, "G3", "G4"), 170, replace = TRUE),
+#'         levels = c("G1", "G2", "G3", "G4")
+#'     )
 #' )
 #'
+#' # Basic radar chart
 #' RadarPlot(data, x = "x")
+#'
+#' # Keep NA and empty factor levels
 #' RadarPlot(data, x = "x", keep_na = TRUE, keep_empty = TRUE)
+#'
+#' # Custom background colour
 #' RadarPlot(data, x = "x", bg_color = "lightpink")
+#'
+#' # Raw counts (no proportion scaling)
 #' RadarPlot(data, x = "x", scale_y = "none")
+#'
+#' # Grouped by a variable
 #' RadarPlot(data, x = "x", group_by = "group", keep_na = TRUE)
+#'
+#' # Faceted by a variable
 #' RadarPlot(data, x = "x", facet_by = "group")
+#'
+#' # Spider chart variant (polygonal grid)
 #' SpiderPlot(data, x = "x")
 #' SpiderPlot(data, x = "x", group_by = "group")
-#' # use the y value
+#'
+#' # --- Radar chart with explicit y values ---
 #' data <- data.frame(
-#'    x = rep(LETTERS[1:5], 2),
-#'    y = c(1, 3, 6, 4, 2, 5, 7, 8, 9, 10),
-#'    group = rep(c("G1", "G2"), each = 5)
+#'     x = rep(LETTERS[1:5], 2),
+#'     y = c(1, 3, 6, 4, 2, 5, 7, 8, 9, 10),
+#'     group = rep(c("G1", "G2"), each = 5)
 #' )
+#'
+#' # Grouped radar with raw values
 #' RadarPlot(data, x = "x", y = "y", scale_y = "none", group_by = "group")
+#'
+#' # Faceted radar
 #' RadarPlot(data, x = "x", y = "y", facet_by = "group")
+#'
+#' # Split into separate sub-plots
 #' RadarPlot(data, x = "x", y = "y", split_by = "group")
+#'
+#' # Per-split palettes
 #' RadarPlot(data, x = "x", y = "y", split_by = "group",
 #'           palette = c(G1 = "Set1", G2 = "Paired"))
 #' }
