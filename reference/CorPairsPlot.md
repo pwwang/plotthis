@@ -1,6 +1,19 @@
-# CorPairsPlot
+# Correlation pairs (scatterplot matrix)
 
-Generate a grid of scatter correlation plots for all pairs of variables.
+Draws a grid of pairwise scatter plots for selected numeric columns,
+arranged in a scatterplot matrix layout. The upper or lower triangle
+displays correlation tiles while the opposite triangle shows scatter
+plots with regression lines. Diagonal cells can show density plots,
+violin plots, histograms, box plots, or a simple diagonal line.
+
+**NOTE:** The `facet_by` parameter is **not supported** in CorPairsPlot
+(an error is raised if provided). Use `split_by` instead to create
+separate correlation pair matrices per group.
+
+The function supports **four layout orientations** (`layout`), **three
+correlation methods**, configurable diagonal plots via other plotthis
+functions, custom correlation tile formatting, and splitting into
+separate sub-plots via `split_by`.
 
 ## Usage
 
@@ -55,8 +68,9 @@ CorPairsPlot(
 
 - columns:
 
-  The column names of the data to be plotted. If NULL, all columns,
-  except `group_by`, will be used.
+  A character vector of column names to include in the pairs plot. When
+  `NULL` (default), all columns except `group_by` are used. At least two
+  columns are required.
 
 - group_by:
 
@@ -70,69 +84,86 @@ CorPairsPlot(
 
 - group_name:
 
-  The name of the group in the legend.
+  A character string used as the colour legend title in the scatter
+  plots. When `NULL`, the `group_by` column name is used.
 
 - split_by:
 
-  The column(s) to split data by and plot separately.
+  The column(s) to split the data by and produce separate sub-plots.
+  Multiple columns are concatenated with `split_by_sep`.
 
 - split_by_sep:
 
-  The separator for multiple split_by columns. See `split_by`
+  A character string to separate concatenated `split_by` columns.
+  Default `"_"`.
 
 - diag_type:
 
-  The type of the diagonal plots. Available types: "density", "violin",
-  "histogram", "box", "none".
+  A character string specifying the plot type for diagonal cells. One of
+  `"density"`, `"violin"`, `"histogram"`, `"box"`, or `"none"` (diagonal
+  line). Default: `"density"` (no `group_by`) or `"violin"` (with
+  `group_by`).
 
 - diag_args:
 
-  A list of additional arguments to be passed to the diagonal plots.
+  A named list of additional arguments passed to the diagonal plot
+  function
+  ([`DensityPlot`](https://pwwang.github.io/plotthis/reference/densityhistoplot.md),
+  [`ViolinPlot`](https://pwwang.github.io/plotthis/reference/boxviolinplot.md),
+  [`Histogram`](https://pwwang.github.io/plotthis/reference/densityhistoplot.md),
+  or
+  [`BoxPlot`](https://pwwang.github.io/plotthis/reference/boxviolinplot.md)).
+  Default: [`list()`](https://rdrr.io/r/base/list.html).
 
 - layout:
 
-  The layout of the plots. Available layouts: ".\\, "\\", "/.", "./".
-
-  - '\\ or '/' means the diagonal plots are on the top-left to
-    bottom-right diagonal.
-
-  - '.' means where the scatter plots are.
+  A character string specifying the layout orientation. One of the
+  following codes (dot = scatter, backslash/slash = diagonal): `.\`,
+  `\\.`, `/.`, `./`. Default: `.\`.
 
 - cor_method:
 
-  The method to calculate the correlation. Available methods: "pearson",
-  "spearman", "kendall". The correlation will be shown in the other
-  triangle of the scatter plots.
+  A character string specifying the correlation method for the fill
+  tiles. One of `"pearson"`, `"spearman"`, `"kendall"`. Default:
+  `"pearson"`.
 
 - cor_palette:
 
-  The color palette for the correlation tile plots.
+  A character string specifying the colour palette for the correlation
+  fill tiles. Default: `"RdBu"`.
 
 - cor_palcolor:
 
-  Custom colors used to create a color palette for the correlation tile
-  plots.
+  A character vector of custom colours used to create the correlation
+  tile palette. When `NULL`, the palette's default colours are used.
 
 - cor_size:
 
-  The size of the correlation text.
+  A numeric value specifying the font size of the correlation text in
+  the fill tiles. Default: `3`.
 
 - cor_format:
 
-  The format of the correlation text. Default is "corr: %.2f". It will
-  be formatted using `sprintf(cor_format, corr)`.
+  A character string specifying a glue template for formatting the
+  correlation text. The template is evaluated by
+  [`glue::glue()`](https://glue.tidyverse.org/reference/glue.html) with
+  access to `corr` (the correlation value), `x`, and `y` (the column
+  names). Default: `"corr: \{round(corr, 2)\}"`.
 
 - cor_fg:
 
-  The color of the correlation text.
+  A character string specifying the colour of the correlation text.
+  Default: `"black"`.
 
 - cor_bg:
 
-  The background color of the correlation text.
+  A character string specifying the background colour of the correlation
+  text boxes. Default: `"white"`.
 
 - cor_bg_r:
 
-  The radius of the background of the correlation text.
+  A numeric value specifying the corner radius of the correlation text
+  background boxes. Default: `0.1`.
 
 - theme:
 
@@ -190,80 +221,39 @@ CorPairsPlot(
 
 - seed:
 
-  The random seed to use. Default is 8525.
+  A numeric seed for reproducibility.
 
 - combine:
 
-  Whether to combine the plots into one when facet is FALSE. Default is
-  TRUE.
+  Logical; when `TRUE` (default), returns a combined `patchwork` object.
+  When `FALSE`, returns a named list of individual `patchwork` objects.
 
-- nrow:
+- ncol, nrow:
 
-  A numeric value specifying the number of rows in the facet.
-
-- ncol:
-
-  A numeric value specifying the number of columns in the facet.
+  Integer number of columns / rows for the combined layout.
 
 - byrow:
 
-  A logical value indicating whether to fill the plots by row.
+  Logical; fill the combined layout by row. Default `TRUE`.
 
 - axes:
 
-  A string specifying how axes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axes in individual plots.
-
-  - 'collect' will remove duplicated axes when placed in the same run of
-    rows or columns of the layout.
-
-  - 'collect_x' and 'collect_y' will remove duplicated x-axes in the
-    columns or duplicated y-axes in the rows respectively.
+  A character string specifying how axes should be treated across the
+  combined layout.
 
 - axis_titles:
 
-  A string specifying how axis titltes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axis titles in individual plots.
-
-  - 'collect' will remove duplicated titles in one direction and merge
-    titles in the opposite direction.
-
-  - 'collect_x' and 'collect_y' control this for x-axis titles and
-    y-axis titles respectively.
+  A character string specifying how axis titles should be treated across
+  the combined layout. Defaults to `axes`.
 
 - guides:
 
-  A string specifying how guides should be treated in the layout. Passed
-  to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'collect' will collect guides below to the given nesting level,
-    removing duplicates.
-
-  - 'keep' will stop collection at this level and let guides be placed
-    alongside their plot.
-
-  - 'auto' will allow guides to be collected if a upper level tries, but
-    place them alongside the plot if not.
+  A character string specifying how guides (legends) should be collected
+  across panels.
 
 - design:
 
-  Specification of the location of areas in the layout, passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. When
-  specified, `nrow`, `ncol`, and `byrow` are ignored. See
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
-  for more details.
+  A custom layout design for the combined plot.
 
 - ...:
 
@@ -271,8 +261,37 @@ CorPairsPlot(
 
 ## Value
 
-A `patch_work::wrap_plots` object or a list of them if `combine` is
-`FALSE`.
+A `patchwork` object (when `combine = TRUE`) or a named list of
+`patchwork` objects (when `combine = FALSE`), each with `height` and
+`width` attributes in inches.
+
+## split_by workflow
+
+When `split_by` is provided:
+
+1.  The `split_by` column is validated via
+    [`check_columns()`](https://pwwang.github.io/plotthis/reference/check_columns.md)
+    with `force_factor = TRUE`. Empty levels are dropped.
+
+2.  The data frame is split by `split_by` (preserving level order). If
+    `split_by` is `NULL`, the data is wrapped in a single-element list
+    with name `"..."`. The `split_by` column is removed from each
+    split's data before plotting.
+
+3.  Per-split `palette`, `palcolor`, `legend.position`, and
+    `legend.direction` are resolved via
+    [`check_palette()`](https://pwwang.github.io/plotthis/reference/check_palette.md),
+    [`check_palcolor()`](https://pwwang.github.io/plotthis/reference/check_palcolor.md),
+    and
+    [`check_legend()`](https://pwwang.github.io/plotthis/reference/check_legend.md).
+
+4.  [`CorPairsPlotAtomic()`](https://pwwang.github.io/plotthis/reference/CorPairsPlotAtomic.md)
+    is called for each split. When `title` is a function, it receives
+    the split level name and can generate dynamic titles.
+
+5.  Results are combined via
+    [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)
+    (when `combine = TRUE`) or returned as a named list.
 
 ## Examples
 
@@ -284,28 +303,38 @@ data$y <- rnorm(100, 10, sd = 0.5)
 data$z <- -data$x + data$y + rnorm(100, 20, 1)
 data$g <- sample(1:4, 100, replace = TRUE)
 
-CorPairsPlot(data, diag_type = "histogram", diag_args = list(bins = 30, palette = "Paired"),
- layout = "/.")
+# Histogram diagonal, slash layout
+CorPairsPlot(data, diag_type = "histogram",
+    diag_args = list(bins = 30, palette = "Paired"),
+    layout = "/.")
 
 
+# No diagonal with axis title styling
 CorPairsPlot(data, group_by = "g", diag_type = "none", layout = "./",
- theme_args = list(axis.title = element_textbox(
-     color = "black", box.color = "grey20", size = 16, halign = 0.5, fill = "grey90",
-     linetype = 1, width = grid::unit(1, "npc"), padding = ggplot2::margin(5, 5, 5, 5))))
+    theme_args = list(axis.title = element_textbox(
+        color = "black", box.color = "grey20", size = 16, halign = 0.5,
+        fill = "grey90", linetype = 1,
+        width = grid::unit(1, "npc"),
+        padding = ggplot2::margin(5, 5, 5, 5))))
 #> Warning: no non-missing arguments to max; returning -Inf
 
 
+# Violin diagonal with custom format
 CorPairsPlot(data, group_by = "g", diag_type = "violin", layout = "\\.",
-  cor_format = "{x}\n{y}\ncorr: {round(corr, 2)}")
+    cor_format = "{x}\n{y}\ncorr: {round(corr, 2)}")
 #> Warning: no non-missing arguments to max; returning -Inf
 
 
+# Per-split with bottom legend
 CorPairsPlot(data, split_by = "g", diag_type = "none", layout = ".\\",
- legend.position = "bottom", legend.direction = "horizontal", group_name = "group")
+    legend.position = "bottom", legend.direction = "horizontal",
+    group_name = "group")
 
 
+# Per-split with custom palette colours
 CorPairsPlot(data, split_by = "g",
- palcolor = list("1" = "red", "2" = "blue", "3" = "green", "4" = "yellow"))
+    palcolor = list("1" = "red", "2" = "blue", "3" = "green",
+                    "4" = "yellow"))
 
 # }
 ```

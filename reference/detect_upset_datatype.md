@@ -1,6 +1,10 @@
-# Detect the type of the input data for Upset plot
+# Detect the type of the input data for an UpSet plot
 
-Detect the type of the input data for Upset plot
+Inspects the structure of `data` and returns a classifier string that
+downstream functions use to select the parsing strategy. When `data` is
+an `UpsetPlotData` object (from
+[`prepare_upset_data()`](https://pwwang.github.io/plotthis/reference/prepare_upset_data.md))
+it short-circuits to `"upset"` immediately.
 
 ## Usage
 
@@ -12,23 +16,36 @@ detect_upset_datatype(data, group_by = NULL, id_by = NULL)
 
 - data:
 
-  A data frame or a list
+  A data frame or a named list of element vectors.
 
 - group_by:
 
-  A character string specifying the column name of the data frame to
-  group the data.
+  A character string specifying the column name for the set-definition
+  groups. Only meaningful when `data` is a data frame.
 
 - id_by:
 
-  A character string specifying the column name of the data frame to
-  identify the instances. Required when `group_by` is a single column
-  and data is a data frame.
+  A character string specifying the column name for instance
+  identifiers. Required when `group_by` is a single column and `data` is
+  a data frame.
 
 ## Value
 
-A character string indicating the datatype of the input data or error
-message if invalid. Possible values are "long", "wide", "list" and
-"upset". "long" indicates the data is in long format. "wide" indicates
-the data is in wide format. "list" indicates the data is a list. "upset"
-indicates the data is a UpsetPlotData object.
+A character string, one of `"long"`, `"wide"`, `"list"`, or `"upset"`.
+
+- `"long"`:
+
+  Long-format data — each row records one (set, element) pair.
+
+- `"wide"`:
+
+  Wide-format data — each row is an element and each set has its own
+  logical/0-1 column.
+
+- `"list"`:
+
+  A named list of element vectors.
+
+- `"upset"`:
+
+  Already an `UpsetPlotData` object.

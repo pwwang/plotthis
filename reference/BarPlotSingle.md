@@ -1,6 +1,11 @@
-# BarPlotSingle
+# Single bar plot (no groups)
 
-Create a bar plot without groups.
+Core implementation for drawing a bar plot without grouping — each
+x-axis category is a single bar. This is the simpler code path
+dispatched by
+[`BarPlotAtomic`](https://pwwang.github.io/plotthis/reference/BarPlotAtomic.md)
+when `group_by = NULL`. Bars can be filled by a categorical variable, a
+continuous variable (numeric colour gradient), or a solid colour.
 
 ## Usage
 
@@ -70,22 +75,21 @@ BarPlotSingle(
 
 - x:
 
-  A character vector specifying the column as the x axis of the plot. A
-  character/factor column is expected.
+  A character vector of column name(s) for the x-axis. Character/factor
+  columns are expected. Multiple columns are concatenated with `x_sep`.
 
 - x_sep:
 
-  A character string to concatenate the columns in `x`, if multiple
-  columns are provided.
+  A character string to join multiple `x` columns. Default `"_"`.
 
 - y:
 
-  A character vector specifying the column as the y axis of the plot.
-  Default is NULL, meaning the y axis is the count of the data.
+  A character string specifying the numeric column for the y-axis.
+  Default `NULL` — the count of observations per x category is used.
 
 - flip:
 
-  A logical value indicating whether to flip the x and y axes.
+  Logical; if `TRUE`, swap the x and y axes.
 
 - facet_by:
 
@@ -102,29 +106,46 @@ BarPlotSingle(
 
 - label:
 
-  A column name for the values to be displayed on the top of the bars.
-  If TRUE, the y values will be displayed.
+  A column name (or `TRUE`) for text labels on bars. When `TRUE`, the
+  y-axis values are labelled. When a column name, the values in that
+  column are used.
 
 - label_nudge:
 
-  A numeric value to nudge the labels (the distance between the label
-  and the top of the bar).
+  A numeric value controlling the distance between labels and the bar
+  top, expressed as a fraction of the data range.
 
 - label_fg:
 
-  A character string indicating the color of the label.
+  A character string specifying the label text colour.
 
 - label_size:
 
-  A numeric value indicating the size of the label.
+  A numeric value specifying the label text size.
 
 - label_bg:
 
-  A character string indicating the background color of the label.
+  A character string specifying the label background colour.
 
 - label_bg_r:
 
-  A numeric value indicating the radius of the background.
+  A numeric value specifying the label background corner radius.
+
+- add_bg:
+
+  Logical; add alternating background stripes behind the bars.
+
+- bg_palette:
+
+  Palette for the background stripes.
+
+- bg_palcolor:
+
+  Custom colours for the background stripes.
+
+- bg_alpha:
+
+  Alpha transparency for the background stripes.
 
 - theme:
 
@@ -181,13 +202,9 @@ BarPlotSingle(
 
   A numeric value specifying the aspect ratio of the plot.
 
-- y_min:
+- y_min, y_max:
 
-  A numeric value to specify the minimum value of the y axis.
-
-- y_max:
-
-  A numeric value to specify the maximum value of the y axis.
+  Numeric limits for the y-axis (or x-axis when flipped).
 
 - legend.position:
 
@@ -201,39 +218,39 @@ BarPlotSingle(
 
 - add_line:
 
-  A numeric value indicating the y value to add a horizontal line.
+  A numeric y-intercept for a horizontal reference line.
 
 - line_color:
 
-  A character string indicating the color of the line.
+  Colour of the reference line.
 
 - line_width:
 
-  A numeric value indicating the size of the line.
+  Width of the reference line.
 
 - line_type:
 
-  A numeric value indicating the type of the line.
+  Linetype of the reference line (e.g., 1 = solid, 2 = dashed).
 
 - line_name:
 
-  A character string indicating the name of the line.
+  Legend name for the reference line.
 
 - add_trend:
 
-  A logical value to add trend line to the plot.
+  Logical; add a trend line and points connecting the bar tops.
 
 - trend_color:
 
-  A character string to specify the color of the trend line.
+  Colour of the trend line.
 
 - trend_linewidth:
 
-  A numeric value to specify the width of the trend line.
+  Width of the trend line.
 
 - trend_ptsize:
 
-  A numeric value to specify the size of the trend line points.
+  Size of the trend line points.
 
 - title:
 
@@ -299,9 +316,21 @@ BarPlotSingle(
   applied as 'mult' to the 'expansion' function. See also
   <https://ggplot2.tidyverse.org/reference/expansion.html>
 
+- fill_by:
+
+  A variable used to fill the bars. Can be `TRUE` (default; fill by
+  x-axis values), `FALSE` (solid fill), or a column name (categorical or
+  numeric). When `group_by` is used in
+  [`BarPlotAtomic`](https://pwwang.github.io/plotthis/reference/BarPlotAtomic.md),
+  this parameter is ignored.
+
+- fill_name:
+
+  A character string for the fill legend title.
+
 - width:
 
-  A numeric value specifying the width of the bars.
+  A numeric value specifying the bar width (0–1).
 
 - ...:
 
@@ -309,4 +338,53 @@ BarPlotSingle(
 
 ## Value
 
-A ggplot object.
+A `ggplot` object with `height` and `width` attributes (in inches)
+attached.
+
+## Architecture
+
+1.  **Column resolution** — `x`, `y`, and `facet_by` are validated and
+    transformed via
+    [`check_columns`](https://pwwang.github.io/plotthis/reference/check_columns.md).
+    Multi-column `x` is concatenated with `x_sep`.
+
+2.  **Count aggregation** — when `y = NULL`, the count of observations
+    per (`x`, `facet_by`) combination is computed as a new `.y` column.
+    Factor levels are preserved.
+
+3.  **Fill resolution** — `fill_by` can be `TRUE` (use x values),
+    `FALSE`/`NULL` (solid fill), a categorical column name (discrete
+    colour scale), or a numeric column name (continuous gradient).
+    Discrete fills use
+    [`palette_this()`](https://pwwang.github.io/plotthis/reference/palette_this.md)
+    for colour assignment; numeric fills use
+    [`prepare_continuous_color_scale()`](https://pwwang.github.io/plotthis/reference/prepare_continuous_color_scale.md)
+    with quantile / cutoff clamping and `scale_fill_gradientn()`.
+
+4.  **Background stripes** — when `add_bg = TRUE`,
+    [`bg_layer()`](https://pwwang.github.io/plotthis/reference/bg_layer.md)
+    adds alternating horizontal or vertical stripe fills behind the
+    bars.
+
+5.  **Labels** — when `label` is set, values are displayed on or near
+    the bar tops via
+    [`geom_text_repel()`](https://ggrepel.slowkow.com/reference/geom_text_repel.html)
+    (non-flipped) or `geom_text()` (flipped). The y-position is nudged
+    by `label_nudge` × the data range.
+
+6.  **Trend line** — when `add_trend = TRUE`, a line and points are
+    overlaid across the bar tops.
+
+7.  **Horizontal reference line** — `add_line` draws a horizontal line
+    at the specified y-value, with a colour legend entry named by
+    `line_name`.
+
+8.  **Dimension calculation** —
+    [`calculate_plot_dimensions()`](https://pwwang.github.io/plotthis/reference/calculate_plot_dimensions.md)
+    computes plot height and width from the x-axis category count, label
+    character widths, legend metrics, and flip state. When flipped,
+    height scales with the number of x categories.
+
+9.  **Coordinate transform** — when `flip = TRUE`, `coord_flip()` swaps
+    axes; otherwise `coord_cartesian()` applies `y_min` / `y_max`
+    limits. Free-scale faceting skips limit constraints.

@@ -1,6 +1,41 @@
-# Scatter Plot Atomic
+# Atomic scatter plot (internal)
 
-Scatter Plot Atomic
+Core implementation for drawing a single scatter plot. This is the
+workhorse behind the exported
+[`ScatterPlot`](https://pwwang.github.io/plotthis/reference/ScatterPlot.md)
+function – it takes a **single** data frame (no `split_by` support) and
+returns a `ggplot` object. The plot positions points by `x` and `y`
+coordinates (both numeric), with optional size encoding via a third
+numeric variable (`size_by`), and colour encoding (`color_by`) that can
+be numeric (continuous gradient) or categorical (discrete palette).
+
+Key features:
+
+- **Variable point size** – `size_by` accepts either a numeric constant
+  (uniform dot size) or a column name (size scales with value via
+  `scale_size_area()`).
+
+- **Colour modes** – `color_by` can be numeric (rendered as a continuous
+  gradient via `scale_fill_gradientn()` or `scale_color_gradientn()`) or
+  factor/character (discrete palette via
+  `scale_fill_manual()`/`scale_color_manual()`).
+
+- **Shape support** – shapes 21–25 support separate fill and border
+  (`color`) aesthetics; all other shapes use only the colour aesthetic.
+  The `border_color` parameter can be a constant colour, `TRUE` (track
+  the fill gradient), or omitted.
+
+- **Colour scale trimming** – `lower_quantile` / `upper_quantile` (or
+  explicit `lower_cutoff` / `upper_cutoff`) trim/clamp the continuous
+  colour scale extremes.
+
+- **Axis transformation** – `xtrans` and `ytrans` apply arbitrary scale
+  transformations (e.g. `"log10"`, `"sqrt"`) to the x and y axes via
+  `scale_x_continuous()` / `scale_y_continuous()`.
+
+- **Point highlighting** – `highlight` accepts indices, rownames,
+  logical `TRUE`, or a string expression to select points that are
+  overlaid with a distinct shape, size, colour, and alpha.
 
 ## Usage
 
@@ -57,32 +92,39 @@ ScatterPlotAtomic(
 
 - x:
 
-  A character vector specifying the column to use for the x-axis. A
-  numeric column is expected.
+  A character string specifying the numeric column to use for the
+  x-axis. A numeric column is expected.
 
 - y:
 
-  A character vector specifying the column to use for the y-axis. A
-  numeric column is expected.
+  A character string specifying the numeric column to use for the
+  y-axis. A numeric column is expected.
 
 - size_by:
 
-  Which column to use as the size of the dots. It must be a numeric
-  column. Or it can be a numeric value to specify the size of the dots.
+  Either a numeric constant (uniform dot size) or a character string
+  naming a numeric column whose values control dot size via
+  `scale_size_area(max_size = 6)`. Default: `2`.
 
 - size_name:
 
-  A character vector specifying the name for the size legend.
+  A character string for the size legend title. When `NULL` (default),
+  the `size_by` column name is used. Ignored when `size_by` is a numeric
+  constant.
 
 - color_by:
 
-  Which column to use as the color of the dots. It could be a numeric
-  column or a factor/character column. For shapes 21-25, the color is
-  applied to the fill color.
+  A character string naming a column whose values control dot colour.
+  Can be numeric (continuous gradient via `scale_fill_gradientn()` /
+  `scale_color_gradientn()`) or factor/character (discrete palette via
+  `scale_fill_manual()` / `scale_color_manual()`). For shapes 21–25, the
+  colour is applied to the fill aesthetic. When `NULL` (default), all
+  dots are rendered in a single colour derived from the palette.
 
 - color_name:
 
-  A character vector specifying the name for the color legend.
+  A character string for the colour legend title. When `NULL` (default),
+  the `color_by` column name is used.
 
 - palreverse:
 
@@ -100,17 +142,28 @@ ScatterPlotAtomic(
 
 - alpha:
 
-  A numeric value specifying the transparency of the dots. Default is 1.
-  For shapes 21-25, the transparency is applied to the fill color.
+  A numeric value specifying the transparency of the plot.
 
 - shape:
 
-  A numeric value specifying the shape of the points. Default is 21.
+  A numeric value specifying the point shape. Default: `21` (filled
+  circle with border). Shapes 21–25 support separate fill and border
+  colour aesthetics; all other shapes use a single colour aesthetic.
 
 - border_color:
 
-  A character vector specifying the color for the border of the points.
-  Or TRUE to use the fill color as the border color.
+  Controls the point border colour. For shapes 21–25:
+
+  - `"black"` (default) – constant black border.
+
+  - A colour string (e.g. `"red"`, `"#FF0000"`) – constant colour
+    border.
+
+  - `TRUE` – border colour tracks the `color_by` gradient / palette via
+    `scale_color_gradientn()` / `scale_color_manual()`.
+
+  For shapes without a fill aesthetic (not 21–25), this parameter has no
+  effect.
 
 - lower_quantile, upper_quantile:
 
@@ -130,38 +183,60 @@ ScatterPlotAtomic(
 
 - xtrans:
 
-  A character vector specifying the transformation of the x-axis.
-  Default is "identity".
+  A character string specifying the transformation for the x-axis,
+  passed to `scale_x_continuous(trans = ...)`. Common options:
+  `"identity"` (default), `"log10"`, `"log2"`, `"sqrt"`, `"reverse"`.
+  See
+  [`ggplot2::continuous_scale()`](https://ggplot2.tidyverse.org/reference/continuous_scale.html)
+  for a full list.
 
 - ytrans:
 
-  A character vector specifying the transformation of the y-axis.
-  Default is "identity".
+  A character string specifying the transformation for the y-axis,
+  passed to `scale_y_continuous(trans = ...)`. Common options:
+  `"identity"` (default), `"log10"`, `"log2"`, `"sqrt"`, `"reverse"`.
 
 - highlight:
 
-  A vector of indexes or rownames to select the points to highlight. It
-  could also be an expression (in string) to filter the data.
+  Specifies which points to highlight with an overlaid `geom_point()`
+  layer. Accepted values:
+
+  - `NULL` (default) – no highlighting.
+
+  - `TRUE` – all points are highlighted.
+
+  - A numeric vector – row indices of points to highlight.
+
+  - A single character string – an R expression (e.g. `"x > 0"`) that is
+    parsed with
+    [`rlang::parse_expr()`](https://rlang.r-lib.org/reference/parse_expr.html)
+    and evaluated via
+    [`filter()`](https://dplyr.tidyverse.org/reference/filter.html) to
+    select rows.
+
+  - A character vector – rownames of points to highlight. An error is
+    thrown if the data has no rownames.
 
 - highlight_shape:
 
-  A numeric value specifying the shape of the highlighted points.
-  Default is 16.
+  A numeric value specifying the point shape for highlighted points.
+  Default: `16` (filled circle). Shapes 21–25 use the `fill` aesthetic;
+  other shapes use `color`.
 
 - highlight_size:
 
-  A numeric value specifying the size of the highlighted points. Default
-  is 3.
+  A numeric value specifying the size of highlighted points. Default:
+  `3`.
 
 - highlight_color:
 
-  A character vector specifying the color of the highlighted points.
-  Default is "red".
+  A character string specifying the colour of highlighted points.
+  Default: `"red"`.
 
 - highlight_alpha:
 
-  A numeric value specifying the transparency of the highlighted points.
-  Default is 1.
+  A numeric value in `[0, 1]` specifying the transparency of highlighted
+  points. Default: `1`.
 
 - palette:
 
@@ -242,4 +317,102 @@ ScatterPlotAtomic(
 
 ## Value
 
-A ggplot object
+A `ggplot` object with `height` and `width` attributes (in inches)
+attached.
+
+## Architecture
+
+1.  **ggplot dispatch** – selects `gglogger::ggplot` or
+    [`ggplot2::ggplot`](https://ggplot2.tidyverse.org/reference/ggplot.html)
+    based on `getOption("plotthis.gglogger.enabled")`.
+
+2.  **Column resolution** – `facet_by` is validated and forced to factor
+    via
+    [`check_columns()`](https://pwwang.github.io/plotthis/reference/check_columns.md).
+    `size_by` is validated when it is a column name; numeric constants
+    are kept as-is. `color_by` is validated.
+
+3.  **Dummy colour guard** – when `color_by = NULL`, a synthetic
+    `.color_by` column (constant `""`) is created and the colour legend
+    is suppressed.
+
+4.  **Categorical colour coercion** – when `color_by` is a non-numeric
+    column, it is forced to factor via
+    [`check_columns()`](https://pwwang.github.io/plotthis/reference/check_columns.md)
+    with `force_factor = TRUE`.
+
+5.  **Continuous colour scale preparation** – when `color_by` is
+    numeric,
+    [`prepare_continuous_color_scale()`](https://pwwang.github.io/plotthis/reference/prepare_continuous_color_scale.md)
+    computes quantile-trimmed or cutoff-clamped colour range endpoints
+    (`feat_colors_value`) and winsorizes out-of-range data.
+
+6.  **Highlight resolution** – `highlight` is processed into a subset
+    data frame (`hidata`) via one of four paths: `TRUE` (all points),
+    numeric index vector, a single string expression (parsed with
+    [`rlang::parse_expr()`](https://rlang.r-lib.org/reference/parse_expr.html)
+    and applied via
+    [`filter()`](https://dplyr.tidyverse.org/reference/filter.html)), or
+    a character vector of rownames. An error is thrown if rownames are
+    used on data without row names.
+
+7.  **Shape fill detection** – determines whether the point shape
+    (`shape`) supports a separate fill aesthetic (shapes 21–25).
+
+8.  **Base ggplot** – initialises `ggplot(data, aes(x, y))`.
+
+9.  **Point layer configuration** – the aesthetic mapping and constant
+    aesthetics for `geom_point()` are assembled:
+
+    - *Fill vs colour*: shapes 21–25 map `fill` (and optionally `color`
+      when `border_color = TRUE`); other shapes map `color`.
+
+    - *Size*: a numeric `size_by` is passed as a constant aesthetic; a
+      column name is mapped to the `size` aesthetic.
+
+10. **Size scale** – when `size_by` is a column name,
+    `scale_size_area(max_size = 6)` is added with a size legend (order =
+    1, title = `size_name %||% size_by`).
+
+11. **Fill / colour scale (4 branches)**:
+
+    - *Shape with fill + numeric colour*: `scale_fill_gradientn()` with
+      `feat_colors_value` rescaling and either a colour-bar legend or
+      suppressed guide. When `border_color = TRUE`, a matching
+      `scale_color_gradientn()` is added.
+
+    - *Shape with fill + factor colour*: `scale_fill_manual()` with
+      [`palette_this()`](https://pwwang.github.io/plotthis/reference/palette_this.md)
+      colours and a discrete legend. When `border_color = TRUE`, a
+      matching `scale_color_manual()` is added.
+
+    - *Shape without fill + numeric colour*: `scale_color_gradientn()`
+      with continuous colour-bar legend.
+
+    - *Shape without fill + factor colour*: `scale_color_manual()` with
+      discrete legend.
+
+12. **Highlight overlay** – when `hidata` is non-`NULL`, a second
+    `geom_point()` layer is added using `highlight_shape`,
+    `highlight_color`, `highlight_size`, and `highlight_alpha`. The fill
+    or colour aesthetic is chosen based on whether `highlight_shape` is
+    21–25.
+
+13. **Axis scales** – `scale_x_continuous(trans = xtrans)` and
+    `scale_y_continuous(trans = ytrans)` apply the requested
+    transformations.
+
+14. **Labels and theme** – `labs(title, subtitle, x, y)` sets plot
+    annotations. `do_call(theme, theme_args)` applies the theme.
+    `panel.grid.major` is set to grey80 dashed lines.
+
+15. **Dimension calculation** –
+    [`calculate_plot_dimensions()`](https://pwwang.github.io/plotthis/reference/calculate_plot_dimensions.md)
+    computes plot `height` and `width` from `base_height = 5`,
+    `aspect.ratio`, and legend metrics (number of legend items and
+    maximum label character width).
+
+16. **Faceting** –
+    [`facet_plot()`](https://pwwang.github.io/plotthis/reference/facet_plot.md)
+    wraps the plot with `facet_wrap` / `facet_grid` if `facet_by` is
+    provided.

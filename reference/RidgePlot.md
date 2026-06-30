@@ -1,7 +1,22 @@
 # Ridge Plot
 
-Ridge plot to illustrate the distribution of the data in different
-groups.
+Ridge (joy) plot for visualising the distribution of a numeric variable
+across multiple groups. Each group is rendered as a partially
+overlapping density curve along the y-axis, making it easy to compare
+distribution shapes, central tendency, and spread across categories.
+
+The function supports both **long** and **wide** data formats:
+
+- **Long form** (`in_form = "long"`, default) — a numeric column (`x`)
+  plus a factor column (`group_by`) whose levels become the y-axis
+  ridges.
+
+- **Wide form** (`in_form = "wide"`) — multiple numeric columns listed
+  in `group_by` are gathered internally into long form.
+
+Optional vertical reference lines (`add_vline`) can mark group means,
+specific values, or per-group thresholds. Supports faceting, split-by
+splitting, and full palette customisation.
 
 ## Usage
 
@@ -70,7 +85,8 @@ RidgePlot(
 
 - in_form:
 
-  A character string specifying the form of the data. Default is "long".
+  A character string specifying whether `data` is in `"long"` (default)
+  or `"wide"` format.
 
 - split_by:
 
@@ -92,13 +108,14 @@ RidgePlot(
 
 - group_name:
 
-  A character string to name the legend of 'group_by', if
-  'legend.position' is not "none".
+  A character string used as the legend title for the `group_by` fill
+  aesthetic. Defaults to the (concatenated) `group_by` column name.
 
 - scale:
 
-  A numeric value to scale the ridges. See also
-  [`geom_density_ridges`](https://wilkelab.org/ggridges/reference/geom_density_ridges.html).
+  A numeric value controlling the vertical overlap of ridges. Passed to
+  `ggridges::geom_density_ridges(scale = ...)`. Smaller values increase
+  overlap. When `NULL`, ggridges auto-computes the scale.
 
 - keep_na:
 
@@ -132,31 +149,46 @@ RidgePlot(
 
 - add_vline:
 
-  A numeric vector or a named list of numeric values to add vertical
-  lines to the plot. If a named list is provided, the names should match
-  the levels of 'group_by'. If `TRUE`, the vertical lines will be added
-  at the mean of each group.
+  A specification for vertical reference lines:
+
+  - `NULL` or `FALSE`: no lines.
+
+  - `TRUE`: draw a line at the mean of each group.
+
+  - A numeric vector: draw the same lines for all groups.
+
+  - A named list of numeric vectors: per-group lines, where names should
+    match `group_by` levels.
 
 - vline_type:
 
-  The type of line to draw for the vertical line.
+  A character string specifying the line type for the vertical reference
+  lines. Passed as `linetype` to `geom_vline()`. Default: `"solid"`.
 
 - vline_color:
 
-  The color of the vertical line. If `TRUE`, the vertical lines will be
-  colored according to the group colors.
+  The colour of the vertical reference lines:
+
+  - A literal colour value or vector (recycled): applied directly.
+
+  - `TRUE` (default): each line is coloured with a darkened blend of the
+    corresponding ridge fill colour, computed via
+    `blend_colors(mode = "multiply")`.
 
 - vline_width:
 
-  The width of the vertical line.
+  A numeric value for the thickness of the vertical reference lines.
+  Passed as `linewidth` to `geom_vline()`. Default: `0.5`.
 
 - vline_alpha:
 
-  The alpha value of the vertical line.
+  A numeric value in `[0, 1]` for the transparency of the vertical
+  reference lines. Default: `1`.
 
 - flip:
 
-  A logical value. If TRUE, the plot will be flipped.
+  A logical value. If `TRUE`, the axes are swapped via `coord_flip()`.
+  X-axis text angle and grid-line placement are adjusted accordingly.
 
 - alpha:
 
@@ -213,8 +245,8 @@ RidgePlot(
 
 - reverse:
 
-  A logical value. If TRUE, reverse the order of the groups on the
-  y-axis.
+  A logical value. If `TRUE`, the y-axis group order is reversed. NA
+  groups are renamed to the literal string `"NA"` and placed at the end.
 
 - facet_by:
 
@@ -341,10 +373,57 @@ RidgePlot(
 
 ## Value
 
-A ggplot object or wrap_plots object or a list of ggplot objects. If no
-`split_by` is provided, a single plot (ggplot object) will be returned.
-If 'combine' is TRUE, a wrap_plots object will be returned. If 'combine'
-is FALSE, a list of ggplot objects will be returned.
+A `ggplot` object (single plot), a `patchwork` / `wrap_plots` object
+(when `split_by` is provided and `combine = TRUE`), or a list of
+`ggplot` objects (when `split_by` is provided and `combine = FALSE`).
+
+## split_by Workflow
+
+When `split_by` is specified, `RidgePlot()` executes the following
+pipeline:
+
+1.  **Argument validation** —
+    [`validate_common_args()`](https://pwwang.github.io/plotthis/reference/validate_common_args.md)
+    checks the seed and facet-by consistency.
+
+2.  **NA / empty normalisation** —
+    [`check_keep_na()`](https://pwwang.github.io/plotthis/reference/check_keep_na.md)
+    /
+    [`check_keep_empty()`](https://pwwang.github.io/plotthis/reference/check_keep_empty.md)
+    convert `keep_na` / `keep_empty` to per-column lists.
+
+3.  **Theme resolution** —
+    [`process_theme()`](https://pwwang.github.io/plotthis/reference/process_theme.md)
+    resolves the theme string to a theme function.
+
+4.  **Split column resolution** —
+    [`check_columns()`](https://pwwang.github.io/plotthis/reference/check_columns.md)
+    validates `split_by` (force_factor, concat_multi).
+
+5.  **Pre-filtering** —
+    [`process_keep_na_empty()`](https://pwwang.github.io/plotthis/reference/process_keep_na_empty.md)
+    removes NA / empty levels from the split column, then `data` is
+    split by `split_by` levels (order preserved).
+
+6.  **Per-split parameter resolution** —
+    [`check_palette()`](https://pwwang.github.io/plotthis/reference/check_palette.md),
+    [`check_palcolor()`](https://pwwang.github.io/plotthis/reference/check_palcolor.md),
+    [`check_legend()`](https://pwwang.github.io/plotthis/reference/check_legend.md)
+    resolve palette, palcolor, legend.position, and legend.direction for
+    each split.
+
+7.  **Per-split dispatch** — each split is passed to
+    [`RidgePlotAtomic()`](https://pwwang.github.io/plotthis/reference/RidgePlotAtomic.md)
+    with its resolved parameters. Title defaults to the split level name
+    unless `title` is a function (in which case it is called with the
+    default).
+
+8.  **Combination** —
+    [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)
+    assembles the list of plots via
+    [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html),
+    applying `nrow`, `ncol`, `byrow`, `axes`, `axis_titles`, `guides`,
+    and `design`.
 
 ## Examples
 
@@ -355,12 +434,16 @@ data <- data.frame(
    x = c(rnorm(250, -1), rnorm(250, 1)),
    group = factor(rep(c("A", NA, LETTERS[3:5]), each = 100), levels = LETTERS[1:6])
 )
-RidgePlot(data, x = "x")  # fallback to a density plot
+
+# basic usage
+RidgePlot(data, x = "x")  # single ridge (no group_by)
 #> Picking joint bandwidth of 0.371
 
 RidgePlot(data, x = "x", add_vline = 0, vline_color = "black")
 #> Picking joint bandwidth of 0.371
 
+
+# grouped ridges
 RidgePlot(data, x = "x", group_by = "group")
 #> Picking joint bandwidth of 0.385
 
@@ -375,6 +458,8 @@ RidgePlot(data, x = "x", group_by = "group",
    add_vline = TRUE, vline_color = TRUE, alpha = 0.7)
 #> Picking joint bandwidth of 0.385
 
+
+# faceting
 RidgePlot(data, x = "x", facet_by = "group",
    keep_na = TRUE, keep_empty = TRUE)
 #> Picking joint bandwidth of 0.356
@@ -443,6 +528,8 @@ RidgePlot(data_wide, group_by = LETTERS[1:5], in_form = "wide", facet_by = "grou
 #> Picking joint bandwidth of 0.367
 #> Picking joint bandwidth of 0.428
 
+
+# split_by with per-split palettes
 RidgePlot(data_wide, group_by = LETTERS[1:5], in_form = "wide", split_by = "group",
    palette = list(a = "Reds", b = "Blues", c = "Greens", d = "Purples"))
 #> Warning: Column 'A' not found in data. Skipping 'keep_na' processing for this column.

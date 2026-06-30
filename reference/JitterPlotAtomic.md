@@ -1,6 +1,22 @@
-# Atomic Jitter plot
+# Atomic jitter plot (internal)
 
-Atomic Jitter plot
+Core implementation for drawing a single jittered point plot. This is
+the workhorse behind the exported
+[`JitterPlot`](https://pwwang.github.io/plotthis/reference/jitterplot.md)
+function — it takes a **single** data frame (no `split_by` support) and
+returns a `ggplot` object. The plot displays individual data points with
+random jitter along the x-axis (and optionally the y-axis) to reveal the
+distribution of values within each x category, making it especially
+useful for visualising overlapping discrete data.
+
+The function provides extensive annotation features including point
+labelling (via
+[`geom_text_repel`](https://ggrepel.slowkow.com/reference/geom_text_repel.html)
+with automatic top-n selection using a configurable distance metric),
+point highlighting, optional dodging via `group_by`, and horizontal
+reference lines. It supports both long and wide input formats,
+quantile-based axis limits, and x-axis reordering by y-value summaries
+(mean or median).
 
 ## Usage
 
@@ -83,26 +99,30 @@ JitterPlotAtomic(
 
 - x:
 
-  A character string of the column name to plot on the x-axis. A
-  character/factor column is expected. If multiple columns are provided,
-  the columns will be concatenated with `x_sep`.
+  A character string specifying the column name for the x-axis. Must be
+  character or factor. Multiple columns can be provided; they are
+  concatenated with `x_sep` as the separator. When `in_form` is
+  `"wide"`, the `x` columns are used as key columns and pivoted to long
+  format (they are not concatenated).
 
 - x_sep:
 
-  A character string to concatenate the columns in `x`, if multiple
-  columns are provided. When `in_form` is "wide", `x` columns will not
-  be concatenated.
+  A character string used to join multiple `x` columns. Default `"_"`.
+  Ignored when `x` is a single column or when `in_form` is `"wide"`.
 
 - y:
 
-  A character string of the column name to plot on the y-axis. A numeric
-  column is expected. When `in_form` is "wide", `y` is not required. The
-  values under `x` columns will be used as y-values.
+  A character string specifying the numeric column for the y-axis.
+  Required when `in_form` is `"long"` (default). When `in_form` is
+  `"wide"`, `y` is not required — the values under the `x` columns are
+  used as y-values.
 
 - in_form:
 
-  A character string to specify the input data type. Either "long" or
-  "wide".
+  A character string specifying the input data format. Either `"long"`
+  (default) or `"wide"`. In `"long"` format, `x` and `y` are separate
+  columns. In `"wide"` format, the `x` columns contain the y-values and
+  are pivoted to a key-value pair.
 
 - keep_na:
 
@@ -136,40 +156,37 @@ JitterPlotAtomic(
 
 - sort_x:
 
-  A character string to specify the sorting of x-axis, chosen from
-  "none", "mean_asc", "mean_desc", "mean", "median_asc", "median_desc",
-  "median".
-
-  - `none` means no sorting (as-is).
-
-  - `mean_asc` sorts the x-axis by ascending mean of y-values.
-
-  - `mean_desc` sorts the x-axis by descending mean of y-values.
-
-  - `mean` is an alias for `mean_asc`.
-
-  - `median_asc` sorts the x-axis by ascending median of y-values.
-
-  - `median_desc` sorts the x-axis by descending median of y-values.
-
-  - `median` is an alias for `median_asc`.
+  A character string controlling x-axis level reordering by y-value
+  summaries. One of `"none"`, `"mean_asc"`, `"mean_desc"`, `"mean"`,
+  `"median_asc"`, `"median_desc"`, `"median"`. `"none"` leaves the
+  levels as-is. `"mean_asc"` / `"mean"` sorts by ascending mean of y.
+  `"mean_desc"` sorts by descending mean. `"median_asc"` / `"median"`
+  sorts by ascending median. `"median_desc"` sorts by descending median.
+  Default: `"none"`.
 
 - flip:
 
-  A logical value to flip the plot.
+  A logical value. When `TRUE`, the x and y axes are swapped via
+  `coord_flip` and the x-axis factor levels are reversed. Dimension
+  calculation accounts for the flip. Default: `FALSE`.
 
 - group_by:
 
-  A character string to dodge the points.
+  A character vector of column names for dodging the points. Each unique
+  combination becomes a separate dodge group and the points are offset
+  horizontally via `position_jitterdodge` to reduce overlap. Multiple
+  columns are concatenated with `group_by_sep`. When `NULL` (default),
+  no dodging is applied — only jitter via `position_jitter`.
 
 - group_by_sep:
 
-  A character string to concatenate the columns in `group_by`, if
-  multiple columns are provided.
+  A character string used to join multiple `group_by` columns. Default
+  `"_"`.
 
 - group_name:
 
-  A character string to name the legend of dodge.
+  A character string for the dodge-group legend title. When `NULL`
+  (default), the `group_by` column name is used.
 
 - x_text_angle:
 
@@ -177,10 +194,12 @@ JitterPlotAtomic(
 
 - order_by:
 
-  A string of expression passed to
-  [`dplyr::arrange()`](https://dplyr.tidyverse.org/reference/arrange.html)
-  to order the data to get the top `nlabel` points for labeling. Default
-  is `-({y}^2 + {size_by}^2)` (similar to VolcanoPlot).
+  A string expression passed to
+  [`arrange()`](https://dplyr.tidyverse.org/reference/arrange.html) to
+  determine which points are labelled. Evaluated within each x-group
+  (and facet panel when `facet_by` is set). Default:
+  `"-({y}^2 + {size_by}^2)"`, which selects points farthest from the
+  origin in y-size radial distance, analogous to VolcanoPlot.
 
 - theme:
 
@@ -211,7 +230,8 @@ JitterPlotAtomic(
 
 - alpha:
 
-  Point transparency.
+  A numeric value in `[0, 1]` controlling point transparency. Default:
+  `1`.
 
 - aspect.ratio:
 
@@ -229,101 +249,172 @@ JitterPlotAtomic(
 
 - shape:
 
-  A numeric value to specify the point shape. Shapes 21–25 have borders;
-  border behavior is controlled by `border`.
+  A numeric value specifying the point shape (ggplot2 point shape
+  codes). Shapes 21–25 are filled shapes with borders; for these shapes
+  the border behaviour is controlled by `border`. Default: `21` (filled
+  circle).
 
 - border:
 
-  A logical or character value to specify the border of points when the
-  shape has border (21–25). If TRUE, border color follows the point
-  color (same as fill). If a color string, uses that constant border
-  color. If FALSE, no border.
+  Controls the border of points when the shape has a border (21–25). If
+  `TRUE`, the border colour follows the point fill colour (same as the
+  group colour). If a single colour string (e.g. `"black"`), uses that
+  constant border colour for all points. If `FALSE`, no border is drawn
+  (`NA`). Default: `"black"`.
 
 - size_by:
 
-  A numeric column name or a single numeric value for the point size.
-  When a column, sizes are scaled (see scatter plots).
+  A numeric column name or a single numeric value controlling point
+  size. When a column name is provided, sizes are scaled using
+  `scale_size_area(max_size = 6)` and a size legend is shown. When a
+  single numeric value, all points use that constant size. Default: `2`.
 
 - size_name:
 
-  Legend title for size when `size_by` is a column.
+  A character string for the size legend title. When `NULL` (default)
+  and `size_by` is a column, the column name is used. Ignored when
+  `size_by` is a single numeric value.
 
 - size_trans:
 
-  A function or a name of a global function to transform `size_by` (when
-  `size_by` is a column). The legend shows original (untransformed)
-  values.
+  A function or a function name (as a string) to transform the `size_by`
+  values for size mapping. The transformed values determine the point
+  size on the plot, but the legend labels show the original
+  (untransformed) values. When `NULL` (default), no transformation is
+  applied.
 
-- jitter_width, jitter_height:
+- y_nbreaks:
 
-  Jitter parameters.
+  A numeric value hinting at the number of break intervals for the
+  y-axis. Passed to `scale_y_continuous`. Default: `4`.
+
+- jitter_width:
+
+  A numeric value controlling the amount of horizontal jitter (in x-axis
+  units). Passed to `position_jitter` / `position_jitterdodge`. Default:
+  `0.5`.
+
+- jitter_height:
+
+  A numeric value controlling the amount of vertical jitter (in y-axis
+  units). Passed to `position_jitter` / `position_jitterdodge`. Default:
+  `0`.
 
 - y_max, y_min:
 
-  Numeric or quantile strings ("q95", "q5") for y limits computation
-  (used for fixed coord).
+  Numeric values or quantile strings (e.g. `"q95"`, `"q5"`) for y-axis
+  limits used in `coord_cartesian` / `coord_flip`. When `NULL`
+  (default), the data range is used. When a quantile string, the
+  corresponding quantile of the y-values is computed via
+  [`quantile()`](https://rdrr.io/r/stats/quantile.html).
 
-- y_trans, y_nbreaks:
+- y_trans:
 
-  Axis settings.
+  A character string specifying a transformation for the y-axis (e.g.
+  `"log10"`, `"sqrt"`). Passed to
+  [`scale_y_continuous`](https://ggplot2.tidyverse.org/reference/scale_continuous.html).
+  Default: `"identity"`.
 
 - add_bg:
 
-  A logical value to add background to the plot.
+  A logical value. When `TRUE`, alternating background stripes are drawn
+  behind the points via
+  [`bg_layer()`](https://pwwang.github.io/plotthis/reference/bg_layer.md),
+  using the x-axis level order. Default: `FALSE`.
 
 - bg_palette:
 
-  A character string to specify the palette of the background.
+  A character string specifying the palette for the background stripe
+  colours. Passed to
+  [`bg_layer()`](https://pwwang.github.io/plotthis/reference/bg_layer.md).
+  Default: `"stripe"`.
 
 - bg_palcolor:
 
-  A character vector to specify the colors of the background.
+  A character vector of colours for the background stripes. Passed to
+  [`bg_layer()`](https://pwwang.github.io/plotthis/reference/bg_layer.md).
+  When `NULL` (default), colours are derived from `bg_palette`.
 
 - bg_alpha:
 
-  A numeric value to specify the transparency of the background.
+  A numeric value in `[0, 1]` for the transparency of the background
+  stripes. Default: `0.2`.
 
 - add_hline:
 
-  Add one or more horizontal reference lines at the given y-value(s).
+  One or more numeric values specifying y-values at which to draw
+  horizontal reference lines. When `NULL` (default), no reference lines
+  are drawn.
 
 - hline_type:
 
-  The line type for the horizontal reference line(s).
+  A character string specifying the line type for the horizontal
+  reference line(s). Default: `"solid"`.
 
 - hline_width:
 
-  The line width for the horizontal reference line(s).
+  A numeric value specifying the line width for the horizontal reference
+  line(s). Default: `0.5`.
 
 - hline_color:
 
-  The color for the horizontal reference line(s).
+  A character string specifying the colour for the horizontal reference
+  line(s). Default: `"black"`.
 
 - hline_alpha:
 
-  The alpha for the horizontal reference line(s).
+  A numeric value in `[0, 1]` specifying the alpha (transparency) for
+  the horizontal reference line(s). Default: `1`.
 
 - labels:
 
-  A vector of row names or indices to label the points.
+  A vector of row names or row indices specifying which points to label.
+  When `NULL` (default) and `nlabel > 0`, the top `nlabel` points per
+  x-group are selected automatically.
 
 - label_by:
 
-  A character column name to use as the label text. If NULL, rownames
-  are used.
+  A character string naming a column whose values are used as label
+  text. When `NULL` (default), row names are used as labels.
 
 - nlabel:
 
-  Number of points to label per x-group when `labels` is NULL (top by
-  y^2 + size^2).
+  An integer specifying the number of points to label per x-group when
+  `labels` is `NULL`. Points are selected by descending order of
+  `order_by`. Default: `5`. Set to `0` to suppress automatic labelling.
 
 - label_size, label_fg, label_bg, label_bg_r:
 
-  Label aesthetics.
+  Label aesthetics for
+  [`geom_text_repel`](https://ggrepel.slowkow.com/reference/geom_text_repel.html).
+  `label_size`: text size (default `3`). `label_fg`: text colour
+  (default `"black"`). `label_bg`: background (halo) colour for the
+  label text (default `"white"`). `label_bg_r`: background border radius
+  (default `0.1`).
 
-- highlight, highlight_color, highlight_size, highlight_alpha:
+- highlight:
 
-  Highlighted point options.
+  A specification of which points to highlight. Can be: `TRUE`
+  (highlight all points), a numeric vector of row indices, a single
+  character string parsed as an R expression, or a character vector of
+  row names. When a point is highlighted, an overlay `geom_point` is
+  drawn on top with `highlight_color`, `highlight_size`, and
+  `highlight_alpha`. Default: `NULL` (no highlighting).
+
+- highlight_color:
+
+  A character string specifying the colour of highlighted points.
+  Default: `"red2"`.
+
+- highlight_size:
+
+  A numeric value specifying the size of highlighted points. Default:
+  `1`.
+
+- highlight_alpha:
+
+  A numeric value in `[0, 1]` specifying the transparency of highlighted
+  points. Default: `1`.
 
 - facet_by:
 
@@ -381,4 +472,142 @@ JitterPlotAtomic(
 
 ## Value
 
-A ggplot object
+A `ggplot` object with `height` and `width` attributes (in inches)
+attached.
+
+## Architecture
+
+1.  **ggplot dispatch** — selects `gglogger::ggplot` or
+    [`ggplot2::ggplot`](https://ggplot2.tidyverse.org/reference/ggplot.html)
+    based on `getOption("plotthis.gglogger.enabled")`.
+
+2.  **in_form handling** — when `in_form = "wide"`, the x columns are
+    pivoted to long format via
+    [`pivot_longer()`](https://tidyr.tidyverse.org/reference/pivot_longer.html),
+    creating a key column `.x` and a value column `.y`.
+
+3.  **Column resolution** — `x`, `y`, `group_by`, and `facet_by` are
+    validated and transformed via
+    [`check_columns`](https://pwwang.github.io/plotthis/reference/check_columns.md).
+    Multi-column inputs for `x` and `group_by` are concatenated into
+    single columns using their respective separators (`x_sep`,
+    `group_by_sep`).
+
+4.  **NA / empty-level handling** —
+    [`process_keep_na_empty()`](https://pwwang.github.io/plotthis/reference/process_keep_na_empty.md)
+    applies `keep_na` and `keep_empty` policies. Per-column `keep_empty`
+    settings are extracted for `x`, `group_by`, and `facet_by`
+    independently. When `facet_by` has more than one column, the
+    `keep_empty` values for all facet columns must be identical.
+
+5.  **sort_x resolution** —
+    [`match.arg()`](https://rdrr.io/r/base/match.arg.html) normalises
+    the `sort_x` argument, and per-group (`x`, `group_by`, `facet_by`)
+    means and medians of `y` are computed for subsequent reordering.
+
+6.  **y-axis limit computation** — `y_max` and `y_min` support raw
+    numeric values or quantile strings (e.g. `"q95"`), which are
+    resolved via [`quantile()`](https://rdrr.io/r/stats/quantile.html).
+    These limits are used for fixed `coord_cartesian` / `coord_flip`.
+
+7.  **Highlight flag** — when `highlight` is provided, a logical column
+    `.highlight` is created. Values can be `TRUE` (all points), a
+    numeric vector of row indices, a single character string parsed as
+    an R expression, or a character vector matched against row names.
+
+8.  **Label preparation** — labels are resolved from `label_by` or row
+    names. When `labels` is `NULL` and `nlabel > 0`, the top `nlabel`
+    points per x-group are selected by descending order of `order_by`
+    (default: `-({y}^2 + {size_by}^2)`, the radial distance from zero in
+    y-size space, analogous to VolcanoPlot). When `facet_by` is active,
+    the ranking is nested within each facet panel.
+
+9.  **x-axis reordering** — when `sort_x` is not `"none"`, the x-axis
+    factor levels are reordered by the per-group mean or median via
+    [`reorder()`](https://rdrr.io/r/stats/reorder.factor.html).
+
+10. **Flip handling** — when `flip = TRUE`, the x-axis factor levels are
+    reversed and the aspect ratio is inverted.
+
+11. **Colour assignment** —
+    [`palette_this()`](https://pwwang.github.io/plotthis/reference/palette_this.md)
+    assigns colours to the levels of `group_by` (or `x` when `group_by`
+    is `NULL`), including `NA` levels which are relabelled as `"NA"`.
+
+12. **Background layer** — when `add_bg = TRUE`, alternating background
+    stripes are drawn via
+    [`bg_layer()`](https://pwwang.github.io/plotthis/reference/bg_layer.md)
+    using the x-axis level order.
+
+13. **Position jitter** — when `group_by` is `NULL`,
+    [`position_jitter()`](https://ggplot2.tidyverse.org/reference/position_jitter.html)
+    is used. When `group_by` is provided,
+    [`position_jitterdodge()`](https://ggplot2.tidyverse.org/reference/position_jitterdodge.html)
+    is used so points are dodged by group before jittering.
+
+14. **Pre-compute jittered positions** — a temporary `ggplot` is built
+    and rendered via `ggplot_build()` to extract the actual jittered
+    coordinates. These are stored as `.x_jittered` and `.y_jittered`
+    columns and used by the label layer because `geom_text_repel` does
+    not natively respect `position_jitter` / `position_jitterdodge`.
+
+15. **Point layer** — `geom_point()` is built with the appropriate
+    aesthetic mapping: fill (for shapes 21–25) or colour (for other
+    shapes) mapped to the grouping variable. Border behaviour for shapes
+    21–25 is controlled by `border` (constant string, mapped to group
+    colour, or `NA`). When `size_by` is a column, size is mapped via
+    `aes(size)`.
+
+16. **Discrete colour/fill scales** — `scale_fill_manual()` or
+    `scale_color_manual()` with the assigned palette colours. When
+    `keep_empty` is `TRUE` for the colour column, `drop = FALSE` and
+    explicit `breaks` / `limits` preserve empty levels. An additional
+    `scale_color_manual()` is added for border colour when
+    `border = TRUE`.
+
+17. **Size scale** — when `size_by` is a column,
+    `scale_size_area(max_size = 6)` is applied. If `size_trans` is
+    provided, the legend labels show the original (untransformed) values
+    while the mapping uses transformed values.
+
+18. **Highlight overlay** — if any points are highlighted, a second
+    `geom_point()` layer is drawn on top using the `highlight_color`,
+    `highlight_size`, and `highlight_alpha` settings. The highlight
+    layer does not affect the legend.
+
+19. **Label layer** — if any points are selected for labelling,
+    [`geom_text_repel()`](https://ggrepel.slowkow.com/reference/geom_text_repel.html)
+    is rendered at the pre-computed jittered coordinates.
+
+20. **Horizontal reference lines** — when `add_hline` is provided,
+    `geom_hline()` is drawn using the specified line aesthetics.
+
+21. **Axes and labels** — `scale_x_discrete()` (with
+    `drop = !isTRUE(keep_empty_x)`),
+    `scale_y_continuous(trans = y_trans, n.breaks = y_nbreaks)`, and
+    `labs()` set the axis scale properties and titles.
+
+22. **Coordinate system** — when `flip = TRUE`, `coord_flip()` is used
+    with (or without) fixed y-limits depending on free-scale faceting.
+    When `flip = FALSE`, `coord_cartesian()` sets the y-axis limits
+    unless free scales are in use.
+
+23. **Theme** — `do_call(theme, theme_args)` applies the selected theme,
+    with additional `aspect.ratio`, x-axis text rotation, legend
+    position, and legend direction adjustments. Panel grid lines are
+    styled: major y-axis lines (dashed grey) for non-flipped plots;
+    major x-axis lines for flipped plots.
+
+24. **Dimension calculation** —
+    [`calculate_plot_dimensions()`](https://pwwang.github.io/plotthis/reference/calculate_plot_dimensions.md)
+    computes plot height and width from the x-axis category count,
+    `aspect.ratio`, dodge group count, legend metrics, and label
+    character width. The minimum dimensions account for x-axis label
+    length. The resulting `height` / `width` attributes are stored on
+    the `ggplot` object. For flipped plots, the width is set to at least
+    `max(width, height)`.
+
+25. **Faceting** —
+    [`facet_plot()`](https://pwwang.github.io/plotthis/reference/facet_plot.md)
+    wraps the plot with `facet_wrap` / `facet_grid` if `facet_by` is
+    provided, respecting the `keep_empty` setting for facet variables.

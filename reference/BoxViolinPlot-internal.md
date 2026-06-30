@@ -1,6 +1,14 @@
-# Box/Violin plot
+# Box / Violin / Bar / Beeswarm plot (internal)
 
-Box/Violin plot
+Internal wrapper that handles `split_by` processing and dispatches to
+[`BoxViolinPlotAtomic`](https://pwwang.github.io/plotthis/reference/BoxViolinPlotAtomic.md)
+for each split. This is the intermediate layer between the three public
+APIs
+([`BoxPlot`](https://pwwang.github.io/plotthis/reference/boxviolinplot.md),
+[`ViolinPlot`](https://pwwang.github.io/plotthis/reference/boxviolinplot.md),
+and
+[`BeeswarmPlot`](https://pwwang.github.io/plotthis/reference/boxviolinplot.md))
+and the core implementation.
 
 ## Usage
 
@@ -123,9 +131,7 @@ BoxViolinPlot(
 
 - x_sep:
 
-  A character string to concatenate the columns in `x`, if multiple
-  columns are provided. When `in_form` is "wide", `x` columns will not
-  be concatenated.
+  A character string to join multiple `x` columns. Default `"_"`.
 
 - y:
 
@@ -134,53 +140,39 @@ BoxViolinPlot(
 
 - base:
 
-  A character string to specify the base plot type. Either "box",
-  "violin", "bar" or "none" (used by BeeswarmPlot). When "bar", bars
-  showing the mean values are plotted. This is mutually exclusive with
-  `add_box`.
+  A character string specifying the primary plot type: `"box"` (box
+  plot), `"violin"` (violin plot), `"bar"` (mean bars with optional
+  error bars), or `"none"` (no primary geometry, used by beeswarm
+  plots).
 
 - in_form:
 
-  A character string to specify the input data type. Either "long" or
-  "wide".
+  A character string: `"long"` (default) or `"wide"`. In wide form, `x`
+  columns are pivoted to long format.
 
 - split_by:
 
-  The column(s) to split data by and plot separately.
+  The column(s) to split the data by for separate sub-plots.
 
 - split_by_sep:
 
-  The separator for multiple split_by columns. See `split_by`
+  Separator for concatenated `split_by` columns.
 
 - symnum_args:
 
-  A list of arguments to pass to the function `symnum` for symbolic
-  number coding of p-values. For example,
-  `symnum_args <- list(cutpoints = c(0, 0.0001, 0.001, 0.01, 0.05, Inf), symbols = c("****", "***", "**", "*", "ns"))`.
-  In other words, we use the following convention for symbols indicating
-  statistical significance:
-
-  - `ns`: p \> 0.05
-
-  - `*`: p \<= 0.05
-
-  - `**`: p \<= 0.01
-
-  - `***`: p \<= 0.001
-
-  - `****`: p \<= 0.0001
+  A list of arguments passed to
+  [`symnum`](https://rdrr.io/r/stats/symnum.html) for symbolic p-value
+  coding.
 
 - sort_x:
 
-  An expression (in character string) to order x-axis. For example,
-  "mean(y)" will order the x-axis by the mean of y. Default is NULL,
-  which means keeping the original order of x. Note that when keep_empty
-  is TRUE for x, the empty x levels will always be placed at the end of
-  the x-axis.
+  An R expression string (e.g., `"mean(y)"`) to order x-axis categories.
+  Default `NULL` keeps the original order. When `keep_empty_x` is
+  `TRUE`, empty levels are placed last.
 
 - flip:
 
-  A logical value to flip the plot.
+  Logical; if `TRUE`, swap the x and y axes.
 
 - keep_empty:
 
@@ -224,12 +216,13 @@ BoxViolinPlot(
 
 - group_name:
 
-  A character string to name the legend of dodge.
+  A character string for the dodge legend title.
 
 - paired_by:
 
-  A character string of the column name identifying paired observations
-  for paired tests.
+  A character string naming a column that identifies paired
+  observations. Forces `add_point = TRUE` and connects paired
+  observations with lines.
 
 - x_text_angle:
 
@@ -237,13 +230,15 @@ BoxViolinPlot(
 
 - step_increase:
 
-  A numeric value to specify the step increase in fraction of total
-  height for every additional comparison of the significance labels.
+  Fractional step increase for stacking significance brackets when
+  multiple comparisons exist.
 
 - fill_mode:
 
-  A character string to specify the fill mode. Either "dodge", "x",
-  "mean", "median".
+  A character string controlling fill colour mapping: `"dodge"` (fill by
+  `group_by`, discrete), `"x"` (fill by x-axis categories, discrete),
+  `"mean"` or `"median"` (fill by pre-computed statistic, continuous
+  gradient).
 
 - palreverse:
 
@@ -252,8 +247,10 @@ BoxViolinPlot(
 
 - position_dodge_preserve:
 
-  Should dodging preserve the "total" width of all elements at a
-  position, or the width of a "single" element?
+  Passed to
+  [`position_dodge()`](https://ggplot2.tidyverse.org/reference/position_dodge.html):
+  `"total"` preserves the overall group width; `"single"` preserves
+  individual element width.
 
 - theme:
 
@@ -297,264 +294,232 @@ BoxViolinPlot(
 
 - add_point:
 
-  A logical value to add (jitter) points to the plot.
+  Logical; add jittered or beeswarm points to the plot.
 
 - pt_color:
 
-  A character string to specify the color of the points.
+  Colour of the points. When `add_beeswarm = TRUE` and `pt_color` is
+  `NULL`, points are coloured by the fill variable.
 
 - pt_size:
 
-  A numeric value to specify the size of the points.
+  Numeric size of the points. Default computed from data size:
+  `min(3000 / nrow(data), 0.6)`.
 
 - pt_alpha:
 
-  A numeric value to specify the transparency of the points.
+  Numeric transparency of the points.
 
 - jitter_width:
 
-  A numeric value to specify the width of the jitter. Defaults to 0.5,
-  but when paired_by is provided, it will be set to 0.
+  Numeric width of the jitter. Defaults to `0.5`, but set to `0` when
+  `paired_by` is provided.
 
 - jitter_height:
 
-  A numeric value to specify the height of the jitter.
+  Numeric height of the jitter. Default `0`.
 
 - stack:
 
-  A logical value whether to stack the facetted plot by 'facet_by'.
+  Logical; stack facetted panels in a compact layout with shared strip
+  labels.
 
-- y_max:
+- y_max, y_min:
 
-  A numeric value or a character string to specify the maximum value of
-  the y-axis. You can also use quantile notation like "q95" to specify
-  the 95th percentile. When comparisons are set and a numeric y_max is
-  provided, it will be used to set the y-axis limit, including the
-  significance labels.
-
-- y_min:
-
-  A numeric value or a character string to specify the minimum value of
-  the y-axis. You can also use quantile notation like "q5" to specify
-  the 5th percentile.
+  Numeric y-axis limits, or quantile notation strings (e.g., `"q95"` for
+  the 95th percentile, `"q5"` for the 5th percentile).
 
 - add_beeswarm:
 
-  A logical value to add beeswarm points to the plot instead of jittered
-  points. When TRUE, points are positioned using the beeswarm algorithm
-  to avoid overlap while showing density. Requires the ggbeeswarm
-  package to be installed.
+  Logical; use
+  [`ggbeeswarm::geom_beeswarm()`](https://rdrr.io/pkg/ggbeeswarm/man/geom_beeswarm.html)
+  for non-overlapping point layout instead of jitter. Requires the
+  `ggbeeswarm` package.
 
 - beeswarm_method:
 
-  A character string to specify the beeswarm method. Either "swarm",
-  "compactswarm", "hex", "square", or "center". Default is "swarm". See
-  ggbeeswarm::geom_beeswarm for details.
+  Beeswarm layout method: `"swarm"`, `"compactswarm"`, `"hex"`,
+  `"square"`, or `"center"`.
 
 - beeswarm_cex:
 
-  A numeric value to specify the scaling for adjusting point spacing in
-  beeswarm. Default is 1. Larger values space out points more.
+  Numeric scaling for point spacing. Larger values spread points more.
 
 - beeswarm_priority:
 
-  A character string to specify point layout priority. Either
-  "ascending", "descending", "density", or "random". Default is
-  "ascending".
+  Point layout priority: `"ascending"`, `"descending"`, `"density"`, or
+  `"random"`.
 
 - beeswarm_dodge:
 
-  A numeric value to specify the dodge width for beeswarm points when
-  group_by is provided. Default is 0.9
+  Numeric dodge width for beeswarm points when `group_by` is provided.
+  Default `0.9`.
 
 - add_box:
 
-  A logical value to add box plot to the plot.
+  Logical; overlay a box plot on the primary geometry. Mutually
+  exclusive with `base = "box"` and `base = "bar"`.
 
 - box_color:
 
-  A character string to specify the color of the box plot.
+  Colour of the overlaid box plot outline and fill.
 
 - box_width:
 
-  A numeric value to specify the width of the box plot.
+  Width of the overlaid box plot.
 
 - box_ptsize:
 
-  A numeric value to specify the size of the box plot points in the
-  middle.
+  Size of the median point in the overlaid box plot.
 
 - add_errorbar:
 
-  A character string to specify the type of error bars to add to bar
-  plots. Only available when `base = "bar"`. Case insensitive. Available
-  options are:
-
-  - "SEM" (default): Standard error of the mean.
-
-  - "SD": Standard deviation.
-
-  - "CI" or "CIXX" (e.g., "CI95"): Confidence interval. "CI" defaults to
-    "CI95" (95\\
-
-  - "none": No error bars.
+  Type of error bars for bar plots (`base = "bar"`): `"SEM"` (standard
+  error of the mean, default), `"SD"` (standard deviation), `"CI"` or
+  `"CI95"` (95\\ interval), or `"none"`. Silently ignored for non-bar
+  bases.
 
 - errorbar_color:
 
-  A character string to specify the color of the error bars. Default is
-  "black".
+  Colour of the error bar lines and caps.
 
 - errorbar_width:
 
-  A numeric value to specify the width of the error bar caps. Default is
-  0.5.
+  Width of the error bar caps.
 
 - errorbar_linewidth:
 
-  A numeric value to specify the line width of the error bars. Default
-  is 0.75.
+  Line width of the error bars.
 
 - add_trend:
 
-  A logical value to add trend line to the plot.
+  Logical; add trend lines connecting group medians.
 
 - trend_color:
 
-  A character string to specify the color of the trend line. This won't
-  work when `group_by` is specified, the trend line will be colored by
-  the `group_by` variable.#'
+  Colour of the trend line. When `NULL` and `group_by` is present, lines
+  are coloured per group.
 
 - trend_linewidth:
 
-  A numeric value to specify the width of the trend line.
+  Width of the trend line.
 
 - trend_ptsize:
 
-  A numeric value to specify the size of the trend line points.
+  Size of the trend line points.
 
 - add_stat:
 
-  A character string to add statistical test to the plot.
+  A summary function (e.g., `mean`, `median`) to display as a point with
+  a shape legend entry.
 
 - stat_name:
 
-  A character string to specify the name of the stat legend.
+  Legend title for the stat summary shape.
 
 - stat_color:
 
-  A character string to specify the color of the statistical test.
+  Colour of the stat summary point.
 
 - stat_size:
 
-  A numeric value to specify the size of the statistical test.
+  Size of the stat summary point.
 
 - stat_stroke:
 
-  A numeric value to specify the stroke of the statistical test.
+  Stroke width of the stat summary point.
 
 - stat_shape:
 
-  A numeric value to specify the shape of the statistical test.
+  Shape (an integer) for the stat summary point. Uses
+  `scale_shape_identity()` so the shape is rendered directly.
 
 - add_bg:
 
-  A logical value to add background to the plot.
+  Logical; add alternating background stripes.
 
 - bg_palette:
 
-  A character string to specify the palette of the background.
+  Palette for the background stripes.
 
 - bg_palcolor:
 
-  A character vector to specify the colors of the background.
+  Custom colours for the background stripes.
 
 - bg_alpha:
 
-  A numeric value to specify the transparency of the background.
+  Alpha transparency for the background stripes.
 
 - add_line:
 
-  A character string to add a line to the plot.
+  A numeric y-intercept for a horizontal reference line.
 
 - line_color:
 
-  A character string to specify the color of the line.
+  Colour of the reference line.
 
 - line_width:
 
-  A numeric value to specify the size of the line.
+  Width of the reference line.
 
 - line_type:
 
-  A numeric value to specify the type of the line.
+  Linetype of the reference line.
 
 - highlight:
 
-  A vector of character strings to highlight the points. It should be a
-  subset of the row names of the data. If TRUE, it will highlight all
-  points.
+  A specification of points to highlight: `TRUE` (all), a numeric index
+  vector, a logical expression string, or a character vector of row
+  names.
 
 - highlight_color:
 
-  A character string to specify the color of the highlighted points.
+  Colour of highlighted points.
 
 - highlight_size:
 
-  A numeric value to specify the size of the highlighted points.
+  Size of highlighted points.
 
 - highlight_alpha:
 
-  A numeric value to specify the transparency of the highlighted points.
+  Alpha of highlighted points.
 
 - comparisons:
 
-  A logical value or a list of vectors to perform pairwise comparisons.
-  If `TRUE`, it will perform pairwise comparisons for all pairs.
+  A logical value (`TRUE` for all pairs) or a list of two-element
+  vectors specifying pairwise comparisons. Only available when
+  `fill_mode = "dodge"` (i.e., `group_by` is present).
 
 - ref_group:
 
-  A character string to specify the reference group for comparisons.
+  A character string specifying the reference group for comparisons.
 
 - pairwise_method:
 
-  A character string to specify the pairwise comparison method.
+  Method for pairwise tests. Default `"wilcox.test"`.
 
 - multiplegroup_comparisons:
 
-  A logical value to perform multiple group comparisons.
+  Logical; perform an omnibus test (e.g., Kruskal-Wallis) across all
+  groups.
 
 - multiple_method:
 
-  A character string to specify the multiple group comparison method.
+  Method for the omnibus test. Default `"kruskal.test"`.
 
 - sig_label:
 
-  A character string to specify the label of the significance test. For
-  multiple group comparisons (`multiplegroup_comparisons = TRUE`), it
-  must be either "p.format" or "p.signif". For pairwise comparisons, it
-  can be:
-
-  - the column containing the label (e.g.: label = "p" or label =
-    "p.adj"), where p is the p-value. Other possible values are
-    "p.signif", "p.adj.signif", "p.format", "p.adj.format".
-
-  - an expression that can be formatted by the glue() package. For
-    example, when specifying `label = "Wilcoxon, p = {p}"`, the
-    expression `{p}` will be replaced by its value.
-
-  - a combination of plotmath expressions and glue expressions. You may
-    want some of the statistical parameter in italic; for example:
-    `label = "Wilcoxon, p= {p}"` See
-    https://rpkgs.datanovia.com/ggpubr/reference/geom_pwc.html for more
-    details.
+  Label format for significance annotations. For pairwise comparisons:
+  `"p.format"`, `"p.signif"`, or a glue template (e.g., `"p = {p}"`).
+  For multiple-group tests: `"p.format"` or `"p.signif"`.
 
 - sig_labelsize:
 
-  A numeric value to specify the size of the significance test label.
+  Size of the significance label text.
 
 - hide_ns:
 
-  A logical value to hide the non-significant comparisons.
+  Logical; hide non-significant comparison labels.
 
 - facet_by:
 
@@ -604,80 +569,32 @@ BoxViolinPlot(
 
 - seed:
 
-  The random seed to use. Default is 8525.
+  A numeric seed for reproducibility.
 
 - combine:
 
-  Whether to combine the plots into one when facet is FALSE. Default is
-  TRUE.
+  Logical; when `TRUE` (default), returns a combined `patchwork` object.
+  When `FALSE`, returns a named list of `ggplot` objects.
 
-- nrow:
+- ncol, nrow:
 
-  A numeric value specifying the number of rows in the facet.
-
-- ncol:
-
-  A numeric value specifying the number of columns in the facet.
+  Integer number of columns / rows for the combined layout.
 
 - byrow:
 
-  A logical value indicating whether to fill the plots by row.
+  Logical; fill the combined layout by row (default `TRUE`).
 
-- axes:
+- axes, axis_titles:
 
-  A string specifying how axes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axes in individual plots.
-
-  - 'collect' will remove duplicated axes when placed in the same run of
-    rows or columns of the layout.
-
-  - 'collect_x' and 'collect_y' will remove duplicated x-axes in the
-    columns or duplicated y-axes in the rows respectively.
-
-- axis_titles:
-
-  A string specifying how axis titltes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axis titles in individual plots.
-
-  - 'collect' will remove duplicated titles in one direction and merge
-    titles in the opposite direction.
-
-  - 'collect_x' and 'collect_y' control this for x-axis titles and
-    y-axis titles respectively.
+  Character strings for axis handling in the combined layout.
 
 - guides:
 
-  A string specifying how guides should be treated in the layout. Passed
-  to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'collect' will collect guides below to the given nesting level,
-    removing duplicates.
-
-  - 'keep' will stop collection at this level and let guides be placed
-    alongside their plot.
-
-  - 'auto' will allow guides to be collected if a upper level tries, but
-    place them alongside the plot if not.
+  Character string for legend collection across panels.
 
 - design:
 
-  Specification of the location of areas in the layout, passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. When
-  specified, `nrow`, `ncol`, and `byrow` are ignored. See
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
-  for more details.
+  A custom layout design for the combined plot.
 
 - ...:
 
@@ -685,5 +602,32 @@ BoxViolinPlot(
 
 ## Value
 
-A combined ggplot object or wrap_plots object or a list of ggplot
-objects
+A `ggplot` object, a `patchwork` object, or a named list of `ggplot`
+objects (when `combine = FALSE`), each with `height` and `width`
+attributes in inches.
+
+## split_by workflow
+
+When `split_by` is provided:
+
+1.  [`check_keep_na()`](https://pwwang.github.io/plotthis/reference/check_keep_na.md)
+    and
+    [`check_keep_empty()`](https://pwwang.github.io/plotthis/reference/check_keep_empty.md)
+    normalise the `keep_na` / `keep_empty` arguments.
+
+2.  The `split_by` column is validated and its NA / empty levels are
+    processed. It is then removed from the per-column lists.
+
+3.  The data is split by `split_by` (preserving level order). If
+    `split_by` is `NULL`, the data is wrapped in a single-element list
+    with name `"..."`.
+
+4.  Per-split `palette`, `palcolor`, `legend.position`, and
+    `legend.direction` are resolved.
+
+5.  [`BoxViolinPlotAtomic()`](https://pwwang.github.io/plotthis/reference/BoxViolinPlotAtomic.md)
+    is called for each split. When `title` is a function, it receives
+    the split level name for dynamic titles.
+
+6.  Results are combined via
+    [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md).

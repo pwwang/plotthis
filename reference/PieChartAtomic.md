@@ -1,6 +1,13 @@
-# Pie chart without data splitting
+# Atomic pie chart (internal)
 
-Pie chart without data splitting
+Core implementation for drawing a single pie chart. This is the
+workhorse behind the exported
+[`PieChart`](https://pwwang.github.io/plotthis/reference/PieChart.md)
+function — it takes a **single** data frame (no `split_by` support) and
+returns a `ggplot` object. The chart maps the proportion of each x-axis
+category to the angle of a pie slice using
+[`coord_polar()`](https://ggplot2.tidyverse.org/reference/coord_radial.html),
+with optional faceting and per-slice labels.
 
 ## Usage
 
@@ -43,23 +50,27 @@ PieChartAtomic(
 
 - x:
 
-  A character string specifying the column name of the data frame to
-  plot for the x-axis.
+  A character string specifying the column name for the x-axis
+  (categories). Must be character or factor. Each unique value becomes a
+  pie slice.
 
 - y:
 
-  A character string of the column name to plot on the y-axis. A numeric
-  column is expected. If NULL, the count of each x column will be used.
+  A character string specifying the numeric column for the y-axis. When
+  `NULL` (default), the count of observations in each (`x`, `facet_by`)
+  combination is used and stored as `.y`.
 
 - label:
 
-  Which column to use as the label. NULL means no label. Default is the
-  same as y. If y is NULL, you should use ".y" to specify the count as
-  the label. If TRUE, the y values will be used as the label.
+  A character string specifying the column to use for slice labels.
+  `NULL` (default) hides labels. When `TRUE`, the `y` values are used as
+  labels. When `y = NULL`, use `".y"` to label with the computed counts.
 
 - clockwise:
 
-  A logical value to draw the pie chart clockwise or not.
+  A logical value. When `TRUE` (default), the pie slices are ordered
+  clockwise starting from the top. When `FALSE`, slices are ordered
+  counter-clockwise.
 
 - keep_na:
 
@@ -185,3 +196,69 @@ PieChartAtomic(
 - ...:
 
   Additional arguments.
+
+## Value
+
+A `ggplot` object with `height` and `width` attributes (in inches)
+attached.
+
+## Architecture
+
+1.  **ggplot dispatch** — selects `gglogger::ggplot` or
+    [`ggplot2::ggplot`](https://ggplot2.tidyverse.org/reference/ggplot.html)
+    based on `getOption("plotthis.gglogger.enabled")`.
+
+2.  **Column resolution** — `x` is forced to factor; `y` is validated
+    (numeric, optional).
+
+3.  **Count aggregation** — when `y = NULL`, the count of observations
+    per (`x`, `facet_by`) combination is computed as a new `.y` column.
+    Factor levels are preserved after aggregation.
+
+4.  **Label resolution** — when `label = TRUE`, the label column is set
+    to `y`. The `label` column is then validated.
+
+5.  **Facet column resolution** — `facet_by` columns are validated as
+    factors, allowing up to two columns.
+
+6.  **NA / empty-level handling** —
+    [`process_keep_na_empty()`](https://pwwang.github.io/plotthis/reference/process_keep_na_empty.md)
+    applies `keep_na` and `keep_empty` policies. Per-column `keep_empty`
+    settings are extracted for `x` and `facet_by`. When more than one
+    facet column is provided, their `keep_empty` values must be
+    identical.
+
+7.  **Clockwise ordering** — when `clockwise = TRUE` (default), the
+    levels of `x` are reversed so that the first slice starts from the
+    top and proceeds clockwise. The data is then sorted by the (possibly
+    reversed) `x` factor levels.
+
+8.  **Position calculation** — if faceted, grouping by facet variables;
+    computes cumulative sums (`csum`) and label midpoint positions
+    (`pos`) for each slice.
+
+9.  **Colour mapping** —
+    [`palette_this()`](https://pwwang.github.io/plotthis/reference/palette_this.md)
+    assigns colours to all `x` levels, including `NA` (defaulting to
+    `"grey80"`).
+
+10. **Plot assembly** — the `ggplot` object is built with
+    `geom_col(width = 1)` and `coord_polar(theta = "y")` to create the
+    circular pie layout. The fill scale uses `scale_fill_manual()` with
+    per-slice colours; the `drop` argument is controlled by
+    `keep_empty_x`.
+
+11. **Labels** — when `label` is not `NULL`,
+    [`geom_label_repel()`](https://ggrepel.slowkow.com/reference/geom_text_repel.html)
+    adds text labels at the computed midpoint positions (`pos`).
+
+12. **Dimension calculation** —
+    [`calculate_plot_dimensions()`](https://pwwang.github.io/plotthis/reference/calculate_plot_dimensions.md)
+    computes plot height and width from `aspect.ratio` and legend
+    metrics. The resulting `height` / `width` attributes are stored on
+    the `ggplot` object.
+
+13. **Faceting** —
+    [`facet_plot()`](https://pwwang.github.io/plotthis/reference/facet_plot.md)
+    wraps the plot with `facet_wrap` / `facet_grid` if `facet_by` is
+    provided, respecting the `keep_empty` setting for facet variables.

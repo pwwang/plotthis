@@ -1,6 +1,17 @@
-# RarefactionPlot
+# Rarefaction / extrapolation plot
 
-This function generates a rarefraction plot for a given dataset.
+Draws rarefaction and extrapolation curves for biodiversity data using
+the `iNEXT` package. Accepts raw species-abundance / incidence-frequency
+lists (which are passed to
+[`iNEXT()`](https://rdrr.io/pkg/iNEXT/man/iNEXT.html) for estimation) or
+pre-computed `iNEXT` objects.
+
+The function supports three curve types (sample-size-based, sample
+completeness, and coverage-based), diversity orders (`q`), per-group
+colouring, faceting, and splitting into separate sub-plots via
+`split_by`. Observed data are marked with points, rarefaction lines are
+solid, and extrapolation segments are dashed. Confidence intervals are
+shown as semi-transparent ribbons.
 
 ## Usage
 
@@ -55,15 +66,18 @@ RarefactionPlot(
 
 - type:
 
-  three types of plots: sample-size-based rarefaction/extrapolation
-  curve (`type = 1`); sample completeness curve (`type = 2`);
-  coverage-based rarefaction/extrapolation curve (`type = 3`).
+  An integer specifying the curve type: `1` for sample-size-based
+  rarefaction/extrapolation, `2` for sample completeness, or `3` for
+  coverage-based rarefaction/extrapolation. A vector of types can be
+  passed and the data will be fortifed for all of them; faceting or
+  splitting then separates the panels. Default: `1`.
 
 - se:
 
-  a logical variable to display confidence interval around the estimated
-  sampling curve. Default to `NULL` which means TRUE if the data has the
-  lower and upper bounds.
+  A logical value indicating whether to display confidence intervals as
+  semi-transparent ribbons around the estimated curve. When `NULL` (the
+  default), it resolves to `TRUE` if the fortifed data contains `y.lwr`
+  and `y.upr` columns, and `FALSE` otherwise.
 
 - group_by:
 
@@ -73,22 +87,27 @@ RarefactionPlot(
 
 - group_by_sep:
 
-  A character string indicating how to separate the group_by column if
-  both "q" and "group" are used. for 'group_by'. Default to "\_".
+  A character string used to join multiple `group_by` column values when
+  `group_by` has length \> 1. Also used by the exported function for the
+  group concatenation. Default: `"_"`.
 
 - group_name:
 
-  A character string indicating the name of the group, showing as the
-  legend title.
+  A character string used as the title for the colour (and shape)
+  legend. When `NULL` (the default), the value of `group_by` is used.
 
 - split_by:
 
-  A character string indicating how to split the data and plots Possible
-  values are "q" and "group"
+  A character vector specifying how to split the data into separate
+  sub-plots. Must be one or both of `"q"` (diversity order) and
+  `"group"` (assemblage/site). Multiple values are concatenated with
+  `split_by_sep`. Cannot overlap with `group_by` or `facet_by`. Default:
+  `NULL`.
 
 - split_by_sep:
 
-  The separator for multiple split_by columns. See `split_by`
+  A character string used to join multiple `split_by` column values when
+  `split_by` has length \> 1. Default: `"_"`.
 
 - theme:
 
@@ -123,11 +142,13 @@ RarefactionPlot(
 
 - pt_size:
 
-  A numeric value specifying the size of the points.
+  A numeric value specifying the size of the observed-data points.
+  Default: `3`.
 
 - line_width:
 
-  A numeric value specifying the width of the lines.
+  A numeric value specifying the width of the rarefaction /
+  extrapolation lines. Default: `1`.
 
 - facet_by:
 
@@ -191,88 +212,114 @@ RarefactionPlot(
 
 - seed:
 
-  The random seed to use. Default is 8525.
+  A numeric seed for reproducibility. Passed to
+  [`validate_common_args()`](https://pwwang.github.io/plotthis/reference/validate_common_args.md).
+  Default: `8525`.
 
 - combine:
 
-  Whether to combine the plots into one when facet is FALSE. Default is
-  TRUE.
+  Logical; when `TRUE` (default), returns a combined `patchwork` object.
+  When `FALSE`, returns a named list of individual `ggplot` objects.
 
-- nrow:
+- ncol, nrow:
 
-  A numeric value specifying the number of rows in the facet.
-
-- ncol:
-
-  A numeric value specifying the number of columns in the facet.
+  Integer number of columns / rows for the combined layout (passed to
+  [`wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)).
 
 - byrow:
 
-  A logical value indicating whether to fill the plots by row.
+  Logical; fill the combined layout by row. Default `TRUE`.
 
 - axes:
 
-  A string specifying how axes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axes in individual plots.
-
-  - 'collect' will remove duplicated axes when placed in the same run of
-    rows or columns of the layout.
-
-  - 'collect_x' and 'collect_y' will remove duplicated x-axes in the
-    columns or duplicated y-axes in the rows respectively.
+  A character string specifying how axes should be treated across the
+  combined layout (passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)).
 
 - axis_titles:
 
-  A string specifying how axis titltes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axis titles in individual plots.
-
-  - 'collect' will remove duplicated titles in one direction and merge
-    titles in the opposite direction.
-
-  - 'collect_x' and 'collect_y' control this for x-axis titles and
-    y-axis titles respectively.
+  A character string specifying how axis titles should be treated across
+  the combined layout. Defaults to `axes`.
 
 - guides:
 
-  A string specifying how guides should be treated in the layout. Passed
-  to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'collect' will collect guides below to the given nesting level,
-    removing duplicates.
-
-  - 'keep' will stop collection at this level and let guides be placed
-    alongside their plot.
-
-  - 'auto' will allow guides to be collected if a upper level tries, but
-    place them alongside the plot if not.
+  A character string specifying how guides (legends) should be collected
+  across panels (passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)).
 
 - design:
 
-  Specification of the location of areas in the layout, passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. When
-  specified, `nrow`, `ncol`, and `byrow` are ignored. See
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
-  for more details.
+  A custom layout design for the combined plot (passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)).
 
 - ...:
 
-  Additional arguments.
+  Additional arguments passed to
+  [`iNEXT`](https://rdrr.io/pkg/iNEXT/man/iNEXT.html) when `data` is not
+  already an `iNEXT` object. Common options include `q` (diversity
+  order, default `c(0, 1, 2)`), `datatype` (`"abundance"` or
+  `"incidence"`), and `nboot` (number of bootstrap replicates).
 
 ## Value
 
-A ggplot object or wrap_plots object or a list of ggplot objects
+A `ggplot` object (single split), a `patchwork` object (multiple splits
+with `combine = TRUE`), or a named list of `ggplot` objects (when
+`combine = FALSE`), each with `height` and `width` attributes in inches.
+
+## split_by workflow
+
+When `split_by` is provided:
+
+1.  [`validate_common_args()`](https://pwwang.github.io/plotthis/reference/validate_common_args.md)
+    checks the `seed` and `facet_by` validity.
+
+2.  The `type` argument is validated (must be one or more of 1, 2, 3).
+
+3.  `group_by`, `split_by`, and `facet_by` are validated for allowed
+    values (`"q"` and/or `"group"`) and checked for mutual exclusivity —
+    no parameter may overlap with another.
+
+4.  If `data` is not an `iNEXT` object, it is passed to
+    [`iNEXT()`](https://rdrr.io/pkg/iNEXT/man/iNEXT.html) with `...`
+    (which may contain `q`, `datatype`, `nboot`, etc.).
+
+5.  The `iNEXT` object is fortifed via
+    [`fortify()`](https://ggplot2.tidyverse.org/reference/fortify.html)
+    for the requested `type`s. Columns `Assemblage` and `Order.q` are
+    renamed to `group` and `q`, respectively.
+
+6.  The `se` parameter is resolved: if `NULL` it becomes `TRUE` when the
+    fortifed data contains `y.lwr` / `y.upr` columns.
+
+7.  A `lty` column is created (factor with levels `"Rarefaction"` and
+    `"Extrapolation"`) to distinguish the two line phases via solid /
+    dashed linetypes.
+
+8.  `group_by`, `split_by`, and `facet_by` are processed via
+    [`check_columns()`](https://pwwang.github.io/plotthis/reference/check_columns.md)
+    with `force_factor = TRUE` and multi-column concatenation.
+
+9.  If `group_by` is `NULL`, a dummy `".group"` column is created and
+    the legend is hidden.
+
+10. The data is split by `split_by` (preserving level order). If
+    `split_by` is `NULL`, the data is wrapped in a single-element list
+    with name `"..."`.
+
+11. Per-split `palette`, `palcolor`, `legend.position`, and
+    `legend.direction` are resolved via
+    [`check_palette()`](https://pwwang.github.io/plotthis/reference/check_palette.md),
+    [`check_palcolor()`](https://pwwang.github.io/plotthis/reference/check_palcolor.md),
+    and
+    [`check_legend()`](https://pwwang.github.io/plotthis/reference/check_legend.md).
+
+12. [`RarefactionPlotAtomic()`](https://pwwang.github.io/plotthis/reference/RarefactionPlotAtomic.md)
+    is called for each split. If `title` is a function, it receives the
+    split level name and can generate dynamic titles.
+
+13. Results are combined via
+    [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)
+    (when `combine = TRUE`) or returned as a named list.
 
 ## Examples
 
@@ -285,15 +332,25 @@ spider <- list(
      2, 2, 2, 2, rep(1, 14))
 )
 
+# Basic sample-size-based rarefaction (type = 1)
 RarefactionPlot(spider)
 
+
+# Multiple diversity orders with faceting
 RarefactionPlot(spider, q = c(0, 1, 2), facet_by = "q")
 
+
+# Multiple diversity orders split into sub-plots
 RarefactionPlot(spider, q = c(0, 1, 2), split_by = "q")
 
+
+# Per-split palettes
 RarefactionPlot(spider, q = c(0, 1, 2), split_by = "q",
                 palette = c("0" = "Paired", "1" = "Set1", "2" = "Dark2"))
 
+
+# Coverage-based rarefaction (type = 3) with
+# group_by = "q" and facet_by = "group"
 RarefactionPlot(spider, q = c(0, 1, 2), group_by = "q",
  facet_by = "group", palette = "Set1", type = 3)
 

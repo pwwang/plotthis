@@ -1,7 +1,28 @@
-# Line Plot
+# Line plot
 
-Visualizing the change of a numeric value over the progression of a
-categorical variable.
+Draws a line plot showing the change of a numeric value across the
+progression of a categorical x-axis variable. Each x-axis category is
+rendered as a point connected by a line, with support for multiple
+grouped series, error bars, highlighted points, background stripes, and
+a horizontal reference line.
+
+Key features:
+
+- **Colour modes:** lines and points can be coloured by x category
+  (single-series) or by a `group_by` variable (multi-series), or use a
+  single uniform colour.
+
+- **Error bars:** additive error bars via `errorbar_sd`, `errorbar_min`,
+  or `errorbar_max`.
+
+- **Highlighting:** specific points can be emphasised with a different
+  colour and size via indices, row names, or a filter expression.
+
+- **Background stripes:** `add_bg = TRUE` draws alternating bands for
+  visual grouping.
+
+- **Count aggregation:** omit `y` to plot observation counts per x
+  category.
 
 ## Usage
 
@@ -100,108 +121,126 @@ LinePlot(
 
 - group_by_sep:
 
-  A character string specifying the separator to use when concatenating
-  multiple columns.
+  The separator for multiple group_by columns. See `group_by`
 
 - split_by:
 
-  The column(s) to split data by and plot separately.
+  A character vector of column names to split the data by. Each split
+  level produces a separate sub-plot. Multiple columns are concatenated
+  with `split_by_sep`.
 
 - split_by_sep:
 
-  The separator for multiple split_by columns. See `split_by`
+  A character string used to join multiple `split_by` column values.
+  Default `"_"`.
 
 - fill_point_by_x_if_no_group:
 
-  A logical value indicating whether to color the points by the x-axis
-  values when there is no group_by column.
+  A logical value. When TRUE (default), points are filled by the x-axis
+  categories via the palette when `group_by = NULL`. Passed to
+  `LinePlotSingle` as `fill_point_by_x`. Has no effect when `group_by`
+  is set.
 
 - color_line_by_x_if_no_group:
 
-  A logical value indicating whether to color the lines by the x-axis
-  values
+  A logical value. When TRUE (default), lines are coloured by the x-axis
+  categories via the palette when `group_by = NULL`. Passed to
+  `LinePlotSingle` as `color_line_by_x`. Has no effect when `group_by`
+  is set.
 
 - add_bg:
 
-  A logical value indicating whether to add a background to the plot.
+  A logical value. When TRUE, alternating background stripes are drawn
+  via
+  [`bg_layer()`](https://pwwang.github.io/plotthis/reference/bg_layer.md).
+  Default FALSE.
 
 - bg_palette:
 
-  The palette to use for the background.
+  A character string specifying the palette for the background stripe
+  colours. Default `"stripe"`.
 
 - bg_palcolor:
 
-  The color to use for the background.
+  A character vector of colours for the background stripes. When NULL
+  (default), colours are derived from `bg_palette`.
 
 - bg_alpha:
 
-  The alpha value of the background.
+  A numeric value in `[0, 1]` for the transparency of background
+  stripes. Default 0.2.
 
 - add_errorbars:
 
-  A logical value indicating whether to add error bars to the plot.
+  A logical value. When TRUE, error bars are added via
+  [`geom_errorbar()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html).
+  Requires `errorbar_sd` or `errorbar_min`/`errorbar_max`. Default
+  FALSE.
 
 - errorbar_width:
 
-  The width of the error bars.
+  A numeric value for the width of the error bar caps. Default 0.1.
 
 - errorbar_alpha:
 
-  The alpha value of the error bars.
+  A numeric value in `[0, 1]` for the transparency of error bars.
+  Default 1.
 
 - errorbar_color:
 
-  The color to use for the error bars. If "line", the error bars will be
-  colored the same as the lines.
+  A character string for the colour of the error bars. When `"line"`,
+  error bars are coloured the same as the lines (by x when
+  `color_line_by_x = TRUE`, or single colour otherwise). Default
+  `"grey30"`.
 
 - errorbar_linewidth:
 
-  The line width of the error bars.
+  A numeric value for the line width of error bars. Default 0.75.
 
 - errorbar_min:
 
-  The column in the data frame containing the lower bound of the error
-  bars.
+  A character string naming the column with the lower error bar bound.
+  Ignored when `errorbar_sd` is provided.
 
 - errorbar_max:
 
-  The column in the data frame containing the upper bound of the error
-  bars.
+  A character string naming the column with the upper error bar bound.
+  Ignored when `errorbar_sd` is provided.
 
 - errorbar_sd:
 
-  The column in the data frame containing the standard deviation of the
-  error bars. If errorbar_min and errorbar_max are not provided, this
-  column will be used to calculate the error bars. errorbar_min = y -
-  errorbar_sd, errorbar_max = y + errorbar_sd. If errorbar_min and
-  errorbar_max are provided, this column will be ignored.
+  A character string naming the column with the standard deviation. When
+  `errorbar_min` and `errorbar_max` are not provided, error bars are
+  computed as y +/- `errorbar_sd`.
 
 - highlight:
 
-  A vector of indexes or rownames to select the points to highlight. It
-  could also be an expression (in string) to filter the data.
+  A vector of row indices, row names, a single string expression (e.g.
+  `"y > 10"`) filtering rows to highlight, or TRUE to highlight all
+  points. When NULL (default), no highlighting is applied.
 
 - highlight_size:
 
-  The size of the highlighted points.
+  A numeric value for the size of highlighted points. Defaults to
+  `pt_size - 0.75`.
 
 - highlight_color:
 
-  A character vector specifying the color of the highlighted points.
-  Default is "red".
+  A character string for the colour of highlighted points. Default
+  `"red2"`.
 
 - highlight_alpha:
 
-  A numeric value specifying the transparency of the highlighted points.
-  Default is 1.
+  A numeric value in `[0, 1]` for the transparency of highlighted
+  points. Default 0.8.
 
 - pt_alpha:
 
-  The alpha value of the points.
+  A numeric value in `[0, 1]` for the transparency of points. Default 1.
 
 - pt_size:
 
-  The size of the points.
+  A numeric value for the point size. Default 5.
 
 - keep_na:
 
@@ -235,37 +274,41 @@ LinePlot(
 
 - line_type:
 
-  The type of line to draw.
+  A character string specifying the line type. Default `"solid"`.
 
 - line_width:
 
-  The width of the line.
+  A numeric value for the line width (in mm). Default 1.
 
 - line_alpha:
 
-  The alpha value of the line.
+  A numeric value in `[0, 1]` for the transparency of the line. Default
+  0.8.
 
 - add_hline:
 
-  A numeric value indicating the y-intercept of a horizontal line to add
-  to the plot. If FALSE, no horizontal line will be added.
+  A numeric value specifying the y-intercept of a horizontal reference
+  line. When FALSE (default), no line is drawn.
 
 - hline_type:
 
-  The type of line to draw for the horizontal line.
+  A character string specifying the line type of the horizontal
+  reference line. Default `"solid"`.
 
 - hline_width:
 
-  The width of the horizontal line.
+  A numeric value for the width of the horizontal reference line.
+  Default 0.5.
 
 - hline_color:
 
-  The color of the horizontal line. When `group_by` is provided, this
-  can be TRUE to use the same color as the lines.
+  A character string for the colour of the horizontal reference line.
+  Default `"black"`.
 
 - hline_alpha:
 
-  The alpha value of the horizontal line.
+  A numeric value in `[0, 1]` for the transparency of the horizontal
+  reference line. Default 1.
 
 - theme:
 
@@ -327,20 +370,19 @@ LinePlot(
 
 - combine:
 
-  Whether to combine the plots into one when facet is FALSE. Default is
-  TRUE.
+  Logical; when TRUE (default), per-split plots are combined into a
+  single `patchwork` object. When FALSE, a named list of `ggplot`
+  objects is returned.
 
-- nrow:
+- nrow, ncol:
 
-  A numeric value specifying the number of rows in the facet.
-
-- ncol:
-
-  A numeric value specifying the number of columns in the facet.
+  Integer number of rows / columns for the combined layout (passed to
+  [`wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)).
 
 - byrow:
 
-  A logical value indicating whether to fill the plots by row.
+  Logical; fill the combined layout by row. Default TRUE (passed to
+  [`wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)).
 
 - facet_nrow:
 
@@ -359,11 +401,10 @@ LinePlot(
 
 - facet_args:
 
-  A list of arguments to pass to
-  [`ggplot2::facet_wrap()`](https://ggplot2.tidyverse.org/reference/facet_wrap.html)
-  or
-  [`ggplot2::facet_grid()`](https://ggplot2.tidyverse.org/reference/facet_grid.html).
-  when there is no group_by column.
+  A list of additional arguments passed to
+  [`facet_plot()`](https://pwwang.github.io/plotthis/reference/facet_plot.md)
+  for fine-grained control over faceting (e.g. `scales`, `space`,
+  `labeller`).
 
 - title:
 
@@ -385,63 +426,32 @@ LinePlot(
 
 - seed:
 
-  The random seed to use. Default is 8525.
+  A numeric seed for reproducibility. Passed to
+  [`validate_common_args()`](https://pwwang.github.io/plotthis/reference/validate_common_args.md).
+  Default 8525.
 
 - axes:
 
-  A string specifying how axes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axes in individual plots.
-
-  - 'collect' will remove duplicated axes when placed in the same run of
-    rows or columns of the layout.
-
-  - 'collect_x' and 'collect_y' will remove duplicated x-axes in the
-    columns or duplicated y-axes in the rows respectively.
+  A character string specifying how axes should be treated across the
+  combined layout (passed to
+  [`wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)).
 
 - axis_titles:
 
-  A string specifying how axis titltes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axis titles in individual plots.
-
-  - 'collect' will remove duplicated titles in one direction and merge
-    titles in the opposite direction.
-
-  - 'collect_x' and 'collect_y' control this for x-axis titles and
-    y-axis titles respectively.
+  A character string specifying how axis titles should be treated across
+  the combined layout. Defaults to `axes`.
 
 - guides:
 
-  A string specifying how guides should be treated in the layout. Passed
-  to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'collect' will collect guides below to the given nesting level,
-    removing duplicates.
-
-  - 'keep' will stop collection at this level and let guides be placed
-    alongside their plot.
-
-  - 'auto' will allow guides to be collected if a upper level tries, but
-    place them alongside the plot if not.
+  A character string specifying how guides should be collected across
+  panels. Passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md).
 
 - design:
 
-  Specification of the location of areas in the layout, passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. When
-  specified, `nrow`, `ncol`, and `byrow` are ignored. See
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
-  for more details.
+  A custom layout specification for combined plots (passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)).
+  Overrides `nrow`/`ncol` when specified.
 
 - ...:
 
@@ -449,7 +459,49 @@ LinePlot(
 
 ## Value
 
-A ggplot object or wrap_plots object or a list of ggplot objects
+A `ggplot` object, a `patchwork` object (when `combine = TRUE` with
+`split_by`), or a named list of `ggplot` objects (when
+`combine = FALSE`), each with `height` and `width` attributes in inches.
+
+## split_by Workflow
+
+When `split_by` is provided:
+
+1.  **Column validation** –
+    [`check_columns()`](https://pwwang.github.io/plotthis/reference/check_columns.md)
+    resolves `split_by` with multi-column concatenation.
+
+2.  **NA / empty pre-processing** –
+    [`process_keep_na_empty()`](https://pwwang.github.io/plotthis/reference/process_keep_na_empty.md)
+    handles `keep_na` / `keep_empty` for the split column before
+    splitting, then removes the split column from the per-split lists.
+
+3.  **Data splitting** – splits `data` by `split_by` levels, preserving
+    factor level order. When `split_by = NULL`, the data is wrapped in a
+    single-element list with name `"..."`.
+
+4.  **Per-split palette / colour** –
+    [`check_palette()`](https://pwwang.github.io/plotthis/reference/check_palette.md)
+    and
+    [`check_palcolor()`](https://pwwang.github.io/plotthis/reference/check_palcolor.md)
+    resolve per-split palette and colour overrides.
+
+5.  **Per-split legend** –
+    [`check_legend()`](https://pwwang.github.io/plotthis/reference/check_legend.md)
+    resolves `legend.position` and `legend.direction` per split level.
+
+6.  **Per-split title** – when `title` is a function, it receives the
+    default title (the split level name) and can return a custom string;
+    otherwise `title %||% split_level` is used.
+
+7.  **Dispatch** – each split subset is passed to
+    [`LinePlotAtomic`](https://pwwang.github.io/plotthis/reference/LinePlotAtomic.md).
+
+8.  **Combination** –
+    [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)
+    assembles the list of plots via
+    [`patchwork::wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html),
+    honouring `nrow`/`ncol`/`byrow`/`design`.
 
 ## Examples
 
@@ -462,11 +514,14 @@ data <- data.frame(
    facet = c("F1", "F1", "F2", "F2", "F3", "F3", "F4", "F4")
 )
 
+# --- Basic usage ---
 LinePlot(data, x = "x", y = "y")
 
 LinePlot(data, x = "x", y = "y", highlight = "group == 'G1'",
    fill_point_by_x_if_no_group = FALSE, color_line_by_x_if_no_group = FALSE)
 
+
+# --- Grouped lines ---
 LinePlot(data, x = "x", y = "y", group_by = "group")
 
 LinePlot(data, x = "x", y = "y", group_by = "group",
@@ -479,11 +534,13 @@ LinePlot(data, x = "x", y = "y", group_by = "group", facet_by = "facet")
 
 LinePlot(data, x = "x", y = "y", group_by = "group", split_by = "facet")
 
+
+# --- Per-split styling ---
 LinePlot(data, x = "x", y = "y", split_by = "group",
          palcolor = list(G1 = c("red", "blue"), G2 = c("green", "black")))
 
 
-# keep_na and keep_empty
+# --- keep_na and keep_empty ---
 data <- data.frame(
    x = factor(c("A", "B", NA, "D", "A", "B", NA, "D"), levels = LETTERS[1:4]),
    y = c(10, 8, 16, 4, 6, 12, 14, 2),

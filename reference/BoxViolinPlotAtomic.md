@@ -1,6 +1,26 @@
-# Atomic Box/Violin plot
+# Atomic Box / Violin / Bar / Beeswarm plot (internal)
 
-Atomic Box/Violin plot
+Core implementation for drawing box plots, violin plots, bar plots (mean
+± error bars), or beeswarm plots. This is the workhorse behind
+[`BoxPlot`](https://pwwang.github.io/plotthis/reference/boxviolinplot.md),
+[`ViolinPlot`](https://pwwang.github.io/plotthis/reference/boxviolinplot.md),
+and
+[`BeeswarmPlot`](https://pwwang.github.io/plotthis/reference/boxviolinplot.md)
+— it takes a **single** data frame (no `split_by` support) and returns a
+`ggplot` object.
+
+The `base` parameter selects the primary geometry:
+
+- `"box"` — `geom_boxplot()`
+
+- `"violin"` — `geom_violin()`
+
+- `"bar"` — `stat_summary(fun = mean, geom = "col")` with optional error
+  bars (SEM, SD, or CI).
+
+- `"none"` — no primary geometry (used by
+  [`BeeswarmPlot`](https://pwwang.github.io/plotthis/reference/boxviolinplot.md)
+  to draw beeswarm points alone).
 
 ## Usage
 
@@ -110,45 +130,39 @@ BoxViolinPlotAtomic(
 
 - x:
 
-  A character string of the column name to plot on the x-axis. A
-  character/factor column is expected. If multiple columns are provided,
-  the columns will be concatenated with `x_sep`.
+  A character string of column name(s) for the x-axis. Character/factor
+  columns are expected. Multiple columns are concatenated with `x_sep`.
 
 - x_sep:
 
-  A character string to concatenate the columns in `x`, if multiple
-  columns are provided. When `in_form` is "wide", `x` columns will not
-  be concatenated.
+  A character string to join multiple `x` columns. Default `"_"`.
 
 - y:
 
-  A character string of the column name to plot on the y-axis. A numeric
-  column is expected. When `in_form` is "wide", `y` is not required. The
-  values under `x` columns will be used as y-values.
+  A character string of the numeric column for the y-axis. Not required
+  when `in_form = "wide"` (data values are taken from the `x` columns).
 
 - base:
 
-  A character string to specify the base plot type. Either "box",
-  "violin", "bar" or "none" (used by BeeswarmPlot). When "bar", bars
-  showing the mean values are plotted. This is mutually exclusive with
-  `add_box`.
+  A character string specifying the primary plot type: `"box"` (box
+  plot), `"violin"` (violin plot), `"bar"` (mean bars with optional
+  error bars), or `"none"` (no primary geometry, used by beeswarm
+  plots).
 
 - in_form:
 
-  A character string to specify the input data type. Either "long" or
-  "wide".
+  A character string: `"long"` (default) or `"wide"`. In wide form, `x`
+  columns are pivoted to long format.
 
 - sort_x:
 
-  An expression (in character string) to order x-axis. For example,
-  "mean(y)" will order the x-axis by the mean of y. Default is NULL,
-  which means keeping the original order of x. Note that when keep_empty
-  is TRUE for x, the empty x levels will always be placed at the end of
-  the x-axis.
+  An R expression string (e.g., `"mean(y)"`) to order x-axis categories.
+  Default `NULL` keeps the original order. When `keep_empty_x` is
+  `TRUE`, empty levels are placed last.
 
 - flip:
 
-  A logical value to flip the plot.
+  Logical; if `TRUE`, swap the x and y axes.
 
 - keep_empty:
 
@@ -182,21 +196,23 @@ BoxViolinPlotAtomic(
 
 - group_by:
 
-  A character string of the column name to dodge the boxes/violins
+  A character vector of column name(s) to dodge the boxes/violins by.
+  Multiple columns are concatenated with `group_by_sep`.
 
 - group_by_sep:
 
-  A character string to concatenate the columns in `group_by`, if
-  multiple columns are provided.
+  A character string to separate concatenated `group_by` columns.
+  Default `"_"`.
 
 - group_name:
 
-  A character string to name the legend of dodge.
+  A character string for the dodge legend title.
 
 - paired_by:
 
-  A character string of the column name identifying paired observations
-  for paired tests.
+  A character string naming a column that identifies paired
+  observations. Forces `add_point = TRUE` and connects paired
+  observations with lines.
 
 - x_text_angle:
 
@@ -204,18 +220,22 @@ BoxViolinPlotAtomic(
 
 - step_increase:
 
-  A numeric value to specify the step increase in fraction of total
-  height for every additional comparison of the significance labels.
+  Fractional step increase for stacking significance brackets when
+  multiple comparisons exist.
 
 - position_dodge_preserve:
 
-  Should dodging preserve the "total" width of all elements at a
-  position, or the width of a "single" element?
+  Passed to
+  [`position_dodge()`](https://ggplot2.tidyverse.org/reference/position_dodge.html):
+  `"total"` preserves the overall group width; `"single"` preserves
+  individual element width.
 
 - fill_mode:
 
-  A character string to specify the fill mode. Either "dodge", "x",
-  "mean", "median".
+  A character string controlling fill colour mapping: `"dodge"` (fill by
+  `group_by`, discrete), `"x"` (fill by x-axis categories, discrete),
+  `"mean"` or `"median"` (fill by pre-computed statistic, continuous
+  gradient).
 
 - palreverse:
 
@@ -224,21 +244,9 @@ BoxViolinPlotAtomic(
 
 - symnum_args:
 
-  A list of arguments to pass to the function `symnum` for symbolic
-  number coding of p-values. For example,
-  `symnum_args <- list(cutpoints = c(0, 0.0001, 0.001, 0.01, 0.05, Inf), symbols = c("****", "***", "**", "*", "ns"))`.
-  In other words, we use the following convention for symbols indicating
-  statistical significance:
-
-  - `ns`: p \> 0.05
-
-  - `*`: p \<= 0.05
-
-  - `**`: p \<= 0.01
-
-  - `***`: p \<= 0.001
-
-  - `****`: p \<= 0.0001
+  A list of arguments passed to
+  [`symnum`](https://rdrr.io/r/stats/symnum.html) for symbolic p-value
+  coding.
 
 - theme:
 
@@ -282,272 +290,240 @@ BoxViolinPlotAtomic(
 
 - add_point:
 
-  A logical value to add (jitter) points to the plot.
+  Logical; add jittered or beeswarm points to the plot.
 
 - pt_color:
 
-  A character string to specify the color of the points.
+  Colour of the points. When `add_beeswarm = TRUE` and `pt_color` is
+  `NULL`, points are coloured by the fill variable.
 
 - pt_size:
 
-  A numeric value to specify the size of the points.
+  Numeric size of the points. Default computed from data size:
+  `min(3000 / nrow(data), 0.6)`.
 
 - pt_alpha:
 
-  A numeric value to specify the transparency of the points.
+  Numeric transparency of the points.
 
 - y_nbreaks:
 
-  A numeric value to specify the number of breaks in the y-axis.
+  Integer number of y-axis breaks.
 
 - jitter_width:
 
-  A numeric value to specify the width of the jitter. Defaults to 0.5,
-  but when paired_by is provided, it will be set to 0.
+  Numeric width of the jitter. Defaults to `0.5`, but set to `0` when
+  `paired_by` is provided.
 
 - jitter_height:
 
-  A numeric value to specify the height of the jitter.
+  Numeric height of the jitter. Default `0`.
 
 - stack:
 
-  A logical value whether to stack the facetted plot by 'facet_by'.
+  Logical; stack facetted panels in a compact layout with shared strip
+  labels.
 
-- y_max:
+- y_max, y_min:
 
-  A numeric value or a character string to specify the maximum value of
-  the y-axis. You can also use quantile notation like "q95" to specify
-  the 95th percentile. When comparisons are set and a numeric y_max is
-  provided, it will be used to set the y-axis limit, including the
-  significance labels.
-
-- y_min:
-
-  A numeric value or a character string to specify the minimum value of
-  the y-axis. You can also use quantile notation like "q5" to specify
-  the 5th percentile.
+  Numeric y-axis limits, or quantile notation strings (e.g., `"q95"` for
+  the 95th percentile, `"q5"` for the 5th percentile).
 
 - y_trans:
 
-  A character string to specify the transformation of the y-axis.
+  A character string for y-axis transformation (e.g., `"log10"`).
 
 - add_beeswarm:
 
-  A logical value to add beeswarm points to the plot instead of jittered
-  points. When TRUE, points are positioned using the beeswarm algorithm
-  to avoid overlap while showing density. Requires the ggbeeswarm
-  package to be installed.
+  Logical; use
+  [`ggbeeswarm::geom_beeswarm()`](https://rdrr.io/pkg/ggbeeswarm/man/geom_beeswarm.html)
+  for non-overlapping point layout instead of jitter. Requires the
+  `ggbeeswarm` package.
 
 - beeswarm_method:
 
-  A character string to specify the beeswarm method. Either "swarm",
-  "compactswarm", "hex", "square", or "center". Default is "swarm". See
-  ggbeeswarm::geom_beeswarm for details.
+  Beeswarm layout method: `"swarm"`, `"compactswarm"`, `"hex"`,
+  `"square"`, or `"center"`.
 
 - beeswarm_cex:
 
-  A numeric value to specify the scaling for adjusting point spacing in
-  beeswarm. Default is 1. Larger values space out points more.
+  Numeric scaling for point spacing. Larger values spread points more.
 
 - beeswarm_priority:
 
-  A character string to specify point layout priority. Either
-  "ascending", "descending", "density", or "random". Default is
-  "ascending".
+  Point layout priority: `"ascending"`, `"descending"`, `"density"`, or
+  `"random"`.
 
 - beeswarm_dodge:
 
-  A numeric value to specify the dodge width for beeswarm points when
-  group_by is provided. Default is 0.9
+  Numeric dodge width for beeswarm points when `group_by` is provided.
+  Default `0.9`.
 
 - add_box:
 
-  A logical value to add box plot to the plot.
+  Logical; overlay a box plot on the primary geometry. Mutually
+  exclusive with `base = "box"` and `base = "bar"`.
 
 - box_color:
 
-  A character string to specify the color of the box plot.
+  Colour of the overlaid box plot outline and fill.
 
 - box_width:
 
-  A numeric value to specify the width of the box plot.
+  Width of the overlaid box plot.
 
 - box_ptsize:
 
-  A numeric value to specify the size of the box plot points in the
-  middle.
+  Size of the median point in the overlaid box plot.
 
 - add_errorbar:
 
-  A character string to specify the type of error bars to add to bar
-  plots. Only available when `base = "bar"`. Case insensitive. Available
-  options are:
-
-  - "SEM" (default): Standard error of the mean.
-
-  - "SD": Standard deviation.
-
-  - "CI" or "CIXX" (e.g., "CI95"): Confidence interval. "CI" defaults to
-    "CI95" (95\\
-
-  - "none": No error bars.
+  Type of error bars for bar plots (`base = "bar"`): `"SEM"` (standard
+  error of the mean, default), `"SD"` (standard deviation), `"CI"` or
+  `"CI95"` (95\\ interval), or `"none"`. Silently ignored for non-bar
+  bases.
 
 - errorbar_color:
 
-  A character string to specify the color of the error bars. Default is
-  "black".
+  Colour of the error bar lines and caps.
 
 - errorbar_width:
 
-  A numeric value to specify the width of the error bar caps. Default is
-  0.5.
+  Width of the error bar caps.
 
 - errorbar_linewidth:
 
-  A numeric value to specify the line width of the error bars. Default
-  is 0.75.
+  Line width of the error bars.
 
 - add_trend:
 
-  A logical value to add trend line to the plot.
+  Logical; add trend lines connecting group medians.
 
 - trend_color:
 
-  A character string to specify the color of the trend line. This won't
-  work when `group_by` is specified, the trend line will be colored by
-  the `group_by` variable.#'
+  Colour of the trend line. When `NULL` and `group_by` is present, lines
+  are coloured per group.
 
 - trend_linewidth:
 
-  A numeric value to specify the width of the trend line.
+  Width of the trend line.
 
 - trend_ptsize:
 
-  A numeric value to specify the size of the trend line points.
+  Size of the trend line points.
 
 - add_stat:
 
-  A character string to add statistical test to the plot.
+  A summary function (e.g., `mean`, `median`) to display as a point with
+  a shape legend entry.
 
 - stat_name:
 
-  A character string to specify the name of the stat legend.
+  Legend title for the stat summary shape.
 
 - stat_color:
 
-  A character string to specify the color of the statistical test.
+  Colour of the stat summary point.
 
 - stat_size:
 
-  A numeric value to specify the size of the statistical test.
+  Size of the stat summary point.
 
 - stat_stroke:
 
-  A numeric value to specify the stroke of the statistical test.
+  Stroke width of the stat summary point.
 
 - stat_shape:
 
-  A numeric value to specify the shape of the statistical test.
+  Shape (an integer) for the stat summary point. Uses
+  `scale_shape_identity()` so the shape is rendered directly.
 
 - add_bg:
 
-  A logical value to add background to the plot.
+  Logical; add alternating background stripes.
 
 - bg_palette:
 
-  A character string to specify the palette of the background.
+  Palette for the background stripes.
 
 - bg_palcolor:
 
-  A character vector to specify the colors of the background.
+  Custom colours for the background stripes.
 
 - bg_alpha:
 
-  A numeric value to specify the transparency of the background.
+  Alpha transparency for the background stripes.
 
 - add_line:
 
-  A character string to add a line to the plot.
+  A numeric y-intercept for a horizontal reference line.
 
 - line_color:
 
-  A character string to specify the color of the line.
+  Colour of the reference line.
 
 - line_width:
 
-  A numeric value to specify the size of the line.
+  Width of the reference line.
 
 - line_type:
 
-  A numeric value to specify the type of the line.
+  Linetype of the reference line.
 
 - highlight:
 
-  A vector of character strings to highlight the points. It should be a
-  subset of the row names of the data. If TRUE, it will highlight all
-  points.
+  A specification of points to highlight: `TRUE` (all), a numeric index
+  vector, a logical expression string, or a character vector of row
+  names.
 
 - highlight_color:
 
-  A character string to specify the color of the highlighted points.
+  Colour of highlighted points.
 
 - highlight_size:
 
-  A numeric value to specify the size of the highlighted points.
+  Size of highlighted points.
 
 - highlight_alpha:
 
-  A numeric value to specify the transparency of the highlighted points.
+  Alpha of highlighted points.
 
 - comparisons:
 
-  A logical value or a list of vectors to perform pairwise comparisons.
-  If `TRUE`, it will perform pairwise comparisons for all pairs.
+  A logical value (`TRUE` for all pairs) or a list of two-element
+  vectors specifying pairwise comparisons. Only available when
+  `fill_mode = "dodge"` (i.e., `group_by` is present).
 
 - ref_group:
 
-  A character string to specify the reference group for comparisons.
+  A character string specifying the reference group for comparisons.
 
 - pairwise_method:
 
-  A character string to specify the pairwise comparison method.
+  Method for pairwise tests. Default `"wilcox.test"`.
 
 - multiplegroup_comparisons:
 
-  A logical value to perform multiple group comparisons.
+  Logical; perform an omnibus test (e.g., Kruskal-Wallis) across all
+  groups.
 
 - multiple_method:
 
-  A character string to specify the multiple group comparison method.
+  Method for the omnibus test. Default `"kruskal.test"`.
 
 - sig_label:
 
-  A character string to specify the label of the significance test. For
-  multiple group comparisons (`multiplegroup_comparisons = TRUE`), it
-  must be either "p.format" or "p.signif". For pairwise comparisons, it
-  can be:
-
-  - the column containing the label (e.g.: label = "p" or label =
-    "p.adj"), where p is the p-value. Other possible values are
-    "p.signif", "p.adj.signif", "p.format", "p.adj.format".
-
-  - an expression that can be formatted by the glue() package. For
-    example, when specifying `label = "Wilcoxon, p = {p}"`, the
-    expression `{p}` will be replaced by its value.
-
-  - a combination of plotmath expressions and glue expressions. You may
-    want some of the statistical parameter in italic; for example:
-    `label = "Wilcoxon, p= {p}"` See
-    https://rpkgs.datanovia.com/ggpubr/reference/geom_pwc.html for more
-    details.
+  Label format for significance annotations. For pairwise comparisons:
+  `"p.format"`, `"p.signif"`, or a glue template (e.g., `"p = {p}"`).
+  For multiple-group tests: `"p.format"` or `"p.signif"`.
 
 - sig_labelsize:
 
-  A numeric value to specify the size of the significance test label.
+  Size of the significance label text.
 
 - hide_ns:
 
-  A logical value to hide the non-significant comparisons.
+  Logical; hide non-significant comparison labels.
 
 - facet_by:
 
@@ -605,4 +581,111 @@ BoxViolinPlotAtomic(
 
 ## Value
 
-A ggplot object
+A `ggplot` object, possibly faceted, with `height` and `width`
+attributes (in inches) attached.
+
+## Architecture
+
+1.  **Wide-to-long conversion** — when `in_form = "wide"`, data is
+    pivoted via
+    [`tidyr::pivot_longer()`](https://tidyr.tidyverse.org/reference/pivot_longer.html).
+    The `keep_na` / `keep_empty` lists are filtered to the new column
+    names.
+
+2.  **Column resolution** — `x`, `y`, `group_by`, `facet_by`, and
+    `paired_by` are validated via
+    [`check_columns`](https://pwwang.github.io/plotthis/reference/check_columns.md).
+
+3.  **NA / empty-level handling** — per-column `keep_empty` settings are
+    extracted for `x`, `group_by`, and `facet_by` independently.
+
+4.  **Beeswarm validation** — if `add_beeswarm = TRUE`, the `ggbeeswarm`
+    package is required. Beeswarm is disabled (with a warning) when
+    `paired_by` is provided.
+
+5.  **Paired data validation** — structural checks ensure each (`x`,
+    `paired_by`) combination has exactly 2 observations (one per group
+    when `group_by` is present). Paired observations force
+    `add_point = TRUE`.
+
+6.  **Summary statistics** — `.y_mean` and `.y_median` are pre-computed
+    per (`x`, `group_by`, `facet_by`) for use in trend lines and fill
+    modes.
+
+7.  **y-axis limits** — `y_max` / `y_min` accept numeric values or
+    quantile notation (`"q95"`, `"q5"`). For bar plots, the limit is
+    extended upward by the error bar extent.
+
+8.  **Highlight** — `highlight` can be `TRUE` (all points), a numeric
+    index vector, a logical expression string, or a character vector of
+    row names.
+
+9.  **sort_x** — an R expression string (e.g., `"mean(y)"`) evaluated
+    per x-level to reorder categories.
+
+10. **Flip transformation** — when `flip = TRUE`, factor levels are
+    reversed and `aspect.ratio` is inverted.
+
+11. **Base geometry** — the primary geom is added: `geom_boxplot()`,
+    `geom_violin()`, or `stat_summary(fun = mean, geom = "col")`. Error
+    bars (SEM / SD / CI) are layered on bar plots via a custom
+    `stat_summary(fun.data = ...)`.
+
+12. **Fill mode** — `fill_mode` controls colour mapping:
+
+    - `"dodge"` — fill by `group_by` (discrete).
+
+    - `"x"` — fill by x-axis categories (discrete).
+
+    - `"mean"` / `"median"` — fill by pre-computed mean/median
+      (continuous gradient).
+
+13. **Box overlay** — when `add_box = TRUE` on a non-box base, a box
+    plot is overlaid via
+    [`ggnewscale::new_scale_fill()`](https://eliocamp.github.io/ggnewscale/reference/new_scale.html)
+    with a white fill/black outline.
+
+14. **Statistical comparisons** — two pathways:
+
+    - **Pairwise** (`comparisons`) — uses
+      [`ggpubr::geom_pwc()`](https://rpkgs.datanovia.com/ggpubr/reference/geom_pwc.html)
+      with automatic or explicit comparison pairs. Data is preprocessed
+      to avoid test failures from zero-variance or all-NA groups.
+
+    - **Multiple-group** (`multiplegroup_comparisons`) — uses
+      [`ggpubr::stat_compare_means()`](https://rpkgs.datanovia.com/ggpubr/reference/stat_compare_means.html)
+      for omnibus tests (e.g., Kruskal-Wallis).
+
+    After comparison layers are added, `y_max_use` is expanded to
+    accommodate significance brackets.
+
+15. **Points** — jittered points (`geom_point()` with
+    `position_jitterdodge`) or beeswarm points
+    ([`ggbeeswarm::geom_beeswarm()`](https://rdrr.io/pkg/ggbeeswarm/man/geom_beeswarm.html)).
+    Paired observations add connecting lines (`geom_line()`) between
+    matched subjects.
+
+16. **Trend lines** — `stat_summary(fun = first)` draws lines connecting
+    group medians. When `trend_color` is `NULL` and `group_by` is
+    present, lines are coloured per group.
+
+17. **Reference lines** — `geom_hline()` at the specified y-intercept.
+
+18. **Stat summary points** — a custom `stat_summary()` point layer
+    displaying a user-specified summary statistic (e.g., mean) with a
+    shape legend entry.
+
+19. **Stack layout** — when `stack = TRUE`, facets are arranged with
+    shared strip labels and negative panel spacing for a compact stacked
+    appearance.
+
+20. **Dimension calculation** —
+    [`calculate_plot_dimensions()`](https://pwwang.github.io/plotthis/reference/calculate_plot_dimensions.md)
+    accounts for the number of x-levels × dodge groups, flip state, and
+    stack layout adjustments. Minimum dimensions are enforced from label
+    character widths.
+
+21. **Faceting** —
+    [`facet_plot()`](https://pwwang.github.io/plotthis/reference/facet_plot.md)
+    wraps the result with the appropriate strip position based on
+    flip/stack state.

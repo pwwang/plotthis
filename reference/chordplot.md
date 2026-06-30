@@ -1,8 +1,19 @@
 # Chord / Circos plot
 
-`ChordPlot` is used to create a chord plot to visualize the
-relationships between two categorical variables. `CircosPlot` is an
-alias of `ChordPlot`.
+Draws a chord diagram (also known as a circos plot) to visualise
+relationships between two categorical variables. Categories are arranged
+around a circle, and connecting ribbons (links) represent the flow or
+association between source and target nodes. The width of each link is
+proportional to the associated numeric value or observation count.
+
+The function supports **count aggregation** (omit `y` to plot
+observation counts per pair), **link colouring** by source or target
+node, **label rotation** options, and splitting into separate
+sub-diagrams via `split_by`.
+
+`CircosPlot` is an alias of `ChordPlot`.
+
+`CircosPlot` is an alias for `ChordPlot`.
 
 ## Usage
 
@@ -89,40 +100,43 @@ CircosPlot(
 
 - from:
 
-  A character string of the column name to plot for the source. A
-  character/factor column is expected.
+  A character string (or vector) specifying the column name(s) for the
+  source nodes. Character/factor columns are expected. Multiple columns
+  are concatenated with `from_sep`.
 
 - from_sep:
 
-  A character string to concatenate the columns in `from`, if multiple
-  columns are provided.
+  A character string to join multiple `from` columns. Default `"_"`.
 
 - to:
 
-  A character string of the column name to plot for the target. A
-  character/factor column is expected.
+  A character string (or vector) specifying the column name(s) for the
+  target nodes. Character/factor columns are expected. Multiple columns
+  are concatenated with `to_sep`.
 
 - to_sep:
 
-  A character string to concatenate the columns in `to`, if multiple
-  columns are provided.
+  A character string to join multiple `to` columns. Default `"_"`.
 
 - split_by:
 
-  The column(s) to split data by and plot separately.
+  The column(s) to split the data by for separate sub-diagrams. Multiple
+  columns are concatenated with `split_by_sep`.
 
 - split_by_sep:
 
-  The separator for multiple split_by columns. See `split_by`
+  A character string to separate concatenated `split_by` columns.
+  Default `"_"`.
 
 - flip:
 
-  A logical value to flip the source and target.
+  Logical; if `TRUE`, swap the source and target nodes, reversing the
+  link direction.
 
 - links_color:
 
-  A character string to specify the color of the links. Either "from" or
-  "to".
+  A character string controlling which node's colour each link ribbon
+  takes: `"from"` (default) or `"to"`.
 
 - theme:
 
@@ -157,7 +171,8 @@ CircosPlot(
 
 - labels_rot:
 
-  A logical value to rotate the labels by 90 degrees.
+  Logical; if `TRUE`, rotate sector labels by 90 degrees (clockwise).
+  Default `FALSE` uses `niceFacing` for automatic orientation.
 
 - title:
 
@@ -171,7 +186,7 @@ CircosPlot(
 
 - seed:
 
-  The random seed to use. Default is 8525.
+  A numeric seed for reproducibility.
 
 - keep_na:
 
@@ -205,76 +220,28 @@ CircosPlot(
 
 - combine:
 
-  Whether to combine the plots into one when facet is FALSE. Default is
-  TRUE.
+  Logical; when `TRUE` (default), returns a combined `patchwork` object.
+  When `FALSE`, returns a named list of individual wrapped elements.
 
-- nrow:
+- ncol, nrow:
 
-  A numeric value specifying the number of rows in the facet.
-
-- ncol:
-
-  A numeric value specifying the number of columns in the facet.
+  Integer number of columns / rows for the combined layout.
 
 - byrow:
 
-  A logical value indicating whether to fill the plots by row.
+  Logical; fill the combined layout by row (default `TRUE`).
 
-- axes:
+- axes, axis_titles:
 
-  A string specifying how axes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axes in individual plots.
-
-  - 'collect' will remove duplicated axes when placed in the same run of
-    rows or columns of the layout.
-
-  - 'collect_x' and 'collect_y' will remove duplicated x-axes in the
-    columns or duplicated y-axes in the rows respectively.
-
-- axis_titles:
-
-  A string specifying how axis titltes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axis titles in individual plots.
-
-  - 'collect' will remove duplicated titles in one direction and merge
-    titles in the opposite direction.
-
-  - 'collect_x' and 'collect_y' control this for x-axis titles and
-    y-axis titles respectively.
+  Character strings for axis handling in the combined layout.
 
 - guides:
 
-  A string specifying how guides should be treated in the layout. Passed
-  to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'collect' will collect guides below to the given nesting level,
-    removing duplicates.
-
-  - 'keep' will stop collection at this level and let guides be placed
-    alongside their plot.
-
-  - 'auto' will allow guides to be collected if a upper level tries, but
-    place them alongside the plot if not.
+  Character string for legend collection across panels.
 
 - design:
 
-  Specification of the location of areas in the layout, passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. When
-  specified, `nrow`, `ncol`, and `byrow` are ignored. See
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
-  for more details.
+  A custom layout design for the combined plot.
 
 - ...:
 
@@ -282,7 +249,37 @@ CircosPlot(
 
 ## Value
 
-A combined plot or a list of plots
+A `patchwork` object or a named list of wrapped elements (when
+`combine = FALSE`), each with `height` and `width` attributes in inches.
+
+## split_by workflow
+
+When `split_by` is provided:
+
+1.  [`check_keep_na()`](https://pwwang.github.io/plotthis/reference/check_keep_na.md)
+    and
+    [`check_keep_empty()`](https://pwwang.github.io/plotthis/reference/check_keep_empty.md)
+    normalise the `keep_na` / `keep_empty` arguments for all columns
+    (`split_by`, `from`, `to`).
+
+2.  The `split_by` column is validated and its NA / empty levels are
+    processed. It is then removed from the per-column lists.
+
+3.  The data is split by `split_by` (preserving level order). If
+    `split_by` is `NULL`, the data is wrapped in a single-element list
+    with name `"..."`.
+
+4.  Per-split `palette` and `palcolor` are resolved via
+    [`check_palette()`](https://pwwang.github.io/plotthis/reference/check_palette.md)
+    and
+    [`check_palcolor()`](https://pwwang.github.io/plotthis/reference/check_palcolor.md).
+
+5.  [`ChordPlotAtomic()`](https://pwwang.github.io/plotthis/reference/ChordPlotAtomic.md)
+    is called for each split. When `title` is a function, it receives
+    the split level name for dynamic titles.
+
+6.  Results are combined via
+    [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md).
 
 ## Examples
 
@@ -295,18 +292,30 @@ data <- data.frame(
     y = sample(1:5, 10, replace = TRUE)
 )
 
+# Basic chord diagram (counts)
 ChordPlot(data, from = "nodes1", to = "nodes2")
 
+
+# Links coloured by target + rotated labels
 ChordPlot(data, from = "nodes1", to = "nodes2",
           links_color = "to", labels_rot = TRUE)
 
+
+# With explicit y values (link thickness)
 ChordPlot(data, from = "nodes1", to = "nodes2", y = "y")
 
+
+# Split by a column — one diagram per split level
 ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y")
 
-ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y",
-          palette = c("1" = "Reds", "2" = "Blues", "3" = "Greens", "4" = "Purp"))
 
+# Per-split palettes
+ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y",
+          palette = c("1" = "Reds", "2" = "Blues",
+                      "3" = "Greens", "4" = "Purp"))
+
+
+# Flip source/target direction
 ChordPlot(data, from = "nodes1", to = "nodes2", flip = TRUE)
 
 # }

@@ -1,6 +1,29 @@
-# RarefactionPlotAtomic
+# Atomic rarefaction / extrapolation plot (internal)
 
-This function generates a rarefraction plot for a given dataset.
+Core implementation for drawing a single rarefaction (or extrapolation)
+curve from biodiversity data. This is the workhorse behind the exported
+[`RarefactionPlot`](https://pwwang.github.io/plotthis/reference/RarefactionPlot.md)
+— it takes a **single** fortifed data frame (produced by
+[`fortify()`](https://ggplot2.tidyverse.org/reference/fortify.html) on
+an `iNEXT` object) and returns a `ggplot` object.
+
+The function renders three types of curves:
+
+1.  **Sample-size-based** (`type = 1`) — species diversity as a function
+    of sample size (number of individuals or sampling units), with
+    rarefaction (interpolation) and extrapolation segments.
+
+2.  **Sample completeness** (`type = 2`) — sample coverage as a function
+    of sample size.
+
+3.  **Coverage-based** (`type = 3`) — species diversity as a function of
+    sample coverage.
+
+Observed data points are marked with `geom_point()` (shape per group),
+the rarefaction / extrapolation lines are drawn with `geom_line()` using
+a solid/dashed linetype to distinguish the two phases, and confidence
+intervals are rendered as semi-transparent ribbons when `se = TRUE` and
+the fortifed data contains `y.lwr` / `y.upr` columns.
 
 ## Usage
 
@@ -39,38 +62,52 @@ RarefactionPlotAtomic(
 
 - data:
 
-  An iNEXT object or a list of data that will be handled by
-  [iNEXT::iNEXT](https://rdrr.io/pkg/iNEXT/man/iNEXT.html).
+  A data frame produced by
+  [`fortify()`](https://ggplot2.tidyverse.org/reference/fortify.html) on
+  an `iNEXT` object. Expected to contain columns `x` (sample size or
+  coverage), `y` (diversity or coverage estimate), `Method`
+  (`"Observed"`, `"Rarefaction"`, `"Extrapolation"`), `y.lwr` / `y.upr`
+  (confidence bounds, optional), `datatype` (`"abundance"` or
+  `"incidence"`), `group` (assemblage name, renamed from `Assemblage`),
+  and `q` (diversity order, renamed from `Order.q`).
 
 - type:
 
-  three types of plots: sample-size-based rarefaction/extrapolation
-  curve (`type = 1`); sample completeness curve (`type = 2`);
-  coverage-based rarefaction/extrapolation curve (`type = 3`).
+  An integer specifying the curve type: `1` for sample-size-based
+  rarefaction/extrapolation, `2` for sample completeness, or `3` for
+  coverage-based rarefaction/extrapolation. A vector of types can be
+  passed and the data will be fortifed for all of them; faceting or
+  splitting then separates the panels. Default: `1`.
 
 - se:
 
-  a logical variable to display confidence interval around the estimated
-  sampling curve. Default to `NULL` which means TRUE if the data has the
-  lower and upper bounds.
+  A logical value indicating whether to display confidence intervals as
+  semi-transparent ribbons around the estimated curve. When `NULL` (the
+  default), it resolves to `TRUE` if the fortifed data contains `y.lwr`
+  and `y.upr` columns, and `FALSE` otherwise.
 
 - group_by:
 
-  A character string indicating how to group the data (color the lines).
-  Possible values are "q" and "group"
+  A character vector specifying how to group the data for colouring the
+  lines. Must be one or both of `"q"` (diversity order) and `"group"`
+  (assemblage/site). Multiple values are concatenated with
+  `group_by_sep`. When `NULL`, a dummy `".group"` column is created and
+  the legend is hidden. Default: `"group"`.
 
 - group_name:
 
-  A character string indicating the name of the group, showing as the
-  legend title.
+  A character string used as the title for the colour (and shape)
+  legend. When `NULL` (the default), the value of `group_by` is used.
 
 - pt_size:
 
-  A numeric value specifying the size of the points.
+  A numeric value specifying the size of the observed-data points.
+  Default: `3`.
 
 - line_width:
 
-  A numeric value specifying the width of the lines.
+  A numeric value specifying the width of the rarefaction /
+  extrapolation lines. Default: `1`.
 
 - theme:
 
@@ -83,9 +120,11 @@ RarefactionPlotAtomic(
 
 - palette:
 
-  A character string specifying the palette to use. A named list or
-  vector can be used to specify the palettes for different `split_by`
-  values.
+  A character string specifying the colour palette to use. A named list
+  or vector can be used to specify palettes for different `split_by`
+  levels in the exported
+  [`RarefactionPlot`](https://pwwang.github.io/plotthis/reference/RarefactionPlot.md).
+  Default: `"Spectral"`.
 
 - palcolor:
 
@@ -101,12 +140,15 @@ RarefactionPlotAtomic(
 
 - alpha:
 
-  A numeric value specifying the transparency of the plot.
+  A numeric value between 0 and 1 specifying the transparency of the
+  confidence-interval ribbon fill. Default: `0.2`.
 
 - facet_by:
 
-  A character string indicating how to facet the data and plots Possible
-  values are "q" and "group"
+  A character string specifying the column name of the data frame to
+  facet the plot. Otherwise, the data will be split by `split_by` and
+  generate multiple plots and combine them into one using
+  [`patchwork::wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
 
 - facet_scales:
 
@@ -163,10 +205,70 @@ RarefactionPlotAtomic(
 
 - ...:
 
-  Additional arguments to pass to
-  [iNEXT::iNEXT](https://rdrr.io/pkg/iNEXT/man/iNEXT.html) when `data`
-  is not an iNEXT object.
+  Additional arguments (currently unused in the atomic function;
+  accepted for forward compatibility with the exported wrapper).
 
 ## Value
 
-A ggplot object.
+A `ggplot` object with `height` and `width` attributes (in inches)
+attached.
+
+## Architecture
+
+1.  **ggplot dispatch** — selects `gglogger::ggplot` or
+    [`ggplot2::ggplot`](https://ggplot2.tidyverse.org/reference/ggplot.html)
+    based on `getOption("plotthis.gglogger.enabled")`.
+
+2.  **Axis labels** — set according to the combination of `type` and the
+    data's `datatype` attribute (`"abundance"` vs. `"incidence"`):
+
+    - `type = 2`: x = "Number of individuals" or "Number of sampling
+      units", y = "Sample coverage".
+
+    - `type = 3 || 4`: x = "Sample coverage", y = "Species diversity".
+
+    - `type = 1` (abundance): x = "Number of individuals", y = "Species
+      diversity".
+
+    - `type = 1` (incidence): x = "Number of sampling units", y =
+      "Species diversity".
+
+3.  **Group name fallback** — if `group_name` is `NULL`, it is set to
+    the value of `group_by` (i.e. `"q"` or `"group"`).
+
+4.  **Base ggplot** — initialises
+    `ggplot(data, aes(x, y, color = group_by))`.
+
+5.  **Observed data points** — `geom_point()` on rows where
+    `Method == "Observed"`, with shape mapped to the group variable.
+
+6.  **Colour scale** — `scale_color_manual()` using
+    [`palette_this()`](https://pwwang.github.io/plotthis/reference/palette_this.md).
+    The legend is suppressed when `group_by` is the dummy `".group"`.
+
+7.  **Shape scale** — `scale_shape_discrete()` with the same
+    legend-suppression logic.
+
+8.  **Rarefaction / extrapolation lines** — `geom_line()` with linetype
+    mapped to the `lty` column (`"Rarefaction"` vs. `"Extrapolation"`).
+
+9.  **Linetype scale** — `scale_linetype_manual()` with `solid` and
+    `dashed` values, legend key width set to 1 cm.
+
+10. **Theme and labels** — `do_call(theme, theme_args)`,
+    `panel.grid.major` (grey80 dashed), aspect ratio, legend position /
+    direction, and title / subtitle.
+
+11. **Confidence ribbon** — when `se = TRUE`, a
+    `geom_ribbon(aes(ymin = y.lwr, ymax = y.upr, fill = group_by))` is
+    added with the same per-group palette at transparency `alpha`.
+
+12. **Dimension calculation** —
+    [`calculate_plot_dimensions()`](https://pwwang.github.io/plotthis/reference/calculate_plot_dimensions.md)
+    computes `height` / `width` attributes from `base_height = 4.5`,
+    `aspect.ratio`, and legend metrics.
+
+13. **Faceting** —
+    [`facet_plot()`](https://pwwang.github.io/plotthis/reference/facet_plot.md)
+    wraps the plot with `facet_wrap` / `facet_grid` if `facet_by` is
+    provided.

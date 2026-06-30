@@ -1,9 +1,26 @@
-# Bar Plot
+# Bar plot
 
-- `BarPlot` is used to create a bar plot.
+Draws bar plots with flexible fill, grouping, labelling, and annotation
+options. Supports both simple single-colour bars and grouped bars
+(dodged or stacked). Bars can be filled by a categorical variable
+(discrete colour scale), a continuous variable (colour gradient), or a
+fixed colour.
 
-- `SplitBarPlot` (a.k.a `WaterfallPlot`) is used to create a bar plot
-  with splitting the bars on the two sides.
+The function supports **count aggregation** (omit `y` to plot
+observation counts), **proportion scaling** (`scale_y = TRUE` for
+grouped bars), background stripes (`add_bg`), bar labels, trend lines,
+horizontal reference lines, and splitting into separate sub-plots via
+`split_by`.
+
+`SplitBarPlot` (also known as `WaterfallPlot`) draws a divergent bar
+plot where bars extend left (negative values) and right (positive
+values) from a central zero line. The bar fill colour and opacity can
+encode additional variables, and the vertical ordering of categories is
+fully customisable.
+
+The function supports **split_by** to produce separate panels,
+**facet_by** for grouped views within panels, and **alpha_by** for
+encoding a secondary numeric variable via opacity.
 
 ## Usage
 
@@ -214,8 +231,7 @@ WaterfallPlot(
 
 - x_sep:
 
-  A character string to concatenate the columns in `x`, if multiple
-  columns are provided.
+  A character string to join multiple `x` columns. Default `"_"`.
 
 - y:
 
@@ -224,51 +240,60 @@ WaterfallPlot(
 
 - flip:
 
-  A logical value indicating whether to flip the x and y axes.
+  Logical; if `TRUE`, swap the x and y axes.
 
 - fill_by:
 
-  A variable used to fill the bars. Both character/factor and numeric
-  columns are accepted. If `TRUE` (default), the bars will be filled by
-  the x-axis values, If `FALSE`, the bars will be filled a single color
-  (the first color in the palette). ONLY works when `group_by` is NULL.
-  When `group_by` is not NULL, the bars will be filled by the `group_by`
-  variable.
+  A variable used to fill the bars. Both categorical and numeric columns
+  are accepted:
+
+  - `TRUE` (default) — fill by the x-axis values.
+
+  - `FALSE` — solid fill (first palette colour).
+
+  - A column name (character/factor) — discrete colour scale.
+
+  - A column name (numeric) — continuous gradient with quantile / cutoff
+    controls.
+
+  Ignored when `group_by` is provided (fill is determined by
+  `group_by`).
 
 - fill_name:
 
-  A character string to specify the name of the fill variable in the
-  legend. Only works when `fill_by` applies.
+  A character string for the fill legend title. Only applies when
+  `group_by = NULL` and the fill is from `fill_by`.
 
 - line_name:
 
-  A character string indicating the name of the line.
+  Legend name for the reference line.
 
 - label_nudge:
 
-  A numeric value to nudge the labels (the distance between the label
-  and the top of the bar).
+  A numeric value controlling the distance between labels and the bar
+  top, expressed as a fraction of the data range.
 
 - label:
 
-  A column name for the values to be displayed on the top of the bars.
-  If TRUE, the y values will be displayed.
+  A column name (or `TRUE`) for text labels on bars. When `TRUE`, the
+  y-axis values are labelled. When a column name, the values in that
+  column are used.
 
 - label_fg:
 
-  A character string indicating the color of the label.
+  A character string specifying the label text colour.
 
 - label_size:
 
-  A numeric value indicating the size of the label.
+  A numeric value specifying the label text size.
 
 - label_bg:
 
-  A character string indicating the background color of the label.
+  A character string specifying the label background colour.
 
 - label_bg_r:
 
-  A numeric value indicating the radius of the background.
+  A numeric value specifying the label background corner radius.
 
 - group_by:
 
@@ -282,15 +307,16 @@ WaterfallPlot(
 
 - group_name:
 
-  A character string to specify the name of the group_by in the legend.
+  A character string for the group fill legend title. When `NULL`, the
+  `group_by` column name is used.
 
 - split_by:
 
-  The column(s) to split data by and plot separately.
+  The column(s) to split the data by for separate sub-plots.
 
 - split_by_sep:
 
-  The separator for multiple split_by columns. See `split_by`
+  Separator for concatenated `split_by` columns.
 
 - facet_by:
 
@@ -322,58 +348,56 @@ WaterfallPlot(
 
 - facet_args:
 
-  A list of arguments to pass to
-  [ggplot2::facet_grid](https://ggplot2.tidyverse.org/reference/facet_grid.html)
-  or
-  [ggplot2::facet_wrap](https://ggplot2.tidyverse.org/reference/facet_wrap.html).
+  A list of additional arguments passed to the faceting function (e.g.,
+  `scales`, `labeller`).
 
 - add_bg:
 
-  A logical value indicating whether to add a background to the plot.
+  Logical; add alternating background stripes behind the bars.
 
 - bg_palette:
 
-  A character string indicating the palette to use for the background.
+  Palette for the background stripes.
 
 - bg_palcolor:
 
-  A character string indicating the color to use for the background.
+  Custom colours for the background stripes.
 
 - bg_alpha:
 
-  A numeric value indicating the alpha of the background.
+  Alpha transparency for the background stripes.
 
 - add_line:
 
-  A numeric value indicating the y value to add a horizontal line.
+  A numeric y-intercept for a horizontal reference line.
 
 - line_color:
 
-  A character string indicating the color of the line.
+  Colour of the reference line.
 
 - line_width:
 
-  A numeric value indicating the size of the line.
+  Width of the reference line.
 
 - line_type:
 
-  A numeric value indicating the type of the line.
+  Linetype of the reference line (e.g., 1 = solid, 2 = dashed).
 
 - add_trend:
 
-  A logical value to add trend line to the plot.
+  Logical; add a trend line and points connecting the bar tops.
 
 - trend_color:
 
-  A character string to specify the color of the trend line.
+  Colour of the trend line.
 
 - trend_linewidth:
 
-  A numeric value to specify the width of the trend line.
+  Width of the trend line.
 
 - trend_ptsize:
 
-  A numeric value to specify the size of the trend line points.
+  Size of the trend line points.
 
 - theme:
 
@@ -386,10 +410,9 @@ WaterfallPlot(
 
 - palette:
 
-  A character string specifying the palette to use for the bars. When
-  `group_by` is specified, it defaults to "Paired". When `group_by` is
-  not specified, it defaults to "Spectral" if `fill_by` column is
-  numeric, otherwise "Paired".
+  A character string specifying the palette to use. A named list or
+  vector can be used to specify the palettes for different `split_by`
+  values.
 
 - palcolor:
 
@@ -431,25 +454,22 @@ WaterfallPlot(
 
   A numeric value specifying the aspect ratio of the plot.
 
-- y_min:
+- y_min, y_max:
 
-  A numeric value to specify the minimum value of the y axis.
-
-- y_max:
-
-  A numeric value to specify the maximum value of the y axis.
+  Numeric limits for the y-axis (or x-axis when flipped).
 
 - position:
 
-  A character string indicating the position of the bars. If "auto", the
-  position will be "stack" if group_by has more than 5 levels, otherwise
-  "dodge". "fill" is also a valid option. Only works when group_by is
-  not NULL.
+  A character string specifying the bar layout: `"auto"` (default: dodge
+  when ≤5 groups, stack otherwise), `"dodge"` (side-by-side), or
+  `"stack"` (stacked on top of each other).
 
 - position_dodge_preserve:
 
-  Should dodging preserve the "total" width of all elements at a
-  position, or the width of a "single" element?
+  A character string passed to
+  [`position_dodge2()`](https://ggplot2.tidyverse.org/reference/position_dodge.html):
+  `"total"` preserves the overall bar group width; `"single"` preserves
+  individual bar widths.
 
 - legend.position:
 
@@ -527,84 +547,36 @@ WaterfallPlot(
 
 - width:
 
-  A numeric value specifying the width of the bars.
+  A numeric value specifying the bar width (0–1).
 
 - combine:
 
-  Whether to combine the plots into one when facet is FALSE. Default is
-  TRUE.
+  Logical; when `TRUE` (default), returns a combined `patchwork` object.
+  When `FALSE`, returns a named list of `ggplot` objects.
 
-- nrow:
+- ncol, nrow:
 
-  A numeric value specifying the number of rows in the facet.
-
-- ncol:
-
-  A numeric value specifying the number of columns in the facet.
+  Integer number of columns / rows for the combined layout.
 
 - byrow:
 
-  A logical value indicating whether to fill the plots by row.
+  Logical; fill the combined layout by row (default `TRUE`).
 
 - seed:
 
-  The random seed to use. Default is 8525.
+  A numeric seed for reproducibility.
 
-- axes:
+- axes, axis_titles:
 
-  A string specifying how axes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axes in individual plots.
-
-  - 'collect' will remove duplicated axes when placed in the same run of
-    rows or columns of the layout.
-
-  - 'collect_x' and 'collect_y' will remove duplicated x-axes in the
-    columns or duplicated y-axes in the rows respectively.
-
-- axis_titles:
-
-  A string specifying how axis titltes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axis titles in individual plots.
-
-  - 'collect' will remove duplicated titles in one direction and merge
-    titles in the opposite direction.
-
-  - 'collect_x' and 'collect_y' control this for x-axis titles and
-    y-axis titles respectively.
+  Character strings for axis handling in the combined layout.
 
 - guides:
 
-  A string specifying how guides should be treated in the layout. Passed
-  to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'collect' will collect guides below to the given nesting level,
-    removing duplicates.
-
-  - 'keep' will stop collection at this level and let guides be placed
-    alongside their plot.
-
-  - 'auto' will allow guides to be collected if a upper level tries, but
-    place them alongside the plot if not.
+  Character string for legend collection across panels.
 
 - design:
 
-  Specification of the location of areas in the layout, passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. When
-  specified, `nrow`, `ncol`, and `byrow` are ignored. See
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
-  for more details.
+  A custom layout design for the combined plot.
 
 - ...:
 
@@ -612,75 +584,133 @@ WaterfallPlot(
 
 - y_sep:
 
-  A character string to concatenate the x columns if there are multiple.
+  A character string to join multiple `y` columns. Default `"_"`.
 
 - alpha_by:
 
-  A character string indicating the column name to use for the
-  transparency of the bars.
+  A character string naming a numeric column to encode as bar opacity.
+  Default `NULL` (all bars fully opaque).
 
 - alpha_reverse:
 
-  A logical value indicating whether to reverse the transparency.
+  Logical; if `TRUE`, reverse the alpha scale direction (solid for low
+  values, transparent for high).
 
 - alpha_name:
 
-  A character string indicating the legend name of the transparency.
+  A character string for the alpha legend title.
 
 - order_y:
 
-  A list of character strings indicating the order of the y axis. The
-  keys are "+", "-", or "*". However, "+/-" should not be mixed with
-  "*". The values are "x_asc", "x_desc", "alpha_asc", or "alpha_desc",
-  indicating how to order the y axis. The default is
-  `list("+" = c("x_desc", "alpha_desc"), "-" = c("x_desc", "alpha_asc"))`,
-  meaning the positive values are ordered by the x-axis values in
-  descending order and the alpha values in descending order, and the
-  negative values are ordered by the x-axis values in descending order
-  and the alpha values in ascending order. The "\*" key is used to order
-  the y axis without considering the direction.
+  A named list controlling the vertical ordering of bars. Keys are `"+"`
+  (positive bars), `"-"` (negative bars), or `"*"` (all bars). Values
+  are character vectors of ordering criteria: `"x_asc"`, `"x_desc"`,
+  `"alpha_asc"`, `"alpha_desc"`. Default orders positive bars by
+  descending x and descending alpha; negative bars by descending x and
+  ascending alpha.
 
 - bar_height:
 
-  A numeric value indicating the height of the bars.
+  A numeric value (0–1) specifying the bar height as a fraction of the
+  available category slot.
 
 - lineheight:
 
-  A numeric value indicating the height of the text.
+  A numeric value controlling the line height of wrapped category
+  labels.
 
 - max_charwidth:
 
-  A numeric value indicating the maximum width of the text.
+  An integer specifying the maximum character width for wrapping
+  category labels.
 
 - fill_by_sep:
 
-  A character string to concatenate the fill columns if there are
-  multiple.
+  A character string to join multiple `fill_by` columns. Default `"_"`.
 
 - direction_name:
 
-  A character string indicating the name of the direction column and
-  will be shown in the legend.
+  A character string naming the internal direction column (used in
+  legends). Default `"direction"`.
 
 - direction_pos_name:
 
-  A character string indicating the name of the positive direction.
+  A character string labelling the positive direction in the legend.
+  Default `"positive"`.
 
 - direction_neg_name:
 
-  A character string indicating the name of the negative direction.
+  A character string labelling the negative direction in the legend.
+  Default `"negative"`.
 
-- x_min:
+- x_min, x_max:
 
-  A numeric value indicating the minimum value of the x axis.
-
-- x_max:
-
-  A numeric value indicating the maximum value of the x axis.
+  Numeric limits for the x-axis. When `NULL`, symmetric limits are
+  computed from the maximum absolute x-value.
 
 ## Value
 
-A ggplot object or wrap_plots object or a list of ggplot objects
+A `ggplot` object, a `patchwork` object, or a named list of `ggplot`
+objects (when `combine = FALSE`), each with `height` and `width`
+attributes in inches.
+
+A `ggplot` object, a `patchwork` object, or a named list of `ggplot`
+objects (when `combine = FALSE`), each with `height` and `width`
+attributes in inches.
+
+## split_by workflow
+
+When `split_by` is provided:
+
+1.  [`check_keep_na()`](https://pwwang.github.io/plotthis/reference/check_keep_na.md)
+    and
+    [`check_keep_empty()`](https://pwwang.github.io/plotthis/reference/check_keep_empty.md)
+    normalise the `keep_na` / `keep_empty` arguments for all columns
+    (`x`, `split_by`, `facet_by`, `group_by`).
+
+2.  The `split_by` column is validated and its NA / empty levels are
+    processed. It is then removed from the per-column `keep_na` /
+    `keep_empty` lists.
+
+3.  The data is split by `split_by` (preserving level order). If
+    `split_by` is `NULL`, the data is wrapped in a single-element list
+    with name `"..."`.
+
+4.  Per-split `palette`, `palcolor`, `legend.position`, and
+    `legend.direction` are resolved via
+    [`check_palette()`](https://pwwang.github.io/plotthis/reference/check_palette.md),
+    [`check_palcolor()`](https://pwwang.github.io/plotthis/reference/check_palcolor.md),
+    and
+    [`check_legend()`](https://pwwang.github.io/plotthis/reference/check_legend.md).
+
+5.  [`BarPlotAtomic()`](https://pwwang.github.io/plotthis/reference/BarPlotAtomic.md)
+    is called for each split.
+
+6.  Results are combined via
+    [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)
+    (when `combine = TRUE`) or returned as a named list.
+
+When `split_by` is provided:
+
+1.  [`check_keep_na()`](https://pwwang.github.io/plotthis/reference/check_keep_na.md)
+    and
+    [`check_keep_empty()`](https://pwwang.github.io/plotthis/reference/check_keep_empty.md)
+    normalise the `keep_na` / `keep_empty` arguments.
+
+2.  The `split_by` column is validated and its NA / empty levels are
+    processed. It is then removed from the per-column lists.
+
+3.  The data is split by `split_by` (preserving level order).
+
+4.  Per-split `palette`, `palcolor`, `legend.position`, and
+    `legend.direction` are resolved.
+
+5.  [`SplitBarPlotAtomic()`](https://pwwang.github.io/plotthis/reference/SplitBarPlotAtomic.md)
+    is called for each split. When `title` is a function, it receives
+    the split level name for dynamic title generation.
+
+6.  Results are combined via
+    [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md).
 
 ## Examples
 
@@ -693,136 +723,142 @@ data <- data.frame(
     facet = c("F1", "F2", "F3", "F4", "F1", "F2", "F3", "F4")
 )
 
+# Single-colour bars
 BarPlot(data, x = "x", y = "y")
 
+
+# Solid fill (no colour mapping)
 BarPlot(data, x = "x", y = "y", fill_by = FALSE)
 
+
+# Label bar tops
 BarPlot(data, x = "x", y = "y", label = TRUE)
 
 BarPlot(data, x = "x", y = "y", label = "facet", label_nudge = 0)
 
+
+# Grouped bars
 BarPlot(data, x = "group", y = "y", group_by = "x")
 
+
+# Dodged bars with background stripes
 BarPlot(data,
     x = "group", y = "y", group_by = "x",
-    position = "dodge", add_bg = TRUE
-)
+    position = "dodge", add_bg = TRUE)
 
+
+# split_by with faceting
 BarPlot(data,
     x = "x", y = "y", split_by = "group",
-    facet_by = "facet", position = "dodge", facet_ncol = 1
-)
+    facet_by = "facet", position = "dodge", facet_ncol = 1)
 
+
+# split_by with collected guides
 BarPlot(data,
     x = "x", y = "y", split_by = "group", facet_by = "facet",
-    position = "dodge", facet_ncol = 1, guides = 'collect'
-)
+    position = "dodge", facet_ncol = 1, guides = 'collect')
 
+
+# Per-split palettes
 BarPlot(data,
     x = "x", y = "y", split_by = "group",
     palette = list(G1 = "Reds", G2 = "Blues", G3 = "Greens", G4 = "Purp"),
-    facet_by = "facet", position = "dodge", facet_ncol = 1
-)
+    facet_by = "facet", position = "dodge", facet_ncol = 1)
 
+
+# Background stripe palette
 BarPlot(data,
     x = "group", y = "y", group_by = "x",
-    position = "dodge", add_bg = TRUE, bg_palette = "Spectral"
-)
+    position = "dodge", add_bg = TRUE, bg_palette = "Spectral")
 
-# use the count
+
+# Count bars (y = NULL)
 BarPlot(data, x = "group", ylab = "count")
 
-# flip the plot
+
+# Flipped axes
 BarPlot(data, x = "group", flip = TRUE, ylab = "count")
 
-# Allow numeric fill_by
+
+# Numeric fill_by with colour gradient
 BarPlot(data, x = "x", y = "y", fill_by = "y", flip = TRUE)
 
-# control fill color scale limits
+
+# Control fill colour scale limits (quantile)
 BarPlot(data, x = "x", y = "y", fill_by = "y", flip = TRUE,
         lower_quantile = 0.1, upper_quantile = 0.9)
 
+
+# Control fill colour scale limits (explicit cutoff)
 BarPlot(data, x = "x", y = "y", fill_by = "y", flip = TRUE,
         lower_cutoff = 5, upper_cutoff = 12)
 
 
+# keep_na and keep_empty examples
 data <- data.frame(
-    x = factor(c("A", "B", "C", "D", "E", "F", NA, "H"), levels = LETTERS[1:10]),
+    x = factor(c("A", "B", "C", "D", "E", "F", NA, "H"),
+               levels = LETTERS[1:10]),
     y = c(10, 8, 16, 4, 6, NA, 14, 2),
     group = factor(c("G1", "G1", "G2", NA, "G3", "G3", "G5", "G5"),
-       levels = c("G1", "G2", "G3", "G4", "G5")),
+                   levels = c("G1", "G2", "G3", "G4", "G5")),
     facet = factor(c("F1", NA, "F3", "F4", "F1", "F2", "F3", "F4"),
-       levels = c("F1", "F2", "F3", "F4", "F5"))
+                   levels = c("F1", "F2", "F3", "F4", "F5"))
 )
-# keep_na and keep_empty on simple barplots
+
+# Default: NA and empty levels dropped
+BarPlot(data, x = "x", y = "y")
+#> Warning: Removed 1 row containing missing values or values outside the scale range
+#> (`geom_col()`).
+
+
+# Keep both NA and empty levels
 BarPlot(data, x = "x", y = "y",
-    title = "keep_na = FALSE; keep_empty = FALSE")
+        keep_na = TRUE, keep_empty = TRUE)
 #> Warning: Removed 1 row containing missing values or values outside the scale range
 #> (`geom_col()`).
 
+
+# With faceting
 BarPlot(data, x = "x", y = "y",
-    keep_na = TRUE, keep_empty = TRUE,
-    title = "keep_na = TRUE; keep_empty = TRUE")
+        keep_na = TRUE, keep_empty = TRUE, facet_by = "facet")
 #> Warning: Removed 1 row containing missing values or values outside the scale range
 #> (`geom_col()`).
 
+
+# Keep NA, hide empty levels but reserve their colours
 BarPlot(data, x = "x", y = "y",
-    keep_na = TRUE, keep_empty = TRUE, facet_by = "facet",
-    title = "keep_na = TRUE; keep_empty = TRUE; facet_by = 'facet'")
+        keep_na = TRUE, keep_empty = 'level')
 #> Warning: Removed 1 row containing missing values or values outside the scale range
 #> (`geom_col()`).
 
+
+# Per-column keep_na / keep_empty
 BarPlot(data, x = "x", y = "y",
-    keep_na = TRUE, keep_empty = 'level',
-    title = "keep_na = TRUE; keep_empty = 'level'")
-#> Warning: Removed 1 row containing missing values or values outside the scale range
-#> (`geom_col()`).
-
-BarPlot(data, x = "x", y = "y",
-    keep_na = list(x = TRUE), keep_empty = list(x = FALSE),
-    title = "keep_na: x=TRUE\nkeep_empty: x=FALSE"
-)
+        keep_na = list(x = TRUE), keep_empty = list(x = FALSE))
 #> Warning: Removed 1 row containing missing values or values outside the scale range
 #> (`geom_col()`).
 
 
-# keep_na and keep_empty on grouped barplots
-BarPlot(data,
-    x = "group", y = "y", group_by = "x",
-    title = "keep_na = FALSE; keep_empty = FALSE")
+# Grouped bars with keep_na / keep_empty
+BarPlot(data, x = "group", y = "y", group_by = "x")
 #> Warning: Removed 1 row containing missing values or values outside the scale range
 #> (`geom_col()`).
 
-BarPlot(data,
-    x = "group", y = "y", group_by = "x",
-    keep_na = TRUE, keep_empty = TRUE,
-    title = "keep_na = TRUE; keep_empty = TRUE"
-)
+BarPlot(data, x = "group", y = "y", group_by = "x",
+        keep_na = TRUE, keep_empty = TRUE)
 #> Warning: Removed 1 row containing missing values or values outside the scale range
 #> (`geom_col()`).
 
-BarPlot(data,
-    x = "group", y = "y", group_by = "x",
-    keep_na = TRUE, keep_empty = TRUE, facet_by = "facet",
-    title = "keep_na = TRUE; keep_empty = TRUE; facet_by = 'facet'"
-)
+BarPlot(data, x = "group", y = "y", group_by = "x",
+        keep_na = TRUE, keep_empty = TRUE, facet_by = "facet")
 #> Warning: Removed 1 row containing missing values or values outside the scale range
 #> (`geom_col()`).
 
-BarPlot(data,
-    x = "group", y = "y", group_by = "x",
-    keep_na = TRUE, keep_empty = 'level',
-    title = "keep_na = TRUE; keep_empty = 'level'"
-)
-#> Warning: Removed 1 row containing missing values or values outside the scale range
-#> (`geom_col()`).
 
-BarPlot(data,
-    x = "group", y = "y", group_by = "x",
-    keep_na = list(x = TRUE, group = FALSE),
-    keep_empty = list(x = FALSE, group = TRUE),
-    title = "keep_na: x=TRUE, group=FALSE\nkeep_empty: x=FALSE, group=TRUE"
-)
+# Per-column on grouped bars
+BarPlot(data, x = "group", y = "y", group_by = "x",
+        keep_na = list(x = TRUE, group = FALSE),
+        keep_empty = list(x = FALSE, group = TRUE))
 #> Warning: Removed 1 row containing missing values or values outside the scale range
 #> (`geom_col()`).
 
@@ -836,21 +872,32 @@ data <- data.frame(
     score = c(1, 2, 3, 4, 5, 3.2),
     group = c("A", "A", "B", "B", "C", "C")
 )
+
+# Basic split bar plot with alpha encoding
 SplitBarPlot(data, x = "count", y = "word", alpha_by = "score")
 
+
+# Control label wrapping
 SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
              max_charwidth = 30, lineheight = 1.1)
 
+
+# Fill by categorical variable
 SplitBarPlot(data, x = "count", y = "word", fill_by = "group")
 
+
+# Faceting
 SplitBarPlot(data, x = "count", y = "word", facet_by = "group",
              fill_name = "Direction")
 
-SplitBarPlot(data, x = "count", y = "word", alpha_by = "score", split_by="group",
+
+# Per-split palettes
+SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
+             split_by = "group",
              palette = c(A = "Reds", B = "Blues", C = "Greens"))
 
 
-# test keep_na and keep_empty
+# keep_na and keep_empty examples
 data <- data.frame(
     word = factor(c("apple", "banana", "cherry", NA, "elderberry",
          "It is a very long term with a lot of words"),
@@ -862,26 +909,31 @@ data <- data.frame(
          levels = c("A", "B", "C", "D"))
 )
 
-SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
-    title = "keep_na = FALSE; keep_empty = FALSE")
+# Default: NA and empty levels dropped
+SplitBarPlot(data, x = "count", y = "word", alpha_by = "score")
 
-SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
-    keep_na = TRUE, keep_empty = TRUE,
-    title = "keep_na = TRUE; keep_empty = TRUE")
 
+# Keep NA and empty levels
 SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
-    keep_na = TRUE, keep_empty = TRUE, facet_by = "group",
-    title = "keep_na = TRUE; keep_empty = TRUE; facet_by = 'group'")
+             keep_na = TRUE, keep_empty = TRUE)
 
+
+# Keep with faceting
 SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
-    keep_na = TRUE, keep_empty = "level",
-    title = "keep_na = TRUE; keep_empty = 'level'")
+             keep_na = TRUE, keep_empty = TRUE, facet_by = "group")
 
+
+# Keep NA, hide empty levels (reserve colours)
 SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
-    keep_na = list(word = FALSE), keep_empty = list(word = TRUE),
-    title = "keep_na: word=FALSE; keep_empty: word=TRUE")
+             keep_na = TRUE, keep_empty = "level")
 
-# control fill color scale limits
+
+# Per-column control
+SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
+             keep_na = list(word = FALSE), keep_empty = list(word = TRUE))
+
+
+# Control fill colour scale limits
 SplitBarPlot(data, x = "count", y = "word", fill_by = "score",
              lower_cutoff = 1, upper_cutoff = 4)
 

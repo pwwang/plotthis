@@ -1,6 +1,11 @@
-# Atomic ROC curve
+# Atomic ROC curve (internal)
 
-Atomic ROC curve
+Core implementation for drawing a single Receiver Operating
+Characteristic (ROC) curve. This is the internal workhorse behind the
+exported
+[`ROCCurve`](https://pwwang.github.io/plotthis/reference/ROCCurve.md)
+function. It takes a **single** data frame (no `split_by` support) and
+returns a `ggplot` object.
 
 ## Usage
 
@@ -57,210 +62,234 @@ ROCCurveAtomic(
 
 - data:
 
-  A data frame with the truth and score columns. See also
-  https://cran.r-project.org/web/packages/plotROC/vignettes/examples.html.
+  A data frame with the truth and score columns. See
+  <https://cran.r-project.org/web/packages/plotROC/vignettes/examples.html>
+  for the expected format.
 
 - truth_by:
 
-  A character string of the column name that contains the true class
-  labels. (a.k.a. the binary outcome, 1/0 or TRUE/FALSE.)
+  A character string naming the column that contains the true class
+  labels (binary outcome, 0/1 or TRUE/FALSE).
 
 - score_by:
 
-  character strings of the column names that contains the predicted
-  scores. When multiple columns are provided, the ROC curve is plotted
-  for each column.
+  A character vector of column names containing the predicted scores
+  (classifier output values). When multiple columns are provided, each
+  column becomes a separate ROC curve grouped by a `.group` identifier.
+  When multiple columns are used, `group_by` must be NULL.
 
 - pos_label:
 
-  A character string of the positive class label. When NULL, the labels
-  will be handled by the `plotROC` package.
+  A character string specifying the positive class label in `truth_by`.
+  When NULL (default), the labels are handled by the `plotROC` package:
+  if `truth_by` is a factor, the last level is used; otherwise it is
+  coerced to a factor with a warning.
 
 - group_by:
 
-  A character vector of column names to group the ROC curve by. When
-  `score_by` contains multiple columns, `group_by` should be NULL.
+  A character vector of column names to group the ROC curve by. Each
+  unique combination of group values renders a separate ROC curve. When
+  `score_by` contains multiple columns, `group_by` must be NULL because
+  the score columns themselves define the groups. Multiple `group_by`
+  columns are concatenated with `group_by_sep`.
 
 - group_by_sep:
 
-  A character string to separate the columns in `group_by`.
+  A character string used to separate concatenated `group_by` columns.
+  Default: `"_"`.
 
 - group_name:
 
-  A character string to name the legend of the ROC curve groups.
+  A character string to use as the legend title for the ROC curve
+  groups. When NULL (default), the `group_by` column name is used.
 
 - x_axis_reverse:
 
-  A logical to reverse the x-axis, that is from 1 to 0.
+  A logical value. If TRUE, the x-axis is reversed (from 1 to 0),
+  displaying specificity instead of 1 - specificity. The x-axis label
+  automatically changes to `"Specificity"`. Default: FALSE.
 
 - percent:
 
-  A logical to display the x and y axis as percentages.
+  A logical value. If TRUE, the x and y axes are displayed as
+  percentages (0 to 100). Default: FALSE.
 
 - ci:
 
-  A list of arguments to pass to
+  A list of arguments passed to
   [`plotROC::geom_rocci()`](https://sachsmc.github.io/plotROC/reference/geom_rocci.html)
-  to add confidence intervals. When NULL, no confidence intervals are
-  added.
+  to add confidence intervals to the ROC curve. When NULL (default), no
+  confidence intervals are drawn. Example:
+  `ci = list(sig.level = 0.05)`.
 
 - n_cuts:
 
-  An integer to specify the number of cutpoints on the ROC curve. It
-  will be the quantiles of the predicted scores.
+  An integer specifying the number of evenly-spaced quantile-based
+  cutoff points to annotate on the ROC curve. Quantiles are computed
+  from the `score_by` distribution. Default: `0` (no quantile cutoffs).
+  Ignored when `cutoffs_at` is non-NULL.
 
 - cutoffs_at:
 
-  Vector of user supplied cutoffs to plot as points. If non-NULL, it
-  will override the values of n_cuts and plot the observed cutoffs
-  closest to the user-supplied ones. Both `cutoffs_at` and
-  `cutoffs.labels` will be passed to
+  A vector of user-supplied cutoff values to annotate as points on the
+  ROC curve. When non-NULL, overrides `n_cuts`. Accepts raw numeric
+  score thresholds and/or named method strings from the
+  [`optimal.cutpoints`](https://rdrr.io/pkg/OptimalCutpoints/man/optimal.cutpoints.html)
+  package for automatic optimal cutoff identification. Both `cutoffs_at`
+  and `cutoffs.labels` are passed to
   [`plotROC::geom_roc()`](https://sachsmc.github.io/plotROC/reference/geom_roc.html).
-  Other than numeric values, the following special values are allowed.
-  These values are the methods of
-  [`OptimalCutpoints::optimal.cutpoints()`](https://rdrr.io/pkg/OptimalCutpoints/man/optimal.cutpoints.html),
-  they are literally:
+  Supported method values are:
 
-  - "CB" (cost-benefit method);
+  - `"CB"` (cost-benefit method);
 
-  - "MCT" (minimizes Misclassification Cost Term);
+  - `"MCT"` (minimises Misclassification Cost Term);
 
-  - "MinValueSp" (a minimum value set for Specificity);
+  - `"MinValueSp"` (a minimum value set for Specificity);
 
-  - "MinValueSe" (a minimum value set for Sensitivity);
+  - `"MinValueSe"` (a minimum value set for Sensitivity);
 
-  - "ValueSe" (a value set for Sensitivity);
+  - `"ValueSe"` (a value set for Sensitivity);
 
-  - "MinValueSpSe" (a minimum value set for Specificity and
+  - `"MinValueSpSe"` (a minimum value set for Specificity and
     Sensitivity);
 
-  - "MaxSp" (maximizes Specificity);
+  - `"MaxSp"` (maximises Specificity);
 
-  - "MaxSe" (maximizes Sensitivity);
+  - `"MaxSe"` (maximises Sensitivity);
 
-  - "MaxSpSe" (maximizes Sensitivity and Specificity simultaneously);
+  - `"MaxSpSe"` (maximises Sensitivity and Specificity simultaneously);
 
-  - "MaxProdSpSe" (maximizes the product of Sensitivity and Specificity
-    or Accuracy Area);
+  - `"MaxProdSpSe"` (maximises the product of Sensitivity and
+    Specificity);
 
-  - "ROC01" (minimizes distance between ROC plot and point (0,1));
+  - `"ROC01"` (minimises distance between ROC plot and point (0,1));
 
-  - "SpEqualSe" (Sensitivity = Specificity);
+  - `"SpEqualSe"` (Sensitivity = Specificity);
 
-  - "Youden" (Youden Index);
+  - `"Youden"` (Youden Index);
 
-  - "MaxEfficiency" (maximizes Efficiency or Accuracy, similar to
-    minimize Error Rate);
+  - `"MaxEfficiency"` (maximises Efficiency/Accuracy);
 
-  - "Minimax" (minimizes the most frequent error);
+  - `"Minimax"` (minimises the most frequent error);
 
-  - "MaxDOR" (maximizes Diagnostic Odds Ratio);
+  - `"MaxDOR"` (maximises Diagnostic Odds Ratio);
 
-  - "MaxKappa" (maximizes Kappa Index);
+  - `"MaxKappa"` (maximises Kappa Index);
 
-  - "MinValueNPV" (a minimum value set for Negative Predictive Value);
+  - `"MinValueNPV"` (a minimum value set for Negative Predictive Value);
 
-  - "MinValuePPV" (a minimum value set for Positive Predictive Value);
+  - `"MinValuePPV"` (a minimum value set for Positive Predictive Value);
 
-  - "ValueNPV" (a value set for Negative Predictive Value);
+  - `"ValueNPV"` (a value set for Negative Predictive Value);
 
-  - "ValuePPV" (a value set for Positive Predictive Value);
+  - `"ValuePPV"` (a value set for Positive Predictive Value);
 
-  - "MinValueNPVPPV" (a minimum value set for Predictive Values);
+  - `"MinValueNPVPPV"` (a minimum value set for Predictive Values);
 
-  - "PROC01" (minimizes distance between PROC plot and point (0,1));
+  - `"PROC01"` (minimises distance between PROC plot and point (0,1));
 
-  - "NPVEqualPPV" (Negative Predictive Value = Positive Predictive
+  - `"NPVEqualPPV"` (Negative Predictive Value = Positive Predictive
     Value);
 
-  - "MaxNPVPPV" (maximizes Positive Predictive Value and Negative
-    Predictive Value simultaneously);
+  - `"MaxNPVPPV"` (maximises Positive and Negative Predictive Values
+    simultaneously);
 
-  - "MaxSumNPVPPV" (maximizes the sum of the Predictive Values);
+  - `"MaxSumNPVPPV"` (maximises the sum of the Predictive Values);
 
-  - "MaxProdNPVPPV" (maximizes the product of Predictive Values);
+  - `"MaxProdNPVPPV"` (maximises the product of Predictive Values);
 
-  - "ValueDLR.Negative" (a value set for Negative Diagnostic Likelihood
-    Ratio);
+  - `"ValueDLR.Negative"` (a value set for Negative Diagnostic
+    Likelihood Ratio);
 
-  - "ValueDLR.Positive" (a value set for Positive Diagnostic Likelihood
-    Ratio);
+  - `"ValueDLR.Positive"` (a value set for Positive Diagnostic
+    Likelihood Ratio);
 
-  - "MinPvalue" (minimizes p-value associated with the statistical
-    Chi-squared test which measures the association between the marker
-    and the binary result obtained on using the cutpoint);
+  - `"MinPvalue"` (minimises p-value of the Chi-squared test);
 
-  - "ObservedPrev" (The closest value to observed prevalence);
+  - `"ObservedPrev"` (closest value to observed prevalence);
 
-  - "MeanPrev" (The closest value to the mean of the diagnostic test
-    values);
+  - `"MeanPrev"` (closest value to the mean of the test values);
 
-  - "PrevalenceMatching" (The value for which predicted prevalence is
-    practically equal to observed prevalence).
+  - `"PrevalenceMatching"` (predicted prevalence equals observed
+    prevalence).
 
 - cutoffs_labels:
 
-  vector of user-supplied labels for the cutoffs. Must be a character
-  vector of the same length as cutoffs_at.
+  A character vector of user-supplied labels for the cutoff points. Must
+  be the same length as `cutoffs_at`. When NULL, labels are generated
+  automatically (score value or method name).
 
 - cutoffs_accuracy:
 
-  A numeric to specify the accuracy of the cutoff values to show.
+  A numeric value controlling the rounding precision of automatically
+  generated cutoff labels. Default: `0.01`.
 
 - cutoffs_pt_size:
 
-  A numeric to specify the size of the cutoff points.
+  A numeric value specifying the size of the cutoff point markers.
+  Default: `5`.
 
 - cutoffs_pt_shape:
 
-  A numeric to specify the shape of the cutoff points.
+  A numeric value specifying the shape of the cutoff point markers.
+  Default: `4` (cross).
 
 - cutoffs_pt_stroke:
 
-  A numeric to specify the stroke of the cutoff points.
+  A numeric value specifying the stroke width of the cutoff point
+  markers. Default: `1`.
 
 - cutoffs_labal_fg:
 
-  A character string to specify the color of the cutoff labels.
+  A character string specifying the text colour of the cutoff labels.
+  Default: `"black"`.
 
 - cutoffs_label_size:
 
-  A numeric to specify the size of the cutoff labels.
+  A numeric value specifying the font size of the cutoff labels.
+  Default: `4`.
 
 - cutoffs_label_bg:
 
-  A character string to specify the background color of the cutoff
-  labels.
+  A character string specifying the background colour of the cutoff
+  labels. Default: `"white"`.
 
 - cutoffs_label_bg_r:
 
-  A numeric to specify the radius of the background of the cutoff
-  labels.
+  A numeric value specifying the background radius of the cutoff labels
+  (passed to
+  [`ggrepel::geom_text_repel()`](https://ggrepel.slowkow.com/reference/geom_text_repel.html)).
+  Default: `0.1`.
 
 - show_auc:
 
-  A character string to specify the position of the AUC values.
+  A character string specifying the display mode for AUC values:
 
-  - "auto" (default): Automatically determine the position based on the
-    plot. When there is a single group or 'facet_by' is provided, the
-    AUC is placed on the plot. Otherwise, the AUC is placed in the
-    legend.
+  - `"auto"` (default): Automatically determine the position. When there
+    is a single group or `facet_by` is provided, AUC is placed on the
+    plot; otherwise AUC is placed in the legend.
 
-  - "none": Do not display the AUC values.
+  - `"none"`: Do not display AUC values.
 
-  - "legend": Display the AUC values in the legend.
+  - `"legend"`: Display AUC values in the legend labels.
 
-  - "plot": Display the AUC values on the plot (left/right bottom
-    corner).
+  - `"plot"`: Display AUC values as text on the plot.
 
 - auc_accuracy:
 
-  A numeric to specify the accuracy of the AUC values.
+  A numeric value controlling the rounding precision of AUC values in
+  labels. Default: `0.01`.
 
 - auc_size:
 
-  A numeric to specify the size of the AUC values when they are
-  displayed on the plot.
+  A numeric value specifying the font size of AUC labels when displayed
+  on the plot. Default: `4`.
+
+- increasing:
+
+  A logical value. If TRUE (default), higher scores indicate the
+  positive class; if FALSE, lower scores indicate the positive class.
+  Controls the direction of comparison in the ROC analysis.
 
 - theme:
 
@@ -359,4 +388,140 @@ ROCCurveAtomic(
 
 ## Value
 
-A ggplot object.
+A `ggplot` object with `height` and `width` attributes (in inches)
+attached, plus `attr(p, "auc")` and `attr(p, "cutoffs")` data frames.
+
+## Details
+
+The function produces an ROC curve using
+[`plotROC::geom_roc()`](https://sachsmc.github.io/plotROC/reference/geom_roc.html),
+with the following capabilities:
+
+- **Multiple classifiers** — `score_by` accepts multiple column names,
+  automatically pivoting them into a grouped format so several
+  prediction scores can be compared on a single plot.
+
+- **AUC calculation** — area under the curve is computed via
+  [`plotROC::calc_auc()`](https://sachsmc.github.io/plotROC/reference/calc_auc.html)
+  and displayed either on the plot or in the legend, controlled by
+  `show_auc`.
+
+- **Cutoff annotation** — user-specified cutoffs (numeric score
+  thresholds or named optimal-cutoff methods from the `OptimalCutpoints`
+  package) are rendered as markers with labels, using
+  [`ggrepel::geom_text_repel()`](https://ggrepel.slowkow.com/reference/geom_text_repel.html)
+  for label placement.
+
+- **Confidence intervals** — optional ROC confidence bands via
+  [`plotROC::geom_rocci()`](https://sachsmc.github.io/plotROC/reference/geom_rocci.html).
+
+- **Axis flexibility** — supports reversed x-axis (displaying
+  specificity) and percent-scaled axes.
+
+## Architecture
+
+1.  **show_auc resolution** —
+    [`match.arg()`](https://rdrr.io/r/base/match.arg.html) resolves
+    `show_auc` to one of `"auto"`, `"none"`, `"legend"`, or `"plot"`.
+
+2.  **Column validation** —
+    [`check_columns()`](https://pwwang.github.io/plotthis/reference/check_columns.md)
+    validates `truth_by` (single column), `score_by` (multiple allowed),
+    and `group_by` (factor, multi-column concatenated). An error is
+    raised if `group_by` is provided alongside multiple `score_by`
+    columns.
+
+3.  **Positive label encoding** — Converts `truth_by` to binary numeric
+    (0/1) with three paths:
+
+    - `pos_label` provided: re-factor with `pos_label` as the last
+      level, then convert.
+
+    - `truth_by` is a factor: warn that the last level is treated as
+      positive, then convert.
+
+    - Non-numeric, non-factor: coerce to factor, warn, then convert.
+
+4.  **Multi-score_by expansion** — When `score_by` contains multiple
+    columns,
+    [`tidyr::pivot_longer()`](https://tidyr.tidyverse.org/reference/pivot_longer.html)
+    reshapes into a single `.score` column with a `.group` identifier,
+    which becomes the `group_by` variable.
+
+5.  **ggplot dispatch** — Selects `gglogger::ggplot` or
+    [`ggplot2::ggplot`](https://ggplot2.tidyverse.org/reference/ggplot.html)
+    based on `getOption("plotthis.gglogger.enabled")`.
+
+6.  **Dummy group insertion** — When `group_by = NULL`, creates a
+    synthetic `..group` column (constant `""`) so the curve still
+    renders. The legend is suppressed (`"none"`).
+
+7.  **Auto AUC placement** — When `show_auc = "auto"`, single-group or
+    faceted plots place AUC on the plot; multi-group plots place it in
+    the legend.
+
+8.  **Base ROC geometry** —
+    [`plotROC::geom_roc()`](https://sachsmc.github.io/plotROC/reference/geom_roc.html)
+    with `aes(d = truth, m = score, color = group)`, controlling
+    direction via the `increasing` parameter.
+
+9.  **AUC calculation** — Temporarily facets via
+    [`facet_plot()`](https://pwwang.github.io/plotthis/reference/facet_plot.md),
+    then computes per-group (and per-facet) AUC values via
+    [`plotROC::calc_auc()`](https://sachsmc.github.io/plotROC/reference/calc_auc.html).
+
+10. **Cutoff computation** —
+    [`get_cutoffs_data()`](https://pwwang.github.io/plotthis/reference/get_cutoffs_data.md)
+    combines `group_by` and `facet_by` columns into a `.cat` identifier
+    and computes per-category cutoff data, supporting both numeric
+    thresholds and named `OptimalCutpoints` methods.
+
+11. **Cutoff rendering** — When cutoff data is non-NULL, splits the
+    `.cat` column back into group/facet columns and adds `geom_point()`
+    (markers) and `geom_text_repel()` (labels) with configurable size,
+    shape, stroke, colour, and background styling.
+
+12. **Confidence intervals** — When `ci` is non-NULL,
+    [`plotROC::geom_rocci()`](https://sachsmc.github.io/plotROC/reference/geom_rocci.html)
+    is added with the provided arguments.
+
+13. **AUC display** — Three modes:
+
+    - `"plot"`: `geom_text()` places AUC labels at a corner position
+      determined by `increasing` and `x_axis_reverse`.
+
+    - `"legend"`: AUC values are appended to the `scale_color_manual()`
+      labels (with per-facet prefixes when faceting is active).
+
+    - `"none"`: group level names are used as-is.
+
+14. **Diagonal reference** — `geom_abline()` draws the no-discrimination
+    line (y = x, or y = -x when x-axis is reversed) as a dashed grey
+    line.
+
+15. **Color scale** — `scale_color_manual()` assigns palette-derived
+    colours via
+    [`palette_this()`](https://pwwang.github.io/plotthis/reference/palette_this.md),
+    with AUC-augmented labels when `show_auc = "legend"`.
+
+16. **Axis formatting** — Percent labels on y-axis (and x-axis) when
+    `percent = TRUE`. X-axis reversed (1 to 0) when
+    `x_axis_reverse = TRUE`, changing the axis label to `"Specificity"`.
+
+17. **Labels and theme** — `labs()` sets title, subtitle, x, and y
+    labels. The theme, aspect ratio, legend position/direction, and
+    dashed grid lines are applied.
+
+18. **Dimension calculation** —
+    [`calculate_plot_dimensions()`](https://pwwang.github.io/plotthis/reference/calculate_plot_dimensions.md)
+    computes `height` and `width` attributes from `base_height = 4.5`,
+    aspect ratio, and legend metrics.
+
+19. **Attribute storage** — `auc` and `cutoffs` data frames are stored
+    as `attr(p, "auc")` and `attr(p, "cutoffs")` for retrieval by the
+    exported wrapper.
+
+20. **Faceting** —
+    [`facet_plot()`](https://pwwang.github.io/plotthis/reference/facet_plot.md)
+    wraps the plot with `facet_wrap` / `facet_grid` if `facet_by` is
+    provided.

@@ -1,9 +1,18 @@
-# GSEA plots
+# GSEA summary dot plot
 
-- `GSEASummaryPlot` is used to plot a summary of the results of a GSEA
-  analysis.
+Produces a summary dot plot of GSEA (Gene Set Enrichment Analysis)
+results. Each row represents a gene set (term), positioned along the
+x-axis by its Normalized Enrichment Score (NES). Dot colour encodes the
+significance level (typically `-log10(p.adjust)`) on a continuous
+gradient, and each row includes a miniature line plot showing the gene
+ranks or running enrichment score for that term's gene set.
 
-- `GSEAPlot` is used to plot the results of a GSEA analysis.
+The function supports both `DOSE` and `fgsea` package output formats via
+the `in_form` parameter. Terms can be ranked and selected by a
+significance metric (`top_term`, `metric`), with non-significant terms
+rendered in grey. The per-term line plots can show either the raw
+preranked gene statistics (`line_by = "prerank"`) or the running
+enrichment score (`line_by = "running_score"`).
 
 ## Usage
 
@@ -76,85 +85,84 @@ GSEAPlot(
 
 - data:
 
-  A data frame of GSEA results For example, from `DOSE::gseDO()`.
-  Required columns are `ID`, `Description`, `NES`, `p.adjust`, `pvalue`.
-  The `ID` column is used to match the gene sets.
+  A data frame.
 
 - in_form:
 
-  The format of the input data
-
-  - `fgsea`: The input data is from the `fgsea` package.
-
-  - `dose`: The input data is from the `DOSE` package.
-
-  - `auto`: Automatically detect the format of the input data. When
-    "leadingEdge" is in the input data, it will be treated as "fgsea";
-    otherwise, if "core_enrichment" is in the input data, it will be
-    treated as "dose".
+  The format of the input data. See `GSEASummaryPlot` for details.
 
 - gene_ranks:
 
-  A numeric vector of gene ranks with genes as names The gene ranks are
-  used to plot the gene sets. If `gene_ranks` is a character vector
-  starting with `@`, the gene ranks will be taken from the attribute of
-  `data`.
+  A named numeric vector of gene-level rank statistics, with gene
+  identifiers as names. Used to construct the per-term line plots. If a
+  character string starting with `"@"`, the attribute of `data` with
+  that name (minus the `"@"`) is used as the gene ranks vector.
 
 - gene_sets:
 
-  A list of gene sets, typically from a record of a GMT file The names
-  of the list should match the `ID` column of `data`. If `gene_sets` is
-  a character vector starting with `@`, the gene sets will be taken from
-  the attribute of `data`. The GSEA plots will be plotted for each gene
-  set. So, the number of plots will be the number of gene sets. If you
-  only want to plot a subset of gene sets, you can subset the
-  `gene_sets` before passing it to this function.
+  A named list of gene sets. Each name must correspond to an `ID` in
+  `data`, and each element is a character vector of gene identifiers. A
+  GSEA ridge plot is generated for each gene set in the list. If you
+  only want to plot a subset of gene sets, subset the list before
+  passing it to this function. If a character string starting with
+  `"@"`, the attribute of `data` with that name (minus the `"@"`) is
+  used.
 
 - top_term:
 
-  An integer to select the top terms
+  Integer specifying the number of top terms to display, ranked by
+  `metric`. If `NULL`, all terms are shown.
 
 - metric:
 
-  The metric to use for the significance of the terms Typically the
-  column name of p values or adjusted p values. It is also used to
-  select the top terms.
+  Character string specifying the column name used to rank terms and
+  assess significance. Typically `"p.adjust"` or `"pvalue"`. Terms are
+  ranked by this column (ascending, lower is better) when `top_term` is
+  set. The same column is transformed to `-log10(metric)` for the colour
+  gradient.
 
 - cutoff:
 
-  The cutoff for the significance of the terms The terms will not be
-  filtered with this cutoff; they are only filtered by the `top_term`
-  ranked by the `metric`. The cutoff here is used to show the
-  significance of the terms on the plot. For the terms that are not
-  significant, the color will be grey.
+  Numeric threshold for the `metric` column. Terms with values below
+  this cutoff are coloured on a gradient; terms above are drawn in grey
+  (`"grey80"`) and labelled as insignificant via `nonsig_name`. Default
+  is `0.05`. If `NULL`, all terms are treated as significant.
 
 - character_width:
 
-  The width of the characters in the y-axis
+  Integer specifying the maximum character width for wrapping term
+  descriptions on the y-axis. Default is `50`.
 
 - line_plot_size:
 
-  The size of the line plots
+  Numeric controlling the size of the per-term miniature enrichment
+  plots embedded in each row. Expressed as a fraction of the plot panel
+  dimensions. Default is `0.25`.
 
 - metric_name:
 
-  The name of the metric to show in the color bar
+  Character string for the colour bar legend title. Defaults to the
+  value of `metric`.
 
 - nonsig_name:
 
-  The name of the legend for the nonsignificant terms
+  Character string for the legend entry label used for non-significant
+  terms. Default is `"Insignificant"`.
 
 - linewidth:
 
-  The width of the lines in the line plots
+  Numeric specifying the line width within the per-term miniature
+  enrichment plots. Default is `0.2`.
 
 - line_by:
 
-  The method to calculate the line plots.
+  The method used to compute the per-term line plots:
 
-  - `prerank`: Use the gene ranks as heights to plot the line plots.
+  - `"prerank"` (default): Use the gene ranks as the bar heights (raw
+    ranking metric).
 
-  - `running_score`: Use the running score to plot the line plots.
+  - `"running_score"`: Use the running enrichment score computed by
+    [`gsea_running_score()`](https://pwwang.github.io/plotthis/reference/gsea_running_score.md).
 
 - title:
 
@@ -221,7 +229,8 @@ GSEAPlot(
 
 - seed:
 
-  The random seed to use. Default is 8525.
+  A numeric seed for reproducibility. Passed to
+  [`validate_common_args()`](https://pwwang.github.io/plotthis/reference/validate_common_args.md).
 
 - ...:
 
@@ -229,138 +238,133 @@ GSEAPlot(
 
 - gs:
 
-  The names of the gene sets to plot If `NULL`, all gene sets in
-  `gene_sets` will be plotted.
+  Character vector of gene set `ID`s to plot. If `NULL` (default), all
+  gene sets in `gene_sets` that appear in `data$ID` are plotted.
 
 - sample_coregenes:
 
-  A logical value to sample the core genes from the core_enrichment; if
-  `FALSE`, the first `n_coregenes` will be used
+  Logical; if `TRUE`, core enrichment genes are sampled randomly for
+  labelling. If `FALSE` (default), the first `n_coregenes` core
+  enrichment genes are used.
 
 - line_width:
 
-  The width of the line in the running score plot
+  Numeric specifying the line width for the running enrichment score
+  curve. Default is `1.5`.
 
 - line_alpha:
 
-  The alpha of the line in the running score plot
+  Numeric alpha transparency for the running score line and hit
+  indicator bars. Default is `1`.
 
 - line_color:
 
-  The color of the line in the running score plot
+  Character string specifying the colour of the running enrichment score
+  line. Default is `"#6BB82D"`.
 
 - n_coregenes:
 
-  The number of core genes to label
+  Integer specifying the number of core enrichment genes to label on the
+  running score plot. Default is `10`. Ignored when `genes_label` is
+  provided.
 
 - genes_label:
 
-  The genes to label. If set, `n_coregenes` will be ignored
+  Character vector of specific gene names to label on the running score
+  plot. When provided, `n_coregenes` is ignored.
 
 - label_fg:
 
-  The color of the label text
+  Character string specifying the text colour of gene labels. Default is
+  `"black"`.
 
 - label_bg:
 
-  The background color of the label
+  Character string specifying the background colour of gene labels.
+  Default is `"white"`.
 
 - label_bg_r:
 
-  The radius of the background color of the label
+  Numeric specifying the corner radius of the label background. Default
+  is `0.1`.
 
 - label_size:
 
-  The size of the label text
+  Numeric specifying the font size of the label text. Default is `4`.
 
 - combine:
 
-  Whether to combine the plots into one when facet is FALSE. Default is
-  TRUE.
+  Logical; when `TRUE` (default), returns a combined `patchwork` object.
+  When `FALSE`, returns a named list of individual `patchwork` objects
+  (one per gene set).
 
-- nrow:
+- ncol, nrow:
 
-  A numeric value specifying the number of rows in the facet.
-
-- ncol:
-
-  A numeric value specifying the number of columns in the facet.
+  Integer number of columns / rows for the combined layout (passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)).
 
 - byrow:
 
-  A logical value indicating whether to fill the plots by row.
+  Logical; fill the combined layout by row. Default `TRUE` (passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)).
 
 - axes:
 
-  A string specifying how axes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axes in individual plots.
-
-  - 'collect' will remove duplicated axes when placed in the same run of
-    rows or columns of the layout.
-
-  - 'collect_x' and 'collect_y' will remove duplicated x-axes in the
-    columns or duplicated y-axes in the rows respectively.
+  A character string specifying how axes should be treated across the
+  combined layout (passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)).
 
 - axis_titles:
 
-  A string specifying how axis titltes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axis titles in individual plots.
-
-  - 'collect' will remove duplicated titles in one direction and merge
-    titles in the opposite direction.
-
-  - 'collect_x' and 'collect_y' control this for x-axis titles and
-    y-axis titles respectively.
+  A character string specifying how axis titles should be treated across
+  the combined layout. Defaults to `axes`.
 
 - guides:
 
-  A string specifying how guides should be treated in the layout. Passed
-  to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'collect' will collect guides below to the given nesting level,
-    removing duplicates.
-
-  - 'keep' will stop collection at this level and let guides be placed
-    alongside their plot.
-
-  - 'auto' will allow guides to be collected if a upper level tries, but
-    place them alongside the plot if not.
+  A character string specifying how guides (legends) should be collected
+  across panels (passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)).
 
 - design:
 
-  Specification of the location of areas in the layout, passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. When
-  specified, `nrow`, `ncol`, and `byrow` are ignored. See
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
-  for more details.
+  A custom layout design for the combined plot (passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)).
+
+## Value
+
+A `ggplot` object with `height` and `width` attributes (in inches)
+attached.
+
+A `patchwork` object when `combine = TRUE`, or a named list of
+`patchwork` objects when `combine = FALSE`. Each individual plot has
+`height` and `width` attributes in inches.
 
 ## Examples
 
 ``` r
 # \donttest{
 data(gsea_example)
+
+# Default summary dot plot with preranked gene statistics
 GSEASummaryPlot(gsea_example)
 
+
+# Use running enrichment score for per-term line plots
 GSEASummaryPlot(gsea_example, line_by = "running_score")
 
+
+# Raise the significance cutoff (all terms are coloured)
 GSEASummaryPlot(gsea_example, cutoff = 0.01)
 
 # }
 # \donttest{
+data(gsea_example)
+
+# Single gene set
 GSEAPlot(gsea_example, gene_sets = attr(gsea_example, "gene_sets")[1])
 
+
+# Multiple gene sets arranged in a grid
 GSEAPlot(gsea_example, gene_sets = attr(gsea_example, "gene_sets")[1:4])
 
 # }

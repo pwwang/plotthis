@@ -1,6 +1,15 @@
-# Pie Chart
+# Pie chart
 
-Pie chart to illustrate numerical proportion of each group.
+Draws a pie chart illustrating the numerical proportion of each group
+relative to the whole. Each slice corresponds to a level of the x-axis
+variable and its angle is proportional to the y-axis value (or the
+observation count when `y` is omitted).
+
+The function supports **count aggregation** (omit `y` to plot
+observation counts per x-category), **slice labels** via
+[`ggrepel::geom_label_repel()`](https://ggrepel.slowkow.com/reference/geom_text_repel.html),
+clockwise or counter-clockwise slice ordering, faceting, and splitting
+into separate sub-plots via `split_by`.
 
 ## Usage
 
@@ -54,31 +63,37 @@ PieChart(
 
 - x:
 
-  A character string specifying the column name of the data frame to
-  plot for the x-axis.
+  A character string specifying the column name for the x-axis
+  (categories). Must be character or factor. Each unique value becomes a
+  pie slice.
 
 - y:
 
-  A character string of the column name to plot on the y-axis. A numeric
-  column is expected. If NULL, the count of each x column will be used.
+  A character string specifying the numeric column for the y-axis. When
+  `NULL` (default), the count of observations in each (`x`, `facet_by`)
+  combination is used and stored as `.y`.
 
 - label:
 
-  Which column to use as the label. NULL means no label. Default is the
-  same as y. If y is NULL, you should use ".y" to specify the count as
-  the label. If TRUE, the y values will be used as the label.
+  A character string specifying the column to use for slice labels.
+  `NULL` (default) hides labels. When `TRUE`, the `y` values are used as
+  labels. When `y = NULL`, use `".y"` to label with the computed counts.
 
 - split_by:
 
-  The column(s) to split data by and plot separately.
+  The column(s) to split the data by and produce separate sub-plots.
+  Multiple columns are concatenated with `split_by_sep`.
 
 - split_by_sep:
 
-  The separator for multiple split_by columns. See `split_by`
+  A character string to separate concatenated `split_by` columns.
+  Default `"_"`.
 
 - clockwise:
 
-  A logical value to draw the pie chart clockwise or not.
+  A logical value. When `TRUE` (default), the pie slices are ordered
+  clockwise starting from the top. When `FALSE`, slices are ordered
+  counter-clockwise.
 
 - facet_by:
 
@@ -203,80 +218,45 @@ PieChart(
 
 - combine:
 
-  Whether to combine the plots into one when facet is FALSE. Default is
-  TRUE.
+  Logical; when `TRUE` (default), returns a combined `patchwork` object.
+  When `FALSE`, returns a named list of individual `ggplot` objects.
 
-- nrow:
+- ncol, nrow:
 
-  A numeric value specifying the number of rows in the facet.
-
-- ncol:
-
-  A numeric value specifying the number of columns in the facet.
+  Integer number of columns / rows for the combined layout (passed to
+  [`wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)).
 
 - byrow:
 
-  A logical value indicating whether to fill the plots by row.
+  Logical; fill the combined layout by row. Default `TRUE` (passed to
+  [`wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)).
 
 - seed:
 
-  The random seed to use. Default is 8525.
+  A numeric seed for reproducibility. Passed to
+  [`validate_common_args()`](https://pwwang.github.io/plotthis/reference/validate_common_args.md).
 
 - axes:
 
-  A string specifying how axes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axes in individual plots.
-
-  - 'collect' will remove duplicated axes when placed in the same run of
-    rows or columns of the layout.
-
-  - 'collect_x' and 'collect_y' will remove duplicated x-axes in the
-    columns or duplicated y-axes in the rows respectively.
+  A character string specifying how axes should be treated across the
+  combined layout (passed to
+  [`wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)).
 
 - axis_titles:
 
-  A string specifying how axis titltes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axis titles in individual plots.
-
-  - 'collect' will remove duplicated titles in one direction and merge
-    titles in the opposite direction.
-
-  - 'collect_x' and 'collect_y' control this for x-axis titles and
-    y-axis titles respectively.
+  A character string specifying how axis titles should be treated across
+  the combined layout. Defaults to `axes`.
 
 - guides:
 
-  A string specifying how guides should be treated in the layout. Passed
-  to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'collect' will collect guides below to the given nesting level,
-    removing duplicates.
-
-  - 'keep' will stop collection at this level and let guides be placed
-    alongside their plot.
-
-  - 'auto' will allow guides to be collected if a upper level tries, but
-    place them alongside the plot if not.
+  A character string specifying how guides (legends) should be collected
+  across panels. Default `"collect"` (passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)).
 
 - design:
 
-  Specification of the location of areas in the layout, passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. When
-  specified, `nrow`, `ncol`, and `byrow` are ignored. See
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
-  for more details.
+  A custom layout design for the combined plot (passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)).
 
 - ...:
 
@@ -284,7 +264,52 @@ PieChart(
 
 ## Value
 
-A ggplot object or wrap_plots object or a list of ggplot objects
+A `ggplot` object, a `patchwork` object, or a named list of `ggplot`
+objects (when `combine = FALSE`), each with `height` and `width`
+attributes in inches.
+
+## split_by workflow
+
+When `split_by` is provided:
+
+1.  [`validate_common_args()`](https://pwwang.github.io/plotthis/reference/validate_common_args.md)
+    validates the `seed` and `facet_by` settings.
+
+2.  [`check_keep_na()`](https://pwwang.github.io/plotthis/reference/check_keep_na.md)
+    and
+    [`check_keep_empty()`](https://pwwang.github.io/plotthis/reference/check_keep_empty.md)
+    normalise the `keep_na` / `keep_empty` arguments for all columns
+    (`x`, `split_by`, `facet_by`).
+
+3.  [`process_theme()`](https://pwwang.github.io/plotthis/reference/process_theme.md)
+    resolves the theme function.
+
+4.  The `x` column is forced to factor; `y` is validated.
+
+5.  The `split_by` column is validated and its NA / empty levels are
+    processed via
+    [`process_keep_na_empty()`](https://pwwang.github.io/plotthis/reference/process_keep_na_empty.md).
+    It is then removed from the per-column `keep_na` / `keep_empty`
+    lists.
+
+6.  The data frame is split by `split_by` (preserving level order). If
+    `split_by` is `NULL`, the data is wrapped in a single-element list
+    with name `"..."`.
+
+7.  Per-split `palette`, `palcolor`, `legend.position`, and
+    `legend.direction` are resolved via
+    [`check_palette()`](https://pwwang.github.io/plotthis/reference/check_palette.md),
+    [`check_palcolor()`](https://pwwang.github.io/plotthis/reference/check_palcolor.md),
+    and
+    [`check_legend()`](https://pwwang.github.io/plotthis/reference/check_legend.md).
+
+8.  [`PieChartAtomic()`](https://pwwang.github.io/plotthis/reference/PieChartAtomic.md)
+    is called for each split. If `title` is a function, it receives the
+    split level name and can generate dynamic titles.
+
+9.  Results are combined via
+    [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)
+    (when `combine = TRUE`) or returned as a named list.
 
 ## Examples
 
@@ -298,36 +323,51 @@ data <- data.frame(
    facet = factor(c("F1", NA, "F3", "F4", "F1", NA, "F3", "F4"),
        levels = c("F1", "F2", "F3", "F4"))
 )
+
+# Basic pie chart
 PieChart(data, x = "x", y = "y")
 
+
+# Keep NA and empty levels
 PieChart(data, x = "x", y = "y", keep_na = TRUE, keep_empty = TRUE)
 
+
+# Counter-clockwise ordering
 PieChart(data, x = "x", y = "y", clockwise = FALSE)
 
 PieChart(data, x = "x", y = "y", clockwise = FALSE,
          keep_na = TRUE, keep_empty = TRUE)
 
+
+# With slice labels
 PieChart(data, x = "x", y = "y", label = "group")
 
+
+# Faceting
 PieChart(data, x = "x", y = "y", facet_by = "facet")
 
 PieChart(data, x = "x", y = "y", facet_by = c("facet", "group"),
-    keep_empty = 'level')
+    keep_empty = "level")
 
 PieChart(data, x = "x", y = "y", facet_by = c("facet", "group"),
     keep_empty = TRUE)
 
+
+# Split into sub-plots
 PieChart(data, x = "x", y = "y", split_by = "group")
 
+
+# Per-split palettes
 PieChart(data, x = "x", y = "y", split_by = "group",
          palette = list(G1 = "Reds", G2 = "Blues", G3 = "Greens", G4 = "Purp"))
 
 
-# y from count
+# Y from count
 PieChart(data, x = "group")
 
-# add label
-PieChart(data, x = "group", label = ".y")  # or label = TRUE
+
+# Y from count with label
+PieChart(data, x = "group", label = ".y")
 
 # }
 ```

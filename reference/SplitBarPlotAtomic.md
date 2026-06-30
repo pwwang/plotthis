@@ -1,6 +1,15 @@
-# SplitBarPlotAtomic
+# Atomic split bar plot (internal)
 
-Create a split bar plot without splitting the data.
+Core implementation for drawing a split (divergent / waterfall-style)
+bar plot. Bars extend left (negative values) and right (positive values)
+from a central zero line, with the y-axis listing categories. Bars can
+be coloured by a categorical or continuous fill variable, and their
+opacity can encode an additional numeric variable via `alpha_by`.
+
+This is the workhorse behind the exported
+[`SplitBarPlot`](https://pwwang.github.io/plotthis/reference/barplot.md)
+(also aliased as
+[`WaterfallPlot`](https://pwwang.github.io/plotthis/reference/barplot.md)).
 
 ## Usage
 
@@ -61,86 +70,90 @@ SplitBarPlotAtomic(
 
 - x:
 
-  The column name of the terms on the x axis. There should be both
-  negative and positive values.
+  A character string specifying the numeric column for the x-axis.
+  Values determine bar direction: positive → right, negative → left.
 
 - y:
 
-  The column name(s) of the values. If there are multiple columns, they
-  will be concatenated.
+  A character string (or vector) specifying the column(s) for the
+  category axis. Each unique value becomes a bar. Multiple columns are
+  concatenated with `y_sep`.
 
 - y_sep:
 
-  A character string to concatenate the x columns if there are multiple.
+  A character string to join multiple `y` columns. Default `"_"`.
 
 - flip:
 
-  A logical value indicating whether to flip the x and y axes.
+  Logical; if `TRUE`, swap the x and y axes (bars become vertical rather
+  than horizontal).
 
 - alpha_by:
 
-  A character string indicating the column name to use for the
-  transparency of the bars.
+  A character string naming a numeric column to encode as bar opacity.
+  Default `NULL` (all bars fully opaque).
 
 - alpha_reverse:
 
-  A logical value indicating whether to reverse the transparency.
+  Logical; if `TRUE`, reverse the alpha scale direction (solid for low
+  values, transparent for high).
 
 - alpha_name:
 
-  A character string indicating the legend name of the transparency.
+  A character string for the alpha legend title.
 
 - order_y:
 
-  A list of character strings indicating the order of the y axis. The
-  keys are "+", "-", or "*". However, "+/-" should not be mixed with
-  "*". The values are "x_asc", "x_desc", "alpha_asc", or "alpha_desc",
-  indicating how to order the y axis. The default is
-  `list("+" = c("x_desc", "alpha_desc"), "-" = c("x_desc", "alpha_asc"))`,
-  meaning the positive values are ordered by the x-axis values in
-  descending order and the alpha values in descending order, and the
-  negative values are ordered by the x-axis values in descending order
-  and the alpha values in ascending order. The "\*" key is used to order
-  the y axis without considering the direction.
+  A named list controlling the vertical ordering of bars. Keys are `"+"`
+  (positive bars), `"-"` (negative bars), or `"*"` (all bars). Values
+  are character vectors of ordering criteria: `"x_asc"`, `"x_desc"`,
+  `"alpha_asc"`, `"alpha_desc"`. Default orders positive bars by
+  descending x and descending alpha; negative bars by descending x and
+  ascending alpha.
 
 - bar_height:
 
-  A numeric value indicating the height of the bars.
+  A numeric value (0–1) specifying the bar height as a fraction of the
+  available category slot.
 
 - lineheight:
 
-  A numeric value indicating the height of the text.
+  A numeric value controlling the line height of wrapped category
+  labels.
 
 - max_charwidth:
 
-  A numeric value indicating the maximum width of the text.
+  An integer specifying the maximum character width for wrapping
+  category labels.
 
 - fill_by:
 
-  A character string indicating the column name to use for the fill of
-  the bars. Can be either a categorical variable or a numeric variable.
+  A character string (or vector) naming the column(s) for bar fill
+  colour. If `NULL`, the direction (positive/negative) is used. Can be
+  categorical or numeric.
 
 - fill_by_sep:
 
-  A character string to concatenate the fill columns if there are
-  multiple.
+  A character string to join multiple `fill_by` columns. Default `"_"`.
 
 - fill_name:
 
-  A character string indicating the legend name of the fill.
+  A character string for the fill legend title.
 
 - direction_name:
 
-  A character string indicating the name of the direction column and
-  will be shown in the legend.
+  A character string naming the internal direction column (used in
+  legends). Default `"direction"`.
 
 - direction_pos_name:
 
-  A character string indicating the name of the positive direction.
+  A character string labelling the positive direction in the legend.
+  Default `"positive"`.
 
 - direction_neg_name:
 
-  A character string indicating the name of the negative direction.
+  A character string labelling the negative direction in the legend.
+  Default `"negative"`.
 
 - theme:
 
@@ -217,13 +230,10 @@ SplitBarPlotAtomic(
 
   A numeric value specifying the aspect ratio of the plot.
 
-- x_min:
+- x_min, x_max:
 
-  A numeric value indicating the minimum value of the x axis.
-
-- x_max:
-
-  A numeric value indicating the maximum value of the x axis.
+  Numeric limits for the x-axis. When `NULL`, symmetric limits are
+  computed from the maximum absolute x-value.
 
 - legend.position:
 
@@ -286,3 +296,59 @@ SplitBarPlotAtomic(
 - ...:
 
   Additional arguments.
+
+## Value
+
+A `ggplot` object, possibly faceted, with `height` and `width`
+attributes (in inches) attached.
+
+## Architecture
+
+1.  **Column resolution** — `x`, `y`, `fill_by`, `alpha_by`, and
+    `facet_by` are validated via
+    [`check_columns`](https://pwwang.github.io/plotthis/reference/check_columns.md).
+    Multi-column `y` and `fill_by` are concatenated with their
+    respective separators.
+
+2.  **Direction assignment** — a `direction_name` column is created from
+    the sign of `x`, assigning each row to the positive or negative
+    group (customisable via `direction_pos_name` /
+    `direction_neg_name`).
+
+3.  **Fill resolution** — if `fill_by` is `NULL`, the direction column
+    is used as the fill (two-colour palette). Categorical fills use a
+    discrete colour scale; numeric fills use
+    [`prepare_continuous_color_scale()`](https://pwwang.github.io/plotthis/reference/prepare_continuous_color_scale.md)
+    with quantile / cutoff clamping and `scale_fill_gradientn()`.
+
+4.  **Alpha by** — when `alpha_by` is provided, bar opacity encodes an
+    additional numeric variable via `scale_alpha_continuous()`.
+
+5.  **Ordering** — `order_y` is a named list controlling the vertical
+    ordering of bars. The keys `"+"` and `"-"` specify separate
+    orderings for positive and negative bars; key `"*"` applies a single
+    ordering to all bars. Values are character vectors of ordering
+    criteria: `"x_asc"`, `"x_desc"`, `"alpha_asc"`, `"alpha_desc"`.
+
+6.  **Empty level padding** — when `keep_empty_y = TRUE`, missing
+    y-levels are padded per facet (or globally) with zero-height bars so
+    they still appear on the axis.
+
+7.  **Text labels** — category names are drawn beside the bars via
+    `geom_text()` at the zero line. When flipped, labels are rotated
+    90°. Long labels are wrapped via
+    [`str_wrap()`](https://stringr.tidyverse.org/reference/str_wrap.html)
+    using `max_charwidth`.
+
+8.  **Plot assembly** — the ggplot is built with
+    `geom_vline(xintercept = 0)` for the centre line, `geom_col()` for
+    bars, and the appropriate fill / alpha scales.
+
+9.  **Dimension calculation** —
+    [`calculate_plot_dimensions()`](https://pwwang.github.io/plotthis/reference/calculate_plot_dimensions.md)
+    computes dimensions from the number of y categories, scaled by
+    `bar_height / 4`. Flipping adjusts the aspect ratio.
+
+10. **Faceting** —
+    [`facet_plot()`](https://pwwang.github.io/plotthis/reference/facet_plot.md)
+    wraps the result, defaulting to `facet_scales = "free_y"`.

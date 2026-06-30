@@ -1,6 +1,19 @@
-# Venn diagram
+# Venn / Euler diagram
 
-Venn diagram
+Draws Venn or Euler diagrams that visualise the overlap relationships
+among multiple sets. Supports four input formats: long (one row per
+element-set pair), wide (logical/0-1 columns per set), a named list
+(element vectors per set), and a pre-computed `VennPlotData` object.
+
+Intersection regions can be filled by a continuous colour gradient
+encoding the element count (`fill_mode = "count"` / `"count_rev"`) or by
+blended set colours (`fill_mode = "set"`). Region labels can display
+counts, percentages, both, or a custom function. Set labels always show
+the set name and its total element count.
+
+Use `split_by` to produce separate Venn diagrams for each level of a
+grouping variable. Note that `split_by` is only supported when `data` is
+a data frame (list and `VennPlotData` inputs cannot be split).
 
 ## Usage
 
@@ -52,41 +65,21 @@ VennDiagram(
 
 - in_form:
 
-  A character string indicating the datatype of the input data. Possible
-  values are "long", "wide", "list", "venn" or NULL. "long" indicates
-  the data is in long format. "wide" indicates the data is in wide
-  format. "list" indicates the data is a list. "venn" indicates the data
-  is a VennPlotData object. "auto" indicates the function will detect
-  the datatype of the input data.
-
-  A long format data would look like:
-
-      group_by id_by
-      A        a1
-      A        a2
-      B        a1
-      B        a3
-      ...
-
-  A wide format data would look like:
-
-      A    B
-      TRUE TRUE
-      TRUE FALSE
-      FALSE TRUE
-      ...
-
-  A list format data would look like:
-
-      list(A = c("a1", "a2"), B = c("a1", "a3"))
+  A character string specifying the input format. One of `"auto"`
+  (default; detect automatically via
+  [`detect_venn_datatype()`](https://pwwang.github.io/plotthis/reference/detect_venn_datatype.md)),
+  `"long"`, `"wide"`, `"list"`, or `"venn"`.
 
 - split_by:
 
-  The column(s) to split data by and plot separately.
+  The column(s) to split the data by and produce separate Venn diagrams
+  per subgroup. Only supported when `data` is a data frame. Multiple
+  columns are concatenated with `split_by_sep`.
 
 - split_by_sep:
 
-  The separator for multiple split_by columns. See `split_by`
+  A character string to separate concatenated `split_by` columns.
+  Default `"_"`.
 
 - group_by:
 
@@ -100,46 +93,60 @@ VennDiagram(
 
 - id_by:
 
-  A character string specifying the column name of the data frame to
-  identify the instances. Required when `group_by` is a single column
-  and data is a data frame.
+  A character string specifying the column name that identifies
+  individual elements. Required for long-format data; ignored otherwise.
 
 - label:
 
-  A character string specifying the label to show on the Venn diagram.
-  Possible values are "count", "percent", "both", "none" and a function.
-  "count" indicates the count of the intersection. "percent" indicates
-  the percentage of the intersection. "both" indicates both the count
-  and the percentage of the intersection. "none" indicates no label. If
-  it is a function, if takes a data frame as input and returns a
-  character vector as label. The data frame has columns "id", "X", "Y",
-  "name", "item" and "count".
+  A character string or function controlling the text shown in each
+  intersection region. One of:
+
+  - `"count"` (default) — the raw count of elements in that region.
+
+  - `"percent"` — the percentage of the total element count.
+
+  - `"both"` — count and percentage on separate lines.
+
+  - `"none"` — no region labels are drawn.
+
+  - A **function** — receives a data frame with columns `"id"`, `"X"`,
+    `"Y"`, `"name"`, `"item"`, and `"count"`, and must return a
+    character vector of labels.
 
 - label_fg:
 
-  A character string specifying the color of the label text.
+  A character string specifying the colour of the label text.
 
 - label_size:
 
-  A numeric value specifying the size of the label text.
+  A numeric value specifying the font size of the label text. When
+  `NULL` (the default), auto-sized at 3.5 for region labels and 4 for
+  set labels, scaled by `base_size / 12`.
 
 - label_bg:
 
-  A character string specifying the background color of the label.
+  A character string specifying the background colour of the label text
+  (passed to
+  [`geom_text_repel()`](https://ggrepel.slowkow.com/reference/geom_text_repel.html)
+  as `bg.color`). Default `"white"`.
 
 - label_bg_r:
 
-  A numeric value specifying the radius of the background of the label.
+  A numeric value specifying the corner radius of the label background
+  rectangle (passed as `bg.r`). Default `0.1`.
 
 - fill_mode:
 
-  A character string specifying the fill mode of the Venn diagram.
-  Possible values are "count", "set", "count_rev". "count" indicates the
-  fill color is based on the count of the intersection. "set" indicates
-  the fill color is based on the set of the intersection. "count_rev"
-  indicates the fill color is based on the count of the intersection in
-  reverse order. The palette will be continuous for "count" and
-  "count_rev". The palette will be discrete for "set".
+  A character string specifying how intersection regions are coloured.
+  One of:
+
+  - `"count"` — continuous gradient based on element count (default
+    palette: `"Spectral"`).
+
+  - `"count_rev"` — continuous gradient with reversed count order.
+
+  - `"set"` — discrete blended colours per set combination (default
+    palette: `"Paired"`). No legend is drawn.
 
 - palreverse:
 
@@ -148,7 +155,8 @@ VennDiagram(
 
 - fill_name:
 
-  A character string to name the legend of colorbar.
+  A character string for the colour bar legend title when `fill_mode` is
+  `"count"` or `"count_rev"`. Ignored when `fill_mode = "set"`.
 
 - palette:
 
@@ -202,80 +210,36 @@ VennDiagram(
 
 - combine:
 
-  Whether to combine the plots into one when facet is FALSE. Default is
-  TRUE.
+  Logical; when `TRUE` (default), returns a combined `patchwork` object.
+  When `FALSE`, returns a named list of individual `ggplot` objects.
 
-- nrow:
+- ncol, nrow:
 
-  A numeric value specifying the number of rows in the facet.
-
-- ncol:
-
-  A numeric value specifying the number of columns in the facet.
+  Integer number of columns / rows for the combined layout when
+  `combine = TRUE`.
 
 - byrow:
 
-  A logical value indicating whether to fill the plots by row.
+  Logical; fill the combined layout by row (default `TRUE`).
 
 - seed:
 
-  The random seed to use. Default is 8525.
+  A numeric seed for reproducibility. Default `8525`.
 
-- axes:
+- axes, axis_titles:
 
-  A string specifying how axes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axes in individual plots.
-
-  - 'collect' will remove duplicated axes when placed in the same run of
-    rows or columns of the layout.
-
-  - 'collect_x' and 'collect_y' will remove duplicated x-axes in the
-    columns or duplicated y-axes in the rows respectively.
-
-- axis_titles:
-
-  A string specifying how axis titltes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axis titles in individual plots.
-
-  - 'collect' will remove duplicated titles in one direction and merge
-    titles in the opposite direction.
-
-  - 'collect_x' and 'collect_y' control this for x-axis titles and
-    y-axis titles respectively.
+  Character strings specifying how axes and axis titles are handled
+  across the combined layout.
 
 - guides:
 
-  A string specifying how guides should be treated in the layout. Passed
-  to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'collect' will collect guides below to the given nesting level,
-    removing duplicates.
-
-  - 'keep' will stop collection at this level and let guides be placed
-    alongside their plot.
-
-  - 'auto' will allow guides to be collected if a upper level tries, but
-    place them alongside the plot if not.
+  A character string specifying how legends are collected across panels
+  in the combined layout.
 
 - design:
 
-  Specification of the location of areas in the layout, passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. When
-  specified, `nrow`, `ncol`, and `byrow` are ignored. See
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
-  for more details.
+  A custom layout specification for the combined plot. Passed to
+  [`wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
 
 - ...:
 
@@ -283,30 +247,75 @@ VennDiagram(
 
 ## Value
 
-A combined ggplot object or wrap_plots object or a list of ggplot
-objects
+A `ggplot` object (single split), a `patchwork` object (combined
+sub-plots), or a named list of `ggplot` objects (when
+`combine = FALSE`), each with `height` and `width` attributes in inches.
+
+## split_by Workflow
+
+When a non-`NULL` `split_by` is provided and the input is a data frame:
+
+1.  **Validation** — an error is raised if `data` is not a data frame
+    (list and `VennPlotData` input cannot be split).
+
+2.  **Column resolution** — `split_by` is validated and optionally
+    concatenated via
+    [`check_columns()`](https://pwwang.github.io/plotthis/reference/check_columns.md)
+    with `force_factor = TRUE` and `allow_multi = TRUE`.
+
+3.  **Data splitting** — the data frame is split by the unique levels of
+    the `split_by` column, preserving factor level order. Empty levels
+    are dropped via
+    [`droplevels()`](https://rdrr.io/r/base/droplevels.html).
+
+4.  **Per-split colour and legend resolution** —
+    [`check_palette()`](https://pwwang.github.io/plotthis/reference/check_palette.md),
+    [`check_palcolor()`](https://pwwang.github.io/plotthis/reference/check_palcolor.md),
+    and
+    [`check_legend()`](https://pwwang.github.io/plotthis/reference/check_legend.md)
+    resolve per-split palettes, custom colours, legend positions, and
+    legend directions.
+
+5.  **Atomic dispatch** —
+    [`VennDiagramAtomic()`](https://pwwang.github.io/plotthis/reference/VennDiagramAtomic.md)
+    is called for each subset. When `title` is a function, it receives
+    the split level name for dynamic title generation.
+
+6.  **Combination** — results are passed to
+    [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)
+    which returns a combined `patchwork` object (when `combine = TRUE`)
+    or a named list of individual ggplot objects (when
+    `combine = FALSE`).
 
 ## Examples
 
 ``` r
 # \donttest{
 set.seed(8525)
-data = list(
+data <- list(
     A = sort(sample(letters, 8)),
     B = sort(sample(letters, 8)),
     C = sort(sample(letters, 8)),
     D = sort(sample(letters, 8))
 )
 
+# Basic Venn diagram with count labels
 VennDiagram(data)
 
+
+# Fill by set membership (blended colours)
 VennDiagram(data, fill_mode = "set")
 
+
+# Show both count and percentage
 VennDiagram(data, label = "both")
 
-# label with a function
+
+# Custom label function using set names
 VennDiagram(data, label = function(df) df$name)
 
+
+# Custom palette and transparency
 VennDiagram(data, palette = "material-indigo", alpha = 0.6)
 
 # }

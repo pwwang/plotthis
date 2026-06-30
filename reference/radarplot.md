@@ -1,7 +1,25 @@
 # Radar plot / Spider plot
 
-Create a radar plot or spider plot for a series of data. Radar plot uses
-circles as the plot grid and Spider plot uses polygons.
+Draws a radar chart (concentric circular grid) or spider chart
+(polygonal grid) displaying multivariate data in a two-dimensional polar
+coordinate system. Each x-axis category is placed at an evenly spaced
+angular position around the chart, and numeric values are plotted along
+the radial axis.
+
+The function supports **count aggregation** (omit `y` to plot
+observation counts), **proportion scaling** (via `scale_y`), per-group
+colour control, faceting, and splitting into separate sub-plots via
+`split_by`.
+
+`SpiderPlot` is an alias that renders the same data with polygonal grid
+lines (spider chart style) by using `polygon = TRUE`.
+
+A variant of `RadarPlot` that renders the chart with straight polygonal
+grid lines (spider chart) instead of concentric circles. Internally, it
+calls
+[`RadarPlotAtomic`](https://pwwang.github.io/plotthis/reference/RadarPlotAtomic.md)
+with `polygon = TRUE` but is otherwise identical to `RadarPlot` in
+behaviour and parameters.
 
 ## Usage
 
@@ -122,8 +140,8 @@ SpiderPlot(
 
 - x_sep:
 
-  A character string to concatenate the columns in `x`, if multiple
-  columns are provided.
+  A character string used to join multiple `x` columns. Default `"_"`.
+  Ignored when `x` is a single column.
 
 - group_by:
 
@@ -142,76 +160,82 @@ SpiderPlot(
 
 - group_name:
 
-  A character string to name the legend of group.
+  A character string used as the colour/fill legend title. When `NULL`,
+  the `group_by` column name is used.
 
 - groups:
 
   A character vector of group values (in the `group_by` column) to
-  include in the plot. If NULL, all groups will be included. This can be
-  used to exclude certain groups from the plot or to specify the order
-  of groups in the legend. Only applicable when `group_by` is provided.
-  And this implies `keep_empty` for `group_by` is FALSE, which means the
-  groups not in the data will not be shown in the legend.
+  include in the plot. When `NULL`, all groups are included. This can
+  control which groups appear and their legend order. Implies
+  `keep_empty = FALSE` for the `group_by` column: groups not present in
+  the data are not shown in the legend.
 
 - scale_y:
 
-  How should the y-axis be scaled? Default is "group". Other options are
-  "global", "x" and "none".
+  How should the radial axis be scaled? Default is `"group"`. Options
+  are `"group"`, `"global"`, `"x"`, and `"none"`.
 
-  - If "group", the y-axis will be scaled to the fraction within each
-    group.
+  - `"group"` — scaled to the fraction within each group.
 
-  - If "global", the y-axis will be scaled to the fraction of the total.
+  - `"global"` — scaled to the fraction of the total.
 
-  - If "x", the y-axis will be scaled to the fraction of the total
-    within each x-axis group.
+  - `"x"` — scaled to the fraction within each x-axis category.
 
-  - If "none", the y-axis will be scaled to the count of each x-axis
-    group.
+  - `"none"` — raw counts or values, no scaling.
 
 - y_min:
 
-  A numeric value to set the minimum value of the y-axis.
+  A numeric value setting the minimum of the radial axis. Default `0`.
 
 - y_max:
 
-  A numeric value to set the maximum value of the y-axis.
+  A numeric value setting the maximum of the radial axis. When `NULL`,
+  the maximum data value is used.
 
 - y_nbreaks:
 
-  A numeric value to set the number of breaks in the y-axis.
+  A numeric value for the number of breaks (concentric grid lines) on
+  the radial axis. Default `4`.
 
 - bg_color:
 
-  A character string to set the background color of the plot.
+  A character string specifying the background fill colour. Default
+  `"grey80"`.
 
 - bg_alpha:
 
-  A numeric value to set the transparency of the background color.
+  A numeric value for the transparency of the background fill. Default
+  `0.1`.
 
 - fill:
 
-  A logical value to fill the polygons with colors.
+  A logical value. When `TRUE` (default), the data polygons are filled
+  with the group colour. When `FALSE`, only outlines are drawn.
 
 - linewidth:
 
-  A numeric value to set the width of the lines.
+  A numeric value for the width of the polygon outline lines. Default
+  `1`.
 
 - pt_size:
 
-  A numeric value to set the size of the points.
+  A numeric value for the size of the data point markers. Default `4`.
 
 - max_charwidth:
 
-  A numeric value to set the maximum character width for the x labels.
+  A numeric value for the maximum character width of x-axis labels
+  before wrapping. Default `16`.
 
 - split_by:
 
-  The column(s) to split data by and plot separately.
+  The column(s) to split the data by and produce separate sub-plots.
+  Multiple columns are concatenated with `split_by_sep`.
 
 - split_by_sep:
 
-  The separator for multiple split_by columns. See `split_by`
+  A character string to separate concatenated `split_by` columns.
+  Default `"_"`.
 
 - theme:
 
@@ -328,80 +352,45 @@ SpiderPlot(
 
 - seed:
 
-  The random seed to use. Default is 8525.
+  A numeric seed for reproducibility. Passed to
+  [`validate_common_args()`](https://pwwang.github.io/plotthis/reference/validate_common_args.md).
 
 - combine:
 
-  Whether to combine the plots into one when facet is FALSE. Default is
-  TRUE.
+  Logical; when `TRUE` (default), returns a combined `patchwork` object.
+  When `FALSE`, returns a named list of individual `ggplot` objects.
 
-- nrow:
+- ncol, nrow:
 
-  A numeric value specifying the number of rows in the facet.
-
-- ncol:
-
-  A numeric value specifying the number of columns in the facet.
+  Integer number of columns / rows for the combined layout (passed to
+  [`wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)).
 
 - byrow:
 
-  A logical value indicating whether to fill the plots by row.
+  Logical; fill the combined layout by row. Default `TRUE` (passed to
+  [`wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)).
 
 - axes:
 
-  A string specifying how axes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axes in individual plots.
-
-  - 'collect' will remove duplicated axes when placed in the same run of
-    rows or columns of the layout.
-
-  - 'collect_x' and 'collect_y' will remove duplicated x-axes in the
-    columns or duplicated y-axes in the rows respectively.
+  A character string specifying how axes should be treated across the
+  combined layout (passed to
+  [`wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)).
 
 - axis_titles:
 
-  A string specifying how axis titltes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axis titles in individual plots.
-
-  - 'collect' will remove duplicated titles in one direction and merge
-    titles in the opposite direction.
-
-  - 'collect_x' and 'collect_y' control this for x-axis titles and
-    y-axis titles respectively.
+  A character string specifying how axis titles should be treated across
+  the combined layout. Defaults to `axes`.
 
 - guides:
 
-  A string specifying how guides should be treated in the layout. Passed
-  to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'collect' will collect guides below to the given nesting level,
-    removing duplicates.
-
-  - 'keep' will stop collection at this level and let guides be placed
-    alongside their plot.
-
-  - 'auto' will allow guides to be collected if a upper level tries, but
-    place them alongside the plot if not.
+  A character string specifying how guides (legends) should be collected
+  across panels (passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)).
 
 - design:
 
-  Specification of the location of areas in the layout, passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. When
-  specified, `nrow`, `ncol`, and `byrow` are ignored. See
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
-  for more details.
+  A custom layout design for the combined plot (passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)).
 
 - ...:
 
@@ -409,53 +398,120 @@ SpiderPlot(
 
 ## Value
 
-A ggplot object or wrap_plots object or a list of ggplot objects
+A `ggplot` object (when `combine = TRUE` and `split_by` is `NULL`), a
+`patchwork` object (when `combine = TRUE` and `split_by` is provided),
+or a named list of `ggplot` objects (when `combine = FALSE`), each with
+`height` and `width` attributes in inches.
+
+A `ggplot` object (when `combine = TRUE` and `split_by` is `NULL`), a
+`patchwork` object (when `combine = TRUE` and `split_by` is provided),
+or a named list of `ggplot` objects (when `combine = FALSE`), each with
+`height` and `width` attributes in inches.
+
+## split_by Workflow
+
+When `split_by` is provided:
+
+1.  [`check_keep_na()`](https://pwwang.github.io/plotthis/reference/check_keep_na.md)
+    and
+    [`check_keep_empty()`](https://pwwang.github.io/plotthis/reference/check_keep_empty.md)
+    normalise the `keep_na` / `keep_empty` arguments for all relevant
+    columns (`x`, `split_by`, `group_by`, `facet_by`).
+
+2.  The `split_by` column is validated and its NA / empty levels are
+    processed via
+    [`process_keep_na_empty()`](https://pwwang.github.io/plotthis/reference/process_keep_na_empty.md).
+    It is then removed from the per-column `keep_na` / `keep_empty`
+    lists.
+
+3.  The data frame is split by `split_by` (preserving level order). If
+    `split_by` is `NULL`, the data is wrapped in a single-element list
+    with name `"..."`.
+
+4.  Per-split `palette`, `palcolor`, `legend.position`, and
+    `legend.direction` are resolved via
+    [`check_palette()`](https://pwwang.github.io/plotthis/reference/check_palette.md),
+    [`check_palcolor()`](https://pwwang.github.io/plotthis/reference/check_palcolor.md),
+    and
+    [`check_legend()`](https://pwwang.github.io/plotthis/reference/check_legend.md).
+
+5.  [`RadarPlotAtomic()`](https://pwwang.github.io/plotthis/reference/RadarPlotAtomic.md)
+    is called for each split with `polygon = FALSE`. If `title` is a
+    function, it receives the split level name and can generate dynamic
+    titles.
+
+6.  Results are combined via
+    [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)
+    (when `combine = TRUE`) or returned as a named list.
 
 ## Examples
 
 ``` r
 # \donttest{
 set.seed(8525)
-# use the count
+
+# --- Radar chart with observation counts ---
 data <- data.frame(
-   x = factor(
-    c(rep("A", 20), rep("B", 30), rep(NA, 30), rep("D", 40), rep("E", 50)),
-    levels = LETTERS[1:5]
-   ),
-   group = factor(
-    sample(c("G1", NA, "G3", "G4"), 170, replace = TRUE),
-    levels = c("G1", "G2", "G3", "G4")
-   )
+    x = factor(
+        c(rep("A", 20), rep("B", 30), rep(NA, 30), rep("D", 40), rep("E", 50)),
+        levels = LETTERS[1:5]
+    ),
+    group = factor(
+        sample(c("G1", NA, "G3", "G4"), 170, replace = TRUE),
+        levels = c("G1", "G2", "G3", "G4")
+    )
 )
 
+# Basic radar chart
 RadarPlot(data, x = "x")
 
+
+# Keep NA and empty factor levels
 RadarPlot(data, x = "x", keep_na = TRUE, keep_empty = TRUE)
 
+
+# Custom background colour
 RadarPlot(data, x = "x", bg_color = "lightpink")
 
+
+# Raw counts (no proportion scaling)
 RadarPlot(data, x = "x", scale_y = "none")
 
+
+# Grouped by a variable
 RadarPlot(data, x = "x", group_by = "group", keep_na = TRUE)
 
+
+# Faceted by a variable
 RadarPlot(data, x = "x", facet_by = "group")
 
+
+# Spider chart variant (polygonal grid)
 SpiderPlot(data, x = "x")
 
 SpiderPlot(data, x = "x", group_by = "group")
 
-# use the y value
+
+# --- Radar chart with explicit y values ---
 data <- data.frame(
-   x = rep(LETTERS[1:5], 2),
-   y = c(1, 3, 6, 4, 2, 5, 7, 8, 9, 10),
-   group = rep(c("G1", "G2"), each = 5)
+    x = rep(LETTERS[1:5], 2),
+    y = c(1, 3, 6, 4, 2, 5, 7, 8, 9, 10),
+    group = rep(c("G1", "G2"), each = 5)
 )
+
+# Grouped radar with raw values
 RadarPlot(data, x = "x", y = "y", scale_y = "none", group_by = "group")
 
+
+# Faceted radar
 RadarPlot(data, x = "x", y = "y", facet_by = "group")
 
+
+# Split into separate sub-plots
 RadarPlot(data, x = "x", y = "y", split_by = "group")
 
+
+# Per-split palettes
 RadarPlot(data, x = "x", y = "y", split_by = "group",
           palette = c(G1 = "Set1", G2 = "Paired"))
 

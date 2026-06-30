@@ -1,13 +1,8 @@
-# Plots for spatial elements
+# Spatial visualization functions for terra objects and point data
 
-- `SpatImagePlot`: Plot a SpatRaster object as an image.
-
-- `SpatMasksPlot`: Plot a SpatRaster object as masks.
-
-- `SpatShapesPlot`: Plot a SpatVector object as shapes.
-
-- `SpatPointsPlot`: Plot a data.frame of points with spatial
-  coordinates.
+These functions provide publication-quality spatial visualizations built
+on ggplot2, supporting raster images, categorical masks, vector shapes,
+and point data from the terra package or standard data frames.
 
 ## Usage
 
@@ -251,32 +246,38 @@ SpatPointsPlot(
 
 - data:
 
-  A `SpatRaster` or `SpatVector` object from the `terra` package, or a
-  data.frame for `SpatShapesPlot` or `SpatPointsPlot`.
+  A `SpatRaster`, `SpatVector`, or `data.frame` depending on the
+  function. See individual function descriptions.
 
 - ext:
 
-  A `terra`'s `SpatExtent` object or a numeric vector of length 4
-  specifying the extent as `c(xmin, xmax, ymin, ymax)`. Default is NULL.
+  A numeric vector of length 4 `c(xmin, xmax, ymin, ymax)` or a
+  [`terra::SpatExtent`](https://rspatial.github.io/terra/reference/SpatExtent-class.html)
+  object. Default is `NULL` (use full extent).
 
 - raster:
 
-  Whether to raster the plot. Default is NULL.
+  Whether to rasterize for efficient rendering of large datasets.
+  Default is `NULL` (auto-detect: rasterize when `ncell > 1e6` or
+  `nrow > 1e6`). Uses
+  [`scattermore::geom_scattermore()`](https://rdrr.io/pkg/scattermore/man/geom_scattermore.html)
+  for points.
 
 - raster_dpi:
 
-  A numeric vector of the raster dpi. Default is c(512, 512).
+  A numeric vector of length 1 or 2 specifying the raster output
+  resolution in pixels. Default is `c(512, 512)`.
 
 - flip_y:
 
-  Whether to flip the y-axis direction. Default is TRUE. This is useful
-  for visualizing spatial data with the origin at the top left corner.
+  Whether to negate the y-coordinates so the axis labels can be
+  displayed with reversed sign. Default is `TRUE`.
 
 - palette:
 
-  A character string specifying the color palette to use. For
-  `SpatImagePlot`, if the data has 3 channels (RGB), it will be used as
-  a color identity and this argument will be ignored.
+  A character string specifying the palette to use. A named list or
+  vector can be used to specify the palettes for different `split_by`
+  values.
 
 - palcolor:
 
@@ -300,7 +301,10 @@ SpatPointsPlot(
 
 - return_layer:
 
-  Whether to return the layers or the plot. Default is FALSE.
+  Whether to return a list of ggplot layers instead of a complete plot.
+  Default is `FALSE`. When `TRUE`, the returned list has a `"scales"`
+  attribute for layer conflict detection, allowing multiple spatial
+  layers in a single custom ggplot.
 
 - theme:
 
@@ -345,62 +349,72 @@ SpatPointsPlot(
 
 - add_border:
 
-  Whether to add a border around the masks in `SpatMasksPlot`. Default
-  is TRUE.
+  Whether to add polygon borders around mask regions in `SpatMasksPlot`.
+  Default is `TRUE`.
 
 - border_color:
 
-  A character string of the border color. Default is "black".
+  A character string for the border color. Default is `"black"`. When
+  `TRUE` in `SpatShapesPlot` or `SpatPointsPlot`, the border maps to the
+  same variable as fill.
 
 - border_size:
 
-  A numeric value of the border width. Default is 0.5.
+  A numeric value for the border line width. Default is `0.5`.
 
 - border_alpha:
 
-  A numeric value of the border transparency. Default is 1.
+  A numeric value for the border transparency. Default is `1`.
 
 - x:
 
-  A character string specifying the x-axis column name for
-  `SpatPointsPlot` or `SpatShapesPlot` when `data` is a data.frame. If
-  `data` is a `SpatRaster` or `SpatVector`, this argument is ignored.
+  A character string specifying the x coordinate column for
+  `SpatPointsPlot` and `SpatShapesPlot` (when `data` is a data frame).
+  Auto-detected from common column names when `NULL`.
 
 - y:
 
-  A character string specifying the y-axis column name for
-  `SpatPointsPlot` or `SpatShapesPlot` when `data` is a data.frame. If
-  `data` is a `SpatRaster` or `SpatVector`, this argument is ignored.
+  A character string specifying the y coordinate column for
+  `SpatPointsPlot` and `SpatShapesPlot` (when `data` is a data frame).
+  Auto-detected from common column names when `NULL`.
 
 - group:
 
   A character string specifying the grouping column for `SpatShapesPlot`
-  when `data` is a data.frame.
+  when `data` is a data.frame. Each unique value in this column defines
+  a separate polygon.
 
 - fill_by:
 
-  A character string or vector specifying the column(s) to fill the
-  shapes in `SpatShapesPlot`.
+  A character string or vector specifying the column(s) to map to fill
+  color in `SpatShapesPlot`. When multiple columns are provided (all
+  must be numeric), the data is reshaped and faceted. When a single
+  string that does not match a column name, it is treated as a fixed
+  fill color.
 
 - highlight:
 
-  A character vector of the row names to highlight. Default is NULL.
+  A character vector of row names to highlight, a filter expression
+  string (e.g., `'cat == "A"'`), or `TRUE` (highlight all). Highlighted
+  points are overlaid with larger markers.
 
 - highlight_alpha:
 
-  A numeric value of the highlight transparency. Default is 1.
+  A numeric value for highlight transparency. Default is `1`.
 
 - highlight_size:
 
-  A numeric value of the highlight size. Default is 1.
+  A numeric value for the highlight marker size. Default is `1`.
 
 - highlight_color:
 
-  A character string of the highlight color. Default is "black".
+  A character string for the highlight marker color. Default is
+  `"black"`.
 
 - highlight_stroke:
 
-  A numeric value of the highlight stroke. Default is 0.8.
+  A numeric value for the highlight stroke width (added to
+  `border_size`). Default is `0.8`.
 
 - facet_scales:
 
@@ -425,173 +439,331 @@ SpatPointsPlot(
 
 - color_by:
 
-  A character string specifying the column to color the points in
-  `SpatPointsPlot`.
+  A character string or vector specifying the column(s) to map to point
+  color in `SpatPointsPlot`. Multiple numeric columns trigger faceting.
 
 - size_by:
 
-  A character string specifying the column to size the points in
-  `SpatPointsPlot`.
+  A character string specifying the column to map to point size in
+  `SpatPointsPlot`. Mutually exclusive with `size`.
 
 - size:
 
-  Alias of `size_by` when size is a numeric value.
+  A numeric value for a fixed point size in `SpatPointsPlot`. Alias for
+  `size_by` when given a scalar.
 
-- lower_quantile, upper_quantile, lower_cutoff, upper_cutoff:
+- lower_quantile, upper_quantile:
 
-  Vector of minimum and maximum cutoff values or quantile values for
-  each numeric value.
+  Lower and upper quantiles for the continuous color/fill scale. The
+  actual cutoffs are determined by these quantiles when `lower_cutoff`
+  and `upper_cutoff` are `NULL`. Defaults: `lower_quantile = 0`,
+  `upper_quantile = 0.99`.
+
+- lower_cutoff, upper_cutoff:
+
+  Explicit lower and upper cutoffs for the continuous color/fill scale.
+  When `NULL` (the default), the cutoffs are determined by
+  `lower_quantile` and `upper_quantile` via
+  [`quantile`](https://rdrr.io/r/stats/quantile.html). Values outside
+  the `[lower_cutoff, upper_cutoff]` range are clamped (winsorized) to
+  the nearest cutoff value.
 
 - color_name:
 
-  A character string for the color legend title in `SpatPointsPlot`.
+  A character string for the color legend title.
 
 - size_name:
 
-  A character string for the size legend title in `SpatPointsPlot`.
+  A character string for the size legend title.
 
 - shape:
 
-  A numeric value or character string specifying the shape of the points
-  in `SpatPointsPlot`.
+  A numeric value (21–25 for border shapes) or character string
+  specifying the point shape in `SpatPointsPlot`. Default is `16`
+  (filled circle).
 
 - hex:
 
-  Whether to use hex plot. Default is FALSE.
+  Whether to use hexagonal binning in `SpatPointsPlot`. Requires a
+  numeric `color_by`. Default is `FALSE`.
 
 - hex_linewidth:
 
-  A numeric value of the hex line width. Default is 0.5.
+  A numeric value for the hex bin border width. Default is `0.5`.
 
 - hex_count:
 
-  Whether to count the hex.
+  Whether to show hex bin count as point opacity. Default is `FALSE`.
 
 - hex_bins:
 
-  A numeric value of the hex bins. Default is 50.
+  A numeric value for the number of hex bins. Default is `50`.
 
 - hex_binwidth:
 
-  A numeric value of the hex bin width. Default is NULL.
+  A numeric value for the hex bin width. Default is `NULL`.
 
 - label:
 
-  Whether to show the labels of groups. Default is FALSE.
+  Whether to show group labels in `SpatPointsPlot`. Default is `FALSE`.
+  Requires a categorical `color_by`.
 
 - label_size:
 
-  A numeric value of the label size. Default is 4.
+  A numeric value for the label text size. Default is `4`.
 
 - label_fg:
 
-  A character string of the label foreground color. Default is "white".
+  A character string for the label text color. Default is `"white"`.
 
 - label_bg:
 
-  A character string of the label background color. Default is "black".
+  A character string for the label background color. Default is
+  `"black"`.
 
 - label_bg_r:
 
-  A numeric value of the background ratio of the labels. Default is 0.1.
+  A numeric value for the label background corner radius ratio. Default
+  is `0.1`.
 
 - label_repel:
 
-  Whether to repel the labels. Default is FALSE.
+  Whether to repel labels from each other and from data points. Default
+  is `FALSE`.
 
 - label_repulsion:
 
-  A numeric value of the label repulsion. Default is 20.
+  A numeric value for the repulsion force. Default is `20`.
 
 - label_pt_size:
 
-  A numeric value of the label point size. Default is 1.
+  A numeric value for the label anchor point size. Default is `1`.
 
 - label_pt_color:
 
-  A character string of the label point color. Default is "black".
+  A character string for the label anchor point color. Default is
+  `"black"`.
 
 - label_segment_color:
 
-  A character string of the label segment color. Default is "black".
+  A character string for the label connector line color. Default is
+  `"black"`.
 
 - label_insitu:
 
-  Whether to place the raw labels (group names) in the center of the
-  points with the corresponding group. Default is FALSE, which uses
-  numbers instead of raw labels.
+  Whether to place raw group names as labels instead of numeric indices.
+  Default is `FALSE`.
 
 - label_pos:
 
-  A character string or a function specifying the position of the
-  labels.
-
-  - "mean": Place labels at the mean position of the points in each
-    group. Same as `function(x) mean(x, na.rm = TRUE)`.
-
-  - "center": Place labels at the center of the points in each group.
-    Same as `function(x) mean(range(x, na.rm = TRUE))`.
-
-  - "median": Place labels at the median position of the points in each
-    group. Same as `function(x) median(x, na.rm = TRUE)`.
-
-  - "first": Place labels at the first point in each group. Same as
-    `function(x) x[1]`.
-
-  - "last": Place labels at the last point in each group. Same as
-    `function(x) x[length(x)]`.
-
-  - "random": Place labels at a random point in each group. Same as
-    `function(x) sample(x, 1)`.
-
-  - "min": Place labels at the minimum position (both x and y) of the
-    points in each group. Same as `function(x) min(x, na.rm = TRUE)`.
-
-  - "max": Place labels at the maximum position (both x and y) of the
-    points in each group. Same as `function(x) max(x, na.rm = TRUE)`.
+  A character string or function specifying how label positions are
+  computed per group. Options: `"median"` (default), `"mean"`,
+  `"center"`, `"first"`, `"last"`, `"random"`, `"min"`, `"max"`, or a
+  custom function that takes a numeric vector and returns a single
+  value.
 
 - graph:
 
-  A character string of column names or the indexes in the data for the
-  graph data. Default is NULL. If "@graph" is provided, the graph data
-  will be extracted from the data attribute 'graph'. The graph data
-  should be an adjacency matrix (numeric matrix) with row and column
-  names matching the point IDs. Or a data.frame with x, xend, y, yend
-  and value columns. If so, `graph_x`, `graph_y`, `graph_xend`,
-  `graph_yend`, and `graph_value` arguments can be used to specify the
-  column names.
+  Graph/network edge data for `SpatPointsPlot`. Can be a square
+  adjacency matrix with row/column names matching `data`, a data.frame
+  with edge coordinates (see `graph_x` etc.), a column name or index, or
+  `"@graph"` (extracts from the `data` attribute named `"graph"`).
+  Default is `NULL`.
 
 - graph_x:
 
-  A character string of the x column name for the graph data.
+  A character string for the x start coordinate column in the graph
+  data.
 
 - graph_y:
 
-  A character string of the y column name for the graph data.
+  A character string for the y start coordinate column in the graph
+  data.
 
 - graph_xend:
 
-  A character string of the xend column name for the graph data.
+  A character string for the x end coordinate column in the graph data.
 
 - graph_yend:
 
-  A character string of the yend column name for the graph data.
+  A character string for the y end coordinate column in the graph data.
 
 - graph_value:
 
-  A character string of the value column name for the graph data.
+  A character string for the edge weight column in the graph data.
 
 - edge_size:
 
-  A numeric vector of the edge size range. Default is c(0.05, 0.5).
+  A numeric vector of length 2 specifying the line width range for graph
+  edges. Default is `c(0.05, 0.5)`.
 
 - edge_alpha:
 
-  A numeric value of the edge transparency. Default is 0.1.
+  A numeric value for graph edge transparency. Default is `0.1`.
 
 - edge_color:
 
-  A character string of the edge color. Default is "grey40".
+  A character string for the graph edge color. Default is `"grey40"`.
+
+## Value
+
+A `ggplot` object with `height` and `width` attributes when
+`return_layer = FALSE` (the default). When `return_layer = TRUE`, a list
+of `ggplot` layers with a `"scales"` attribute is returned. When faceted
+via multiple `fill_by` or `color_by` columns, a faceted `ggplot` is
+returned.
+
+## Details
+
+- `SpatImagePlot`:
+
+  Render a `SpatRaster` as a raster image. Supports single-layer
+  continuous values (with gradient fill) and 3-channel RGB data (with
+  automatic color identity scaling).
+
+- `SpatMasksPlot`:
+
+  Render a `SpatRaster` as a categorical mask overlay. Zero-valued cells
+  are treated as transparent background; optional polygon borders can be
+  added around mask regions.
+
+- `SpatShapesPlot`:
+
+  Render spatial shapes (polygons) from a `SpatVector` or a data frame
+  of vertex coordinates. Supports single and multi-column fill mapping
+  with automatic faceting.
+
+- `SpatPointsPlot`:
+
+  Render spatial points from a data frame with support for
+  color/size/fill mapping, hex binning, rasterized rendering,
+  network/graph overlays, labels, and point highlighting.
+
+## Rendering Pipeline for SpatImagePlot
+
+1.  **Extent cropping** — if `ext` is provided, the `SpatRaster` is
+    cropped via
+    [`terra::crop()`](https://rspatial.github.io/terra/reference/crop.html).
+    An error is raised if no cells remain within the extent.
+
+2.  **Auto-rasterization** — if the raster exceeds 1e6 cells (or
+    `raster = TRUE`), the raster is aggregated via
+    [`terra::aggregate()`](https://rspatial.github.io/terra/reference/aggregate.html)
+    to a target resolution of `raster_dpi`.
+
+3.  **Y-axis flipping** — when `flip_y = TRUE`, the raster is flipped
+    vertically via
+    [`.flip_y()`](https://pwwang.github.io/plotthis/reference/dot_flip_y.md)
+    and its y-extent is negated so that axis labels can be displayed
+    with reversed sign.
+
+4.  **RGB detection** — if the raster has exactly 3 layers, they are
+    treated as red/green/blue channels: each channel is rescaled to
+    0–255 and combined into a hex color via
+    [`rgb()`](https://rdrr.io/r/grDevices/rgb.html). A
+    `scale_fill_identity()` is used with no legend guide.
+
+5.  **Single-layer rendering** — otherwise, the raster is converted to
+    an x/y/value data frame and rendered via `geom_raster()` with
+    `scale_fill_gradientn()`.
+
+6.  **Layer return or full assembly** — if `return_layer = TRUE`, the
+    list of layers (with a `"scales"` attribute set to `"fill"`) is
+    returned. Otherwise,
+    [`.wrap_spatial_layers()`](https://pwwang.github.io/plotthis/reference/dot-wrap_spatial_layers.md)
+    assembles a complete ggplot with `coord_sf(expand = 0)`, theme,
+    labels, legend, and dimension attributes.
+
+## Rendering Pipeline for SpatMasksPlot
+
+1.  **Extent cropping** — if `ext` is provided, the `SpatRaster` is
+    cropped via
+    [`terra::crop()`](https://rspatial.github.io/terra/reference/crop.html).
+
+2.  **Y-axis flipping** — when `flip_y = TRUE`, the raster is flipped
+    vertically and its y-extent is negated.
+
+3.  **Background masking** — cells with value 0 are set to `NA` so they
+    render as transparent via `na.value = "transparent"`.
+
+4.  **Raster layer** — the mask is converted to an x/y/value data frame
+    and rendered via `geom_raster()` with a gradient fill scale.
+
+5.  **Optional borders** — when `add_border = TRUE`, the mask values are
+    polygonized via
+    [`terra::as.polygons()`](https://rspatial.github.io/terra/reference/as.polygons.html),
+    converted to sf, and overlaid as unfilled `geom_sf()` with the
+    specified `border_color`, `border_size`, and `border_alpha`.
+
+6.  **Layer return or full assembly** — if `return_layer = TRUE`, the
+    layers are returned; otherwise,
+    [`.wrap_spatial_layers()`](https://pwwang.github.io/plotthis/reference/dot-wrap_spatial_layers.md)
+    creates the complete ggplot.
+
+## Rendering Pipeline for SpatPointsPlot
+
+1.  **Column resolution** — `x` and `y` coordinates are resolved from
+    the data, auto-detecting common column names (`"x"`, `"X"`,
+    `"sdimx"`, etc. for x; `"y"`, `"Y"`, `"sdimy"`, etc. for y) when not
+    explicitly provided.
+
+2.  **Extent cropping** — if `ext` is provided, rows outside the extent
+    are filtered.
+
+3.  **Y-axis flipping** — when `flip_y = TRUE`, the y coordinate column
+    is negated via
+    [`.flip_y()`](https://pwwang.github.io/plotthis/reference/dot_flip_y.md).
+
+4.  **Multi-column faceting** — when `color_by` has multiple columns
+    (all numeric), the data is reshaped to long format with a
+    `.facet_var` column and faceted via
+    [`facet_plot()`](https://pwwang.github.io/plotthis/reference/facet_plot.md).
+
+5.  **Cutoff winsorization** — for numeric `color_by`, values outside
+    `[lower_cutoff, upper_cutoff]` (derived from quantiles or explicit
+    values) are clamped to the nearest cutoff.
+
+6.  **Graph / network edges** — if `graph` is provided, edges are
+    resolved from an adjacency matrix, data.frame, or data attribute,
+    and rendered as `geom_segment()` segments with line width
+    proportional to edge weight.
+
+7.  **Main point layer** — one of three rendering modes:
+
+    - *Regular*:
+
+      (`hex = FALSE`, `raster = FALSE`) — `geom_point()` with shape,
+      size, color, and fill aesthetic mappings. Shapes 21–25 support
+      separate fill and border colors.
+
+    - *Hex*:
+
+      (`hex = TRUE`) — `geom_hex()` or `stat_summary_hex()` for binned
+      aggregation of numeric `color_by` values.
+
+    - *Raster*:
+
+      (`raster = TRUE`) —
+      [`scattermore::geom_scattermore()`](https://rdrr.io/pkg/scattermore/man/geom_scattermore.html)
+      for efficient rendering of large datasets (\>1e6 rows).
+
+8.  **Highlight** — if `highlight` is specified, highlighted points are
+    overlaid as larger, colored markers using `geom_point()` or
+    [`scattermore::geom_scattermore()`](https://rdrr.io/pkg/scattermore/man/geom_scattermore.html).
+
+9.  **Labels** — if `label = TRUE` and `color_by` is a categorical
+    column, group centroid positions are computed via
+    [`aggregate()`](https://rdrr.io/r/stats/aggregate.html) with the
+    `label_pos` function, and labels are rendered via
+    [`ggrepel::geom_text_repel()`](https://ggrepel.slowkow.com/reference/geom_text_repel.html)
+    with optional background styling and repulsion.
+
+10. **Layer return or full assembly** — if `return_layer = TRUE`, the
+    layers are returned; otherwise,
+    [`.wrap_spatial_layers()`](https://pwwang.github.io/plotthis/reference/dot-wrap_spatial_layers.md)
+    creates the complete ggplot and
+    [`facet_plot()`](https://pwwang.github.io/plotthis/reference/facet_plot.md)
+    is applied when multi-column faceting is active.
 
 ## Examples
 

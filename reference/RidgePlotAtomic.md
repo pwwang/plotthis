@@ -1,6 +1,25 @@
 # Atomic ridge plot
 
-Atomic ridge plot
+Core implementation for ridge (joy) plots. Renders overlapping density
+curves for each group on the y-axis using
+[`ggridges::geom_density_ridges()`](https://wilkelab.org/ggridges/reference/geom_density_ridges.html),
+with optional vertical reference lines and wide-to-long data conversion.
+
+The function accepts data in two forms:
+
+- **long form** (default) — a numeric `x` column plus a `group_by`
+  factor column whose levels become the y-axis ridges.
+
+- **wide form** — multiple numeric columns named in `group_by` are
+  gathered via
+  [`tidyr::pivot_longer()`](https://tidyr.tidyverse.org/reference/pivot_longer.html)
+  into `.x` / `.group` columns, then processed identically to the long
+  form.
+
+Vertical reference lines (`add_vline`) can be specified as a numeric
+vector (same lines for all groups), a named list (per-group values), or
+`TRUE` (group means). When `vline_color = TRUE`, each line is coloured
+with a darkened blend of the corresponding ridge fill.
 
 ## Usage
 
@@ -49,74 +68,98 @@ RidgePlotAtomic(
 
 - data:
 
-  A data frame It has two forms: wide and long. For the wide form, the
-  values should under different 'group_by' columns. For the long form,
-  the values should be under the 'x' column and the 'group_by' column
-  should be provided, which should be a single column with the group
-  names.
+  A data frame. Accepted in two forms:
+
+  - **long** (`in_form = "long"`): a numeric column (named by `x`) and a
+    factor column (named by `group_by`) whose levels become y-axis
+    ridges.
+
+  - **wide** (`in_form = "wide"`): multiple numeric columns listed in
+    `group_by` are gathered into `.x` / `.group` via
+    [`tidyr::pivot_longer()`](https://tidyr.tidyverse.org/reference/pivot_longer.html).
 
 - x:
 
-  A character string specifying the column name for the values A numeric
-  column is expected. If 'data' is in the wide form, 'x' should be NULL.
-  The values will be taken from the data under 'group_by' columns.
+  A character string specifying the column name for the numeric values
+  plotted on the x-axis. When `in_form = "wide"`, `x` should be `NULL`;
+  the gathered values are stored in a synthetic `.x` column.
 
 - in_form:
 
-  A character string specifying the form of the data. Default is "long".
+  A character string specifying whether `data` is in `"long"` (default)
+  or `"wide"` format.
 
 - group_by:
 
-  A character string specifying the column name to group the data These
-  groups will be shown on the y-axis.
+  A character string specifying the column(s) whose levels define the
+  individual ridges on the y-axis. Multiple columns are concatenated
+  with `group_by_sep`. In wide mode, these are the column names to
+  gather.
 
 - group_by_sep:
 
-  A character string to concatenate the columns in `group_by` if
-  multiple columns are provided If 'data' is in the wide form, the
-  columns will not be concatenated.
+  A character string used to join multiple `group_by` column values into
+  a single factor level. In wide form the columns are not concatenated
+  (each becomes its own ridge). Default: `"_"`.
 
 - group_name:
 
-  A character string to name the legend of 'group_by', if
-  'legend.position' is not "none".
+  A character string used as the legend title for the `group_by` fill
+  aesthetic. Defaults to the (concatenated) `group_by` column name.
 
 - add_vline:
 
-  A numeric vector or a named list of numeric values to add vertical
-  lines to the plot. If a named list is provided, the names should match
-  the levels of 'group_by'. If `TRUE`, the vertical lines will be added
-  at the mean of each group.
+  A specification for vertical reference lines:
+
+  - `NULL` or `FALSE`: no lines.
+
+  - `TRUE`: draw a line at the mean of each group.
+
+  - A numeric vector: draw the same lines for all groups.
+
+  - A named list of numeric vectors: per-group lines, where names should
+    match `group_by` levels.
 
 - vline_type:
 
-  The type of line to draw for the vertical line.
+  A character string specifying the line type for the vertical reference
+  lines. Passed as `linetype` to `geom_vline()`. Default: `"solid"`.
 
 - vline_color:
 
-  The color of the vertical line. If `TRUE`, the vertical lines will be
-  colored according to the group colors.
+  The colour of the vertical reference lines:
+
+  - A literal colour value or vector (recycled): applied directly.
+
+  - `TRUE` (default): each line is coloured with a darkened blend of the
+    corresponding ridge fill colour, computed via
+    `blend_colors(mode = "multiply")`.
 
 - vline_width:
 
-  The width of the vertical line.
+  A numeric value for the thickness of the vertical reference lines.
+  Passed as `linewidth` to `geom_vline()`. Default: `0.5`.
 
 - vline_alpha:
 
-  The alpha value of the vertical line.
+  A numeric value in `[0, 1]` for the transparency of the vertical
+  reference lines. Default: `1`.
 
 - flip:
 
-  A logical value. If TRUE, the plot will be flipped.
+  A logical value. If `TRUE`, the axes are swapped via `coord_flip()`.
+  X-axis text angle and grid-line placement are adjusted accordingly.
 
 - alpha:
 
-  A numeric value specifying the alpha of the ridges.
+  A numeric value in `[0, 1]` for the transparency of the ridge fill.
+  Default: `0.8`.
 
 - scale:
 
-  A numeric value to scale the ridges. See also
-  [`geom_density_ridges`](https://wilkelab.org/ggridges/reference/geom_density_ridges.html).
+  A numeric value controlling the vertical overlap of ridges. Passed to
+  `ggridges::geom_density_ridges(scale = ...)`. Smaller values increase
+  overlap. When `NULL`, ggridges auto-computes the scale.
 
 - theme:
 
@@ -165,7 +208,10 @@ RidgePlotAtomic(
 
 - x_text_angle:
 
-  A numeric value specifying the angle of the x-axis text.
+  A numeric value specifying the angle (in degrees) for x-axis text when
+  `flip = TRUE`. Used with
+  [`calc_just()`](https://pwwang.github.io/plotthis/reference/calc_just.md)
+  to compute optimal `hjust` / `vjust`. Default: `90`.
 
 - keep_na:
 
@@ -199,8 +245,8 @@ RidgePlotAtomic(
 
 - reverse:
 
-  A logical value. If TRUE, reverse the order of the groups on the
-  y-axis.
+  A logical value. If `TRUE`, the y-axis group order is reversed. NA
+  groups are renamed to the literal string `"NA"` and placed at the end.
 
 - facet_by:
 
@@ -246,4 +292,93 @@ RidgePlotAtomic(
 
 - ...:
 
-  Additional arguments.
+  Additional arguments passed to
+  [`ggridges::geom_density_ridges()`](https://wilkelab.org/ggridges/reference/geom_density_ridges.html)
+  (bandwidth, jittered_points, quantile_lines, etc.).
+
+## Architecture
+
+**RidgePlotAtomic** executes the following steps:
+
+1.  **ggplot dispatch** — selects `gglogger::ggplot` or
+    [`ggplot2::ggplot`](https://ggplot2.tidyverse.org/reference/ggplot.html).
+
+2.  **Wide-to-long conversion** — when `in_form = "wide"`, calls
+    [`tidyr::pivot_longer()`](https://tidyr.tidyverse.org/reference/pivot_longer.html)
+    on the `group_by` columns, producing `.group` (factor) and `.x`
+    (values). `x` and `group_by` are redirected to these synthetic
+    columns.
+
+3.  **Column resolution** —
+    [`check_columns()`](https://pwwang.github.io/plotthis/reference/check_columns.md)
+    validates `x`, `group_by` (force_factor, allow_multi, concat_multi),
+    and `facet_by`.
+
+4.  **Default group** — when `group_by` is `NULL`, a synthetic `.group`
+    factor with a single space character level is created so the fill
+    pipeline runs uniformly.
+
+5.  **Reverse ordering** — if `reverse = TRUE`, factor levels of
+    `group_by` are reversed, flipping the y-axis ridge order.
+
+6.  **NA / empty handling** —
+    [`process_keep_na_empty()`](https://pwwang.github.io/plotthis/reference/process_keep_na_empty.md)
+    filters data. When `reverse = TRUE` and any group value is `NA`, the
+    NA level is renamed to the literal string `"NA"` and moved to the
+    end of the factor so colour mapping and display remain consistent.
+
+7.  **Palette resolution** —
+    [`palette_this()`](https://pwwang.github.io/plotthis/reference/palette_this.md)
+    maps group levels to fill colours.
+
+8.  **Base ggplot** — initialises `ggplot(data, aes(x, y, fill))` with
+    `group_by` on the y-axis.
+
+9.  **Ridge geometry** — `ggridges::geom_density_ridges(alpha, scale)`.
+    When `scale` is `NULL`, ggridges auto-computes the overlap factor.
+
+10. **Vertical reference lines** — if `add_vline` is not `NULL` /
+    `FALSE`:
+
+    - `add_vline = TRUE` → computes `tapply(x, group_by, mean)`.
+
+    - `vline_color = TRUE` → resolves per-group line colours by
+      darkening each fill colour via `blend_colors(mode = "multiply")`.
+      Named list elements are matched to factor levels.
+
+    - Adds `geom_vline(xintercept, linetype, linewidth, color, alpha)`.
+
+11. **Scales and labels** —
+    `scale_y_discrete(drop = !keep_empty_group)`,
+    `scale_x_continuous()`, and `labs()`.
+
+12. **Fill scale** — `scale_fill_manual()`. When
+    `keep_empty_group = TRUE`, `drop = FALSE`, `breaks`, and `limits`
+    are set to preserve empty factor levels.
+
+13. **Flip-aware theme** — when `flip = TRUE`:
+
+    - `coord_flip()` is applied.
+
+    - x-axis text angle is set from `x_text_angle` with computed `hjust`
+      / `vjust` via
+      [`calc_just()`](https://pwwang.github.io/plotthis/reference/calc_just.md).
+
+    - Major grid lines are drawn on the x-axis.
+
+    - When `flip = FALSE`, y-axis text is right-aligned and grid lines
+      appear on the y-axis.
+
+14. **Theme application** — `do_call(theme, theme_args)` applies the
+    resolved theme function, then `aspect.ratio` and legend position are
+    set.
+
+15. **Dimension calculation** —
+    `calculate_plot_dimensions(base_height = 1, n_y = nlevels(group_by), y_scale_factor = 1, aspect.ratio, legend, flip)`
+    sets `height` / `width` attributes. The base height of 1 unit per
+    ridge keeps individual ridges compact.
+
+16. **Faceting** —
+    [`facet_plot()`](https://pwwang.github.io/plotthis/reference/facet_plot.md)
+    applies `facet_grid` / `facet_wrap`, with
+    `drop = !keep_empty_facet`.

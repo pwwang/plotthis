@@ -1,6 +1,40 @@
 # Clustree Plot
 
-A plot visualizing Clusterings at Different Resolutions
+Creates a clustree (clustering tree) plot visualising how cluster
+assignments change across increasing clustering resolutions. The plot
+helps identify stable clustering solutions and understand the
+hierarchical relationships among clusters at different resolution
+thresholds.
+
+The function expects a data frame with columns named by a common
+`prefix` followed by numeric resolution values (e.g. `"res_0.1"`,
+`"res_0.3"`, `"res_0.5"`). Each column contains cluster labels (factor
+or character) for every observation at that resolution.
+
+Internally, the function uses
+[`clustree::clustree()`](https://lazappi.github.io/clustree/reference/clustree.html)
+to compute a `ggraph`-based tree layout where nodes are clusters and
+edges represent cells transitioning between clusters at adjacent
+resolutions. Edge colour and width encode the number of transitioning
+cells.
+
+Key features:
+
+- **Resolution-level node colouring** — each resolution receives a
+  distinct colour from the selected `palette`.
+
+- **Edge gradient** — edges are coloured by transition count using a
+  separate `edge_palette` colour gradient.
+
+- **Flip support** — `flip = TRUE` places resolutions on the x-axis for
+  left-to-right reading.
+
+- **Split by groups** — `split_by` generates per-group clustree plots
+  that are combined via `patchwork`.
+
+- **Automatic dimensions** — plot height and width are automatically
+  computed based on the number of resolutions, clusters, and the legend
+  configuration.
 
 ## Usage
 
@@ -47,20 +81,30 @@ ClustreePlot(
 
 - prefix:
 
-  A character string of the prefix of the columns to plot. The columns
-  with the prefix will be used to plot the tree.
+  A character string specifying the common prefix of the resolution
+  columns in `data`. All columns whose names start with this prefix are
+  selected as resolution columns. The suffix after the prefix is parsed
+  as a numeric resolution value. Supports `"_"` and `"."` as separators
+  between the prefix and the resolution value (e.g. `"res_0.5"` or
+  `"p.0.5"`).
 
 - flip:
 
-  A logical value to flip the tree.
+  A logical value. If `TRUE`, the tree is flipped so that resolutions
+  are displayed on the x-axis (left to right) and cluster assignments
+  are shown as row labels on the y-axis. Default: `FALSE`.
 
 - split_by:
 
-  The column(s) to split data by and plot separately.
+  The column(s) to split data by and generate separate clustree plots
+  for each level. Each split level produces an independent clustree plot
+  via
+  [`ClustreePlotAtomic`](https://pwwang.github.io/plotthis/reference/ClustreePlotAtomic.md).
 
 - split_by_sep:
 
-  The separator for multiple split_by columns. See `split_by`
+  A character string used to concatenate multiple `split_by` column
+  values when `split_by` specifies more than one column. Default: `"_"`.
 
 - palette:
 
@@ -82,11 +126,16 @@ ClustreePlot(
 
 - edge_palette:
 
-  A character string of the palette name to color the edges.
+  A character string specifying the palette name for the edge colour
+  gradient. Edges are coloured by the number of transitioning cells
+  between clusters at adjacent resolutions, using
+  [`ggraph::scale_edge_color_gradientn()`](https://ggraph.data-imaginist.com/reference/scale_edge_colour.html).
+  Default: `"Spectral"`.
 
 - edge_palcolor:
 
-  A character vector of colors to color the edges.
+  A character vector of custom colours for the edge colour gradient.
+  When `NULL` (the default), colours are derived from `edge_palette`.
 
 - aspect.ratio:
 
@@ -147,95 +196,106 @@ ClustreePlot(
 
 - combine:
 
-  Whether to combine the plots into one when facet is FALSE. Default is
-  TRUE.
+  A logical value. If `TRUE` (the default), the list of per-split plots
+  is combined into a single `patchwork` object. If `FALSE`, returns the
+  raw list of `ggplot` objects.
 
-- nrow:
+- nrow, ncol, byrow:
 
-  A numeric value specifying the number of rows in the facet.
-
-- ncol:
-
-  A numeric value specifying the number of columns in the facet.
-
-- byrow:
-
-  A logical value indicating whether to fill the plots by row.
+  Integers controlling the layout of combined plots via
+  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
+  `byrow = TRUE` (default) fills the layout row-wise. Ignored when
+  `design` is provided.
 
 - seed:
 
-  The random seed to use. Default is 8525.
+  The random seed for reproducibility. Passed to
+  [`validate_common_args()`](https://pwwang.github.io/plotthis/reference/validate_common_args.md).
+  Default: `8525`.
 
-- axes:
+- axes, axis_titles:
 
-  A string specifying how axes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axes in individual plots.
-
-  - 'collect' will remove duplicated axes when placed in the same run of
-    rows or columns of the layout.
-
-  - 'collect_x' and 'collect_y' will remove duplicated x-axes in the
-    columns or duplicated y-axes in the rows respectively.
-
-- axis_titles:
-
-  A string specifying how axis titltes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axis titles in individual plots.
-
-  - 'collect' will remove duplicated titles in one direction and merge
-    titles in the opposite direction.
-
-  - 'collect_x' and 'collect_y' control this for x-axis titles and
-    y-axis titles respectively.
+  Strings controlling how axes and axis titles are handled across
+  combined plots. Passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md).
+  See
+  [`?patchwork::wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
+  for options (`"keep"`, `"collect"`, `"collect_x"`, `"collect_y"`).
 
 - guides:
 
-  A string specifying how guides should be treated in the layout. Passed
-  to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'collect' will collect guides below to the given nesting level,
-    removing duplicates.
-
-  - 'keep' will stop collection at this level and let guides be placed
-    alongside their plot.
-
-  - 'auto' will allow guides to be collected if a upper level tries, but
-    place them alongside the plot if not.
+  A string controlling guide collection across combined plots. Passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md).
 
 - design:
 
-  Specification of the location of areas in the layout, passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. When
-  specified, `nrow`, `ncol`, and `byrow` are ignored. See
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
-  for more details.
+  A custom layout specification for combined plots. Passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md).
+  When specified, `nrow`, `ncol`, and `byrow` are ignored.
 
 - ...:
 
-  Additional arguments.
+  Additional arguments passed to
+  [`clustree::clustree()`](https://lazappi.github.io/clustree/reference/clustree.html).
+  Commonly used overrides include `node_size_range`, `node_text_size`,
+  `layout` (default: `"sugiyama"`), `show_axis`, and `node_text_colour`.
+  Note that `x` (the data) and `prefix` are set internally and cannot be
+  overridden here.
 
 ## Value
 
-A ggplot object or wrap_plots object or a list of ggplot objects
+A `ggplot` object (single plot), a `patchwork` object (when
+`combine = TRUE` with `split_by`), or a `list` of `ggplot` objects (when
+`combine = FALSE`).
+
+## split_by Workflow (ClustreePlot)
+
+When `split_by` is provided, the following pipeline executes:
+
+1.  **Argument validation** —
+    [`validate_common_args()`](https://pwwang.github.io/plotthis/reference/validate_common_args.md)
+    checks the `seed` value and sets the random seed.
+
+2.  **Theme resolution** —
+    [`process_theme()`](https://pwwang.github.io/plotthis/reference/process_theme.md)
+    resolves the `theme` string or function to a theme function.
+
+3.  **Split column validation** —
+    [`check_columns()`](https://pwwang.github.io/plotthis/reference/check_columns.md)
+    resolves `split_by` with
+    `force_factor = TRUE, allow_multi = TRUE, concat_multi = TRUE`.
+
+4.  **Data splitting** — splits `data` by `split_by` levels (unused
+    levels dropped), preserving factor level order.
+
+5.  **Per-split palette / colour / legend** —
+    [`check_palette()`](https://pwwang.github.io/plotthis/reference/check_palette.md),
+    [`check_palcolor()`](https://pwwang.github.io/plotthis/reference/check_palcolor.md),
+    and
+    [`check_legend()`](https://pwwang.github.io/plotthis/reference/check_legend.md)
+    resolve per-split overrides for `palette`, `palcolor`,
+    `legend.position`, and `legend.direction`.
+
+6.  **Per-split title** — when `title` is a function, it receives the
+    default title (the split level name) and can return a custom string;
+    otherwise `title %||% split_level` is used.
+
+7.  **Dispatch** — each split subset is passed to
+    [`ClustreePlotAtomic`](https://pwwang.github.io/plotthis/reference/ClustreePlotAtomic.md)
+    with the per-split parameters.
+
+8.  **Combination** —
+    [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)
+    assembles the list of plots via
+    [`patchwork::wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html),
+    honouring `nrow`/`ncol`/`byrow`/`design`.
 
 ## Examples
 
 ``` r
 # \donttest{
 set.seed(8525)
-N = 100
+N <- 100
 data <- data.frame(
     p.0.4 = sample(LETTERS[1:5], N, replace = TRUE),
     p.0.5 = sample(LETTERS[1:6], N, replace = TRUE),
@@ -247,12 +307,19 @@ data <- data.frame(
     split = sample(1:2, N, replace = TRUE)
 )
 
+# --- Basic clustree plot ---
 ClustreePlot(data, prefix = "p")
 
+
+# --- Flipped layout (resolutions on x-axis) ---
 ClustreePlot(data, prefix = "p", flip = TRUE)
 
+
+# --- Split by group ---
 ClustreePlot(data, prefix = "p", split_by = "split")
 
+
+# --- Split by group with per-split palettes ---
 ClustreePlot(data, prefix = "p", split_by = "split",
              palette = c("1" = "Set1", "2" = "Paired"))
 

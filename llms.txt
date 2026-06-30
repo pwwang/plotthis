@@ -161,60 +161,60 @@ Functions for plotting
 - [`BarPlot()`](https://pwwang.github.io/plotthis/reference/barplot.md)
   [`SplitBarPlot()`](https://pwwang.github.io/plotthis/reference/barplot.md)
   [`WaterfallPlot()`](https://pwwang.github.io/plotthis/reference/barplot.md)
-  : Bar Plot
+  : Bar plot
 - [`BoxPlot()`](https://pwwang.github.io/plotthis/reference/boxviolinplot.md)
   [`ViolinPlot()`](https://pwwang.github.io/plotthis/reference/boxviolinplot.md)
   [`BeeswarmPlot()`](https://pwwang.github.io/plotthis/reference/boxviolinplot.md)
-  : Box / Violin / Bar Plot
+  : Box / Bar plot
 - [`ChordPlot()`](https://pwwang.github.io/plotthis/reference/chordplot.md)
   [`CircosPlot()`](https://pwwang.github.io/plotthis/reference/chordplot.md)
   : Chord / Circos plot
 - [`ClustreePlot()`](https://pwwang.github.io/plotthis/reference/ClustreePlot.md)
   : Clustree Plot
 - [`CorPlot()`](https://pwwang.github.io/plotthis/reference/CorPlot.md)
-  : CorPlot
+  : Correlation scatter plot
 - [`CorPairsPlot()`](https://pwwang.github.io/plotthis/reference/CorPairsPlot.md)
-  : CorPairsPlot
+  : Correlation pairs (scatterplot matrix)
 - [`DensityPlot()`](https://pwwang.github.io/plotthis/reference/densityhistoplot.md)
   [`Histogram()`](https://pwwang.github.io/plotthis/reference/densityhistoplot.md)
   : Density Plot / Histogram
 - [`DimPlot()`](https://pwwang.github.io/plotthis/reference/dimplot.md)
   [`FeatureDimPlot()`](https://pwwang.github.io/plotthis/reference/dimplot.md)
-  : DimPLot / FeatureDimPlot
+  : DimPlot / FeatureDimPlot
 - [`DotPlot()`](https://pwwang.github.io/plotthis/reference/dotplot.md)
   [`LollipopPlot()`](https://pwwang.github.io/plotthis/reference/dotplot.md)
-  : Dot Plot / Scatter Plot / Lollipop Plot
+  : Dot Plot, Scatter Plot, and Lollipop Plot
 - [`EnrichMap()`](https://pwwang.github.io/plotthis/reference/enrichmap1.md)
   [`EnrichNetwork()`](https://pwwang.github.io/plotthis/reference/enrichmap1.md)
-  : Enrichment Map/Network
+  : Enrichment Map and Enrichment Network
 - [`GSEASummaryPlot()`](https://pwwang.github.io/plotthis/reference/gsea.md)
   [`GSEAPlot()`](https://pwwang.github.io/plotthis/reference/gsea.md) :
-  GSEA plots
+  GSEA summary dot plot
 - [`Heatmap()`](https://pwwang.github.io/plotthis/reference/Heatmap.md)
   : Heatmap
 - [`JitterPlot()`](https://pwwang.github.io/plotthis/reference/jitterplot.md)
-  : Jitter Plot
+  : Jitter plot
 - [`LinePlot()`](https://pwwang.github.io/plotthis/reference/LinePlot.md)
-  : Line Plot
+  : Line plot
 - [`LinkedHeatmap()`](https://pwwang.github.io/plotthis/reference/LinkedHeatmap.md)
   : Linked Heatmap
 - [`ManhattanPlot()`](https://pwwang.github.io/plotthis/reference/ManhattanPlot.md)
-  : ManhattanPlot
+  : Manhattan plot
 - [`Network()`](https://pwwang.github.io/plotthis/reference/Network.md)
   : Network
 - [`QQPlot()`](https://pwwang.github.io/plotthis/reference/QQPlot.md) :
-  QQ plot
+  QQ/PP plot
 - [`RidgePlot()`](https://pwwang.github.io/plotthis/reference/RidgePlot.md)
   : Ridge Plot
 - [`PieChart()`](https://pwwang.github.io/plotthis/reference/PieChart.md)
-  : Pie Chart
+  : Pie chart
 - [`RadarPlot()`](https://pwwang.github.io/plotthis/reference/radarplot.md)
   [`SpiderPlot()`](https://pwwang.github.io/plotthis/reference/radarplot.md)
   : Radar plot / Spider plot
 - [`RarefactionPlot()`](https://pwwang.github.io/plotthis/reference/RarefactionPlot.md)
-  : RarefactionPlot
+  : Rarefaction / extrapolation plot
 - [`RingPlot()`](https://pwwang.github.io/plotthis/reference/RingPlot.md)
-  : Ring Plot
+  : Ring plot (multi-layer donut chart)
 - [`ROCCurve()`](https://pwwang.github.io/plotthis/reference/ROCCurve.md)
   : ROC curve
 - [`ScatterPlot()`](https://pwwang.github.io/plotthis/reference/ScatterPlot.md)
@@ -223,7 +223,7 @@ Functions for plotting
   [`SpatMasksPlot()`](https://pwwang.github.io/plotthis/reference/spatialplots.md)
   [`SpatShapesPlot()`](https://pwwang.github.io/plotthis/reference/spatialplots.md)
   [`SpatPointsPlot()`](https://pwwang.github.io/plotthis/reference/spatialplots.md)
-  : Plots for spatial elements
+  : Spatial visualization functions for terra objects and point data
 - [`TrendPlot()`](https://pwwang.github.io/plotthis/reference/TrendPlot.md)
   : Trend plot
 - [`VelocityPlot()`](https://pwwang.github.io/plotthis/reference/VelocityPlot.md)
@@ -231,11 +231,11 @@ Functions for plotting
 - [`VolcanoPlot()`](https://pwwang.github.io/plotthis/reference/VolcanoPlot.md)
   : Volcano plot
 - [`WordCloudPlot()`](https://pwwang.github.io/plotthis/reference/WordCloudPlot.md)
-  : Word Cloud Plot
+  : Word cloud plot
 - [`UpsetPlot()`](https://pwwang.github.io/plotthis/reference/UpsetPlot.md)
-  : Upset Plot
+  : UpSet Plot
 - [`VennDiagram()`](https://pwwang.github.io/plotthis/reference/VennDiagram.md)
-  : Venn diagram
+  : Venn / Euler diagram
 
 ## Theming
 

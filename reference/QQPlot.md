@@ -1,7 +1,34 @@
-# QQ plot
+# QQ/PP plot
 
-QQ plot is a graphical tool to compare two distributions by plotting
-their quantiles against each other.
+Produces a quantile-quantile (QQ) plot or probability-probability (PP)
+plot to compare the empirical distribution of a numeric variable against
+a theoretical distribution (default: standard normal). The function
+delegates to the qqplotr package for the underlying statistics and
+rendering.
+
+Key features:
+
+- **QQ and PP modes** – switch between quantile-quantile and
+  probability-probability displays via `type`.
+
+- **Confidence bands** – overlay one or more confidence bands
+  (pointwise, KS, Tukey simultaneous, or bootstrap) with custom fill
+  colours and alpha.
+
+- **Reference line** – a diagonal reference line (QQ) or diagonal
+  probability line (PP) for comparison.
+
+- **Distribution fitting** – compare against any distribution supported
+  by qqplotr (normal, exponential, uniform, etc.) by passing
+  `distribution` and `dparams` inside the `band`, `line`, and `point`
+  lists.
+
+- **Detrending** – enable `detrend = TRUE` inside the argument lists to
+  remove the reference line and visualise only deviations (flat PP plot
+  centred at zero).
+
+- **Splitting** – use `split_by` to produce separate QQ/PP plots for
+  different groups, combined into a single layout.
 
 ## Usage
 
@@ -58,18 +85,19 @@ QQPlot(
 
 - val:
 
-  A character string of the column name for the values to plot. A
-  numeric column is expected.
+  A character string naming the numeric column whose distribution is
+  compared against the theoretical distribution.
 
 - val_trans:
 
-  A function to transform the values before plotting. Default is NULL,
-  which means no transformation.
+  A transformation function applied to the `val` column before plotting.
+  For example, `log` or `sqrt`. Default: `NULL` (no transformation).
 
 - type:
 
-  A character string to specify the type of plot. Default is "qq", which
-  means QQ plot. Other options are "pp", which means PP plot.
+  A character string specifying the plot type. Either `"qq"`
+  (quantile-quantile, the default) or `"pp"` (probability-probability).
+  Partial matching is supported.
 
 - split_by:
 
@@ -81,44 +109,44 @@ QQPlot(
 
 - band:
 
-  A list of arguments to pass to
-  [`qqplotr::stat_qq_band()`](https://rdrr.io/pkg/qqplotr/man/stat_qq_band.html)
-  or
-  [`qqplotr::stat_pp_band()`](https://rdrr.io/pkg/qqplotr/man/stat_pp_band.html),
-  depending on the value of `type`. Default is NULL, which means no
-  band. If an empty list or TRUE is provided, the default arguments will
-  be used. Multiple bands can be added by providing a list of lists.
+  A list of arguments passed to
+  [`stat_qq_band`](https://rdrr.io/pkg/qqplotr/man/stat_qq_band.html) or
+  [`stat_pp_band`](https://rdrr.io/pkg/qqplotr/man/stat_pp_band.html),
+  depending on `type`. Set to `TRUE` or an empty list to use default
+  arguments. Set to `NULL` (the default) to suppress bands entirely. To
+  add multiple bands, provide a list of lists, each containing arguments
+  for one band (e.g. different `bandType` or `distribution`). Each band
+  can also include a custom `mapping` aesthetic to control its fill
+  colour legend entry.
 
 - line:
 
-  A list of arguments to pass to `qqplotr::stat_qq_line()` or
-  [`qqplotr::stat_pp_line()`](https://rdrr.io/pkg/qqplotr/man/stat_pp_line.html),
-  depending on the value of `type`. Default is
-  [`list()`](https://rdrr.io/r/base/list.html), which means to add a
-  line with default arguments. If `NULL` is provided, no line will be
-  added.
+  A list of arguments passed to `stat_qq_line` or
+  [`stat_pp_line`](https://rdrr.io/pkg/qqplotr/man/stat_pp_line.html),
+  depending on `type`. Default:
+  [`list()`](https://rdrr.io/r/base/list.html) (adds a reference line
+  with default arguments). Set to `NULL` to omit the line entirely.
 
 - point:
 
-  A list of arguments to pass to
-  [`qqplotr::stat_qq_point()`](https://rdrr.io/pkg/qqplotr/man/stat_qq_point.html)
+  A list of arguments passed to
+  [`stat_qq_point`](https://rdrr.io/pkg/qqplotr/man/stat_qq_point.html)
   or
-  [`qqplotr::stat_pp_point()`](https://rdrr.io/pkg/qqplotr/man/stat_pp_point.html),
-  depending on the value of `type`. Default is
-  [`list()`](https://rdrr.io/r/base/list.html), which means to add
-  points with default arguments. If `NULL` is provided, no points will
-  be added (not recommended).
+  [`stat_pp_point`](https://rdrr.io/pkg/qqplotr/man/stat_pp_point.html),
+  depending on `type`. Default:
+  [`list()`](https://rdrr.io/r/base/list.html) (adds points with default
+  arguments). Set to `NULL` to omit points (not recommended).
 
 - fill_name:
 
-  A character string to name the legend of fill. Default is "Band Type".
+  A character string for the fill legend title used when bands are
+  present. Default: `"Bands"`.
 
 - band_alpha:
 
-  A numeric value to set the alpha of all bands. Default is 0.5. It is a
-  shortcut for setting alpha of all bands. You can override it by
-  setting `alpha` in `band` argument. For example,
-  `band = list(list(alpha = 0.3), list(alpha = 0.7))`.
+  A numeric value in `[0, 1]` setting the transparency of all bands.
+  Individual bands can override this via `alpha` inside the `band`
+  argument list. Default: `0.5`.
 
 - theme:
 
@@ -201,11 +229,13 @@ QQPlot(
 
 - xlim:
 
-  A numeric vector of length 2 to set the x-axis limits.
+  A numeric vector of length 2 specifying the x-axis limits. Default:
+  `NULL` (use data range).
 
 - ylim:
 
-  A numeric vector of length 2 to set the y-axis limits.
+  A numeric vector of length 2 specifying the y-axis limits. Default:
+  `NULL` (use data range).
 
 - xlab:
 
@@ -298,7 +328,50 @@ QQPlot(
 
 ## Value
 
-A ggplot object or wrap_plots object or a list of ggplot objects
+A `ggplot` object (single plot), a `patchwork` object (combined split
+plots), or a named list of `ggplot` objects (when `combine = FALSE`),
+each with `height` and `width` attributes in inches.
+
+## split_by Workflow
+
+When `split_by` is provided:
+
+1.  **Common arg validation** –
+    [`validate_common_args()`](https://pwwang.github.io/plotthis/reference/validate_common_args.md)
+    checks the `seed` and `facet_by` constraints.
+
+2.  **Theme processing** –
+    [`process_theme()`](https://pwwang.github.io/plotthis/reference/process_theme.md)
+    resolves the `theme` string or function.
+
+3.  **split_by column resolution** –
+    [`check_columns()`](https://pwwang.github.io/plotthis/reference/check_columns.md)
+    validates the `split_by` column(s) with `force_factor = TRUE`.
+    Multiple columns are concatenated with `split_by_sep`.
+
+4.  **Data splitting** – the data frame is split by `split_by` levels
+    (droplevels applied, level order preserved). If `split_by` is
+    `NULL`, the data is wrapped in a single-element list with name
+    `"..."`.
+
+5.  **Per-split parameter resolution** –
+    [`check_palette()`](https://pwwang.github.io/plotthis/reference/check_palette.md),
+    [`check_palcolor()`](https://pwwang.github.io/plotthis/reference/check_palcolor.md),
+    and
+    [`check_legend()`](https://pwwang.github.io/plotthis/reference/check_legend.md)
+    resolve per-split `palette`, `palcolor`, `legend.position`, and
+    `legend.direction`.
+
+6.  **Dispatch per split** –
+    [`QQPlotAtomic()`](https://pwwang.github.io/plotthis/reference/QQPlotAtomic.md)
+    is called for each split level. If `title` is a function, it
+    receives the split level name and generates a dynamic title;
+    otherwise the level name is used as the default title.
+
+7.  **Combination** – results are combined via
+    [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)
+    (when `combine = TRUE`) or returned as a named list (when
+    `combine = FALSE`).
 
 ## Examples
 
@@ -306,8 +379,11 @@ A ggplot object or wrap_plots object or a list of ggplot objects
 set.seed(8525)
 data <- data.frame(norm = rnorm(100))
 
+# Basic QQ plot with default confidence band
 QQPlot(data, val = "norm", band = TRUE)
 
+
+# Multiple confidence bands with custom fill labels
 QQPlot(data, val = "norm", band = list(
     list(bandType = "ks", mapping = ggplot2::aes(fill = "KS"), alpha = 0.3),
     list(bandType = "ts", mapping = ggplot2::aes(fill = "TS")),
@@ -316,9 +392,10 @@ QQPlot(data, val = "norm", band = list(
 ), band_alpha = 0.6)
 
 
+# Compare against exponential distribution
 data(airquality, package = "datasets")
-di <- "exp" # exponential distribution
-dp <- list(rate = 2) # exponential rate parameter
+di <- "exp"
+dp <- list(rate = 2)
 QQPlot(airquality, val = "Ozone",
     band = list(distribution = di, dparams = dp),
     line = list(distribution = di, dparams = dp),
@@ -326,7 +403,8 @@ QQPlot(airquality, val = "Ozone",
 )
 
 
-de <- TRUE # enabling the detrend option
+# Detrended QQ plot: deviations from the reference line
+de <- TRUE
 QQPlot(airquality, val = "Ozone",
     band = list(distribution = di, dparams = dp, detrend = de),
     line = list(distribution = di, dparams = dp, detrend = de),
@@ -334,26 +412,30 @@ QQPlot(airquality, val = "Ozone",
 )
 
 
+# PP plot (probability-probability)
 QQPlot(data, val = "norm", type = "pp", band = TRUE)
 
 
-dp <- list(mean = 2, sd = 2) # shifted and rescaled Normal parameters
+# PP plot with shifted/scaled normal distribution
+dp <- list(mean = 2, sd = 2)
 QQPlot(data, val = "norm", type = "pp",
     band = list(dparams = dp),
     point = list(dparams = dp))
 
 
+# PP plot with custom intercept/slope line
 QQPlot(data, val = "norm", type = "pp", band = TRUE,
     line = list(ab = c(.2, .5)))
 
 
+# Detrended PP plot with axis limits
 di <- "exp"
-dp <- list(rate = .022) # value is based on some empirical tests
+dp <- list(rate = .022)
 de <- TRUE
 QQPlot(airquality, val = "Ozone", type = "pp",
-   band = list(distribution = di, detrend = de, dparams = dp),
-   line = list(detrend = de),
-   point = list(distribution = di, detrend = de, dparams = dp),
-   ylim = c(-.5, .5)
+    band = list(distribution = di, detrend = de, dparams = dp),
+    line = list(detrend = de),
+    point = list(distribution = di, detrend = de, dparams = dp),
+    ylim = c(-.5, .5)
 )
 ```

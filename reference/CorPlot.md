@@ -1,6 +1,16 @@
-# CorPlot
+# Correlation scatter plot
 
-Generate scatter correlation plot for two variables.
+Draws a scatter plot of two numeric variables with a linear regression
+line, optional correlation statistics, and point highlighting. This is
+the public entry point that wraps
+[`CorPlotAtomic`](https://pwwang.github.io/plotthis/reference/CorPlotAtomic.md)
+with `split_by` support.
+
+Key features include **group-based colouring** (`group_by`), **point
+highlighting** by expression, rowname, or index, **annotation items**
+(regression equation, R-squared, p-value, Spearman/Pearson/Kendall rho,
+N), **raster rendering** for large datasets, **faceting** (`facet_by`),
+and **splitting** into separate sub-plots via `split_by`.
 
 ## Usage
 
@@ -93,27 +103,34 @@ CorPlot(
 
 - group_name:
 
-  The name of the group in the legend.
+  A character string used as the colour legend title. When `NULL`, the
+  `group_by` column name is used.
 
 - split_by:
 
-  The column(s) to split data by and plot separately.
+  The column(s) to split the data by and produce separate sub-plots.
+  Multiple columns are concatenated with `split_by_sep`.
 
 - split_by_sep:
 
-  The separator for multiple split_by columns. See `split_by`
+  A character string to separate concatenated `split_by` columns.
+  Default `"_"`.
 
 - pt_size:
 
-  The size of the points.
+  A numeric value specifying the size of the points. Default: `2`.
 
 - pt_shape:
 
-  The shape of the points.
+  A numeric value specifying the shape of the points (see
+  [`geom_point`](https://ggplot2.tidyverse.org/reference/geom_point.html)).
+  Default: `16` (filled circle).
 
 - raster:
 
-  Whether to use raster graphics for plotting.
+  A logical value. When `TRUE`, uses
+  [`scattermore::geom_scattermore()`](https://rdrr.io/pkg/scattermore/man/geom_scattermore.html)
+  for efficient rendering of large datasets. Default: `FALSE`.
 
 - alpha:
 
@@ -121,74 +138,99 @@ CorPlot(
 
 - raster_dpi:
 
-  The DPI of the raster graphics.
+  An integer vector of length 1 or 2 specifying the raster resolution in
+  (width, height) pixels. When a single value is provided, it is
+  recycled. Default: `c(512, 512)`.
 
 - highlight:
 
-  The items to be highlighted. Could be either a vector of rownames if
-  data has rownames, or a vector of indices, or An expression that can
-  be evaluated by
-  [`dplyr::filter`](https://dplyr.tidyverse.org/reference/filter.html)
-  to get the highlighted items.
+  Specifies which points to emphasise. Can be:
+
+  - `TRUE` — highlight all points.
+
+  - A character expression (e.g. `'Species == "setosa"'`) — evaluated
+    via
+    [`dplyr::filter`](https://dplyr.tidyverse.org/reference/filter.html).
+
+  - A character vector — matched against rownames of the data.
+
+  - A numeric vector — treated as row indices.
+
+  Default: `NULL` (no highlighting).
 
 - highlight_color:
 
-  The color of the highlighted points.
+  A character string specifying the colour of the highlighted point
+  borders. Default: `"black"`.
 
 - highlight_size:
 
-  The size of the highlighted points.
+  A numeric value specifying the size of the highlighted points (the
+  inner fill). Default: `1`.
 
 - highlight_alpha:
 
-  The alpha of the highlighted points.
+  A numeric value specifying the alpha transparency of the highlighted
+  points. Default: `1`.
 
 - highlight_stroke:
 
-  The stroke of the highlighted points.
+  A numeric value specifying the stroke width of the highlighted point
+  borders. The outer layer size is `highlight_size + highlight_stroke`.
+  Default: `0.8`.
 
 - anno_items:
 
-  The items to be annotated on the plot. Available items: "eq", "r2",
-  "p", "spearman", "pearson", "kendall", "n".
+  A character vector specifying which statistics to display as text
+  annotation. Available items: `"eq"` (regression equation), `"r2"`
+  (R-squared), `"p"` (p-value), `"spearman"`, `"pearson"`, `"kendall"`,
+  `"n"` (observation count). Default: `c("eq", "r2", "p")`.
 
 - anno_size:
 
-  The size of the annotation text.
+  A numeric value specifying the font size of the annotation text
+  (scaled by `base_size / 12`). Default: `3`.
 
 - anno_fg:
 
-  The color of the annotation text.
+  A character string specifying the colour of the annotation text.
+  Default: `"black"`.
 
 - anno_bg:
 
-  The background color of the annotation text.
+  A character string specifying the background colour of the annotation
+  text boxes. Default: `"white"`.
 
 - anno_bg_r:
 
-  The radius of the background of the annotation text.
+  A numeric value specifying the corner radius of the annotation text
+  background boxes. Default: `0.1`.
 
 - anno_position:
 
-  The position of the annotation text. Available positions: "topleft",
-  "topright", "bottomleft", "bottomright". Shortcuts: "tl", "tr", "bl",
-  "br".
+  A character string specifying the corner position of the annotation
+  text. One of `"topleft"` (alias `"tl"`), `"topright"` (`"tr"`),
+  `"bottomleft"` (`"bl"`), `"bottomright"` (`"br"`).
 
 - add_smooth:
 
-  Whether to add a linear regression line.
+  A logical value. When `TRUE` (default), a linear regression line
+  (`geom_smooth(method = "lm")`) is added.
 
 - smooth_color:
 
-  The color of the regression line.
+  A character string specifying the colour of the regression line.
+  Default: `"red2"`.
 
 - smooth_width:
 
-  The width of the regression line.
+  A numeric value specifying the linewidth of the regression line.
+  Default: `1.5`.
 
 - smooth_se:
 
-  Whether to add the standard error band to the regression line.
+  A logical value. When `TRUE`, a standard error band is drawn around
+  the regression line. Default: `FALSE`.
 
 - theme:
 
@@ -279,80 +321,44 @@ CorPlot(
 
 - seed:
 
-  The random seed to use. Default is 8525.
+  A numeric seed for reproducibility. Passed to
+  [`validate_common_args()`](https://pwwang.github.io/plotthis/reference/validate_common_args.md).
 
 - combine:
 
-  Whether to combine the plots into one when facet is FALSE. Default is
-  TRUE.
+  Logical; when `TRUE` (default), returns a combined `patchwork` object.
+  When `FALSE`, returns a named list of individual `ggplot` objects.
 
-- nrow:
+- ncol, nrow:
 
-  A numeric value specifying the number of rows in the facet.
-
-- ncol:
-
-  A numeric value specifying the number of columns in the facet.
+  Integer number of columns / rows for the combined layout (passed to
+  [`wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)).
 
 - byrow:
 
-  A logical value indicating whether to fill the plots by row.
+  Logical; fill the combined layout by row. Default `TRUE`.
 
 - axes:
 
-  A string specifying how axes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axes in individual plots.
-
-  - 'collect' will remove duplicated axes when placed in the same run of
-    rows or columns of the layout.
-
-  - 'collect_x' and 'collect_y' will remove duplicated x-axes in the
-    columns or duplicated y-axes in the rows respectively.
+  A character string specifying how axes should be treated across the
+  combined layout (passed to
+  [`wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)).
 
 - axis_titles:
 
-  A string specifying how axis titltes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axis titles in individual plots.
-
-  - 'collect' will remove duplicated titles in one direction and merge
-    titles in the opposite direction.
-
-  - 'collect_x' and 'collect_y' control this for x-axis titles and
-    y-axis titles respectively.
+  A character string specifying how axis titles should be treated across
+  the combined layout. Defaults to `axes`.
 
 - guides:
 
-  A string specifying how guides should be treated in the layout. Passed
-  to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'collect' will collect guides below to the given nesting level,
-    removing duplicates.
-
-  - 'keep' will stop collection at this level and let guides be placed
-    alongside their plot.
-
-  - 'auto' will allow guides to be collected if a upper level tries, but
-    place them alongside the plot if not.
+  A character string specifying how guides (legends) should be collected
+  across panels (passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)).
 
 - design:
 
-  Specification of the location of areas in the layout, passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. When
-  specified, `nrow`, `ncol`, and `byrow` are ignored. See
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
-  for more details.
+  A custom layout design for the combined plot (passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)).
 
 - ...:
 
@@ -360,23 +366,62 @@ CorPlot(
 
 ## Value
 
-A ggplot object or a list of ggplot objects if `combine` is `FALSE`.
+A `ggplot` object (when `split_by` is `NULL`), a `patchwork` object
+(when `combine = TRUE`), or a named list of `ggplot` objects (when
+`combine = FALSE`), each with `height` and `width` attributes in inches.
+
+## split_by workflow
+
+When `split_by` is provided:
+
+1.  The `split_by` column is validated via
+    [`check_columns()`](https://pwwang.github.io/plotthis/reference/check_columns.md)
+    with `force_factor = TRUE`. Empty levels are dropped
+    ([`droplevels()`](https://rdrr.io/r/base/droplevels.html)).
+
+2.  The data frame is split by `split_by` (preserving level order). If
+    `split_by` is `NULL`, the data is wrapped in a single-element list
+    with name `"..."`.
+
+3.  Per-split `palette`, `palcolor`, `legend.position`, and
+    `legend.direction` are resolved via
+    [`check_palette()`](https://pwwang.github.io/plotthis/reference/check_palette.md),
+    [`check_palcolor()`](https://pwwang.github.io/plotthis/reference/check_palcolor.md),
+    and
+    [`check_legend()`](https://pwwang.github.io/plotthis/reference/check_legend.md).
+
+4.  [`CorPlotAtomic()`](https://pwwang.github.io/plotthis/reference/CorPlotAtomic.md)
+    is called for each split. When `title` is a function, it receives
+    the split level name and can generate dynamic titles.
+
+5.  Results are combined via
+    [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)
+    (when `combine = TRUE`) or returned as a named list.
 
 ## Examples
 
 ``` r
 # \donttest{
 data(iris)
+
+# Basic scatter with group colours
 CorPlot(iris, "Sepal.Length", "Sepal.Width", group_by = "Species")
 
+
+# Highlight a specific group with custom stroke
 CorPlot(iris, "Sepal.Length", "Sepal.Width", group_by = "Species",
- highlight = 'Species == "setosa"', highlight_stroke = 1.5,
- anno_items = c("eq", "pearson"), anno_position = "bottomright")
+    highlight = 'Species == "setosa"', highlight_stroke = 1.5,
+    anno_items = c("eq", "pearson"), anno_position = "bottomright")
 
-CorPlot(iris, "Sepal.Length", "Sepal.Width", facet_by = "Species", facet_scales = "free")
 
+# Faceted by species
+CorPlot(iris, "Sepal.Length", "Sepal.Width", facet_by = "Species",
+    facet_scales = "free")
+
+
+# Per-split palettes
 CorPlot(iris, "Sepal.Length", "Sepal.Width", split_by = "Species",
-        palette = c(setosa = "Set1", versicolor = "Dark2", virginica = "Paired"))
+    palette = c(setosa = "Set1", versicolor = "Dark2", virginica = "Paired"))
 
 # }
 ```

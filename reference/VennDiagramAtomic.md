@@ -1,6 +1,18 @@
-# Atomic Venn diagram
+# Atomic Venn / Euler diagram (internal)
 
-Atomic Venn diagram
+Core implementation for drawing a Venn or Euler diagram that visualises
+the overlap relationships among multiple sets. Supports four input
+formats (long, wide, list, and pre-computed `VennPlotData`) which are
+normalised by
+[`prepare_venn_data()`](https://pwwang.github.io/plotthis/reference/prepare_venn_data.md)
+into the internal `VennPlotData` representation used by ggVennDiagram.
+
+Intersection regions can be filled either by a continuous colour
+gradient based on the element count (`fill_mode = "count"` or
+`"count_rev"`) or by blended set colours (`fill_mode = "set"`). Region
+labels can display the raw count, the percentage of total elements,
+both, nothing, or a custom function result. Set labels always show the
+set name and its total element count.
 
 ## Usage
 
@@ -41,39 +53,18 @@ VennDiagramAtomic(
 
 - in_form:
 
-  A character string indicating the datatype of the input data. Possible
-  values are "long", "wide", "list", "venn" or NULL. "long" indicates
-  the data is in long format. "wide" indicates the data is in wide
-  format. "list" indicates the data is a list. "venn" indicates the data
-  is a VennPlotData object. "auto" indicates the function will detect
-  the datatype of the input data.
-
-  A long format data would look like:
-
-      group_by id_by
-      A        a1
-      A        a2
-      B        a1
-      B        a3
-      ...
-
-  A wide format data would look like:
-
-      A    B
-      TRUE TRUE
-      TRUE FALSE
-      FALSE TRUE
-      ...
-
-  A list format data would look like:
-
-      list(A = c("a1", "a2"), B = c("a1", "a3"))
+  A character string specifying the input format. One of `"auto"`
+  (default; detect automatically via
+  [`detect_venn_datatype()`](https://pwwang.github.io/plotthis/reference/detect_venn_datatype.md)),
+  `"long"`, `"wide"`, `"list"`, or `"venn"`.
 
 - group_by:
 
-  A character string specifying the column name of the data frame to
-  group the data. When in_form is "wide", it should be the columns for
-  the groups.
+  A character string (or vector) specifying the column name(s) that
+  define the set membership. For `in_form = "long"`, this is the
+  grouping column; for `in_form = "wide"`, these are the set columns
+  (must be logical or 0/1); when `NULL` and `data` is a data frame, all
+  columns are treated as sets (wide format).
 
 - group_by_sep:
 
@@ -81,46 +72,60 @@ VennDiagramAtomic(
 
 - id_by:
 
-  A character string specifying the column name of the data frame to
-  identify the instances. Required when `group_by` is a single column
-  and data is a data frame.
+  A character string specifying the column name that identifies
+  individual elements. Required for long-format data; ignored otherwise.
 
 - label:
 
-  A character string specifying the label to show on the Venn diagram.
-  Possible values are "count", "percent", "both", "none" and a function.
-  "count" indicates the count of the intersection. "percent" indicates
-  the percentage of the intersection. "both" indicates both the count
-  and the percentage of the intersection. "none" indicates no label. If
-  it is a function, if takes a data frame as input and returns a
-  character vector as label. The data frame has columns "id", "X", "Y",
-  "name", "item" and "count".
+  A character string or function controlling the text shown in each
+  intersection region. One of:
+
+  - `"count"` (default) — the raw count of elements in that region.
+
+  - `"percent"` — the percentage of the total element count.
+
+  - `"both"` — count and percentage on separate lines.
+
+  - `"none"` — no region labels are drawn.
+
+  - A **function** — receives a data frame with columns `"id"`, `"X"`,
+    `"Y"`, `"name"`, `"item"`, and `"count"`, and must return a
+    character vector of labels.
 
 - label_fg:
 
-  A character string specifying the color of the label text.
+  A character string specifying the colour of the label text.
 
 - label_size:
 
-  A numeric value specifying the size of the label text.
+  A numeric value specifying the font size of the label text. When
+  `NULL` (the default), auto-sized at 3.5 for region labels and 4 for
+  set labels, scaled by `base_size / 12`.
 
 - label_bg:
 
-  A character string specifying the background color of the label.
+  A character string specifying the background colour of the label text
+  (passed to
+  [`geom_text_repel()`](https://ggrepel.slowkow.com/reference/geom_text_repel.html)
+  as `bg.color`). Default `"white"`.
 
 - label_bg_r:
 
-  A numeric value specifying the radius of the background of the label.
+  A numeric value specifying the corner radius of the label background
+  rectangle (passed as `bg.r`). Default `0.1`.
 
 - fill_mode:
 
-  A character string specifying the fill mode of the Venn diagram.
-  Possible values are "count", "set", "count_rev". "count" indicates the
-  fill color is based on the count of the intersection. "set" indicates
-  the fill color is based on the set of the intersection. "count_rev"
-  indicates the fill color is based on the count of the intersection in
-  reverse order. The palette will be continuous for "count" and
-  "count_rev". The palette will be discrete for "set".
+  A character string specifying how intersection regions are coloured.
+  One of:
+
+  - `"count"` — continuous gradient based on element count (default
+    palette: `"Spectral"`).
+
+  - `"count_rev"` — continuous gradient with reversed count order.
+
+  - `"set"` — discrete blended colours per set combination (default
+    palette: `"Paired"`). No legend is drawn.
 
 - palreverse:
 
@@ -129,7 +134,8 @@ VennDiagramAtomic(
 
 - fill_name:
 
-  A character string to name the legend of colorbar.
+  A character string for the colour bar legend title when `fill_mode` is
+  `"count"` or `"count_rev"`. Ignored when `fill_mode = "set"`.
 
 - aspect.ratio:
 
@@ -187,4 +193,55 @@ VennDiagramAtomic(
 
 ## Value
 
-A ggplot object with Venn diagram
+A `ggplot` object with `height` and `width` attributes (in inches)
+attached.
+
+## Architecture
+
+1.  **Data type detection** —
+    [`detect_venn_datatype()`](https://pwwang.github.io/plotthis/reference/detect_venn_datatype.md)
+    identifies whether `data` is in long, wide, list, or `VennPlotData`
+    format.
+
+2.  **Data preparation** —
+    [`prepare_venn_data()`](https://pwwang.github.io/plotthis/reference/prepare_venn_data.md)
+    converts the input into a `VennPlotData` object suitable for
+    rendering by ggVennDiagram.
+
+3.  **Geometry extraction** — ggVennDiagram utilities
+    (`venn_regionedge()`, `venn_setedge()`, `venn_regionlabel()`,
+    `venn_setlabel()`) compute polygon vertices and label positions for
+    all sets and their intersections.
+
+4.  **Fill resolution** — When `fill_mode = "set"`,
+    [`palette_this()`](https://pwwang.github.io/plotthis/reference/palette_this.md)
+    assigns colours to each set; the
+    [`blend_colors()`](https://pwwang.github.io/plotthis/reference/blend_colors.md)
+    helper blends the colours of overlapping sets for each intersection
+    region. When `fill_mode = "count"` or `"count_rev"`, a continuous
+    gradient is applied across regions via `scale_fill_gradientn()` with
+    a colour bar legend.
+
+5.  **Label computation** — Region labels are formatted per the `label`
+    parameter: raw count, percentage, both, none, or a custom function
+    that receives a data frame with columns `"id"`, `"X"`, `"Y"`,
+    `"name"`, `"item"`, and `"count"`. Set labels are formatted as
+    `"setName\n(count)"`.
+
+6.  **Plot assembly** — `geom_polygon()` draws filled regions;
+    `geom_path()` draws set outlines; two
+    [`geom_text_repel()`](https://ggrepel.slowkow.com/reference/geom_text_repel.html)
+    layers add region labels and set labels. For `fill_mode = "set"`,
+    colours are mapped directly (no aesthetic mapping, no legend); for
+    count modes, a `scale_fill_gradientn()` continuous scale is used.
+
+7.  **Theme and coordinate system** — `coord_equal()` enforces a square
+    aspect ratio. The theme removes all axis text, ticks, titles, grid
+    lines, and panel borders. The x-axis expansion is widened to
+    accommodate set label text width.
+
+8.  **Dimension calculation** —
+    [`calculate_plot_dimensions()`](https://pwwang.github.io/plotthis/reference/calculate_plot_dimensions.md)
+    computes `height` and `width` attributes (in inches) from
+    `base_height`, `aspect.ratio`, and legend metrics. When
+    `fill_mode = "set"`, the legend position is forced to `"none"`.

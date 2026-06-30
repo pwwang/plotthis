@@ -1,6 +1,10 @@
 # Bar plot with groups
 
-Create a bar plot with groups.
+Core implementation for drawing a grouped bar plot. Each x-axis category
+is split into side-by-side (dodge) or stacked bars according to the
+`group_by` variable. This is the grouped code path dispatched by
+[`BarPlotAtomic`](https://pwwang.github.io/plotthis/reference/BarPlotAtomic.md)
+when `group_by` is provided.
 
 ## Usage
 
@@ -75,8 +79,7 @@ BarPlotGrouped(
 
 - x_sep:
 
-  A character string to concatenate the columns in `x`, if multiple
-  columns are provided.
+  A character string to join multiple `x` columns. Default `"_"`.
 
 - y:
 
@@ -85,26 +88,29 @@ BarPlotGrouped(
 
 - scale_y:
 
-  A logical value indicating whether to scale the total y values in each
-  group to 100%. Only works when group_by is specified.
+  A logical value. When `TRUE`, y-values are scaled to proportions
+  within each x position so that each position's total is 100\\ Only
+  applicable when `position = "stack"`.
 
 - flip:
 
-  A logical value indicating whether to flip the x and y axes.
+  Logical; if `TRUE`, swap the x and y axes.
 
 - group_by:
 
-  A character vector specifying the column as the group_by of the plot.
-  A character/factor column is expected.
+  A character vector of column name(s) to group the bars by. Each unique
+  combination becomes a separate bar segment. Multiple columns are
+  concatenated with `group_by_sep`. Required.
 
 - group_by_sep:
 
-  A character string to concatenate the columns in `group_by`, if
-  multiple columns are provided.
+  A character string to separate concatenated `group_by` columns.
+  Default `"_"`.
 
 - group_name:
 
-  A character string to specify the name of the group_by in the legend.
+  A character string for the group fill legend title. When `NULL`, the
+  `group_by` column name is used.
 
 - theme:
 
@@ -135,45 +141,46 @@ BarPlotGrouped(
 
 - label:
 
-  A column name for the values to be displayed on the top of the bars.
-  If TRUE, the y values will be displayed.
+  A column name (or `TRUE`) for text labels on bars. When `TRUE`, the
+  y-axis values are labelled. When a column name, the values in that
+  column are used.
 
 - label_nudge:
 
-  A numeric value to nudge the labels (the distance between the label
-  and the top of the bar).
+  A numeric value controlling the distance between labels and the bar
+  top, expressed as a fraction of the data range.
 
 - label_fg:
 
-  A character string indicating the color of the label.
+  A character string specifying the label text colour.
 
 - label_size:
 
-  A numeric value indicating the size of the label.
+  A numeric value specifying the label text size.
 
 - label_bg:
 
-  A character string indicating the background color of the label.
+  A character string specifying the label background colour.
 
 - label_bg_r:
 
-  A numeric value indicating the radius of the background.
+  A numeric value specifying the label background corner radius.
 
 - add_bg:
 
-  A logical value indicating whether to add a background to the plot.
+  Logical; add alternating background stripes behind the bars.
 
 - bg_palette:
 
-  A character string indicating the palette to use for the background.
+  Palette for the background stripes.
 
 - bg_palcolor:
 
-  A character string indicating the color to use for the background.
+  Custom colours for the background stripes.
 
 - bg_alpha:
 
-  A numeric value indicating the alpha of the background.
+  Alpha transparency for the background stripes.
 
 - alpha:
 
@@ -189,59 +196,56 @@ BarPlotGrouped(
 
 - add_line:
 
-  A numeric value indicating the y value to add a horizontal line.
+  A numeric y-intercept for a horizontal reference line.
 
 - line_color:
 
-  A character string indicating the color of the line.
+  Colour of the reference line.
 
 - line_width:
 
-  A numeric value indicating the size of the line.
+  Width of the reference line.
 
 - line_type:
 
-  A numeric value indicating the type of the line.
+  Linetype of the reference line (e.g., 1 = solid, 2 = dashed).
 
 - line_name:
 
-  A character string indicating the name of the line.
+  Legend name for the reference line.
 
 - add_trend:
 
-  A logical value to add trend line to the plot.
+  Logical; add a trend line and points connecting the bar tops.
 
 - trend_color:
 
-  A character string to specify the color of the trend line.
+  Colour of the trend line.
 
 - trend_linewidth:
 
-  A numeric value to specify the width of the trend line.
+  Width of the trend line.
 
 - trend_ptsize:
 
-  A numeric value to specify the size of the trend line points.
+  Size of the trend line points.
 
 - position:
 
-  A character string indicating the position of the bars. If "auto", the
-  position will be "stack" if group_by has more than 5 levels, otherwise
-  "dodge". "fill" is also a valid option. Only works when group_by is
-  not NULL.
+  A character string specifying the bar layout: `"auto"` (default: dodge
+  when ≤5 groups, stack otherwise), `"dodge"` (side-by-side), or
+  `"stack"` (stacked on top of each other).
 
 - position_dodge_preserve:
 
-  Should dodging preserve the "total" width of all elements at a
-  position, or the width of a "single" element?
+  A character string passed to
+  [`position_dodge2()`](https://ggplot2.tidyverse.org/reference/position_dodge.html):
+  `"total"` preserves the overall bar group width; `"single"` preserves
+  individual bar widths.
 
-- y_min:
+- y_min, y_max:
 
-  A numeric value to specify the minimum value of the y axis.
-
-- y_max:
-
-  A numeric value to specify the maximum value of the y axis.
+  Numeric limits for the y-axis (or x-axis when flipped).
 
 - legend.position:
 
@@ -319,7 +323,7 @@ BarPlotGrouped(
 
 - width:
 
-  A numeric value specifying the width of the bars.
+  A numeric value specifying the bar width (0–1).
 
 - facet_by:
 
@@ -340,4 +344,60 @@ BarPlotGrouped(
 
 ## Value
 
-A ggplot object.
+A `ggplot` object with `height` and `width` attributes (in inches)
+attached.
+
+## Architecture
+
+1.  **Column resolution** — `group_by`, `facet_by`, `x`, and `y` are
+    validated and transformed via
+    [`check_columns`](https://pwwang.github.io/plotthis/reference/check_columns.md).
+
+2.  **Count aggregation** — when `y = NULL`, the count of observations
+    per (`x`, `group_by`, `facet_by`) combination is computed. Factor
+    levels are preserved.
+
+3.  **Proportion scaling** — when `scale_y = TRUE`, y-values are divided
+    by the sum within each (`x`, `facet_by`) group so that each x
+    position stacks to 100\\
+
+4.  **Position resolution** — `position = "auto"` chooses `"dodge"` for
+    ≤5 groups or `"stack"` for \>5 groups. Explicit `"dodge"` and
+    `"stack"` are also accepted.
+
+5.  **Expand calculation** — for stacked bars, expansion is computed
+    from y-range and label presence. For dodged bars, expansion is
+    minimal. The
+    [`norm_expansion()`](https://pwwang.github.io/plotthis/reference/norm_expansion.md)
+    utility normalises the final expansion vector.
+
+6.  **Colour mapping** —
+    [`palette_this()`](https://pwwang.github.io/plotthis/reference/palette_this.md)
+    assigns per-group colours. The fill scale `drop` argument is
+    controlled by `keep_empty_group`.
+
+7.  **Labels** — when `label` is set:
+
+    - For **stacked** bars, cumulative label positions are computed so
+      each label is centred within its segment.
+
+    - For **dodged** bars, labels are nudged above/below the bar top by
+      `label_nudge` × the data range.
+
+    - [`geom_text_repel()`](https://ggrepel.slowkow.com/reference/geom_text_repel.html)
+      is used for automatic overlap avoidance.
+
+8.  **Trend line** — when `add_trend = TRUE`, lines connect bar tops.
+    When `trend_color` is `NULL`, each group gets its own coloured line;
+    otherwise a single colour is used.
+
+9.  **Horizontal reference line** — `add_line` draws a `geom_hline()` at
+    the specified y-value.
+
+10. **Dimension calculation** — width accounts for the number of x
+    categories × number of groups (dodge) or just x categories (stack).
+    [`calculate_plot_dimensions()`](https://pwwang.github.io/plotthis/reference/calculate_plot_dimensions.md)
+    adjusts for `flip` and legend metrics.
+
+11. **Coordinate transform** — `coord_flip()` or `coord_cartesian()`
+    with `y_min` / `y_max`.

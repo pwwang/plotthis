@@ -1,6 +1,35 @@
 # Scatter Plot
 
-Scatter Plot
+Draws a scatter plot with optional size encoding, colour encoding
+(continuous gradient or discrete palette), point highlighting, and axis
+transformations. This is the user-facing wrapper around
+[`ScatterPlotAtomic`](https://pwwang.github.io/plotthis/reference/ScatterPlotAtomic.md)
+that adds `split_by` support (generating separate sub-plots per group)
+and combines them via `patchwork`.
+
+Key features:
+
+- **Variable point size** – `size_by` accepts either a numeric constant
+  or a column name.
+
+- **Colour modes** – numeric `color_by` produces a continuous gradient;
+  factor/character `color_by` produces a discrete palette.
+
+- **Colour scale trimming** – `lower_quantile` / `upper_quantile` (or
+  explicit `lower_cutoff` / `upper_cutoff`) trim/clamp continuous colour
+  scale extremes.
+
+- **Border modes** – `border_color` can be a constant colour, `TRUE`
+  (track the fill gradient), or omitted.
+
+- **Point highlighting** – `highlight` accepts indices, rownames,
+  logical `TRUE`, or a string expression.
+
+- **Axis transformation** – `xtrans` / `ytrans` support log, sqrt, and
+  other scale transformations.
+
+- **Split sub-plots** – `split_by` produces one scatter plot per group
+  level, combined into a single `patchwork` layout.
 
 ## Usage
 
@@ -76,22 +105,29 @@ ScatterPlot(
 
 - size_by:
 
-  Which column to use as the size of the dots. It must be a numeric
-  column. Or it can be a numeric value to specify the size of the dots.
+  Either a numeric constant (uniform dot size) or a character string
+  naming a numeric column whose values control dot size via
+  `scale_size_area(max_size = 6)`. Default: `2`.
 
 - size_name:
 
-  A character vector specifying the name for the size legend.
+  A character string for the size legend title. When `NULL` (default),
+  the `size_by` column name is used. Ignored when `size_by` is a numeric
+  constant.
 
 - color_by:
 
-  Which column to use as the color of the dots. It could be a numeric
-  column or a factor/character column. For shapes 21-25, the color is
-  applied to the fill color.
+  A character string naming a column whose values control dot colour.
+  Can be numeric (continuous gradient via `scale_fill_gradientn()` /
+  `scale_color_gradientn()`) or factor/character (discrete palette via
+  `scale_fill_manual()` / `scale_color_manual()`). For shapes 21–25, the
+  colour is applied to the fill aesthetic. When `NULL` (default), all
+  dots are rendered in a single colour derived from the palette.
 
 - color_name:
 
-  A character vector specifying the name for the color legend.
+  A character string for the colour legend title. When `NULL` (default),
+  the `color_by` column name is used.
 
 - lower_quantile, upper_quantile:
 
@@ -116,15 +152,20 @@ ScatterPlot(
 
 - split_by:
 
-  The column(s) to split data by and plot separately.
+  The column(s) to split data by and generate separate scatter plots for
+  each level. The split column is processed before splitting; multiple
+  columns are concatenated with `split_by_sep`.
 
 - split_by_sep:
 
-  The separator for multiple split_by columns. See `split_by`
+  A character string used to concatenate multiple `split_by` column
+  values. Default: `"_"`.
 
 - shape:
 
-  A numeric value specifying the shape of the points. Default is 21.
+  A numeric value specifying the point shape. Default: `21` (filled
+  circle with border). Shapes 21–25 support separate fill and border
+  colour aesthetics; all other shapes use a single colour aesthetic.
 
 - alpha:
 
@@ -132,33 +173,60 @@ ScatterPlot(
 
 - border_color:
 
-  A character vector specifying the color for the border of the points.
-  Or TRUE to use the fill color as the border color.
+  Controls the point border colour. For shapes 21–25:
+
+  - `"black"` (default) – constant black border.
+
+  - A colour string (e.g. `"red"`, `"#FF0000"`) – constant colour
+    border.
+
+  - `TRUE` – border colour tracks the `color_by` gradient / palette via
+    `scale_color_gradientn()` / `scale_color_manual()`.
+
+  For shapes without a fill aesthetic (not 21–25), this parameter has no
+  effect.
 
 - highlight:
 
-  A vector of indexes or rownames to select the points to highlight. It
-  could also be an expression (in string) to filter the data.
+  Specifies which points to highlight with an overlaid `geom_point()`
+  layer. Accepted values:
+
+  - `NULL` (default) – no highlighting.
+
+  - `TRUE` – all points are highlighted.
+
+  - A numeric vector – row indices of points to highlight.
+
+  - A single character string – an R expression (e.g. `"x > 0"`) that is
+    parsed with
+    [`rlang::parse_expr()`](https://rlang.r-lib.org/reference/parse_expr.html)
+    and evaluated via
+    [`filter()`](https://dplyr.tidyverse.org/reference/filter.html) to
+    select rows.
+
+  - A character vector – rownames of points to highlight. An error is
+    thrown if the data has no rownames.
 
 - highlight_shape:
 
-  A numeric value specifying the shape of the highlighted points.
-  Default is 16.
+  A numeric value specifying the point shape for highlighted points.
+  Default: `16` (filled circle). Shapes 21–25 use the `fill` aesthetic;
+  other shapes use `color`.
 
 - highlight_size:
 
-  A numeric value specifying the size of the highlighted points. Default
-  is 3.
+  A numeric value specifying the size of highlighted points. Default:
+  `3`.
 
 - highlight_color:
 
-  A character vector specifying the color of the highlighted points.
-  Default is "red".
+  A character string specifying the colour of highlighted points.
+  Default: `"red"`.
 
 - highlight_alpha:
 
-  A numeric value specifying the transparency of the highlighted points.
-  Default is 1.
+  A numeric value in `[0, 1]` specifying the transparency of highlighted
+  points. Default: `1`.
 
 - theme:
 
@@ -244,80 +312,42 @@ ScatterPlot(
 
 - combine:
 
-  Whether to combine the plots into one when facet is FALSE. Default is
-  TRUE.
+  A logical value. If `TRUE` (the default), the list of per-split plots
+  is combined into a single `patchwork` object via
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md).
+  If `FALSE`, returns the raw list of `ggplot` objects.
 
-- nrow:
+- nrow, ncol, byrow:
 
-  A numeric value specifying the number of rows in the facet.
-
-- ncol:
-
-  A numeric value specifying the number of columns in the facet.
-
-- byrow:
-
-  A logical value indicating whether to fill the plots by row.
+  Integers controlling the layout of combined plots via
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md).
+  `byrow = TRUE` (default) fills the layout row-wise.
 
 - seed:
 
-  The random seed to use. Default is 8525.
+  The random seed for reproducibility. Passed to
+  [`validate_common_args()`](https://pwwang.github.io/plotthis/reference/validate_common_args.md).
+  Default: `8525`.
 
-- axes:
+- axes, axis_titles:
 
-  A string specifying how axes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axes in individual plots.
-
-  - 'collect' will remove duplicated axes when placed in the same run of
-    rows or columns of the layout.
-
-  - 'collect_x' and 'collect_y' will remove duplicated x-axes in the
-    columns or duplicated y-axes in the rows respectively.
-
-- axis_titles:
-
-  A string specifying how axis titltes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axis titles in individual plots.
-
-  - 'collect' will remove duplicated titles in one direction and merge
-    titles in the opposite direction.
-
-  - 'collect_x' and 'collect_y' control this for x-axis titles and
-    y-axis titles respectively.
+  Strings controlling how axes and axis titles are handled across
+  combined plots. Passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md).
+  See
+  [`?patchwork::wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
+  for options (`"keep"`, `"collect"`, `"collect_x"`, `"collect_y"`).
 
 - guides:
 
-  A string specifying how guides should be treated in the layout. Passed
-  to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'collect' will collect guides below to the given nesting level,
-    removing duplicates.
-
-  - 'keep' will stop collection at this level and let guides be placed
-    alongside their plot.
-
-  - 'auto' will allow guides to be collected if a upper level tries, but
-    place them alongside the plot if not.
+  A string controlling guide collection across combined plots. Passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md).
 
 - design:
 
-  Specification of the location of areas in the layout, passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. When
-  specified, `nrow`, `ncol`, and `byrow` are ignored. See
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
-  for more details.
+  A custom layout specification for combined plots. Passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md).
+  When specified, `nrow`, `ncol`, and `byrow` are ignored.
 
 - ...:
 
@@ -325,7 +355,53 @@ ScatterPlot(
 
 ## Value
 
-A ggplot object or wrap_plots object or a list of ggplot objects
+A `ggplot` object (single plot), a `patchwork` object (when
+`combine = TRUE` with `split_by`), or a named list of `ggplot` objects
+(when `combine = FALSE`), each with `height` and `width` attributes in
+inches.
+
+## split_by Workflow
+
+When `split_by` is provided:
+
+1.  **Seed validation** –
+    [`validate_common_args()`](https://pwwang.github.io/plotthis/reference/validate_common_args.md)
+    sets the random seed for reproducibility.
+
+2.  **Theme resolution** –
+    [`process_theme()`](https://pwwang.github.io/plotthis/reference/process_theme.md)
+    resolves the `theme` string or function.
+
+3.  **Split column resolution** –
+    [`check_columns()`](https://pwwang.github.io/plotthis/reference/check_columns.md)
+    validates `split_by` (force_factor, allow_multi, concat_multi).
+
+4.  **Data splitting** – unused factor levels are dropped and the data
+    is split into a named list (preserving factor level order). When
+    `split_by = NULL`, a single-element list named `"..."` is used.
+
+5.  **Per-split palette / colour** –
+    [`check_palette()`](https://pwwang.github.io/plotthis/reference/check_palette.md)
+    and
+    [`check_palcolor()`](https://pwwang.github.io/plotthis/reference/check_palcolor.md)
+    resolve per-split palette and colour overrides.
+
+6.  **Per-split legend** –
+    [`check_legend()`](https://pwwang.github.io/plotthis/reference/check_legend.md)
+    resolves `legend.position` and `legend.direction` per split.
+
+7.  **Per-split title** – when `title` is a function, it receives the
+    default title (the split level name) and can return a custom string;
+    otherwise `title %||% split_level` is used.
+
+8.  **Dispatch** – each split subset is passed to
+    [`ScatterPlotAtomic()`](https://pwwang.github.io/plotthis/reference/ScatterPlotAtomic.md).
+
+9.  **Combination** –
+    [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)
+    assembles the list of plots via
+    [`patchwork::wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html),
+    honouring `nrow`/`ncol`/`byrow`/`design`.
 
 ## Examples
 
@@ -338,45 +414,49 @@ data <- data.frame(
    w = abs(rnorm(20)),
    t = sample(c("A", "B"), 20, replace = TRUE)
 )
+
+# --- Basic scatter plot ---
 ScatterPlot(data, x = "x", y = "y")
 
 
-# highlight points
+# --- Highlight points ---
 ScatterPlot(data, x = "x", y = "y", highlight = 'x > 0')
 
 
-# size_by is a numeric column
+# --- Size encoding (column name) ---
 ScatterPlot(data, x = "x", y = "y", size_by = "w")
 
 
-# color_by is a numeric column
+# --- Colour encoding (numeric gradient) ---
 ScatterPlot(data, x = "x", y = "y", color_by = "w")
 
 
-# color_by is a factor/character column and set a border_color
+# --- Colour encoding (categorical) with border ---
 ScatterPlot(data, x = "x", y = "y", size_by = "w", color_by = "t",
  border_color = "red")
 
 
-# Same border_color as the fill color
+# --- Border colour tracks fill gradient ---
 ScatterPlot(data, x = "x", y = "y", size_by = "w", color_by = "t",
  border_color = TRUE)
 
 
-# Shape doesn't have fill color
+# --- Shape without fill (single colour aesthetic) ---
 ScatterPlot(data, x = "x", y = "y", size_by = "w", color_by = "t",
  shape = 1, palette = "Set1")
 
 
-# Change color per plot
+# --- split_by with per-split palcolor ---
 ScatterPlot(data, x = "x", y = "y", split_by = "t",
             palcolor = list(A = "blue", B = "red"))
 
-# control color scale limits with quantiles
+
+# --- Colour scale limits (quantile-based) ---
 ScatterPlot(data, x = "x", y = "y", color_by = "w",
             lower_quantile = 0.1, upper_quantile = 0.9)
 
-# explicit cutoff values
+
+# --- Colour scale limits (explicit cutoffs) ---
 ScatterPlot(data, x = "x", y = "y", color_by = "w",
             lower_cutoff = 0, upper_cutoff = 1)
 ```

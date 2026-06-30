@@ -1,6 +1,27 @@
-# Atomic Radar plot
+# Atomic radar/spider plot (internal)
 
-Atomic Radar plot
+Core implementation for drawing a single radar (or spider) chart. This
+is the workhorse behind the exported
+[`RadarPlot`](https://pwwang.github.io/plotthis/reference/radarplot.md)
+and
+[`SpiderPlot`](https://pwwang.github.io/plotthis/reference/radarplot.md)
+functions — it takes a **single** data frame (no `split_by` support) and
+returns a `ggplot` object.
+
+Radar charts display multivariate data on a two-dimensional polar
+coordinate system where each variable (x-axis category) is placed along
+a radial axis evenly spaced around the circle. The data values are
+connected by lines forming a polygon (or multiple polygons when
+`group_by` is provided). When `polygon = FALSE` (the default) the grid
+is rendered as concentric circles (classic radar chart); when
+`polygon = TRUE` straight polygonal grid lines are used (spider chart
+variant).
+
+The polar coordinate system is implemented via a local `coord_radar()`
+helper that extends
+[`ggplot2::CoordPolar`](https://ggplot2.tidyverse.org/reference/Coord.html)
+with `is_linear = TRUE`, allowing discrete x-axis positions to be mapped
+to evenly spaced angular coordinates.
 
 ## Usage
 
@@ -55,99 +76,108 @@ RadarPlotAtomic(
 
 - x:
 
-  A character string of the column name to plot on the x-axis/circles. A
-  character/factor column is expected.
+  A character string specifying the column name of the data frame to
+  plot on the x-axis (the radial categories). Must be character or
+  factor. Multiple columns can be provided; they are concatenated with
+  `x_sep` as the separator.
 
 - x_sep:
 
-  A character string to concatenate the columns in `x`, if multiple
-  columns are provided.
+  A character string used to join multiple `x` columns. Default `"_"`.
+  Ignored when `x` is a single column.
 
 - group_by:
 
-  A character string of the column name(s) to group the data (the lines)
-  by. Character/factor column(s) is expected.
+  A character vector of column names to group the data into separate
+  filled polygons. Each unique combination becomes a distinct polygon
+  layer. Multiple columns are concatenated with `group_by_sep`. When
+  `NULL`, a single polygon is drawn with no legend.
 
 - group_by_sep:
 
-  A character string to concatenate the columns in `group_by`, if
-  multiple columns are provided.
+  A character string used to join multiple `group_by` columns. Default
+  `"_"`.
 
 - y:
 
-  A character string of the column name to plot on the y-axis. A numeric
-  column is expected. If NULL, the count of the x-axis column in each
-  group will be used.
+  A character string specifying the numeric column for the radial axis.
+  When `NULL`, the count of observations in each (`x`, `group_by`,
+  `facet_by`) combination is used.
 
 - group_name:
 
-  A character string to name the legend of group.
+  A character string used as the colour/fill legend title. When `NULL`,
+  the `group_by` column name is used.
 
 - groups:
 
   A character vector of group values (in the `group_by` column) to
-  include in the plot. If NULL, all groups will be included. This can be
-  used to exclude certain groups from the plot or to specify the order
-  of groups in the legend. Only applicable when `group_by` is provided.
-  And this implies `keep_empty` for `group_by` is FALSE, which means the
-  groups not in the data will not be shown in the legend.
+  include in the plot. When `NULL`, all groups are included. This can
+  control which groups appear and their legend order. Implies
+  `keep_empty = FALSE` for the `group_by` column: groups not present in
+  the data are not shown in the legend.
 
 - scale_y:
 
-  How should the y-axis be scaled? Default is "group". Other options are
-  "global", "x" and "none".
+  How should the radial axis be scaled? Default is `"group"`. Options
+  are `"group"`, `"global"`, `"x"`, and `"none"`.
 
-  - If "group", the y-axis will be scaled to the fraction within each
-    group.
+  - `"group"` — scaled to the fraction within each group.
 
-  - If "global", the y-axis will be scaled to the fraction of the total.
+  - `"global"` — scaled to the fraction of the total.
 
-  - If "x", the y-axis will be scaled to the fraction of the total
-    within each x-axis group.
+  - `"x"` — scaled to the fraction within each x-axis category.
 
-  - If "none", the y-axis will be scaled to the count of each x-axis
-    group.
+  - `"none"` — raw counts or values, no scaling.
 
 - y_min:
 
-  A numeric value to set the minimum value of the y-axis.
+  A numeric value setting the minimum of the radial axis. Default `0`.
 
 - y_max:
 
-  A numeric value to set the maximum value of the y-axis.
+  A numeric value setting the maximum of the radial axis. When `NULL`,
+  the maximum data value is used.
 
 - y_nbreaks:
 
-  A numeric value to set the number of breaks in the y-axis.
+  A numeric value for the number of breaks (concentric grid lines) on
+  the radial axis. Default `4`.
 
 - polygon:
 
-  A logical value to draw the polygons instead of the circles as panel
-  grid.
+  A logical value. When `TRUE`, the background grid is drawn as a
+  polygon (spider chart style); when `FALSE` (default), concentric
+  circles are used (radar chart style).
 
 - fill:
 
-  A logical value to fill the polygons with colors.
+  A logical value. When `TRUE` (default), the data polygons are filled
+  with the group colour. When `FALSE`, only outlines are drawn.
 
 - linewidth:
 
-  A numeric value to set the width of the lines.
+  A numeric value for the width of the polygon outline lines. Default
+  `1`.
 
 - pt_size:
 
-  A numeric value to set the size of the points.
+  A numeric value for the size of the data point markers. Default `4`.
 
 - max_charwidth:
 
-  A numeric value to set the maximum character width for the x labels.
+  A numeric value for the maximum character width of x-axis labels
+  before wrapping. Default `16`.
 
 - bg_color:
 
-  A character string to set the background color of the plot.
+  A character string specifying the background fill colour. Default
+  `"grey80"`.
 
 - bg_alpha:
 
-  A numeric value to set the transparency of the background color.
+  A numeric value for the transparency of the background fill. Default
+  `0.1`.
 
 - theme:
 
@@ -268,4 +298,78 @@ RadarPlotAtomic(
 
 ## Value
 
-A ggplot object
+A `ggplot` object with `height` and `width` attributes (in inches)
+attached.
+
+## Architecture
+
+1.  **Column resolution** — `x`, `y`, `group_by`, and `facet_by` are
+    validated and transformed via
+    [`check_columns`](https://pwwang.github.io/plotthis/reference/check_columns.md).
+    Multi-column inputs for `x` and `group_by` are concatenated using
+    `x_sep` and `group_by_sep`.
+
+2.  **Group setup** — When `group_by` is `NULL`, a dummy `.group` factor
+    is created so polygons still draw. The legend is suppressed. When
+    `groups` is provided, data is filtered to only those group levels.
+
+3.  **Count aggregation** — When `y = NULL`, the count of observations
+    in each unique (`x`, `group_by`, `facet_by`) combination is
+    computed. Factor levels are preserved after aggregation.
+
+4.  **Proportion scaling** — The `scale_y` argument controls y-value
+    normalisation: `"group"` scales within each group, `"global"` within
+    each facet (or the whole dataset), `"x"` within each x category, and
+    `"none"` leaves values raw. Percent labels are used for scaled
+    modes.
+
+5.  **NA / empty-level handling** —
+    [`process_keep_na_empty()`](https://pwwang.github.io/plotthis/reference/process_keep_na_empty.md)
+    applies `keep_na` and `keep_empty` policies. Per-column `keep_empty`
+    settings for `x`, `group_by`, and `facet_by` are extracted; facet
+    columns must share the same value.
+
+6.  **Coordinate setup** — The local `coord_radar()` creates a
+    `CoordPolar` subclass with `is_linear = TRUE`, placing discrete x
+    positions at evenly spaced angles.
+
+7.  **Y-axis range** — `y_min`, `y_max`, and `y_nbreaks` determine the
+    radial axis limits and the number of concentric grid lines.
+
+8.  **Colour mapping** —
+    [`palette_this()`](https://pwwang.github.io/plotthis/reference/palette_this.md)
+    assigns colours to all `group_by` levels, including `NA` (defaulting
+    to `"grey80"`).
+
+9.  **Background layer** — When `polygon = TRUE`, a polygonal background
+    fills the area between `y_min` and `y_max`. When `polygon = FALSE`,
+    a smooth circular background is interpolated via 360 sample points.
+
+10. **Radial grid lines** — `geom_path()` draws radial lines from
+    `y_min` to `y_max` at each x-axis position, respecting facets.
+
+11. **Polygon grid** — When `polygon = TRUE`, concentric polygonal grid
+    lines are drawn at each break level via `geom_polygon()`.
+
+12. **Data rendering** — `geom_polygon()` draws the filled (or unfilled)
+    polygons for each group. `geom_point()` adds points at each
+    observation. Radial axis labels are rendered as text at a fixed
+    angular offset.
+
+13. **Scale configuration** — `scale_y_continuous()` sets the radial
+    axis limits and breaks. `scale_x_discrete()` positions the category
+    labels. Colour scales use `scale_fill_manual()` and
+    `scale_color_manual()` with `drop` controlled by `keep_empty_group`.
+
+14. **Circular grid lines** — When `polygon = FALSE`, dashed circular
+    grid lines are styled via `panel.grid.major.y`.
+
+15. **Dimension calculation** —
+    [`calculate_plot_dimensions()`](https://pwwang.github.io/plotthis/reference/calculate_plot_dimensions.md)
+    computes plot height and width from `aspect.ratio`, legend metrics,
+    and a base height.
+
+16. **Faceting** —
+    [`facet_plot()`](https://pwwang.github.io/plotthis/reference/facet_plot.md)
+    wraps the plot with `facet_wrap` / `facet_grid` if `facet_by` is
+    supplied, respecting the `keep_empty` setting for facet variables.

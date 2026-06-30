@@ -1,6 +1,11 @@
-# Atomic function for clustree plot
+# Atomic clustree plot
 
-Atomic function for clustree plot
+Core implementation for clustree (clustering tree) plots. This internal
+function renders a tree-based visualisation showing how cluster
+assignments change across increasing clustering resolutions. It is
+called by the exported
+[`ClustreePlot()`](https://pwwang.github.io/plotthis/reference/ClustreePlot.md)
+function.
 
 ## Usage
 
@@ -37,17 +42,24 @@ ClustreePlotAtomic(
 
 - prefix:
 
-  A character string of the prefix of the columns to plot. The columns
-  with the prefix will be used to plot the tree.
+  A character string specifying the common prefix of the resolution
+  columns in `data`. All columns whose names start with this prefix are
+  selected as resolution columns. The suffix after the prefix is parsed
+  as a numeric resolution value. Supports `"_"` and `"."` as separators
+  between the prefix and the resolution value (e.g. `"res_0.5"` or
+  `"p.0.5"`).
 
 - flip:
 
-  A logical value to flip the tree.
+  A logical value. If `TRUE`, the tree is flipped so that resolutions
+  are displayed on the x-axis (left to right) and cluster assignments
+  are shown as row labels on the y-axis. Default: `FALSE`.
 
 - alpha:
 
-  A numeric value of the transparency of the nodes. Only used when
-  `node_alpha` is not provided in `...`.
+  A numeric value in `[0, 1]` specifying the transparency of the nodes
+  in the clustree plot. Only used when `node_alpha` is not explicitly
+  provided via `...`. Default: `0.85`.
 
 - palette:
 
@@ -69,11 +81,16 @@ ClustreePlotAtomic(
 
 - edge_palette:
 
-  A character string of the palette name to color the edges.
+  A character string specifying the palette name for the edge colour
+  gradient. Edges are coloured by the number of transitioning cells
+  between clusters at adjacent resolutions, using
+  [`ggraph::scale_edge_color_gradientn()`](https://ggraph.data-imaginist.com/reference/scale_edge_colour.html).
+  Default: `"Spectral"`.
 
 - edge_palcolor:
 
-  A character vector of colors to color the edges.
+  A character vector of custom colours for the edge colour gradient.
+  When `NULL` (the default), colours are derived from `edge_palette`.
 
 - aspect.ratio:
 
@@ -134,5 +151,140 @@ ClustreePlotAtomic(
 
 - ...:
 
-  Other arguments passed to
-  [`clustree::clustree`](https://lazappi.github.io/clustree/reference/clustree.html).
+  Additional arguments passed to
+  [`clustree::clustree()`](https://lazappi.github.io/clustree/reference/clustree.html).
+  Commonly used overrides include `node_size_range`, `node_text_size`,
+  `layout` (default: `"sugiyama"`), `show_axis`, and `node_text_colour`.
+  Note that `x` (the data) and `prefix` are set internally and cannot be
+  overridden here.
+
+## Value
+
+A `ggplot` object with `height` and `width` attributes.
+
+## Details
+
+The function expects a data frame containing columns named with a common
+`prefix` followed by numeric resolution values (e.g. `"res_0.1"`,
+`"res_0.3"`, `"res_0.5"`). Each column represents cluster assignments at
+a given resolution, and the tree visualises how cells (rows) transition
+between clusters as resolution increases.
+
+The core layout is produced via
+[`clustree::clustree()`](https://lazappi.github.io/clustree/reference/clustree.html),
+which computes a `ggraph` layout (default: `"sugiyama"`) linking
+clusters across adjacent resolutions. Nodes represent clusters and edges
+represent cell transitions; edge width and colour encode the number of
+transitioning cells. Cluster labels are overlaid on each node via
+[`ggplot2::geom_text()`](https://ggplot2.tidyverse.org/reference/geom_text.html).
+
+Key features:
+
+- **Resolution-level node colouring** — each resolution level receives a
+  distinct colour from `palette` via
+  [`ggplot2::scale_color_manual()`](https://ggplot2.tidyverse.org/reference/scale_manual.html).
+
+- **Edge gradient** — edges are coloured by transition count using
+  [`ggraph::scale_edge_color_gradientn()`](https://ggraph.data-imaginist.com/reference/scale_edge_colour.html)
+  with the `edge_palette` gradient.
+
+- **Flip support** — `flip = TRUE` places resolutions on the x-axis with
+  cluster IDs as y-axis row labels for left-to-right reading.
+
+- **Automatic dimension calculation** — plot height and width are sized
+  based on the number of resolutions, number of clusters, and legend
+  configuration, with different formulae for flipped vs. non-flipped
+  layouts.
+
+## Architecture
+
+**ClustreePlotAtomic** executes the following steps:
+
+1.  **Column selection** — selects all columns whose names start with
+    `prefix` via
+    [`dplyr::starts_with()`](https://tidyselect.r-lib.org/reference/starts_with.html).
+
+2.  **NA filtering** — removes rows with any missing values via
+    [`stats::complete.cases()`](https://rdrr.io/r/stats/complete.cases.html).
+
+3.  **Expansion normalisation** —
+    [`norm_expansion()`](https://pwwang.github.io/plotthis/reference/norm_expansion.md)
+    parses the `expand` argument for continuous x and y axes.
+
+4.  **Empty data guard** — stops with an informative error if no columns
+    match the prefix or no complete rows remain.
+
+5.  **Resolution parsing** — extracts the suffix after `prefix` from
+    each column name and strips leading separators (`"_"` or `"."`) if
+    present. Values are converted to numeric and sorted. Column names
+    are rewritten to use the original prefix for consistent `clustree`
+    processing.
+
+6.  **Cluster counting** — computes the number of unique clusters at the
+    highest resolution (`max_clusters`), used for dimension calculation
+    in the non-flipped layout.
+
+7.  **Argument merging** — builds a call to
+    [`clustree::clustree()`](https://lazappi.github.io/clustree/reference/clustree.html)
+    by merging user-supplied `...` with sensible defaults for
+    `node_alpha`, `edge_width`, `show_axis`, `layout` (`"sugiyama"`),
+    `node_size_range` (`c(6, 12)`), `node_text_size` (`3`), and
+    `node_text_colour` (`"black"`).
+
+8.  **clustree execution** — calls
+    `gglogger::register(clustree::clustree)` with the merged arguments
+    to produce the base `ggplot` object.
+
+9.  **Node labels** — overlays
+    [`ggplot2::geom_text()`](https://ggplot2.tidyverse.org/reference/geom_text.html)
+    with the cluster label from the `clustree` output, using the
+    configured text size and colour.
+
+10. **Resolution colour scale** — applies
+    [`ggplot2::scale_color_manual()`](https://ggplot2.tidyverse.org/reference/scale_manual.html)
+    with one colour per resolution level using
+    [`palette_this()`](https://pwwang.github.io/plotthis/reference/palette_this.md).
+    The colour legend is suppressed (the edge gradient legend serves as
+    the primary guide).
+
+11. **Edge colour scale** — applies
+    [`ggraph::scale_edge_color_gradientn()`](https://ggraph.data-imaginist.com/reference/scale_edge_colour.html)
+    with the `edge_palette` palette, encoding transition counts via a
+    colour-bar guide with black frame and ticks.
+
+12. **Theme and labels** — applies the selected theme and sets `title`,
+    `subtitle`, x-axis label, and y-axis label (default y-label is the
+    `prefix` with trailing separator stripped).
+
+13. **Flip branch** (`flip = TRUE`):
+
+    - Resolutions are placed on the x-axis (horizontal); clusters become
+      y-axis rows.
+
+    - Width scales with `max(3, 0.5 + nres * 1.0)`; height scales with
+      `max(3, 0.5 + max_clusters * 0.5)` (or via aspect.ratio).
+
+    - `scale_y_reverse()` + `coord_flip()` reorients the layout so
+      resolutions read left-to-right.
+
+    - Horizontal grid lines are dashed grey80; y-axis text and ticks are
+      suppressed.
+
+14. **Non-flip branch** (`flip = FALSE`, default):
+
+    - Resolutions are on the y-axis (rows); clusters spread across the
+      x-axis (columns).
+
+    - Width scales with `max(3, 0.5 + max_clusters * 0.5)`; height
+      scales with `max(3, 0.5 + nres * 1.0)` (or via aspect.ratio).
+
+    - `coord_cartesian(clip = "off")` and `scale_y_continuous()` show
+      resolution labels on the y-axis.
+
+    - Vertical grid lines are dashed grey80; x-axis text and ticks are
+      suppressed.
+
+15. **Dimension storage** —
+    [`calculate_plot_dimensions()`](https://pwwang.github.io/plotthis/reference/calculate_plot_dimensions.md)
+    computes `height` and `width` attributes, stored on the `ggplot`
+    object.

@@ -1,6 +1,15 @@
-# Atomic chord plot
+# Atomic chord plot (internal)
 
-Atomic chord plot
+Core implementation for drawing a chord diagram using
+[`circlize::chordDiagram()`](https://rdrr.io/pkg/circlize/man/chordDiagram.html).
+This is the workhorse behind the exported
+[`ChordPlot`](https://pwwang.github.io/plotthis/reference/chordplot.md)
+function — it takes a **single** data frame (no `split_by` support) and
+returns a `patchwork` wrapped element.
+
+Chord diagrams visualise relationships (flows) between two sets of
+categories arranged around a circle. The width of each link is
+proportional to the value (`y`) connecting its source and target nodes.
 
 ## Usage
 
@@ -37,37 +46,39 @@ ChordPlotAtomic(
 
 - y:
 
-  A character string specifying the column name of the data frame to
-  plot for the y-axis.
+  A character string specifying the numeric column whose values
+  determine link thickness. When `NULL`, the count of observations per
+  (`from`, `to`) pair is used.
 
 - from:
 
-  A character string of the column name to plot for the source. A
-  character/factor column is expected.
+  A character string (or vector) specifying the column name(s) for the
+  source nodes. Character/factor columns are expected. Multiple columns
+  are concatenated with `from_sep`.
 
 - from_sep:
 
-  A character string to concatenate the columns in `from`, if multiple
-  columns are provided.
+  A character string to join multiple `from` columns. Default `"_"`.
 
 - to:
 
-  A character string of the column name to plot for the target. A
-  character/factor column is expected.
+  A character string (or vector) specifying the column name(s) for the
+  target nodes. Character/factor columns are expected. Multiple columns
+  are concatenated with `to_sep`.
 
 - to_sep:
 
-  A character string to concatenate the columns in `to`, if multiple
-  columns are provided.
+  A character string to join multiple `to` columns. Default `"_"`.
 
 - flip:
 
-  A logical value to flip the source and target.
+  Logical; if `TRUE`, swap the source and target nodes, reversing the
+  link direction.
 
 - links_color:
 
-  A character string to specify the color of the links. Either "from" or
-  "to".
+  A character string controlling which node's colour each link ribbon
+  takes: `"from"` (default) or `"to"`.
 
 - theme:
 
@@ -98,11 +109,12 @@ ChordPlotAtomic(
 
 - alpha:
 
-  A numeric value specifying the transparency of the plot.
+  Numeric transparency for the link ribbons (0–1). Default `0.5`.
 
 - labels_rot:
 
-  A logical value to rotate the labels by 90 degrees.
+  Logical; if `TRUE`, rotate sector labels by 90 degrees (clockwise).
+  Default `FALSE` uses `niceFacing` for automatic orientation.
 
 - title:
 
@@ -150,4 +162,63 @@ ChordPlotAtomic(
 
 ## Value
 
-A wrapped element of chord plot
+A `patchwork` wrapped element with `height` and `width` attributes (in
+inches) attached. The original data is stored in the `p$data` field.
+
+## Architecture
+
+1.  **Column resolution** — `from`, `to`, and `y` are validated and
+    transformed via
+    [`check_columns`](https://pwwang.github.io/plotthis/reference/check_columns.md).
+    Multi-column `from` and `to` are concatenated with their respective
+    separators (`from_sep`, `to_sep`).
+
+2.  **Count aggregation** — when `y = NULL`, the count of observations
+    per (`from`, `to`) pair is computed as a new `.y` column. Factor
+    levels from the original data are preserved.
+
+3.  **NA / empty-level handling** —
+    [`process_keep_na_empty()`](https://pwwang.github.io/plotthis/reference/process_keep_na_empty.md)
+    applies `keep_na` and `keep_empty` policies.
+
+4.  **Flip** — when `flip = TRUE`, the `from` and `to` columns are
+    swapped, effectively reversing the link direction.
+
+5.  **Colour mapping** —
+    [`palette_this()`](https://pwwang.github.io/plotthis/reference/palette_this.md)
+    assigns colours to all unique `from` and `to` values (the grid
+    sectors). `NA` values are mapped to a literal `"NA"` level and
+    assigned a colour from the palette.
+
+6.  **Link colour resolution** — `links_color` controls whether each
+    connecting ribbon takes its colour from the `"from"` side (default)
+    or the `"to"` side.
+
+7.  **circlize rendering** — two rendering paths exist, selected by
+    `labels_rot`:
+
+    - **Horizontal labels** (`labels_rot = FALSE`): track 1 has a fixed
+      height of 1 mm and uses `niceFacing = TRUE` for automatic label
+      rotation. Track 2 adds axis ticks on the outside for wide-enough
+      sectors.
+
+    - **Rotated labels** (`labels_rot = TRUE`): track 1 height is
+      computed from the maximum string width of all node names, and
+      labels are rendered with `facing = "clockwise"`. Track 2 adds axis
+      ticks.
+
+    Links use arrow heads (`link.arr.type = "big.arrow"`) and
+    differentiated height
+    (`direction.type = c("diffHeight", "arrows")`). Both tracks set
+    `bg.border = NA` to prevent border lines from appearing between
+    sectors.
+
+8.  **Patchwork integration** — the circlize formula is wrapped via
+    [`wrap_elements()`](https://patchwork.data-imaginist.com/reference/wrap_elements.html)
+    so it can be composed with other ggplot objects. Title and subtitle
+    are added via
+    [`plot_annotation()`](https://patchwork.data-imaginist.com/reference/plot_annotation.html).
+
+9.  **Dimension attributes** — `height` and `width` attributes (in
+    inches) are set to a base size (7) scaled up by 2, 4, or 6 depending
+    on the maximum label character width when `labels_rot = TRUE`.

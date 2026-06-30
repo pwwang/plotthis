@@ -1,6 +1,11 @@
-# Prepare the cutoff data for the ROC curve
+# Prepare cutoff data for ROC curve annotation
 
-Prepare the cutoff data for the ROC curve
+Internal helper that computes the sensitivity and specificity values for
+a set of user-supplied cutoff points (or computed via OptimalCutpoints
+methods) across categories defined by group_by and/or facet_by columns.
+Used by
+[`ROCCurveAtomic()`](https://pwwang.github.io/plotthis/reference/ROCCurveAtomic.md)
+to annotate the ROC curve with cutoff markers and labels.
 
 ## Usage
 
@@ -27,7 +32,7 @@ get_cutoffs_data(
 - truth_by:
 
   A character string of the column name that contains the true class
-  labels.
+  labels (binary, 0/1 or TRUE/FALSE).
 
 - score_by:
 
@@ -36,28 +41,47 @@ get_cutoffs_data(
 
 - cat_by:
 
-  A character string of the column name to categorize/group the data. If
-  specified, the cutoffs will be calculated for each category.
+  A character string of the column name to categorise/group the data.
+  When specified, cutoffs are calculated separately for each category
+  level, enabling per-group or per-facet cutoff annotation.
 
 - cutoffs_at:
 
-  Vector of user supplied cutoffs to plot as points. If non-NULL, it
-  will override the values of n_cuts and plot the observed cutoffs
-  closest to the user-supplied ones.
+  A vector of user-supplied cutoff values to plot as points. When
+  non-NULL, overrides `n_cuts`. Supports both raw numeric values and
+  method names from
+  [`optimal.cutpoints`](https://rdrr.io/pkg/OptimalCutpoints/man/optimal.cutpoints.html).
 
 - cutoffs_labels:
 
-  vector of user-supplied labels for the cutoffs. Must be a character
-  vector of the same length as cutoffs_at.
+  A character vector of user-supplied labels for the cutoffs. Must be
+  the same length as `cutoffs_at`. When NULL, labels are generated
+  automatically.
+
+- cutoffs_accuracy:
+
+  A numeric value specifying the rounding precision for automatically
+  generated cutoff labels. Default: `0.001`.
 
 - n_cuts:
 
-  An integer to specify the number of cuts on the ROC curve.
+  An integer specifying the number of evenly-spaced quantile-based
+  cutoff points. Ignored when `cutoffs_at` is non-NULL. Default: `0` (no
+  quantile cutoffs).
 
 - increasing:
 
-  TRUE if the score is increasing with the truth (1), FALSE otherwise.
+  A logical value. If TRUE (default), higher scores indicate the
+  positive class; if FALSE, lower scores indicate the positive class.
 
 ## Value
 
-A data frame with the cutoffs and the corresponding x and y values.
+A data frame with columns `cutoff`, `x` (1 - specificity), `y`
+(sensitivity), `label`, and `cat_by` (the category name).
+
+## Details
+
+Cutoffs can be specified either as numeric values (raw score thresholds)
+or as method names from the `OptimalCutpoints` package for automatic
+optimal cutoff identification. When `n_cuts > 0`, `n_cuts` evenly-spaced
+quantile values of the score distribution are used as cutoffs.

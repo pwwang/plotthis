@@ -1,7 +1,45 @@
 # Sankey / Alluvial Plot
 
-A plot visualizing flow/movement/change from one state to another or one
-time to another. `AlluvialPlot` is an alias of `SankeyPlot`.
+Draws Sankey (alluvial) diagrams to visualise flow, movement, or change
+from one categorical state to another across discrete positions (time
+points, stages, or groups). The plot consists of **nodes** (vertical
+blocks, or strata) representing categories at each position, and
+**links** (alluvia / flows) representing the observation units that move
+between categories across positions.
+
+The function accepts data in several formats, controlled by `in_form`:
+
+- `"lodes"` / `"long"`:
+
+  Each row is an observation at one x-position, with columns for `x`,
+  `stratum`, `alluvium`, and optionally `y`.
+
+- `"alluvia"` / `"wide"`:
+
+  Each row is an observation unit tracked across all positions; `x`
+  columns represent the categories at each position. Converted
+  internally via
+  [`to_lodes_form()`](http://corybrunson.github.io/ggalluvial/reference/alluvial-data.md).
+
+- `"counts"`:
+
+  Numeric columns under each `x` represent frequencies. When the first
+  element of `x` is `"."`, the `links_fill_by` values are injected as an
+  additional first column of nodes, visualising the source distribution
+  of flows.
+
+- `"auto"` (default):
+
+  Automatically detects the format: numeric multi-column `x` →
+  `"counts"`; multi-column `x` passing `is_alluvia_form` → `"alluvia"`;
+  otherwise → `"lodes"`.
+
+Supports **split_by** to produce separate sub-plots for different
+subsets of the data, **facet_by** for within-plot faceting, and
+independent styling of nodes and links (colours, alpha, borders, labels,
+and legend behaviour).
+
+`AlluvialPlot` is an alias of `SankeyPlot`.
 
 ## Usage
 
@@ -131,41 +169,15 @@ AlluvialPlot(
 
 - data:
 
-  A data frame in following possible formats:
-
-  - "long" or "lodes": A long format with columns for `x`, `stratum`,
-    `alluvium`, and `y`. `x` (required, single columns or concatenated
-    by `x_sep`) is the column name to plot on the x-axis, `stratum`
-    (defaults to `links_fill_by`) is the column name to group the nodes
-    for each `x`, `alluvium` (required) is the column name to define the
-    links, and `y` is the frequency of each `x`, `stratum`, and
-    `alluvium`.
-
-  - "wide" or "alluvia": A wide format with columns for `x`. `x`
-    (required, multiple columns, `x_sep` won't be used) are the columns
-    to plot on the x-axis, `stratum` and `alluvium` will be ignored. See
-    [ggalluvial::to_lodes_form](http://corybrunson.github.io/ggalluvial/reference/alluvial-data.md)
-    for more details.
-
-  - "counts": A format with counts being provides under each `x`. `x`
-    (required, multiple columns, `x_sep` won't be used) are the columns
-    to plot on the x-axis. When the first element of `x` is ".", values
-    of `links_fill_by` (required) will be added to the plot as the first
-    column of nodes. It is useful to show how the links are flowed from
-    the source to the targets.
-
-  - "auto" (default): Automatically determine the format based on the
-    columns provided. When the length of `x` is greater than 1 and all
-    `x` columns are numeric, "counts" format will be used. When the
-    length of `x` is greater than 1 and
-    [ggalluvial::is_alluvia_form](http://corybrunson.github.io/ggalluvial/reference/alluvial-data.md)
-    returns TRUE, "alluvia" format will be used. Otherwise, "lodes"
-    format will be tried.
+  A data frame.
 
 - in_form:
 
-  A character string to specify the format of the data. Possible values
-  are "auto", "long", "lodes", "wide", "alluvia", and "counts".
+  A character string specifying the input data format. One of `"auto"`
+  (default), `"long"`, `"lodes"`, `"wide"`, `"alluvia"`, or `"counts"`.
+  `"long"` is an alias for `"lodes"`; `"wide"` is an alias for
+  `"alluvia"`. See the `data` parameter of `SankeyPlot` for format
+  descriptions.
 
 - x:
 
@@ -174,8 +186,8 @@ AlluvialPlot(
 
 - x_sep:
 
-  A character string to concatenate the columns in `x`, if multiple
-  columns are provided.
+  A character string to join multiple `x` columns when `in_form` is
+  `"lodes"` or auto-determined as lodes. Default `"_"`.
 
 - y:
 
@@ -184,23 +196,28 @@ AlluvialPlot(
 
 - stratum:
 
-  A character string of the column name to group the nodes for each `x`.
-  See `data` for more details.
+  A character string specifying the column that defines the node
+  categories at each x-axis position. Each unique value becomes a
+  stratum (node block) at each x position. When `NULL`, defaults to
+  `links_fill_by`. Multiple columns are concatenated with `stratum_sep`.
+  Ignored in `"alluvia"` format.
 
 - stratum_sep:
 
-  A character string to concatenate the columns in `stratum`, if
-  multiple columns are provided.
+  A character string to join multiple `stratum` columns. Default `"_"`.
 
 - alluvium:
 
-  A character string of the column name to define the links. See `data`
-  for more details.
+  A character string specifying the column that identifies individual
+  flows (alluvia) across x-axis positions. Each unique value represents
+  a single observational unit tracked across positions. When `NULL` in
+  `"counts"` format, an auto-generated identifier is created. Multiple
+  columns are concatenated with `alluvium_sep`. Ignored in `"alluvia"`
+  format.
 
 - alluvium_sep:
 
-  A character string to concatenate the columns in `alluvium`, if
-  multiple columns are provided.
+  A character string to join multiple `alluvium` columns. Default `"_"`.
 
 - split_by:
 
@@ -229,10 +246,12 @@ AlluvialPlot(
 
 - flow:
 
-  A logical value to use
-  [ggalluvial::geom_flow](http://corybrunson.github.io/ggalluvial/reference/geom_flow.md)
-  instead of
-  [ggalluvial::geom_alluvium](http://corybrunson.github.io/ggalluvial/reference/geom_alluvium.md).
+  A logical value. When `FALSE` (default),
+  [`geom_alluvium()`](http://corybrunson.github.io/ggalluvial/reference/geom_alluvium.md)
+  is used for the links. When `TRUE`,
+  [`geom_flow()`](http://corybrunson.github.io/ggalluvial/reference/geom_flow.md)
+  is used instead, which draws the flows with a directional gradient
+  between x positions.
 
 - expand:
 
@@ -252,77 +271,113 @@ AlluvialPlot(
 
 - nodes_legend:
 
-  Controls how the legend of nodes will be shown. Possible values are:
+  Controls how the node legend is displayed. One of:
 
-  - "merge": Merge the legends of nodes. That is only one legend will be
-    shown for all nodes.
+  `"auto"` (default)
 
-  - "separate": Show the legends of nodes separately. That is, nodes on
-    each `x` will have their own legend.
+  :   Automatically determined: if `nodes_label = TRUE`, or if `stratum`
+      is identical to `links_fill_by` with matching colours, the legend
+      is hidden. Otherwise, overlapping stratum values across x
+      positions are checked: any overlap produces a merged legend; no
+      overlap produces separate legends per x position.
 
-  - "none": Do not show the legend of nodes.
+  `"merge"`
 
-  - "auto": Automatically determine how to show the legend. When
-    `nodes_label` is TRUE, "none" will apply. When `nodes_label` is
-    FALSE, and if stratum is the same as links_fill_by, "none" will
-    apply. If there is any overlapping values between the nodes on
-    different `x`, "merge" will apply. Otherwise, "separate" will apply.
+  :   A single merged legend for all nodes.
+
+  `"separate"`
+
+  :   One legend per x-axis position, generated via separate
+      [`scale_fill_manual()`](https://ggplot2.tidyverse.org/reference/scale_manual.html)
+      layers.
+
+  `"none"`
+
+  :   No node legend is shown.
 
 - nodes_color:
 
-  A character string to color the nodes. Use a special value ".fill" to
-  use the same color as the fill.
+  A character string specifying the border colour of the node (stratum)
+  rectangles. Use the special value `".fill"` to match the border colour
+  to the node fill colour. Default `"grey30"`.
 
 - links_fill_by:
 
-  A character string of the column name to fill the links.
+  A character string specifying the column that determines the fill
+  colour of the links (alluvia / flows). When `NULL` in `"lodes"`
+  format, defaults to `alluvium`. In `"counts"` format with the `"."`
+  prefix, this parameter is required. Multiple columns are concatenated
+  with `links_fill_by_sep`.
 
 - links_fill_by_sep:
 
-  A character string to concatenate the columns in `links_fill_by`, if
-  multiple columns are provided.
+  A character string to join multiple `links_fill_by` columns. Default
+  `"_"`.
 
 - links_name:
 
-  A character string to name the legend of links.
+  A character string for the legend title of the link fill scale. When
+  `NULL` (default), the `links_fill_by` column name is used.
 
 - links_color:
 
-  A character string to color the borders of links. Use a special value
-  ".fill" to use the same color as the fill.
+  A character string specifying the border colour of the links (alluvia
+  / flows). Use the special value `".fill"` to match the link border
+  colour to the link fill colour. Default `"gray80"`.
 
 - nodes_palette:
 
-  A character string to specify the palette of nodes fill.
+  A character string specifying the colour palette for the node
+  (stratum) fill. Passed to
+  [`palette_this()`](https://pwwang.github.io/plotthis/reference/palette_this.md).
+  Default `"Paired"`.
 
 - nodes_palcolor:
 
-  A character vector to specify the colors of nodes fill.
+  A character vector of custom colours for the node fill, used as
+  `palcolor` in
+  [`palette_this()`](https://pwwang.github.io/plotthis/reference/palette_this.md).
+  When `NULL` (default), the palette colours are used directly.
 
 - nodes_alpha:
 
-  A numeric value to specify the transparency of nodes fill.
+  A numeric value in \\\[0, 1\]\\ controlling the transparency of the
+  node (stratum) fill. Default `1`.
 
 - nodes_label:
 
-  A logical value to show the labels on the nodes.
+  A logical value. When `TRUE`, stratum labels are drawn inside each
+  node using
+  [`geom_label()`](https://ggplot2.tidyverse.org/reference/geom_text.html)
+  with
+  [`StatStratum`](http://corybrunson.github.io/ggalluvial/reference/ggalluvial-ggproto.md).
+  Default `FALSE`.
 
 - nodes_label_miny:
 
-  A numeric value to specify the minimum y (frequency) to show the
-  labels.
+  A numeric value specifying the minimum y (frequency) threshold for
+  displaying node labels. Nodes with y-values below this threshold are
+  not labelled. Default `0`.
 
 - nodes_width:
 
-  A numeric value to specify the width of nodes.
+  A numeric value (typically 0–1) specifying the width of the node
+  (stratum) rectangles as a fraction of the x-axis spacing. Default
+  `0.25`.
 
 - links_palette:
 
-  A character string to specify the palette of links fill.
+  A character string specifying the colour palette for the link fill.
+  Passed to
+  [`palette_this()`](https://pwwang.github.io/plotthis/reference/palette_this.md).
+  Default `"Paired"`.
 
 - links_palcolor:
 
-  A character vector to specify the colors of links fill.
+  A character vector of custom colours for the link fill, used as
+  `palcolor` in
+  [`palette_this()`](https://pwwang.github.io/plotthis/reference/palette_this.md).
+  When `NULL` (default), the palette colours are used directly.
 
 - palreverse:
 
@@ -331,12 +386,13 @@ AlluvialPlot(
 
 - links_alpha:
 
-  A numeric value to specify the transparency of links fill.
+  A numeric value in \\\[0, 1\]\\ controlling the transparency of the
+  link fill. Default `0.6`.
 
 - legend.box:
 
-  A character string to specify the box of the legend, either "vertical"
-  or "horizontal".
+  A character string specifying the arrangement of legend boxes, either
+  `"vertical"` (default) or `"horizontal"`.
 
 - x_text_angle:
 
@@ -358,7 +414,9 @@ AlluvialPlot(
 
 - flip:
 
-  A logical value to flip the plot.
+  A logical value. When `TRUE`,
+  [`coord_flip()`](https://ggplot2.tidyverse.org/reference/coord_flip.html)
+  is applied to swap the x and y axes. Default `FALSE`.
 
 - theme:
 
@@ -498,13 +556,38 @@ AlluvialPlot(
 
 ## Value
 
-A ggplot object or wrap_plots object or a list of ggplot objects
+A `ggplot` object (single panel, no `split_by`), a `patchwork` object
+(when `combine = TRUE` and `split_by` is used), or a named list of
+`ggplot` objects (when `combine = FALSE`). Each plot carries `height`
+and `width` attributes in inches.
+
+## split_by workflow
+
+When `split_by` is provided:
+
+1.  The `split_by` column(s) are validated and coerced to factors via
+    [`check_columns()`](https://pwwang.github.io/plotthis/reference/check_columns.md).
+    Multi-column `split_by` is concatenated with `split_by_sep`.
+
+2.  Empty factor levels are dropped from `split_by`.
+
+3.  The data is split by `split_by` level (preserving level order). If
+    `split_by` is `NULL`, the data is wrapped in a single-element list
+    with name `"..."`.
+
+4.  [`SankeyPlotAtomic()`](https://pwwang.github.io/plotthis/reference/SankeyPlotAtomic.md)
+    is called for each split, with `title` resolved per level (supports
+    function-valued titles).
+
+5.  Results are combined via
+    [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)
+    (when `combine = TRUE`) or returned as a named list.
 
 ## Examples
 
 ``` r
 # \donttest{
-# Reproduce the examples in ggalluvial
+# Examples from ggalluvial datasets
 set.seed(8525)
 
 data(UCBAdmissions, package = "datasets")

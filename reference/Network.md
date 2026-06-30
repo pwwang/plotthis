@@ -1,6 +1,20 @@
 # Network
 
-Plot a network graph
+Draws a network graph from a links (edge list) data frame and an
+optional nodes (vertex metadata) data frame. The graph is constructed
+via [`igraph`](https://r.igraph.org/reference/aaa-igraph-package.html),
+laid out with igraph layout algorithms, and rendered with
+[`ggraph`](https://ggraph.data-imaginist.com/reference/ggraph.html).
+Supports directed or undirected edges, variable link
+widths/linetypes/colours, node sizes/shapes/colours/fills, community
+detection with enclosure marks, automatic node labels, and a wide range
+of layout options.
+
+When `links` (and optionally `nodes`) contain a `split_by` column,
+separate sub-plots are generated for each split level and combined via
+[`patchwork`](https://patchwork.data-imaginist.com/reference/patchwork-package.html).
+Unlike most other plot types, `Network` operates on two data frames;
+splitting may affect both.
 
 ## Usage
 
@@ -84,14 +98,20 @@ Network(
 
 - links:
 
-  A data frame containing the links between nodes.
+  A data frame containing the edge list. Must contain the `from` and
+  `to` columns specifying source and target node identifiers. Additional
+  columns can be referenced by other parameters (e.g., `link_weight_by`,
+  `link_type_by`, `link_color_by`).
 
 - nodes:
 
-  A data frame containing the nodes. This is optional. The names of the
-  nodes are extracted from the links data frame. If `"@nodes"` is
-  provided, the nodes data frame will be extracted from the attribute
-  `nodes` of the links data frame.
+  An optional data frame of node metadata. When provided, columns such
+  as `node_size_by`, `node_color_by`, `node_shape_by`, and
+  `node_fill_by` can reference its columns. When `NULL`, the node set is
+  inferred from the unique values in the `from` and `to` columns. If a
+  single character string starting with `"@"`, the nodes data frame is
+  extracted from the corresponding attribute of `links` (e.g. `"@nodes"`
+  extracts `attr(links, "nodes")`).
 
 - split_by:
 
@@ -103,156 +123,192 @@ Network(
 
 - split_nodes:
 
-  A logical value specifying whether to split the nodes data. If TRUE,
-  the nodes data will also be split by the `split_by` column.
+  A logical value. When `TRUE` and `split_by` is provided, the `nodes`
+  data frame is split by the same `split_by` column in addition to the
+  links. Both data frames must have a column with the same name as
+  `split_by`. Default `FALSE`.
 
 - from:
 
-  A character string specifying the column name of the links data frame
-  for the source nodes. Default is the first column of the links data
-  frame.
+  A character string specifying the column name in `links` for the
+  source node identifiers. Defaults to `"from"`, or the first column of
+  `links` if that column name does not exist. Multiple columns can be
+  provided; they are concatenated with `from_sep`.
 
 - from_sep:
 
-  A character string to concatenate the columns in `from`, if multiple
-  columns are provided.
+  A character string to join multiple `from` columns. Default `"_"`.
+  Ignored when `from` is a single column.
 
 - to:
 
-  A character string specifying the column name of the links data frame
-  for the target nodes. Default is the second column of the links data
-  frame.
+  A character string specifying the column name in `links` for the
+  target node identifiers. Defaults to `"to"`, or the second column of
+  `links` if that column name does not exist. Multiple columns can be
+  provided; they are concatenated with `to_sep`.
 
 - to_sep:
 
-  A character string to concatenate the columns in `to`, if multiple
-  columns are provided.
+  A character string to join multiple `to` columns. Default `"_"`.
+  Ignored when `to` is a single column.
 
 - node_by:
 
-  A character string specifying the column name of the nodes data frame
-  for the node names. Default is the first column of the nodes data
-  frame.
+  A character string specifying the column name in `nodes` for the node
+  identifiers. These must match the values in the `from` / `to` columns
+  of `links`. Defaults to `"name"`, or the first column of `nodes` if
+  that column name does not exist. Multiple columns can be provided;
+  they are concatenated with `node_by_sep`.
 
 - node_by_sep:
 
-  A character string to concatenate the columns in `node_by`, if
-  multiple columns are provided.
+  A character string to join multiple `node_by` columns. Default `"_"`.
+  Ignored when `node_by` is a single column.
 
 - link_weight_by:
 
-  A numeric value or a character string specifying the column name of
-  the links data frame for the link weight. If a numeric value is
-  provided, all links will have the same weight. This determines the
-  width of the links.
+  A numeric value or a character string. If numeric, all edges receive
+  that constant line width. If a column name, the edge line width is
+  mapped to that column. Default `2`.
 
 - link_weight_name:
 
-  A character string specifying the name of the link weight in the
-  legend.
+  A character string for the link weight legend title. When `NULL`
+  (default), the column name from `link_weight_by` is used. Only
+  relevant when `link_weight_by` is a column name.
 
 - link_type_by:
 
-  A character string specifying the type of the links. This can be
-  "solid", "dashed", "dotted", or a column name from the links data
-  frame. It has higher priority when it is a column name.
+  A character string or a column name specifying the edge linetype. Can
+  be `"solid"`, `"dashed"`, `"dotted"`, etc. If a column name from
+  `links` is supplied, the linetype is mapped to that column (with a
+  version check for ggplot2 4.0.0, where mapping is unsupported and a
+  warning is issued). Default `"solid"`.
 
 - link_type_name:
 
-  A character string specifying the name of the link type in the legend.
+  A character string for the link linetype legend title. When `NULL`
+  (default), the column name from `link_type_by` is used. Only relevant
+  when `link_type_by` is a column name.
 
 - node_size_by:
 
-  A numeric value or a character string specifying the column name of
-  the nodes data frame for the node size. If a numeric value is
-  provided, all nodes will have the same size.
+  A numeric value or a character string. If numeric, all nodes receive
+  that constant point size. If a column name, the size is mapped to that
+  column. Default `15`.
 
 - node_size_name:
 
-  A character string specifying the name of the node size in the legend.
+  A character string for the node size legend title. When `NULL`
+  (default), the column name from `node_size_by` is used. Only relevant
+  when `node_size_by` is a column name.
 
 - node_color_by:
 
-  A character string specifying the color of the nodes. This can be a
-  color name, a hex code, or a column name from the nodes data frame. It
-  has higher priority when it is a column name.
+  A character string specifying the node colour. If a colour name or hex
+  code (e.g. `"black"`), all nodes receive that constant colour. If a
+  column name from `nodes` is supplied, the colour is mapped to that
+  column. Default `"black"`.
 
 - node_color_name:
 
-  A character string specifying the name of the node color in the
-  legend.
+  A character string for the node colour legend title. When `NULL`
+  (default), the column name from `node_color_by` is used. Only relevant
+  when `node_color_by` is a column name.
 
 - node_shape_by:
 
-  A numeric value or a character string specifying the column name of
-  the nodes data frame for the node shape. If a numeric value is
-  provided, all nodes will have the same shape.
+  A numeric value or a character string. If numeric, all nodes receive
+  that constant shape (see
+  [`shape`](https://ggplot2.tidyverse.org/reference/aes_linetype_size_shape.html)).
+  If a column name, the shape is mapped to that column (cast to factor).
+  Default `21` (filled circle with border).
 
 - node_shape_name:
 
-  A character string specifying the name of the node shape in the
-  legend.
+  A character string for the node shape legend title. When `NULL`
+  (default), the column name from `node_shape_by` is used. Only relevant
+  when `node_shape_by` is a column name.
 
 - node_fill_by:
 
-  A character string specifying the fill color of the nodes. This can be
-  a color name, a hex code, or a column name from the nodes data frame.
-  It has higher priority when it is a column name.
+  A character string specifying the node fill colour. If a colour name
+  or hex code (e.g. `"grey20"`), all nodes receive that constant fill.
+  If a column name from `nodes` is supplied, the fill is mapped to that
+  column. Default `"grey20"`.
 
 - node_fill_name:
 
-  A character string specifying the name of the node fill in the legend.
+  A character string for the node fill legend title. When `NULL`
+  (default), the column name from `node_fill_by` is used. Only relevant
+  when `node_fill_by` is a column name.
 
 - link_alpha:
 
-  A numeric value specifying the transparency of the links.
+  A numeric value specifying the transparency (alpha) of the edge lines.
+  Between `0` (invisible) and `1` (opaque). Default `1`.
 
 - node_alpha:
 
-  A numeric value specifying the transparency of the nodes. It only
-  works when the nodes are filled.
+  A numeric value specifying the fill transparency of the nodes. Only
+  applies when `node_shape_by` is one of the filled shapes (21–25).
+  Default `0.95`.
 
 - node_stroke:
 
-  A numeric value specifying the stroke of the nodes.
+  A numeric value specifying the border stroke width of the node points.
+  Default `1.5`.
 
 - cluster_scale:
 
-  A character string specifying how to scale the clusters. It can be
-  "fill", "color", or "shape".
+  A character string specifying which node aesthetic is overridden by
+  cluster membership. One of `"fill"`, `"color"`, or `"shape"`. The
+  value is matched via
+  [`match.arg`](https://rdrr.io/r/base/match.arg.html); default is
+  `"fill"`.
 
 - node_size_range:
 
-  A numeric vector specifying the range of the node size.
+  A numeric vector of length 2 giving the minimum and maximum node size
+  (in ggplot2 point units) when `node_size_by` is a column name. Default
+  `c(5, 20)`.
 
 - link_weight_range:
 
-  A numeric vector specifying the range of the link weight.
+  A numeric vector of length 2 giving the minimum and maximum edge line
+  width (in mm) when `link_weight_by` is a column name. Default
+  `c(0.5, 5)`.
 
 - link_arrow_offset:
 
-  A numeric value specifying the offset of the link arrows. So that they
-  won't overlap with the nodes.
+  A numeric value (in points) specifying the offset distance for the
+  arrow end cap from the target node. Prevents arrow heads from
+  overlapping the node points. Only relevant when `directed = TRUE`.
+  Default `20`.
 
 - link_curvature:
 
-  A numeric value specifying the curvature of the links.
+  A numeric value controlling the curvature of the edges. `0` (default)
+  produces straight edges; positive values curve them away from the
+  direct path.
 
 - link_color_by:
 
-  A character string specifying the colors of the link. It can be:
+  A character string controlling how edge colour is determined. Options:
 
-  - "from" means the color of the link is determined by the source node.
+  - `"from"` (default) – colour follows the source node's fill or colour
+    aesthetic.
 
-  - "to" means the color of the link is determined by the target node.
+  - `"to"` – colour follows the target node's fill or colour.
 
-  - Otherwise, the color of the link is determined by the column name
-    from the links data frame.
+  - A column name from `links` – colour is mapped directly to that
+    column.
 
 - link_color_name:
 
-  A character string specifying the name of the link color in the
-  legend. Only used when `link_color_by` is a column name.
+  A character string for the edge colour legend title. Only used when
+  `link_color_by` is a column name (not `"from"` or `"to"`). When `NULL`
+  (default), the column name is used.
 
 - palette:
 
@@ -274,77 +330,101 @@ Network(
 
 - link_palette:
 
-  A character string specifying the palette of the links. When
-  `link_color_by` is "from" or "to", the palette of the links defaults
-  to the palette of the nodes.
+  A character string specifying the palette for edge colours when they
+  are mapped. When `link_color_by` is `"from"` or `"to"`, defaults to
+  the node `palette`. Otherwise defaults to `"Set1"`.
 
 - link_palcolor:
 
-  A character vector specifying the colors of the link palette. When
-  `link_color_by` is "from" or "to", the colors of the link palette
-  defaults to the colors of the node palette.
+  A character vector specifying custom colours for the edge palette.
+  When `link_color_by` is `"from"` or `"to"`, defaults to the node
+  `palcolor`. Otherwise defaults to `NULL`.
 
 - directed:
 
-  A logical value specifying whether the graph is directed.
+  A logical value. When `TRUE`, edges are drawn with arrow heads and an
+  end-cap offset. Default `TRUE`.
 
 - layout:
 
-  A character string specifying the layout of the graph. It can be
-  "circle", "tree", "grid", or a layout function from igraph.
+  A character string or an `igraph_layout_spec` object specifying the
+  node placement algorithm. Built-in shortcuts: `"circle"` (circular
+  layout), `"tree"` (hierarchical tree), `"grid"` (grid layout). Any
+  other string is prefixed with `"layout_with_"` and called as an igraph
+  function (e.g. `"fr"` for Fruchterman–Reingold, `"kk"` for
+  Kamada–Kawai). Default `"circle"`.
 
 - cluster:
 
-  A character string specifying the clustering method. It can be "none",
-  "fast_greedy", "walktrap", "edge_betweenness", "infomap", or a
-  clustering function from igraph.
+  A character string specifying the community detection algorithm. One
+  of `"none"`, `"fast_greedy"`, `"walktrap"`, `"edge_betweenness"`,
+  `"infomap"`, or a custom clustering function from igraph. When not
+  `"none"`, cluster membership overrides the aesthetic selected by
+  `cluster_scale`. Default `"none"`.
 
 - add_mark:
 
-  A logical value specifying whether to add mark for the clusters to the
-  plot.
+  A logical value. When `TRUE` (and `cluster != "none"`), an enclosure
+  mark is drawn around each cluster's nodes. Default `FALSE`.
 
 - mark_expand:
 
-  A unit value specifying the expansion of the mark.
+  A [`unit`](https://rdrr.io/r/grid/unit.html) object specifying the
+  extra space around points within a cluster mark. Default
+  `unit(10, "mm")`.
 
 - mark_type:
 
-  A character string specifying the type of the mark. It can be "hull",
-  "ellipse", "rect", "circle", or a mark function from ggforce.
+  A character string specifying the mark geometry. One of `"hull"`,
+  `"ellipse"`, `"rect"`, or `"circle"`, corresponding to ggforce's
+  `geom_mark_hull`, `geom_mark_ellipse`, `geom_mark_rect`, and
+  `geom_mark_circle`. The value is matched via
+  [`match.arg`](https://rdrr.io/r/base/match.arg.html); default is
+  `"hull"`.
 
 - mark_alpha:
 
-  A numeric value specifying the transparency of the mark.
+  A numeric value for the fill transparency of cluster marks. Default
+  `0.1`.
 
 - mark_linetype:
 
-  A numeric value specifying the line type of the mark.
+  A numeric or character value specifying the border line type of the
+  cluster marks. Default `1` (solid).
 
 - add_label:
 
-  A logical value specifying whether to add label to the nodes to the
-  plot.
+  A logical value. When `TRUE` (default), node identifiers are drawn as
+  repulsive text labels via
+  [`geom_text_repel`](https://ggrepel.slowkow.com/reference/geom_text_repel.html).
 
 - label_size:
 
-  A numeric value specifying the size of the label.
+  A numeric value for the font size of node labels. Scaled by the theme
+  base size. Default `3`.
 
 - label_fg:
 
-  A character string specifying the foreground color of the label.
+  A character string specifying the text colour of node labels. Default
+  `"white"`.
 
 - label_bg:
 
-  A character string specifying the background color of the label.
+  A character string specifying the background colour of node labels.
+  Default `"black"`.
 
 - label_bg_r:
 
-  A numeric value specifying the background ratio of the label.
+  A numeric value specifying the background box radius (as a fraction of
+  label height). Passed to
+  [`geom_text_repel`](https://ggrepel.slowkow.com/reference/geom_text_repel.html)'s
+  `bg.r` argument. Default `0.1`.
 
 - arrow:
 
-  An arrow object for the links.
+  A [`arrow`](https://rdrr.io/r/grid/arrow.html) object for the link
+  arrow heads. Only used when `directed = TRUE`. Default is
+  `arrow(type = "closed", length = unit(0.1, "inches"))`.
 
 - title:
 
@@ -470,12 +550,49 @@ Network(
 
 ## Value
 
-A ggplot object or wrap_plots object or a list of ggplot objects
+A `ggplot` object (no `split_by`), a `patchwork` object
+(`combine = TRUE`), or a named list of `ggplot` objects
+(`combine = FALSE`), each with `height` and `width` attributes in
+inches.
+
+## split_by workflow
+
+When `split_by` is provided:
+
+1.  **Column validation** – The `split_by` column is validated in
+    `links` via
+    [`check_columns`](https://pwwang.github.io/plotthis/reference/check_columns.md),
+    force-converted to a factor, and empty levels are dropped.
+
+2.  **Node split** – If `split_nodes = TRUE` and `nodes` is provided,
+    the same `split_by` column is validated in `nodes`. It must be
+    identical in name to the links `split_by` or an error is raised.
+    Empty levels are also dropped.
+
+3.  **Data splitting** – The `links` data frame is split by the
+    `split_by` levels into a named list, preserving factor level order.
+
+4.  **Attach node splits** – If `split_nodes = TRUE`, the `nodes` data
+    frame is split identically. Each split's node data is attached as
+    the `"nodes"` attribute on the corresponding links split.
+
+5.  **Dispatch to atomic** –
+    [`NetworkAtomic`](https://pwwang.github.io/plotthis/reference/NetworkAtomic.md)
+    is called for each split. The `nodes` argument is passed as
+    `"@nodes"` when `split_nodes = TRUE` so that it is extracted from
+    the attribute. If `title` is a function, it receives the split level
+    name for dynamic title generation.
+
+6.  **Combination** – Results are combined via
+    [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)
+    (when `combine = TRUE`) or returned as a named list of `ggplot`
+    objects.
 
 ## Examples
 
 ``` r
 # \donttest{
+# Create example data
 actors <- data.frame(
   name = c("Alice", "Bob", "Cecil", "David", "Esmeralda"),
   age = c(48, 33, 45, 34, 21),
@@ -490,17 +607,36 @@ relations <- data.frame(
   friendship = c(4, 5, 5, 2, 1, 1, 2, 1, 3, 4),
   type = c(1, 1, 1, 1, 1, 2, 2, 2, 2, 2)
 )
+
+# Basic network
 Network(relations, actors)
 
-Network(relations, actors, theme = "theme_blank", theme_args = list(add_coord = FALSE))
 
-Network(relations, actors, link_weight_by = "friendship", node_size_by = "age",
- link_weight_name = "FRIENDSHIP", node_fill_by = "gender", link_color_by = "to",
- link_type_by = "type", node_color_by = "black", layout = "circle", link_curvature = 0.2)
+# Blank theme with no coordinate axes
+Network(relations, actors, theme = "theme_blank",
+        theme_args = list(add_coord = FALSE))
 
-Network(relations, actors, layout = "tree", directed = FALSE, cluster = "fast_greedy",
- add_mark = TRUE)
 
+# Mapped aesthetics with custom layout
+Network(relations, actors,
+        link_weight_by = "friendship",
+        node_size_by = "age",
+        link_weight_name = "FRIENDSHIP",
+        node_fill_by = "gender",
+        link_color_by = "to",
+        link_type_by = "type",
+        node_color_by = "black",
+        layout = "circle",
+        link_curvature = 0.2)
+
+
+# Tree layout with clustering and marks
+Network(relations, actors, layout = "tree",
+        directed = FALSE, cluster = "fast_greedy",
+        add_mark = TRUE)
+
+
+# Split by a column
 Network(relations, actors, split_by = "type")
 
 # }

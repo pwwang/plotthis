@@ -1,6 +1,23 @@
-# Word Cloud Plot
+# Word cloud plot
 
-Word cloud plot to illustrate the count/frequency of words.
+Draws a word cloud plot that visualises word frequency and importance.
+Words are displayed with font size proportional to a count variable and
+colour based on a continuous score variable, using
+[`geom_text_wordcloud`](https://lepennec.github.io/ggwordcloud/reference/geom_text_wordcloud.html)
+for rendering.
+
+The function supports **pre-tokenised words** (via `word_by`) and
+**sentence splitting** (via `sentence_by`). Sentences are automatically
+lowercased, stripped of punctuation, and split into individual words
+before aggregation. Common stop words can be excluded via
+`words_excluded`, and the number of displayed words is controlled by
+`top_words`.
+
+The word cloud can be **faceted** (via `facet_by`) or **split** into
+separate sub-plots via `split_by`. When `split_by` is used, each split
+level receives its own word cloud, and the results are combined into a
+single layout via
+[`combine_plots`](https://pwwang.github.io/plotthis/reference/combine_plots.md).
 
 ## Usage
 
@@ -57,34 +74,41 @@ WordCloudPlot(
 
 - word_by:
 
-  A character string of the column name to use as the word. A character
-  column is expected.
+  A character string specifying the column name containing pre-tokenized
+  words. A character column is expected. Use this when your data already
+  has one word per row (or a list of words per row). Mutually exclusive
+  with `sentence_by`.
 
 - sentence_by:
 
-  A character string of the column name to split the sentence. A
-  character column is expected. Either `word_by` or `sentence_by` should
-  be specified.
+  A character string specifying the column name containing sentences or
+  phrases to be split into individual words. A character column is
+  expected. The text is lowercased and punctuation is removed before
+  splitting on whitespace boundaries. Mutually exclusive with `word_by`.
 
 - count_by:
 
-  A character string of the column name for the count of the
-  word/sentence. A numeric column is expected. If NULL, the count of the
-  word/sentence will be used.
+  A character string specifying the numeric column for the count or
+  frequency of each word. When `NULL` (the default), each occurrence
+  counts as 1. Must be `NULL` when `sentence_by` is used, as counts are
+  derived from the number of occurrences after splitting.
 
 - score_by:
 
-  A character string of the column name for the score of the
-  word/sentence. A numeric column is expected, used for the color of the
-  word cloud. If NULL, the score will be set to 1.
+  A character string specifying the numeric column for the score of each
+  word, mapped to the text colour via a continuous gradient. When `NULL`
+  (the default), all words receive a score of 1 and are coloured at the
+  low end of the palette.
 
 - count_name:
 
-  A character string to name the legend of count.
+  A character string for the size legend title. When `NULL` (the
+  default), `"Count"` is used.
 
 - score_name:
 
-  A character string to name the legend of score.
+  A character string for the colour-bar legend title. When `NULL` (the
+  default), `"Score"` is used.
 
 - split_by:
 
@@ -96,24 +120,33 @@ WordCloudPlot(
 
 - words_excluded:
 
-  A character vector of words to exclude from the word cloud.
+  A character vector of words to exclude from the word cloud. Matching
+  is case-insensitive. Defaults to
+  [`plotthis::words_excluded`](https://pwwang.github.io/plotthis/reference/words_excluded.md),
+  a built-in set of common English stop words.
 
 - score_agg:
 
-  A function to aggregate the scores. Default is `mean`.
+  A function to aggregate the scores when multiple observations of the
+  same word exist. Default is `mean`. Other options include `sum`,
+  `median`, or a custom function.
 
 - minchar:
 
-  A numeric value specifying the minimum number of characters for the
-  word.
+  A numeric value specifying the minimum number of characters a word
+  must have to be included. Words with fewer characters are filtered
+  out. Default: `2`.
 
 - word_size:
 
-  A numeric vector specifying the range of the word size.
+  A numeric vector of length 2 specifying the range of font sizes
+  (in mm) for the words. Passed to `scale_size(range = word_size)`.
+  Default: `c(2, 8)`.
 
 - top_words:
 
-  A numeric value specifying the number of top words to show.
+  A numeric value specifying the maximum number of words to display,
+  selected by highest score. Default: `100`.
 
 - facet_by:
 
@@ -281,15 +314,84 @@ WordCloudPlot(
 
 ## Value
 
-A ggplot object or wrap_plots object or a list of ggplot objects
+A `ggplot` object (when no `split_by` is used), a `patchwork` object
+(when `combine = TRUE` and `split_by` is used), or a named list of
+`ggplot` objects (when `combine = FALSE`), each with `height` and
+`width` attributes in inches.
+
+## split_by workflow
+
+When `split_by` is provided:
+
+1.  [`validate_common_args()`](https://pwwang.github.io/plotthis/reference/validate_common_args.md)
+    validates the `seed` and `facet_by` constraints (maximum 2 facet
+    columns).
+
+2.  The `theme` argument is resolved via
+    [`process_theme()`](https://pwwang.github.io/plotthis/reference/process_theme.md).
+
+3.  The `split_by` column(s) are validated and transformed via
+    [`check_columns()`](https://pwwang.github.io/plotthis/reference/check_columns.md)
+    with `force_factor = TRUE` and `concat_multi = TRUE`.
+
+4.  The data frame is split by `split_by` (preserving factor level
+    order). If `split_by` is `NULL`, the data is wrapped in a
+    single-element list with name `"..."`.
+
+5.  Per-split `palette`, `palcolor`, `legend.position`, and
+    `legend.direction` are resolved via
+    [`check_palette()`](https://pwwang.github.io/plotthis/reference/check_palette.md),
+    [`check_palcolor()`](https://pwwang.github.io/plotthis/reference/check_palcolor.md),
+    and
+    [`check_legend()`](https://pwwang.github.io/plotthis/reference/check_legend.md).
+
+6.  [`WordCloudPlotAtomic()`](https://pwwang.github.io/plotthis/reference/WordCloudPlotAtomic.md)
+    is called for each split. If `title` is a function, it receives the
+    split level name and can generate dynamic titles per sub-plot.
+
+7.  Results are combined via
+    [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)
+    (when `combine = TRUE`) or returned as a named list (when
+    `combine = FALSE`).
 
 ## Examples
 
 ``` r
+# \donttest{
+set.seed(8525)
 data <- data.frame(
-   word = c("apple", "banana", "cherry", "date", "elderberry"),
-   count = c(10, 20, 30, 40, 50),
-   score = c(1, 2, 3, 4, 5)
+    word = c("apple", "banana", "cherry", "date", "elderberry",
+             "fig", "grape", "honeydew", "kiwi", "lemon"),
+    count = c(10, 20, 30, 40, 50, 15, 25, 35, 45, 55),
+    score = c(1, 2, 3, 4, 5, 1.5, 2.5, 3.5, 4.5, 5.5),
+    facet = rep(c("Group1", "Group2"), each = 5),
+    split = rep(c("A", "B"), 5)
 )
-WordCloudPlot(data, word_by = "word", count_by = "count", score_by = "score")
+
+# Basic word cloud with word, count, and score columns
+WordCloudPlot(data, word_by = "word",
+              count_by = "count", score_by = "score")
+
+
+# Word cloud using sentence_by (sentences split into words)
+data_sent <- data.frame(
+    sentence = c("The quick brown fox jumps over the lazy dog",
+                 "A quick brown dog jumps over a lazy fox"),
+    score = c(10, 5)
+)
+WordCloudPlot(data_sent, sentence_by = "sentence", score_by = "score")
+
+
+# Word cloud with faceting
+WordCloudPlot(data, word_by = "word",
+              count_by = "count", score_by = "score",
+              facet_by = "facet")
+
+
+# Word cloud split by a grouping variable
+WordCloudPlot(data, word_by = "word",
+              count_by = "count", score_by = "score",
+              split_by = "split")
+
+# }
 ```

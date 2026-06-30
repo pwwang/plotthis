@@ -1,6 +1,14 @@
-# Ring Plot
+# Ring plot (multi-layer donut chart)
 
-A ring plot is like pie chart but with multiple rings.
+Draws a ring plot (multi-layer donut chart) where each level of `x`
+becomes a concentric ring divided into filled segments by `group_by`.
+The plot is built with `geom_col()` under `coord_polar("y")`, producing
+a publication-quality ring chart with automatic count aggregation,
+per-group colour assignment, faceting, and splitting into sub-plots.
+
+When `x = NULL`, a single-ring plot is produced (functionally equivalent
+to a pie chart via
+[`PieChart`](https://pwwang.github.io/plotthis/reference/PieChart.md)).
 
 ## Usage
 
@@ -56,40 +64,45 @@ RingPlot(
 
 - x:
 
-  A character vector specifying the column as the rings of the plot.
+  A character string specifying the column name of the data frame to
+  plot for the x-axis.
 
 - y:
 
-  A character vector specifying the column as the y axis of the plot.
-  Default is NULL, meaning the y axis is the count of the data.
+  A character string specifying the column name of the data frame to
+  plot for the y-axis.
 
 - group_by:
 
-  A character vector specifying the column as the group_by of the plot.
-  How the ring is divided.
+  Columns to group the data for plotting For those plotting functions
+  that do not support multiple groups, They will be concatenated into
+  one column, using `group_by_sep` as the separator
 
 - group_by_sep:
 
-  A character string to concatenate the columns in `group_by`, if
-  multiple columns are provided.
+  The separator for multiple group_by columns. See `group_by`
 
 - group_name:
 
-  A character string to specify the name of the group_by in the legend.
+  A character string used as the fill legend title. When `NULL`, the
+  `group_by` column name is used.
 
 - label:
 
-  A logical value indicating whether to show the labels on the rings.
-  The labels should be the values of group_by. Default is NULL, meaning
-  no labels for one ring and showing the labels for multiple rings.
+  A logical value controlling whether ring labels are shown. Labels
+  display the `x` values (ring names) at the inner edge of each ring.
+  Default `NULL` auto-selects: `FALSE` for single-ring plots, `TRUE` for
+  multi-ring plots.
 
 - split_by:
 
-  The column(s) to split data by and plot separately.
+  The column(s) to split the data by and produce separate sub-plots.
+  Multiple columns are concatenated with `split_by_sep`.
 
 - split_by_sep:
 
-  The separator for multiple split_by columns. See `split_by`
+  A character string to separate concatenated `split_by` columns.
+  Default `"_"`.
 
 - facet_by:
 
@@ -214,80 +227,45 @@ RingPlot(
 
 - combine:
 
-  Whether to combine the plots into one when facet is FALSE. Default is
-  TRUE.
+  Logical; when `TRUE` (default), returns a combined `patchwork` object.
+  When `FALSE`, returns a named list of individual `ggplot` objects.
 
-- nrow:
+- ncol, nrow:
 
-  A numeric value specifying the number of rows in the facet.
-
-- ncol:
-
-  A numeric value specifying the number of columns in the facet.
+  Integer number of columns / rows for the combined layout (passed to
+  [`wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)).
 
 - byrow:
 
-  A logical value indicating whether to fill the plots by row.
+  Logical; fill the combined layout by row. Default `TRUE` (passed to
+  [`wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)).
 
 - seed:
 
-  The random seed to use. Default is 8525.
+  A numeric seed for reproducibility. Passed to
+  [`validate_common_args()`](https://pwwang.github.io/plotthis/reference/validate_common_args.md).
 
 - axes:
 
-  A string specifying how axes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axes in individual plots.
-
-  - 'collect' will remove duplicated axes when placed in the same run of
-    rows or columns of the layout.
-
-  - 'collect_x' and 'collect_y' will remove duplicated x-axes in the
-    columns or duplicated y-axes in the rows respectively.
+  A character string specifying how axes should be treated across the
+  combined layout (passed to
+  [`wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)).
 
 - axis_titles:
 
-  A string specifying how axis titltes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axis titles in individual plots.
-
-  - 'collect' will remove duplicated titles in one direction and merge
-    titles in the opposite direction.
-
-  - 'collect_x' and 'collect_y' control this for x-axis titles and
-    y-axis titles respectively.
+  A character string specifying how axis titles should be treated across
+  the combined layout. Defaults to `axes`.
 
 - guides:
 
-  A string specifying how guides should be treated in the layout. Passed
-  to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'collect' will collect guides below to the given nesting level,
-    removing duplicates.
-
-  - 'keep' will stop collection at this level and let guides be placed
-    alongside their plot.
-
-  - 'auto' will allow guides to be collected if a upper level tries, but
-    place them alongside the plot if not.
+  A character string specifying how guides (legends) should be collected
+  across panels. Default `"collect"` (passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)).
 
 - design:
 
-  Specification of the location of areas in the layout, passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. When
-  specified, `nrow`, `ncol`, and `byrow` are ignored. See
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
-  for more details.
+  A custom layout design for the combined plot (passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)).
 
 - ...:
 
@@ -295,7 +273,44 @@ RingPlot(
 
 ## Value
 
-A ggplot object or wrap_plots object or a list of ggplot objects
+A `ggplot` object, a `patchwork` object, or a named list of `ggplot`
+objects (when `combine = FALSE`), each with `height` and `width`
+attributes in inches.
+
+## split_by workflow
+
+When `split_by` is provided:
+
+1.  [`check_keep_na()`](https://pwwang.github.io/plotthis/reference/check_keep_na.md)
+    and
+    [`check_keep_empty()`](https://pwwang.github.io/plotthis/reference/check_keep_empty.md)
+    normalise the `keep_na` / `keep_empty` arguments for all columns
+    (`x`, `group_by`, `split_by`, `facet_by`).
+
+2.  The `split_by` column is validated and its NA / empty levels are
+    processed via
+    [`process_keep_na_empty()`](https://pwwang.github.io/plotthis/reference/process_keep_na_empty.md).
+    It is then removed from the per-column `keep_na` / `keep_empty`
+    lists.
+
+3.  The data frame is split by `split_by` (preserving level order). If
+    `split_by` is `NULL`, the data is wrapped in a single-element list
+    with name `"..."`.
+
+4.  Per-split `palette`, `palcolor`, `legend.position`, and
+    `legend.direction` are resolved via
+    [`check_palette()`](https://pwwang.github.io/plotthis/reference/check_palette.md),
+    [`check_palcolor()`](https://pwwang.github.io/plotthis/reference/check_palcolor.md),
+    and
+    [`check_legend()`](https://pwwang.github.io/plotthis/reference/check_legend.md).
+
+5.  [`RingPlotAtomic()`](https://pwwang.github.io/plotthis/reference/RingPlotAtomic.md)
+    is called for each split. If `title` is a function, it receives the
+    split level name and can generate dynamic titles.
+
+6.  Results are combined via
+    [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)
+    (when `combine = TRUE`) or returned as a named list.
 
 ## See also
 
@@ -305,24 +320,36 @@ A ggplot object or wrap_plots object or a list of ggplot objects
 
 ``` r
 # \donttest{
+# Basic single-ring plot (pie-chart-like)
 RingPlot(datasets::iris, group_by = "Species")
 
+
+# Multi-ring plot with faceting
 RingPlot(datasets::mtcars, x = "cyl", group_by = "carb", facet_by = "vs")
 
+
+# Split into sub-plots with per-split palettes
 RingPlot(datasets::mtcars, x = "cyl", group_by = "carb", split_by = "vs",
         palette = c("0" = "Set1", "1" = "Paired"))
 
 
+# Custom data with NA and empty levels
 data <- data.frame(
   x = factor(c("A", "B", NA, "D", "A", "B", NA, "D"), levels = c("A", "B", "C", "D")),
   y = c(1, 2, 5, 3, 4, 5, 2, 6),
   group = factor(c("a", "a", "a", NA, NA, "c", "c", "c"), levels = c("a", "b", "c"))
 )
+
+# Default: NA and empty levels dropped
 RingPlot(data, x = "x", y = "y", group_by = "group")
 
+
+# Keep NA and empty levels
 RingPlot(data, x = "x", y = "y", group_by = "group",
         keep_na = TRUE, keep_empty = TRUE)
 
+
+# Per-column keep_na / keep_empty via named lists
 RingPlot(data, x = "x", y = "y", group_by = "group",
         keep_na = TRUE, keep_empty = list(x = FALSE, group = 'level'))
 

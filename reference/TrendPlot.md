@@ -1,6 +1,16 @@
 # Trend plot
 
-A trend plot is like an area plot but with gaps between the bars.
+Draws a trend plot combining stacked bars with a semi-transparent area
+background to show how one or more groups accumulate across a discrete
+x-axis variable. This hybrid style sits between a bar plot and an area
+plot: it preserves the discrete category separation of bars while
+softening the visual with an area fill, making trends across categories
+easier to perceive.
+
+The function supports **count aggregation** (omit `y` to plot
+observation counts per x-category), **proportion scaling**
+(`scale_y = TRUE` normalises each x position to 100\\ colour control,
+faceting, and splitting into separate sub-plots via `split_by`.
 
 ## Usage
 
@@ -68,16 +78,18 @@ TrendPlot(
 
 - x_sep:
 
-  A character string to concatenate the columns in `x`, if multiple
-  columns are provided.
+  A character string used to join multiple `x` columns. Default `"_"`.
+  Ignored when `x` is a single column.
 
 - split_by:
 
-  The column(s) to split data by and plot separately.
+  The column(s) to split the data by and produce separate sub-plots.
+  Multiple columns are concatenated with `split_by_sep`.
 
 - split_by_sep:
 
-  The separator for multiple split_by columns. See `split_by`
+  A character string to separate concatenated `split_by` columns.
+  Default `"_"`.
 
 - group_by:
 
@@ -91,12 +103,15 @@ TrendPlot(
 
 - group_name:
 
-  A character string to name the legend of fill.
+  A character string used as the fill legend title. When `NULL`, the
+  `group_by` column name is used.
 
 - scale_y:
 
-  A logical value to scale the y-axis by the total number in each x-axis
-  group.
+  A logical value. When `TRUE`, y-values are scaled to proportions
+  within each (`x`, `facet_by`) group so that each x position stacks to
+  1.0. The y-axis labels switch from numeric to percent format
+  automatically.
 
 - theme:
 
@@ -225,80 +240,45 @@ TrendPlot(
 
 - seed:
 
-  The random seed to use. Default is 8525.
+  A numeric seed for reproducibility. Passed to
+  [`validate_common_args()`](https://pwwang.github.io/plotthis/reference/validate_common_args.md).
 
 - combine:
 
-  Whether to combine the plots into one when facet is FALSE. Default is
-  TRUE.
+  Logical; when `TRUE` (default), returns a combined `patchwork` object.
+  When `FALSE`, returns a named list of individual `ggplot` objects.
 
-- nrow:
+- ncol, nrow:
 
-  A numeric value specifying the number of rows in the facet.
-
-- ncol:
-
-  A numeric value specifying the number of columns in the facet.
+  Integer number of columns / rows for the combined layout (passed to
+  [`wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)).
 
 - byrow:
 
-  A logical value indicating whether to fill the plots by row.
+  Logical; fill the combined layout by row. Default `TRUE` (passed to
+  [`wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)).
 
 - axes:
 
-  A string specifying how axes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axes in individual plots.
-
-  - 'collect' will remove duplicated axes when placed in the same run of
-    rows or columns of the layout.
-
-  - 'collect_x' and 'collect_y' will remove duplicated x-axes in the
-    columns or duplicated y-axes in the rows respectively.
+  A character string specifying how axes should be treated across the
+  combined layout (passed to
+  [`wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)).
 
 - axis_titles:
 
-  A string specifying how axis titltes should be treated. Passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'keep' will retain all axis titles in individual plots.
-
-  - 'collect' will remove duplicated titles in one direction and merge
-    titles in the opposite direction.
-
-  - 'collect_x' and 'collect_y' control this for x-axis titles and
-    y-axis titles respectively.
+  A character string specifying how axis titles should be treated across
+  the combined layout. Defaults to `axes`.
 
 - guides:
 
-  A string specifying how guides should be treated in the layout. Passed
-  to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. Options
-  are:
-
-  - 'collect' will collect guides below to the given nesting level,
-    removing duplicates.
-
-  - 'keep' will stop collection at this level and let guides be placed
-    alongside their plot.
-
-  - 'auto' will allow guides to be collected if a upper level tries, but
-    place them alongside the plot if not.
+  A character string specifying how guides (legends) should be collected
+  across panels. Default `"collect"` (passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)).
 
 - design:
 
-  Specification of the location of areas in the layout, passed to
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html).
-  Only relevant when `split_by` is used and `combine` is TRUE. When
-  specified, `nrow`, `ncol`, and `byrow` are ignored. See
-  [`patchwork::wrap_plots()`](https://patchwork.data-imaginist.com/reference/wrap_plots.html)
-  for more details.
+  A custom layout design for the combined plot (passed to
+  [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)).
 
 - ...:
 
@@ -306,11 +286,49 @@ TrendPlot(
 
 ## Value
 
-A ggplot object or wrap_plots object or a list of ggplot objects
+A `ggplot` object, a `patchwork` object, or a named list of `ggplot`
+objects (when `combine = FALSE`), each with `height` and `width`
+attributes in inches.
+
+## split_by workflow
+
+When `split_by` is provided:
+
+1.  [`check_keep_na()`](https://pwwang.github.io/plotthis/reference/check_keep_na.md)
+    and
+    [`check_keep_empty()`](https://pwwang.github.io/plotthis/reference/check_keep_empty.md)
+    normalise the `keep_na` / `keep_empty` arguments for all columns
+    (`x`, `split_by`, `group_by`, `facet_by`).
+
+2.  The `split_by` column is validated and its NA / empty levels are
+    processed via
+    [`process_keep_na_empty()`](https://pwwang.github.io/plotthis/reference/process_keep_na_empty.md).
+    It is then removed from the per-column `keep_na` / `keep_empty`
+    lists.
+
+3.  The data frame is split by `split_by` (preserving level order). If
+    `split_by` is `NULL`, the data is wrapped in a single-element list
+    with name `"..."`.
+
+4.  Per-split `palette`, `palcolor`, `legend.position`, and
+    `legend.direction` are resolved via
+    [`check_palette()`](https://pwwang.github.io/plotthis/reference/check_palette.md),
+    [`check_palcolor()`](https://pwwang.github.io/plotthis/reference/check_palcolor.md),
+    and
+    [`check_legend()`](https://pwwang.github.io/plotthis/reference/check_legend.md).
+
+5.  [`TrendPlotAtomic()`](https://pwwang.github.io/plotthis/reference/TrendPlotAtomic.md)
+    is called for each split. If `title` is a function, it receives the
+    split level name and can generate dynamic titles.
+
+6.  Results are combined via
+    [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)
+    (when `combine = TRUE`) or returned as a named list.
 
 ## See also
 
 [`AreaPlot`](https://pwwang.github.io/plotthis/reference/AreaPlot.md)
+for a pure stacked area plot.
 
 ## Examples
 
@@ -321,22 +339,34 @@ data <- data.frame(
     y = c(1, 3, 6, 5, 4, 2, 5, 7, 8, 9, 4, 8),
     group = factor(rep(c("F1", NA, "F3"), each = 4), levels = c("F1", "F2", "F3"))
 )
+
+# Basic trend plot with grouping
 TrendPlot(data, x = "x", y = "y", group_by = "group")
 
+
+# Scaled to proportions
 TrendPlot(data, x = "x", y = "y", group_by = "group",
          scale_y = TRUE)
 
+
+# Split into sub-plots (no group_by -- single-colour fill)
 TrendPlot(data, x = "x", y = "y", split_by = "group")
 
+
+# Per-split palettes
 TrendPlot(data, x = "x", y = "y", split_by = "group",
           palette = c(F1 = "Set1", F3 = "Dark2"))
 
+
+# How keep_na and keep_empty work
 TrendPlot(data, x = "x", y = "y", group_by = "group",
          keep_na = TRUE, keep_empty = TRUE)
 
 TrendPlot(data, x = "x", y = "y", group_by = "group",
          keep_na = TRUE, keep_empty = list(x = FALSE, group = 'level'))
 
+
+# Faceting
 TrendPlot(data, x = "x", y = "y", facet_by = "group",
          keep_na = TRUE, keep_empty = list(x = FALSE, group = 'level'))
 
