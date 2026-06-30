@@ -1651,6 +1651,8 @@ LinkedHeatmap <- function(
         args_atomic$cell_type <- cell_type
         args_atomic$cell_agg <- cell_agg
 
+        args_atomic$values_fill <- values_fill
+
         do_call(LinkedHeatmapAtomic, args_atomic)
     })
 
