@@ -29,14 +29,65 @@
 - fix(combine_plots): refine data handling in combine_plots function for
   layer-specific data integrity
 - style: use air to format all source files
-- docs: enhance documentation for color palette usage and plotting data
-  access
-- docs(Heatmap): refactor HeatmapAtomic documentation for clarity and
-  consistency
 - chore: add .codegraph to .gitignore to exclude codegraph files from
   version control
 - chore: remove unused imports and clean up parameter documentation
   across multiple files
+- docs: enhance documentation for color palette usage and plotting data
+  access
+- docs(Heatmap): refactor HeatmapAtomic documentation for clarity and
+  consistency
+- docs: enhance documentation for AreaPlot and AreaPlotAtomic functions
+- docs: enhance documentation for SplitBarPlotAtomic and BarPlot
+  functions
+- docs: update documentation for BoxPlot, ViolinPlot, and BeeswarmPlot
+  functions
+- docs: enhance documentation for ChordPlot and ChordPlotAtomic
+  functions
+- docs: enhance RidgePlot and RidgePlotAtomic documentation and
+  functionality
+- docs: enhance documentation for DimPlot and FeatureDimPlot functions
+- docs: enhance documentation for DotPlot and LollipopPlot functions
+- docs: enhance documentation for ClustreePlot and ClustreePlotAtomic
+  functions
+- docs: enhance documentation for CorPairsPlotAtomic and CorPlot
+- docs: update documentation for DimPlot and DimPlotAtomic parameters
+- docs: update documentation for EnrichMap and EnrichNetwork functions
+- docs: enhance documentation for GSEASummaryPlot and GSEAPlot functions
+- docs: remove unused import for ggridges in densityplot and NAMESPACE
+- docs: enhance documentation for JitterPlot and JitterPlotAtomic
+- docs: update documentation for LinePlotAtomic, LinePlotGrouped, and
+  LinePlotSingle
+- docs: enhance ManhattanPlot and ManhattanPlotAtomic documentation
+- docs: enhance NetworkAtomic documentation with detailed argument
+  descriptions and architecture overview
+- docs: update documentation for PieChart and PieChartAtomic functions
+  with detailed descriptions and parameter explanations
+- docs: update QQPlot and QQPlotAtomic documentation to include PP plot
+  details and enhance parameter descriptions
+- docs: enhance documentation for RadarPlotAtomic and radarplot
+  functions
+- docs: enhance documentation for RingPlot and RingPlotAtomic functions
+  with detailed descriptions and parameter explanations
+- docs: enhance documentation for RarefactionPlot and
+  RarefactionPlotAtomic functions with detailed descriptions and
+  parameter explanations
+- docs: enhance documentation for ROCCurveAtomic and get_cutoffs_data
+- docs: enhance documentation for SankeyPlot and SankeyPlotAtomic
+- docs: enhance ScatterPlot and ScatterPlotAtomic documentation
+- docs: improve documentation for .compute_velocity_on_grid and .flip_y
+  functions with detailed descriptions and parameter explanations
+- docs: enhance spatial visualization functions in terra package
+- docs: enhance documentation for TrendPlot and TrendPlotAtomic
+  functions with detailed descriptions and parameter explanations
+- docs: update documentation for UpsetPlot and related functions
+- docs: update VennDiagram and related functions for improved
+  documentation and clarity
+- docs: enhance documentation for VelocityPlot function with detailed
+  parameter descriptions and usage examples
+- docs: enhance VolcanoPlot and VolcanoPlotAtomic documentation
+- docs: enhance documentation for WordCloudPlot and WordCloudPlotAtomic
+  functions with detailed descriptions and usage examples
 
 ## Version 0.12.1
 
