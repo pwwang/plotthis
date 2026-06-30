@@ -1,14 +1,84 @@
-#' Pie chart without data splitting
+#' Atomic pie chart (internal)
+#'
+#' @description
+#' Core implementation for drawing a single pie chart.  This is the
+#' workhorse behind the exported \code{\link{PieChart}} function — it takes a
+#' **single** data frame (no \code{split_by} support) and returns a
+#' \code{ggplot} object.  The chart maps the proportion of each x-axis
+#' category to the angle of a pie slice using
+#' \code{\link[ggplot2]{coord_polar}()}, with optional faceting and
+#' per-slice labels.
+#'
+#' @section Architecture:
+#' \enumerate{
+#'   \item \strong{ggplot dispatch} — selects \code{gglogger::ggplot} or
+#'         \code{ggplot2::ggplot} based on
+#'         \code{getOption("plotthis.gglogger.enabled")}.
+#'   \item \strong{Column resolution} — \code{x} is forced to factor;
+#'         \code{y} is validated (numeric, optional).
+#'   \item \strong{Count aggregation} — when \code{y = NULL}, the count of
+#'         observations per (\code{x}, \code{facet_by}) combination is
+#'         computed as a new \code{.y} column.  Factor levels are preserved
+#'         after aggregation.
+#'   \item \strong{Label resolution} — when \code{label = TRUE}, the label
+#'         column is set to \code{y}.  The \code{label} column is then
+#'         validated.
+#'   \item \strong{Facet column resolution} — \code{facet_by} columns are
+#'         validated as factors, allowing up to two columns.
+#'   \item \strong{NA / empty-level handling} —
+#'         \code{\link{process_keep_na_empty}()} applies \code{keep_na} and
+#'         \code{keep_empty} policies.  Per-column \code{keep_empty} settings
+#'         are extracted for \code{x} and \code{facet_by}.  When more than one
+#'         facet column is provided, their \code{keep_empty} values must be
+#'         identical.
+#'   \item \strong{Clockwise ordering} — when \code{clockwise = TRUE}
+#'         (default), the levels of \code{x} are reversed so that the first
+#'         slice starts from the top and proceeds clockwise.  The data is then
+#'         sorted by the (possibly reversed) \code{x} factor levels.
+#'   \item \strong{Position calculation} — if faceted, grouping by facet
+#'         variables; computes cumulative sums (\code{csum}) and label
+#'         midpoint positions (\code{pos}) for each slice.
+#'   \item \strong{Colour mapping} — \code{\link{palette_this}()} assigns
+#'         colours to all \code{x} levels, including \code{NA} (defaulting to
+#'         \code{"grey80"}).
+#'   \item \strong{Plot assembly} — the \code{ggplot} object is built with
+#'         \code{geom_col(width = 1)} and
+#'         \code{coord_polar(theta = "y")} to create the circular pie
+#'         layout.  The fill scale uses \code{scale_fill_manual()} with
+#'         per-slice colours; the \code{drop} argument is controlled by
+#'         \code{keep_empty_x}.
+#'   \item \strong{Labels} — when \code{label} is not \code{NULL},
+#'         \code{\link[ggrepel]{geom_label_repel}()} adds text labels at
+#'         the computed midpoint positions (\code{pos}).
+#'   \item \strong{Dimension calculation} —
+#'         \code{\link{calculate_plot_dimensions}()} computes plot height and
+#'         width from \code{aspect.ratio} and legend metrics.  The resulting
+#'         \code{height} / \code{width} attributes are stored on the
+#'         \code{ggplot} object.
+#'   \item \strong{Faceting} — \code{\link{facet_plot}()} wraps the plot
+#'         with \code{facet_wrap} / \code{facet_grid} if \code{facet_by} is
+#'         provided, respecting the \code{keep_empty} setting for facet
+#'         variables.
+#' }
 #'
 #' @inheritParams common_args
-#' @param label Which column to use as the label. NULL means no label.
-#' Default is the same as y. If y is NULL, you should use ".y" to specify the count as the label.
-#' If TRUE, the y values will be used as the label.
-#' @param y A character string of the column name to plot on the y-axis.
-#'   A numeric column is expected.
-#'   If NULL, the count of each x column will be used.
-#' @param clockwise A logical value to draw the pie chart clockwise or not.
+#' @param x A character string specifying the column name for the x-axis
+#'  (categories).  Must be character or factor.  Each unique value becomes a
+#'  pie slice.
+#' @param y A character string specifying the numeric column for the y-axis.
+#'  When \code{NULL} (default), the count of observations in each
+#'  (\code{x}, \code{facet_by}) combination is used and stored as
+#'  \code{.y}.
+#' @param label A character string specifying the column to use for slice
+#'  labels.  \code{NULL} (default) hides labels.  When \code{TRUE}, the
+#'  \code{y} values are used as labels.  When \code{y = NULL}, use
+#'  \code{".y"} to label with the computed counts.
+#' @param clockwise A logical value.  When \code{TRUE} (default), the pie
+#'  slices are ordered clockwise starting from the top.  When \code{FALSE},
+#'  slices are ordered counter-clockwise.
 #' @keywords internal
+#' @return A \code{ggplot} object with \code{height} and \code{width}
+#'  attributes (in inches) attached.
 #' @importFrom rlang sym
 #' @importFrom dplyr lead if_else mutate %>% group_by summarise n
 #' @importFrom tidyr complete
@@ -230,13 +300,76 @@ PieChartAtomic <- function(
     )
 }
 
-#' Pie Chart
+#' Pie chart
 #'
-#' @description Pie chart to illustrate numerical proportion of each group.
+#' @description
+#' Draws a pie chart illustrating the numerical proportion of each group
+#' relative to the whole.  Each slice corresponds to a level of the x-axis
+#' variable and its angle is proportional to the y-axis value (or the
+#' observation count when \code{y} is omitted).
+#'
+#' The function supports \strong{count aggregation} (omit \code{y} to plot
+#' observation counts per x-category), \strong{slice labels} via
+#' \code{ggrepel::geom_label_repel()}, clockwise or counter-clockwise slice
+#' ordering, faceting, and splitting into separate sub-plots via
+#' \code{split_by}.
+#'
+#' @section split_by workflow:
+#' When \code{split_by} is provided:
+#' \enumerate{
+#'   \item \code{\link{validate_common_args}()} validates the \code{seed}
+#'         and \code{facet_by} settings.
+#'   \item \code{\link{check_keep_na}()} and \code{\link{check_keep_empty}()}
+#'         normalise the \code{keep_na} / \code{keep_empty} arguments for all
+#'         columns (\code{x}, \code{split_by}, \code{facet_by}).
+#'   \item \code{\link{process_theme}()} resolves the theme function.
+#'   \item The \code{x} column is forced to factor; \code{y} is validated.
+#'   \item The \code{split_by} column is validated and its NA / empty levels
+#'         are processed via \code{\link{process_keep_na_empty}()}.  It is
+#'         then removed from the per-column \code{keep_na} / \code{keep_empty}
+#'         lists.
+#'   \item The data frame is split by \code{split_by} (preserving level
+#'         order).  If \code{split_by} is \code{NULL}, the data is wrapped in
+#'         a single-element list with name \code{"..."}.
+#'   \item Per-split \code{palette}, \code{palcolor},
+#'         \code{legend.position}, and \code{legend.direction} are resolved
+#'         via \code{\link{check_palette}()}, \code{\link{check_palcolor}()},
+#'         and \code{\link{check_legend}()}.
+#'   \item \code{\link{PieChartAtomic}()} is called for each split.  If
+#'         \code{title} is a function, it receives the split level name and
+#'         can generate dynamic titles.
+#'   \item Results are combined via \code{\link{combine_plots}()} (when
+#'         \code{combine = TRUE}) or returned as a named list.
+#' }
+#'
 #' @export
 #' @inheritParams PieChartAtomic
 #' @inheritParams common_args
-#' @return A ggplot object or wrap_plots object or a list of ggplot objects
+#' @param split_by The column(s) to split the data by and produce separate
+#'  sub-plots.  Multiple columns are concatenated with \code{split_by_sep}.
+#' @param split_by_sep A character string to separate concatenated
+#'  \code{split_by} columns.  Default \code{"_"}.
+#' @param seed A numeric seed for reproducibility.  Passed to
+#'  \code{\link{validate_common_args}()}.
+#' @param combine Logical; when \code{TRUE} (default), returns a combined
+#'  \code{patchwork} object.  When \code{FALSE}, returns a named list of
+#'  individual \code{ggplot} objects.
+#' @param ncol,nrow Integer number of columns / rows for the combined layout
+#'  (passed to \code{\link[patchwork]{wrap_plots}}).
+#' @param byrow Logical; fill the combined layout by row.  Default \code{TRUE}
+#'  (passed to \code{\link[patchwork]{wrap_plots}}).
+#' @param axes A character string specifying how axes should be treated across
+#'  the combined layout (passed to \code{\link[patchwork]{wrap_plots}}).
+#' @param axis_titles A character string specifying how axis titles should be
+#'  treated across the combined layout.  Defaults to \code{axes}.
+#' @param guides A character string specifying how guides (legends) should be
+#'  collected across panels.  Default \code{"collect"} (passed to
+#'  \code{\link{combine_plots}()}).
+#' @param design A custom layout design for the combined plot (passed to
+#'  \code{\link{combine_plots}()}).
+#' @return A \code{ggplot} object, a \code{patchwork} object, or a named list
+#'  of \code{ggplot} objects (when \code{combine = FALSE}), each with
+#'  \code{height} and \code{width} attributes in inches.
 #' @examples
 #' \donttest{
 #' data <- data.frame(
@@ -247,25 +380,40 @@ PieChartAtomic <- function(
 #'    facet = factor(c("F1", NA, "F3", "F4", "F1", NA, "F3", "F4"),
 #'        levels = c("F1", "F2", "F3", "F4"))
 #' )
+#'
+#' # Basic pie chart
 #' PieChart(data, x = "x", y = "y")
+#'
+#' # Keep NA and empty levels
 #' PieChart(data, x = "x", y = "y", keep_na = TRUE, keep_empty = TRUE)
+#'
+#' # Counter-clockwise ordering
 #' PieChart(data, x = "x", y = "y", clockwise = FALSE)
 #' PieChart(data, x = "x", y = "y", clockwise = FALSE,
 #'          keep_na = TRUE, keep_empty = TRUE)
+#'
+#' # With slice labels
 #' PieChart(data, x = "x", y = "y", label = "group")
+#'
+#' # Faceting
 #' PieChart(data, x = "x", y = "y", facet_by = "facet")
 #' PieChart(data, x = "x", y = "y", facet_by = c("facet", "group"),
-#'     keep_empty = 'level')
+#'     keep_empty = "level")
 #' PieChart(data, x = "x", y = "y", facet_by = c("facet", "group"),
 #'     keep_empty = TRUE)
+#'
+#' # Split into sub-plots
 #' PieChart(data, x = "x", y = "y", split_by = "group")
+#'
+#' # Per-split palettes
 #' PieChart(data, x = "x", y = "y", split_by = "group",
 #'          palette = list(G1 = "Reds", G2 = "Blues", G3 = "Greens", G4 = "Purp"))
 #'
-#' # y from count
+#' # Y from count
 #' PieChart(data, x = "group")
-#' # add label
-#' PieChart(data, x = "group", label = ".y")  # or label = TRUE
+#'
+#' # Y from count with label
+#' PieChart(data, x = "group", label = ".y")
 #' }
 PieChart <- function(
     data,

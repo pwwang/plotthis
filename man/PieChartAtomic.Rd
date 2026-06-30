@@ -2,7 +2,7 @@
 % Please edit documentation in R/piechart.R
 \name{PieChartAtomic}
 \alias{PieChartAtomic}
-\title{Pie chart without data splitting}
+\title{Atomic pie chart (internal)}
 \usage{
 PieChartAtomic(
   data,
@@ -36,17 +36,23 @@ PieChartAtomic(
 \arguments{
 \item{data}{A data frame.}
 
-\item{x}{A character string specifying the column name of the data frame to plot for the x-axis.}
+\item{x}{A character string specifying the column name for the x-axis
+(categories).  Must be character or factor.  Each unique value becomes a
+pie slice.}
 
-\item{y}{A character string of the column name to plot on the y-axis.
-A numeric column is expected.
-If NULL, the count of each x column will be used.}
+\item{y}{A character string specifying the numeric column for the y-axis.
+When \code{NULL} (default), the count of observations in each
+(\code{x}, \code{facet_by}) combination is used and stored as
+\code{.y}.}
 
-\item{label}{Which column to use as the label. NULL means no label.
-Default is the same as y. If y is NULL, you should use ".y" to specify the count as the label.
-If TRUE, the y values will be used as the label.}
+\item{label}{A character string specifying the column to use for slice
+labels.  \code{NULL} (default) hides labels.  When \code{TRUE}, the
+\code{y} values are used as labels.  When \code{y = NULL}, use
+\code{".y"} to label with the computed counts.}
 
-\item{clockwise}{A logical value to draw the pie chart clockwise or not.}
+\item{clockwise}{A logical value.  When \code{TRUE} (default), the pie
+slices are ordered clockwise starting from the top.  When \code{FALSE},
+slices are ordered counter-clockwise.}
 
 \item{keep_na}{A logical value or a character to replace the NA values in the data.
 It can also take a named list to specify different behavior for different columns.
@@ -119,7 +125,71 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{...}{Additional arguments.}
 }
-\description{
-Pie chart without data splitting
+\value{
+A \code{ggplot} object with \code{height} and \code{width}
+attributes (in inches) attached.
 }
+\description{
+Core implementation for drawing a single pie chart.  This is the
+workhorse behind the exported \code{\link{PieChart}} function — it takes a
+\strong{single} data frame (no \code{split_by} support) and returns a
+\code{ggplot} object.  The chart maps the proportion of each x-axis
+category to the angle of a pie slice using
+\code{\link[ggplot2]{coord_polar}()}, with optional faceting and
+per-slice labels.
+}
+\section{Architecture}{
+
+\enumerate{
+\item \strong{ggplot dispatch} — selects \code{gglogger::ggplot} or
+\code{ggplot2::ggplot} based on
+\code{getOption("plotthis.gglogger.enabled")}.
+\item \strong{Column resolution} — \code{x} is forced to factor;
+\code{y} is validated (numeric, optional).
+\item \strong{Count aggregation} — when \code{y = NULL}, the count of
+observations per (\code{x}, \code{facet_by}) combination is
+computed as a new \code{.y} column.  Factor levels are preserved
+after aggregation.
+\item \strong{Label resolution} — when \code{label = TRUE}, the label
+column is set to \code{y}.  The \code{label} column is then
+validated.
+\item \strong{Facet column resolution} — \code{facet_by} columns are
+validated as factors, allowing up to two columns.
+\item \strong{NA / empty-level handling} —
+\code{\link{process_keep_na_empty}()} applies \code{keep_na} and
+\code{keep_empty} policies.  Per-column \code{keep_empty} settings
+are extracted for \code{x} and \code{facet_by}.  When more than one
+facet column is provided, their \code{keep_empty} values must be
+identical.
+\item \strong{Clockwise ordering} — when \code{clockwise = TRUE}
+(default), the levels of \code{x} are reversed so that the first
+slice starts from the top and proceeds clockwise.  The data is then
+sorted by the (possibly reversed) \code{x} factor levels.
+\item \strong{Position calculation} — if faceted, grouping by facet
+variables; computes cumulative sums (\code{csum}) and label
+midpoint positions (\code{pos}) for each slice.
+\item \strong{Colour mapping} — \code{\link{palette_this}()} assigns
+colours to all \code{x} levels, including \code{NA} (defaulting to
+\code{"grey80"}).
+\item \strong{Plot assembly} — the \code{ggplot} object is built with
+\code{geom_col(width = 1)} and
+\code{coord_polar(theta = "y")} to create the circular pie
+layout.  The fill scale uses \code{scale_fill_manual()} with
+per-slice colours; the \code{drop} argument is controlled by
+\code{keep_empty_x}.
+\item \strong{Labels} — when \code{label} is not \code{NULL},
+\code{\link[ggrepel]{geom_label_repel}()} adds text labels at
+the computed midpoint positions (\code{pos}).
+\item \strong{Dimension calculation} —
+\code{\link{calculate_plot_dimensions}()} computes plot height and
+width from \code{aspect.ratio} and legend metrics.  The resulting
+\code{height} / \code{width} attributes are stored on the
+\code{ggplot} object.
+\item \strong{Faceting} — \code{\link{facet_plot}()} wraps the plot
+with \code{facet_wrap} / \code{facet_grid} if \code{facet_by} is
+provided, respecting the \code{keep_empty} setting for facet
+variables.
+}
+}
+
 \keyword{internal}

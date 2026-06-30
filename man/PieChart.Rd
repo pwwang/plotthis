@@ -2,7 +2,7 @@
 % Please edit documentation in R/piechart.R
 \name{PieChart}
 \alias{PieChart}
-\title{Pie Chart}
+\title{Pie chart}
 \usage{
 PieChart(
   data,
@@ -47,21 +47,29 @@ PieChart(
 \arguments{
 \item{data}{A data frame.}
 
-\item{x}{A character string specifying the column name of the data frame to plot for the x-axis.}
+\item{x}{A character string specifying the column name for the x-axis
+(categories).  Must be character or factor.  Each unique value becomes a
+pie slice.}
 
-\item{y}{A character string of the column name to plot on the y-axis.
-A numeric column is expected.
-If NULL, the count of each x column will be used.}
+\item{y}{A character string specifying the numeric column for the y-axis.
+When \code{NULL} (default), the count of observations in each
+(\code{x}, \code{facet_by}) combination is used and stored as
+\code{.y}.}
 
-\item{label}{Which column to use as the label. NULL means no label.
-Default is the same as y. If y is NULL, you should use ".y" to specify the count as the label.
-If TRUE, the y values will be used as the label.}
+\item{label}{A character string specifying the column to use for slice
+labels.  \code{NULL} (default) hides labels.  When \code{TRUE}, the
+\code{y} values are used as labels.  When \code{y = NULL}, use
+\code{".y"} to label with the computed counts.}
 
-\item{split_by}{The column(s) to split data by and plot separately.}
+\item{split_by}{The column(s) to split the data by and produce separate
+sub-plots.  Multiple columns are concatenated with \code{split_by_sep}.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
+\item{split_by_sep}{A character string to separate concatenated
+\code{split_by} columns.  Default \code{"_"}.}
 
-\item{clockwise}{A logical value to draw the pie chart clockwise or not.}
+\item{clockwise}{A logical value.  When \code{TRUE} (default), the pie
+slices are ordered clockwise starting from the top.  When \code{FALSE},
+slices are ordered counter-clockwise.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
@@ -132,55 +140,81 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{ylab}{A character string specifying the y-axis label.}
 
-\item{combine}{Whether to combine the plots into one when facet is FALSE. Default is TRUE.}
+\item{combine}{Logical; when \code{TRUE} (default), returns a combined
+\code{patchwork} object.  When \code{FALSE}, returns a named list of
+individual \code{ggplot} objects.}
 
-\item{nrow}{A numeric value specifying the number of rows in the facet.}
+\item{ncol, nrow}{Integer number of columns / rows for the combined layout
+(passed to \code{\link[patchwork]{wrap_plots}}).}
 
-\item{ncol}{A numeric value specifying the number of columns in the facet.}
+\item{byrow}{Logical; fill the combined layout by row.  Default \code{TRUE}
+(passed to \code{\link[patchwork]{wrap_plots}}).}
 
-\item{byrow}{A logical value indicating whether to fill the plots by row.}
+\item{seed}{A numeric seed for reproducibility.  Passed to
+\code{\link{validate_common_args}()}.}
 
-\item{seed}{The random seed to use. Default is 8525.}
+\item{axes}{A character string specifying how axes should be treated across
+the combined layout (passed to \code{\link[patchwork]{wrap_plots}}).}
 
-\item{axes}{A string specifying how axes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axes in individual plots.
-\item 'collect' will remove duplicated axes when placed in the same run of rows or columns of the layout.
-\item 'collect_x' and 'collect_y' will remove duplicated x-axes in the columns or duplicated y-axes in the rows respectively.
-}}
+\item{axis_titles}{A character string specifying how axis titles should be
+treated across the combined layout.  Defaults to \code{axes}.}
 
-\item{axis_titles}{A string specifying how axis titltes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axis titles in individual plots.
-\item 'collect' will remove duplicated titles in one direction and merge titles in the opposite direction.
-\item 'collect_x' and 'collect_y' control this for x-axis titles and y-axis titles respectively.
-}}
+\item{guides}{A character string specifying how guides (legends) should be
+collected across panels.  Default \code{"collect"} (passed to
+\code{\link{combine_plots}()}).}
 
-\item{guides}{A string specifying how guides should be treated in the layout. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'collect' will collect guides below to the given nesting level, removing duplicates.
-\item 'keep' will stop collection at this level and let guides be placed alongside their plot.
-\item 'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.
-}}
-
-\item{design}{Specification of the location of areas in the layout, passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE. When specified, \code{nrow}, \code{ncol}, and \code{byrow} are ignored.
-See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details.}
+\item{design}{A custom layout design for the combined plot (passed to
+\code{\link{combine_plots}()}).}
 
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object or wrap_plots object or a list of ggplot objects
+A \code{ggplot} object, a \code{patchwork} object, or a named list
+of \code{ggplot} objects (when \code{combine = FALSE}), each with
+\code{height} and \code{width} attributes in inches.
 }
 \description{
-Pie chart to illustrate numerical proportion of each group.
+Draws a pie chart illustrating the numerical proportion of each group
+relative to the whole.  Each slice corresponds to a level of the x-axis
+variable and its angle is proportional to the y-axis value (or the
+observation count when \code{y} is omitted).
+
+The function supports \strong{count aggregation} (omit \code{y} to plot
+observation counts per x-category), \strong{slice labels} via
+\code{ggrepel::geom_label_repel()}, clockwise or counter-clockwise slice
+ordering, faceting, and splitting into separate sub-plots via
+\code{split_by}.
 }
+\section{split_by workflow}{
+
+When \code{split_by} is provided:
+\enumerate{
+\item \code{\link{validate_common_args}()} validates the \code{seed}
+and \code{facet_by} settings.
+\item \code{\link{check_keep_na}()} and \code{\link{check_keep_empty}()}
+normalise the \code{keep_na} / \code{keep_empty} arguments for all
+columns (\code{x}, \code{split_by}, \code{facet_by}).
+\item \code{\link{process_theme}()} resolves the theme function.
+\item The \code{x} column is forced to factor; \code{y} is validated.
+\item The \code{split_by} column is validated and its NA / empty levels
+are processed via \code{\link{process_keep_na_empty}()}.  It is
+then removed from the per-column \code{keep_na} / \code{keep_empty}
+lists.
+\item The data frame is split by \code{split_by} (preserving level
+order).  If \code{split_by} is \code{NULL}, the data is wrapped in
+a single-element list with name \code{"..."}.
+\item Per-split \code{palette}, \code{palcolor},
+\code{legend.position}, and \code{legend.direction} are resolved
+via \code{\link{check_palette}()}, \code{\link{check_palcolor}()},
+and \code{\link{check_legend}()}.
+\item \code{\link{PieChartAtomic}()} is called for each split.  If
+\code{title} is a function, it receives the split level name and
+can generate dynamic titles.
+\item Results are combined via \code{\link{combine_plots}()} (when
+\code{combine = TRUE}) or returned as a named list.
+}
+}
+
 \examples{
 \donttest{
 data <- data.frame(
@@ -191,24 +225,39 @@ data <- data.frame(
    facet = factor(c("F1", NA, "F3", "F4", "F1", NA, "F3", "F4"),
        levels = c("F1", "F2", "F3", "F4"))
 )
+
+# Basic pie chart
 PieChart(data, x = "x", y = "y")
+
+# Keep NA and empty levels
 PieChart(data, x = "x", y = "y", keep_na = TRUE, keep_empty = TRUE)
+
+# Counter-clockwise ordering
 PieChart(data, x = "x", y = "y", clockwise = FALSE)
 PieChart(data, x = "x", y = "y", clockwise = FALSE,
          keep_na = TRUE, keep_empty = TRUE)
+
+# With slice labels
 PieChart(data, x = "x", y = "y", label = "group")
+
+# Faceting
 PieChart(data, x = "x", y = "y", facet_by = "facet")
 PieChart(data, x = "x", y = "y", facet_by = c("facet", "group"),
-    keep_empty = 'level')
+    keep_empty = "level")
 PieChart(data, x = "x", y = "y", facet_by = c("facet", "group"),
     keep_empty = TRUE)
+
+# Split into sub-plots
 PieChart(data, x = "x", y = "y", split_by = "group")
+
+# Per-split palettes
 PieChart(data, x = "x", y = "y", split_by = "group",
          palette = list(G1 = "Reds", G2 = "Blues", G3 = "Greens", G4 = "Purp"))
 
-# y from count
+# Y from count
 PieChart(data, x = "group")
-# add label
-PieChart(data, x = "group", label = ".y")  # or label = TRUE
+
+# Y from count with label
+PieChart(data, x = "group", label = ".y")
 }
 }
