@@ -3,7 +3,7 @@
 \name{DimPlot}
 \alias{DimPlot}
 \alias{FeatureDimPlot}
-\title{DimPLot / FeatureDimPlot}
+\title{DimPlot / FeatureDimPlot}
 \usage{
 DimPlot(
   data,
@@ -264,154 +264,229 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 
 \item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
 
-\item{split_by}{A character vector of column names to split the data and plot separately
-If TRUE, we will split the data by the \code{features}. Each feature will be plotted separately.}
+\item{split_by}{A character vector of column names to split the data by and
+plot separately. If \code{TRUE}, the data is split by \code{features} — each feature
+is plotted in its own panel. Use this instead of \code{facet_by} when you need
+independent layout control (\code{nrow}, \code{ncol}) or per-feature palettes via
+\code{split_by = TRUE} combined with \code{palette} / \code{palcolor}.}
 
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
-\item{pt_size}{A numeric value of the point size. If NULL, the point size will be calculated based on the number of data points.}
+\item{pt_size}{A numeric value of the point size. If NULL (default), the point size is auto-calculated as
+\code{min(3000 / nrow(data), 0.6)} so large datasets automatically get smaller points.}
 
-\item{pt_alpha}{A numeric value of the point transparency. Default is 1.}
+\item{pt_alpha}{A numeric value in \verb{[0, 1]} for the point transparency. Default is \code{1}.}
 
-\item{bg_color}{A character string of the background or NA points. Default is "grey80".}
+\item{bg_color}{A character string specifying the colour used for NA-valued points and
+background context points drawn from other facets. Default is \code{"grey80"}.}
 
-\item{label_insitu}{Whether to place the raw labels (group names) in the center of the points with the corresponding group. Default is FALSE, which using numbers instead of raw labels.}
+\item{label_insitu}{A logical value. If \code{TRUE}, the raw group names are placed at the group median
+coordinates instead of numeric indices. Forces \code{label = TRUE}. Default is \code{FALSE}.}
 
-\item{show_stat}{Whether to show the number of points in the subtitle. Default is TRUE.}
+\item{show_stat}{A logical value. If \code{TRUE} (default), the number of points per group is shown
+in the legend labels and subtitle. Ignored when \code{theme = "theme_blank"}.}
 
-\item{label}{Whether to show the labels of groups. Default is FALSE.}
+\item{label}{A logical value. If \code{TRUE}, group labels (numeric indices by default, or group
+names when \code{label_insitu = TRUE}) are placed at the median coordinates of each group.
+Forced to \code{TRUE} when \code{label_repel} or \code{label_insitu} is set.}
 
-\item{label_size}{A numeric value of the label size. Default is 4.}
+\item{label_size}{A numeric value for the label text size. Passed to \code{ggrepel::geom_text_repel()}.
+Default is \code{4}.}
 
-\item{label_fg}{A character string of the label foreground color. Default is "white".}
+\item{label_fg}{A character string for the label text (foreground) colour. Default is \code{"white"}.}
 
-\item{label_bg}{A character string of the label background color. Default is "black".}
+\item{label_bg}{A character string for the label background / outline colour. Default is \code{"black"}.}
 
-\item{label_bg_r}{A numeric value of the background ratio of the labels. Default is 0.1.}
+\item{label_bg_r}{A numeric value for the background fill ratio of the label bounding box.
+Passed to \code{ggrepel::geom_text_repel(bg.r = ...)}. Default is \code{0.1}.}
 
-\item{label_repel}{Whether to repel the labels. Default is FALSE.}
+\item{label_repel}{A logical value. If \code{TRUE}, labels are repelled from each other with force
+\code{label_repulsion}. A visible point anchor is drawn. Forces \code{label = TRUE}.}
 
-\item{label_repulsion}{A numeric value of the label repulsion. Default is 20.}
+\item{label_repulsion}{A numeric value for the repulsion force when \code{label_repel = TRUE}.
+Passed to \code{ggrepel::geom_text_repel(force = ...)}. Default is \code{20}.}
 
-\item{label_pt_size}{A numeric value of the label point size. Default is 1.}
+\item{label_pt_size}{A numeric value for the size of the anchor point drawn when
+\code{label_repel = TRUE}. Default is \code{1}.}
 
-\item{label_pt_color}{A character string of the label point color. Default is "black".}
+\item{label_pt_color}{A character string for the colour of the label anchor point. Default is \code{"black"}.}
 
-\item{label_segment_color}{A character string of the label segment color. Default is "black".}
+\item{label_segment_color}{A character string for the colour of the line segment connecting
+the label to the anchor. Used in non-repel mode (\code{label_repel = FALSE}) where
+\code{min.segment.length = 0}. Default is \code{"black"}.}
 
-\item{order}{A character string to determine the order of the points in the plot.
+\item{order}{A character string controlling the draw order of points:
 \itemize{
-\item "as-is": no order, the order of the points in the data will be used
-\item "reverse": reverse the order of the points in the data.
-\item "high-top": points with high values on top
-\item "low-top": points with low values on top
-\item "random": random order
+\item \code{"as-is"} (default) — the row order in the data is preserved.
+\item \code{"reverse"} — rows are reversed.
+\item \code{"high-top"} — points with high values (last factor levels for group_by) are drawn last (on top).
+\item \code{"low-top"} — points with low values (first factor levels) are drawn last.
+\item \code{"random"} — rows are randomly shuffled.
 }
 
-For \code{high-top} and \code{low-top}, the NA values will be always plotted at the bottom.
-
-This works on \code{features} as they are numeric values.
-When this works on \code{group_by}, the ordering and coloring will not be changed in the legend. This is
-only affecting the order of drawing of the points in the plot.
-For \code{high-top} and \code{low-top} on \code{group_by}, the levels will be sorted based on levels of the factor.
-So \code{high-top} will put the points with the last levels on top, and \code{low-top} will put the points with the first levels on top.
-The order of points within the same level will not be changed anyway.
-If you need precise control over the order of \code{group_by}, set the levels of the factor before plotting.
+For \code{high-top} and \code{low-top}, NA values are always plotted at the bottom.
+When applied to \code{group_by}, only the draw order changes — legend colours and order
+are unaffected. Within the same level, point order is preserved. For precise
+control, set factor levels before plotting.
 See \url{https://github.com/pwwang/scplotter/issues/29#issuecomment-3009694130} for examples.}
 
-\item{highlight}{A character vector of the row names to highlight. Default is NULL.}
+\item{highlight}{A specification for highlighted points:
+\itemize{
+\item \code{NULL} (default): no highlighting.
+\item \code{TRUE}: highlight all points (adds a dark outline around every point).
+\item A character string: a dplyr filter expression (e.g., \code{"clusters == 'Ductal'"}).
+\item A character vector: row names to highlight.
+\item A numeric vector: row indices to highlight.
+}}
 
-\item{highlight_alpha}{A numeric value of the highlight transparency. Default is 1.}
+\item{highlight_alpha}{A numeric value in \verb{[0, 1]} for the transparency of highlighted points.
+Default is \code{1}.}
 
-\item{highlight_size}{A numeric value of the highlight size. Default is 1.}
+\item{highlight_size}{A numeric value for the size of the inner (coloured) highlight point.
+Default is \code{1}.}
 
-\item{highlight_color}{A character string of the highlight color. Default is "black".}
+\item{highlight_color}{A character string for the colour of the outer highlight ring.
+Default is \code{"black"}.}
 
-\item{highlight_stroke}{A numeric value of the highlight stroke. Default is 0.5.}
+\item{highlight_stroke}{A numeric value for the thickness of the outer highlight ring (the
+difference between the outer ring size and \code{highlight_size}). Default is \code{0.8}.}
 
-\item{add_mark}{Whether to add mark to the plot. Default is FALSE.}
+\item{add_mark}{A logical value. If \code{TRUE}, group boundaries are drawn around points using
+\code{ggforce} marks. Requires \code{group_by}. Only supported in 2D.}
 
-\item{mark_type}{A character string of the mark type. Default is "hull".}
+\item{mark_type}{A character string specifying the mark shape. Options:
+\code{"hull"} (convex hull, default), \code{"ellipse"}, \code{"rect"}, or \code{"circle"}.}
 
-\item{mark_expand}{A unit value of the mark expand. Default is 3mm.}
+\item{mark_expand}{A unit value for the outward expansion of the mark boundary.
+Passed to \code{ggforce::geom_mark_*(expand = ...)}. Default is \code{unit(3, "mm")}.}
 
-\item{mark_alpha}{A numeric value of the mark transparency. Default is 0.1.}
+\item{mark_alpha}{A numeric value in \verb{[0, 1]} for the transparency of the mark fill.
+Default is \code{0.1}.}
 
-\item{mark_linetype}{A numeric value of the mark line type. Default is 1.}
+\item{mark_linetype}{A numeric value for the line type of the mark boundary. Default is \code{1} (solid).}
 
-\item{stat_by}{A character string of the column name to calculate the statistics. Default is NULL.}
+\item{stat_by}{A character string naming a column used to compute per-group statistical summary
+mini-plots embedded at group centroid positions. Only supported with \code{group_by} (not \code{features}).
+Only supported in 2D without \code{facet_by}.}
 
-\item{stat_plot_type}{A character string of the statistic plot type. Default is "pie".}
+\item{stat_plot_type}{A character string specifying the mini-plot type. Options:
+\code{"pie"} (default), \code{"ring"}, \code{"bar"}, or \code{"line"}.}
 
-\item{stat_plot_size}{A numeric value of the statistic plot size. Default is 0.1.}
+\item{stat_plot_size}{A numeric value for the size of the stat mini-plot, expressed as a
+fraction of the axis range. Default is \code{0.1}.}
 
-\item{stat_args}{A list of additional arguments to the statistic plot. Default is list(palette = "Set1").}
+\item{stat_args}{A list of additional arguments passed to the stat plot function
+(e.g., \code{list(palette = "Set1")}). Default is \code{list(palette = "Set1")}.}
 
-\item{graph}{A character string of column names or the indexes in the data for the graph data. Default is NULL.
-If "@graph" is provided, the graph data will be extracted from the data attribute 'graph'.}
+\item{graph}{A specification for network / graph edges to overlay. Sources:
+\itemize{
+\item A character string starting with \code{"@"} (e.g., \code{"@graph"}): extracts the attribute
+named \code{"graph"} from \code{attributes(data)}.
+\item A \code{Graph} object (e.g., Seurat): coerced to dense matrix via \code{as.matrix()}.
+\item A \code{matrix}, \code{data.frame}, or \code{dgCMatrix}: used directly as the adjacency matrix.
+\item Numeric indices or character column names: extracts columns from \code{data}.
+Edges are drawn for non-zero, lower-triangle entries. Requires \code{data} to have row names
+matching the matrix dimnames.
+}}
 
-\item{edge_size}{A numeric vector of the edge size range. Default is c(0.05, 0.5).}
+\item{edge_size}{A numeric vector of length 2 specifying the range \verb{[min, max]} for
+\code{scale_linewidth_continuous(range = ...)} applied to edge widths. Default is \code{c(0.05, 0.5)}.}
 
-\item{edge_alpha}{A numeric value of the edge transparency. Default is 0.1.}
+\item{edge_alpha}{A numeric value in \verb{[0, 1]} for the transparency of graph edges.
+Default is \code{0.1}.}
 
-\item{edge_color}{A character string of the edge color. Default is "grey40".}
+\item{edge_color}{A character string for the colour of graph edges. Default is \code{"grey40"}.}
 
-\item{add_density}{Whether to add density plot. Default is FALSE.}
+\item{add_density}{A logical value. If \code{TRUE}, a 2D density layer is overlaid. Only supported in 2D.}
 
-\item{density_color}{A character string of the density color. Default is "grey80".}
+\item{density_color}{A character string for the colour of the density contour lines.
+Used when \code{density_filled = FALSE}. Default is \code{"grey80"}.}
 
-\item{density_filled}{Whether to fill the density plot. Default is FALSE.}
+\item{density_filled}{A logical value. If \code{TRUE}, the density is rendered as a filled raster
+(\code{stat_density_2d(geom = "raster")}) instead of contour lines. A separate fill scale is used.}
 
-\item{density_filled_palette}{A character string of the filled density palette. Default is "Greys".}
+\item{density_filled_palette}{A character string naming the palette for the filled density layer.
+Default is \code{"Greys"}.}
 
-\item{density_filled_palcolor}{A character vector of the filled density palette colors. Default is NULL.}
+\item{density_filled_palcolor}{A character vector of specific colours for the filled density
+palette. Default is \code{NULL} (auto-resolved from \code{density_filled_palette}).}
 
-\item{lineages}{A character vector of the column names for lineages. Default is NULL.}
+\item{lineages}{A character vector of column names representing pseudotime / trajectory lineages.
+Each column is fitted with a LOESS smooth (\verb{span = lineages_span, degree = 2}) across the
+2D embedding, after trimming the top and bottom \code{lineages_trim} quantiles.
+Only supported in 2D without \code{facet_by}.}
 
-\item{lineages_trim}{A numeric vector of the trim range for lineages. Default is c(0.01, 0.99).}
+\item{lineages_trim}{A numeric vector of length 2 specifying the lower and upper quantile
+thresholds \verb{[0, 1]} for trimming lineage values before LOESS fitting.
+Default is \code{c(0.01, 0.99)}.}
 
-\item{lineages_span}{A numeric value of the lineages span. Default is 0.75.}
+\item{lineages_span}{A numeric value passed as \code{span} to \code{stats::loess()} controlling the
+smoothness of the lineage curve. Smaller values follow the data more closely.
+Default is \code{0.75}.}
 
-\item{lineages_palette}{A character string of the lineages palette. Default is "Dark2".}
+\item{lineages_palette}{A character string naming the palette for lineage colours.
+Default is \code{"Dark2"}.}
 
-\item{lineages_palcolor}{A character vector of the lineages palette colors. Default is NULL.}
+\item{lineages_palcolor}{A character vector of specific colours for lineage curves.
+Default is \code{NULL} (auto-resolved from \code{lineages_palette}).}
 
-\item{lineages_arrow}{An arrow object for the lineages. Default is arrow(length = unit(0.1, "inches")).}
+\item{lineages_arrow}{A ggplot2 \code{arrow} specification applied to the end of lineage paths.
+Default is \code{arrow(length = unit(0.1, "inches"))}.}
 
-\item{lineages_linewidth}{A numeric value of the lineages line width. Default is 1.}
+\item{lineages_linewidth}{A numeric value for the width of the lineage curve lines.
+Default is \code{1}.}
 
-\item{lineages_line_bg}{A character string of the lineages line background color. Default is "white".}
+\item{lineages_line_bg}{A character string for the colour of the background (wider) stroke
+drawn behind each lineage curve for improved visibility. Default is \code{"white"}.}
 
-\item{lineages_line_bg_stroke}{A numeric value of the lineages line background stroke. Default is 0.5.}
+\item{lineages_line_bg_stroke}{A numeric value for the additional width of the background
+stroke relative to \code{lineages_linewidth}. The background line has total width
+\code{lineages_linewidth + lineages_line_bg_stroke}. Default is \code{0.5}.}
 
-\item{lineages_whiskers}{Whether to add whiskers to the lineages. Default is FALSE.}
+\item{lineages_whiskers}{A logical value. If \code{TRUE}, short line segments connect the
+smoothed lineage curve to the original data coordinates of the fitted points.
+Default is \code{FALSE}.}
 
-\item{lineages_whiskers_linewidth}{A numeric value of the lineages whiskers line width. Default is 0.5.}
+\item{lineages_whiskers_linewidth}{A numeric value for the width of the whisker lines.
+Default is \code{0.5}.}
 
-\item{lineages_whiskers_alpha}{A numeric value of the lineages whiskers transparency. Default is 0.5.}
+\item{lineages_whiskers_alpha}{A numeric value in \verb{[0, 1]} for the transparency of the
+whisker lines. Default is \code{0.5}.}
 
-\item{velocity}{A character (integer) vector of the column names (indexes) to pull from data for velocity. Default is NULL.
-It can also be a data frame or matrix of the velocity embedding itself.
-If NULL, the velocity will not be plotted.}
+\item{velocity}{A specification for RNA-velocity arrows. Can be:
+\itemize{
+\item \code{NULL} (default): no velocity overlay.
+\item A character / integer vector: column names or indices in \code{data} for the velocity embedding.
+\item A data frame or matrix: the velocity embedding itself (must align with \code{data} rows).
+Only supported in 2D without \code{facet_by}.
+}}
 
-\item{velocity_plot_type}{A character string of the velocity plot type. Default is "raw".
-One of "raw", "grid", or "stream".}
+\item{velocity_plot_type}{A character string specifying the velocity rendering style.
+Options: \code{"raw"} (arrows from embedding), \code{"grid"} (grid-based arrows), or \code{"stream"}
+(streamlines). Default is \code{"raw"}.}
 
-\item{velocity_n_neighbors}{A numeric value of the number of neighbors to use for velocity. Default is NULL.}
+\item{velocity_n_neighbors}{A numeric value for the number of neighbours used in the
+velocity grid computation. Default is \code{NULL} (auto).}
 
-\item{velocity_density}{A numeric value of the velocity density. Default is 1.}
+\item{velocity_density}{A numeric value for the velocity kernel density bandwidth.
+Default is \code{1}.}
 
-\item{velocity_smooth}{A numeric value of the velocity smooth. Default is 0.5.}
+\item{velocity_smooth}{A numeric value for the velocity smoothing parameter.
+Default is \code{0.5}.}
 
-\item{velocity_scale}{A numeric value of the velocity scale. Default is 1.}
+\item{velocity_scale}{A numeric value for scaling the velocity arrows. Default is \code{1}.}
 
-\item{velocity_min_mass}{A numeric value of the minimum mass for velocity. Default is 1.}
+\item{velocity_min_mass}{A numeric value for the minimum cell mass threshold in velocity
+grid computation. Default is \code{1}.}
 
-\item{velocity_cutoff_perc}{A numeric value of the velocity cutoff percentage. Default is 5.}
+\item{velocity_cutoff_perc}{A numeric value for the velocity cutoff percentage.
+Default is \code{5}.}
 
-\item{velocity_group_palette}{A character string of the velocity group palette. Default is "Set2".}
+\item{velocity_group_palette}{A character string naming the palette for velocity group
+colours (used in \code{"raw"} plot type). Default is \code{"Set2"}.}
 
-\item{velocity_group_palcolor}{A character vector of the velocity group palette colors. Default is NULL.}
+\item{velocity_group_palcolor}{A character vector of specific colours for velocity groups.
+Default is \code{NULL} (auto-resolved from \code{velocity_group_palette}).}
 
 \item{arrow_angle}{An optional numeric value specifying the angle of the arrowheads in degrees for velocity arrows. Default is 20.}
 
@@ -500,19 +575,30 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
-\item{raster}{Whether to raster the plot. Default is NULL.}
+\item{raster}{A logical value. If \code{TRUE}, points are rendered via
+\code{scattermore::geom_scattermore()} for efficient rasterised plotting.
+Default is \code{NULL}, which auto-enables when \code{nrow(data) > 1e5}.}
 
-\item{raster_dpi}{A numeric vector of the raster dpi. Default is c(512, 512).}
+\item{raster_dpi}{A numeric vector of length 2 \verb{[x_dpi, y_dpi]} specifying the raster
+resolution in pixels. Passed to \code{scattermore::geom_scattermore(pixels = ...)}.
+Default is \code{c(512, 512)}. If a single value is provided it is recycled to both dimensions.}
 
-\item{hex}{Whether to use hex plot. Default is FALSE.}
+\item{hex}{A logical value. If \code{TRUE}, points are rendered as hexagonal bins via
+\code{geom_hex()} / \code{stat_summary_hex()}. Not supported with highlight.
+Default is \code{FALSE}. Only supported in 2D.}
 
-\item{hex_linewidth}{A numeric value of the hex line width. Default is 0.5.}
+\item{hex_linewidth}{A numeric value for the width of the hexagon boundary lines.
+Default is \code{0.5}.}
 
-\item{hex_count}{Whether to count the hex.}
+\item{hex_count}{A logical value. If \code{TRUE} and \code{group_by} is set, hex fill alpha
+is mapped to \code{after_stat(count)} so denser bins are more opaque.
+For \code{features} mode hex_count is ignored. Default is \code{!is.null(group_by)}.}
 
-\item{hex_bins}{A numeric value of the hex bins. Default is 50.}
+\item{hex_bins}{A numeric value for the number of hex bins along each axis.
+Passed to \code{geom_hex(bins = ...)}. Default is \code{50}.}
 
-\item{hex_binwidth}{A numeric value of the hex bin width. Default is NULL.}
+\item{hex_binwidth}{A numeric value for the width of individual hex bins.
+Passed to \code{geom_hex(binwidth = ...)}. Takes precedence over \code{hex_bins} when set.}
 
 \item{palette}{A character string specifying the palette to use.
 A named list or vector can be used to specify the palettes for different \code{split_by} values.}
@@ -566,7 +652,9 @@ See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details
 
 \item{...}{Additional arguments.}
 
-\item{features}{A character vector of the column names to plot as features.}
+\item{features}{A character vector of the column names to plot as features (continuous colouring).
+When multiple features are provided and \code{facet_by} is not set, the data is pivoted to long format and
+faceted by feature name.}
 
 \item{lower_quantile, upper_quantile}{Lower and upper quantiles for the continuous color/fill scale.
 The actual cutoffs are determined by these quantiles when \code{lower_cutoff} and
@@ -577,61 +665,170 @@ When \code{NULL} (the default), the cutoffs are determined by \code{lower_quanti
 \code{upper_quantile} via \code{\link[stats]{quantile}}. Values outside the
 \code{[lower_cutoff, upper_cutoff]} range are clamped (winsorized) to the nearest cutoff value.}
 
-\item{bg_cutoff}{A numeric value to be used a cutoff to set the feature values to NA. Default is NULL.}
+\item{bg_cutoff}{A numeric threshold. Feature values with absolute value below this
+cutoff are set to \code{NA} (and therefore rendered in \code{bg_color}). Default is \code{NULL}.}
 
-\item{color_name}{A character string of the color legend name. Default is "".}
+\item{color_name}{A character string used as the title for the continuous colour bar
+in feature mode. Default is \code{""}.}
 }
 \value{
-A ggplot object or wrap_plots object or a list of ggplot objects.
-When \code{dims} has 3 elements, a plotly object is returned instead.
+A \code{ggplot} object (single plot), a \code{patchwork} / \code{wrap_plots} object
+(when \code{split_by} is provided and \code{combine = TRUE}), or a list of \code{ggplot}
+objects (when \code{split_by} is provided and \code{combine = FALSE}).
+When \code{dims} has 3 elements, a \strong{plotly} object is returned instead.
 
-A ggplot object or wrap_plots object or a list of ggplot objects.
-When \code{dims} has 3 elements, a plotly object is returned instead.
+A \code{ggplot} object (single plot), a \code{patchwork} / \code{wrap_plots} object
+(when \code{split_by} is provided and \code{combine = TRUE}), or a list of \code{ggplot}
+objects (when \code{split_by} is provided and \code{combine = FALSE}).
+When \code{dims} has 3 elements, a \strong{plotly} object is returned instead.
 }
 \description{
-Visualizing the dimension reduction data.
-\code{FeatureDimPlot} is used to plot the feature numeric values on the dimension reduction plot.
+Visualise dimension reduction data (PCA, t-SNE, UMAP, etc.) as a 2D or 3D
+scatter plot. \code{DimPlot()} colours points by a discrete grouping variable
+(e.g., clusters), while \code{FeatureDimPlot()} colours points by a continuous
+numeric feature (e.g., gene expression, lineage scores).
+
+Both functions share the same internal engine (\code{DimPlotAtomic}) and support
+an extensive set of annotation layers: group boundary marks, network/graph
+edges, 2D density contours, lineage/trajectory curves, RNA-velocity arrows
+(raw, grid, or stream), statistical summary mini-plots at group centroids,
+point highlighting, background context points from other facets, and
+flexible label positioning.
+
+When \code{dims} has 3 elements, both functions automatically return an
+interactive \strong{plotly} 3D scatter plot (via \code{DimPlotAtomic3D}). Certain
+2D-only features are silently ignored in 3D mode (see \verb{@param dims} for
+the full list).
+
+Rendering scales with dataset size: standard \code{geom_point()} for small data,
+automatic rasterisation via \code{scattermore::geom_scattermore()} when
+\code{nrow(data) > 1e5}, or hex-bin aggregation (\code{geom_hex()} /
+\code{stat_summary_hex()}).
+
+Feature expression on dimension reduction plots. Colours points by a
+continuous numeric variable (e.g., gene expression, module score, lineage
+pseudotime) using a gradient colour scale, with optional quantile trimming
+and background cutoff.
+
+When multiple \code{features} are provided and \code{facet_by} is not set, the data
+is automatically pivoted to long format and faceted by feature name.
+\code{split_by = TRUE} dispatches each feature to a separate plot for
+independent layout control. \code{split_by} as a column name splits by that
+column's levels, producing one plot per level with per-split palette
+support.
+
+For detailed split_by workflows, see the main \code{DimPlot / FeatureDimPlot}
+documentation (\verb{@section split_by Workflow (FeatureDimPlot)}).
 }
+\section{split_by Workflow (DimPlot)}{
+
+
+When \code{split_by} is specified, \code{DimPlot()} executes the following pipeline:
+\enumerate{
+\item \strong{Argument validation} — \code{validate_common_args()} checks the seed and
+blocks \code{split_by} + \code{velocity} combinations.
+\item \strong{NA / empty normalisation} — \code{check_keep_na()} / \code{check_keep_empty()}
+convert \code{keep_na} / \code{keep_empty} to per-column lists.
+\item \strong{Theme resolution} — \code{process_theme()} resolves the theme string to a
+theme function.
+\item \strong{Split column resolution} — \code{check_columns()} validates \code{split_by}
+(force_factor, concat_multi).
+\item \strong{Pre-filtering} — \code{process_keep_na_empty()} removes NA / empty levels
+from the split column, then \code{data} is split by \code{split_by} levels (order
+preserved). When \code{graph} references an attribute (\verb{@graph}), the graph
+matrix is also subset per split.
+\item \strong{Per-split parameter resolution} — \code{check_palette()},
+\code{check_palcolor()}, \code{check_legend()} resolve palette, palcolor,
+legend.position, and legend.direction for each split.
+\item \strong{Per-split dispatch} — each split is passed to \code{DimPlotAtomic()} with
+its resolved parameters. Title defaults to the split level name unless
+\code{title} is a function.
+\item \strong{Combination} — \code{combine_plots()} assembles the list of plots via
+\code{patchwork::wrap_plots()}, applying \code{nrow}, \code{ncol}, \code{byrow}, \code{axes},
+\code{axis_titles}, \code{guides}, and \code{design}.
+}
+}
+
+\section{split_by Workflow (FeatureDimPlot)}{
+
+
+\code{FeatureDimPlot()} supports two forms of splitting:
+
+\strong{A. \code{split_by = TRUE} (split by features)}
+\enumerate{
+\item Each feature in \code{features} is dispatched individually to
+\code{DimPlotAtomic()}, producing one plot per feature. The plot title
+defaults to the feature name.
+\item Plots are combined via \code{combine_plots()} with \code{split_by = ".features"}.
+}
+
+\strong{B. \code{split_by} as a column name (split by data column)}
+\enumerate{
+\item Data is split by the named column's levels (same pipeline as DimPlot
+steps 1–8 above). Graph attribute splitting is supported.
+}
+}
+
 \examples{
 \donttest{
 data(dim_example)
 
+# basic dim plot
 DimPlot(dim_example, group_by = "clusters")
 DimPlot(dim_example, group_by = "clusters", theme = "theme_blank")
 DimPlot(dim_example, group_by = "clusters", theme = ggplot2::theme_classic,
     theme_args = list(base_size = 16), palette = "seurat")
+
+# raster and highlighting
 DimPlot(dim_example, group_by = "clusters", raster = TRUE, raster_dpi = 50)
 DimPlot(dim_example, group_by = "clusters", highlight = 1:20,
     highlight_color = "black", highlight_stroke = 2)
 DimPlot(dim_example, group_by = "clusters", highlight = TRUE, facet_by = "group",
     theme = "theme_blank")
+
+# labels
 DimPlot(dim_example, group_by = "clusters", label = TRUE,
     label_size = 5, label_bg_r = 0.2)
 DimPlot(dim_example, group_by = "clusters", label = TRUE, label_fg = "red",
     label_bg = "yellow", label_size = 5)
 DimPlot(dim_example, group_by = "clusters", label = TRUE, label_insitu = TRUE)
+
+# group marks
 DimPlot(dim_example, group_by = "clusters", add_mark = TRUE)
 DimPlot(dim_example, group_by = "clusters", add_mark = TRUE, mark_linetype = 2)
 DimPlot(dim_example, group_by = "clusters", add_mark = TRUE, mark_type = "ellipse")
+
+# density overlays
 DimPlot(dim_example, group_by = "clusters", add_density = TRUE)
 DimPlot(dim_example, group_by = "clusters", add_density = TRUE, density_filled = TRUE)
 DimPlot(dim_example, group_by = "clusters", add_density = TRUE, density_filled = TRUE,
     density_filled_palette = "Blues", highlight = TRUE)
+
+# statistics at group centroids
 DimPlot(dim_example, group_by = "clusters", stat_by = "group")
 DimPlot(dim_example, group_by = "clusters", stat_by = "group",
     stat_plot_type = "bar", stat_plot_size = 0.06)
+
+# hex bins
 DimPlot(dim_example, group_by = "clusters", hex = TRUE)
 DimPlot(dim_example, group_by = "clusters", hex = TRUE, hex_bins = 20)
 DimPlot(dim_example, group_by = "clusters", hex = TRUE, hex_count = FALSE)
+
+# graph / network edges
 DimPlot(dim_example, group_by = "clusters", graph = "@graph", edge_color = "grey80")
+
+# lineages / trajectories
 DimPlot(dim_example, group_by = "clusters", lineages = c("stochasticbasis_1", "stochasticbasis_2"))
 DimPlot(dim_example, group_by = "clusters", lineages = c("stochasticbasis_1", "stochasticbasis_2"),
     lineages_whiskers = TRUE, lineages_whiskers_linewidth = 0.1)
 DimPlot(dim_example, group_by = "clusters", lineages = c("stochasticbasis_1", "stochasticbasis_2"),
     lineages_span = 0.4)
+
+# split_by
 DimPlot(dim_example, group_by = "clusters",  split_by = "group",
     palette = list(A = "Paired", B = "Set1"))
-# velocity plot
+
+# velocity
 DimPlot(dim_example, group_by = "clusters", velocity = c("stochasticbasis_1", "stochasticbasis_2"),
     pt_alpha = 0)
 DimPlot(dim_example, group_by = "clusters", velocity = 3:4,
@@ -655,19 +852,25 @@ DimPlot(dim_example, group_by = "clusters", keep_na = TRUE, keep_empty = FALSE)
 }
 \donttest{
 data(dim_example)
+
+# single feature
 FeatureDimPlot(dim_example, features = "stochasticbasis_1", pt_size = 2)
 FeatureDimPlot(dim_example, features = "stochasticbasis_1", pt_size = 2, bg_cutoff = 0)
 FeatureDimPlot(dim_example, features = "stochasticbasis_1", raster = TRUE, raster_dpi = 30)
+
+# multiple features (auto-pivoted to long, faceted by feature)
 FeatureDimPlot(dim_example, features = c("stochasticbasis_1", "stochasticbasis_2"),
  pt_size = 2)
+
+# single feature with facet_by (facet_by works when only 1 feature)
 FeatureDimPlot(dim_example, features = c("stochasticbasis_1"), pt_size = 2,
  facet_by = "group")
-# Can't use facet_by for multiple features
-FeatureDimPlot(dim_example, features = c("stochasticbasis_1", "stochasticbasis_2"),
- pt_size = 2)
-# We can use split_by
+
+# multiple features with split_by for independent layout
 FeatureDimPlot(dim_example, features = c("stochasticbasis_1", "stochasticbasis_2"),
  split_by = "group", nrow = 2)
+
+# highlight and hex
 FeatureDimPlot(dim_example, features = c("stochasticbasis_1", "stochasticbasis_2"),
  highlight = TRUE)
 FeatureDimPlot(dim_example, features = c("stochasticbasis_1", "stochasticbasis_2"),

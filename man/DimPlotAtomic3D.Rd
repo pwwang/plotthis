@@ -49,7 +49,209 @@ DimPlotAtomic3D(
   n_sampled = NULL
 )
 }
-\description{
-Internal helper to create a 3D dimension reduction plot using plotly
+\arguments{
+\item{data}{A data frame.}
+
+\item{dims}{A character vector of the column names to plot on the x, y (and optionally z) axes or a numeric vector
+of the column indices. When 3 dimensions are provided, a 3D interactive plot is created using plotly.
+Supported in 3D: group_by, features, labels, highlight, lineages, graph/network, show_stat, order.
+Not supported in 3D: add_mark, stat_by, add_density, velocity, hex, facet_by, raster.}
+
+\item{group_by}{A character string of the column name to group the data by for discrete colouring.
+A character/factor column is expected. If multiple columns are provided, the columns will be concatenated with \code{group_by_sep}.}
+
+\item{features}{A character vector of the column names to plot as features (continuous colouring).
+When multiple features are provided and \code{facet_by} is not set, the data is pivoted to long format and
+faceted by feature name.}
+
+\item{colorby}{A character string naming the column used for colour mapping
+(either the \code{group_by} factor or the \code{features} numeric column).}
+
+\item{colors}{A named character vector mapping group levels to hex colours.
+Only used in group_by mode.}
+
+\item{feat_colors_value}{A numeric vector of the colour-scale anchor values
+for feature mode, as returned by \code{prepare_continuous_color_scale()}.}
+
+\item{label_use}{A character vector of formatted legend labels (with
+optional count annotations) used in group_by mode.}
+
+\item{labels_tb}{A table of group counts for trace iteration in group_by
+mode.}
+
+\item{keep_empty_group}{A logical value. If \code{TRUE}, empty factor levels are
+preserved; traces with zero rows are still added to the legend.}
+
+\item{bg_color}{A character string specifying the colour used for NA-valued points and
+background context points drawn from other facets. Default is \code{"grey80"}.}
+
+\item{color_name}{A character string used as the title for the continuous colour bar
+in feature mode. Default is \code{""}.}
+
+\item{pt_size}{A numeric value of the point size. If NULL (default), the point size is auto-calculated as
+\code{min(3000 / nrow(data), 0.6)} so large datasets automatically get smaller points.}
+
+\item{pt_alpha}{A numeric value in \verb{[0, 1]} for the point transparency. Default is \code{1}.}
+
+\item{show_stat}{A logical value. If \code{TRUE} (default), the number of points per group is shown
+in the legend labels and subtitle. Ignored when \code{theme = "theme_blank"}.}
+
+\item{title}{A character string specifying the title of the plot.
+A function can be used to generate the title based on the default title.
+This is useful when split_by is used and the title needs to be dynamic.}
+
+\item{subtitle}{A character string specifying the subtitle of the plot.}
+
+\item{xlab}{A character string specifying the x-axis label.}
+
+\item{ylab}{A character string specifying the y-axis label.}
+
+\item{label}{A logical value. If \code{TRUE}, group labels (numeric indices by default, or group
+names when \code{label_insitu = TRUE}) are placed at the median coordinates of each group.
+Forced to \code{TRUE} when \code{label_repel} or \code{label_insitu} is set.}
+
+\item{label_insitu}{A logical value. If \code{TRUE}, the raw group names are placed at the group median
+coordinates instead of numeric indices. Forces \code{label = TRUE}. Default is \code{FALSE}.}
+
+\item{label_size}{A numeric value for the label text size. Passed to \code{ggrepel::geom_text_repel()}.
+Default is \code{4}.}
+
+\item{label_fg}{A character string for the label text (foreground) colour. Default is \code{"white"}.}
+
+\item{label_bg}{A character string for the label background / outline colour. Default is \code{"black"}.}
+
+\item{highlight}{A specification for highlighted points:
+\itemize{
+\item \code{NULL} (default): no highlighting.
+\item \code{TRUE}: highlight all points (adds a dark outline around every point).
+\item A character string: a dplyr filter expression (e.g., \code{"clusters == 'Ductal'"}).
+\item A character vector: row names to highlight.
+\item A numeric vector: row indices to highlight.
+}}
+
+\item{highlight_color}{A character string for the colour of the outer highlight ring.
+Default is \code{"black"}.}
+
+\item{highlight_size}{A numeric value for the size of the inner (coloured) highlight point.
+Default is \code{1}.}
+
+\item{highlight_stroke}{A numeric value for the thickness of the outer highlight ring (the
+difference between the outer ring size and \code{highlight_size}). Default is \code{0.8}.}
+
+\item{highlight_alpha}{A numeric value in \verb{[0, 1]} for the transparency of highlighted points.
+Default is \code{1}.}
+
+\item{graph}{A specification for network / graph edges to overlay. Sources:
+\itemize{
+\item A character string starting with \code{"@"} (e.g., \code{"@graph"}): extracts the attribute
+named \code{"graph"} from \code{attributes(data)}.
+\item A \code{Graph} object (e.g., Seurat): coerced to dense matrix via \code{as.matrix()}.
+\item A \code{matrix}, \code{data.frame}, or \code{dgCMatrix}: used directly as the adjacency matrix.
+\item Numeric indices or character column names: extracts columns from \code{data}.
+Edges are drawn for non-zero, lower-triangle entries. Requires \code{data} to have row names
+matching the matrix dimnames.
+}}
+
+\item{edge_size}{A numeric vector of length 2 specifying the range \verb{[min, max]} for
+\code{scale_linewidth_continuous(range = ...)} applied to edge widths. Default is \code{c(0.05, 0.5)}.}
+
+\item{edge_alpha}{A numeric value in \verb{[0, 1]} for the transparency of graph edges.
+Default is \code{0.1}.}
+
+\item{edge_color}{A character string for the colour of graph edges. Default is \code{"grey40"}.}
+
+\item{lineages}{A character vector of column names representing pseudotime / trajectory lineages.
+Each column is fitted with a LOESS smooth (\verb{span = lineages_span, degree = 2}) across the
+2D embedding, after trimming the top and bottom \code{lineages_trim} quantiles.
+Only supported in 2D without \code{facet_by}.}
+
+\item{lineages_trim}{A numeric vector of length 2 specifying the lower and upper quantile
+thresholds \verb{[0, 1]} for trimming lineage values before LOESS fitting.
+Default is \code{c(0.01, 0.99)}.}
+
+\item{lineages_span}{A numeric value passed as \code{span} to \code{stats::loess()} controlling the
+smoothness of the lineage curve. Smaller values follow the data more closely.
+Default is \code{0.75}.}
+
+\item{lineages_palette}{A character string naming the palette for lineage colours.
+Default is \code{"Dark2"}.}
+
+\item{lineages_palcolor}{A character vector of specific colours for lineage curves.
+Default is \code{NULL} (auto-resolved from \code{lineages_palette}).}
+
+\item{palette}{A character string specifying the palette to use.
+A named list or vector can be used to specify the palettes for different \code{split_by} values.}
+
+\item{palcolor}{A character string specifying the color to use in the palette.
+A named list can be used to specify the colors for different \code{split_by} values.
+If some values are missing, the values from the palette will be used (palcolor will be NULL for those values).}
+
+\item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
+
+\item{n_sampled}{An integer indicating how many points were retained after
+down-sampling (displayed in the subtitle). \code{NULL} if no sampling occurred.}
 }
+\description{
+Renders an interactive 3D scatter plot via \strong{plotly} for dimension reduction
+data with three ordination axes. Called automatically by \code{DimPlotAtomic()}
+when \code{length(dims) == 3}.
+
+The function supports two visualisation modes:
+\itemize{
+\item \strong{group_by} — discrete group colouring with one trace per group, matching
+the 2D legend behaviour via \code{label_use}.
+\item \strong{features} — continuous colour scale with a \code{plotly} colorscale bar.
+}
+
+Graphs / networks are rendered as 3D line segments (with NA separators for
+line breaks). Lineage curves are fitted via \code{stats::loess()} per lineage
+column and drawn as smoothed paths. For datasets exceeding 100 000 points,
+per-point hover text is disabled to reduce the JSON payload.
+}
+\section{Architecture}{
+
+\strong{DimPlotAtomic3D} executes the following steps:
+\enumerate{
+\item \strong{plotly availability check} — errors early if the \code{plotly} package is
+not installed.
+\item \strong{Axis labels} — defaults \code{xlab} / \code{ylab} / \code{zlab} from \code{dims}.
+\item \strong{Marker size scaling} — multiplies \code{pt_size} by 2 to convert from
+ggplot2 mm units to plotly pixel units.
+\item \strong{Large-data detection} — disables per-point hover text when
+\code{nrow(data) > 1e5}.
+\item \strong{Base plotly object} — \code{plotly::plot_ly()} initialisation.
+\item \strong{Graph / network edges} (if \code{graph} is provided) — resolves the graph
+source (\verb{@attribute}, Graph object, matrix, data.frame, column indices,
+or column names), aligns row/column names with \code{data}, sets upper-triangle
+and zero entries to \code{NA}, melts into an edge data frame, builds x/y/z
+coordinate vectors (interleaved with NA for line breaks), and adds
+\code{scatter3d} line traces.
+\item \strong{Main scatter traces}:
+\itemize{
+\item \emph{group_by mode}: iterates over \code{labels_tb} entries, creating one trace
+per group with the resolved colour. NA groups use \code{bg_color}. Legend
+labels use \code{label_use} (with count annotations if \code{show_stat = TRUE}).
+\item \emph{features mode}: builds a plotly-style colorscale from the continuous
+palette. NA points are rendered first in \code{bg_color} without a colour
+bar; non-NA points follow with a \code{showscale = TRUE} colour bar.
+}
+\item \strong{Highlight} — if \code{highlight} is specified, highlighted points are
+plotted as open circles with increased marker size (to account for
+stroke). Supports \code{TRUE} (all points), a filter expression string, or
+a vector of row names / numeric indices.
+\item \strong{Lineages} — each lineage column is validated, trimmed to
+\verb{[lineages_trim[1], lineages_trim[2]]} quantiles, ordered by value,
+and a \code{loess(span = lineages_span, degree = 2)} smooth is fitted per
+dimension. The smoothed curve is rendered as a 3D line trace.
+\item \strong{Labels} — when \code{label = TRUE} and \code{group_by} is set, group median
+coordinates are computed via \code{aggregate()}. In 3D, plotly does not
+support text background/outline, so \code{label_bg} is used directly as
+the text colour. Text size is scaled by 3× for plotly.
+\item \strong{Layout} — subtitle is composited with an optional "Showing N sampled
+points" note. The full title is rendered as HTML (\verb{<br><sup>...</sup>}).
+The scene sets \code{aspectratio = list(x = 1, y = 1, z = 1)} and axis
+titles.
+}
+}
+
 \keyword{internal}

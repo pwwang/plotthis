@@ -1,5 +1,76 @@
 #' Internal helper to create a 3D dimension reduction plot using plotly
 #'
+#' @description
+#' Renders an interactive 3D scatter plot via **plotly** for dimension reduction
+#' data with three ordination axes. Called automatically by `DimPlotAtomic()`
+#' when `length(dims) == 3`.
+#'
+#' The function supports two visualisation modes:
+#' - **group_by** — discrete group colouring with one trace per group, matching
+#'   the 2D legend behaviour via `label_use`.
+#' - **features** — continuous colour scale with a `plotly` colorscale bar.
+#'
+#' Graphs / networks are rendered as 3D line segments (with NA separators for
+#' line breaks). Lineage curves are fitted via `stats::loess()` per lineage
+#' column and drawn as smoothed paths. For datasets exceeding 100 000 points,
+#' per-point hover text is disabled to reduce the JSON payload.
+#'
+#' @section Architecture:
+#' **DimPlotAtomic3D** executes the following steps:
+#'
+#' 1. **plotly availability check** — errors early if the `plotly` package is
+#'    not installed.
+#' 2. **Axis labels** — defaults `xlab` / `ylab` / `zlab` from `dims`.
+#' 3. **Marker size scaling** — multiplies `pt_size` by 2 to convert from
+#'    ggplot2 mm units to plotly pixel units.
+#' 4. **Large-data detection** — disables per-point hover text when
+#'    `nrow(data) > 1e5`.
+#' 5. **Base plotly object** — `plotly::plot_ly()` initialisation.
+#' 6. **Graph / network edges** (if `graph` is provided) — resolves the graph
+#'    source (`@attribute`, Graph object, matrix, data.frame, column indices,
+#'    or column names), aligns row/column names with `data`, sets upper-triangle
+#'    and zero entries to `NA`, melts into an edge data frame, builds x/y/z
+#'    coordinate vectors (interleaved with NA for line breaks), and adds
+#'    `scatter3d` line traces.
+#' 7. **Main scatter traces**:
+#'    - *group_by mode*: iterates over `labels_tb` entries, creating one trace
+#'      per group with the resolved colour. NA groups use `bg_color`. Legend
+#'      labels use `label_use` (with count annotations if `show_stat = TRUE`).
+#'    - *features mode*: builds a plotly-style colorscale from the continuous
+#'      palette. NA points are rendered first in `bg_color` without a colour
+#'      bar; non-NA points follow with a `showscale = TRUE` colour bar.
+#' 8. **Highlight** — if `highlight` is specified, highlighted points are
+#'    plotted as open circles with increased marker size (to account for
+#'    stroke). Supports `TRUE` (all points), a filter expression string, or
+#'    a vector of row names / numeric indices.
+#' 9. **Lineages** — each lineage column is validated, trimmed to
+#'    `[lineages_trim[1], lineages_trim[2]]` quantiles, ordered by value,
+#'    and a `loess(span = lineages_span, degree = 2)` smooth is fitted per
+#'    dimension. The smoothed curve is rendered as a 3D line trace.
+#' 10. **Labels** — when `label = TRUE` and `group_by` is set, group median
+#'     coordinates are computed via `aggregate()`. In 3D, plotly does not
+#'     support text background/outline, so `label_bg` is used directly as
+#'     the text colour. Text size is scaled by 3× for plotly.
+#' 11. **Layout** — subtitle is composited with an optional "Showing N sampled
+#'     points" note. The full title is rendered as HTML (`<br><sup>...</sup>`).
+#'     The scene sets `aspectratio = list(x = 1, y = 1, z = 1)` and axis
+#'     titles.
+#'
+#' @inheritParams DimPlotAtomic
+#' @param colorby A character string naming the column used for colour mapping
+#'   (either the `group_by` factor or the `features` numeric column).
+#' @param colors A named character vector mapping group levels to hex colours.
+#'   Only used in group_by mode.
+#' @param feat_colors_value A numeric vector of the colour-scale anchor values
+#'   for feature mode, as returned by `prepare_continuous_color_scale()`.
+#' @param label_use A character vector of formatted legend labels (with
+#'   optional count annotations) used in group_by mode.
+#' @param labels_tb A table of group counts for trace iteration in group_by
+#'   mode.
+#' @param keep_empty_group A logical value. If `TRUE`, empty factor levels are
+#'   preserved; traces with zero rows are still added to the legend.
+#' @param n_sampled An integer indicating how many points were retained after
+#'   down-sampling (displayed in the subtitle). `NULL` if no sampling occurred.
 #' @keywords internal
 DimPlotAtomic3D <- function(
     data,
@@ -471,106 +542,306 @@ DimPlotAtomic3D <- function(
 
 #' Atomic Dimension Reduction Plot without splitting the data
 #'
+#' @description
+#' Core implementation for dimension reduction visualisation. This is the
+#' internal workhorse dispatched by both `DimPlot()` (group-based) and
+#' `FeatureDimPlot()` (continuous feature expression). It renders a 2D
+#' scatter plot of ordination axes with extensive annotation capabilities,
+#' and automatically delegates to `DimPlotAtomic3D()` for interactive 3D
+#' plots when three `dims` are provided.
+#'
+#' The function supports two primary colouring modes:
+#' - **group_by** — discrete factor colouring with a legend of group levels,
+#'   optional density/statistical overlays, and group mark / label annotations.
+#' - **features** — continuous numeric colouring with a gradient colour bar,
+#'   multi-feature faceting via `tidyr::pivot_longer()`, and optional cutoff
+#'   / quantile trimming via `prepare_continuous_color_scale()`.
+#'
+#' Additional annotation layers include: graph / network edges drawn as
+#' segments between connected nodes, 2D density contours (filled or outline),
+#' group marks (hull, ellipse, rect, circle via `ggforce`), lineage curves
+#' (LOESS-smoothed paths with optional whiskers), velocity / RNA-velocity
+#' arrows (raw, grid, or stream via `VelocityPlot()`), statistical summary
+#' mini-plots (pie, ring, bar, line) embedded at group centroids, background
+#' points from other facets (faded context), and group labels with repulsion
+#' (via `ggrepel::geom_text_repel()`).
+#'
+#' Rendering scales automatically: scatter points for small datasets,
+#' `scattermore::geom_scattermore()` raster for `n > 1e5`, or hex-binned
+#' aggregation (`stat_summary_hex()` / `geom_hex()`). Legend assembly uses
+#' `cowplot::get_plot_component()` with independent guide-boxes for base
+#' groups, lineages, velocity, and stat-by annotations — combined via
+#' `rbind` / `cbind` and re-inserted with `add_grob()`.
+#'
+#' @section Architecture:
+#' **DimPlotAtomic** executes the following steps:
+#'
+#' 1. **ggplot dispatch** — selects `gglogger::ggplot` or `ggplot2::ggplot`.
+#' 2. **Order validation** — `match.arg(order)`.
+#' 3. **Dimension resolution** — converts numeric indices to column names,
+#'    validates exactly 2 or 3 dims via `check_columns()`.
+#' 4. **Column resolution** — validates `group_by` (force_factor, concat_multi),
+#'    `features`, and `facet_by`. Requires at least one of `group_by` or
+#'    `features`. Blocks `facet_by` when multiple features are present (features
+#'    themselves become facets).
+#' 5. **Auto defaults** — `pt_size` defaults to `min(3000 / nrow(data), 0.6)`;
+#'    `raster` auto-enables when `nrow(data) > 1e5`; `theme_blank` suppresses
+#'    axis labels.
+#' 6. **Label force-enable** — if `label_repel` or `label_insitu` is `TRUE`,
+#'    `label` is forced to `TRUE` with a message.
+#' 7. **NA / empty handling** — `process_keep_na_empty()` filters the data;
+#'    `keep_empty` values extracted for group_by and facet_by.
+#' 8. **group_by preprocessing** — group values / colours resolved via
+#'    `palette_this()`. NA levels mapped to literal `"NA"` string.
+#'    `label_use` is constructed based on `label`, `label_insitu`, and
+#'    `show_stat` combinations. Facet labeller is set to `as_labeller()` with
+#'    per-facet N annotations when `show_stat = TRUE`.
+#' 9. **Multi-feature pivot** — when `length(features) > 1`, data is pivoted
+#'    to long format via `tidyr::pivot_longer()` with `.feature` as the facet
+#'    variable and `.value` as the numeric column.
+#' 10. **Continuous colour scale** — when `features` is set,
+#'     `prepare_continuous_color_scale()` applies quantile/cutoff trimming
+#'     and returns anchor values for the gradient.
+#' 11. **Point ordering** — applies the selected `order` strategy (as-is,
+#'     reverse, high-top, low-top, random) by sorting or shuffling rows.
+#' 12. **3D branch** — if `length(dims) == 3`, emits a warning for unsupported
+#'     features, optionally down-samples with stratified group sampling (when
+#'     `raster = TRUE`), and delegates to `DimPlotAtomic3D()`.
+#' 13. **Group marks** (2D only, when `add_mark = TRUE`) — dispatches to
+#'     `ggforce::geom_mark_hull/ellipse/rect/circle`, with `new_scale_fill()`
+#'     / `new_scale_color()` to isolate mark scales.
+#' 14. **Graph / network** (2D only) — resolves the graph source (same logic
+#'     as 3D), melts the matrix, handles faceted data by per-facet edge
+#'     splitting, and adds `geom_segment(aes(linewidth = value))` with
+#'     `scale_linewidth_continuous()`.
+#' 15. **Density overlay** (2D only) — filled (`stat_density_2d(geom = "raster")`)
+#'     or outline (`geom_density_2d()`).
+#' 16. **Base scales and theme** — x / y limits from data range,
+#'     `do_call(theme, theme_args)`, aspect ratio and legend position.
+#' 17. **Background points for facet context** — for faceted plots (excluding
+#'     multi-feature auto-faceting), points from other facets are added as
+#'     faded background (raster / hex / point depending on settings).
+#' 18. **Main point layer** — dispatches by rendering mode:
+#'     - *raster*: `scattermore::geom_scattermore()` with separate NA / non-NA
+#'       group layers.
+#'     - *hex*: `geom_hex()` (group_by with optional count alpha, or
+#'       `stat_summary_hex()` for features). Raises `has_fill = TRUE`.
+#'     - *standard*: `geom_point()`.
+#' 19. **Highlight** (2D only) — resolves highlight specification (TRUE, filter
+#'     expression, row names, indices), errors on hex + highlight combo, renders
+#'     highlight points with stroke (outer ring + inner colour).
+#' 20. **Colour scales** — `scale_color_manual()` for group_by (with
+#'     `keep_empty`-aware `breaks`/`limits`/`drop`), or
+#'     `scale_color_gradientn()` for features. `scale_fill_manual()` /
+#'     `scale_fill_gradientn()` added when `has_fill` is TRUE.
+#' 21. **Base legend** — extracted via `cowplot::get_plot_component("guide-box-bottom")`.
+#' 22. **Lineages** (2D only, no facet_by) — per-lineage LOESS fitting
+#'     (`span = lineages_span, degree = 2`) with optional whiskers connecting
+#'     smoothed to raw coordinates. Rendered as `geom_path()` with background
+#'     stroke + foreground colour, plus `scale_color_manual()`. Legend extracted
+#'     as a separate guide-box.
+#' 23. **Velocity** (2D only, no facet_by) — delegates to `VelocityPlot()` with
+#'     `return_layer = TRUE`. Adds `new_scale_color()` when the velocity layer
+#'     has its own colour scale. Legend extracted separately.
+#' 24. **Stat-by mini-plots** (2D only, no facet_by, no features) — dispatches
+#'     to `PieChart()` / `RingPlot()` / `BarPlot()` / `LinePlot()` via
+#'     `do_call()`. Each mini-plot is rendered as `annotation_custom()` at the
+#'     group's median coordinates, scaled by `stat_plot_size * range`.
+#'     Legend extracted from the stat plot.
+#' 25. **Group labels** (2D only, no features) — `geom_text_repel()` with
+#'     optional repulsion (`force = label_repulsion`) or fixed segments
+#'     (`force = 0`, bold, `min.segment.length = 0`). Labels positioned at
+#'     group median coordinates (computed per facet if applicable).
+#' 26. **Legend assembly** — when additional legends exist (lineages, velocity,
+#'     stat_by), they are combined with the base legend via `cbind` (vertical
+#'     direction) or `rbind` (horizontal). The combined legend is re-inserted
+#'     via `add_grob(gtable, legend, legend.position)`.
+#' 27. **Dimension calculation** — `calculate_plot_dimensions(base_height = 5.5,
+#'     aspect.ratio, legend_n, legend_nchar)` sets `height` / `width` attributes.
+#' 28. **Faceting** — `facet_plot()` is called only when no additional legends
+#'     were assembled (otherwise the combined-legend grob is returned directly).
+#'
 #' @inheritParams common_args
 #' @inheritParams VelocityPlot
 #' @param dims A character vector of the column names to plot on the x, y (and optionally z) axes or a numeric vector
 #'  of the column indices. When 3 dimensions are provided, a 3D interactive plot is created using plotly.
 #'  Supported in 3D: group_by, features, labels, highlight, lineages, graph/network, show_stat, order.
 #'  Not supported in 3D: add_mark, stat_by, add_density, velocity, hex, facet_by, raster.
-#' @param features A character vector of the column names to plot as features.
-#' @param group_by A character string of the column name to group the data.
+#' @param features A character vector of the column names to plot as features (continuous colouring).
+#'  When multiple features are provided and `facet_by` is not set, the data is pivoted to long format and
+#'  faceted by feature name.
+#' @param group_by A character string of the column name to group the data by for discrete colouring.
 #'  A character/factor column is expected. If multiple columns are provided, the columns will be concatenated with `group_by_sep`.
 #' @param group_by_sep A character string to concatenate the columns in `group_by`, if multiple columns are provided.
-#' @param pt_size A numeric value of the point size. If NULL, the point size will be calculated based on the number of data points.
-#' @param pt_alpha A numeric value of the point transparency. Default is 1.
-#' @param bg_color A character string of the background or NA points. Default is "grey80".
-#' @param label_insitu Whether to place the raw labels (group names) in the center of the points with the corresponding group. Default is FALSE, which using numbers instead of raw labels.
-#' @param show_stat Whether to show the number of points in the subtitle. Default is TRUE.
-#' @param order A character string to determine the order of the points in the plot.
-#' * "as-is": no order, the order of the points in the data will be used
-#' * "reverse": reverse the order of the points in the data.
-#' * "high-top": points with high values on top
-#' * "low-top": points with low values on top
-#' * "random": random order
+#' @param pt_size A numeric value of the point size. If NULL (default), the point size is auto-calculated as
+#'  `min(3000 / nrow(data), 0.6)` so large datasets automatically get smaller points.
+#' @param pt_alpha A numeric value in `[0, 1]` for the point transparency. Default is `1`.
+#' @param bg_color A character string specifying the colour used for NA-valued points and
+#'  background context points drawn from other facets. Default is `"grey80"`.
+#' @param label_insitu A logical value. If `TRUE`, the raw group names are placed at the group median
+#'  coordinates instead of numeric indices. Forces `label = TRUE`. Default is `FALSE`.
+#' @param show_stat A logical value. If `TRUE` (default), the number of points per group is shown
+#'  in the legend labels and subtitle. Ignored when `theme = "theme_blank"`.
+#' @param order A character string controlling the draw order of points:
+#'  * `"as-is"` (default) — the row order in the data is preserved.
+#'  * `"reverse"` — rows are reversed.
+#'  * `"high-top"` — points with high values (last factor levels for group_by) are drawn last (on top).
+#'  * `"low-top"` — points with low values (first factor levels) are drawn last.
+#'  * `"random"` — rows are randomly shuffled.
 #'
-#' For `high-top` and `low-top`, the NA values will be always plotted at the bottom.
-#'
-#' This works on `features` as they are numeric values.
-#' When this works on `group_by`, the ordering and coloring will not be changed in the legend. This is
-#' only affecting the order of drawing of the points in the plot.
-#' For `high-top` and `low-top` on `group_by`, the levels will be sorted based on levels of the factor.
-#' So `high-top` will put the points with the last levels on top, and `low-top` will put the points with the first levels on top.
-#' The order of points within the same level will not be changed anyway.
-#' If you need precise control over the order of `group_by`, set the levels of the factor before plotting.
-#' See <https://github.com/pwwang/scplotter/issues/29#issuecomment-3009694130> for examples.
-#' @param label Whether to show the labels of groups. Default is FALSE.
-#' @param label_size A numeric value of the label size. Default is 4.
-#' @param label_fg A character string of the label foreground color. Default is "white".
-#' @param label_bg A character string of the label background color. Default is "black".
-#' @param label_bg_r A numeric value of the background ratio of the labels. Default is 0.1.
-#' @param label_repel Whether to repel the labels. Default is FALSE.
-#' @param label_repulsion A numeric value of the label repulsion. Default is 20.
-#' @param label_pt_size A numeric value of the label point size. Default is 1.
-#' @param label_pt_color A character string of the label point color. Default is "black".
-#' @param label_segment_color A character string of the label segment color. Default is "black".
-#' @param highlight A character vector of the row names to highlight. Default is NULL.
-#' @param highlight_alpha A numeric value of the highlight transparency. Default is 1.
-#' @param highlight_size A numeric value of the highlight size. Default is 1.
-#' @param highlight_color A character string of the highlight color. Default is "black".
-#' @param highlight_stroke A numeric value of the highlight stroke. Default is 0.5.
-#' @param add_mark Whether to add mark to the plot. Default is FALSE.
-#' @param mark_type A character string of the mark type. Default is "hull".
-#' @param mark_expand A unit value of the mark expand. Default is 3mm.
-#' @param mark_alpha A numeric value of the mark transparency. Default is 0.1.
-#' @param mark_linetype A numeric value of the mark line type. Default is 1.
-#' @param stat_by A character string of the column name to calculate the statistics. Default is NULL.
-#' @param stat_plot_type A character string of the statistic plot type. Default is "pie".
-#' @param stat_plot_size A numeric value of the statistic plot size. Default is 0.1.
-#' @param stat_args A list of additional arguments to the statistic plot. Default is list(palette = "Set1").
-#' @param graph A character string of column names or the indexes in the data for the graph data. Default is NULL.
-#'   If "@graph" is provided, the graph data will be extracted from the data attribute 'graph'.
-#' @param edge_size A numeric vector of the edge size range. Default is c(0.05, 0.5).
-#' @param edge_alpha A numeric value of the edge transparency. Default is 0.1.
-#' @param edge_color A character string of the edge color. Default is "grey40".
-#' @param add_density Whether to add density plot. Default is FALSE.
-#' @param density_color A character string of the density color. Default is "grey80".
-#' @param density_filled Whether to fill the density plot. Default is FALSE.
-#' @param density_filled_palette A character string of the filled density palette. Default is "Greys".
-#' @param density_filled_palcolor A character vector of the filled density palette colors. Default is NULL.
-#' @param lineages A character vector of the column names for lineages. Default is NULL.
-#' @param lineages_trim A numeric vector of the trim range for lineages. Default is c(0.01, 0.99).
-#' @param lineages_span A numeric value of the lineages span. Default is 0.75.
-#' @param lineages_palette A character string of the lineages palette. Default is "Dark2".
-#' @param lineages_palcolor A character vector of the lineages palette colors. Default is NULL.
-#' @param lineages_arrow An arrow object for the lineages. Default is arrow(length = unit(0.1, "inches")).
-#' @param lineages_linewidth A numeric value of the lineages line width. Default is 1.
-#' @param lineages_line_bg A character string of the lineages line background color. Default is "white".
-#' @param lineages_line_bg_stroke A numeric value of the lineages line background stroke. Default is 0.5.
-#' @param lineages_whiskers Whether to add whiskers to the lineages. Default is FALSE.
-#' @param lineages_whiskers_linewidth A numeric value of the lineages whiskers line width. Default is 0.5.
-#' @param lineages_whiskers_alpha A numeric value of the lineages whiskers transparency. Default is 0.5.
-#' @param velocity A character (integer) vector of the column names (indexes) to pull from data for velocity. Default is NULL.
-#' It can also be a data frame or matrix of the velocity embedding itself.
-#' If NULL, the velocity will not be plotted.
-#' @param velocity_plot_type A character string of the velocity plot type. Default is "raw".
-#' One of "raw", "grid", or "stream".
-#' @param velocity_n_neighbors A numeric value of the number of neighbors to use for velocity. Default is NULL.
-#' @param velocity_density A numeric value of the velocity density. Default is 1.
-#' @param velocity_smooth A numeric value of the velocity smooth. Default is 0.5.
-#' @param velocity_scale A numeric value of the velocity scale. Default is 1.
-#' @param velocity_min_mass A numeric value of the minimum mass for velocity. Default is 1.
-#' @param velocity_cutoff_perc A numeric value of the velocity cutoff percentage. Default is 5.
-#' @param velocity_group_palette A character string of the velocity group palette. Default is "Set2".
-#' @param velocity_group_palcolor A character vector of the velocity group palette colors. Default is NULL.
-#' @param raster Whether to raster the plot. Default is NULL.
-#' @param raster_dpi A numeric vector of the raster dpi. Default is c(512, 512).
-#' @param hex Whether to use hex plot. Default is FALSE.
-#' @param hex_linewidth A numeric value of the hex line width. Default is 0.5.
-#' @param hex_count Whether to count the hex.
-#' @param hex_bins A numeric value of the hex bins. Default is 50.
-#' @param hex_binwidth A numeric value of the hex bin width. Default is NULL.
-#' @param bg_cutoff A numeric value to be used a cutoff to set the feature values to NA. Default is NULL.
-#' @param color_name A character string of the color legend name. Default is "".
+#'  For `high-top` and `low-top`, NA values are always plotted at the bottom.
+#'  When applied to `group_by`, only the draw order changes — legend colours and order
+#'  are unaffected. Within the same level, point order is preserved. For precise
+#'  control, set factor levels before plotting.
+#'  See <https://github.com/pwwang/scplotter/issues/29#issuecomment-3009694130> for examples.
+#' @param label A logical value. If `TRUE`, group labels (numeric indices by default, or group
+#'  names when `label_insitu = TRUE`) are placed at the median coordinates of each group.
+#'  Forced to `TRUE` when `label_repel` or `label_insitu` is set.
+#' @param label_size A numeric value for the label text size. Passed to `ggrepel::geom_text_repel()`.
+#'  Default is `4`.
+#' @param label_fg A character string for the label text (foreground) colour. Default is `"white"`.
+#' @param label_bg A character string for the label background / outline colour. Default is `"black"`.
+#' @param label_bg_r A numeric value for the background fill ratio of the label bounding box.
+#'  Passed to `ggrepel::geom_text_repel(bg.r = ...)`. Default is `0.1`.
+#' @param label_repel A logical value. If `TRUE`, labels are repelled from each other with force
+#'  `label_repulsion`. A visible point anchor is drawn. Forces `label = TRUE`.
+#' @param label_repulsion A numeric value for the repulsion force when `label_repel = TRUE`.
+#'  Passed to `ggrepel::geom_text_repel(force = ...)`. Default is `20`.
+#' @param label_pt_size A numeric value for the size of the anchor point drawn when
+#'  `label_repel = TRUE`. Default is `1`.
+#' @param label_pt_color A character string for the colour of the label anchor point. Default is `"black"`.
+#' @param label_segment_color A character string for the colour of the line segment connecting
+#'  the label to the anchor. Used in non-repel mode (`label_repel = FALSE`) where
+#'  `min.segment.length = 0`. Default is `"black"`.
+#' @param highlight A specification for highlighted points:
+#'  - `NULL` (default): no highlighting.
+#'  - `TRUE`: highlight all points (adds a dark outline around every point).
+#'  - A character string: a dplyr filter expression (e.g., `"clusters == 'Ductal'"`).
+#'  - A character vector: row names to highlight.
+#'  - A numeric vector: row indices to highlight.
+#' @param highlight_alpha A numeric value in `[0, 1]` for the transparency of highlighted points.
+#'  Default is `1`.
+#' @param highlight_size A numeric value for the size of the inner (coloured) highlight point.
+#'  Default is `1`.
+#' @param highlight_color A character string for the colour of the outer highlight ring.
+#'  Default is `"black"`.
+#' @param highlight_stroke A numeric value for the thickness of the outer highlight ring (the
+#'  difference between the outer ring size and `highlight_size`). Default is `0.8`.
+#' @param add_mark A logical value. If `TRUE`, group boundaries are drawn around points using
+#'  `ggforce` marks. Requires `group_by`. Only supported in 2D.
+#' @param mark_type A character string specifying the mark shape. Options:
+#'  `"hull"` (convex hull, default), `"ellipse"`, `"rect"`, or `"circle"`.
+#' @param mark_expand A unit value for the outward expansion of the mark boundary.
+#'  Passed to `ggforce::geom_mark_*(expand = ...)`. Default is `unit(3, "mm")`.
+#' @param mark_alpha A numeric value in `[0, 1]` for the transparency of the mark fill.
+#'  Default is `0.1`.
+#' @param mark_linetype A numeric value for the line type of the mark boundary. Default is `1` (solid).
+#' @param stat_by A character string naming a column used to compute per-group statistical summary
+#'  mini-plots embedded at group centroid positions. Only supported with `group_by` (not `features`).
+#'  Only supported in 2D without `facet_by`.
+#' @param stat_plot_type A character string specifying the mini-plot type. Options:
+#'  `"pie"` (default), `"ring"`, `"bar"`, or `"line"`.
+#' @param stat_plot_size A numeric value for the size of the stat mini-plot, expressed as a
+#'  fraction of the axis range. Default is `0.1`.
+#' @param stat_args A list of additional arguments passed to the stat plot function
+#'  (e.g., `list(palette = "Set1")`). Default is `list(palette = "Set1")`.
+#' @param graph A specification for network / graph edges to overlay. Sources:
+#'  - A character string starting with `"@"` (e.g., `"@graph"`): extracts the attribute
+#'    named `"graph"` from `attributes(data)`.
+#'  - A `Graph` object (e.g., Seurat): coerced to dense matrix via `as.matrix()`.
+#'  - A `matrix`, `data.frame`, or `dgCMatrix`: used directly as the adjacency matrix.
+#'  - Numeric indices or character column names: extracts columns from `data`.
+#'  Edges are drawn for non-zero, lower-triangle entries. Requires `data` to have row names
+#'  matching the matrix dimnames.
+#' @param edge_size A numeric vector of length 2 specifying the range `[min, max]` for
+#'  `scale_linewidth_continuous(range = ...)` applied to edge widths. Default is `c(0.05, 0.5)`.
+#' @param edge_alpha A numeric value in `[0, 1]` for the transparency of graph edges.
+#'  Default is `0.1`.
+#' @param edge_color A character string for the colour of graph edges. Default is `"grey40"`.
+#' @param add_density A logical value. If `TRUE`, a 2D density layer is overlaid. Only supported in 2D.
+#' @param density_color A character string for the colour of the density contour lines.
+#'  Used when `density_filled = FALSE`. Default is `"grey80"`.
+#' @param density_filled A logical value. If `TRUE`, the density is rendered as a filled raster
+#'  (`stat_density_2d(geom = "raster")`) instead of contour lines. A separate fill scale is used.
+#' @param density_filled_palette A character string naming the palette for the filled density layer.
+#'  Default is `"Greys"`.
+#' @param density_filled_palcolor A character vector of specific colours for the filled density
+#'  palette. Default is `NULL` (auto-resolved from `density_filled_palette`).
+#' @param lineages A character vector of column names representing pseudotime / trajectory lineages.
+#'  Each column is fitted with a LOESS smooth (`span = lineages_span, degree = 2`) across the
+#'  2D embedding, after trimming the top and bottom `lineages_trim` quantiles.
+#'  Only supported in 2D without `facet_by`.
+#' @param lineages_trim A numeric vector of length 2 specifying the lower and upper quantile
+#'  thresholds `[0, 1]` for trimming lineage values before LOESS fitting.
+#'  Default is `c(0.01, 0.99)`.
+#' @param lineages_span A numeric value passed as `span` to `stats::loess()` controlling the
+#'  smoothness of the lineage curve. Smaller values follow the data more closely.
+#'  Default is `0.75`.
+#' @param lineages_palette A character string naming the palette for lineage colours.
+#'  Default is `"Dark2"`.
+#' @param lineages_palcolor A character vector of specific colours for lineage curves.
+#'  Default is `NULL` (auto-resolved from `lineages_palette`).
+#' @param lineages_arrow A ggplot2 `arrow` specification applied to the end of lineage paths.
+#'  Default is `arrow(length = unit(0.1, "inches"))`.
+#' @param lineages_linewidth A numeric value for the width of the lineage curve lines.
+#'  Default is `1`.
+#' @param lineages_line_bg A character string for the colour of the background (wider) stroke
+#'  drawn behind each lineage curve for improved visibility. Default is `"white"`.
+#' @param lineages_line_bg_stroke A numeric value for the additional width of the background
+#'  stroke relative to `lineages_linewidth`. The background line has total width
+#'  `lineages_linewidth + lineages_line_bg_stroke`. Default is `0.5`.
+#' @param lineages_whiskers A logical value. If `TRUE`, short line segments connect the
+#'  smoothed lineage curve to the original data coordinates of the fitted points.
+#'  Default is `FALSE`.
+#' @param lineages_whiskers_linewidth A numeric value for the width of the whisker lines.
+#'  Default is `0.5`.
+#' @param lineages_whiskers_alpha A numeric value in `[0, 1]` for the transparency of the
+#'  whisker lines. Default is `0.5`.
+#' @param velocity A specification for RNA-velocity arrows. Can be:
+#'  - `NULL` (default): no velocity overlay.
+#'  - A character / integer vector: column names or indices in `data` for the velocity embedding.
+#'  - A data frame or matrix: the velocity embedding itself (must align with `data` rows).
+#'  Only supported in 2D without `facet_by`.
+#' @param velocity_plot_type A character string specifying the velocity rendering style.
+#'  Options: `"raw"` (arrows from embedding), `"grid"` (grid-based arrows), or `"stream"`
+#'  (streamlines). Default is `"raw"`.
+#' @param velocity_n_neighbors A numeric value for the number of neighbours used in the
+#'  velocity grid computation. Default is `NULL` (auto).
+#' @param velocity_density A numeric value for the velocity kernel density bandwidth.
+#'  Default is `1`.
+#' @param velocity_smooth A numeric value for the velocity smoothing parameter.
+#'  Default is `0.5`.
+#' @param velocity_scale A numeric value for scaling the velocity arrows. Default is `1`.
+#' @param velocity_min_mass A numeric value for the minimum cell mass threshold in velocity
+#'  grid computation. Default is `1`.
+#' @param velocity_cutoff_perc A numeric value for the velocity cutoff percentage.
+#'  Default is `5`.
+#' @param velocity_group_palette A character string naming the palette for velocity group
+#'  colours (used in `"raw"` plot type). Default is `"Set2"`.
+#' @param velocity_group_palcolor A character vector of specific colours for velocity groups.
+#'  Default is `NULL` (auto-resolved from `velocity_group_palette`).
+#' @param raster A logical value. If `TRUE`, points are rendered via
+#'  `scattermore::geom_scattermore()` for efficient rasterised plotting.
+#'  Default is `NULL`, which auto-enables when `nrow(data) > 1e5`.
+#' @param raster_dpi A numeric vector of length 2 `[x_dpi, y_dpi]` specifying the raster
+#'  resolution in pixels. Passed to `scattermore::geom_scattermore(pixels = ...)`.
+#'  Default is `c(512, 512)`. If a single value is provided it is recycled to both dimensions.
+#' @param hex A logical value. If `TRUE`, points are rendered as hexagonal bins via
+#'  `geom_hex()` / `stat_summary_hex()`. Not supported with highlight.
+#'  Default is `FALSE`. Only supported in 2D.
+#' @param hex_linewidth A numeric value for the width of the hexagon boundary lines.
+#'  Default is `0.5`.
+#' @param hex_count A logical value. If `TRUE` and `group_by` is set, hex fill alpha
+#'  is mapped to `after_stat(count)` so denser bins are more opaque.
+#'  For `features` mode hex_count is ignored. Default is `!is.null(group_by)`.
+#' @param hex_bins A numeric value for the number of hex bins along each axis.
+#'  Passed to `geom_hex(bins = ...)`. Default is `50`.
+#' @param hex_binwidth A numeric value for the width of individual hex bins.
+#'  Passed to `geom_hex(binwidth = ...)`. Takes precedence over `hex_bins` when set.
+#' @param bg_cutoff A numeric threshold. Feature values with absolute value below this
+#'  cutoff are set to `NA` (and therefore rendered in `bg_color`). Default is `NULL`.
+#' @param color_name A character string used as the title for the continuous colour bar
+#'  in feature mode. Default is `""`.
 #' @return A ggplot object or a plotly object (when 3 dimensions are provided)
 #' @keywords internal
 #' @importFrom scales rescale
@@ -1921,59 +2192,142 @@ DimPlotAtomic <- function(
     p
 }
 
-#' DimPLot / FeatureDimPlot
+#' DimPlot / FeatureDimPlot
 #'
 #' @description
-#'  Visualizing the dimension reduction data.
-#'  `FeatureDimPlot` is used to plot the feature numeric values on the dimension reduction plot.
+#' Visualise dimension reduction data (PCA, t-SNE, UMAP, etc.) as a 2D or 3D
+#' scatter plot. `DimPlot()` colours points by a discrete grouping variable
+#' (e.g., clusters), while `FeatureDimPlot()` colours points by a continuous
+#' numeric feature (e.g., gene expression, lineage scores).
+#'
+#' Both functions share the same internal engine (`DimPlotAtomic`) and support
+#' an extensive set of annotation layers: group boundary marks, network/graph
+#' edges, 2D density contours, lineage/trajectory curves, RNA-velocity arrows
+#' (raw, grid, or stream), statistical summary mini-plots at group centroids,
+#' point highlighting, background context points from other facets, and
+#' flexible label positioning.
+#'
+#' When `dims` has 3 elements, both functions automatically return an
+#' interactive **plotly** 3D scatter plot (via `DimPlotAtomic3D`). Certain
+#' 2D-only features are silently ignored in 3D mode (see `@param dims` for
+#' the full list).
+#'
+#' Rendering scales with dataset size: standard `geom_point()` for small data,
+#' automatic rasterisation via `scattermore::geom_scattermore()` when
+#' `nrow(data) > 1e5`, or hex-bin aggregation (`geom_hex()` /
+#' `stat_summary_hex()`).
+#'
+#' @section split_by Workflow (DimPlot):
+#'
+#' When `split_by` is specified, `DimPlot()` executes the following pipeline:
+#'
+#' 1. **Argument validation** — `validate_common_args()` checks the seed and
+#'    blocks `split_by` + `velocity` combinations.
+#' 2. **NA / empty normalisation** — `check_keep_na()` / `check_keep_empty()`
+#'    convert `keep_na` / `keep_empty` to per-column lists.
+#' 3. **Theme resolution** — `process_theme()` resolves the theme string to a
+#'    theme function.
+#' 4. **Split column resolution** — `check_columns()` validates `split_by`
+#'    (force_factor, concat_multi).
+#' 5. **Pre-filtering** — `process_keep_na_empty()` removes NA / empty levels
+#'    from the split column, then `data` is split by `split_by` levels (order
+#'    preserved). When `graph` references an attribute (`@graph`), the graph
+#'    matrix is also subset per split.
+#' 6. **Per-split parameter resolution** — `check_palette()`,
+#'    `check_palcolor()`, `check_legend()` resolve palette, palcolor,
+#'    legend.position, and legend.direction for each split.
+#' 7. **Per-split dispatch** — each split is passed to `DimPlotAtomic()` with
+#'    its resolved parameters. Title defaults to the split level name unless
+#'    `title` is a function.
+#' 8. **Combination** — `combine_plots()` assembles the list of plots via
+#'    `patchwork::wrap_plots()`, applying `nrow`, `ncol`, `byrow`, `axes`,
+#'    `axis_titles`, `guides`, and `design`.
+#'
+#' @section split_by Workflow (FeatureDimPlot):
+#'
+#' `FeatureDimPlot()` supports two forms of splitting:
+#'
+#' **A. `split_by = TRUE` (split by features)**
+#'
+#' 1. Each feature in `features` is dispatched individually to
+#'    `DimPlotAtomic()`, producing one plot per feature. The plot title
+#'    defaults to the feature name.
+#' 2. Plots are combined via `combine_plots()` with `split_by = ".features"`.
+#'
+#' **B. `split_by` as a column name (split by data column)**
+#'
+#' 1. Data is split by the named column's levels (same pipeline as DimPlot
+#'    steps 1–8 above). Graph attribute splitting is supported.
 #'
 #' @rdname dimplot
 #' @inheritParams common_args
 #' @inheritParams DimPlotAtomic
-#' @return A ggplot object or wrap_plots object or a list of ggplot objects.
-#'  When `dims` has 3 elements, a plotly object is returned instead.
+#' @return A `ggplot` object (single plot), a `patchwork` / `wrap_plots` object
+#'   (when `split_by` is provided and `combine = TRUE`), or a list of `ggplot`
+#'   objects (when `split_by` is provided and `combine = FALSE`).
+#'   When `dims` has 3 elements, a **plotly** object is returned instead.
 #' @export
 #' @seealso \code{\link{VelocityPlot}}
 #' @examples
 #' \donttest{
 #' data(dim_example)
 #'
+#' # basic dim plot
 #' DimPlot(dim_example, group_by = "clusters")
 #' DimPlot(dim_example, group_by = "clusters", theme = "theme_blank")
 #' DimPlot(dim_example, group_by = "clusters", theme = ggplot2::theme_classic,
 #'     theme_args = list(base_size = 16), palette = "seurat")
+#'
+#' # raster and highlighting
 #' DimPlot(dim_example, group_by = "clusters", raster = TRUE, raster_dpi = 50)
 #' DimPlot(dim_example, group_by = "clusters", highlight = 1:20,
 #'     highlight_color = "black", highlight_stroke = 2)
 #' DimPlot(dim_example, group_by = "clusters", highlight = TRUE, facet_by = "group",
 #'     theme = "theme_blank")
+#'
+#' # labels
 #' DimPlot(dim_example, group_by = "clusters", label = TRUE,
 #'     label_size = 5, label_bg_r = 0.2)
 #' DimPlot(dim_example, group_by = "clusters", label = TRUE, label_fg = "red",
 #'     label_bg = "yellow", label_size = 5)
 #' DimPlot(dim_example, group_by = "clusters", label = TRUE, label_insitu = TRUE)
+#'
+#' # group marks
 #' DimPlot(dim_example, group_by = "clusters", add_mark = TRUE)
 #' DimPlot(dim_example, group_by = "clusters", add_mark = TRUE, mark_linetype = 2)
 #' DimPlot(dim_example, group_by = "clusters", add_mark = TRUE, mark_type = "ellipse")
+#'
+#' # density overlays
 #' DimPlot(dim_example, group_by = "clusters", add_density = TRUE)
 #' DimPlot(dim_example, group_by = "clusters", add_density = TRUE, density_filled = TRUE)
 #' DimPlot(dim_example, group_by = "clusters", add_density = TRUE, density_filled = TRUE,
 #'     density_filled_palette = "Blues", highlight = TRUE)
+#'
+#' # statistics at group centroids
 #' DimPlot(dim_example, group_by = "clusters", stat_by = "group")
 #' DimPlot(dim_example, group_by = "clusters", stat_by = "group",
 #'     stat_plot_type = "bar", stat_plot_size = 0.06)
+#'
+#' # hex bins
 #' DimPlot(dim_example, group_by = "clusters", hex = TRUE)
 #' DimPlot(dim_example, group_by = "clusters", hex = TRUE, hex_bins = 20)
 #' DimPlot(dim_example, group_by = "clusters", hex = TRUE, hex_count = FALSE)
+#'
+#' # graph / network edges
 #' DimPlot(dim_example, group_by = "clusters", graph = "@graph", edge_color = "grey80")
+#'
+#' # lineages / trajectories
 #' DimPlot(dim_example, group_by = "clusters", lineages = c("stochasticbasis_1", "stochasticbasis_2"))
 #' DimPlot(dim_example, group_by = "clusters", lineages = c("stochasticbasis_1", "stochasticbasis_2"),
 #'     lineages_whiskers = TRUE, lineages_whiskers_linewidth = 0.1)
 #' DimPlot(dim_example, group_by = "clusters", lineages = c("stochasticbasis_1", "stochasticbasis_2"),
 #'     lineages_span = 0.4)
+#'
+#' # split_by
 #' DimPlot(dim_example, group_by = "clusters",  split_by = "group",
 #'     palette = list(A = "Paired", B = "Set1"))
-#' # velocity plot
+#'
+#' # velocity
 #' DimPlot(dim_example, group_by = "clusters", velocity = c("stochasticbasis_1", "stochasticbasis_2"),
 #'     pt_alpha = 0)
 #' DimPlot(dim_example, group_by = "clusters", velocity = 3:4,
@@ -2312,31 +2666,58 @@ DimPlot <- function(
     )
 }
 
+#' @description
+#' Feature expression on dimension reduction plots. Colours points by a
+#' continuous numeric variable (e.g., gene expression, module score, lineage
+#' pseudotime) using a gradient colour scale, with optional quantile trimming
+#' and background cutoff.
+#'
+#' When multiple `features` are provided and `facet_by` is not set, the data
+#' is automatically pivoted to long format and faceted by feature name.
+#' `split_by = TRUE` dispatches each feature to a separate plot for
+#' independent layout control. `split_by` as a column name splits by that
+#' column's levels, producing one plot per level with per-split palette
+#' support.
+#'
+#' For detailed split_by workflows, see the main `DimPlot / FeatureDimPlot`
+#' documentation (`@section split_by Workflow (FeatureDimPlot)`).
+#'
 #' @export
 #' @rdname dimplot
 #' @inheritParams common_args
 #' @inheritParams DimPlotAtomic
-#' @param split_by A character vector of column names to split the data and plot separately
-#'   If TRUE, we will split the data by the `features`. Each feature will be plotted separately.
-#' @return A ggplot object or wrap_plots object or a list of ggplot objects.
-#'  When `dims` has 3 elements, a plotly object is returned instead.
+#' @param split_by A character vector of column names to split the data by and
+#'   plot separately. If `TRUE`, the data is split by `features` — each feature
+#'   is plotted in its own panel. Use this instead of `facet_by` when you need
+#'   independent layout control (`nrow`, `ncol`) or per-feature palettes via
+#'   `split_by = TRUE` combined with `palette` / `palcolor`.
+#' @return A `ggplot` object (single plot), a `patchwork` / `wrap_plots` object
+#'   (when `split_by` is provided and `combine = TRUE`), or a list of `ggplot`
+#'   objects (when `split_by` is provided and `combine = FALSE`).
+#'   When `dims` has 3 elements, a **plotly** object is returned instead.
 #' @export
 #' @examples
 #' \donttest{
 #' data(dim_example)
+#'
+#' # single feature
 #' FeatureDimPlot(dim_example, features = "stochasticbasis_1", pt_size = 2)
 #' FeatureDimPlot(dim_example, features = "stochasticbasis_1", pt_size = 2, bg_cutoff = 0)
 #' FeatureDimPlot(dim_example, features = "stochasticbasis_1", raster = TRUE, raster_dpi = 30)
+#'
+#' # multiple features (auto-pivoted to long, faceted by feature)
 #' FeatureDimPlot(dim_example, features = c("stochasticbasis_1", "stochasticbasis_2"),
 #'  pt_size = 2)
+#'
+#' # single feature with facet_by (facet_by works when only 1 feature)
 #' FeatureDimPlot(dim_example, features = c("stochasticbasis_1"), pt_size = 2,
 #'  facet_by = "group")
-#' # Can't use facet_by for multiple features
-#' FeatureDimPlot(dim_example, features = c("stochasticbasis_1", "stochasticbasis_2"),
-#'  pt_size = 2)
-#' # We can use split_by
+#'
+#' # multiple features with split_by for independent layout
 #' FeatureDimPlot(dim_example, features = c("stochasticbasis_1", "stochasticbasis_2"),
 #'  split_by = "group", nrow = 2)
+#'
+#' # highlight and hex
 #' FeatureDimPlot(dim_example, features = c("stochasticbasis_1", "stochasticbasis_2"),
 #'  highlight = TRUE)
 #' FeatureDimPlot(dim_example, features = c("stochasticbasis_1", "stochasticbasis_2"),
