@@ -37,6 +37,69 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.13.0" id="version-0130">Version 0.13.0<a class="anchor" aria-label="anchor" href="#version-0130"></a></h2>
+<ul><li>feat: add split_by parameter to combine_plots for enhanced data composition, especially for split plots</li>
+<li>feat: add LinkedHeatmap and supporting functions with documentation and tests</li>
+<li>feat: uniform plotting data access from plot objects</li>
+<li>feat: use a fast do.call across all plotting functions</li>
+<li>feat(dotplot): add border customization options for dots and lollipop bars (<a href="https://github.com/pwwang/plotthis/issues/32" class="external-link">#32</a>)</li>
+<li>feat(dotplot): update fill_cutoff parameter to accept string operators and improve documentation (<a href="https://github.com/pwwang/plotthis/issues/31" class="external-link">#31</a>)</li>
+<li>feat(combine_plots): enhance split_by functionality to ensure combined data is accessible and correctly structured</li>
+<li>feat: add prepare_continuous_color_scale() utility and refactor DimPlot</li>
+<li>feat: add color scale quantile/cutoff params to DotPlot, ScatterPlot, BarPlot, SplitBarPlot (<a href="https://github.com/pwwang/plotthis/issues/30" class="external-link">#30</a>)</li>
+<li>fix(chordplot): correct handling of split_by parameter when combining plots</li>
+<li>fix(heatmap): remove return_grob parameter and wrap heatmap with patchwork</li>
+<li>fix(radarplot): correct assignment of split_by variable and update combine_plots call</li>
+<li>fix(combine_plots): refine data handling in combine_plots function for layer-specific data integrity</li>
+<li>style: use air to format all source files</li>
+<li>docs: enhance documentation for color palette usage and plotting data access</li>
+<li>docs(Heatmap): refactor HeatmapAtomic documentation for clarity and consistency</li>
+<li>chore: add .codegraph to .gitignore to exclude codegraph files from version control</li>
+<li>chore: remove unused imports and clean up parameter documentation across multiple files</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.12.1" id="version-0121">Version 0.12.1<a class="anchor" aria-label="anchor" href="#version-0121"></a></h2><p class="text-muted">CRAN release: 2026-06-10</p>
+<ul><li>feat: enhance check_palcolor function to handle character palcolor input more robustly</li>
+<li>feat: add position_dodge_preserve parameter to BoxViolinPlot and BoxViolinPlotAtomic for enhanced dodging control</li>
+<li>feat: add CLAUDE.md for project guidance and development workflow documentation</li>
+<li>feat(Heatmap): add block and label annotation types with unified building, per-annotation side control, reordering, validation, and split_by support</li>
+<li>feat(dotplot): add size_min and size_max parameters for dot size control (<a href="https://github.com/pwwang/plotthis/issues/29" class="external-link">#29</a>)</li>
+<li>fix(.Rbuildignore): add CLAUDE.md and PDF files to ignore list</li>
+<li>refactor(Heatmap): move utils to a separate file</li>
+<li>refactor: update dplyr and tidyr functions to use all_of for column selection</li>
+<li>docs: add examples for CorPlot and DensityPlot functions</li>
+<li>test(DotPlot): suppress warnings when using fill_by for size calculation</li>
+<li>test(ManhattanPlot): update highlight threshold from 1e-5 to 1e-3</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.12.0" id="version-0120">Version 0.12.0<a class="anchor" aria-label="anchor" href="#version-0120"></a></h2><p class="text-muted">CRAN release: 2026-04-28</p>
+<ul><li>chore: update .Rbuildignore and .gitignore to exclude .vscode directory</li>
+<li>refactor(Heatmap): remove deprecated annotation parameters and introduce alias support</li>
+<li>feat(Heatmap): add default dimensions for simple annotations in Heatmap function</li>
+<li>fix(Heatmap): resolve annotation name and legend overlap issue in ComplexHeatmap</li>
+<li>feat: set default figure dimensions in pkgdown and basic design vignette</li>
+<li>test: add unit tests for plot functions</li>
+<li>ci: add missing ‘remotes’ package to workflow dependencies</li>
+<li>fix(Heatmap): add validation to ensure data is not empty in process_heatmap_data function</li>
+<li>feat(Heatmap): add draw_opts parameter for additional drawing options</li>
+<li>feat(Heatmap): add aspect.ratio parameter for cell dimension control</li>
+<li>fix(Heatmap): update cell dimension calculations to use actual matrix dimensions</li>
+<li>fix(Heatmap): improve handling of annotation names to prevent overlap with legends</li>
+<li>feat(Heatmap): add alignment options for heatmap and annotation legends</li>
+<li>feat(Heatmap): add label customization options including color, size, and legend title</li>
+<li>feat(Heatmap): add support for marks on heatmap cells with customization options</li>
+<li>feat(Heatmap): add base_size parameter for scaling heatmap size</li>
+<li>feat(Heatmap): enhance more aliases support for row and column annotations</li>
+<li>feat(Heatmap): improve aspect ratio handling and dimension constraints for heatmap plots</li>
+<li>feat(Heatmap): add support for combined label and mark cell type</li>
+<li>feat(Heatmap): add octagon mark type support for heatmap cells</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.11.1" id="version-0111">Version 0.11.1<a class="anchor" aria-label="anchor" href="#version-0111"></a></h2><p class="text-muted">CRAN release: 2026-03-15</p>
+<ul><li>feat(BoxPlot): add support for bar plots with error bars</li>
+<li>chore: add additional repositories link to DESCRIPTION file for ggmanh</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.11.0" id="version-0110">Version 0.11.0<a class="anchor" aria-label="anchor" href="#version-0110"></a></h2>
 <ul><li>feat(palette): add tableau color palettes to palette list</li>
 <li>feat(dimplot): add support for 3D plots using plotly for 3-component dimplots</li>
