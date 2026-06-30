@@ -35,6 +35,7 @@ reference:
     - Histogram
     - JitterPlot
     - LinePlot
+    - LinkedHeatmap
     - LollipopPlot
     - ManhattanPlot
     - Network
