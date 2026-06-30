@@ -1,83 +1,214 @@
-#' ManhattanPlotAtomic
+#' Atomic Manhattan plot (internal)
 #'
-#' Plot a Manhattan plot for atomic data (without splitting).
-#' This function is borrowed from `ggmanh::manhattan_plot()` with following customizations:
+#' @description
+#' Core implementation for drawing a GWAS-style Manhattan plot.  This is the
+#' internal workhorse dispatched by the exported \code{\link{ManhattanPlot}}
+#' function --- it takes a **single** data frame (no \code{split_by} support)
+#' and returns a \code{ggplot} object.  The plot displays genetic association
+#' p-values across chromosomes, with \eqn{-\log_{10}(p)} on the y-axis and
+#' genomic position on the x-axis.  Each chromosome is rendered in alternating
+#' colours, and configurable horizontal dashed lines mark genome-wide
+#' significance thresholds.
 #'
-#' * The dots in argument names are replaced with underscores wherever possible.
-#' * `chr.colname`, `pos.colname`, `pval.colname` and `label.colname` are replaced with
-#'   `chr_by`, `pos_by`, `pval_by` and `label_by` respectively.
-#' * The `chromosome` and `chr.order` arguments are merged into a single argument `chromosomes`.
-#' * The `highlight.colname` argument is replaced with `highlight`, which can be a vector of indices
-#'   or a character of expression to select the variants to be highlighted, instead of a column name.
-#' * `point.size` is replaced with `pt_size`
-#' * When `highlight` is specified, the colors of the points
-#'   will be controled by `pt_color` and `highlight_color` arguments.
-#' * The labels get more controled by `label_*` arguments.
-#' * The highlighted points get more controled by `highlight_*` arguments.
-#' * The `pval_log_transform` argument is replaced with `pval_transform`, which allows to specify
-#'  a function to transform the p-values.
+#' The function is adapted from \code{ggmanh::manhattan_plot()} with the
+#' following enhancements:
+#' \itemize{
+#'   \item Dot-separated argument names are converted to underscores
+#'   (e.g. \code{chr.colname} \eqn{\rightarrow} \code{chr_by}).
+#'   \item \code{chromosomes} merges the original \code{chromosome} and
+#'   \code{chr.order} arguments into a single parameter for subsetting
+#'   and reordering.
+#'   \item \code{highlight} accepts index vectors or R expressions (via a
+#'   character string) instead of a column name.
+#'   \item Dedicated \code{pt_*}, \code{label_*}, and \code{highlight_*}
+#'   parameter families give granular control over point appearance,
+#'   label styling, and highlight styling.
+#'   \item \code{pval_transform} accepts any function (or a character
+#'   string parsed as a function) rather than a fixed log-transform toggle.
+#' }
+#'
+#' Key features include per-chromosome alternating colours, configurable
+#' significance threshold lines with labels, optional data thinning for
+#' dense SNP sets, automatic y-axis rescaling (broken-axis) when a small
+#' number of highly significant points would otherwise compress the
+#' majority of the data, and support for highlighting and labeling
+#' specific variants.
+#'
+#' @section Architecture:
+#'
+#' \strong{ManhattanPlotAtomic} executes the following steps:
+#' \enumerate{
+#'   \item \strong{ggplot dispatch} --- selects \code{gglogger::ggplot} or
+#'   \code{ggplot2::ggplot} based on
+#'   \code{getOption("plotthis.gglogger.enabled")}.
+#'   \item \strong{signif_label_pos normalisation} --- \code{match.arg()}
+#'   resolves \code{signif_label_pos} to \code{"left"} or \code{"right"}.
+#'   \item \strong{Data preprocessing} ---
+#'   \code{ggmanh::manhattan_data_preprocess()} performs chromosome
+#'   ordering, optional thinning (\code{thin_n} points per
+#'   \code{thin_bins} horizontal partitions), chromosome gap scaling
+#'   (\code{chr_gap_scaling}), position preservation
+#'   (\code{preserve_position}), and significance threshold colour
+#'   assignment.  When \code{chromosomes} is a single value, it is
+#'   passed as the \code{chromosome} filter; otherwise it is used for
+#'   ordering via \code{chr.order}.
+#'   \item \strong{label_by validation} --- \code{\link{check_columns}()}
+#'   validates and factors the \code{label_by} column if provided.
+#'   \item \strong{Chromosome colour assignment} --- if \code{highlight}
+#'   and \code{highlight_color} are both set, or if \code{pt_color} is
+#'   given, \code{pt_color} (defaulting to \code{"grey80"}) is used as
+#'   the base colour for all chromosomes; otherwise
+#'   \code{\link{palette_this}()} generates distinct colours per
+#'   chromosome from \code{palette} / \code{palcolor}.
+#'   \item \strong{pval_transform resolution} --- when a character string
+#'   starting with \code{"-"} (e.g. \code{"-log10"}), the minus sign is
+#'   stripped, the remainder is evaluated as a function, and the result
+#'   is negated.  Plain character strings are evaluated directly.  The
+#'   result is applied to the p-value column to produce \code{log10pval}.
+#'   \item \strong{Y-axis rescaling check} --- when \code{rescale = TRUE},
+#'   the ratio of the ceiling-scaled maximum to the significance-threshold
+#'   jump is checked against \code{rescale_ratio_threshold}.  If the
+#'   ratio exceeds the threshold, a broken y-axis is constructed via
+#'   \code{ggmanh::get_transform()} that compresses the empty space
+#'   between the main data and the extreme points.
+#'   \item \strong{Single-chromosome branch} --- when only one chromosome
+#'   is present, the original position column is used directly, x-axis
+#'   breaks and labels use \code{waiver()}, and the x-axis label is set
+#'   to the chromosome name (or \code{"Chromosome <name>"}).
+#'   \item \strong{Multi-chromosome branch} --- position coordinates are
+#'   recalculated across chromosome boundaries via
+#'   \code{ggmanh::calc_new_pos_()}.  Chromosome centre positions serve
+#'   as x-axis breaks, chromosome labels are displayed, and limits span
+#'   the full genomic range.
+#'   \item \strong{Base plot assembly} --- creates a \code{ggplot} object
+#'   with \code{geom_point()} (chromosome-coloured dots),
+#'   \code{scale_color_manual()}, \code{scale_y_continuous()} (with
+#'   optional broken-axis transform), \code{scale_x_continuous()},
+#'   \code{geom_hline()} for significance thresholds, the resolved theme
+#'   (with hidden grid lines and suppressed legend), and \code{labs()}.
+#'   \item \strong{Significance labels} --- when \code{signif_label = TRUE},
+#'   \code{geom_text()} annotates each significance threshold at the
+#'   left or right edge of the plot (controlled by
+#'   \code{signif_label_pos}), coloured by \code{signif_color} (smallest
+#'   threshold in black, others in grey by default).
+#'   \item \strong{Variant labels} --- when \code{label_by} is provided,
+#'   \code{ggrepel::geom_label_repel()} adds labels for variants that
+#'   have non-empty values in the \code{label_by} column.  If \code{label_fg}
+#'   is set, all labels receive that colour; otherwise each label inherits
+#'   the chromosome colour of its point.
+#'   \item \strong{Rescale tick marks} --- when y-axis rescaling is
+#'   active, the axis tick style is changed (via \code{axis.ticks.y})
+#'   and a double-equals annotation is placed at the jump point to
+#'   indicate the axis break, with \code{coord_cartesian(clip = "off")}.
+#'   \item \strong{Highlight overlay} --- when \code{highlight} is
+#'   numeric (row indices) or a character string (R expression), the
+#'   matching points are overlaid with a separate \code{geom_point()}
+#'   layer styled by \code{highlight_*} parameters, optionally in a
+#'   distinct colour when \code{highlight_color} is specified.
+#'   \item \strong{Dimension calculation} ---
+#'   \code{\link{calculate_plot_dimensions}()} computes height and width
+#'   from the number of chromosomes (\code{base_height = 4.5},
+#'   \code{x_scale_factor = 0.4}), and stores them as \code{height} /
+#'   \code{width} attributes on the plot.
+#' }
 #'
 #' @inheritParams common_args
-#' @param data A data frame or `GenomicRanges::GRanges` containing the data to be plotted.
-#' @param chr_by Column name for chromosome (default: "chr").
-#' @param pos_by Column name for position (default: "pos").
-#' @param pval_by Column name for p-value (default: "pval").
-#' @param label_by Column name for the variants to be labeled (default: NULL).
-#' Only the variants with values in this column will be labeled.
-#' @param chromosomes A vector of chromosomes to be plotted (default: NULL).
-#' If NULL, all chromosomes will be plotted.
-#' It is more of a combination of the `chromosome` and `chr.order` arguments of
-#' `ggmanh::manhattan_plot()`.
-#' We can use it to select chromosomes to be plotted or to set the order of the chromosomes.
-#' @param pt_size A numeric value to specify the size of the points in the plot.
-#' @param pt_color A character string to specify the color of the points in the plot.
-#' By default, the color of the points will be controled by `palette` or `palcolor` arguments.
-#' This is useful to color the background points when `highlight` and `highlight_color`
-#' are specified.
-#' @param pt_alpha A numeric value to specify the transparency of the points in the plot.
-#' @param pt_shape A numeric value to specify the shape of the points in the plot.
-#' @param label_size A numeric value to specify the size of the labels in the plot.
-#' @param label_fg A character string to specify the color of the labels in the plot.
-#' If NULL, the color of the labels will be the same as the points.
-#' @param highlight Either a vector of indices or a character of expression to select
-#' the variants to be highlighted (default: NULL).
-#' If NULL, no variants will be highlighted.
-#' @param highlight_color A character string to specify the color of the highlighted points.
-#' @param highlight_size A numeric value to specify the size of the highlighted points.
-#' @param highlight_alpha A numeric value to specify the transparency of the highlighted points.
-#' @param highlight_shape A numeric value to specify the shape of the highlighted points.
-#' @param preserve_position If TRUE, the width of each chromosome reflect the number of variants
-#' and the position of each variant is correctly scaled?
-#' If FALSE, the width of each chromosome is equal and the variants are equally spaced.
-#' @param chr_gap_scaling A numeric value to specify the scaling of the gap between chromosomes.
-#' It is used to adjust the gap between chromosomes in the plot.
-#' @param pval_transform A function to transform the p-values (default: -log10).
-#' If it is a character, it will be evaluated as a function.
-#' @param signif A vector of significance thresholds (default: c(5e-08, 1e-05)).
-#' @param signif_color A character vector of equal length as signif.
-#' It contains colors for the lines drawn at signif.
-#' If NULL, the smallest value is colored black while others are grey.
-#' @param signif_rel_pos A numeric between 0.1 and 0.9. If the plot is rescaled,
-#' @param signif_label A logical value indicating whether to label the significance thresholds (default: TRUE).
-#' @param signif_label_size A numeric value to specify the size of the significance labels.
-#' @param signif_label_pos A character string specifying the position of the significance labels.
-#' where should the significance threshold be positioned?
-#' It can be either "left" or "right" (default: "left").
-#' @param thin A logical value indicating whether to thin the data (default: NULL).
-#' Defaults to TRUE when `chromosomes` is specified and the length of
-#' it is less than the number of chromosomes in the data. Defaults to FALSE otherwise.
-#' @param thin_n Number of max points per horizontal partitions of the plot. Defaults to 1000.
-#' @param thin_bins Number of bins to partition the data. Defaults to 200.
-#' @param rescale A logical value indicating whether to rescale the plot (default: TRUE).
-#' @param rescale_ratio_threshold A numeric value to specify the ratio threshold for rescaling.
-#' @param alpha Alias of `pt_alpha`.
+#' @param chr_by A character string specifying the column name for chromosome
+#'   identifiers.  Default: \code{"chr"}.
+#' @param pos_by A character string specifying the column name for genomic
+#'   positions (integer or numeric).  Default: \code{"pos"}.
+#' @param pval_by A character string specifying the column name for p-values
+#'   (numeric).  Default: \code{"pval"}.
+#' @param label_by A character string specifying the column name for variant
+#'   labels.  Only variants with non-empty values in this column will be
+#'   labelled.  Default: \code{NULL} (no labels).
+#' @param chromosomes A character or numeric vector specifying which
+#'   chromosomes to include and/or their display order.  When \code{NULL}
+#'   (the default), all chromosomes present in the data are plotted in
+#'   their natural factor order.  A single value filters to that
+#'   chromosome; a vector reorders and subsets.
+#' @param pt_size A numeric value specifying the size of the points.
+#'   Default: \code{0.75}.
+#' @param pt_color A character string specifying a single colour for all
+#'   background (non-highlighted) points.  When \code{NULL} (the default),
+#'   alternating chromosome colours from \code{palette} / \code{palcolor}
+#'   are used.  Typically set to \code{"grey80"} when \code{highlight} is
+#'   used with a distinct \code{highlight_color}.
+#' @param pt_alpha A numeric value in \code{[0, 1]} specifying the
+#'   transparency of the points.  Default: \code{alpha} (aliased
+#'   parameter).
+#' @param pt_shape A numeric value specifying the shape of the points.
+#'   Default: \code{19} (filled circle).
+#' @param label_size A numeric value specifying the font size of the
+#'   variant labels.  Default: \code{3}.
+#' @param label_fg A character string specifying the colour of the variant
+#'   labels.  When \code{NULL} (the default), each label inherits the
+#'   colour of its corresponding point.
+#' @param highlight Either a numeric vector of row indices or a character
+#'   string containing an R expression (parsed via
+#'   \code{rlang::parse_expr()}) to select variants to highlight.
+#'   Default: \code{NULL} (no highlighting).
+#' @param highlight_color A character string specifying the colour of
+#'   highlighted points.  When \code{NULL} (the default), highlighted
+#'   points inherit the chromosome colour from the underlying
+#'   \code{geom_point()} layer.
+#' @param highlight_size A numeric value specifying the size of
+#'   highlighted points.  Default: \code{1.5}.
+#' @param highlight_alpha A numeric value in \code{[0, 1]} specifying the
+#'   transparency of highlighted points.  Default: \code{1}.
+#' @param highlight_shape A numeric value specifying the shape of
+#'   highlighted points.  Default: \code{19} (filled circle).
+#' @param preserve_position A logical value.  When \code{TRUE} (the
+#'   default), the width of each chromosome segment reflects its number
+#'   of variants and variant positions are correctly scaled.  When
+#'   \code{FALSE}, all chromosomes have equal width and variants are
+#'   equally spaced.
+#' @param chr_gap_scaling A numeric scaling factor for the gap between
+#'   chromosomes.  Larger values increase the gap.  Default: \code{1}.
+#' @param pval_transform A function or character string that can be
+#'   evaluated to a function for transforming p-values.  Default:
+#'   \code{"-log10"}, which computes \eqn{-\log_{10}(p)}.  Other
+#'   examples: \code{"-log2"} or a custom
+#'   \code{function(x) -log10(x)}.
+#' @param signif A numeric vector of significance thresholds to draw as
+#'   horizontal dashed lines.  Default: \code{c(5e-8, 1e-5)}.
+#' @param signif_color A character vector of colours for the significance
+#'   threshold lines, of equal length as \code{signif}.  When \code{NULL}
+#'   (the default), the smallest threshold is coloured black and the rest
+#'   grey.
+#' @param signif_rel_pos A numeric value between \code{0.1} and \code{0.9}
+#'   specifying the relative position of the y-axis jump when rescaling
+#'   is active.  Default: \code{0.2}.
+#' @param signif_label A logical value.  When \code{TRUE} (the default),
+#'   significance threshold values are annotated on the plot.
+#' @param signif_label_size A numeric value for the font size of the
+#'   significance threshold labels.  Default: \code{3.5}.
+#' @param signif_label_pos A character string specifying where to place
+#'   the significance threshold labels: \code{"left"} (default) or
+#'   \code{"right"}.
+#' @param thin A logical value indicating whether to thin dense data by
+#'   sampling points per horizontal partition.  Defaults to \code{TRUE}
+#'   when \code{chromosomes} selects fewer chromosomes than in the data,
+#'   and \code{FALSE} otherwise.
+#' @param thin_n An integer specifying the maximum number of points per
+#'   horizontal partition after thinning.  Default: \code{1000}.
+#' @param thin_bins An integer specifying the number of horizontal bins
+#'   for thinning.  Default: \code{200}.
+#' @param rescale A logical value.  When \code{TRUE} (the default), the
+#'   y-axis is automatically rescaled (broken axis) if extreme
+#'   significance values would otherwise compress the main data cloud.
+#' @param rescale_ratio_threshold A numeric threshold for triggering
+#'   y-axis rescaling.  The ratio is computed as
+#'   \code{ceiling(max(log10pval) / 5) * 5 / signif_jump}.
+#'   Default: \code{5}.
 #' @keywords internal
+#' @return A \code{ggplot} object with \code{height} and \code{width}
+#'   attributes (in inches) attached.
 #' @importFrom utils getFromNamespace
 #' @importFrom rlang sym %||%
 #' @importFrom ggplot2 waiver aes geom_point scale_y_continuous scale_color_manual annotate
 #' @importFrom ggplot2 scale_x_continuous geom_hline element_line coord_cartesian geom_text
 #' @importFrom ggrepel geom_label_repel
-#' @return A ggplot object.
 ManhattanPlotAtomic <- function(
     data,
     chr_by,
@@ -389,30 +520,86 @@ ManhattanPlotAtomic <- function(
     p
 }
 
-#' ManhattanPlot
+#' Manhattan plot
 #'
-#' This function is borrowed from `ggmanh::manhattan_plot()` with following customizations:
+#' @description
+#' Renders a publication-quality Manhattan plot for genetic association
+#' results.  The y-axis displays \eqn{-\log_{10}(p)} (or a user-specified
+#' transformation) of p-values, and the x-axis shows genomic positions
+#' organised by chromosome.  Each chromosome is rendered in alternating
+#' colours, and configurable horizontal dashed lines mark genome-wide
+#' significance thresholds.
 #'
-#' * The dots in argument names are replaced with underscores wherever possible.
-#' * `chr.colname`, `pos.colname`, `pval.colname` and `label.colname` are replaced with
-#'   `chr_by`, `pos_by`, `pval_by` and `label_by` respectively.
-#' * The `chromosome` and `chr.order` arguments are merged into a single argument `chromosomes`.
-#' * The `highlight.colname` argument is replaced with `highlight`, which can be a vector of indices
-#'   or a character of expression to select the variants to be highlighted, instead of a column name.
-#' * `point.size` is replaced with `pt_size`
-#' * When `highlight` is specified, the colors of the points
-#'   will be controled by `pt_color` and `highlight_color` arguments.
-#' * The labels get more controled by `label_*` arguments.
-#' * The highlighted points get more controled by `highlight_*` arguments.
-#' * The `pval_log_transform` argument is replaced with `pval_transform`, which allows to specify
-#'  a function to transform the p-values.
+#' The function is adapted from \code{ggmanh::manhattan_plot()} with
+#' extended control over point appearance, variant labels, highlighting,
+#' data thinning, y-axis rescaling, and \code{split_by} support for
+#' creating multi-panel layouts (e.g. faceted by cohort or phenotype).
+#'
+#' @section split_by Workflow:
+#'
+#' When \code{split_by} is provided:
+#' \enumerate{
+#'   \item \strong{Column validation} --- \code{\link{check_columns}()}
+#'   resolves \code{split_by} with \code{force_factor = TRUE},
+#'   \code{allow_multi = TRUE}, and \code{concat_multi = TRUE}.  For
+#'   \code{GRanges} inputs, validation is performed on the
+#'   \code{@elementMetadata} slot.
+#'   \item \strong{GRanges support} --- \code{data} can be a
+#'   \code{data.frame} or a \code{GenomicRanges::GRanges} object.
+#'   When \code{GRanges} is used, \code{split_by} is read from the
+#'   metadata columns.
+#'   \item \strong{Data splitting} --- drops unused \code{split_by}
+#'   levels, splits \code{data} by \code{split_by} (preserving factor
+#'   level order), and wraps into a named list.  When \code{split_by}
+#'   is \code{NULL}, the data is wrapped as a single-element list with
+#'   name \code{"..."}.
+#'   \item \strong{Per-split palette / colour} ---
+#'   \code{\link{check_palette}()} and \code{\link{check_palcolor}()}
+#'   resolve per-split palette and colour overrides.
+#'   \item \strong{Per-split title} --- when \code{title} is a function,
+#'   it receives the default title (the split level name) and can return
+#'   a custom string; otherwise \code{title \%||\% split_level} is used.
+#'   \item \strong{Dispatch} --- each split subset is passed to
+#'   \code{\link{ManhattanPlotAtomic}}.
+#'   \item \strong{Combination} --- \code{\link{combine_plots}()}
+#'   assembles the list of plots via \code{patchwork::wrap_plots},
+#'   honouring \code{nrow} / \code{ncol} / \code{byrow} / \code{design}.
+#' }
+#'
+#' @note \code{facet_by} is not supported by this plot type and triggers
+#'   a warning if provided.  Use \code{split_by} instead to produce
+#'   comparable multi-panel layouts.
 #'
 #' @inheritParams common_args
 #' @inheritParams ManhattanPlotAtomic
-#' @returns A ggplot object or wrap_plots object or a list of ggplot objects.
-#'  If no `split_by` is provided, a single plot (ggplot object) will be returned.
-#'  If 'combine' is TRUE, a wrap_plots object will be returned.
-#'  If 'combine' is FALSE, a list of ggplot objects will be returned.
+#' @param split_by The column(s) to split data by and produce separate
+#'   sub-plots.  Multiple columns are concatenated with
+#'   \code{split_by_sep}.
+#' @param split_by_sep A character string used to concatenate multiple
+#'   \code{split_by} column values.  Default: \code{"_"}.
+#' @param seed A numeric seed for reproducibility.  Passed to
+#'   \code{\link{validate_common_args}()}.  Default: \code{8525}.
+#' @param combine A logical value.  When \code{TRUE} (the default), the
+#'   list of per-split plots is combined into a single \code{patchwork}
+#'   object.  When \code{FALSE}, returns the raw list.
+#' @param nrow,ncol,byrow Integers controlling the layout of combined
+#'   plots via \code{patchwork::wrap_plots()}.  \code{byrow = TRUE}
+#'   fills the layout row-wise.
+#' @param axes,axis_titles Strings controlling how axes and axis titles
+#'   are handled across combined plots.  Passed to
+#'   \code{\link{combine_plots}()}.  See \code{?patchwork::wrap_plots}
+#'   for options (\code{"keep"}, \code{"collect"}, \code{"collect_x"},
+#'   \code{"collect_y"}).
+#' @param guides A string controlling guide collection across combined
+#'   plots.  Passed to \code{\link{combine_plots}()}.
+#' @param design A custom layout specification for combined plots.
+#'   Passed to \code{\link{combine_plots}()}.  When specified,
+#'   \code{nrow}, \code{ncol}, and \code{byrow} are ignored.
+#' @return A \code{ggplot} object (single plot, no \code{split_by}), a
+#'   \code{patchwork} object (when \code{combine = TRUE} with
+#'   \code{split_by}), or a named list of \code{ggplot} objects (when
+#'   \code{combine = FALSE}).  Each individual plot carries
+#'   \code{height} and \code{width} attributes.
 #' @export
 #' @examples
 #' \donttest{
@@ -420,6 +607,7 @@ ManhattanPlotAtomic <- function(
 #'
 #' nsim <- 50000
 #'
+#' # --- Data simulation ---
 #' simdata <- data.frame(
 #'   "chromosome" = sample(c(1:22,"X"), size = nsim, replace = TRUE),
 #'   "position" = sample(1:100000000, size = nsim),
@@ -429,50 +617,51 @@ ManhattanPlotAtomic <- function(
 #' simdata$chromosome <- factor(simdata$chromosome, c(1:22, "X"))
 #' options(repr.plot.width=10, repr.plot.height=5)
 #'
+#' # --- Basic Manhattan plot ---
 #' if (requireNamespace("ggmanh", quietly = TRUE)) {
 #' ManhattanPlot(
 #'    simdata, pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
 #'    title = "Simulated P.Values", ylab = "P")
 #' }
 #'
+#' # --- split_by ---
 #' if (requireNamespace("ggmanh", quietly = TRUE)) {
-#' # split_by
 #' ManhattanPlot(
 #'    simdata, pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
 #'    title = "Simulated P.Values", ylab = "P", split_by = "cohort", ncol = 1)
 #' }
 #'
+#' # --- Customized p-value transformation and significance threshold line colors ---
 #' if (requireNamespace("ggmanh", quietly = TRUE)) {
-#' # Customized p-value transformation and significance threshold line colors
 #' ManhattanPlot(
 #'    simdata, pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
 #'    title = "Simulated -Log2 P.Values", ylab = "-log2(P)", pval_transform = "-log2",
 #'    signif_color = c("red", "blue"))
 #' }
 #'
+#' # --- Different palette and no significance threshold labels ---
 #' if (requireNamespace("ggmanh", quietly = TRUE)) {
-#' # Use a different palette and don't show significance threshold labels
 #' ManhattanPlot(
 #'    simdata, pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
 #'    palette = "Set1", signif_label = FALSE)
 #' }
 #'
+#' # --- Reverse palette and label position on the right ---
 #' if (requireNamespace("ggmanh", quietly = TRUE)) {
-#' # Reverse the palette and show significance threshold labels on the right
 #' ManhattanPlot(
 #'    simdata, pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
 #'    palette = "Set1", palreverse = TRUE, signif_label_pos = "right")
 #' }
 #'
+#' # --- Single chromosome ---
 #' if (requireNamespace("ggmanh", quietly = TRUE)) {
-#' # Use chromosomes to show a single selected chromosome
 #' ManhattanPlot(
 #'    simdata, pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
 #'    title = "Simulated P.Values", chromosomes = 5)
 #' }
 #'
+#' # --- Chromosome subset and reorder ---
 #' if (requireNamespace("ggmanh", quietly = TRUE)) {
-#' # Subset and reorder chromosomes
 #' ManhattanPlot(
 #'    simdata, pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
 #'    title = "Simulated P.Values", chromosomes = c(20, 4, 6))
@@ -489,15 +678,15 @@ ManhattanPlotAtomic <- function(
 #' simdata <- rbind(simdata, tmpdata)
 #' simdata$chromosome <- factor(simdata$chromosome, c(1:22, "X"))
 #'
+#' # --- Disable y-axis rescaling ---
 #' if (requireNamespace("ggmanh", quietly = TRUE)) {
-#' # Don't rescale the plot (y-axis)
 #' ManhattanPlot(
 #'     simdata, pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
 #'     title = "Simulated P.Values - Significant", rescale = FALSE)
 #' }
 #'
+#' # --- Y-axis rescaling with custom break position ---
 #' if (requireNamespace("ggmanh", quietly = TRUE)) {
-#' # Rescale the plot (y-axis) and put the breaking point in the middle of the y-axis
 #' ManhattanPlot(
 #'     simdata, pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
 #'     title = "Simulated P.Values - Significant", rescale = TRUE, signif_rel_pos = 0.5)
@@ -511,14 +700,14 @@ ManhattanPlotAtomic <- function(
 #' i <- (simdata$chromosome == 5) & (simdata$P.value < 5e-8)
 #' simdata$label2[i] <- paste("Chromosome 5 label", 1:sum(i))
 #'
+#' # --- Variant labels ---
 #' if (requireNamespace("ggmanh", quietly = TRUE)) {
-#' # Label the points with labels
 #' ManhattanPlot(simdata, label_by = "label", pval_by = "P.value", chr_by = "chromosome",
 #'     pos_by = "position", title = "Simulated P.Values with labels", label_size = 4)
 #' }
 #'
+#' # --- Variant labels with custom color ---
 #' if (requireNamespace("ggmanh", quietly = TRUE)) {
-#' # Label the points with labels and use a different color for the labels
 #' ManhattanPlot(simdata, label_by = "label2", pval_by = "P.value", chr_by = "chromosome",
 #'     pos_by = "position", title = "Simulated P.Values with labels",
 #'     label_size = 3, label_fg = "black")
@@ -527,16 +716,16 @@ ManhattanPlotAtomic <- function(
 #' simdata$color <- "Not Significant"
 #' simdata$color[simdata$P.value <= 5e-8] <- "Significant"
 #'
+#' # --- Highlight points with custom shape ---
 #' if (requireNamespace("ggmanh", quietly = TRUE)) {
-#' # Highlight points with shapes
 #' ManhattanPlot(simdata, title = "Highlight Points with shapes",
 #'     pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
 #'     highlight = "color == 'Significant'", highlight_color = NULL, highlight_shape = 6,
 #'     highlight_size = 5, pt_alpha = 0.2, pt_size = 1)
 #' }
 #'
+#' # --- Highlight points with custom color ---
 #' if (requireNamespace("ggmanh", quietly = TRUE)) {
-#' # Highlight points with colors
 #' ManhattanPlot(simdata, title = "Highlight Points",
 #'     pval_by = "P.value", chr_by = "chromosome", pos_by = "position",
 #'     highlight = "color == 'Significant'", highlight_color = "black",

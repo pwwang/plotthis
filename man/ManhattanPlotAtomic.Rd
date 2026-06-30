@@ -2,7 +2,7 @@
 % Please edit documentation in R/manhattanplot.R
 \name{ManhattanPlotAtomic}
 \alias{ManhattanPlotAtomic}
-\title{ManhattanPlotAtomic}
+\title{Atomic Manhattan plot (internal)}
 \usage{
 ManhattanPlotAtomic(
   data,
@@ -50,88 +50,125 @@ ManhattanPlotAtomic(
 )
 }
 \arguments{
-\item{data}{A data frame or \code{GenomicRanges::GRanges} containing the data to be plotted.}
+\item{data}{A data frame.}
 
-\item{chr_by}{Column name for chromosome (default: "chr").}
+\item{chr_by}{A character string specifying the column name for chromosome
+identifiers.  Default: \code{"chr"}.}
 
-\item{pos_by}{Column name for position (default: "pos").}
+\item{pos_by}{A character string specifying the column name for genomic
+positions (integer or numeric).  Default: \code{"pos"}.}
 
-\item{pval_by}{Column name for p-value (default: "pval").}
+\item{pval_by}{A character string specifying the column name for p-values
+(numeric).  Default: \code{"pval"}.}
 
-\item{label_by}{Column name for the variants to be labeled (default: NULL).
-Only the variants with values in this column will be labeled.}
+\item{label_by}{A character string specifying the column name for variant
+labels.  Only variants with non-empty values in this column will be
+labelled.  Default: \code{NULL} (no labels).}
 
-\item{chromosomes}{A vector of chromosomes to be plotted (default: NULL).
-If NULL, all chromosomes will be plotted.
-It is more of a combination of the \code{chromosome} and \code{chr.order} arguments of
-\code{ggmanh::manhattan_plot()}.
-We can use it to select chromosomes to be plotted or to set the order of the chromosomes.}
+\item{chromosomes}{A character or numeric vector specifying which
+chromosomes to include and/or their display order.  When \code{NULL}
+(the default), all chromosomes present in the data are plotted in
+their natural factor order.  A single value filters to that
+chromosome; a vector reorders and subsets.}
 
-\item{pt_size}{A numeric value to specify the size of the points in the plot.}
+\item{pt_size}{A numeric value specifying the size of the points.
+Default: \code{0.75}.}
 
-\item{pt_color}{A character string to specify the color of the points in the plot.
-By default, the color of the points will be controled by \code{palette} or \code{palcolor} arguments.
-This is useful to color the background points when \code{highlight} and \code{highlight_color}
-are specified.}
+\item{pt_color}{A character string specifying a single colour for all
+background (non-highlighted) points.  When \code{NULL} (the default),
+alternating chromosome colours from \code{palette} / \code{palcolor}
+are used.  Typically set to \code{"grey80"} when \code{highlight} is
+used with a distinct \code{highlight_color}.}
 
-\item{pt_alpha}{A numeric value to specify the transparency of the points in the plot.}
+\item{pt_alpha}{A numeric value in \code{[0, 1]} specifying the
+transparency of the points.  Default: \code{alpha} (aliased
+parameter).}
 
-\item{pt_shape}{A numeric value to specify the shape of the points in the plot.}
+\item{pt_shape}{A numeric value specifying the shape of the points.
+Default: \code{19} (filled circle).}
 
-\item{label_size}{A numeric value to specify the size of the labels in the plot.}
+\item{label_size}{A numeric value specifying the font size of the
+variant labels.  Default: \code{3}.}
 
-\item{label_fg}{A character string to specify the color of the labels in the plot.
-If NULL, the color of the labels will be the same as the points.}
+\item{label_fg}{A character string specifying the colour of the variant
+labels.  When \code{NULL} (the default), each label inherits the
+colour of its corresponding point.}
 
-\item{highlight}{Either a vector of indices or a character of expression to select
-the variants to be highlighted (default: NULL).
-If NULL, no variants will be highlighted.}
+\item{highlight}{Either a numeric vector of row indices or a character
+string containing an R expression (parsed via
+\code{rlang::parse_expr()}) to select variants to highlight.
+Default: \code{NULL} (no highlighting).}
 
-\item{highlight_color}{A character string to specify the color of the highlighted points.}
+\item{highlight_color}{A character string specifying the colour of
+highlighted points.  When \code{NULL} (the default), highlighted
+points inherit the chromosome colour from the underlying
+\code{geom_point()} layer.}
 
-\item{highlight_size}{A numeric value to specify the size of the highlighted points.}
+\item{highlight_size}{A numeric value specifying the size of
+highlighted points.  Default: \code{1.5}.}
 
-\item{highlight_alpha}{A numeric value to specify the transparency of the highlighted points.}
+\item{highlight_alpha}{A numeric value in \code{[0, 1]} specifying the
+transparency of highlighted points.  Default: \code{1}.}
 
-\item{highlight_shape}{A numeric value to specify the shape of the highlighted points.}
+\item{highlight_shape}{A numeric value specifying the shape of
+highlighted points.  Default: \code{19} (filled circle).}
 
-\item{preserve_position}{If TRUE, the width of each chromosome reflect the number of variants
-and the position of each variant is correctly scaled?
-If FALSE, the width of each chromosome is equal and the variants are equally spaced.}
+\item{preserve_position}{A logical value.  When \code{TRUE} (the
+default), the width of each chromosome segment reflects its number
+of variants and variant positions are correctly scaled.  When
+\code{FALSE}, all chromosomes have equal width and variants are
+equally spaced.}
 
-\item{chr_gap_scaling}{A numeric value to specify the scaling of the gap between chromosomes.
-It is used to adjust the gap between chromosomes in the plot.}
+\item{chr_gap_scaling}{A numeric scaling factor for the gap between
+chromosomes.  Larger values increase the gap.  Default: \code{1}.}
 
-\item{pval_transform}{A function to transform the p-values (default: -log10).
-If it is a character, it will be evaluated as a function.}
+\item{pval_transform}{A function or character string that can be
+evaluated to a function for transforming p-values.  Default:
+\code{"-log10"}, which computes \eqn{-\log_{10}(p)}.  Other
+examples: \code{"-log2"} or a custom
+\code{function(x) -log10(x)}.}
 
-\item{signif}{A vector of significance thresholds (default: c(5e-08, 1e-05)).}
+\item{signif}{A numeric vector of significance thresholds to draw as
+horizontal dashed lines.  Default: \code{c(5e-8, 1e-5)}.}
 
-\item{signif_color}{A character vector of equal length as signif.
-It contains colors for the lines drawn at signif.
-If NULL, the smallest value is colored black while others are grey.}
+\item{signif_color}{A character vector of colours for the significance
+threshold lines, of equal length as \code{signif}.  When \code{NULL}
+(the default), the smallest threshold is coloured black and the rest
+grey.}
 
-\item{signif_rel_pos}{A numeric between 0.1 and 0.9. If the plot is rescaled,}
+\item{signif_rel_pos}{A numeric value between \code{0.1} and \code{0.9}
+specifying the relative position of the y-axis jump when rescaling
+is active.  Default: \code{0.2}.}
 
-\item{signif_label}{A logical value indicating whether to label the significance thresholds (default: TRUE).}
+\item{signif_label}{A logical value.  When \code{TRUE} (the default),
+significance threshold values are annotated on the plot.}
 
-\item{signif_label_size}{A numeric value to specify the size of the significance labels.}
+\item{signif_label_size}{A numeric value for the font size of the
+significance threshold labels.  Default: \code{3.5}.}
 
-\item{signif_label_pos}{A character string specifying the position of the significance labels.
-where should the significance threshold be positioned?
-It can be either "left" or "right" (default: "left").}
+\item{signif_label_pos}{A character string specifying where to place
+the significance threshold labels: \code{"left"} (default) or
+\code{"right"}.}
 
-\item{thin}{A logical value indicating whether to thin the data (default: NULL).
-Defaults to TRUE when \code{chromosomes} is specified and the length of
-it is less than the number of chromosomes in the data. Defaults to FALSE otherwise.}
+\item{thin}{A logical value indicating whether to thin dense data by
+sampling points per horizontal partition.  Defaults to \code{TRUE}
+when \code{chromosomes} selects fewer chromosomes than in the data,
+and \code{FALSE} otherwise.}
 
-\item{thin_n}{Number of max points per horizontal partitions of the plot. Defaults to 1000.}
+\item{thin_n}{An integer specifying the maximum number of points per
+horizontal partition after thinning.  Default: \code{1000}.}
 
-\item{thin_bins}{Number of bins to partition the data. Defaults to 200.}
+\item{thin_bins}{An integer specifying the number of horizontal bins
+for thinning.  Default: \code{200}.}
 
-\item{rescale}{A logical value indicating whether to rescale the plot (default: TRUE).}
+\item{rescale}{A logical value.  When \code{TRUE} (the default), the
+y-axis is automatically rescaled (broken axis) if extreme
+significance values would otherwise compress the main data cloud.}
 
-\item{rescale_ratio_threshold}{A numeric value to specify the ratio threshold for rescaling.}
+\item{rescale_ratio_threshold}{A numeric threshold for triggering
+y-axis rescaling.  The ratio is computed as
+\code{ceiling(max(log10pval) / 5) * 5 / signif_jump}.
+Default: \code{5}.}
 
 \item{palette}{A character string specifying the palette to use.
 A named list or vector can be used to specify the palettes for different \code{split_by} values.}
@@ -142,7 +179,7 @@ If some values are missing, the values from the palette will be used (palcolor w
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
-\item{alpha}{Alias of \code{pt_alpha}.}
+\item{alpha}{A numeric value specifying the transparency of the plot.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -162,27 +199,121 @@ This is useful when split_by is used and the title needs to be dynamic.}
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object.
+A \code{ggplot} object with \code{height} and \code{width}
+attributes (in inches) attached.
 }
 \description{
-Plot a Manhattan plot for atomic data (without splitting).
-This function is borrowed from \code{ggmanh::manhattan_plot()} with following customizations:
-}
-\details{
+Core implementation for drawing a GWAS-style Manhattan plot.  This is the
+internal workhorse dispatched by the exported \code{\link{ManhattanPlot}}
+function --- it takes a \strong{single} data frame (no \code{split_by} support)
+and returns a \code{ggplot} object.  The plot displays genetic association
+p-values across chromosomes, with \eqn{-\log_{10}(p)} on the y-axis and
+genomic position on the x-axis.  Each chromosome is rendered in alternating
+colours, and configurable horizontal dashed lines mark genome-wide
+significance thresholds.
+
+The function is adapted from \code{ggmanh::manhattan_plot()} with the
+following enhancements:
 \itemize{
-\item The dots in argument names are replaced with underscores wherever possible.
-\item \code{chr.colname}, \code{pos.colname}, \code{pval.colname} and \code{label.colname} are replaced with
-\code{chr_by}, \code{pos_by}, \code{pval_by} and \code{label_by} respectively.
-\item The \code{chromosome} and \code{chr.order} arguments are merged into a single argument \code{chromosomes}.
-\item The \code{highlight.colname} argument is replaced with \code{highlight}, which can be a vector of indices
-or a character of expression to select the variants to be highlighted, instead of a column name.
-\item \code{point.size} is replaced with \code{pt_size}
-\item When \code{highlight} is specified, the colors of the points
-will be controled by \code{pt_color} and \code{highlight_color} arguments.
-\item The labels get more controled by \verb{label_*} arguments.
-\item The highlighted points get more controled by \verb{highlight_*} arguments.
-\item The \code{pval_log_transform} argument is replaced with \code{pval_transform}, which allows to specify
-a function to transform the p-values.
+\item Dot-separated argument names are converted to underscores
+(e.g. \code{chr.colname} \eqn{\rightarrow} \code{chr_by}).
+\item \code{chromosomes} merges the original \code{chromosome} and
+\code{chr.order} arguments into a single parameter for subsetting
+and reordering.
+\item \code{highlight} accepts index vectors or R expressions (via a
+character string) instead of a column name.
+\item Dedicated \code{pt_*}, \code{label_*}, and \code{highlight_*}
+parameter families give granular control over point appearance,
+label styling, and highlight styling.
+\item \code{pval_transform} accepts any function (or a character
+string parsed as a function) rather than a fixed log-transform toggle.
+}
+
+Key features include per-chromosome alternating colours, configurable
+significance threshold lines with labels, optional data thinning for
+dense SNP sets, automatic y-axis rescaling (broken-axis) when a small
+number of highly significant points would otherwise compress the
+majority of the data, and support for highlighting and labeling
+specific variants.
+}
+\section{Architecture}{
+
+
+\strong{ManhattanPlotAtomic} executes the following steps:
+\enumerate{
+\item \strong{ggplot dispatch} --- selects \code{gglogger::ggplot} or
+\code{ggplot2::ggplot} based on
+\code{getOption("plotthis.gglogger.enabled")}.
+\item \strong{signif_label_pos normalisation} --- \code{match.arg()}
+resolves \code{signif_label_pos} to \code{"left"} or \code{"right"}.
+\item \strong{Data preprocessing} ---
+\code{ggmanh::manhattan_data_preprocess()} performs chromosome
+ordering, optional thinning (\code{thin_n} points per
+\code{thin_bins} horizontal partitions), chromosome gap scaling
+(\code{chr_gap_scaling}), position preservation
+(\code{preserve_position}), and significance threshold colour
+assignment.  When \code{chromosomes} is a single value, it is
+passed as the \code{chromosome} filter; otherwise it is used for
+ordering via \code{chr.order}.
+\item \strong{label_by validation} --- \code{\link{check_columns}()}
+validates and factors the \code{label_by} column if provided.
+\item \strong{Chromosome colour assignment} --- if \code{highlight}
+and \code{highlight_color} are both set, or if \code{pt_color} is
+given, \code{pt_color} (defaulting to \code{"grey80"}) is used as
+the base colour for all chromosomes; otherwise
+\code{\link{palette_this}()} generates distinct colours per
+chromosome from \code{palette} / \code{palcolor}.
+\item \strong{pval_transform resolution} --- when a character string
+starting with \code{"-"} (e.g. \code{"-log10"}), the minus sign is
+stripped, the remainder is evaluated as a function, and the result
+is negated.  Plain character strings are evaluated directly.  The
+result is applied to the p-value column to produce \code{log10pval}.
+\item \strong{Y-axis rescaling check} --- when \code{rescale = TRUE},
+the ratio of the ceiling-scaled maximum to the significance-threshold
+jump is checked against \code{rescale_ratio_threshold}.  If the
+ratio exceeds the threshold, a broken y-axis is constructed via
+\code{ggmanh::get_transform()} that compresses the empty space
+between the main data and the extreme points.
+\item \strong{Single-chromosome branch} --- when only one chromosome
+is present, the original position column is used directly, x-axis
+breaks and labels use \code{waiver()}, and the x-axis label is set
+to the chromosome name (or \code{"Chromosome <name>"}).
+\item \strong{Multi-chromosome branch} --- position coordinates are
+recalculated across chromosome boundaries via
+\code{ggmanh::calc_new_pos_()}.  Chromosome centre positions serve
+as x-axis breaks, chromosome labels are displayed, and limits span
+the full genomic range.
+\item \strong{Base plot assembly} --- creates a \code{ggplot} object
+with \code{geom_point()} (chromosome-coloured dots),
+\code{scale_color_manual()}, \code{scale_y_continuous()} (with
+optional broken-axis transform), \code{scale_x_continuous()},
+\code{geom_hline()} for significance thresholds, the resolved theme
+(with hidden grid lines and suppressed legend), and \code{labs()}.
+\item \strong{Significance labels} --- when \code{signif_label = TRUE},
+\code{geom_text()} annotates each significance threshold at the
+left or right edge of the plot (controlled by
+\code{signif_label_pos}), coloured by \code{signif_color} (smallest
+threshold in black, others in grey by default).
+\item \strong{Variant labels} --- when \code{label_by} is provided,
+\code{ggrepel::geom_label_repel()} adds labels for variants that
+have non-empty values in the \code{label_by} column.  If \code{label_fg}
+is set, all labels receive that colour; otherwise each label inherits
+the chromosome colour of its point.
+\item \strong{Rescale tick marks} --- when y-axis rescaling is
+active, the axis tick style is changed (via \code{axis.ticks.y})
+and a double-equals annotation is placed at the jump point to
+indicate the axis break, with \code{coord_cartesian(clip = "off")}.
+\item \strong{Highlight overlay} --- when \code{highlight} is
+numeric (row indices) or a character string (R expression), the
+matching points are overlaid with a separate \code{geom_point()}
+layer styled by \code{highlight_*} parameters, optionally in a
+distinct colour when \code{highlight_color} is specified.
+\item \strong{Dimension calculation} ---
+\code{\link{calculate_plot_dimensions}()} computes height and width
+from the number of chromosomes (\code{base_height = 4.5},
+\code{x_scale_factor = 0.4}), and stores them as \code{height} /
+\code{width} attributes on the plot.
 }
 }
+
 \keyword{internal}
