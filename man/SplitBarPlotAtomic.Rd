@@ -2,7 +2,7 @@
 % Please edit documentation in R/barplot.R
 \name{SplitBarPlotAtomic}
 \alias{SplitBarPlotAtomic}
-\title{SplitBarPlotAtomic}
+\title{Atomic split bar plot (internal)}
 \usage{
 SplitBarPlotAtomic(
   data,
@@ -54,46 +54,61 @@ SplitBarPlotAtomic(
 \arguments{
 \item{data}{A data frame.}
 
-\item{x}{The column name of the terms on the x axis. There should be both negative and positive values.}
+\item{x}{A character string specifying the numeric column for the
+x-axis.  Values determine bar direction: positive → right, negative →
+left.}
 
-\item{y}{The column name(s) of the values. If there are multiple columns, they will be concatenated.}
+\item{y}{A character string (or vector) specifying the column(s) for the
+category axis.  Each unique value becomes a bar.  Multiple columns are
+concatenated with \code{y_sep}.}
 
-\item{y_sep}{A character string to concatenate the x columns if there are multiple.}
+\item{y_sep}{A character string to join multiple \code{y} columns.
+Default \code{"_"}.}
 
-\item{flip}{A logical value indicating whether to flip the x and y axes.}
+\item{flip}{Logical; if \code{TRUE}, swap the x and y axes (bars become
+vertical rather than horizontal).}
 
-\item{alpha_by}{A character string indicating the column name to use for the transparency of the bars.}
+\item{alpha_by}{A character string naming a numeric column to encode as
+bar opacity.  Default \code{NULL} (all bars fully opaque).}
 
-\item{alpha_reverse}{A logical value indicating whether to reverse the transparency.}
+\item{alpha_reverse}{Logical; if \code{TRUE}, reverse the alpha scale
+direction (solid for low values, transparent for high).}
 
-\item{alpha_name}{A character string indicating the legend name of the transparency.}
+\item{alpha_name}{A character string for the alpha legend title.}
 
-\item{order_y}{A list of character strings indicating the order of the y axis.
-The keys are "+", "-", or "\emph{". However, "+/-" should not be mixed with "}".
-The values are "x_asc", "x_desc", "alpha_asc", or "alpha_desc", indicating how to order the y axis.
-The default is \code{list("+" = c("x_desc", "alpha_desc"), "-" = c("x_desc", "alpha_asc"))}, meaning
-the positive values are ordered by the x-axis values in descending order and the alpha values in descending order,
-and the negative values are ordered by the x-axis values in descending order and the alpha values in ascending order.
-The "*" key is used to order the y axis without considering the direction.}
+\item{order_y}{A named list controlling the vertical ordering of bars.
+Keys are \code{"+"} (positive bars), \code{"-"} (negative bars), or
+\code{"*"} (all bars).  Values are character vectors of ordering
+criteria: \code{"x_asc"}, \code{"x_desc"}, \code{"alpha_asc"},
+\code{"alpha_desc"}.  Default orders positive bars by descending x and
+descending alpha; negative bars by descending x and ascending alpha.}
 
-\item{bar_height}{A numeric value indicating the height of the bars.}
+\item{bar_height}{A numeric value (0–1) specifying the bar height as a
+fraction of the available category slot.}
 
-\item{lineheight}{A numeric value indicating the height of the text.}
+\item{lineheight}{A numeric value controlling the line height of wrapped
+category labels.}
 
-\item{max_charwidth}{A numeric value indicating the maximum width of the text.}
+\item{max_charwidth}{An integer specifying the maximum character width
+for wrapping category labels.}
 
-\item{fill_by}{A character string indicating the column name to use for the fill of the bars.
-Can be either a categorical variable or a numeric variable.}
+\item{fill_by}{A character string (or vector) naming the column(s) for
+bar fill colour.  If \code{NULL}, the direction (positive/negative) is
+used.  Can be categorical or numeric.}
 
-\item{fill_by_sep}{A character string to concatenate the fill columns if there are multiple.}
+\item{fill_by_sep}{A character string to join multiple \code{fill_by}
+columns.  Default \code{"_"}.}
 
-\item{fill_name}{A character string indicating the legend name of the fill.}
+\item{fill_name}{A character string for the fill legend title.}
 
-\item{direction_name}{A character string indicating the name of the direction column and will be shown in the legend.}
+\item{direction_name}{A character string naming the internal direction
+column (used in legends).  Default \code{"direction"}.}
 
-\item{direction_pos_name}{A character string indicating the name of the positive direction.}
+\item{direction_pos_name}{A character string labelling the positive
+direction in the legend.  Default \code{"positive"}.}
 
-\item{direction_neg_name}{A character string indicating the name of the negative direction.}
+\item{direction_neg_name}{A character string labelling the negative
+direction in the legend.  Default \code{"negative"}.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -135,9 +150,8 @@ When facet_by is a single column and facet_wrap is used.}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
-\item{x_min}{A numeric value indicating the minimum value of the x axis.}
-
-\item{x_max}{A numeric value indicating the maximum value of the x axis.}
+\item{x_min, x_max}{Numeric limits for the x-axis.  When \code{NULL},
+symmetric limits are computed from the maximum absolute x-value.}
 
 \item{legend.position}{A character string specifying the position of the legend.
 if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
@@ -177,7 +191,62 @@ for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.}
 
 \item{...}{Additional arguments.}
 }
-\description{
-Create a split bar plot without splitting the data.
+\value{
+A \code{ggplot} object, possibly faceted, with \code{height}
+and \code{width} attributes (in inches) attached.
 }
+\description{
+Core implementation for drawing a split (divergent / waterfall-style) bar
+plot.  Bars extend left (negative values) and right (positive values) from
+a central zero line, with the y-axis listing categories.  Bars can be
+coloured by a categorical or continuous fill variable, and their opacity
+can encode an additional numeric variable via \code{alpha_by}.
+
+This is the workhorse behind the exported \code{\link{SplitBarPlot}}
+(also aliased as \code{\link{WaterfallPlot}}).
+}
+\section{Architecture}{
+
+\enumerate{
+\item \strong{Column resolution} — \code{x}, \code{y}, \code{fill_by},
+\code{alpha_by}, and \code{facet_by} are validated via
+\code{\link{check_columns}}.  Multi-column \code{y} and
+\code{fill_by} are concatenated with their respective separators.
+\item \strong{Direction assignment} — a \code{direction_name} column
+is created from the sign of \code{x}, assigning each row to the
+positive or negative group (customisable via
+\code{direction_pos_name} / \code{direction_neg_name}).
+\item \strong{Fill resolution} — if \code{fill_by} is \code{NULL},
+the direction column is used as the fill (two-colour palette).
+Categorical fills use a discrete colour scale; numeric fills use
+\code{\link{prepare_continuous_color_scale}()} with quantile /
+cutoff clamping and \code{scale_fill_gradientn()}.
+\item \strong{Alpha by} — when \code{alpha_by} is provided, bar
+opacity encodes an additional numeric variable via
+\code{scale_alpha_continuous()}.
+\item \strong{Ordering} — \code{order_y} is a named list controlling
+the vertical ordering of bars.  The keys \code{"+"} and \code{"-"}
+specify separate orderings for positive and negative bars; key
+\code{"*"} applies a single ordering to all bars.  Values are
+character vectors of ordering criteria: \code{"x_asc"},
+\code{"x_desc"}, \code{"alpha_asc"}, \code{"alpha_desc"}.
+\item \strong{Empty level padding} — when \code{keep_empty_y = TRUE},
+missing y-levels are padded per facet (or globally) with
+zero-height bars so they still appear on the axis.
+\item \strong{Text labels} — category names are drawn beside the bars
+via \code{geom_text()} at the zero line.  When flipped, labels are
+rotated 90°.  Long labels are wrapped via
+\code{\link[stringr]{str_wrap}()} using \code{max_charwidth}.
+\item \strong{Plot assembly} — the ggplot is built with
+\code{geom_vline(xintercept = 0)} for the centre line,
+\code{geom_col()} for bars, and the appropriate fill / alpha
+scales.
+\item \strong{Dimension calculation} — \code{calculate_plot_dimensions()}
+computes dimensions from the number of y categories, scaled by
+\code{bar_height / 4}.  Flipping adjusts the aspect ratio.
+\item \strong{Faceting} — \code{\link{facet_plot}()} wraps the result,
+defaulting to \code{facet_scales = "free_y"}.
+}
+}
+
 \keyword{internal}

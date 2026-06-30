@@ -65,21 +65,26 @@ BarPlotGrouped(
 
 \item{x}{A character string specifying the column name of the data frame to plot for the x-axis.}
 
-\item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.}
+\item{x_sep}{A character string to join multiple \code{x} columns.
+Default \code{"_"}.}
 
 \item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
 
-\item{scale_y}{A logical value indicating whether to scale the total y values in each group to 100\%.
-Only works when group_by is specified.}
+\item{scale_y}{A logical value.  When \code{TRUE}, y-values are scaled to
+proportions within each x position so that each position's total is 100\\%.
+Only applicable when \code{position = "stack"}.}
 
-\item{flip}{A logical value indicating whether to flip the x and y axes.}
+\item{flip}{Logical; if \code{TRUE}, swap the x and y axes.}
 
-\item{group_by}{A character vector specifying the column as the group_by of the plot.
-A character/factor column is expected.}
+\item{group_by}{A character vector of column name(s) to group the bars by.
+Each unique combination becomes a separate bar segment.  Multiple columns
+are concatenated with \code{group_by_sep}.  Required.}
 
-\item{group_by_sep}{A character string to concatenate the columns in \code{group_by}, if multiple columns are provided.}
+\item{group_by_sep}{A character string to separate concatenated
+\code{group_by} columns.  Default \code{"_"}.}
 
-\item{group_name}{A character string to specify the name of the group_by in the legend.}
+\item{group_name}{A character string for the group fill legend title.
+When \code{NULL}, the \code{group_by} column name is used.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -95,26 +100,29 @@ If some values are missing, the values from the palette will be used (palcolor w
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
-\item{label}{A column name for the values to be displayed on the top of the bars.
-If TRUE, the y values will be displayed.}
+\item{label}{A column name (or \code{TRUE}) for text labels on bars.
+When \code{TRUE}, the y-axis values are labelled.  When a column name,
+the values in that column are used.}
 
-\item{label_nudge}{A numeric value to nudge the labels (the distance between the label and the top of the bar).}
+\item{label_nudge}{A numeric value controlling the distance between labels
+and the bar top, expressed as a fraction of the data range.}
 
-\item{label_fg}{A character string indicating the color of the label.}
+\item{label_fg}{A character string specifying the label text colour.}
 
-\item{label_size}{A numeric value indicating the size of the label.}
+\item{label_size}{A numeric value specifying the label text size.}
 
-\item{label_bg}{A character string indicating the background color of the label.}
+\item{label_bg}{A character string specifying the label background colour.}
 
-\item{label_bg_r}{A numeric value indicating the radius of the background.}
+\item{label_bg_r}{A numeric value specifying the label background corner
+radius.}
 
-\item{add_bg}{A logical value indicating whether to add a background to the plot.}
+\item{add_bg}{Logical; add alternating background stripes behind the bars.}
 
-\item{bg_palette}{A character string indicating the palette to use for the background.}
+\item{bg_palette}{Palette for the background stripes.}
 
-\item{bg_palcolor}{A character string indicating the color to use for the background.}
+\item{bg_palcolor}{Custom colours for the background stripes.}
 
-\item{bg_alpha}{A numeric value indicating the alpha of the background.}
+\item{bg_alpha}{Alpha transparency for the background stripes.}
 
 \item{alpha}{A numeric value specifying the transparency of the plot.}
 
@@ -122,33 +130,34 @@ If TRUE, the y values will be displayed.}
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
-\item{add_line}{A numeric value indicating the y value to add a horizontal line.}
+\item{add_line}{A numeric y-intercept for a horizontal reference line.}
 
-\item{line_color}{A character string indicating the color of the line.}
+\item{line_color}{Colour of the reference line.}
 
-\item{line_width}{A numeric value indicating the size of the line.}
+\item{line_width}{Width of the reference line.}
 
-\item{line_type}{A numeric value indicating the type of the line.}
+\item{line_type}{Linetype of the reference line (e.g., 1 = solid, 2 = dashed).}
 
-\item{line_name}{A character string indicating the name of the line.}
+\item{line_name}{Legend name for the reference line.}
 
-\item{add_trend}{A logical value to add trend line to the plot.}
+\item{add_trend}{Logical; add a trend line and points connecting the bar tops.}
 
-\item{trend_color}{A character string to specify the color of the trend line.}
+\item{trend_color}{Colour of the trend line.}
 
-\item{trend_linewidth}{A numeric value to specify the width of the trend line.}
+\item{trend_linewidth}{Width of the trend line.}
 
-\item{trend_ptsize}{A numeric value to specify the size of the trend line points.}
+\item{trend_ptsize}{Size of the trend line points.}
 
-\item{position}{A character string indicating the position of the bars.
-If "auto", the position will be "stack" if group_by has more than 5 levels, otherwise "dodge".
-"fill" is also a valid option. Only works when group_by is not NULL.}
+\item{position}{A character string specifying the bar layout:
+\code{"auto"} (default: dodge when ≤5 groups, stack otherwise),
+\code{"dodge"} (side-by-side), or \code{"stack"} (stacked on top of
+each other).}
 
-\item{position_dodge_preserve}{Should dodging preserve the "total" width of all elements at a position, or the width of a "single" element?}
+\item{position_dodge_preserve}{A character string passed to
+\code{\link[ggplot2]{position_dodge2}()}: \code{"total"} preserves the
+overall bar group width; \code{"single"} preserves individual bar widths.}
 
-\item{y_min}{A numeric value to specify the minimum value of the y axis.}
-
-\item{y_max}{A numeric value to specify the maximum value of the y axis.}
+\item{y_min, y_max}{Numeric limits for the y-axis (or x-axis when flipped).}
 
 \item{legend.position}{A character string specifying the position of the legend.
 if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
@@ -196,7 +205,7 @@ When the axis is discrete, the values will be applied as 'add' to the 'expansion
 When the axis is continuous, the values will be applied as 'mult' to the 'expansion' function.
 See also \url{https://ggplot2.tidyverse.org/reference/expansion.html}}
 
-\item{width}{A numeric value specifying the width of the bars.}
+\item{width}{A numeric value specifying the bar width (0–1).}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
@@ -208,9 +217,58 @@ Other options are "free", "free_x", "free_y". See \code{ggplot2::facet_wrap}}
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object.
+A \code{ggplot} object with \code{height} and \code{width}
+attributes (in inches) attached.
 }
 \description{
-Create a bar plot with groups.
+Core implementation for drawing a grouped bar plot.  Each x-axis category
+is split into side-by-side (dodge) or stacked bars according to the
+\code{group_by} variable.  This is the grouped code path dispatched by
+\code{\link{BarPlotAtomic}} when \code{group_by} is provided.
 }
+\section{Architecture}{
+
+\enumerate{
+\item \strong{Column resolution} — \code{group_by}, \code{facet_by},
+\code{x}, and \code{y} are validated and transformed via
+\code{\link{check_columns}}.
+\item \strong{Count aggregation} — when \code{y = NULL}, the count of
+observations per (\code{x}, \code{group_by}, \code{facet_by})
+combination is computed.  Factor levels are preserved.
+\item \strong{Proportion scaling} — when \code{scale_y = TRUE},
+y-values are divided by the sum within each (\code{x},
+\code{facet_by}) group so that each x position stacks to 100\\%.
+\item \strong{Position resolution} — \code{position = "auto"} chooses
+\code{"dodge"} for ≤5 groups or \code{"stack"} for >5 groups.
+Explicit \code{"dodge"} and \code{"stack"} are also accepted.
+\item \strong{Expand calculation} — for stacked bars, expansion is
+computed from y-range and label presence.  For dodged bars,
+expansion is minimal.  The \code{\link{norm_expansion}()} utility
+normalises the final expansion vector.
+\item \strong{Colour mapping} — \code{\link{palette_this}()} assigns
+per-group colours.  The fill scale \code{drop} argument is
+controlled by \code{keep_empty_group}.
+\item \strong{Labels} — when \code{label} is set:
+\itemize{
+\item For \strong{stacked} bars, cumulative label positions are
+computed so each label is centred within its segment.
+\item For \strong{dodged} bars, labels are nudged above/below
+the bar top by \code{label_nudge} × the data range.
+\item \code{\link[ggrepel]{geom_text_repel}()} is used for
+automatic overlap avoidance.
+}
+\item \strong{Trend line} — when \code{add_trend = TRUE}, lines connect
+bar tops.  When \code{trend_color} is \code{NULL}, each group gets
+its own coloured line; otherwise a single colour is used.
+\item \strong{Horizontal reference line} — \code{add_line} draws a
+\code{geom_hline()} at the specified y-value.
+\item \strong{Dimension calculation} — width accounts for the number of
+x categories × number of groups (dodge) or just x categories
+(stack).  \code{calculate_plot_dimensions()} adjusts for
+\code{flip} and legend metrics.
+\item \strong{Coordinate transform} — \code{coord_flip()} or
+\code{coord_cartesian()} with \code{y_min} / \code{y_max}.
+}
+}
+
 \keyword{internal}

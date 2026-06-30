@@ -2,7 +2,7 @@
 % Please edit documentation in R/barplot.R
 \name{BarPlotSingle}
 \alias{BarPlotSingle}
-\title{BarPlotSingle}
+\title{Single bar plot (no groups)}
 \usage{
 BarPlotSingle(
   data,
@@ -63,15 +63,17 @@ BarPlotSingle(
 \arguments{
 \item{data}{A data frame.}
 
-\item{x}{A character vector specifying the column as the x axis of the plot.
-A character/factor column is expected.}
+\item{x}{A character vector of column name(s) for the x-axis.
+Character/factor columns are expected.  Multiple columns are
+concatenated with \code{x_sep}.}
 
-\item{x_sep}{A character string to concatenate the columns in \code{x}, if multiple columns are provided.}
+\item{x_sep}{A character string to join multiple \code{x} columns.
+Default \code{"_"}.}
 
-\item{y}{A character vector specifying the column as the y axis of the plot.
-Default is NULL, meaning the y axis is the count of the data.}
+\item{y}{A character string specifying the numeric column for the y-axis.
+Default \code{NULL} — the count of observations per x category is used.}
 
-\item{flip}{A logical value indicating whether to flip the x and y axes.}
+\item{flip}{Logical; if \code{TRUE}, swap the x and y axes.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
@@ -80,18 +82,29 @@ and combine them into one using \code{patchwork::wrap_plots}}
 \item{facet_scales}{Whether to scale the axes of facets. Default is "fixed"
 Other options are "free", "free_x", "free_y". See \code{ggplot2::facet_wrap}}
 
-\item{label}{A column name for the values to be displayed on the top of the bars.
-If TRUE, the y values will be displayed.}
+\item{label}{A column name (or \code{TRUE}) for text labels on bars.
+When \code{TRUE}, the y-axis values are labelled.  When a column name,
+the values in that column are used.}
 
-\item{label_nudge}{A numeric value to nudge the labels (the distance between the label and the top of the bar).}
+\item{label_nudge}{A numeric value controlling the distance between labels
+and the bar top, expressed as a fraction of the data range.}
 
-\item{label_fg}{A character string indicating the color of the label.}
+\item{label_fg}{A character string specifying the label text colour.}
 
-\item{label_size}{A numeric value indicating the size of the label.}
+\item{label_size}{A numeric value specifying the label text size.}
 
-\item{label_bg}{A character string indicating the background color of the label.}
+\item{label_bg}{A character string specifying the label background colour.}
 
-\item{label_bg_r}{A numeric value indicating the radius of the background.}
+\item{label_bg_r}{A numeric value specifying the label background corner
+radius.}
+
+\item{add_bg}{Logical; add alternating background stripes behind the bars.}
+
+\item{bg_palette}{Palette for the background stripes.}
+
+\item{bg_palcolor}{Custom colours for the background stripes.}
+
+\item{bg_alpha}{Alpha transparency for the background stripes.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -122,32 +135,30 @@ When \code{NULL} (the default), the cutoffs are determined by \code{lower_quanti
 
 \item{aspect.ratio}{A numeric value specifying the aspect ratio of the plot.}
 
-\item{y_min}{A numeric value to specify the minimum value of the y axis.}
-
-\item{y_max}{A numeric value to specify the maximum value of the y axis.}
+\item{y_min, y_max}{Numeric limits for the y-axis (or x-axis when flipped).}
 
 \item{legend.position}{A character string specifying the position of the legend.
 if \code{waiver()}, for single groups, the legend will be "none", otherwise "right".}
 
 \item{legend.direction}{A character string specifying the direction of the legend.}
 
-\item{add_line}{A numeric value indicating the y value to add a horizontal line.}
+\item{add_line}{A numeric y-intercept for a horizontal reference line.}
 
-\item{line_color}{A character string indicating the color of the line.}
+\item{line_color}{Colour of the reference line.}
 
-\item{line_width}{A numeric value indicating the size of the line.}
+\item{line_width}{Width of the reference line.}
 
-\item{line_type}{A numeric value indicating the type of the line.}
+\item{line_type}{Linetype of the reference line (e.g., 1 = solid, 2 = dashed).}
 
-\item{line_name}{A character string indicating the name of the line.}
+\item{line_name}{Legend name for the reference line.}
 
-\item{add_trend}{A logical value to add trend line to the plot.}
+\item{add_trend}{Logical; add a trend line and points connecting the bar tops.}
 
-\item{trend_color}{A character string to specify the color of the trend line.}
+\item{trend_color}{Colour of the trend line.}
 
-\item{trend_linewidth}{A numeric value to specify the width of the trend line.}
+\item{trend_linewidth}{Width of the trend line.}
 
-\item{trend_ptsize}{A numeric value to specify the size of the trend line points.}
+\item{trend_ptsize}{Size of the trend line points.}
 
 \item{title}{A character string specifying the title of the plot.
 A function can be used to generate the title based on the default title.
@@ -190,14 +201,66 @@ When the axis is discrete, the values will be applied as 'add' to the 'expansion
 When the axis is continuous, the values will be applied as 'mult' to the 'expansion' function.
 See also \url{https://ggplot2.tidyverse.org/reference/expansion.html}}
 
-\item{width}{A numeric value specifying the width of the bars.}
+\item{fill_by}{A variable used to fill the bars.  Can be \code{TRUE}
+(default; fill by x-axis values), \code{FALSE} (solid fill), or a column
+name (categorical or numeric).  When \code{group_by} is used in
+\code{\link{BarPlotAtomic}}, this parameter is ignored.}
+
+\item{fill_name}{A character string for the fill legend title.}
+
+\item{width}{A numeric value specifying the bar width (0–1).}
 
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object.
+A \code{ggplot} object with \code{height} and \code{width}
+attributes (in inches) attached.
 }
 \description{
-Create a bar plot without groups.
+Core implementation for drawing a bar plot without grouping — each x-axis
+category is a single bar.  This is the simpler code path dispatched by
+\code{\link{BarPlotAtomic}} when \code{group_by = NULL}.  Bars can be
+filled by a categorical variable, a continuous variable (numeric colour
+gradient), or a solid colour.
 }
+\section{Architecture}{
+
+\enumerate{
+\item \strong{Column resolution} — \code{x}, \code{y}, and
+\code{facet_by} are validated and transformed via
+\code{\link{check_columns}}.  Multi-column \code{x} is concatenated
+with \code{x_sep}.
+\item \strong{Count aggregation} — when \code{y = NULL}, the count of
+observations per (\code{x}, \code{facet_by}) combination is
+computed as a new \code{.y} column.  Factor levels are preserved.
+\item \strong{Fill resolution} — \code{fill_by} can be \code{TRUE}
+(use x values), \code{FALSE}/\code{NULL} (solid fill), a
+categorical column name (discrete colour scale), or a numeric
+column name (continuous gradient).  Discrete fills use
+\code{\link{palette_this}()} for colour assignment; numeric fills
+use \code{\link{prepare_continuous_color_scale}()} with quantile
+/ cutoff clamping and \code{scale_fill_gradientn()}.
+\item \strong{Background stripes} — when \code{add_bg = TRUE},
+\code{\link{bg_layer}()} adds alternating horizontal or vertical
+stripe fills behind the bars.
+\item \strong{Labels} — when \code{label} is set, values are displayed
+on or near the bar tops via \code{\link[ggrepel]{geom_text_repel}()}
+(non-flipped) or \code{geom_text()} (flipped).  The y-position is
+nudged by \code{label_nudge} × the data range.
+\item \strong{Trend line} — when \code{add_trend = TRUE}, a line and
+points are overlaid across the bar tops.
+\item \strong{Horizontal reference line} — \code{add_line} draws a
+horizontal line at the specified y-value, with a colour legend
+entry named by \code{line_name}.
+\item \strong{Dimension calculation} — \code{\link{calculate_plot_dimensions}()}
+computes plot height and width from the x-axis category count,
+label character widths, legend metrics, and flip state.  When
+flipped, height scales with the number of x categories.
+\item \strong{Coordinate transform} — when \code{flip = TRUE},
+\code{coord_flip()} swaps axes; otherwise \code{coord_cartesian()}
+applies \code{y_min} / \code{y_max} limits.  Free-scale faceting
+skips limit constraints.
+}
+}
+
 \keyword{internal}

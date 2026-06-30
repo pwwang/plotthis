@@ -1,34 +1,91 @@
-#' BarPlotSingle
+#' Single bar plot (no groups)
 #'
-#' @description Create a bar plot without groups.
+#' @description
+#' Core implementation for drawing a bar plot without grouping — each x-axis
+#' category is a single bar.  This is the simpler code path dispatched by
+#' \code{\link{BarPlotAtomic}} when \code{group_by = NULL}.  Bars can be
+#' filled by a categorical variable, a continuous variable (numeric colour
+#' gradient), or a solid colour.
+#'
+#' @section Architecture:
+#' \enumerate{
+#'   \item \strong{Column resolution} — \code{x}, \code{y}, and
+#'         \code{facet_by} are validated and transformed via
+#'         \code{\link{check_columns}}.  Multi-column \code{x} is concatenated
+#'         with \code{x_sep}.
+#'   \item \strong{Count aggregation} — when \code{y = NULL}, the count of
+#'         observations per (\code{x}, \code{facet_by}) combination is
+#'         computed as a new \code{.y} column.  Factor levels are preserved.
+#'   \item \strong{Fill resolution} — \code{fill_by} can be \code{TRUE}
+#'         (use x values), \code{FALSE}/\code{NULL} (solid fill), a
+#'         categorical column name (discrete colour scale), or a numeric
+#'         column name (continuous gradient).  Discrete fills use
+#'         \code{\link{palette_this}()} for colour assignment; numeric fills
+#'         use \code{\link{prepare_continuous_color_scale}()} with quantile
+#'         / cutoff clamping and \code{scale_fill_gradientn()}.
+#'   \item \strong{Background stripes} — when \code{add_bg = TRUE},
+#'         \code{\link{bg_layer}()} adds alternating horizontal or vertical
+#'         stripe fills behind the bars.
+#'   \item \strong{Labels} — when \code{label} is set, values are displayed
+#'         on or near the bar tops via \code{\link[ggrepel]{geom_text_repel}()}
+#'         (non-flipped) or \code{geom_text()} (flipped).  The y-position is
+#'         nudged by \code{label_nudge} × the data range.
+#'   \item \strong{Trend line} — when \code{add_trend = TRUE}, a line and
+#'         points are overlaid across the bar tops.
+#'   \item \strong{Horizontal reference line} — \code{add_line} draws a
+#'         horizontal line at the specified y-value, with a colour legend
+#'         entry named by \code{line_name}.
+#'   \item \strong{Dimension calculation} — \code{\link{calculate_plot_dimensions}()}
+#'         computes plot height and width from the x-axis category count,
+#'         label character widths, legend metrics, and flip state.  When
+#'         flipped, height scales with the number of x categories.
+#'   \item \strong{Coordinate transform} — when \code{flip = TRUE},
+#'         \code{coord_flip()} swaps axes; otherwise \code{coord_cartesian()}
+#'         applies \code{y_min} / \code{y_max} limits.  Free-scale faceting
+#'         skips limit constraints.
+#' }
 #'
 #' @inheritParams common_args
-#' @param x A character vector specifying the column as the x axis of the plot.
-#'  A character/factor column is expected.
-#' @param x_sep A character string to concatenate the columns in `x`, if multiple columns are provided.
-#' @param y A character vector specifying the column as the y axis of the plot.
-#'   Default is NULL, meaning the y axis is the count of the data.
-#' @param width A numeric value specifying the width of the bars.
-#' @param flip A logical value indicating whether to flip the x and y axes.
-#' @param label A column name for the values to be displayed on the top of the bars.
-#'  If TRUE, the y values will be displayed.
-#' @param label_nudge A numeric value to nudge the labels (the distance between the label and the top of the bar).
-#' @param label_fg A character string indicating the color of the label.
-#' @param label_size A numeric value indicating the size of the label.
-#' @param label_bg A character string indicating the background color of the label.
-#' @param label_bg_r A numeric value indicating the radius of the background.
-#' @param add_line A numeric value indicating the y value to add a horizontal line.
-#' @param line_color A character string indicating the color of the line.
-#' @param line_width A numeric value indicating the size of the line.
-#' @param line_type A numeric value indicating the type of the line.
-#' @param line_name A character string indicating the name of the line.
-#' @param add_trend A logical value to add trend line to the plot.
-#' @param trend_color A character string to specify the color of the trend line.
-#' @param trend_linewidth A numeric value to specify the width of the trend line.
-#' @param trend_ptsize A numeric value to specify the size of the trend line points.
-#' @param y_min A numeric value to specify the minimum value of the y axis.
-#' @param y_max A numeric value to specify the maximum value of the y axis.
-#' @return A ggplot object.
+#' @param x A character vector of column name(s) for the x-axis.
+#'  Character/factor columns are expected.  Multiple columns are
+#'  concatenated with \code{x_sep}.
+#' @param x_sep A character string to join multiple \code{x} columns.
+#'  Default \code{"_"}.
+#' @param y A character string specifying the numeric column for the y-axis.
+#'  Default \code{NULL} — the count of observations per x category is used.
+#' @param flip Logical; if \code{TRUE}, swap the x and y axes.
+#' @param label A column name (or \code{TRUE}) for text labels on bars.
+#'  When \code{TRUE}, the y-axis values are labelled.  When a column name,
+#'  the values in that column are used.
+#' @param label_nudge A numeric value controlling the distance between labels
+#'  and the bar top, expressed as a fraction of the data range.
+#' @param label_fg A character string specifying the label text colour.
+#' @param label_size A numeric value specifying the label text size.
+#' @param label_bg A character string specifying the label background colour.
+#' @param label_bg_r A numeric value specifying the label background corner
+#'  radius.
+#' @param add_bg Logical; add alternating background stripes behind the bars.
+#' @param bg_palette Palette for the background stripes.
+#' @param bg_palcolor Custom colours for the background stripes.
+#' @param bg_alpha Alpha transparency for the background stripes.
+#' @param fill_by A variable used to fill the bars.  Can be \code{TRUE}
+#'  (default; fill by x-axis values), \code{FALSE} (solid fill), or a column
+#'  name (categorical or numeric).  When \code{group_by} is used in
+#'  \code{\link{BarPlotAtomic}}, this parameter is ignored.
+#' @param fill_name A character string for the fill legend title.
+#' @param width A numeric value specifying the bar width (0–1).
+#' @param add_line A numeric y-intercept for a horizontal reference line.
+#' @param line_color Colour of the reference line.
+#' @param line_width Width of the reference line.
+#' @param line_type Linetype of the reference line (e.g., 1 = solid, 2 = dashed).
+#' @param line_name Legend name for the reference line.
+#' @param add_trend Logical; add a trend line and points connecting the bar tops.
+#' @param trend_color Colour of the trend line.
+#' @param trend_linewidth Width of the trend line.
+#' @param trend_ptsize Size of the trend line points.
+#' @param y_min,y_max Numeric limits for the y-axis (or x-axis when flipped).
+#' @return A \code{ggplot} object with \code{height} and \code{width}
+#'  attributes (in inches) attached.
 #' @keywords internal
 #' @importFrom rlang sym %||%
 #' @importFrom dplyr %>% group_by summarise n
@@ -410,25 +467,76 @@ BarPlotSingle <- function(
 
 #' Bar plot with groups
 #'
-#' @description Create a bar plot with groups.
+#' @description
+#' Core implementation for drawing a grouped bar plot.  Each x-axis category
+#' is split into side-by-side (dodge) or stacked bars according to the
+#' \code{group_by} variable.  This is the grouped code path dispatched by
+#' \code{\link{BarPlotAtomic}} when \code{group_by} is provided.
+#'
+#' @section Architecture:
+#' \enumerate{
+#'   \item \strong{Column resolution} — \code{group_by}, \code{facet_by},
+#'         \code{x}, and \code{y} are validated and transformed via
+#'         \code{\link{check_columns}}.
+#'   \item \strong{Count aggregation} — when \code{y = NULL}, the count of
+#'         observations per (\code{x}, \code{group_by}, \code{facet_by})
+#'         combination is computed.  Factor levels are preserved.
+#'   \item \strong{Proportion scaling} — when \code{scale_y = TRUE},
+#'         y-values are divided by the sum within each (\code{x},
+#'         \code{facet_by}) group so that each x position stacks to 100\%.
+#'   \item \strong{Position resolution} — \code{position = "auto"} chooses
+#'         \code{"dodge"} for ≤5 groups or \code{"stack"} for >5 groups.
+#'         Explicit \code{"dodge"} and \code{"stack"} are also accepted.
+#'   \item \strong{Expand calculation} — for stacked bars, expansion is
+#'         computed from y-range and label presence.  For dodged bars,
+#'         expansion is minimal.  The \code{\link{norm_expansion}()} utility
+#'         normalises the final expansion vector.
+#'   \item \strong{Colour mapping} — \code{\link{palette_this}()} assigns
+#'         per-group colours.  The fill scale \code{drop} argument is
+#'         controlled by \code{keep_empty_group}.
+#'   \item \strong{Labels} — when \code{label} is set:
+#'         \itemize{
+#'           \item For \strong{stacked} bars, cumulative label positions are
+#'                 computed so each label is centred within its segment.
+#'           \item For \strong{dodged} bars, labels are nudged above/below
+#'                 the bar top by \code{label_nudge} × the data range.
+#'           \item \code{\link[ggrepel]{geom_text_repel}()} is used for
+#'                 automatic overlap avoidance.
+#'         }
+#'   \item \strong{Trend line} — when \code{add_trend = TRUE}, lines connect
+#'         bar tops.  When \code{trend_color} is \code{NULL}, each group gets
+#'         its own coloured line; otherwise a single colour is used.
+#'   \item \strong{Horizontal reference line} — \code{add_line} draws a
+#'         \code{geom_hline()} at the specified y-value.
+#'   \item \strong{Dimension calculation} — width accounts for the number of
+#'         x categories × number of groups (dodge) or just x categories
+#'         (stack).  \code{calculate_plot_dimensions()} adjusts for
+#'         \code{flip} and legend metrics.
+#'   \item \strong{Coordinate transform} — \code{coord_flip()} or
+#'         \code{coord_cartesian()} with \code{y_min} / \code{y_max}.
+#' }
 #'
 #' @inheritParams common_args
 #' @inheritParams BarPlotSingle
-#' @param scale_y A logical value indicating whether to scale the total y values in each group to 100%.
-#' Only works when group_by is specified.
-#' @param position A character string indicating the position of the bars.
-#'  If "auto", the position will be "stack" if group_by has more than 5 levels, otherwise "dodge".
-#'  "fill" is also a valid option. Only works when group_by is not NULL.
-#' @param position_dodge_preserve Should dodging preserve the "total" width of all elements at a position, or the width of a "single" element?
-#' @param add_bg A logical value indicating whether to add a background to the plot.
-#' @param bg_palette A character string indicating the palette to use for the background.
-#' @param bg_palcolor A character string indicating the color to use for the background.
-#' @param bg_alpha A numeric value indicating the alpha of the background.
-#' @param group_by A character vector specifying the column as the group_by of the plot.
-#'  A character/factor column is expected.
-#' @param group_by_sep A character string to concatenate the columns in `group_by`, if multiple columns are provided.
-#' @param group_name A character string to specify the name of the group_by in the legend.
-#' @return A ggplot object.
+#' @param group_by A character vector of column name(s) to group the bars by.
+#'  Each unique combination becomes a separate bar segment.  Multiple columns
+#'  are concatenated with \code{group_by_sep}.  Required.
+#' @param group_by_sep A character string to separate concatenated
+#'  \code{group_by} columns.  Default \code{"_"}.
+#' @param group_name A character string for the group fill legend title.
+#'  When \code{NULL}, the \code{group_by} column name is used.
+#' @param scale_y A logical value.  When \code{TRUE}, y-values are scaled to
+#'  proportions within each x position so that each position's total is 100\%.
+#'  Only applicable when \code{position = "stack"}.
+#' @param position A character string specifying the bar layout:
+#'  \code{"auto"} (default: dodge when ≤5 groups, stack otherwise),
+#'  \code{"dodge"} (side-by-side), or \code{"stack"} (stacked on top of
+#'  each other).
+#' @param position_dodge_preserve A character string passed to
+#'  \code{\link[ggplot2]{position_dodge2}()}: \code{"total"} preserves the
+#'  overall bar group width; \code{"single"} preserves individual bar widths.
+#' @return A \code{ggplot} object with \code{height} and \code{width}
+#'  attributes (in inches) attached.
 #' @keywords internal
 #' @importFrom rlang sym syms %||%
 #' @importFrom dplyr %>% summarise n mutate ungroup case_when last first
@@ -821,20 +929,52 @@ BarPlotGrouped <- function(
     p
 }
 
-#' Atomic bar plot
+#' Atomic bar plot (internal)
 #'
-#' @description Create a bar plot with or without groups. This function does not handle splitting but only facetting.
+#' @description
+#' Dispatcher that routes to \code{\link{BarPlotSingle}} (when
+#' \code{group_by = NULL}) or \code{\link{BarPlotGrouped}} (when
+#' \code{group_by} is provided).  This is the core implementation layer —
+#' it takes a **single** data frame (no \code{split_by} support) and returns
+#' a \code{ggplot} object with faceting applied.
+#'
+#' @section Dispatch logic:
+#' \itemize{
+#'   \item \strong{Without \code{group_by}} — delegates to
+#'         \code{BarPlotSingle}.  \code{fill_by} controls bar colouring:
+#'         \code{TRUE} (default) fills by x-axis values, \code{FALSE} uses a
+#'         single colour, a character column produces discrete colours, and
+#'         a numeric column produces a continuous gradient.
+#'   \item \strong{With \code{group_by}} — delegates to
+#'         \code{BarPlotGrouped}.  \code{fill_by} must match \code{group_by}
+#'         or be left as default; an explicit mismatch raises a stop error.
+#'         \code{position} controls dodge vs. stack layout with automatic
+#'         selection based on group count (≤5 → dodge, >5 → stack).
+#' }
+#'
+#' After the delegate returns, \code{\link{facet_plot}()} wraps the result
+#' with \code{facet_wrap} / \code{facet_grid} if \code{facet_by} is provided.
+#'
 #' @inheritParams common_args
 #' @inheritParams BarPlotSingle
 #' @inheritParams BarPlotGrouped
-#' @param fill_by A variable used to fill the bars. Both character/factor and numeric columns are accepted.
-#' If `TRUE` (default), the bars will be filled by the x-axis values,
-#' If `FALSE`, the bars will be filled a single color (the first color in the palette).
-#' ONLY works when `group_by` is NULL. When `group_by` is not NULL, the bars will be filled by the `group_by` variable.
-#' @param fill_name A character string to specify the name of the fill variable in the legend.
-#' Only works when `fill_by` applies.
-#' @param facet_args A list of arguments to pass to [ggplot2::facet_grid] or [ggplot2::facet_wrap].
-#' @return A ggplot object.
+#' @param fill_by A variable used to fill the bars.  Both categorical and
+#'  numeric columns are accepted:
+#'  \itemize{
+#'    \item \code{TRUE} (default) — fill by the x-axis values.
+#'    \item \code{FALSE} — solid fill (first palette colour).
+#'    \item A column name (character/factor) — discrete colour scale.
+#'    \item A column name (numeric) — continuous gradient with quantile
+#'          / cutoff controls.
+#'  }
+#'  Ignored when \code{group_by} is provided (fill is determined by
+#'  \code{group_by}).
+#' @param fill_name A character string for the fill legend title.  Only
+#'  applies when \code{group_by = NULL} and the fill is from \code{fill_by}.
+#' @param facet_args A list of additional arguments passed to the faceting
+#'  function (e.g., \code{scales}, \code{labeller}).
+#' @return A \code{ggplot} object, possibly faceted, with \code{height}
+#'  and \code{width} attributes (in inches) attached.
 #' @importFrom ggplot2 waiver
 #' @keywords internal
 BarPlotAtomic <- function(
@@ -1044,18 +1184,62 @@ BarPlotAtomic <- function(
     do_call(facet_plot, facet_args)
 }
 
-#' Bar Plot
+#' Bar plot
 #'
 #' @description
-#'  * `BarPlot` is used to create a bar plot.
-#'  * `SplitBarPlot` (a.k.a `WaterfallPlot`) is used to create a bar plot with splitting the bars on the two sides.
-#' @rdname barplot
+#' Draws bar plots with flexible fill, grouping, labelling, and annotation
+#' options.  Supports both simple single-colour bars and grouped bars (dodged
+#' or stacked).  Bars can be filled by a categorical variable (discrete
+#' colour scale), a continuous variable (colour gradient), or a fixed colour.
+#'
+#' The function supports \strong{count aggregation} (omit \code{y} to plot
+#' observation counts), \strong{proportion scaling} (\code{scale_y = TRUE}
+#' for grouped bars), background stripes (\code{add_bg}), bar labels, trend
+#' lines, horizontal reference lines, and splitting into separate sub-plots
+#' via \code{split_by}.
+#'
+#' @section split_by workflow:
+#' When \code{split_by} is provided:
+#' \enumerate{
+#'   \item \code{\link{check_keep_na}()} and \code{\link{check_keep_empty}()}
+#'         normalise the \code{keep_na} / \code{keep_empty} arguments for all
+#'         columns (\code{x}, \code{split_by}, \code{facet_by}, \code{group_by}).
+#'   \item The \code{split_by} column is validated and its NA / empty levels
+#'         are processed.  It is then removed from the per-column
+#'         \code{keep_na} / \code{keep_empty} lists.
+#'   \item The data is split by \code{split_by} (preserving level order).  If
+#'         \code{split_by} is \code{NULL}, the data is wrapped in a
+#'         single-element list with name \code{"..."}.
+#'   \item Per-split \code{palette}, \code{palcolor},
+#'         \code{legend.position}, and \code{legend.direction} are resolved
+#'         via \code{\link{check_palette}()}, \code{\link{check_palcolor}()},
+#'         and \code{\link{check_legend}()}.
+#'   \item \code{\link{BarPlotAtomic}()} is called for each split.
+#'   \item Results are combined via \code{\link{combine_plots}()} (when
+#'         \code{combine = TRUE}) or returned as a named list.
+#' }
+#'
 #' @inheritParams common_args
 #' @inheritParams BarPlotAtomic
-#' @param palette A character string specifying the palette to use for the bars.
-#' When `group_by` is specified, it defaults to "Paired".
-#' When `group_by` is not specified, it defaults to "Spectral" if `fill_by` column is numeric, otherwise "Paired".
-#' @return A ggplot object or wrap_plots object or a list of ggplot objects
+#' @param split_by The column(s) to split the data by and produce separate
+#'  sub-plots.  Multiple columns are concatenated with \code{split_by_sep}.
+#' @param split_by_sep A character string to separate concatenated
+#'  \code{split_by} columns.  Default \code{"_"}.
+#' @param seed A numeric seed for reproducibility.
+#' @param combine Logical; when \code{TRUE} (default), returns a combined
+#'  \code{patchwork} object.  When \code{FALSE}, returns a named list of
+#'  individual \code{ggplot} objects.
+#' @param ncol,nrow Integer number of columns / rows for the combined layout.
+#' @param byrow Logical; fill the combined layout by row (default \code{TRUE}).
+#' @param axes,axis_titles Character strings for how axes and axis titles are
+#'  treated across the combined layout.
+#' @param guides A character string specifying how legends are collected
+#'  across panels.
+#' @param design A custom layout design for the combined plot.
+#' @rdname barplot
+#' @return A \code{ggplot} object, a \code{patchwork} object, or a named list
+#'  of \code{ggplot} objects (when \code{combine = FALSE}), each with
+#'  \code{height} and \code{width} attributes in inches.
 #' @export
 #' @importFrom ggplot2 waiver
 #' @examples
@@ -1067,94 +1251,103 @@ BarPlotAtomic <- function(
 #'     facet = c("F1", "F2", "F3", "F4", "F1", "F2", "F3", "F4")
 #' )
 #'
+#' # Single-colour bars
 #' BarPlot(data, x = "x", y = "y")
+#'
+#' # Solid fill (no colour mapping)
 #' BarPlot(data, x = "x", y = "y", fill_by = FALSE)
+#'
+#' # Label bar tops
 #' BarPlot(data, x = "x", y = "y", label = TRUE)
 #' BarPlot(data, x = "x", y = "y", label = "facet", label_nudge = 0)
+#'
+#' # Grouped bars
 #' BarPlot(data, x = "group", y = "y", group_by = "x")
+#'
+#' # Dodged bars with background stripes
 #' BarPlot(data,
 #'     x = "group", y = "y", group_by = "x",
-#'     position = "dodge", add_bg = TRUE
-#' )
+#'     position = "dodge", add_bg = TRUE)
+#'
+#' # split_by with faceting
 #' BarPlot(data,
 #'     x = "x", y = "y", split_by = "group",
-#'     facet_by = "facet", position = "dodge", facet_ncol = 1
-#' )
+#'     facet_by = "facet", position = "dodge", facet_ncol = 1)
+#'
+#' # split_by with collected guides
 #' BarPlot(data,
 #'     x = "x", y = "y", split_by = "group", facet_by = "facet",
-#'     position = "dodge", facet_ncol = 1, guides = 'collect'
-#' )
+#'     position = "dodge", facet_ncol = 1, guides = 'collect')
+#'
+#' # Per-split palettes
 #' BarPlot(data,
 #'     x = "x", y = "y", split_by = "group",
 #'     palette = list(G1 = "Reds", G2 = "Blues", G3 = "Greens", G4 = "Purp"),
-#'     facet_by = "facet", position = "dodge", facet_ncol = 1
-#' )
+#'     facet_by = "facet", position = "dodge", facet_ncol = 1)
+#'
+#' # Background stripe palette
 #' BarPlot(data,
 #'     x = "group", y = "y", group_by = "x",
-#'     position = "dodge", add_bg = TRUE, bg_palette = "Spectral"
-#' )
-#' # use the count
+#'     position = "dodge", add_bg = TRUE, bg_palette = "Spectral")
+#'
+#' # Count bars (y = NULL)
 #' BarPlot(data, x = "group", ylab = "count")
-#' # flip the plot
+#'
+#' # Flipped axes
 #' BarPlot(data, x = "group", flip = TRUE, ylab = "count")
-#' # Allow numeric fill_by
+#'
+#' # Numeric fill_by with colour gradient
 #' BarPlot(data, x = "x", y = "y", fill_by = "y", flip = TRUE)
-#' # control fill color scale limits
+#'
+#' # Control fill colour scale limits (quantile)
 #' BarPlot(data, x = "x", y = "y", fill_by = "y", flip = TRUE,
 #'         lower_quantile = 0.1, upper_quantile = 0.9)
+#'
+#' # Control fill colour scale limits (explicit cutoff)
 #' BarPlot(data, x = "x", y = "y", fill_by = "y", flip = TRUE,
 #'         lower_cutoff = 5, upper_cutoff = 12)
 #'
+#' # keep_na and keep_empty examples
 #' data <- data.frame(
-#'     x = factor(c("A", "B", "C", "D", "E", "F", NA, "H"), levels = LETTERS[1:10]),
+#'     x = factor(c("A", "B", "C", "D", "E", "F", NA, "H"),
+#'                levels = LETTERS[1:10]),
 #'     y = c(10, 8, 16, 4, 6, NA, 14, 2),
 #'     group = factor(c("G1", "G1", "G2", NA, "G3", "G3", "G5", "G5"),
-#'        levels = c("G1", "G2", "G3", "G4", "G5")),
+#'                    levels = c("G1", "G2", "G3", "G4", "G5")),
 #'     facet = factor(c("F1", NA, "F3", "F4", "F1", "F2", "F3", "F4"),
-#'        levels = c("F1", "F2", "F3", "F4", "F5"))
-#' )
-#' # keep_na and keep_empty on simple barplots
-#' BarPlot(data, x = "x", y = "y",
-#'     title = "keep_na = FALSE; keep_empty = FALSE")
-#' BarPlot(data, x = "x", y = "y",
-#'     keep_na = TRUE, keep_empty = TRUE,
-#'     title = "keep_na = TRUE; keep_empty = TRUE")
-#' BarPlot(data, x = "x", y = "y",
-#'     keep_na = TRUE, keep_empty = TRUE, facet_by = "facet",
-#'     title = "keep_na = TRUE; keep_empty = TRUE; facet_by = 'facet'")
-#' BarPlot(data, x = "x", y = "y",
-#'     keep_na = TRUE, keep_empty = 'level',
-#'     title = "keep_na = TRUE; keep_empty = 'level'")
-#' BarPlot(data, x = "x", y = "y",
-#'     keep_na = list(x = TRUE), keep_empty = list(x = FALSE),
-#'     title = "keep_na: x=TRUE\nkeep_empty: x=FALSE"
+#'                    levels = c("F1", "F2", "F3", "F4", "F5"))
 #' )
 #'
-#' # keep_na and keep_empty on grouped barplots
-#' BarPlot(data,
-#'     x = "group", y = "y", group_by = "x",
-#'     title = "keep_na = FALSE; keep_empty = FALSE")
-#' BarPlot(data,
-#'     x = "group", y = "y", group_by = "x",
-#'     keep_na = TRUE, keep_empty = TRUE,
-#'     title = "keep_na = TRUE; keep_empty = TRUE"
-#' )
-#' BarPlot(data,
-#'     x = "group", y = "y", group_by = "x",
-#'     keep_na = TRUE, keep_empty = TRUE, facet_by = "facet",
-#'     title = "keep_na = TRUE; keep_empty = TRUE; facet_by = 'facet'"
-#' )
-#' BarPlot(data,
-#'     x = "group", y = "y", group_by = "x",
-#'     keep_na = TRUE, keep_empty = 'level',
-#'     title = "keep_na = TRUE; keep_empty = 'level'"
-#' )
-#' BarPlot(data,
-#'     x = "group", y = "y", group_by = "x",
-#'     keep_na = list(x = TRUE, group = FALSE),
-#'     keep_empty = list(x = FALSE, group = TRUE),
-#'     title = "keep_na: x=TRUE, group=FALSE\nkeep_empty: x=FALSE, group=TRUE"
-#' )
+#' # Default: NA and empty levels dropped
+#' BarPlot(data, x = "x", y = "y")
+#'
+#' # Keep both NA and empty levels
+#' BarPlot(data, x = "x", y = "y",
+#'         keep_na = TRUE, keep_empty = TRUE)
+#'
+#' # With faceting
+#' BarPlot(data, x = "x", y = "y",
+#'         keep_na = TRUE, keep_empty = TRUE, facet_by = "facet")
+#'
+#' # Keep NA, hide empty levels but reserve their colours
+#' BarPlot(data, x = "x", y = "y",
+#'         keep_na = TRUE, keep_empty = 'level')
+#'
+#' # Per-column keep_na / keep_empty
+#' BarPlot(data, x = "x", y = "y",
+#'         keep_na = list(x = TRUE), keep_empty = list(x = FALSE))
+#'
+#' # Grouped bars with keep_na / keep_empty
+#' BarPlot(data, x = "group", y = "y", group_by = "x")
+#' BarPlot(data, x = "group", y = "y", group_by = "x",
+#'         keep_na = TRUE, keep_empty = TRUE)
+#' BarPlot(data, x = "group", y = "y", group_by = "x",
+#'         keep_na = TRUE, keep_empty = TRUE, facet_by = "facet")
+#'
+#' # Per-column on grouped bars
+#' BarPlot(data, x = "group", y = "y", group_by = "x",
+#'         keep_na = list(x = TRUE, group = FALSE),
+#'         keep_empty = list(x = FALSE, group = TRUE))
 #' }
 BarPlot <- function(
     data,
@@ -1366,36 +1559,104 @@ BarPlot <- function(
     )
 }
 
-#' SplitBarPlotAtomic
+#' Atomic split bar plot (internal)
 #'
-#' @description Create a split bar plot without splitting the data.
+#' @description
+#' Core implementation for drawing a split (divergent / waterfall-style) bar
+#' plot.  Bars extend left (negative values) and right (positive values) from
+#' a central zero line, with the y-axis listing categories.  Bars can be
+#' coloured by a categorical or continuous fill variable, and their opacity
+#' can encode an additional numeric variable via \code{alpha_by}.
+#'
+#' This is the workhorse behind the exported \code{\link{SplitBarPlot}}
+#' (also aliased as \code{\link{WaterfallPlot}}).
+#'
+#' @section Architecture:
+#' \enumerate{
+#'   \item \strong{Column resolution} — \code{x}, \code{y}, \code{fill_by},
+#'         \code{alpha_by}, and \code{facet_by} are validated via
+#'         \code{\link{check_columns}}.  Multi-column \code{y} and
+#'         \code{fill_by} are concatenated with their respective separators.
+#'   \item \strong{Direction assignment} — a \code{direction_name} column
+#'         is created from the sign of \code{x}, assigning each row to the
+#'         positive or negative group (customisable via
+#'         \code{direction_pos_name} / \code{direction_neg_name}).
+#'   \item \strong{Fill resolution} — if \code{fill_by} is \code{NULL},
+#'         the direction column is used as the fill (two-colour palette).
+#'         Categorical fills use a discrete colour scale; numeric fills use
+#'         \code{\link{prepare_continuous_color_scale}()} with quantile /
+#'         cutoff clamping and \code{scale_fill_gradientn()}.
+#'   \item \strong{Alpha by} — when \code{alpha_by} is provided, bar
+#'         opacity encodes an additional numeric variable via
+#'         \code{scale_alpha_continuous()}.
+#'   \item \strong{Ordering} — \code{order_y} is a named list controlling
+#'         the vertical ordering of bars.  The keys \code{"+"} and \code{"-"}
+#'         specify separate orderings for positive and negative bars; key
+#'         \code{"*"} applies a single ordering to all bars.  Values are
+#'         character vectors of ordering criteria: \code{"x_asc"},
+#'         \code{"x_desc"}, \code{"alpha_asc"}, \code{"alpha_desc"}.
+#'   \item \strong{Empty level padding} — when \code{keep_empty_y = TRUE},
+#'         missing y-levels are padded per facet (or globally) with
+#'         zero-height bars so they still appear on the axis.
+#'   \item \strong{Text labels} — category names are drawn beside the bars
+#'         via \code{geom_text()} at the zero line.  When flipped, labels are
+#'         rotated 90°.  Long labels are wrapped via
+#'         \code{\link[stringr]{str_wrap}()} using \code{max_charwidth}.
+#'   \item \strong{Plot assembly} — the ggplot is built with
+#'         \code{geom_vline(xintercept = 0)} for the centre line,
+#'         \code{geom_col()} for bars, and the appropriate fill / alpha
+#'         scales.
+#'   \item \strong{Dimension calculation} — \code{calculate_plot_dimensions()}
+#'         computes dimensions from the number of y categories, scaled by
+#'         \code{bar_height / 4}.  Flipping adjusts the aspect ratio.
+#'   \item \strong{Faceting} — \code{\link{facet_plot}()} wraps the result,
+#'         defaulting to \code{facet_scales = "free_y"}.
+#' }
+#'
 #' @inheritParams common_args
-#' @param x The column name of the terms on the x axis. There should be both negative and positive values.
-#' @param y The column name(s) of the values. If there are multiple columns, they will be concatenated.
-#' @param y_sep A character string to concatenate the x columns if there are multiple.
-#' @param flip A logical value indicating whether to flip the x and y axes.
-#' @param alpha_by A character string indicating the column name to use for the transparency of the bars.
-#' @param alpha_reverse A logical value indicating whether to reverse the transparency.
-#' @param alpha_name A character string indicating the legend name of the transparency.
-#' @param order_y A list of character strings indicating the order of the y axis.
-#'  The keys are "+", "-", or "*". However, "+/-" should not be mixed with "*".
-#'  The values are "x_asc", "x_desc", "alpha_asc", or "alpha_desc", indicating how to order the y axis.
-#'  The default is `list("+" = c("x_desc", "alpha_desc"), "-" = c("x_desc", "alpha_asc"))`, meaning
-#'  the positive values are ordered by the x-axis values in descending order and the alpha values in descending order,
-#'  and the negative values are ordered by the x-axis values in descending order and the alpha values in ascending order.
-#'  The "*" key is used to order the y axis without considering the direction.
-#' @param bar_height A numeric value indicating the height of the bars.
-#' @param lineheight A numeric value indicating the height of the text.
-#' @param max_charwidth A numeric value indicating the maximum width of the text.
-#' @param fill_by A character string indicating the column name to use for the fill of the bars.
-#' Can be either a categorical variable or a numeric variable.
-#' @param fill_by_sep A character string to concatenate the fill columns if there are multiple.
-#' @param fill_name A character string indicating the legend name of the fill.
-#' @param direction_name A character string indicating the name of the direction column and will be shown in the legend.
-#' @param direction_pos_name A character string indicating the name of the positive direction.
-#' @param direction_neg_name A character string indicating the name of the negative direction.
-#' @param x_min A numeric value indicating the minimum value of the x axis.
-#' @param x_max A numeric value indicating the maximum value of the x axis.
+#' @param x A character string specifying the numeric column for the
+#'  x-axis.  Values determine bar direction: positive → right, negative →
+#'  left.
+#' @param y A character string (or vector) specifying the column(s) for the
+#'  category axis.  Each unique value becomes a bar.  Multiple columns are
+#'  concatenated with \code{y_sep}.
+#' @param y_sep A character string to join multiple \code{y} columns.
+#'  Default \code{"_"}.
+#' @param flip Logical; if \code{TRUE}, swap the x and y axes (bars become
+#'  vertical rather than horizontal).
+#' @param alpha_by A character string naming a numeric column to encode as
+#'  bar opacity.  Default \code{NULL} (all bars fully opaque).
+#' @param alpha_reverse Logical; if \code{TRUE}, reverse the alpha scale
+#'  direction (solid for low values, transparent for high).
+#' @param alpha_name A character string for the alpha legend title.
+#' @param order_y A named list controlling the vertical ordering of bars.
+#'  Keys are \code{"+"} (positive bars), \code{"-"} (negative bars), or
+#'  \code{"*"} (all bars).  Values are character vectors of ordering
+#'  criteria: \code{"x_asc"}, \code{"x_desc"}, \code{"alpha_asc"},
+#'  \code{"alpha_desc"}.  Default orders positive bars by descending x and
+#'  descending alpha; negative bars by descending x and ascending alpha.
+#' @param bar_height A numeric value (0–1) specifying the bar height as a
+#'  fraction of the available category slot.
+#' @param lineheight A numeric value controlling the line height of wrapped
+#'  category labels.
+#' @param max_charwidth An integer specifying the maximum character width
+#'  for wrapping category labels.
+#' @param fill_by A character string (or vector) naming the column(s) for
+#'  bar fill colour.  If \code{NULL}, the direction (positive/negative) is
+#'  used.  Can be categorical or numeric.
+#' @param fill_by_sep A character string to join multiple \code{fill_by}
+#'  columns.  Default \code{"_"}.
+#' @param fill_name A character string for the fill legend title.
+#' @param direction_name A character string naming the internal direction
+#'  column (used in legends).  Default \code{"direction"}.
+#' @param direction_pos_name A character string labelling the positive
+#'  direction in the legend.  Default \code{"positive"}.
+#' @param direction_neg_name A character string labelling the negative
+#'  direction in the legend.  Default \code{"negative"}.
+#' @param x_min,x_max Numeric limits for the x-axis.  When \code{NULL},
+#'  symmetric limits are computed from the maximum absolute x-value.
+#' @return A \code{ggplot} object, possibly faceted, with \code{height}
+#'  and \code{width} attributes (in inches) attached.
 #' @keywords internal
 #' @importFrom stringr str_wrap
 #' @importFrom forcats fct_relabel
@@ -1852,8 +2113,50 @@ SplitBarPlotAtomic <- function(
 }
 
 #' @rdname barplot
+#'
+#' @description
+#' `SplitBarPlot` (also known as `WaterfallPlot`) draws a divergent bar plot
+#' where bars extend left (negative values) and right (positive values) from a
+#' central zero line.  The bar fill colour and opacity can encode additional
+#' variables, and the vertical ordering of categories is fully customisable.
+#'
+#' The function supports \strong{split_by} to produce separate panels,
+#' \strong{facet_by} for grouped views within panels, and
+#' \strong{alpha_by} for encoding a secondary numeric variable via opacity.
+#'
+#' @section split_by workflow:
+#' When \code{split_by} is provided:
+#' \enumerate{
+#'   \item \code{\link{check_keep_na}()} and \code{\link{check_keep_empty}()}
+#'         normalise the \code{keep_na} / \code{keep_empty} arguments.
+#'   \item The \code{split_by} column is validated and its NA / empty levels
+#'         are processed.  It is then removed from the per-column lists.
+#'   \item The data is split by \code{split_by} (preserving level order).
+#'   \item Per-split \code{palette}, \code{palcolor},
+#'         \code{legend.position}, and \code{legend.direction} are resolved.
+#'   \item \code{\link{SplitBarPlotAtomic}()} is called for each split.
+#'         When \code{title} is a function, it receives the split level name
+#'         for dynamic title generation.
+#'   \item Results are combined via \code{\link{combine_plots}()}.
+#' }
+#'
 #' @inheritParams common_args
 #' @inheritParams SplitBarPlotAtomic
+#' @param split_by The column(s) to split the data by for separate sub-plots.
+#' @param split_by_sep Separator for concatenated \code{split_by} columns.
+#' @param seed A numeric seed for reproducibility.
+#' @param combine Logical; when \code{TRUE} (default), returns a combined
+#'  \code{patchwork} object.  When \code{FALSE}, returns a named list of
+#'  \code{ggplot} objects.
+#' @param ncol,nrow Integer number of columns / rows for the combined layout.
+#' @param byrow Logical; fill the combined layout by row (default \code{TRUE}).
+#' @param axes,axis_titles Character strings for axis handling in the
+#'  combined layout.
+#' @param guides Character string for legend collection across panels.
+#' @param design A custom layout design for the combined plot.
+#' @return A \code{ggplot} object, a \code{patchwork} object, or a named list
+#'  of \code{ggplot} objects (when \code{combine = FALSE}), each with
+#'  \code{height} and \code{width} attributes in inches.
 #' @export
 #' @examples
 #' \donttest{
@@ -1865,16 +2168,27 @@ SplitBarPlotAtomic <- function(
 #'     score = c(1, 2, 3, 4, 5, 3.2),
 #'     group = c("A", "A", "B", "B", "C", "C")
 #' )
+#'
+#' # Basic split bar plot with alpha encoding
 #' SplitBarPlot(data, x = "count", y = "word", alpha_by = "score")
+#'
+#' # Control label wrapping
 #' SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
 #'              max_charwidth = 30, lineheight = 1.1)
+#'
+#' # Fill by categorical variable
 #' SplitBarPlot(data, x = "count", y = "word", fill_by = "group")
+#'
+#' # Faceting
 #' SplitBarPlot(data, x = "count", y = "word", facet_by = "group",
 #'              fill_name = "Direction")
-#' SplitBarPlot(data, x = "count", y = "word", alpha_by = "score", split_by="group",
+#'
+#' # Per-split palettes
+#' SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
+#'              split_by = "group",
 #'              palette = c(A = "Reds", B = "Blues", C = "Greens"))
 #'
-#' # test keep_na and keep_empty
+#' # keep_na and keep_empty examples
 #' data <- data.frame(
 #'     word = factor(c("apple", "banana", "cherry", NA, "elderberry",
 #'          "It is a very long term with a lot of words"),
@@ -1886,21 +2200,26 @@ SplitBarPlotAtomic <- function(
 #'          levels = c("A", "B", "C", "D"))
 #' )
 #'
+#' # Default: NA and empty levels dropped
+#' SplitBarPlot(data, x = "count", y = "word", alpha_by = "score")
+#'
+#' # Keep NA and empty levels
 #' SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
-#'     title = "keep_na = FALSE; keep_empty = FALSE")
+#'              keep_na = TRUE, keep_empty = TRUE)
+#'
+#' # Keep with faceting
 #' SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
-#'     keep_na = TRUE, keep_empty = TRUE,
-#'     title = "keep_na = TRUE; keep_empty = TRUE")
+#'              keep_na = TRUE, keep_empty = TRUE, facet_by = "group")
+#'
+#' # Keep NA, hide empty levels (reserve colours)
 #' SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
-#'     keep_na = TRUE, keep_empty = TRUE, facet_by = "group",
-#'     title = "keep_na = TRUE; keep_empty = TRUE; facet_by = 'group'")
+#'              keep_na = TRUE, keep_empty = "level")
+#'
+#' # Per-column control
 #' SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
-#'     keep_na = TRUE, keep_empty = "level",
-#'     title = "keep_na = TRUE; keep_empty = 'level'")
-#' SplitBarPlot(data, x = "count", y = "word", alpha_by = "score",
-#'     keep_na = list(word = FALSE), keep_empty = list(word = TRUE),
-#'     title = "keep_na: word=FALSE; keep_empty: word=TRUE")
-#' # control fill color scale limits
+#'              keep_na = list(word = FALSE), keep_empty = list(word = TRUE))
+#'
+#' # Control fill colour scale limits
 #' SplitBarPlot(data, x = "count", y = "word", fill_by = "score",
 #'              lower_cutoff = 1, upper_cutoff = 4)
 #' }
