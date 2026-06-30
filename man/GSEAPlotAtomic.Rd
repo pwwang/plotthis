@@ -2,7 +2,7 @@
 % Please edit documentation in R/gsea.R
 \name{GSEAPlotAtomic}
 \alias{GSEAPlotAtomic}
-\title{GSEA plot for a single term}
+\title{Atomic GSEA plot (internal)}
 \usage{
 GSEAPlotAtomic(
   data,
@@ -30,35 +30,54 @@ GSEAPlotAtomic(
 \arguments{
 \item{data}{A data frame.}
 
-\item{gene_ranks}{A numeric vector of gene ranks with genes as names
-The gene ranks are used to plot the gene sets.
-If \code{gene_ranks} is a character vector starting with \code{@}, the gene ranks will be taken from the attribute of \code{data}.}
+\item{gene_ranks}{A named numeric vector of gene-level rank statistics, with
+gene identifiers as names. Used to calculate the running enrichment score
+and the ranked list metric. If a character string starting with
+\code{"@"}, the attribute of \code{data} with that name (minus the
+\code{"@"}) is used.}
 
-\item{gs}{The name of the gene set}
+\item{gs}{Character string specifying the \code{ID} of the gene set to plot.
+Must match a value in \code{data$ID}.}
 
-\item{genes}{The genes in the gene set}
+\item{genes}{Character vector of gene identifiers belonging to the gene set.
+These are intersected with \code{names(gene_ranks)} for the running score
+calculation.}
 
-\item{metric}{The metric to show in the subtitle}
+\item{metric}{Character string specifying the column name in \code{data}
+used to compute significance stars in the subtitle. Default is
+\code{"p.adjust"}.}
 
-\item{sample_coregenes}{A logical value to sample the core genes from the core_enrichment; if \code{FALSE}, the first \code{n_coregenes} will be used}
+\item{sample_coregenes}{Logical; if \code{TRUE}, core enrichment genes are
+sampled randomly for labelling. If \code{FALSE} (default), the first
+\code{n_coregenes} core enrichment genes are used.}
 
-\item{line_width}{The width of the line in the running score plot}
+\item{line_width}{Numeric specifying the line width for the running
+enrichment score curve. Default is \code{1.5}.}
 
-\item{line_alpha}{The alpha of the line in the running score plot}
+\item{line_alpha}{Numeric alpha transparency for the running score line and
+hit indicator bars. Default is \code{1}.}
 
-\item{line_color}{The color of the line in the running score plot}
+\item{line_color}{Character string specifying the colour of the running
+enrichment score line. Default is \code{"#6BB82D"}.}
 
-\item{n_coregenes}{The number of core genes to label}
+\item{n_coregenes}{Integer specifying the number of core enrichment genes to
+label on the running score plot. Default is \code{10}. Ignored when
+\code{genes_label} is provided.}
 
-\item{genes_label}{The genes to label. If set, \code{n_coregenes} will be ignored}
+\item{genes_label}{Character vector of specific gene names to label on the
+running score plot. When provided, \code{n_coregenes} is ignored.}
 
-\item{label_fg}{The color of the label text}
+\item{label_fg}{Character string specifying the text colour of gene labels.
+Default is \code{"black"}.}
 
-\item{label_bg}{The background color of the label}
+\item{label_bg}{Character string specifying the background colour of gene
+labels. Default is \code{"white"}.}
 
-\item{label_bg_r}{The radius of the background color of the label}
+\item{label_bg_r}{Numeric specifying the corner radius of the label
+background. Default is \code{0.1}.}
 
-\item{label_size}{The size of the label text}
+\item{label_size}{Numeric specifying the font size of the label text.
+Default is \code{4}.}
 
 \item{title}{A character string specifying the title of the plot.
 A function can be used to generate the title based on the default title.
@@ -68,11 +87,86 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{xlab}{A character string specifying the x-axis label.}
 
-\item{ylab}{The label of the y-axis, will be shown on the right side}
+\item{ylab}{Character string for a right-side y-axis label (rotated 90
+degrees). When provided, an extra text grob is added to the right of the
+assembled plot, and the plot width increases from 7.5 to 8 inches.}
 
 \item{...}{Additional arguments.}
 }
-\description{
-GSEA plot for a single term
+\value{
+A \code{patchwork} object with \code{height} and \code{width}
+attributes (in inches) attached.
 }
+\description{
+Core implementation for drawing a single GSEA (Gene Set Enrichment Analysis)
+ridge plot. This is the workhorse behind the exported \code{\link{GSEAPlot}}
+function — it takes a single gene set and produces a three-panel figure
+showing the running enrichment score, hit positions, and the ranked list
+metric.
+
+The plot consists of three vertically stacked panels:
+\enumerate{
+\item \strong{Running score panel} — traces the running enrichment score
+across the ranked gene list, with a peak annotation and optional gene
+labels for core enrichment genes.
+\item \strong{Hit indicator panel} — marks the positions of gene set
+members with vertical lines, colour-coded by the rank metric value
+(red for positive, blue for negative).
+\item \strong{Gene ranking panel} — shows every gene's rank as a vertical
+segment, with annotations indicating positively and negatively correlated
+tails and the zero-crossing point.
+}
+
+The running enrichment score is computed via \code{\link{gsea_running_score}()}
+using the \code{gene_ranks} and \code{genes} provided. Core enrichment genes
+(from the \code{core_enrichment} column) can be labelled on the score panel
+using \code{\link[ggrepel]{geom_text_repel}()}.
+}
+\section{Architecture}{
+
+\enumerate{
+\item \strong{ggplot dispatch} — selects \code{gglogger::ggplot} or
+\code{ggplot2::ggplot} based on
+\code{getOption("plotthis.gglogger.enabled")}.
+\item \strong{Data subsetting} — if \code{data} contains multiple gene
+sets (\code{nrow > 1}), it is filtered to the single row matching
+\code{gs}. An error is raised if no rows match.
+\item \strong{Gene rank resolution} — resolves \code{gene_ranks} from its
+\code{"@"}-prefixed attribute reference, validates that it is a named
+numeric vector, and sorts it in descending order.
+\item \strong{Title and subtitle construction} — \code{title} defaults to
+\code{data$Description}. \code{subtitle} is built from the NES value and
+the \code{metric} column with significance stars (\code{ns/*/**/***/****}).
+\item \strong{Plot data preparation} — builds a data frame with position
+(1:N), gene names, running enrichment score (via
+\code{gsea_running_score()} with \code{hits_only = FALSE}), raw ranks,
+and a hit indicator column.
+\item \strong{Running score panel} — renders the top panel with a red/blue
+background (positive/negative score regions), a horizontal baseline at
+\code{y = 0}, the running score line, and annotations for the peak
+(dashed reference lines and an upward/downward triangle). Title and
+subtitle are added via \code{\link[ggplot2]{ggtitle}()}.
+\item \strong{Gene labeling} — when \code{n_coregenes > 1} or
+\code{genes_label} is provided, core enrichment genes are extracted from
+\code{data$core_enrichment} and labelled on the running score panel using
+\code{geom_text_repel()}. Missing genes trigger a warning.
+\item \strong{Hit indicator panel} — renders the middle panel: vertical
+lines (\code{geom_linerange}) at each hit position, with coloured
+rectangles beneath showing the rank metric gradient (red for positive,
+blue for negative).
+\item \strong{Gene ranking panel} — renders the bottom panel: vertical
+segments (\code{geom_segment}) for every gene's rank, with annotations
+for positively/negatively correlated tails. If both signs exist, the
+zero-crossing point is marked with a dashed vertical line.
+\item \strong{Panel assembly} — the three panels are stacked vertically
+via \code{\link[patchwork]{wrap_plots}()} with spacer panels and
+proportional heights (\code{3.5 / 1 / 1.5}). When \code{ylab} is provided,
+a rotated \code{\link[grid]{textGrob}()} is added to the right side and
+the plot width increases from 7.5 to 8 inches.
+\item \strong{Dimensions} — height is fixed at 6.5 inches. Width is 7.5
+inches (without \code{ylab}) or 8 inches (with \code{ylab}). Attributes
+\code{height} and \code{width} are stored on the returned object.
+}
+}
+
 \keyword{internal}

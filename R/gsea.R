@@ -60,54 +60,90 @@ prepare_fgsea_result <- function(data) {
     data
 }
 
-#' GSEA plots
+#' GSEA summary dot plot
 #'
 #' @description
-#'  * `GSEASummaryPlot` is used to plot a summary of the results of a GSEA analysis.
-#'  * `GSEAPlot` is used to plot the results of a GSEA analysis.
+#' Produces a summary dot plot of GSEA (Gene Set Enrichment Analysis) results.
+#' Each row represents a gene set (term), positioned along the x-axis by its
+#' Normalized Enrichment Score (NES). Dot colour encodes the significance level
+#' (typically \code{-log10(p.adjust)}) on a continuous gradient, and each row
+#' includes a miniature line plot showing the gene ranks or running enrichment
+#' score for that term's gene set.
+#'
+#' The function supports both \code{DOSE} and \code{fgsea} package output
+#' formats via the \code{in_form} parameter. Terms can be ranked and selected
+#' by a significance metric (\code{top_term}, \code{metric}), with
+#' non-significant terms rendered in grey. The per-term line plots can show
+#' either the raw preranked gene statistics (\code{line_by = "prerank"}) or
+#' the running enrichment score (\code{line_by = "running_score"}).
 #'
 #' @rdname gsea
 #' @inheritParams common_args
-#' @param data A data frame of GSEA results
-#'  For example, from `DOSE::gseDO()`.
-#'  Required columns are `ID`, `Description`, `NES`, `p.adjust`, `pvalue`.
-#'  The `ID` column is used to match the gene sets.
-#' @param in_form The format of the input data
-#'  * `fgsea`: The input data is from the `fgsea` package.
-#'  * `dose`: The input data is from the `DOSE` package.
-#'  * `auto`: Automatically detect the format of the input data.
-#'  When "leadingEdge" is in the input data, it will be treated as "fgsea"; otherwise,
-#'  if "core_enrichment" is in the input data, it will be treated as "dose".
-#' @param gene_ranks A numeric vector of gene ranks with genes as names
-#'  The gene ranks are used to plot the gene sets.
-#'  If `gene_ranks` is a character vector starting with `@`, the gene ranks will be taken from the attribute of `data`.
-#' @param gene_sets A list of gene sets, typically from a record of a GMT file
-#'  The names of the list should match the `ID` column of `data`.
-#'  If `gene_sets` is a character vector starting with `@`, the gene sets will be taken from the attribute of `data`.
-#' @param top_term An integer to select the top terms
-#' @param metric The metric to use for the significance of the terms
-#' Typically the column name of p values or adjusted p values.
-#' It is also used to select the top terms.
-#' @param cutoff The cutoff for the significance of the terms
-#'  The terms will not be filtered with this cutoff; they are only filtered by the `top_term` ranked by the `metric`.
-#'  The cutoff here is used to show the significance of the terms on the plot.
-#'  For the terms that are not significant, the color will be grey.
-#' @param character_width The width of the characters in the y-axis
-#' @param line_plot_size The size of the line plots
-#' @param metric_name The name of the metric to show in the color bar
-#' @param nonsig_name The name of the legend for the nonsignificant terms
-#' @param linewidth The width of the lines in the line plots
-#' @param line_by The method to calculate the line plots.
-#'  * `prerank`: Use the gene ranks as heights to plot the line plots.
-#'  * `running_score`: Use the running score to plot the line plots.
+#' @param in_form The format of the input data. Options:
+#'  \itemize{
+#'    \item{\code{"auto"} (default): Automatically detect the format. If the
+#'      data contains a column named \code{"leadingEdge"}, it is treated as
+#'      \code{"fgsea"}; if it contains \code{"core_enrichment"}, it is treated
+#'      as \code{"dose"}.}
+#'    \item{\code{"fgsea"}: The input data is from the \code{fgsea} package.
+#'      The \code{prepare_fgsea_result()} helper renames columns internally.}
+#'    \item{\code{"dose"}: The input data is from the \code{DOSE} package.}
+#'  }
+#' @param gene_ranks A named numeric vector of gene-level rank statistics, with
+#'  gene identifiers as names. Used to construct the per-term line plots.
+#'  If a character string starting with \code{"@"}, the attribute of \code{data}
+#'  with that name (minus the \code{"@"}) is used as the gene ranks vector.
+#' @param gene_sets A named list of gene sets. Each name must correspond to an
+#'  \code{ID} in \code{data}, and each element is a character vector of gene
+#'  identifiers. Typically read from a GMT file. If a character string starting
+#'  with \code{"@"}, the attribute of \code{data} with that name (minus the
+#'  \code{"@"}) is used.
+#' @param top_term Integer specifying the number of top terms to display, ranked
+#'  by \code{metric}. If \code{NULL}, all terms are shown.
+#' @param metric Character string specifying the column name used to rank terms
+#'  and assess significance. Typically \code{"p.adjust"} or \code{"pvalue"}.
+#'  Terms are ranked by this column (ascending, lower is better) when
+#'  \code{top_term} is set. The same column is transformed to
+#'  \code{-log10(metric)} for the colour gradient.
+#' @param cutoff Numeric threshold for the \code{metric} column. Terms with
+#'  values below this cutoff are coloured on a gradient; terms above are drawn
+#'  in grey (\code{"grey80"}) and labelled as insignificant via
+#'  \code{nonsig_name}. Default is \code{0.05}. If \code{NULL}, all terms are
+#'  treated as significant.
+#' @param character_width Integer specifying the maximum character width for
+#'  wrapping term descriptions on the y-axis. Default is \code{50}.
+#' @param line_plot_size Numeric controlling the size of the per-term miniature
+#'  enrichment plots embedded in each row. Expressed as a fraction of the plot
+#'  panel dimensions. Default is \code{0.25}.
+#' @param metric_name Character string for the colour bar legend title.
+#'  Defaults to the value of \code{metric}.
+#' @param nonsig_name Character string for the legend entry label used for
+#'  non-significant terms. Default is \code{"Insignificant"}.
+#' @param linewidth Numeric specifying the line width within the per-term
+#'  miniature enrichment plots. Default is \code{0.2}.
+#' @param line_by The method used to compute the per-term line plots:
+#'  \itemize{
+#'    \item{\code{"prerank"} (default): Use the gene ranks as the bar heights
+#'      (raw ranking metric).}
+#'    \item{\code{"running_score"}: Use the running enrichment score computed
+#'      by \code{gsea_running_score()}.}
+#'  }
 #' @importFrom scales pretty_breaks scientific
 #' @importFrom ggplot2 geom_linerange layer_scales theme_void ylim
 #' @export
+#' @return A \code{ggplot} object with \code{height} and \code{width}
+#'  attributes (in inches) attached.
 #' @examples
 #' \donttest{
 #' data(gsea_example)
+#'
+#' # Default summary dot plot with preranked gene statistics
 #' GSEASummaryPlot(gsea_example)
+#'
+#' # Use running enrichment score for per-term line plots
 #' GSEASummaryPlot(gsea_example, line_by = "running_score")
+#'
+#' # Raise the significance cutoff (all terms are coloured)
 #' GSEASummaryPlot(gsea_example, cutoff = 0.01)
 #' }
 GSEASummaryPlot <- function(
@@ -366,25 +402,120 @@ GSEASummaryPlot <- function(
     p
 }
 
-#' GSEA plot for a single term
+#' Atomic GSEA plot (internal)
+#'
+#' @description
+#' Core implementation for drawing a single GSEA (Gene Set Enrichment Analysis)
+#' ridge plot. This is the workhorse behind the exported \code{\link{GSEAPlot}}
+#' function — it takes a single gene set and produces a three-panel figure
+#' showing the running enrichment score, hit positions, and the ranked list
+#' metric.
+#'
+#' The plot consists of three vertically stacked panels:
+#' \enumerate{
+#'   \item \strong{Running score panel} — traces the running enrichment score
+#'   across the ranked gene list, with a peak annotation and optional gene
+#'   labels for core enrichment genes.
+#'   \item \strong{Hit indicator panel} — marks the positions of gene set
+#'   members with vertical lines, colour-coded by the rank metric value
+#'   (red for positive, blue for negative).
+#'   \item \strong{Gene ranking panel} — shows every gene's rank as a vertical
+#'   segment, with annotations indicating positively and negatively correlated
+#'   tails and the zero-crossing point.
+#' }
+#'
+#' The running enrichment score is computed via \code{\link{gsea_running_score}()}
+#' using the \code{gene_ranks} and \code{genes} provided. Core enrichment genes
+#' (from the \code{core_enrichment} column) can be labelled on the score panel
+#' using \code{\link[ggrepel]{geom_text_repel}()}.
+#'
+#' @section Architecture:
+#' \enumerate{
+#'   \item \strong{ggplot dispatch} — selects \code{gglogger::ggplot} or
+#'   \code{ggplot2::ggplot} based on
+#'   \code{getOption("plotthis.gglogger.enabled")}.
+#'   \item \strong{Data subsetting} — if \code{data} contains multiple gene
+#'   sets (\code{nrow > 1}), it is filtered to the single row matching
+#'   \code{gs}. An error is raised if no rows match.
+#'   \item \strong{Gene rank resolution} — resolves \code{gene_ranks} from its
+#'   \code{"@"}-prefixed attribute reference, validates that it is a named
+#'   numeric vector, and sorts it in descending order.
+#'   \item \strong{Title and subtitle construction} — \code{title} defaults to
+#'   \code{data$Description}. \code{subtitle} is built from the NES value and
+#'   the \code{metric} column with significance stars (\code{ns/*/**/***/****}).
+#'   \item \strong{Plot data preparation} — builds a data frame with position
+#'   (1:N), gene names, running enrichment score (via
+#'   \code{gsea_running_score()} with \code{hits_only = FALSE}), raw ranks,
+#'   and a hit indicator column.
+#'   \item \strong{Running score panel} — renders the top panel with a red/blue
+#'   background (positive/negative score regions), a horizontal baseline at
+#'   \code{y = 0}, the running score line, and annotations for the peak
+#'   (dashed reference lines and an upward/downward triangle). Title and
+#'   subtitle are added via \code{\link[ggplot2]{ggtitle}()}.
+#'   \item \strong{Gene labeling} — when \code{n_coregenes > 1} or
+#'   \code{genes_label} is provided, core enrichment genes are extracted from
+#'   \code{data$core_enrichment} and labelled on the running score panel using
+#'   \code{geom_text_repel()}. Missing genes trigger a warning.
+#'   \item \strong{Hit indicator panel} — renders the middle panel: vertical
+#'   lines (\code{geom_linerange}) at each hit position, with coloured
+#'   rectangles beneath showing the rank metric gradient (red for positive,
+#'   blue for negative).
+#'   \item \strong{Gene ranking panel} — renders the bottom panel: vertical
+#'   segments (\code{geom_segment}) for every gene's rank, with annotations
+#'   for positively/negatively correlated tails. If both signs exist, the
+#'   zero-crossing point is marked with a dashed vertical line.
+#'   \item \strong{Panel assembly} — the three panels are stacked vertically
+#'   via \code{\link[patchwork]{wrap_plots}()} with spacer panels and
+#'   proportional heights (\code{3.5 / 1 / 1.5}). When \code{ylab} is provided,
+#'   a rotated \code{\link[grid]{textGrob}()} is added to the right side and
+#'   the plot width increases from 7.5 to 8 inches.
+#'   \item \strong{Dimensions} — height is fixed at 6.5 inches. Width is 7.5
+#'   inches (without \code{ylab}) or 8 inches (with \code{ylab}). Attributes
+#'   \code{height} and \code{width} are stored on the returned object.
+#' }
 #'
 #' @inheritParams common_args
-#' @inheritParams GSEASummaryPlot
-#' @param gs The name of the gene set
-#' @param genes The genes in the gene set
-#' @param metric The metric to show in the subtitle
-#' @param sample_coregenes A logical value to sample the core genes from the core_enrichment; if `FALSE`, the first `n_coregenes` will be used
-#' @param line_width The width of the line in the running score plot
-#' @param line_alpha The alpha of the line in the running score plot
-#' @param line_color The color of the line in the running score plot
-#' @param n_coregenes The number of core genes to label
-#' @param genes_label The genes to label. If set, `n_coregenes` will be ignored
-#' @param label_fg The color of the label text
-#' @param label_bg The background color of the label
-#' @param label_bg_r The radius of the background color of the label
-#' @param label_size The size of the label text
-#' @param ylab The label of the y-axis, will be shown on the right side
+#' @param gene_ranks A named numeric vector of gene-level rank statistics, with
+#'  gene identifiers as names. Used to calculate the running enrichment score
+#'  and the ranked list metric. If a character string starting with
+#'  \code{"@"}, the attribute of \code{data} with that name (minus the
+#'  \code{"@"}) is used.
+#' @param gs Character string specifying the \code{ID} of the gene set to plot.
+#'  Must match a value in \code{data$ID}.
+#' @param genes Character vector of gene identifiers belonging to the gene set.
+#'  These are intersected with \code{names(gene_ranks)} for the running score
+#'  calculation.
+#' @param metric Character string specifying the column name in \code{data}
+#'  used to compute significance stars in the subtitle. Default is
+#'  \code{"p.adjust"}.
+#' @param sample_coregenes Logical; if \code{TRUE}, core enrichment genes are
+#'  sampled randomly for labelling. If \code{FALSE} (default), the first
+#'  \code{n_coregenes} core enrichment genes are used.
+#' @param line_width Numeric specifying the line width for the running
+#'  enrichment score curve. Default is \code{1.5}.
+#' @param line_alpha Numeric alpha transparency for the running score line and
+#'  hit indicator bars. Default is \code{1}.
+#' @param line_color Character string specifying the colour of the running
+#'  enrichment score line. Default is \code{"#6BB82D"}.
+#' @param n_coregenes Integer specifying the number of core enrichment genes to
+#'  label on the running score plot. Default is \code{10}. Ignored when
+#'  \code{genes_label} is provided.
+#' @param genes_label Character vector of specific gene names to label on the
+#'  running score plot. When provided, \code{n_coregenes} is ignored.
+#' @param label_fg Character string specifying the text colour of gene labels.
+#'  Default is \code{"black"}.
+#' @param label_bg Character string specifying the background colour of gene
+#'  labels. Default is \code{"white"}.
+#' @param label_bg_r Numeric specifying the corner radius of the label
+#'  background. Default is \code{0.1}.
+#' @param label_size Numeric specifying the font size of the label text.
+#'  Default is \code{4}.
+#' @param ylab Character string for a right-side y-axis label (rotated 90
+#'  degrees). When provided, an extra text grob is added to the right of the
+#'  assembled plot, and the plot width increases from 7.5 to 8 inches.
 #' @keywords internal
+#' @return A \code{patchwork} object with \code{height} and \code{width}
+#'  attributes (in inches) attached.
 #' @importFrom scales alpha
 #' @importFrom ggplot2 ggtitle theme_classic annotate
 #' @importFrom patchwork plot_layout wrap_plots plot_spacer
@@ -825,17 +956,47 @@ GSEAPlotAtomic <- function(
 #' @rdname gsea
 #' @inheritParams common_args
 #' @inheritParams GSEAPlotAtomic
-#' @param gene_sets A list of gene sets, typically from a record of a GMT file
-#' The names of the list should match the `ID` column of `data`.
-#' If `gene_sets` is a character vector starting with `@`, the gene sets will be taken from the attribute of `data`.
-#' The GSEA plots will be plotted for each gene set. So, the number of plots will be the number of gene sets.
-#' If you only want to plot a subset of gene sets, you can subset the `gene_sets` before passing it to this function.
-#' @param gs The names of the gene sets to plot
-#' If `NULL`, all gene sets in `gene_sets` will be plotted.
+#' @param in_form The format of the input data. See \code{\link{GSEASummaryPlot}}
+#'  for details.
+#' @param gene_sets A named list of gene sets. Each name must correspond to an
+#'  \code{ID} in \code{data}, and each element is a character vector of gene
+#'  identifiers. A GSEA ridge plot is generated for each gene set in the list.
+#'  If you only want to plot a subset of gene sets, subset the list before
+#'  passing it to this function. If a character string starting with
+#'  \code{"@"}, the attribute of \code{data} with that name (minus the
+#'  \code{"@"}) is used.
+#' @param gs Character vector of gene set \code{ID}s to plot. If \code{NULL}
+#'  (default), all gene sets in \code{gene_sets} that appear in \code{data$ID}
+#'  are plotted.
+#' @param combine Logical; when \code{TRUE} (default), returns a combined
+#'  \code{patchwork} object. When \code{FALSE}, returns a named list of
+#'  individual \code{patchwork} objects (one per gene set).
+#' @param ncol,nrow Integer number of columns / rows for the combined layout
+#'  (passed to \code{\link{combine_plots}()}).
+#' @param byrow Logical; fill the combined layout by row. Default \code{TRUE}
+#'  (passed to \code{\link{combine_plots}()}).
+#' @param seed A numeric seed for reproducibility. Passed to
+#'  \code{\link{validate_common_args}()}.
+#' @param axes A character string specifying how axes should be treated across
+#'  the combined layout (passed to \code{\link{combine_plots}()}).
+#' @param axis_titles A character string specifying how axis titles should be
+#'  treated across the combined layout. Defaults to \code{axes}.
+#' @param guides A character string specifying how guides (legends) should be
+#'  collected across panels (passed to \code{\link{combine_plots}()}).
+#' @param design A custom layout design for the combined plot (passed to
+#'  \code{\link{combine_plots}()}).
 #' @export
+#' @return A \code{patchwork} object when \code{combine = TRUE}, or a named
+#'  list of \code{patchwork} objects when \code{combine = FALSE}. Each
+#'  individual plot has \code{height} and \code{width} attributes in inches.
 #' @examples
 #' \donttest{
+#' data(gsea_example)
+#'
+#' # Single gene set
 #' GSEAPlot(gsea_example, gene_sets = attr(gsea_example, "gene_sets")[1])
+#'
+#' # Multiple gene sets arranged in a grid
 #' GSEAPlot(gsea_example, gene_sets = attr(gsea_example, "gene_sets")[1:4])
 #' }
 GSEAPlot <- function(
