@@ -63,16 +63,25 @@ ScatterPlot(
 
 \item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
 
-\item{size_by}{Which column to use as the size of the dots. It must be a numeric column.
-Or it can be a numeric value to specify the size of the dots.}
+\item{size_by}{Either a numeric constant (uniform dot size) or a character
+string naming a numeric column whose values control dot size via
+\code{scale_size_area(max_size = 6)}. Default: \code{2}.}
 
-\item{size_name}{A character vector specifying the name for the size legend.}
+\item{size_name}{A character string for the size legend title. When
+\code{NULL} (default), the \code{size_by} column name is used. Ignored when
+\code{size_by} is a numeric constant.}
 
-\item{color_by}{Which column to use as the color of the dots.
-It could be a numeric column or a factor/character column.
-For shapes 21-25, the color is applied to the fill color.}
+\item{color_by}{A character string naming a column whose values control
+dot colour. Can be numeric (continuous gradient via
+\code{scale_fill_gradientn()} / \code{scale_color_gradientn()}) or
+factor/character (discrete palette via
+\code{scale_fill_manual()} / \code{scale_color_manual()}). For shapes
+21--25, the colour is applied to the fill aesthetic. When \code{NULL}
+(default), all dots are rendered in a single colour derived from the
+palette.}
 
-\item{color_name}{A character vector specifying the name for the color legend.}
+\item{color_name}{A character string for the colour legend title. When
+\code{NULL} (default), the \code{color_by} column name is used.}
 
 \item{lower_quantile, upper_quantile}{Lower and upper quantiles for the continuous color/fill scale.
 The actual cutoffs are determined by these quantiles when \code{lower_cutoff} and
@@ -85,27 +94,56 @@ When \code{NULL} (the default), the cutoffs are determined by \code{lower_quanti
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
-\item{split_by}{The column(s) to split data by and plot separately.}
+\item{split_by}{The column(s) to split data by and generate separate scatter
+plots for each level. The split column is processed before splitting;
+multiple columns are concatenated with \code{split_by_sep}.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
+\item{split_by_sep}{A character string used to concatenate multiple
+\code{split_by} column values. Default: \code{"_"}.}
 
-\item{shape}{A numeric value specifying the shape of the points. Default is 21.}
+\item{shape}{A numeric value specifying the point shape. Default: \code{21}
+(filled circle with border). Shapes 21--25 support separate fill and border
+colour aesthetics; all other shapes use a single colour aesthetic.}
 
 \item{alpha}{A numeric value specifying the transparency of the plot.}
 
-\item{border_color}{A character vector specifying the color for the border of the points.
-Or TRUE to use the fill color as the border color.}
+\item{border_color}{Controls the point border colour. For shapes 21--25:
+\itemize{
+\item \code{"black"} (default) -- constant black border.
+\item A colour string (e.g. \code{"red"}, \code{"#FF0000"}) -- constant
+colour border.
+\item \code{TRUE} -- border colour tracks the \code{color_by} gradient
+/ palette via \code{scale_color_gradientn()} /
+\code{scale_color_manual()}.
+}
+For shapes without a fill aesthetic (not 21--25), this parameter has no
+effect.}
 
-\item{highlight}{A vector of indexes or rownames to select the points to highlight.
-It could also be an expression (in string) to filter the data.}
+\item{highlight}{Specifies which points to highlight with an overlaid
+\code{geom_point()} layer. Accepted values:
+\itemize{
+\item \code{NULL} (default) -- no highlighting.
+\item \code{TRUE} -- all points are highlighted.
+\item A numeric vector -- row indices of points to highlight.
+\item A single character string -- an R expression (e.g.
+\code{"x > 0"}) that is parsed with \code{rlang::parse_expr()} and
+evaluated via \code{\link[dplyr]{filter}()} to select rows.
+\item A character vector -- rownames of points to highlight. An error
+is thrown if the data has no rownames.
+}}
 
-\item{highlight_shape}{A numeric value specifying the shape of the highlighted points. Default is 16.}
+\item{highlight_shape}{A numeric value specifying the point shape for
+highlighted points. Default: \code{16} (filled circle). Shapes 21--25
+use the \code{fill} aesthetic; other shapes use \code{color}.}
 
-\item{highlight_size}{A numeric value specifying the size of the highlighted points. Default is 3.}
+\item{highlight_size}{A numeric value specifying the size of highlighted
+points. Default: \code{3}.}
 
-\item{highlight_color}{A character vector specifying the color of the highlighted points. Default is "red".}
+\item{highlight_color}{A character string specifying the colour of
+highlighted points. Default: \code{"red"}.}
 
-\item{highlight_alpha}{A numeric value specifying the transparency of the highlighted points. Default is 1.}
+\item{highlight_alpha}{A numeric value in \code{[0, 1]} specifying the
+transparency of highlighted points. Default: \code{1}.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -151,55 +189,95 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{ylab}{A character string specifying the y-axis label.}
 
-\item{combine}{Whether to combine the plots into one when facet is FALSE. Default is TRUE.}
+\item{combine}{A logical value. If \code{TRUE} (the default), the list of
+per-split plots is combined into a single \code{patchwork} object via
+\code{\link{combine_plots}()}. If \code{FALSE}, returns the raw list of
+\code{ggplot} objects.}
 
-\item{nrow}{A numeric value specifying the number of rows in the facet.}
+\item{nrow, ncol, byrow}{Integers controlling the layout of combined plots via
+\code{\link{combine_plots}()}. \code{byrow = TRUE} (default) fills the
+layout row-wise.}
 
-\item{ncol}{A numeric value specifying the number of columns in the facet.}
+\item{seed}{The random seed for reproducibility. Passed to
+\code{\link{validate_common_args}()}. Default: \code{8525}.}
 
-\item{byrow}{A logical value indicating whether to fill the plots by row.}
+\item{axes, axis_titles}{Strings controlling how axes and axis titles are
+handled across combined plots. Passed to \code{\link{combine_plots}()}.
+See \code{?patchwork::wrap_plots} for options (\code{"keep"},
+\code{"collect"}, \code{"collect_x"}, \code{"collect_y"}).}
 
-\item{seed}{The random seed to use. Default is 8525.}
+\item{guides}{A string controlling guide collection across combined plots.
+Passed to \code{\link{combine_plots}()}.}
 
-\item{axes}{A string specifying how axes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axes in individual plots.
-\item 'collect' will remove duplicated axes when placed in the same run of rows or columns of the layout.
-\item 'collect_x' and 'collect_y' will remove duplicated x-axes in the columns or duplicated y-axes in the rows respectively.
-}}
-
-\item{axis_titles}{A string specifying how axis titltes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axis titles in individual plots.
-\item 'collect' will remove duplicated titles in one direction and merge titles in the opposite direction.
-\item 'collect_x' and 'collect_y' control this for x-axis titles and y-axis titles respectively.
-}}
-
-\item{guides}{A string specifying how guides should be treated in the layout. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'collect' will collect guides below to the given nesting level, removing duplicates.
-\item 'keep' will stop collection at this level and let guides be placed alongside their plot.
-\item 'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.
-}}
-
-\item{design}{Specification of the location of areas in the layout, passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE. When specified, \code{nrow}, \code{ncol}, and \code{byrow} are ignored.
-See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details.}
+\item{design}{A custom layout specification for combined plots. Passed to
+\code{\link{combine_plots}()}. When specified, \code{nrow}, \code{ncol},
+and \code{byrow} are ignored.}
 
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object or wrap_plots object or a list of ggplot objects
+A \code{ggplot} object (single plot), a \code{patchwork} object
+(when \code{combine = TRUE} with \code{split_by}), or a named list of
+\code{ggplot} objects (when \code{combine = FALSE}), each with
+\code{height} and \code{width} attributes in inches.
 }
 \description{
-Scatter Plot
+Draws a scatter plot with optional size encoding, colour encoding
+(continuous gradient or discrete palette), point highlighting, and axis
+transformations. This is the user-facing wrapper around
+\code{\link{ScatterPlotAtomic}} that adds \code{split_by} support
+(generating separate sub-plots per group) and combines them via
+\code{patchwork}.
+
+Key features:
+\itemize{
+\item \strong{Variable point size} -- \code{size_by} accepts either a
+numeric constant or a column name.
+\item \strong{Colour modes} -- numeric \code{color_by} produces a
+continuous gradient; factor/character \code{color_by} produces a discrete
+palette.
+\item \strong{Colour scale trimming} -- \code{lower_quantile} /
+\code{upper_quantile} (or explicit \code{lower_cutoff} /
+\code{upper_cutoff}) trim/clamp continuous colour scale extremes.
+\item \strong{Border modes} -- \code{border_color} can be a constant
+colour, \code{TRUE} (track the fill gradient), or omitted.
+\item \strong{Point highlighting} -- \code{highlight} accepts indices,
+rownames, logical \code{TRUE}, or a string expression.
+\item \strong{Axis transformation} -- \code{xtrans} / \code{ytrans}
+support log, sqrt, and other scale transformations.
+\item \strong{Split sub-plots} -- \code{split_by} produces one scatter
+plot per group level, combined into a single \code{patchwork} layout.
 }
+}
+\section{split_by Workflow}{
+
+When \code{split_by} is provided:
+\enumerate{
+\item \strong{Seed validation} -- \code{\link{validate_common_args}()}
+sets the random seed for reproducibility.
+\item \strong{Theme resolution} -- \code{\link{process_theme}()} resolves
+the \code{theme} string or function.
+\item \strong{Split column resolution} -- \code{\link{check_columns}()}
+validates \code{split_by} (force_factor, allow_multi, concat_multi).
+\item \strong{Data splitting} -- unused factor levels are dropped and the
+data is split into a named list (preserving factor level order). When
+\code{split_by = NULL}, a single-element list named \code{"..."} is used.
+\item \strong{Per-split palette / colour} -- \code{\link{check_palette}()}
+and \code{\link{check_palcolor}()} resolve per-split palette and colour
+overrides.
+\item \strong{Per-split legend} -- \code{\link{check_legend}()} resolves
+\code{legend.position} and \code{legend.direction} per split.
+\item \strong{Per-split title} -- when \code{title} is a function, it
+receives the default title (the split level name) and can return a custom
+string; otherwise \code{title \%||\% split_level} is used.
+\item \strong{Dispatch} -- each split subset is passed to
+\code{\link{ScatterPlotAtomic}()}.
+\item \strong{Combination} -- \code{\link{combine_plots}()} assembles the
+list of plots via \code{patchwork::wrap_plots}, honouring
+\code{nrow}/\code{ncol}/\code{byrow}/\code{design}.
+}
+}
+
 \examples{
 set.seed(8525)
 
@@ -209,36 +287,40 @@ data <- data.frame(
    w = abs(rnorm(20)),
    t = sample(c("A", "B"), 20, replace = TRUE)
 )
+
+# --- Basic scatter plot ---
 ScatterPlot(data, x = "x", y = "y")
 
-# highlight points
+# --- Highlight points ---
 ScatterPlot(data, x = "x", y = "y", highlight = 'x > 0')
 
-# size_by is a numeric column
+# --- Size encoding (column name) ---
 ScatterPlot(data, x = "x", y = "y", size_by = "w")
 
-# color_by is a numeric column
+# --- Colour encoding (numeric gradient) ---
 ScatterPlot(data, x = "x", y = "y", color_by = "w")
 
-# color_by is a factor/character column and set a border_color
+# --- Colour encoding (categorical) with border ---
 ScatterPlot(data, x = "x", y = "y", size_by = "w", color_by = "t",
  border_color = "red")
 
-# Same border_color as the fill color
+# --- Border colour tracks fill gradient ---
 ScatterPlot(data, x = "x", y = "y", size_by = "w", color_by = "t",
  border_color = TRUE)
 
-# Shape doesn't have fill color
+# --- Shape without fill (single colour aesthetic) ---
 ScatterPlot(data, x = "x", y = "y", size_by = "w", color_by = "t",
  shape = 1, palette = "Set1")
 
-# Change color per plot
+# --- split_by with per-split palcolor ---
 ScatterPlot(data, x = "x", y = "y", split_by = "t",
             palcolor = list(A = "blue", B = "red"))
-# control color scale limits with quantiles
+
+# --- Colour scale limits (quantile-based) ---
 ScatterPlot(data, x = "x", y = "y", color_by = "w",
             lower_quantile = 0.1, upper_quantile = 0.9)
-# explicit cutoff values
+
+# --- Colour scale limits (explicit cutoffs) ---
 ScatterPlot(data, x = "x", y = "y", color_by = "w",
             lower_cutoff = 0, upper_cutoff = 1)
 }

@@ -1,31 +1,181 @@
-#' Scatter Plot Atomic
+#' Atomic scatter plot (internal)
+#'
+#' @description
+#' Core implementation for drawing a single scatter plot. This is the workhorse
+#' behind the exported \code{\link{ScatterPlot}} function -- it takes a
+#' **single** data frame (no \code{split_by} support) and returns a
+#' \code{ggplot} object. The plot positions points by \code{x} and \code{y}
+#' coordinates (both numeric), with optional size encoding via a third numeric
+#' variable (\code{size_by}), and colour encoding (\code{color_by}) that can be
+#' numeric (continuous gradient) or categorical (discrete palette).
+#'
+#' Key features:
+#' \itemize{
+#'   \item \strong{Variable point size} -- \code{size_by} accepts either a
+#'   numeric constant (uniform dot size) or a column name (size scales with
+#'   value via \code{scale_size_area()}).
+#'   \item \strong{Colour modes} -- \code{color_by} can be numeric (rendered as
+#'   a continuous gradient via \code{scale_fill_gradientn()} or
+#'   \code{scale_color_gradientn()}) or factor/character (discrete palette
+#'   via \code{scale_fill_manual()}/\code{scale_color_manual()}).
+#'   \item \strong{Shape support} -- shapes 21--25 support separate fill and
+#'   border (\code{color}) aesthetics; all other shapes use only the colour
+#'   aesthetic. The \code{border_color} parameter can be a constant colour,
+#'   \code{TRUE} (track the fill gradient), or omitted.
+#'   \item \strong{Colour scale trimming} -- \code{lower_quantile} /
+#'   \code{upper_quantile} (or explicit \code{lower_cutoff} /
+#'   \code{upper_cutoff}) trim/clamp the continuous colour scale extremes.
+#'   \item \strong{Axis transformation} -- \code{xtrans} and \code{ytrans}
+#'   apply arbitrary scale transformations (e.g. \code{"log10"}, \code{"sqrt"})
+#'   to the x and y axes via \code{scale_x_continuous()} /
+#'   \code{scale_y_continuous()}.
+#'   \item \strong{Point highlighting} -- \code{highlight} accepts indices,
+#'   rownames, logical \code{TRUE}, or a string expression to select points
+#'   that are overlaid with a distinct shape, size, colour, and alpha.
+#' }
+#'
+#' @section Architecture:
+#' \enumerate{
+#'   \item \strong{ggplot dispatch} -- selects \code{gglogger::ggplot} or
+#'   \code{ggplot2::ggplot} based on
+#'   \code{getOption("plotthis.gglogger.enabled")}.
+#'   \item \strong{Column resolution} -- \code{facet_by} is validated and
+#'   forced to factor via \code{\link{check_columns}()}. \code{size_by} is
+#'   validated when it is a column name; numeric constants are kept as-is.
+#'   \code{color_by} is validated.
+#'   \item \strong{Dummy colour guard} -- when \code{color_by = NULL}, a
+#'   synthetic \code{.color_by} column (constant \code{""}) is created and the
+#'   colour legend is suppressed.
+#'   \item \strong{Categorical colour coercion} -- when \code{color_by} is a
+#'   non-numeric column, it is forced to factor via
+#'   \code{\link{check_columns}()} with \code{force_factor = TRUE}.
+#'   \item \strong{Continuous colour scale preparation} -- when
+#'   \code{color_by} is numeric,
+#'   \code{\link{prepare_continuous_color_scale}()} computes quantile-trimmed or
+#'   cutoff-clamped colour range endpoints (\code{feat_colors_value}) and
+#'   winsorizes out-of-range data.
+#'   \item \strong{Highlight resolution} -- \code{highlight} is processed into
+#'   a subset data frame (\code{hidata}) via one of four paths:
+#'   \code{TRUE} (all points), numeric index vector, a single string expression
+#'   (parsed with \code{rlang::parse_expr()} and applied via
+#'   \code{\link[dplyr]{filter}()}), or a character vector of rownames.
+#'   An error is thrown if rownames are used on data without row names.
+#'   \item \strong{Shape fill detection} -- determines whether the point shape
+#'   (\code{shape}) supports a separate fill aesthetic (shapes 21--25).
+#'   \item \strong{Base ggplot} -- initialises \code{ggplot(data, aes(x, y))}.
+#'   \item \strong{Point layer configuration} -- the aesthetic mapping and
+#'   constant aesthetics for \code{geom_point()} are assembled:
+#'   \itemize{
+#'     \item \emph{Fill vs colour}: shapes 21--25 map \code{fill} (and
+#'     optionally \code{color} when \code{border_color = TRUE}); other shapes
+#'     map \code{color}.
+#'     \item \emph{Size}: a numeric \code{size_by} is passed as a constant
+#'     aesthetic; a column name is mapped to the \code{size} aesthetic.
+#'   }
+#'   \item \strong{Size scale} -- when \code{size_by} is a column name,
+#'   \code{scale_size_area(max_size = 6)} is added with a size legend
+#'   (order = 1, title = \code{size_name \%||\% size_by}).
+#'   \item \strong{Fill / colour scale (4 branches)}:
+#'   \itemize{
+#'     \item \emph{Shape with fill + numeric colour}: \code{scale_fill_gradientn()}
+#'     with \code{feat_colors_value} rescaling and either a colour-bar legend
+#'     or suppressed guide. When \code{border_color = TRUE}, a matching
+#'     \code{scale_color_gradientn()} is added.
+#'     \item \emph{Shape with fill + factor colour}: \code{scale_fill_manual()}
+#'     with \code{\link{palette_this}()} colours and a discrete legend. When
+#'     \code{border_color = TRUE}, a matching \code{scale_color_manual()} is
+#'     added.
+#'     \item \emph{Shape without fill + numeric colour}: \code{scale_color_gradientn()}
+#'     with continuous colour-bar legend.
+#'     \item \emph{Shape without fill + factor colour}: \code{scale_color_manual()}
+#'     with discrete legend.
+#'   }
+#'   \item \strong{Highlight overlay} -- when \code{hidata} is non-\code{NULL},
+#'   a second \code{geom_point()} layer is added using \code{highlight_shape},
+#'   \code{highlight_color}, \code{highlight_size}, and \code{highlight_alpha}.
+#'   The fill or colour aesthetic is chosen based on whether
+#'   \code{highlight_shape} is 21--25.
+#'   \item \strong{Axis scales} -- \code{scale_x_continuous(trans = xtrans)}
+#'   and \code{scale_y_continuous(trans = ytrans)} apply the requested
+#'   transformations.
+#'   \item \strong{Labels and theme} -- \code{labs(title, subtitle, x, y)} sets
+#'   plot annotations. \code{do_call(theme, theme_args)} applies the theme.
+#'   \code{panel.grid.major} is set to grey80 dashed lines.
+#'   \item \strong{Dimension calculation} -- \code{\link{calculate_plot_dimensions}()}
+#'   computes plot \code{height} and \code{width} from \code{base_height = 5},
+#'   \code{aspect.ratio}, and legend metrics (number of legend items and
+#'   maximum label character width).
+#'   \item \strong{Faceting} -- \code{\link{facet_plot}()} wraps the plot with
+#'   \code{facet_wrap} / \code{facet_grid} if \code{facet_by} is provided.
+#' }
 #'
 #' @inheritParams common_args
-#' @param x A character vector specifying the column to use for the x-axis.
-#'  A numeric column is expected.
-#' @param y A character vector specifying the column to use for the y-axis.
-#'  A numeric column is expected.
-#' @param size_by Which column to use as the size of the dots. It must be a numeric column.
-#'  Or it can be a numeric value to specify the size of the dots.
-#' @param size_name A character vector specifying the name for the size legend.
-#' @param color_by Which column to use as the color of the dots.
-#'  It could be a numeric column or a factor/character column.
-#'  For shapes 21-25, the color is applied to the fill color.
-#' @param color_name A character vector specifying the name for the color legend.
-#' @param border_color A character vector specifying the color for the border of the points.
-#'  Or TRUE to use the fill color as the border color.
-#' @param highlight A vector of indexes or rownames to select the points to highlight.
-#'  It could also be an expression (in string) to filter the data.
-#' @param highlight_shape A numeric value specifying the shape of the highlighted points. Default is 16.
-#' @param highlight_size A numeric value specifying the size of the highlighted points. Default is 3.
-#' @param highlight_color A character vector specifying the color of the highlighted points. Default is "red".
-#' @param highlight_alpha A numeric value specifying the transparency of the highlighted points. Default is 1.
-#' @param alpha A numeric value specifying the transparency of the dots. Default is 1.
-#'  For shapes 21-25, the transparency is applied to the fill color.
-#' @param shape A numeric value specifying the shape of the points. Default is 21.
-#' @param xtrans A character vector specifying the transformation of the x-axis. Default is "identity".
-#' @param ytrans A character vector specifying the transformation of the y-axis. Default is "identity".
-#' @return A ggplot object
+#' @param x A character string specifying the numeric column to use for the
+#'  x-axis. A numeric column is expected.
+#' @param y A character string specifying the numeric column to use for the
+#'  y-axis. A numeric column is expected.
+#' @param size_by Either a numeric constant (uniform dot size) or a character
+#'  string naming a numeric column whose values control dot size via
+#'  \code{scale_size_area(max_size = 6)}. Default: \code{2}.
+#' @param size_name A character string for the size legend title. When
+#'  \code{NULL} (default), the \code{size_by} column name is used. Ignored when
+#'  \code{size_by} is a numeric constant.
+#' @param color_by A character string naming a column whose values control
+#'  dot colour. Can be numeric (continuous gradient via
+#'  \code{scale_fill_gradientn()} / \code{scale_color_gradientn()}) or
+#'  factor/character (discrete palette via
+#'  \code{scale_fill_manual()} / \code{scale_color_manual()}). For shapes
+#'  21--25, the colour is applied to the fill aesthetic. When \code{NULL}
+#'  (default), all dots are rendered in a single colour derived from the
+#'  palette.
+#' @param color_name A character string for the colour legend title. When
+#'  \code{NULL} (default), the \code{color_by} column name is used.
+#' @param border_color Controls the point border colour. For shapes 21--25:
+#'  \itemize{
+#'    \item \code{"black"} (default) -- constant black border.
+#'    \item A colour string (e.g. \code{"red"}, \code{"#FF0000"}) -- constant
+#'    colour border.
+#'    \item \code{TRUE} -- border colour tracks the \code{color_by} gradient
+#'    / palette via \code{scale_color_gradientn()} /
+#'    \code{scale_color_manual()}.
+#'  }
+#'  For shapes without a fill aesthetic (not 21--25), this parameter has no
+#'  effect.
+#' @param highlight Specifies which points to highlight with an overlaid
+#'  \code{geom_point()} layer. Accepted values:
+#'  \itemize{
+#'    \item \code{NULL} (default) -- no highlighting.
+#'    \item \code{TRUE} -- all points are highlighted.
+#'    \item A numeric vector -- row indices of points to highlight.
+#'    \item A single character string -- an R expression (e.g.
+#'    \code{"x > 0"}) that is parsed with \code{rlang::parse_expr()} and
+#'    evaluated via \code{\link[dplyr]{filter}()} to select rows.
+#'    \item A character vector -- rownames of points to highlight. An error
+#'    is thrown if the data has no rownames.
+#'  }
+#' @param highlight_shape A numeric value specifying the point shape for
+#'  highlighted points. Default: \code{16} (filled circle). Shapes 21--25
+#'  use the \code{fill} aesthetic; other shapes use \code{color}.
+#' @param highlight_size A numeric value specifying the size of highlighted
+#'  points. Default: \code{3}.
+#' @param highlight_color A character string specifying the colour of
+#'  highlighted points. Default: \code{"red"}.
+#' @param highlight_alpha A numeric value in \code{[0, 1]} specifying the
+#'  transparency of highlighted points. Default: \code{1}.
+#' @param shape A numeric value specifying the point shape. Default: \code{21}
+#'  (filled circle with border). Shapes 21--25 support separate fill and border
+#'  colour aesthetics; all other shapes use a single colour aesthetic.
+#' @param xtrans A character string specifying the transformation for the
+#'  x-axis, passed to \code{scale_x_continuous(trans = ...)}. Common options:
+#'  \code{"identity"} (default), \code{"log10"}, \code{"log2"},
+#'  \code{"sqrt"}, \code{"reverse"}. See \code{ggplot2::continuous_scale()}
+#'  for a full list.
+#' @param ytrans A character string specifying the transformation for the
+#'  y-axis, passed to \code{scale_y_continuous(trans = ...)}. Common options:
+#'  \code{"identity"} (default), \code{"log10"}, \code{"log2"},
+#'  \code{"sqrt"}, \code{"reverse"}.
+#' @return A \code{ggplot} object with \code{height} and \code{width}
+#'  attributes (in inches) attached.
 #' @keywords internal
 #' @importFrom utils getFromNamespace
 #' @importFrom dplyr filter
@@ -424,9 +574,90 @@ ScatterPlotAtomic <- function(
 
 #' Scatter Plot
 #'
+#' @description
+#' Draws a scatter plot with optional size encoding, colour encoding
+#' (continuous gradient or discrete palette), point highlighting, and axis
+#' transformations. This is the user-facing wrapper around
+#' \code{\link{ScatterPlotAtomic}} that adds \code{split_by} support
+#' (generating separate sub-plots per group) and combines them via
+#' \code{patchwork}.
+#'
+#' Key features:
+#' \itemize{
+#'   \item \strong{Variable point size} -- \code{size_by} accepts either a
+#'   numeric constant or a column name.
+#'   \item \strong{Colour modes} -- numeric \code{color_by} produces a
+#'   continuous gradient; factor/character \code{color_by} produces a discrete
+#'   palette.
+#'   \item \strong{Colour scale trimming} -- \code{lower_quantile} /
+#'   \code{upper_quantile} (or explicit \code{lower_cutoff} /
+#'   \code{upper_cutoff}) trim/clamp continuous colour scale extremes.
+#'   \item \strong{Border modes} -- \code{border_color} can be a constant
+#'   colour, \code{TRUE} (track the fill gradient), or omitted.
+#'   \item \strong{Point highlighting} -- \code{highlight} accepts indices,
+#'   rownames, logical \code{TRUE}, or a string expression.
+#'   \item \strong{Axis transformation} -- \code{xtrans} / \code{ytrans}
+#'   support log, sqrt, and other scale transformations.
+#'   \item \strong{Split sub-plots} -- \code{split_by} produces one scatter
+#'   plot per group level, combined into a single \code{patchwork} layout.
+#' }
+#'
+#' @section split_by Workflow:
+#' When \code{split_by} is provided:
+#' \enumerate{
+#'   \item \strong{Seed validation} -- \code{\link{validate_common_args}()}
+#'   sets the random seed for reproducibility.
+#'   \item \strong{Theme resolution} -- \code{\link{process_theme}()} resolves
+#'   the \code{theme} string or function.
+#'   \item \strong{Split column resolution} -- \code{\link{check_columns}()}
+#'   validates \code{split_by} (force_factor, allow_multi, concat_multi).
+#'   \item \strong{Data splitting} -- unused factor levels are dropped and the
+#'   data is split into a named list (preserving factor level order). When
+#'   \code{split_by = NULL}, a single-element list named \code{"..."} is used.
+#'   \item \strong{Per-split palette / colour} -- \code{\link{check_palette}()}
+#'   and \code{\link{check_palcolor}()} resolve per-split palette and colour
+#'   overrides.
+#'   \item \strong{Per-split legend} -- \code{\link{check_legend}()} resolves
+#'   \code{legend.position} and \code{legend.direction} per split.
+#'   \item \strong{Per-split title} -- when \code{title} is a function, it
+#'   receives the default title (the split level name) and can return a custom
+#'   string; otherwise \code{title \%||\% split_level} is used.
+#'   \item \strong{Dispatch} -- each split subset is passed to
+#'   \code{\link{ScatterPlotAtomic}()}.
+#'   \item \strong{Combination} -- \code{\link{combine_plots}()} assembles the
+#'   list of plots via \code{patchwork::wrap_plots}, honouring
+#'   \code{nrow}/\code{ncol}/\code{byrow}/\code{design}.
+#' }
+#'
 #' @inheritParams common_args
 #' @inheritParams ScatterPlotAtomic
-#' @return A ggplot object or wrap_plots object or a list of ggplot objects
+#' @param split_by The column(s) to split data by and generate separate scatter
+#'   plots for each level. The split column is processed before splitting;
+#'   multiple columns are concatenated with \code{split_by_sep}.
+#' @param split_by_sep A character string used to concatenate multiple
+#'   \code{split_by} column values. Default: \code{"_"}.
+#' @param seed The random seed for reproducibility. Passed to
+#'   \code{\link{validate_common_args}()}. Default: \code{8525}.
+#' @param combine A logical value. If \code{TRUE} (the default), the list of
+#'   per-split plots is combined into a single \code{patchwork} object via
+#'   \code{\link{combine_plots}()}. If \code{FALSE}, returns the raw list of
+#'   \code{ggplot} objects.
+#' @param nrow,ncol,byrow Integers controlling the layout of combined plots via
+#'   \code{\link{combine_plots}()}. \code{byrow = TRUE} (default) fills the
+#'   layout row-wise.
+#' @param axes,axis_titles Strings controlling how axes and axis titles are
+#'   handled across combined plots. Passed to \code{\link{combine_plots}()}.
+#'   See \code{?patchwork::wrap_plots} for options (\code{"keep"},
+#'   \code{"collect"}, \code{"collect_x"}, \code{"collect_y"}).
+#' @param guides A string controlling guide collection across combined plots.
+#'   Passed to \code{\link{combine_plots}()}.
+#' @param design A custom layout specification for combined plots. Passed to
+#'   \code{\link{combine_plots}()}. When specified, \code{nrow}, \code{ncol},
+#'   and \code{byrow} are ignored.
+#' @return A \code{ggplot} object (single plot), a \code{patchwork} object
+#'   (when \code{combine = TRUE} with \code{split_by}), or a named list of
+#'   \code{ggplot} objects (when \code{combine = FALSE}), each with
+#'   \code{height} and \code{width} attributes in inches.
 #' @export
 #' @examples
 #' set.seed(8525)
@@ -437,36 +668,40 @@ ScatterPlotAtomic <- function(
 #'    w = abs(rnorm(20)),
 #'    t = sample(c("A", "B"), 20, replace = TRUE)
 #' )
+#'
+#' # --- Basic scatter plot ---
 #' ScatterPlot(data, x = "x", y = "y")
 #'
-#' # highlight points
+#' # --- Highlight points ---
 #' ScatterPlot(data, x = "x", y = "y", highlight = 'x > 0')
 #'
-#' # size_by is a numeric column
+#' # --- Size encoding (column name) ---
 #' ScatterPlot(data, x = "x", y = "y", size_by = "w")
 #'
-#' # color_by is a numeric column
+#' # --- Colour encoding (numeric gradient) ---
 #' ScatterPlot(data, x = "x", y = "y", color_by = "w")
 #'
-#' # color_by is a factor/character column and set a border_color
+#' # --- Colour encoding (categorical) with border ---
 #' ScatterPlot(data, x = "x", y = "y", size_by = "w", color_by = "t",
 #'  border_color = "red")
 #'
-#' # Same border_color as the fill color
+#' # --- Border colour tracks fill gradient ---
 #' ScatterPlot(data, x = "x", y = "y", size_by = "w", color_by = "t",
 #'  border_color = TRUE)
 #'
-#' # Shape doesn't have fill color
+#' # --- Shape without fill (single colour aesthetic) ---
 #' ScatterPlot(data, x = "x", y = "y", size_by = "w", color_by = "t",
 #'  shape = 1, palette = "Set1")
 #'
-#' # Change color per plot
+#' # --- split_by with per-split palcolor ---
 #' ScatterPlot(data, x = "x", y = "y", split_by = "t",
 #'             palcolor = list(A = "blue", B = "red"))
-#' # control color scale limits with quantiles
+#'
+#' # --- Colour scale limits (quantile-based) ---
 #' ScatterPlot(data, x = "x", y = "y", color_by = "w",
 #'             lower_quantile = 0.1, upper_quantile = 0.9)
-#' # explicit cutoff values
+#'
+#' # --- Colour scale limits (explicit cutoffs) ---
 #' ScatterPlot(data, x = "x", y = "y", color_by = "w",
 #'             lower_cutoff = 0, upper_cutoff = 1)
 ScatterPlot <- function(
