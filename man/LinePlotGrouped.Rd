@@ -2,7 +2,7 @@
 % Please edit documentation in R/lineplot.R
 \name{LinePlotGrouped}
 \alias{LinePlotGrouped}
-\title{LinePlotGrouped}
+\title{Multi-series line plot (internal)}
 \usage{
 LinePlotGrouped(
   data,
@@ -62,72 +62,101 @@ LinePlotGrouped(
 
 \item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
 
-\item{group_by}{A character string specifying the column name of the data frame to group the plot.}
+\item{group_by}{A character vector of column names to group the data by.
+Each unique combination becomes a separate line. Multiple columns are
+concatenated with \code{group_by_sep}. When \code{NULL}, the
+\code{LinePlotSingle} path is used instead.}
 
-\item{group_by_sep}{A character string specifying the separator to use when concatenating multiple columns.}
+\item{group_by_sep}{A character string used to join multiple
+\code{group_by} column values into a single group identifier. Default
+\code{"_"}.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
 and combine them into one using \code{patchwork::wrap_plots}}
 
-\item{add_bg}{A logical value indicating whether to add a background to the plot.}
+\item{add_bg}{A logical value. When TRUE, alternating background stripes
+are drawn via \code{\link{bg_layer}()}. Default FALSE.}
 
-\item{bg_palette}{The palette to use for the background.}
+\item{bg_palette}{A character string specifying the palette for the
+background stripe colours. Default \code{"stripe"}.}
 
-\item{bg_palcolor}{The color to use for the background.}
+\item{bg_palcolor}{A character vector of colours for the background
+stripes. When NULL (default), colours are derived from
+\code{bg_palette}.}
 
-\item{bg_alpha}{The alpha value of the background.}
+\item{bg_alpha}{A numeric value in \code{[0, 1]} for the transparency
+of background stripes. Default 0.2.}
 
-\item{add_errorbars}{A logical value indicating whether to add error bars to the plot.}
+\item{add_errorbars}{A logical value. When TRUE, error bars are added via
+\code{\link[ggplot2]{geom_errorbar}()}. Requires \code{errorbar_sd} or
+\code{errorbar_min}/\code{errorbar_max}. Default FALSE.}
 
-\item{errorbar_width}{The width of the error bars.}
+\item{errorbar_width}{A numeric value for the width of the error bar
+caps. Default 0.1.}
 
-\item{errorbar_alpha}{The alpha value of the error bars.}
+\item{errorbar_alpha}{A numeric value in \code{[0, 1]} for the transparency of
+error bars. Default 1.}
 
-\item{errorbar_color}{The color to use for the error bars.
-If "line", the error bars will be colored the same as the lines.}
+\item{errorbar_color}{A character string for the colour of the error
+bars. When \code{"line"}, error bars are coloured the same as the lines
+(by x when \code{color_line_by_x = TRUE}, or single colour otherwise).
+Default \code{"grey30"}.}
 
-\item{errorbar_linewidth}{The line width of the error bars.}
+\item{errorbar_linewidth}{A numeric value for the line width of error
+bars. Default 0.75.}
 
-\item{errorbar_min}{The column in the data frame containing the lower bound of the error bars.}
+\item{errorbar_min}{A character string naming the column with the lower
+error bar bound. Ignored when \code{errorbar_sd} is provided.}
 
-\item{errorbar_max}{The column in the data frame containing the upper bound of the error bars.}
+\item{errorbar_max}{A character string naming the column with the upper
+error bar bound. Ignored when \code{errorbar_sd} is provided.}
 
-\item{errorbar_sd}{The column in the data frame containing the standard deviation of the error bars.
-If errorbar_min and errorbar_max are not provided, this column will be used to calculate the error bars.
-errorbar_min = y - errorbar_sd, errorbar_max = y + errorbar_sd.
-If errorbar_min and errorbar_max are provided, this column will be ignored.}
+\item{errorbar_sd}{A character string naming the column with the standard
+deviation. When \code{errorbar_min} and \code{errorbar_max} are not
+provided, error bars are computed as y +/- \code{errorbar_sd}.}
 
-\item{highlight}{A vector of indexes or rownames to select the points to highlight.
-It could also be an expression (in string) to filter the data.}
+\item{highlight}{A vector of row indices, row names, a single string
+expression (e.g. \code{"y > 10"}) filtering rows to highlight, or TRUE
+to highlight all points. When NULL (default), no highlighting is
+applied.}
 
-\item{highlight_size}{The size of the highlighted points.}
+\item{highlight_size}{A numeric value for the size of highlighted points.
+Defaults to \code{pt_size - 0.75}.}
 
-\item{highlight_color}{A character vector specifying the color of the highlighted points. Default is "red".}
+\item{highlight_color}{A character string for the colour of highlighted
+points. Default \code{"red2"}.}
 
-\item{highlight_alpha}{A numeric value specifying the transparency of the highlighted points. Default is 1.}
+\item{highlight_alpha}{A numeric value in \code{[0, 1]} for the transparency of
+highlighted points. Default 0.8.}
 
-\item{pt_alpha}{The alpha value of the points.}
+\item{pt_alpha}{A numeric value in \code{[0, 1]} for the transparency of points.
+Default 1.}
 
-\item{pt_size}{The size of the points.}
+\item{pt_size}{A numeric value for the point size. Default 5.}
 
-\item{add_hline}{A numeric value indicating the y-intercept of a horizontal line to add to the plot.
-If FALSE, no horizontal line will be added.}
+\item{add_hline}{A numeric value specifying the y-intercept of a
+horizontal reference line. When FALSE (default), no line is drawn.}
 
-\item{hline_type}{The type of line to draw for the horizontal line.}
+\item{hline_type}{A character string specifying the line type of the
+horizontal reference line. Default \code{"solid"}.}
 
-\item{hline_width}{The width of the horizontal line.}
+\item{hline_width}{A numeric value for the width of the horizontal
+reference line. Default 0.5.}
 
-\item{hline_color}{The color of the horizontal line.
-When \code{group_by} is provided, this can be TRUE to use the same color as the lines.}
+\item{hline_color}{A character string for the colour of the horizontal
+reference line. Default \code{"black"}.}
 
-\item{hline_alpha}{The alpha value of the horizontal line.}
+\item{hline_alpha}{A numeric value in \code{[0, 1]} for the transparency of the
+horizontal reference line. Default 1.}
 
-\item{line_type}{The type of line to draw.}
+\item{line_type}{A character string specifying the line type. Default
+\code{"solid"}.}
 
-\item{line_width}{The width of the line.}
+\item{line_width}{A numeric value for the line width (in mm). Default 1.}
 
-\item{line_alpha}{The alpha value of the line.}
+\item{line_alpha}{A numeric value in \code{[0, 1]} for the transparency of the
+line. Default 0.8.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -186,9 +215,73 @@ for example, the \code{x}, \code{group_by}, \code{fill_by}, etc.}
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object
+A \code{ggplot} object with \code{height} and \code{width}
+attributes (in inches).
 }
 \description{
-Line plot with groups.
+Core implementation for drawing a multi-series line plot.  This is the
+workhorse behind \code{\link{LinePlotAtomic}} for grouped data -- it takes a
+\strong{single} data frame with a \code{group_by} column and returns a
+\code{ggplot} object.  Each group receives its own line rendered in a
+distinct colour from the palette, with optional error bars, highlighted
+points, per-group horizontal reference lines, and background stripes.
 }
+\section{Architecture}{
+
+\enumerate{
+\item \strong{ggplot dispatch} -- selects \code{gglogger::ggplot} or
+\code{ggplot2::ggplot} based on
+\code{getOption("plotthis.gglogger.enabled")}.
+\item \strong{Column resolution} -- \code{x} (forced to factor),
+\code{y}, \code{group_by} (multi-column concatenation supported),
+and \code{facet_by} are validated via
+\code{\link{check_columns}}.
+\item \strong{Count aggregation} -- when \code{y = NULL}, the count of
+observations per (\code{x}, \code{group_by}, \code{facet_by})
+combination is computed and used as \code{y}.
+\item \strong{Error bar validation} -- if \code{add_errorbars = TRUE},
+checks that either \code{errorbar_min}/\code{errorbar_max} or
+\code{errorbar_sd} is provided.
+\item \strong{NA / empty-level handling} --
+\code{\link{process_keep_na_empty}()} applies \code{keep_na} and
+\code{keep_empty} policies.
+\item \strong{Highlight parsing} -- \code{highlight} (indices, row
+names, expression string, or \code{TRUE}) is resolved to a subset
+of data rows.
+\item \strong{Background layer} -- when \code{add_bg = TRUE},
+alternating background stripes are drawn via
+\code{\link{bg_layer}()}.
+\item \strong{Colour assignment} -- \code{\link{palette_this}()}
+assigns colours to all \code{group_by} levels (including
+\code{NA}, defaulting to \code{"grey80"}).
+\item \strong{Horizontal reference line} -- when \code{add_hline} is
+set, one or more \code{geom_hline()} are added.  If
+\code{hline_color = TRUE}, each horizontal line is coloured to
+match the corresponding group colour, and \code{add_hline} can
+be a named vector/ list mapping groups to intercept values.
+\item \strong{Line rendering} -- lines are coloured and grouped by
+\code{group_by} via \code{\link[ggplot2]{geom_line}()} with
+\code{aes(color = group_by, group = group_by)} and
+\code{scale_color_manual()}.
+\item \strong{Error bars} -- when \code{add_errorbars = TRUE}, three
+colour modes are supported: follow the line colour
+(\code{"line"}), track \code{group_by} colours, or use a
+constant colour.  Error bars are added via
+\code{\link[ggplot2]{geom_errorbar}()}.
+\item \strong{Point rendering} -- points are filled per group via
+\code{\link[ggplot2]{geom_point}()} with
+\code{aes(fill = group_by)} and \code{scale_fill_manual()}.
+\item \strong{Highlight overlay} -- an additional \code{geom_point()}
+layer draws highlighted rows in the specified colour and size.
+\item \strong{Plot assembly} -- \code{scale_x_discrete()},
+\code{labs()}, theme application, axis styling (angle, grid
+lines), and legend positioning.
+\item \strong{Dimension calculation} --
+\code{\link{calculate_plot_dimensions}()} computes \code{height}
+and \code{width} attributes (in inches) from x-axis category
+count, aspect ratio, and legend metrics (legend entries reflect
+group levels rather than x levels).
+}
+}
+
 \keyword{internal}

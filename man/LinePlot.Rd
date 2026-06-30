@@ -2,7 +2,7 @@
 % Please edit documentation in R/lineplot.R
 \name{LinePlot}
 \alias{LinePlot}
-\title{Line Plot}
+\title{Line plot}
 \usage{
 LinePlot(
   data,
@@ -84,57 +84,84 @@ LinePlot(
 For those plotting functions that do not support multiple groups,
 They will be concatenated into one column, using \code{group_by_sep} as the separator}
 
-\item{group_by_sep}{A character string specifying the separator to use when concatenating multiple columns.}
+\item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
 
-\item{split_by}{The column(s) to split data by and plot separately.}
+\item{split_by}{A character vector of column names to split the data by.
+Each split level produces a separate sub-plot. Multiple columns are
+concatenated with \code{split_by_sep}.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
+\item{split_by_sep}{A character string used to join multiple
+\code{split_by} column values. Default \code{"_"}.}
 
-\item{fill_point_by_x_if_no_group}{A logical value indicating whether to color the points by the x-axis values
-when there is no group_by column.}
+\item{fill_point_by_x_if_no_group}{A logical value. When TRUE (default),
+points are filled by the x-axis categories via the palette when
+\code{group_by = NULL}. Passed to \code{LinePlotSingle} as
+\code{fill_point_by_x}. Has no effect when \code{group_by} is set.}
 
-\item{color_line_by_x_if_no_group}{A logical value indicating whether to color the lines by the x-axis values}
+\item{color_line_by_x_if_no_group}{A logical value. When TRUE (default),
+lines are coloured by the x-axis categories via the palette when
+\code{group_by = NULL}. Passed to \code{LinePlotSingle} as
+\code{color_line_by_x}. Has no effect when \code{group_by} is set.}
 
-\item{add_bg}{A logical value indicating whether to add a background to the plot.}
+\item{add_bg}{A logical value. When TRUE, alternating background stripes
+are drawn via \code{\link{bg_layer}()}. Default FALSE.}
 
-\item{bg_palette}{The palette to use for the background.}
+\item{bg_palette}{A character string specifying the palette for the
+background stripe colours. Default \code{"stripe"}.}
 
-\item{bg_palcolor}{The color to use for the background.}
+\item{bg_palcolor}{A character vector of colours for the background
+stripes. When NULL (default), colours are derived from
+\code{bg_palette}.}
 
-\item{bg_alpha}{The alpha value of the background.}
+\item{bg_alpha}{A numeric value in \code{[0, 1]} for the transparency
+of background stripes. Default 0.2.}
 
-\item{add_errorbars}{A logical value indicating whether to add error bars to the plot.}
+\item{add_errorbars}{A logical value. When TRUE, error bars are added via
+\code{\link[ggplot2]{geom_errorbar}()}. Requires \code{errorbar_sd} or
+\code{errorbar_min}/\code{errorbar_max}. Default FALSE.}
 
-\item{errorbar_width}{The width of the error bars.}
+\item{errorbar_width}{A numeric value for the width of the error bar
+caps. Default 0.1.}
 
-\item{errorbar_alpha}{The alpha value of the error bars.}
+\item{errorbar_alpha}{A numeric value in \code{[0, 1]} for the transparency of
+error bars. Default 1.}
 
-\item{errorbar_color}{The color to use for the error bars.
-If "line", the error bars will be colored the same as the lines.}
+\item{errorbar_color}{A character string for the colour of the error
+bars. When \code{"line"}, error bars are coloured the same as the lines
+(by x when \code{color_line_by_x = TRUE}, or single colour otherwise).
+Default \code{"grey30"}.}
 
-\item{errorbar_linewidth}{The line width of the error bars.}
+\item{errorbar_linewidth}{A numeric value for the line width of error
+bars. Default 0.75.}
 
-\item{errorbar_min}{The column in the data frame containing the lower bound of the error bars.}
+\item{errorbar_min}{A character string naming the column with the lower
+error bar bound. Ignored when \code{errorbar_sd} is provided.}
 
-\item{errorbar_max}{The column in the data frame containing the upper bound of the error bars.}
+\item{errorbar_max}{A character string naming the column with the upper
+error bar bound. Ignored when \code{errorbar_sd} is provided.}
 
-\item{errorbar_sd}{The column in the data frame containing the standard deviation of the error bars.
-If errorbar_min and errorbar_max are not provided, this column will be used to calculate the error bars.
-errorbar_min = y - errorbar_sd, errorbar_max = y + errorbar_sd.
-If errorbar_min and errorbar_max are provided, this column will be ignored.}
+\item{errorbar_sd}{A character string naming the column with the standard
+deviation. When \code{errorbar_min} and \code{errorbar_max} are not
+provided, error bars are computed as y +/- \code{errorbar_sd}.}
 
-\item{highlight}{A vector of indexes or rownames to select the points to highlight.
-It could also be an expression (in string) to filter the data.}
+\item{highlight}{A vector of row indices, row names, a single string
+expression (e.g. \code{"y > 10"}) filtering rows to highlight, or TRUE
+to highlight all points. When NULL (default), no highlighting is
+applied.}
 
-\item{highlight_size}{The size of the highlighted points.}
+\item{highlight_size}{A numeric value for the size of highlighted points.
+Defaults to \code{pt_size - 0.75}.}
 
-\item{highlight_color}{A character vector specifying the color of the highlighted points. Default is "red".}
+\item{highlight_color}{A character string for the colour of highlighted
+points. Default \code{"red2"}.}
 
-\item{highlight_alpha}{A numeric value specifying the transparency of the highlighted points. Default is 1.}
+\item{highlight_alpha}{A numeric value in \code{[0, 1]} for the transparency of
+highlighted points. Default 0.8.}
 
-\item{pt_alpha}{The alpha value of the points.}
+\item{pt_alpha}{A numeric value in \code{[0, 1]} for the transparency of points.
+Default 1.}
 
-\item{pt_size}{The size of the points.}
+\item{pt_size}{A numeric value for the point size. Default 5.}
 
 \item{keep_na}{A logical value or a character to replace the NA values in the data.
 It can also take a named list to specify different behavior for different columns.
@@ -157,23 +184,28 @@ But they will be assigned colors from the palette to maintain consistency across
 Alias: \code{levels}}
 }}
 
-\item{line_type}{The type of line to draw.}
+\item{line_type}{A character string specifying the line type. Default
+\code{"solid"}.}
 
-\item{line_width}{The width of the line.}
+\item{line_width}{A numeric value for the line width (in mm). Default 1.}
 
-\item{line_alpha}{The alpha value of the line.}
+\item{line_alpha}{A numeric value in \code{[0, 1]} for the transparency of the
+line. Default 0.8.}
 
-\item{add_hline}{A numeric value indicating the y-intercept of a horizontal line to add to the plot.
-If FALSE, no horizontal line will be added.}
+\item{add_hline}{A numeric value specifying the y-intercept of a
+horizontal reference line. When FALSE (default), no line is drawn.}
 
-\item{hline_type}{The type of line to draw for the horizontal line.}
+\item{hline_type}{A character string specifying the line type of the
+horizontal reference line. Default \code{"solid"}.}
 
-\item{hline_width}{The width of the horizontal line.}
+\item{hline_width}{A numeric value for the width of the horizontal
+reference line. Default 0.5.}
 
-\item{hline_color}{The color of the horizontal line.
-When \code{group_by} is provided, this can be TRUE to use the same color as the lines.}
+\item{hline_color}{A character string for the colour of the horizontal
+reference line. Default \code{"black"}.}
 
-\item{hline_alpha}{The alpha value of the horizontal line.}
+\item{hline_alpha}{A numeric value in \code{[0, 1]} for the transparency of the
+horizontal reference line. Default 1.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -205,13 +237,15 @@ and combine them into one using \code{patchwork::wrap_plots}}
 \item{facet_scales}{Whether to scale the axes of facets. Default is "fixed"
 Other options are "free", "free_x", "free_y". See \code{ggplot2::facet_wrap}}
 
-\item{combine}{Whether to combine the plots into one when facet is FALSE. Default is TRUE.}
+\item{combine}{Logical; when TRUE (default), per-split plots are combined
+into a single \code{patchwork} object. When FALSE, a named list of
+\code{ggplot} objects is returned.}
 
-\item{nrow}{A numeric value specifying the number of rows in the facet.}
+\item{nrow, ncol}{Integer number of rows / columns for the combined
+layout (passed to \code{\link[patchwork]{wrap_plots}}).}
 
-\item{ncol}{A numeric value specifying the number of columns in the facet.}
-
-\item{byrow}{A logical value indicating whether to fill the plots by row.}
+\item{byrow}{Logical; fill the combined layout by row. Default TRUE
+(passed to \code{\link[patchwork]{wrap_plots}}).}
 
 \item{facet_nrow}{A numeric value specifying the number of rows in the facet.
 When facet_by is a single column and facet_wrap is used.}
@@ -221,8 +255,9 @@ When facet_by is a single column and facet_wrap is used.}
 
 \item{facet_byrow}{A logical value indicating whether to fill the plots by row. Default is TRUE.}
 
-\item{facet_args}{A list of arguments to pass to \code{\link[ggplot2:facet_wrap]{ggplot2::facet_wrap()}} or \code{\link[ggplot2:facet_grid]{ggplot2::facet_grid()}}.
-when there is no group_by column.}
+\item{facet_args}{A list of additional arguments passed to
+\code{\link{facet_plot}()} for fine-grained control over faceting
+(e.g. \code{scales}, \code{space}, \code{labeller}).}
 
 \item{title}{A character string specifying the title of the plot.
 A function can be used to generate the title based on the default title.
@@ -234,47 +269,86 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{ylab}{A character string specifying the y-axis label.}
 
-\item{seed}{The random seed to use. Default is 8525.}
+\item{seed}{A numeric seed for reproducibility. Passed to
+\code{\link{validate_common_args}()}. Default 8525.}
 
-\item{axes}{A string specifying how axes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axes in individual plots.
-\item 'collect' will remove duplicated axes when placed in the same run of rows or columns of the layout.
-\item 'collect_x' and 'collect_y' will remove duplicated x-axes in the columns or duplicated y-axes in the rows respectively.
-}}
+\item{axes}{A character string specifying how axes should be treated
+across the combined layout (passed to
+\code{\link[patchwork]{wrap_plots}}).}
 
-\item{axis_titles}{A string specifying how axis titltes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axis titles in individual plots.
-\item 'collect' will remove duplicated titles in one direction and merge titles in the opposite direction.
-\item 'collect_x' and 'collect_y' control this for x-axis titles and y-axis titles respectively.
-}}
+\item{axis_titles}{A character string specifying how axis titles should
+be treated across the combined layout. Defaults to \code{axes}.}
 
-\item{guides}{A string specifying how guides should be treated in the layout. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'collect' will collect guides below to the given nesting level, removing duplicates.
-\item 'keep' will stop collection at this level and let guides be placed alongside their plot.
-\item 'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.
-}}
+\item{guides}{A character string specifying how guides should be
+collected across panels. Passed to \code{\link{combine_plots}()}.}
 
-\item{design}{Specification of the location of areas in the layout, passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE. When specified, \code{nrow}, \code{ncol}, and \code{byrow} are ignored.
-See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details.}
+\item{design}{A custom layout specification for combined plots (passed
+to \code{\link{combine_plots}()}). Overrides \code{nrow}/\code{ncol}
+when specified.}
 
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object or wrap_plots object or a list of ggplot objects
+A \code{ggplot} object, a \code{patchwork} object (when
+\code{combine = TRUE} with \code{split_by}), or a named list of
+\code{ggplot} objects (when \code{combine = FALSE}), each with
+\code{height} and \code{width} attributes in inches.
 }
 \description{
-Visualizing the change of a numeric value over the progression of a categorical variable.
+Draws a line plot showing the change of a numeric value across the
+progression of a categorical x-axis variable.  Each x-axis category is
+rendered as a point connected by a line, with support for multiple
+grouped series, error bars, highlighted points, background stripes,
+and a horizontal reference line.
+
+Key features:
+\itemize{
+\item \strong{Colour modes:} lines and points can be coloured by x
+category (single-series) or by a \code{group_by} variable
+(multi-series), or use a single uniform colour.
+\item \strong{Error bars:} additive error bars via
+\code{errorbar_sd}, \code{errorbar_min}, or \code{errorbar_max}.
+\item \strong{Highlighting:} specific points can be emphasised with a
+different colour and size via indices, row names, or a filter
+expression.
+\item \strong{Background stripes:} \code{add_bg = TRUE} draws
+alternating bands for visual grouping.
+\item \strong{Count aggregation:} omit \code{y} to plot observation
+counts per x category.
 }
+}
+\section{split_by Workflow}{
+
+When \code{split_by} is provided:
+\enumerate{
+\item \strong{Column validation} -- \code{\link{check_columns}()}
+resolves \code{split_by} with multi-column concatenation.
+\item \strong{NA / empty pre-processing} --
+\code{\link{process_keep_na_empty}()} handles \code{keep_na} /
+\code{keep_empty} for the split column before splitting, then
+removes the split column from the per-split lists.
+\item \strong{Data splitting} -- splits \code{data} by
+\code{split_by} levels, preserving factor level order.  When
+\code{split_by = NULL}, the data is wrapped in a single-element
+list with name \code{"..."}.
+\item \strong{Per-split palette / colour} --
+\code{\link{check_palette}()} and \code{\link{check_palcolor}()}
+resolve per-split palette and colour overrides.
+\item \strong{Per-split legend} -- \code{\link{check_legend}()}
+resolves \code{legend.position} and \code{legend.direction} per
+split level.
+\item \strong{Per-split title} -- when \code{title} is a function, it
+receives the default title (the split level name) and can return
+a custom string; otherwise \code{title \%||\% split_level} is
+used.
+\item \strong{Dispatch} -- each split subset is passed to
+\code{\link{LinePlotAtomic}}.
+\item \strong{Combination} -- \code{\link{combine_plots}()} assembles
+the list of plots via \code{patchwork::wrap_plots}, honouring
+\code{nrow}/\code{ncol}/\code{byrow}/\code{design}.
+}
+}
+
 \examples{
 \donttest{
 data <- data.frame(
@@ -284,9 +358,12 @@ data <- data.frame(
    facet = c("F1", "F1", "F2", "F2", "F3", "F3", "F4", "F4")
 )
 
+# --- Basic usage ---
 LinePlot(data, x = "x", y = "y")
 LinePlot(data, x = "x", y = "y", highlight = "group == 'G1'",
    fill_point_by_x_if_no_group = FALSE, color_line_by_x_if_no_group = FALSE)
+
+# --- Grouped lines ---
 LinePlot(data, x = "x", y = "y", group_by = "group")
 LinePlot(data, x = "x", y = "y", group_by = "group",
    add_hline = 10, hline_color = "red")
@@ -294,10 +371,12 @@ LinePlot(data, x = "x", y = "y", group_by = "group", add_bg = TRUE,
    highlight = "y > 10")
 LinePlot(data, x = "x", y = "y", group_by = "group", facet_by = "facet")
 LinePlot(data, x = "x", y = "y", group_by = "group", split_by = "facet")
+
+# --- Per-split styling ---
 LinePlot(data, x = "x", y = "y", split_by = "group",
          palcolor = list(G1 = c("red", "blue"), G2 = c("green", "black")))
 
-# keep_na and keep_empty
+# --- keep_na and keep_empty ---
 data <- data.frame(
    x = factor(c("A", "B", NA, "D", "A", "B", NA, "D"), levels = LETTERS[1:4]),
    y = c(10, 8, 16, 4, 6, 12, 14, 2),

@@ -1,45 +1,137 @@
-#' LinePlotSingle
-#' @description Line plot without groups.
+#' Single-series line plot (internal)
+#'
+#' @description
+#' Core implementation for drawing a single-series line plot.  This is the
+#' workhorse behind \code{\link{LinePlotAtomic}} for ungrouped data -- it takes a
+#' **single** data frame (no \code{split_by} support) and returns a
+#' \code{ggplot} object.  Each x-axis category receives its own point and
+#' connecting line, with optional per-x coloring, error bars, highlighted
+#' points, and a horizontal reference line.
+#'
+#' @section Architecture:
+#' \enumerate{
+#'   \item \strong{ggplot dispatch} -- selects \code{gglogger::ggplot} or
+#'         \code{ggplot2::ggplot} based on
+#'         \code{getOption("plotthis.gglogger.enabled")}.
+#'   \item \strong{Column resolution} -- \code{x} (forced to factor),
+#'         \code{y}, and \code{facet_by} are validated via
+#'         \code{\link{check_columns}}.
+#'   \item \strong{Count aggregation} -- when \code{y = NULL}, the count of
+#'         observations per x level (and facet) is computed and used as
+#'         \code{y}.
+#'   \item \strong{Error bar validation} -- if \code{add_errorbars = TRUE},
+#'         checks that either \code{errorbar_min}/\code{errorbar_max} or
+#'         \code{errorbar_sd} is provided.
+#'   \item \strong{NA / empty-level handling} --
+#'         \code{\link{process_keep_na_empty}()} applies \code{keep_na} and
+#'         \code{keep_empty} policies.
+#'   \item \strong{Highlight parsing} -- \code{highlight} (indices, row
+#'         names, expression string, or \code{TRUE}) is resolved to a subset
+#'         of data rows.
+#'   \item \strong{Background layer} -- when \code{add_bg = TRUE},
+#'         alternating background stripes are drawn via
+#'         \code{\link{bg_layer}()}.
+#'   \item \strong{Horizontal reference line} -- when \code{add_hline} is
+#'         numeric, a \code{geom_hline()} is added at that intercept.
+#'   \item \strong{Colour assignment} -- \code{\link{palette_this}()}
+#'         assigns colours to all x-axis levels (including \code{NA},
+#'         defaulting to \code{"grey80"}).
+#'   \item \strong{Line rendering} -- when \code{color_line_by_x = TRUE},
+#'         lines are coloured per x level via
+#'         \code{\link[ggplot2]{geom_line}()} with \code{aes(color = x)} and
+#'         \code{scale_color_manual()}.  Otherwise a single colour (the
+#'         first palette entry) is used.
+#'   \item \strong{Error bars} -- when \code{add_errorbars = TRUE}, three
+#'         colour modes are supported: follow the line colour
+#'         (\code{"line"}), track x levels, or use a constant colour.
+#'         Error bars are added via
+#'         \code{\link[ggplot2]{geom_errorbar}()}.
+#'   \item \strong{Point rendering} -- when \code{fill_point_by_x = TRUE},
+#'         points are filled per x level via
+#'         \code{\link[ggplot2]{geom_point}()} with \code{aes(fill = x)} and
+#'         \code{scale_fill_manual()}.  Otherwise a single fill colour
+#'         (first palette entry) is used.
+#'   \item \strong{Highlight overlay} -- an additional \code{geom_point()}
+#'         layer draws highlighted rows in the specified colour and size.
+#'   \item \strong{Plot assembly} -- \code{scale_x_discrete()},
+#'         \code{labs()}, theme application, axis styling (angle, grid
+#'         lines), and legend positioning.
+#'   \item \strong{Dimension calculation} --
+#'         \code{\link{calculate_plot_dimensions}()} computes \code{height}
+#'         and \code{width} attributes (in inches) from x-axis category
+#'         count, aspect ratio, and legend metrics.
+#' }
 #'
 #' @inheritParams common_args
-#' @param fill_point_by_x A logical value indicating whether to color the points by the x-axis values.
-#'   If FALSE, the lines will be colored a single color (the first color in the palette).
-#' @param color_line_by_x A logical value indicating whether to color the lines by the x-axis values.
-#'  If FALSE, the lines will be colored a single color (the first color in the palette).
-#' @param line_type The type of line to draw.
-#' @param line_width The width of the line.
-#' @param line_alpha The alpha value of the line.
-#' @param pt_alpha The alpha value of the points.
-#' @param pt_size The size of the points.
-#' @param add_bg A logical value indicating whether to add a background to the plot.
-#' @param bg_palette The palette to use for the background.
-#' @param bg_palcolor The color to use for the background.
-#' @param bg_alpha The alpha value of the background.
-#' @param add_hline A numeric value indicating the y-intercept of a horizontal line to add to the plot.
-#'  If FALSE, no horizontal line will be added.
-#' @param hline_type The type of line to draw for the horizontal line.
-#' @param hline_width The width of the horizontal line.
-#' @param hline_color The color of the horizontal line.
-#' When `group_by` is provided, this can be TRUE to use the same color as the lines.
-#' @param hline_alpha The alpha value of the horizontal line.
-#' @param add_errorbars A logical value indicating whether to add error bars to the plot.
-#' @param errorbar_color The color to use for the error bars.
-#'   If "line", the error bars will be colored the same as the lines.
-#' @param errorbar_alpha The alpha value of the error bars.
-#' @param errorbar_linewidth The line width of the error bars.
-#' @param errorbar_width The width of the error bars.
-#' @param errorbar_min The column in the data frame containing the lower bound of the error bars.
-#' @param errorbar_max The column in the data frame containing the upper bound of the error bars.
-#' @param errorbar_sd The column in the data frame containing the standard deviation of the error bars.
-#'   If errorbar_min and errorbar_max are not provided, this column will be used to calculate the error bars.
-#'   errorbar_min = y - errorbar_sd, errorbar_max = y + errorbar_sd.
-#'   If errorbar_min and errorbar_max are provided, this column will be ignored.
-#' @param highlight A vector of indexes or rownames to select the points to highlight.
-#'  It could also be an expression (in string) to filter the data.
-#' @param highlight_size The size of the highlighted points.
-#' @param highlight_color A character vector specifying the color of the highlighted points. Default is "red".
-#' @param highlight_alpha A numeric value specifying the transparency of the highlighted points. Default is 1.
-#'
+#' @param x A character string specifying the column name for the x-axis.
+#'  Must be character or factor.
+#' @param y A character string specifying the numeric column for the y-axis.
+#'  When \code{NULL}, the count of observations per x level is used.
+#' @param fill_point_by_x A logical value. When TRUE (default), points are
+#'  filled by the x-axis categories using the palette. When FALSE, all
+#'  points use the first palette colour.
+#' @param color_line_by_x A logical value. When TRUE (default), lines are
+#'  coloured by the x-axis categories using the palette. When FALSE, all
+#'  lines use the first palette colour.
+#' @param add_bg A logical value. When TRUE, alternating background stripes
+#'  are drawn via \code{\link{bg_layer}()}. Default FALSE.
+#' @param bg_palette A character string specifying the palette for the
+#'  background stripe colours. Default \code{"stripe"}.
+#' @param bg_palcolor A character vector of colours for the background
+#'  stripes. When NULL (default), colours are derived from
+#'  \code{bg_palette}.
+#' @param bg_alpha A numeric value in \code{[0, 1]} for the transparency
+#'  of background stripes. Default 0.2.
+#' @param add_errorbars A logical value. When TRUE, error bars are added via
+#'  \code{\link[ggplot2]{geom_errorbar}()}. Requires \code{errorbar_sd} or
+#'  \code{errorbar_min}/\code{errorbar_max}. Default FALSE.
+#' @param errorbar_width A numeric value for the width of the error bar
+#'  caps. Default 0.1.
+#' @param errorbar_alpha A numeric value in \code{[0, 1]} for the transparency of
+#'  error bars. Default 1.
+#' @param errorbar_color A character string for the colour of the error
+#'  bars. When \code{"line"}, error bars are coloured the same as the lines
+#'  (by x when \code{color_line_by_x = TRUE}, or single colour otherwise).
+#'  Default \code{"grey30"}.
+#' @param errorbar_linewidth A numeric value for the line width of error
+#'  bars. Default 0.75.
+#' @param errorbar_min A character string naming the column with the lower
+#'  error bar bound. Ignored when \code{errorbar_sd} is provided.
+#' @param errorbar_max A character string naming the column with the upper
+#'  error bar bound. Ignored when \code{errorbar_sd} is provided.
+#' @param errorbar_sd A character string naming the column with the standard
+#'  deviation. When \code{errorbar_min} and \code{errorbar_max} are not
+#'  provided, error bars are computed as y +/- \code{errorbar_sd}.
+#' @param highlight A vector of row indices, row names, a single string
+#'  expression (e.g. \code{"y > 10"}) filtering rows to highlight, or TRUE
+#'  to highlight all points. When NULL (default), no highlighting is
+#'  applied.
+#' @param highlight_size A numeric value for the size of highlighted points.
+#'  Defaults to \code{pt_size - 0.75}.
+#' @param highlight_color A character string for the colour of highlighted
+#'  points. Default \code{"red2"}.
+#' @param highlight_alpha A numeric value in \code{[0, 1]} for the transparency of
+#'  highlighted points. Default 0.8.
+#' @param pt_alpha A numeric value in \code{[0, 1]} for the transparency of points.
+#'  Default 1.
+#' @param pt_size A numeric value for the point size. Default 5.
+#' @param add_hline A numeric value specifying the y-intercept of a
+#'  horizontal reference line. When FALSE (default), no line is drawn.
+#' @param hline_type A character string specifying the line type of the
+#'  horizontal reference line. Default \code{"solid"}.
+#' @param hline_width A numeric value for the width of the horizontal
+#'  reference line. Default 0.5.
+#' @param hline_color A character string for the colour of the horizontal
+#'  reference line. Default \code{"black"}.
+#' @param hline_alpha A numeric value in \code{[0, 1]} for the transparency of the
+#'  horizontal reference line. Default 1.
+#' @param line_type A character string specifying the line type. Default
+#'  \code{"solid"}.
+#' @param line_width A numeric value for the line width (in mm). Default 1.
+#' @param line_alpha A numeric value in \code{[0, 1]} for the transparency of the
+#'  line. Default 0.8.
+#' @return A \code{ggplot} object with \code{height} and \code{width}
+#'  attributes (in inches).
 #' @keywords internal
 #' @importFrom rlang sym parse_expr
 #' @importFrom ggplot2 geom_line scale_color_manual labs geom_rect geom_errorbar geom_point
@@ -363,14 +455,83 @@ LinePlotSingle <- function(
     p
 }
 
-#' LinePlotGrouped
+#' Multi-series line plot (internal)
 #'
-#' @description Line plot with groups.
+#' @description
+#' Core implementation for drawing a multi-series line plot.  This is the
+#' workhorse behind \code{\link{LinePlotAtomic}} for grouped data -- it takes a
+#' **single** data frame with a \code{group_by} column and returns a
+#' \code{ggplot} object.  Each group receives its own line rendered in a
+#' distinct colour from the palette, with optional error bars, highlighted
+#' points, per-group horizontal reference lines, and background stripes.
+#'
+#' @section Architecture:
+#' \enumerate{
+#'   \item \strong{ggplot dispatch} -- selects \code{gglogger::ggplot} or
+#'         \code{ggplot2::ggplot} based on
+#'         \code{getOption("plotthis.gglogger.enabled")}.
+#'   \item \strong{Column resolution} -- \code{x} (forced to factor),
+#'         \code{y}, \code{group_by} (multi-column concatenation supported),
+#'         and \code{facet_by} are validated via
+#'         \code{\link{check_columns}}.
+#'   \item \strong{Count aggregation} -- when \code{y = NULL}, the count of
+#'         observations per (\code{x}, \code{group_by}, \code{facet_by})
+#'         combination is computed and used as \code{y}.
+#'   \item \strong{Error bar validation} -- if \code{add_errorbars = TRUE},
+#'         checks that either \code{errorbar_min}/\code{errorbar_max} or
+#'         \code{errorbar_sd} is provided.
+#'   \item \strong{NA / empty-level handling} --
+#'         \code{\link{process_keep_na_empty}()} applies \code{keep_na} and
+#'         \code{keep_empty} policies.
+#'   \item \strong{Highlight parsing} -- \code{highlight} (indices, row
+#'         names, expression string, or \code{TRUE}) is resolved to a subset
+#'         of data rows.
+#'   \item \strong{Background layer} -- when \code{add_bg = TRUE},
+#'         alternating background stripes are drawn via
+#'         \code{\link{bg_layer}()}.
+#'   \item \strong{Colour assignment} -- \code{\link{palette_this}()}
+#'         assigns colours to all \code{group_by} levels (including
+#'         \code{NA}, defaulting to \code{"grey80"}).
+#'   \item \strong{Horizontal reference line} -- when \code{add_hline} is
+#'         set, one or more \code{geom_hline()} are added.  If
+#'         \code{hline_color = TRUE}, each horizontal line is coloured to
+#'         match the corresponding group colour, and \code{add_hline} can
+#'         be a named vector/ list mapping groups to intercept values.
+#'   \item \strong{Line rendering} -- lines are coloured and grouped by
+#'         \code{group_by} via \code{\link[ggplot2]{geom_line}()} with
+#'         \code{aes(color = group_by, group = group_by)} and
+#'         \code{scale_color_manual()}.
+#'   \item \strong{Error bars} -- when \code{add_errorbars = TRUE}, three
+#'         colour modes are supported: follow the line colour
+#'         (\code{"line"}), track \code{group_by} colours, or use a
+#'         constant colour.  Error bars are added via
+#'         \code{\link[ggplot2]{geom_errorbar}()}.
+#'   \item \strong{Point rendering} -- points are filled per group via
+#'         \code{\link[ggplot2]{geom_point}()} with
+#'         \code{aes(fill = group_by)} and \code{scale_fill_manual()}.
+#'   \item \strong{Highlight overlay} -- an additional \code{geom_point()}
+#'         layer draws highlighted rows in the specified colour and size.
+#'   \item \strong{Plot assembly} -- \code{scale_x_discrete()},
+#'         \code{labs()}, theme application, axis styling (angle, grid
+#'         lines), and legend positioning.
+#'   \item \strong{Dimension calculation} --
+#'         \code{\link{calculate_plot_dimensions}()} computes \code{height}
+#'         and \code{width} attributes (in inches) from x-axis category
+#'         count, aspect ratio, and legend metrics (legend entries reflect
+#'         group levels rather than x levels).
+#' }
+#'
 #' @inheritParams common_args
 #' @inheritParams LinePlotSingle
-#' @param group_by A character string specifying the column name of the data frame to group the plot.
-#' @param group_by_sep A character string specifying the separator to use when concatenating multiple columns.
-#' @return A ggplot object
+#' @param group_by A character vector of column names to group the data by.
+#'  Each unique combination becomes a separate line. Multiple columns are
+#'  concatenated with \code{group_by_sep}. When \code{NULL}, the
+#'  \code{LinePlotSingle} path is used instead.
+#' @param group_by_sep A character string used to join multiple
+#'  \code{group_by} column values into a single group identifier. Default
+#'  \code{"_"}.
+#' @return A \code{ggplot} object with \code{height} and \code{width}
+#'  attributes (in inches).
 #' @keywords internal
 #' @importFrom rlang syms
 #' @importFrom dplyr summarise %>% mutate n
@@ -682,17 +843,52 @@ LinePlotGrouped <- function(
     p
 }
 
-#' LinePlotAtomic
+#' Atomic line-plot dispatcher (internal)
 #'
-#' @description Line plot with atomic data.
+#' @description
+#' Dispatcher that routes to \code{\link{LinePlotSingle}} or
+#' \code{\link{LinePlotGrouped}} depending on whether \code{group_by} is
+#' provided.  Handles faceting via \code{\link{facet_plot}()} after the base
+#' plot is built.
+#'
+#' @section Dispatch Logic:
+#' \enumerate{
+#'   \item \strong{Column resolution} -- \code{facet_by} is validated via
+#'         \code{\link{check_columns}}.
+#'   \item \strong{Routing} -- when \code{group_by = NULL}, delegates to
+#'         \code{\link{LinePlotSingle}} (ungrouped, single-series line plot).
+#'         When \code{group_by} is provided, delegates to
+#'         \code{\link{LinePlotGrouped}} (multi-series line plot).
+#'   \item \strong{Facet keep_empty consistency} -- when \code{facet_by}
+#'         contains multiple columns, their \code{keep_empty} values must be
+#'         identical.
+#'   \item \strong{Faceting} -- \code{\link{facet_plot}()} applies
+#'         \code{facet_wrap} / \code{facet_grid} with the resolved
+#'         \code{drop} argument (derived from \code{keep_empty}).
+#' }
+#'
 #' @inheritParams common_args
 #' @inheritParams LinePlotGrouped
-#' @param fill_point_by_x_if_no_group A logical value indicating whether to color the points by the x-axis values
-#'  when there is no group_by column.
-#' @param color_line_by_x_if_no_group A logical value indicating whether to color the lines by the x-axis values
-#' @param facet_args A list of arguments to pass to [ggplot2::facet_wrap()] or [ggplot2::facet_grid()].
-#' when there is no group_by column.
-#' @return A ggplot object
+#' @param x A character string specifying the column name for the x-axis.
+#'  Must be character or factor.
+#' @param y A character string specifying the numeric column for the y-axis.
+#' @param group_by A character vector of column names to group the data by.
+#'  When NULL, a single-series line plot is drawn via
+#'  \code{\link{LinePlotSingle}}. When provided, a multi-series line plot
+#'  is drawn via \code{\link{LinePlotGrouped}}.
+#' @param fill_point_by_x_if_no_group A logical value. When TRUE (default),
+#'  points are filled by the x-axis categories via the palette when
+#'  \code{group_by = NULL}. Passed to \code{LinePlotSingle} as
+#'  \code{fill_point_by_x}. Has no effect when \code{group_by} is set.
+#' @param color_line_by_x_if_no_group A logical value. When TRUE (default),
+#'  lines are coloured by the x-axis categories via the palette when
+#'  \code{group_by = NULL}. Passed to \code{LinePlotSingle} as
+#'  \code{color_line_by_x}. Has no effect when \code{group_by} is set.
+#' @param facet_args A list of additional arguments passed to
+#'  \code{\link{facet_plot}()} for fine-grained control over faceting
+#'  (e.g. \code{scales}, \code{space}, \code{labeller}).
+#' @return A \code{ggplot} object with \code{height} and \code{width}
+#'  attributes (in inches).
 #' @keywords internal
 LinePlotAtomic <- function(
     data,
@@ -884,13 +1080,91 @@ LinePlotAtomic <- function(
     do_call(facet_plot, facet_args)
 }
 
-#' Line Plot
+#' Line plot
 #'
-#' @description Visualizing the change of a numeric value over the progression of a categorical variable.
+#' @description
+#' Draws a line plot showing the change of a numeric value across the
+#' progression of a categorical x-axis variable.  Each x-axis category is
+#' rendered as a point connected by a line, with support for multiple
+#' grouped series, error bars, highlighted points, background stripes,
+#' and a horizontal reference line.
+#'
+#' Key features:
+#' \itemize{
+#'   \item \strong{Colour modes:} lines and points can be coloured by x
+#'   category (single-series) or by a \code{group_by} variable
+#'   (multi-series), or use a single uniform colour.
+#'   \item \strong{Error bars:} additive error bars via
+#'   \code{errorbar_sd}, \code{errorbar_min}, or \code{errorbar_max}.
+#'   \item \strong{Highlighting:} specific points can be emphasised with a
+#'   different colour and size via indices, row names, or a filter
+#'   expression.
+#'   \item \strong{Background stripes:} \code{add_bg = TRUE} draws
+#'   alternating bands for visual grouping.
+#'   \item \strong{Count aggregation:} omit \code{y} to plot observation
+#'   counts per x category.
+#' }
+#'
+#' @section split_by Workflow:
+#' When \code{split_by} is provided:
+#' \enumerate{
+#'   \item \strong{Column validation} -- \code{\link{check_columns}()}
+#'         resolves \code{split_by} with multi-column concatenation.
+#'   \item \strong{NA / empty pre-processing} --
+#'         \code{\link{process_keep_na_empty}()} handles \code{keep_na} /
+#'         \code{keep_empty} for the split column before splitting, then
+#'         removes the split column from the per-split lists.
+#'   \item \strong{Data splitting} -- splits \code{data} by
+#'         \code{split_by} levels, preserving factor level order.  When
+#'         \code{split_by = NULL}, the data is wrapped in a single-element
+#'         list with name \code{"..."}.
+#'   \item \strong{Per-split palette / colour} --
+#'         \code{\link{check_palette}()} and \code{\link{check_palcolor}()}
+#'         resolve per-split palette and colour overrides.
+#'   \item \strong{Per-split legend} -- \code{\link{check_legend}()}
+#'         resolves \code{legend.position} and \code{legend.direction} per
+#'         split level.
+#'   \item \strong{Per-split title} -- when \code{title} is a function, it
+#'         receives the default title (the split level name) and can return
+#'         a custom string; otherwise \code{title \%||\% split_level} is
+#'         used.
+#'   \item \strong{Dispatch} -- each split subset is passed to
+#'         \code{\link{LinePlotAtomic}}.
+#'   \item \strong{Combination} -- \code{\link{combine_plots}()} assembles
+#'         the list of plots via \code{patchwork::wrap_plots}, honouring
+#'         \code{nrow}/\code{ncol}/\code{byrow}/\code{design}.
+#' }
+#'
 #' @inheritParams common_args
 #' @inheritParams LinePlotAtomic
-#' @param group_by_sep A character string specifying the separator to use when concatenating multiple columns.
-#' @return A ggplot object or wrap_plots object or a list of ggplot objects
+#' @param split_by A character vector of column names to split the data by.
+#'  Each split level produces a separate sub-plot. Multiple columns are
+#'  concatenated with \code{split_by_sep}.
+#' @param split_by_sep A character string used to join multiple
+#'  \code{split_by} column values. Default \code{"_"}.
+#' @param seed A numeric seed for reproducibility. Passed to
+#'  \code{\link{validate_common_args}()}. Default 8525.
+#' @param combine Logical; when TRUE (default), per-split plots are combined
+#'  into a single \code{patchwork} object. When FALSE, a named list of
+#'  \code{ggplot} objects is returned.
+#' @param nrow,ncol Integer number of rows / columns for the combined
+#'  layout (passed to \code{\link[patchwork]{wrap_plots}}).
+#' @param byrow Logical; fill the combined layout by row. Default TRUE
+#'  (passed to \code{\link[patchwork]{wrap_plots}}).
+#' @param axes A character string specifying how axes should be treated
+#'  across the combined layout (passed to
+#'  \code{\link[patchwork]{wrap_plots}}).
+#' @param axis_titles A character string specifying how axis titles should
+#'  be treated across the combined layout. Defaults to \code{axes}.
+#' @param guides A character string specifying how guides should be
+#'  collected across panels. Passed to \code{\link{combine_plots}()}.
+#' @param design A custom layout specification for combined plots (passed
+#'  to \code{\link{combine_plots}()}). Overrides \code{nrow}/\code{ncol}
+#'  when specified.
+#' @return A \code{ggplot} object, a \code{patchwork} object (when
+#'  \code{combine = TRUE} with \code{split_by}), or a named list of
+#'  \code{ggplot} objects (when \code{combine = FALSE}), each with
+#'  \code{height} and \code{width} attributes in inches.
 #' @export
 #' @examples
 #' \donttest{
@@ -901,9 +1175,12 @@ LinePlotAtomic <- function(
 #'    facet = c("F1", "F1", "F2", "F2", "F3", "F3", "F4", "F4")
 #' )
 #'
+#' # --- Basic usage ---
 #' LinePlot(data, x = "x", y = "y")
 #' LinePlot(data, x = "x", y = "y", highlight = "group == 'G1'",
 #'    fill_point_by_x_if_no_group = FALSE, color_line_by_x_if_no_group = FALSE)
+#'
+#' # --- Grouped lines ---
 #' LinePlot(data, x = "x", y = "y", group_by = "group")
 #' LinePlot(data, x = "x", y = "y", group_by = "group",
 #'    add_hline = 10, hline_color = "red")
@@ -911,10 +1188,12 @@ LinePlotAtomic <- function(
 #'    highlight = "y > 10")
 #' LinePlot(data, x = "x", y = "y", group_by = "group", facet_by = "facet")
 #' LinePlot(data, x = "x", y = "y", group_by = "group", split_by = "facet")
+#'
+#' # --- Per-split styling ---
 #' LinePlot(data, x = "x", y = "y", split_by = "group",
 #'          palcolor = list(G1 = c("red", "blue"), G2 = c("green", "black")))
 #'
-#' # keep_na and keep_empty
+#' # --- keep_na and keep_empty ---
 #' data <- data.frame(
 #'    x = factor(c("A", "B", NA, "D", "A", "B", NA, "D"), levels = LETTERS[1:4]),
 #'    y = c(10, 8, 16, 4, 6, 12, 14, 2),
