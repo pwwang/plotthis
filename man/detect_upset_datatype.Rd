@@ -2,27 +2,33 @@
 % Please edit documentation in R/upsetplot.R
 \name{detect_upset_datatype}
 \alias{detect_upset_datatype}
-\title{Detect the type of the input data for Upset plot}
+\title{Detect the type of the input data for an UpSet plot}
 \usage{
 detect_upset_datatype(data, group_by = NULL, id_by = NULL)
 }
 \arguments{
-\item{data}{A data frame or a list}
+\item{data}{A data frame or a named list of element vectors.}
 
-\item{group_by}{A character string specifying the column name of the data frame to group the data.}
+\item{group_by}{A character string specifying the column name for the set-definition groups.
+Only meaningful when \code{data} is a data frame.}
 
-\item{id_by}{A character string specifying the column name of the data frame to identify the instances.
-Required when \code{group_by} is a single column and data is a data frame.}
+\item{id_by}{A character string specifying the column name for instance identifiers.
+Required when \code{group_by} is a single column and \code{data} is a data frame.}
 }
 \value{
-A character string indicating the datatype of the input data or error message if invalid.
-Possible values are "long", "wide", "list" and "upset".
-"long" indicates the data is in long format.
-"wide" indicates the data is in wide format.
-"list" indicates the data is a list.
-"upset" indicates the data is a UpsetPlotData object.
+A character string, one of \code{"long"}, \code{"wide"}, \code{"list"},
+or \code{"upset"}.
+\describe{
+\item{\code{"long"}}{Long-format data --- each row records one (set, element) pair.}
+\item{\code{"wide"}}{Wide-format data --- each row is an element and each set has its own logical/0-1 column.}
+\item{\code{"list"}}{A named list of element vectors.}
+\item{\code{"upset"}}{Already an \code{UpsetPlotData} object.}
+}
 }
 \description{
-Detect the type of the input data for Upset plot
+Inspects the structure of \code{data} and returns a classifier string that
+downstream functions use to select the parsing strategy.  When \code{data}
+is an \code{UpsetPlotData} object (from \code{\link{prepare_upset_data}()})
+it short-circuits to \code{"upset"} immediately.
 }
 \keyword{internal}
