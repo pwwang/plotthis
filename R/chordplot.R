@@ -1,17 +1,94 @@
-#' Atomic chord plot
+#' Atomic chord plot (internal)
+#'
+#' @description
+#' Core implementation for drawing a chord diagram using
+#' \code{circlize::chordDiagram()}.  This is the workhorse behind the
+#' exported \code{\link{ChordPlot}} function — it takes a **single** data
+#' frame (no \code{split_by} support) and returns a \code{patchwork}
+#' wrapped element.
+#'
+#' Chord diagrams visualise relationships (flows) between two sets of
+#' categories arranged around a circle.  The width of each link is
+#' proportional to the value (\code{y}) connecting its source and target
+#' nodes.
+#'
+#' @section Architecture:
+#' \enumerate{
+#'   \item \strong{Column resolution} — \code{from}, \code{to}, and
+#'         \code{y} are validated and transformed via
+#'         \code{\link{check_columns}}.  Multi-column \code{from} and
+#'         \code{to} are concatenated with their respective separators
+#'         (\code{from_sep}, \code{to_sep}).
+#'   \item \strong{Count aggregation} — when \code{y = NULL}, the count
+#'         of observations per (\code{from}, \code{to}) pair is computed
+#'         as a new \code{.y} column.  Factor levels from the original
+#'         data are preserved.
+#'   \item \strong{NA / empty-level handling} —
+#'         \code{\link{process_keep_na_empty}()} applies \code{keep_na}
+#'         and \code{keep_empty} policies.
+#'   \item \strong{Flip} — when \code{flip = TRUE}, the \code{from} and
+#'         \code{to} columns are swapped, effectively reversing the link
+#'         direction.
+#'   \item \strong{Colour mapping} — \code{\link{palette_this}()} assigns
+#'         colours to all unique \code{from} and \code{to} values (the grid
+#'         sectors).  \code{NA} values are mapped to a literal \code{"NA"}
+#'         level and assigned a colour from the palette.
+#'   \item \strong{Link colour resolution} — \code{links_color} controls
+#'         whether each connecting ribbon takes its colour from the
+#'         \code{"from"} side (default) or the \code{"to"} side.
+#'   \item \strong{circlize rendering} — two rendering paths exist,
+#'         selected by \code{labels_rot}:
+#'         \itemize{
+#'           \item \strong{Horizontal labels} (\code{labels_rot = FALSE}):
+#'                 track 1 has a fixed height of 1 mm and uses
+#'                 \code{niceFacing = TRUE} for automatic label rotation.
+#'                 Track 2 adds axis ticks on the outside for wide-enough
+#'                 sectors.
+#'           \item \strong{Rotated labels} (\code{labels_rot = TRUE}):
+#'                 track 1 height is computed from the maximum string width
+#'                 of all node names, and labels are rendered with
+#'                 \code{facing = "clockwise"}.  Track 2 adds axis ticks.
+#'         }
+#'         Links use arrow heads (\code{link.arr.type = "big.arrow"}) and
+#'         differentiated height (\code{direction.type = c("diffHeight",
+#'         "arrows")}).  Both tracks set \code{bg.border = NA} to prevent
+#'         border lines from appearing between sectors.
+#'   \item \strong{Patchwork integration} — the circlize formula is wrapped
+#'         via \code{\link[patchwork]{wrap_elements}()} so it can be
+#'         composed with other ggplot objects.  Title and subtitle are added
+#'         via \code{\link[patchwork]{plot_annotation}()}.
+#'   \item \strong{Dimension attributes} — \code{height} and \code{width}
+#'         attributes (in inches) are set to a base size (7) scaled up by
+#'         2, 4, or 6 depending on the maximum label character width when
+#'         \code{labels_rot = TRUE}.
+#' }
 #'
 #' @inheritParams common_args
-#' @param from A character string of the column name to plot for the source.
-#'   A character/factor column is expected.
-#' @param from_sep A character string to concatenate the columns in `from`, if multiple columns are provided.
-#' @param to A character string of the column name to plot for the target.
-#'   A character/factor column is expected.
-#' @param to_sep A character string to concatenate the columns in `to`, if multiple columns are provided.
-#' @param flip A logical value to flip the source and target.
-#' @param labels_rot A logical value to rotate the labels by 90 degrees.
-#' @param links_color A character string to specify the color of the links.
-#'   Either "from" or "to".
-#' @return A wrapped element of chord plot
+#' @param from A character string (or vector) specifying the column name(s)
+#'  for the source nodes.  Character/factor columns are expected.  Multiple
+#'  columns are concatenated with \code{from_sep}.
+#' @param from_sep A character string to join multiple \code{from} columns.
+#'  Default \code{"_"}.
+#' @param to A character string (or vector) specifying the column name(s)
+#'  for the target nodes.  Character/factor columns are expected.  Multiple
+#'  columns are concatenated with \code{to_sep}.
+#' @param to_sep A character string to join multiple \code{to} columns.
+#'  Default \code{"_"}.
+#' @param y A character string specifying the numeric column whose values
+#'  determine link thickness.  When \code{NULL}, the count of observations
+#'  per (\code{from}, \code{to}) pair is used.
+#' @param flip Logical; if \code{TRUE}, swap the source and target nodes,
+#'  reversing the link direction.
+#' @param links_color A character string controlling which node's colour
+#'  each link ribbon takes: \code{"from"} (default) or \code{"to"}.
+#' @param labels_rot Logical; if \code{TRUE}, rotate sector labels by 90
+#'  degrees (clockwise).  Default \code{FALSE} uses \code{niceFacing} for
+#'  automatic orientation.
+#' @param alpha Numeric transparency for the link ribbons (0–1).
+#'  Default \code{0.5}.
+#' @return A \code{patchwork} wrapped element with \code{height} and
+#'  \code{width} attributes (in inches) attached.  The original data is
+#'  stored in the \code{p$data} field.
 #' @importFrom dplyr %>% group_by summarise n select
 #' @importFrom patchwork wrap_elements plot_annotation
 #' @keywords internal
@@ -265,11 +342,58 @@ ChordPlotAtomic <- function(
 
 #' Chord / Circos plot
 #'
-#' @description `ChordPlot` is used to create a chord plot to visualize the relationships between two categorical variables.
-#'  `CircosPlot` is an alias of `ChordPlot`.
+#' @description
+#' Draws a chord diagram (also known as a circos plot) to visualise
+#' relationships between two categorical variables.  Categories are arranged
+#' around a circle, and connecting ribbons (links) represent the flow or
+#' association between source and target nodes.  The width of each link is
+#' proportional to the associated numeric value or observation count.
+#'
+#' The function supports \strong{count aggregation} (omit \code{y} to plot
+#' observation counts per pair), \strong{link colouring} by source or target
+#' node, \strong{label rotation} options, and splitting into separate
+#' sub-diagrams via \code{split_by}.
+#'
+#' \code{CircosPlot} is an alias of \code{ChordPlot}.
+#'
+#' @section split_by workflow:
+#' When \code{split_by} is provided:
+#' \enumerate{
+#'   \item \code{\link{check_keep_na}()} and \code{\link{check_keep_empty}()}
+#'         normalise the \code{keep_na} / \code{keep_empty} arguments for all
+#'         columns (\code{split_by}, \code{from}, \code{to}).
+#'   \item The \code{split_by} column is validated and its NA / empty levels
+#'         are processed.  It is then removed from the per-column lists.
+#'   \item The data is split by \code{split_by} (preserving level order).  If
+#'         \code{split_by} is \code{NULL}, the data is wrapped in a
+#'         single-element list with name \code{"..."}.
+#'   \item Per-split \code{palette} and \code{palcolor} are resolved via
+#'         \code{\link{check_palette}()} and \code{\link{check_palcolor}()}.
+#'   \item \code{\link{ChordPlotAtomic}()} is called for each split.
+#'         When \code{title} is a function, it receives the split level name
+#'         for dynamic titles.
+#'   \item Results are combined via \code{\link{combine_plots}()}.
+#' }
+#'
 #' @inheritParams common_args
 #' @inheritParams ChordPlotAtomic
-#' @return A combined plot or a list of plots
+#' @param split_by The column(s) to split the data by for separate sub-diagrams.
+#'  Multiple columns are concatenated with \code{split_by_sep}.
+#' @param split_by_sep A character string to separate concatenated
+#'  \code{split_by} columns.  Default \code{"_"}.
+#' @param seed A numeric seed for reproducibility.
+#' @param combine Logical; when \code{TRUE} (default), returns a combined
+#'  \code{patchwork} object.  When \code{FALSE}, returns a named list of
+#'  individual wrapped elements.
+#' @param ncol,nrow Integer number of columns / rows for the combined layout.
+#' @param byrow Logical; fill the combined layout by row (default \code{TRUE}).
+#' @param axes,axis_titles Character strings for axis handling in the
+#'  combined layout.
+#' @param guides Character string for legend collection across panels.
+#' @param design A custom layout design for the combined plot.
+#' @return A \code{patchwork} object or a named list of wrapped elements
+#'  (when \code{combine = FALSE}), each with \code{height} and \code{width}
+#'  attributes in inches.
 #' @rdname chordplot
 #' @export
 #' @examples
@@ -281,13 +405,25 @@ ChordPlotAtomic <- function(
 #'     y = sample(1:5, 10, replace = TRUE)
 #' )
 #'
+#' # Basic chord diagram (counts)
 #' ChordPlot(data, from = "nodes1", to = "nodes2")
+#'
+#' # Links coloured by target + rotated labels
 #' ChordPlot(data, from = "nodes1", to = "nodes2",
 #'           links_color = "to", labels_rot = TRUE)
+#'
+#' # With explicit y values (link thickness)
 #' ChordPlot(data, from = "nodes1", to = "nodes2", y = "y")
+#'
+#' # Split by a column — one diagram per split level
 #' ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y")
+#'
+#' # Per-split palettes
 #' ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y",
-#'           palette = c("1" = "Reds", "2" = "Blues", "3" = "Greens", "4" = "Purp"))
+#'           palette = c("1" = "Reds", "2" = "Blues",
+#'                       "3" = "Greens", "4" = "Purp"))
+#'
+#' # Flip source/target direction
 #' ChordPlot(data, from = "nodes1", to = "nodes2", flip = TRUE)
 #' }
 ChordPlot <- function(
@@ -404,6 +540,8 @@ ChordPlot <- function(
     )
 }
 
-#' @export
 #' @rdname chordplot
+#' @description
+#' \code{CircosPlot} is an alias for \code{\link{ChordPlot}}.
+#' @export
 CircosPlot <- ChordPlot

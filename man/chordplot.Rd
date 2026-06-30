@@ -78,24 +78,31 @@ CircosPlot(
 
 \item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
 
-\item{from}{A character string of the column name to plot for the source.
-A character/factor column is expected.}
+\item{from}{A character string (or vector) specifying the column name(s)
+for the source nodes.  Character/factor columns are expected.  Multiple
+columns are concatenated with \code{from_sep}.}
 
-\item{from_sep}{A character string to concatenate the columns in \code{from}, if multiple columns are provided.}
+\item{from_sep}{A character string to join multiple \code{from} columns.
+Default \code{"_"}.}
 
-\item{to}{A character string of the column name to plot for the target.
-A character/factor column is expected.}
+\item{to}{A character string (or vector) specifying the column name(s)
+for the target nodes.  Character/factor columns are expected.  Multiple
+columns are concatenated with \code{to_sep}.}
 
-\item{to_sep}{A character string to concatenate the columns in \code{to}, if multiple columns are provided.}
+\item{to_sep}{A character string to join multiple \code{to} columns.
+Default \code{"_"}.}
 
-\item{split_by}{The column(s) to split data by and plot separately.}
+\item{split_by}{The column(s) to split the data by for separate sub-diagrams.
+Multiple columns are concatenated with \code{split_by_sep}.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
+\item{split_by_sep}{A character string to separate concatenated
+\code{split_by} columns.  Default \code{"_"}.}
 
-\item{flip}{A logical value to flip the source and target.}
+\item{flip}{Logical; if \code{TRUE}, swap the source and target nodes,
+reversing the link direction.}
 
-\item{links_color}{A character string to specify the color of the links.
-Either "from" or "to".}
+\item{links_color}{A character string controlling which node's colour
+each link ribbon takes: \code{"from"} (default) or \code{"to"}.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -113,7 +120,9 @@ If some values are missing, the values from the palette will be used (palcolor w
 
 \item{alpha}{A numeric value specifying the transparency of the plot.}
 
-\item{labels_rot}{A logical value to rotate the labels by 90 degrees.}
+\item{labels_rot}{Logical; if \code{TRUE}, rotate sector labels by 90
+degrees (clockwise).  Default \code{FALSE} uses \code{niceFacing} for
+automatic orientation.}
 
 \item{title}{A character string specifying the title of the plot.
 A function can be used to generate the title based on the default title.
@@ -121,7 +130,7 @@ This is useful when split_by is used and the title needs to be dynamic.}
 
 \item{subtitle}{A character string specifying the subtitle of the plot.}
 
-\item{seed}{The random seed to use. Default is 8525.}
+\item{seed}{A numeric seed for reproducibility.}
 
 \item{keep_na}{A logical value or a character to replace the NA values in the data.
 It can also take a named list to specify different behavior for different columns.
@@ -144,54 +153,65 @@ But they will be assigned colors from the palette to maintain consistency across
 Alias: \code{levels}}
 }}
 
-\item{combine}{Whether to combine the plots into one when facet is FALSE. Default is TRUE.}
+\item{combine}{Logical; when \code{TRUE} (default), returns a combined
+\code{patchwork} object.  When \code{FALSE}, returns a named list of
+individual wrapped elements.}
 
-\item{nrow}{A numeric value specifying the number of rows in the facet.}
+\item{ncol, nrow}{Integer number of columns / rows for the combined layout.}
 
-\item{ncol}{A numeric value specifying the number of columns in the facet.}
+\item{byrow}{Logical; fill the combined layout by row (default \code{TRUE}).}
 
-\item{byrow}{A logical value indicating whether to fill the plots by row.}
+\item{axes, axis_titles}{Character strings for axis handling in the
+combined layout.}
 
-\item{axes}{A string specifying how axes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axes in individual plots.
-\item 'collect' will remove duplicated axes when placed in the same run of rows or columns of the layout.
-\item 'collect_x' and 'collect_y' will remove duplicated x-axes in the columns or duplicated y-axes in the rows respectively.
-}}
+\item{guides}{Character string for legend collection across panels.}
 
-\item{axis_titles}{A string specifying how axis titltes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axis titles in individual plots.
-\item 'collect' will remove duplicated titles in one direction and merge titles in the opposite direction.
-\item 'collect_x' and 'collect_y' control this for x-axis titles and y-axis titles respectively.
-}}
-
-\item{guides}{A string specifying how guides should be treated in the layout. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'collect' will collect guides below to the given nesting level, removing duplicates.
-\item 'keep' will stop collection at this level and let guides be placed alongside their plot.
-\item 'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.
-}}
-
-\item{design}{Specification of the location of areas in the layout, passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE. When specified, \code{nrow}, \code{ncol}, and \code{byrow} are ignored.
-See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details.}
+\item{design}{A custom layout design for the combined plot.}
 
 \item{...}{Additional arguments.}
 }
 \value{
-A combined plot or a list of plots
+A \code{patchwork} object or a named list of wrapped elements
+(when \code{combine = FALSE}), each with \code{height} and \code{width}
+attributes in inches.
 }
 \description{
-\code{ChordPlot} is used to create a chord plot to visualize the relationships between two categorical variables.
+Draws a chord diagram (also known as a circos plot) to visualise
+relationships between two categorical variables.  Categories are arranged
+around a circle, and connecting ribbons (links) represent the flow or
+association between source and target nodes.  The width of each link is
+proportional to the associated numeric value or observation count.
+
+The function supports \strong{count aggregation} (omit \code{y} to plot
+observation counts per pair), \strong{link colouring} by source or target
+node, \strong{label rotation} options, and splitting into separate
+sub-diagrams via \code{split_by}.
+
 \code{CircosPlot} is an alias of \code{ChordPlot}.
+
+\code{CircosPlot} is an alias for \code{\link{ChordPlot}}.
 }
+\section{split_by workflow}{
+
+When \code{split_by} is provided:
+\enumerate{
+\item \code{\link{check_keep_na}()} and \code{\link{check_keep_empty}()}
+normalise the \code{keep_na} / \code{keep_empty} arguments for all
+columns (\code{split_by}, \code{from}, \code{to}).
+\item The \code{split_by} column is validated and its NA / empty levels
+are processed.  It is then removed from the per-column lists.
+\item The data is split by \code{split_by} (preserving level order).  If
+\code{split_by} is \code{NULL}, the data is wrapped in a
+single-element list with name \code{"..."}.
+\item Per-split \code{palette} and \code{palcolor} are resolved via
+\code{\link{check_palette}()} and \code{\link{check_palcolor}()}.
+\item \code{\link{ChordPlotAtomic}()} is called for each split.
+When \code{title} is a function, it receives the split level name
+for dynamic titles.
+\item Results are combined via \code{\link{combine_plots}()}.
+}
+}
+
 \examples{
 \donttest{
 set.seed(8525)
@@ -201,13 +221,25 @@ data <- data.frame(
     y = sample(1:5, 10, replace = TRUE)
 )
 
+# Basic chord diagram (counts)
 ChordPlot(data, from = "nodes1", to = "nodes2")
+
+# Links coloured by target + rotated labels
 ChordPlot(data, from = "nodes1", to = "nodes2",
           links_color = "to", labels_rot = TRUE)
+
+# With explicit y values (link thickness)
 ChordPlot(data, from = "nodes1", to = "nodes2", y = "y")
+
+# Split by a column — one diagram per split level
 ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y")
+
+# Per-split palettes
 ChordPlot(data, from = "nodes1", to = "nodes2", split_by = "y",
-          palette = c("1" = "Reds", "2" = "Blues", "3" = "Greens", "4" = "Purp"))
+          palette = c("1" = "Reds", "2" = "Blues",
+                      "3" = "Greens", "4" = "Purp"))
+
+# Flip source/target direction
 ChordPlot(data, from = "nodes1", to = "nodes2", flip = TRUE)
 }
 }

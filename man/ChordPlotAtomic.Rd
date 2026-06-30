@@ -2,7 +2,7 @@
 % Please edit documentation in R/chordplot.R
 \name{ChordPlotAtomic}
 \alias{ChordPlotAtomic}
-\title{Atomic chord plot}
+\title{Atomic chord plot (internal)}
 \usage{
 ChordPlotAtomic(
   data,
@@ -30,22 +30,29 @@ ChordPlotAtomic(
 \arguments{
 \item{data}{A data frame.}
 
-\item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
+\item{y}{A character string specifying the numeric column whose values
+determine link thickness.  When \code{NULL}, the count of observations
+per (\code{from}, \code{to}) pair is used.}
 
-\item{from}{A character string of the column name to plot for the source.
-A character/factor column is expected.}
+\item{from}{A character string (or vector) specifying the column name(s)
+for the source nodes.  Character/factor columns are expected.  Multiple
+columns are concatenated with \code{from_sep}.}
 
-\item{from_sep}{A character string to concatenate the columns in \code{from}, if multiple columns are provided.}
+\item{from_sep}{A character string to join multiple \code{from} columns.
+Default \code{"_"}.}
 
-\item{to}{A character string of the column name to plot for the target.
-A character/factor column is expected.}
+\item{to}{A character string (or vector) specifying the column name(s)
+for the target nodes.  Character/factor columns are expected.  Multiple
+columns are concatenated with \code{to_sep}.}
 
-\item{to_sep}{A character string to concatenate the columns in \code{to}, if multiple columns are provided.}
+\item{to_sep}{A character string to join multiple \code{to} columns.
+Default \code{"_"}.}
 
-\item{flip}{A logical value to flip the source and target.}
+\item{flip}{Logical; if \code{TRUE}, swap the source and target nodes,
+reversing the link direction.}
 
-\item{links_color}{A character string to specify the color of the links.
-Either "from" or "to".}
+\item{links_color}{A character string controlling which node's colour
+each link ribbon takes: \code{"from"} (default) or \code{"to"}.}
 
 \item{theme}{A character string or a theme class (i.e. ggplot2::theme_classic) specifying the theme to use.
 Default is "theme_this".}
@@ -61,9 +68,12 @@ If some values are missing, the values from the palette will be used (palcolor w
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 
-\item{alpha}{A numeric value specifying the transparency of the plot.}
+\item{alpha}{Numeric transparency for the link ribbons (0–1).
+Default \code{0.5}.}
 
-\item{labels_rot}{A logical value to rotate the labels by 90 degrees.}
+\item{labels_rot}{Logical; if \code{TRUE}, rotate sector labels by 90
+degrees (clockwise).  Default \code{FALSE} uses \code{niceFacing} for
+automatic orientation.}
 
 \item{title}{A character string specifying the title of the plot.
 A function can be used to generate the title based on the default title.
@@ -95,9 +105,73 @@ Alias: \code{levels}}
 \item{...}{Additional arguments.}
 }
 \value{
-A wrapped element of chord plot
+A \code{patchwork} wrapped element with \code{height} and
+\code{width} attributes (in inches) attached.  The original data is
+stored in the \code{p$data} field.
 }
 \description{
-Atomic chord plot
+Core implementation for drawing a chord diagram using
+\code{circlize::chordDiagram()}.  This is the workhorse behind the
+exported \code{\link{ChordPlot}} function — it takes a \strong{single} data
+frame (no \code{split_by} support) and returns a \code{patchwork}
+wrapped element.
+
+Chord diagrams visualise relationships (flows) between two sets of
+categories arranged around a circle.  The width of each link is
+proportional to the value (\code{y}) connecting its source and target
+nodes.
 }
+\section{Architecture}{
+
+\enumerate{
+\item \strong{Column resolution} — \code{from}, \code{to}, and
+\code{y} are validated and transformed via
+\code{\link{check_columns}}.  Multi-column \code{from} and
+\code{to} are concatenated with their respective separators
+(\code{from_sep}, \code{to_sep}).
+\item \strong{Count aggregation} — when \code{y = NULL}, the count
+of observations per (\code{from}, \code{to}) pair is computed
+as a new \code{.y} column.  Factor levels from the original
+data are preserved.
+\item \strong{NA / empty-level handling} —
+\code{\link{process_keep_na_empty}()} applies \code{keep_na}
+and \code{keep_empty} policies.
+\item \strong{Flip} — when \code{flip = TRUE}, the \code{from} and
+\code{to} columns are swapped, effectively reversing the link
+direction.
+\item \strong{Colour mapping} — \code{\link{palette_this}()} assigns
+colours to all unique \code{from} and \code{to} values (the grid
+sectors).  \code{NA} values are mapped to a literal \code{"NA"}
+level and assigned a colour from the palette.
+\item \strong{Link colour resolution} — \code{links_color} controls
+whether each connecting ribbon takes its colour from the
+\code{"from"} side (default) or the \code{"to"} side.
+\item \strong{circlize rendering} — two rendering paths exist,
+selected by \code{labels_rot}:
+\itemize{
+\item \strong{Horizontal labels} (\code{labels_rot = FALSE}):
+track 1 has a fixed height of 1 mm and uses
+\code{niceFacing = TRUE} for automatic label rotation.
+Track 2 adds axis ticks on the outside for wide-enough
+sectors.
+\item \strong{Rotated labels} (\code{labels_rot = TRUE}):
+track 1 height is computed from the maximum string width
+of all node names, and labels are rendered with
+\code{facing = "clockwise"}.  Track 2 adds axis ticks.
+}
+Links use arrow heads (\code{link.arr.type = "big.arrow"}) and
+differentiated height (\code{direction.type = c("diffHeight",
+        "arrows")}).  Both tracks set \code{bg.border = NA} to prevent
+border lines from appearing between sectors.
+\item \strong{Patchwork integration} — the circlize formula is wrapped
+via \code{\link[patchwork]{wrap_elements}()} so it can be
+composed with other ggplot objects.  Title and subtitle are added
+via \code{\link[patchwork]{plot_annotation}()}.
+\item \strong{Dimension attributes} — \code{height} and \code{width}
+attributes (in inches) are set to a base size (7) scaled up by
+2, 4, or 6 depending on the maximum label character width when
+\code{labels_rot = TRUE}.
+}
+}
+
 \keyword{internal}
