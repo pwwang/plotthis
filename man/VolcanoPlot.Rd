@@ -76,80 +76,138 @@ VolcanoPlot(
 
 \item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
 
-\item{ytrans}{A function to transform the y-axis values.}
+\item{ytrans}{A function to transform the y-axis values before plotting.
+The default \code{function(n) -log10(n)} converts p-values to a -log10
+scale. The transformed values are used for both the y-axis and cutoff
+comparisons.}
 
-\item{color_by}{A character vector of column names to color the points by.
-If NULL, the points will be filled by the x and y cutoff value.}
+\item{color_by}{A character string specifying the column name to colour
+the points by. When \code{NULL} (default), points are automatically
+categorised as \code{"sig_pos_x"}, \code{"sig_neg_x"}, or
+\code{"insig"} based on \code{x_cutoff} and \code{y_cutoff}, and the
+colour legend is suppressed. When a column name is provided, the colour
+mapping follows the column type — discrete (character/factor) uses
+\code{scale_color_manual()} with the specified \code{palette};
+numeric (continuous) uses \code{scale_color_gradientn()}.}
 
-\item{color_name}{A character string to name the legend of color.}
+\item{color_name}{A character string for the colour legend title when
+\code{color_by} is a numeric column. When \code{NULL} (default), the
+\code{color_by} column name is used.}
 
-\item{xlim}{A numeric vector of length 2 to set the x-axis limits.}
+\item{xlim}{A numeric vector of length 2 to set the x-axis limits.
+Passed to \code{\link[ggplot2]{xlim}()}. When \code{NULL} (default),
+limits are determined automatically from the data.}
 
-\item{flip_negatives}{A logical value to flip the y-axis for negative x values.}
+\item{flip_negatives}{A logical value. When \code{TRUE}, y-values of
+points with negative x-values are multiplied by -1, creating a mirrored
+volcano plot where both up- and down-regulated features show their
+significance on the same side of the y-axis. A horizontal line at
+\code{y = 0} and absolute-value axis labels are added. Default:
+\code{FALSE}.}
 
-\item{x_cutoff}{A numeric value to set the x-axis cutoff.
-Both negative and positive of this value will be used.}
+\item{x_cutoff}{A numeric value specifying the x-axis significance
+cutoff. Both the negative and positive of this value are used as
+vertical threshold lines. When \code{NULL} or \code{0}, no x-cutoff
+line is drawn. Default: \code{NULL}.}
 
-\item{y_cutoff}{A numeric value to set the y-axis cutoff.
-Note that the y-axis cutoff will be transformed by \code{ytrans}.
-So you should provide the original value.}
+\item{y_cutoff}{A numeric value specifying the y-axis significance
+cutoff in the \strong{original} (untransformed) scale. The value is
+transformed by \code{ytrans} before plotting. When \code{NULL}, no
+y-cutoff line is drawn and the category assignment uses only the
+x-cutoff. Default: \code{0.05}.}
 
-\item{split_by}{The column(s) to split data by and plot separately.}
+\item{split_by}{The column(s) to split the data by and produce separate
+sub-plots. Multiple columns are concatenated with \code{split_by_sep}.}
 
-\item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
+\item{split_by_sep}{A character string to separate concatenated
+\code{split_by} columns. Default \code{"_"}.}
 
-\item{label_by}{A character string of column name to use as labels.
-If NULL, the row names will be used.}
+\item{label_by}{A character string specifying the column whose values
+are used as label text. When \code{NULL} (default), row names of the
+data frame are used.}
 
-\item{x_cutoff_name}{A character string to name the x-axis cutoff.
-If "none", the legend for the x-axis cutoff will not be shown.}
+\item{x_cutoff_name}{A character string for the x-cutoff legend entry.
+When \code{"none"}, the legend for the x-cutoff line is suppressed
+entirely (the line is still drawn). When \code{NULL} (default), a
+label of the form \code{"<x> = +/-<value>"} is generated.}
 
-\item{y_cutoff_name}{A character string to name the y-axis cutoff.
-If "none", the legend for the y-axis cutoff will not be shown.}
+\item{y_cutoff_name}{A character string for the y-cutoff legend entry.
+When \code{"none"}, the legend for the y-cutoff line is suppressed
+entirely (the line is still drawn). When \code{NULL} (default), a
+label of the form \code{"<ylab> = <value>"} is generated.}
 
-\item{x_cutoff_color}{A character string to color the x-axis cutoff line.}
+\item{x_cutoff_color}{A character string specifying the colour of the
+x-axis cutoff line(s). Default: \code{"red2"}.}
 
-\item{y_cutoff_color}{A character string to color the y-axis cutoff line.}
+\item{y_cutoff_color}{A character string specifying the colour of the
+y-axis cutoff line(s). Default: \code{"blue2"}.}
 
-\item{x_cutoff_linetype}{A character string to set the x-axis cutoff line type.}
+\item{x_cutoff_linetype}{A character string specifying the linetype of
+the x-axis cutoff line(s). Default: \code{"dashed"}.}
 
-\item{y_cutoff_linetype}{A character string to set the y-axis cutoff line type.}
+\item{y_cutoff_linetype}{A character string specifying the linetype of
+the y-axis cutoff line(s). Default: \code{"dashed"}.}
 
-\item{x_cutoff_linewidth}{A numeric value to set the x-axis cutoff line size.}
+\item{x_cutoff_linewidth}{A numeric value specifying the linewidth of
+the x-axis cutoff line(s). Default: \code{0.5}.}
 
-\item{y_cutoff_linewidth}{A numeric value to set the y-axis cutoff line size.}
+\item{y_cutoff_linewidth}{A numeric value specifying the linewidth of
+the y-axis cutoff line(s). Default: \code{0.5}.}
 
-\item{pt_size}{A numeric value to set the point size.}
+\item{pt_size}{A numeric value specifying the point size for all data
+points. Default: \code{2}.}
 
-\item{pt_alpha}{A numeric value to set the point transparency.}
+\item{pt_alpha}{A numeric value in \code{[0, 1]} specifying the
+transparency of all data points. Default: \code{0.5}.}
 
-\item{nlabel}{A numeric value to set the number of labels to show.
-The points will be ordered by the distance to the origin. Top \code{nlabel} points will be labeled.}
+\item{nlabel}{An integer specifying the number of top features to label
+automatically. Points are ranked by Euclidean distance to the origin
+within each \code{sign(x)} group (and per facet level if
+\code{facet_by} is set). Only non-insignificant points receive labels.
+Default: \code{5}.}
 
-\item{labels}{A character vector of row names or indexes to label the points.}
+\item{labels}{A character vector of row names or integer indices
+specifying which points to label. Overrides automatic \code{nlabel}
+selection. When \code{NULL} (default), top \code{nlabel} points are
+chosen automatically.}
 
-\item{label_size}{A numeric value to set the label size.}
+\item{label_size}{A numeric value specifying the font size of the
+labels. Default: \code{3}.}
 
-\item{label_fg}{A character string to set the label color.}
+\item{label_fg}{A character string specifying the text colour of the
+labels. Default: \code{"black"}.}
 
-\item{label_bg}{A character string to set the label background color.}
+\item{label_bg}{A character string specifying the background colour of
+the label boxes (passed to \code{geom_text_repel(bg.color = ...)}).
+Default: \code{"white"}.}
 
-\item{label_bg_r}{A numeric value specifying the radius of the background of the label.}
+\item{label_bg_r}{A numeric value specifying the corner radius of the
+label background boxes (passed to \code{geom_text_repel(bg.r = ...)}).
+Default: \code{0.1}.}
 
-\item{highlight}{A character vector of row names or indexes to highlight the points.}
+\item{highlight}{A character vector of row names or integer indices
+specifying which points to highlight with an overlaid point layer in
+\code{highlight_color}. When \code{NULL} (default), no highlighting is
+applied.}
 
-\item{highlight_color}{A character string to set the highlight color.}
+\item{highlight_color}{A character string specifying the colour of the
+highlight points. Default: \code{"red"}.}
 
-\item{highlight_size}{A numeric value to set the highlight size.}
+\item{highlight_size}{A numeric value specifying the point size of the
+highlight layer. Default: \code{2}.}
 
-\item{highlight_alpha}{A numeric value to set the highlight transparency.}
+\item{highlight_alpha}{A numeric value in \code{[0, 1]} specifying the
+transparency of the highlight points. Default: \code{1}.}
 
-\item{highlight_stroke}{A numeric value to set the highlight stroke size.}
+\item{highlight_stroke}{A numeric value specifying the stroke width of
+the highlight point borders. Default: \code{0.5}.}
 
-\item{trim}{A numeric vector of length 2 to trim the x-axis values.
-The values must be in the range from 0 to 1, which works as quantile to trim the x-axis values.
-For example, c(0.01, 0.99) will trim the 1\% and 99\% quantile of the x-axis values.
-If the values are less then 1\% or greater than 99\% quantile, the values will be set to the 1\% or 99\% quantile.}
+\item{trim}{A numeric vector of length 2 specifying quantile bounds for
+winsorizing the x-axis values. Values below the first quantile are
+clamped to that quantile; values above the second quantile are clamped
+to that quantile. Both values must be in \code{[0, 1]}. When both bounds
+are nonzero and of opposite sign, they are symmetrised to the smaller
+absolute value. Default: \code{c(0, 1)} (no trimming).}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
@@ -199,53 +257,77 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 
 \item{seed}{The random seed to use. Default is 8525.}
 
-\item{combine}{Whether to combine the plots into one when facet is FALSE. Default is TRUE.}
+\item{combine}{Logical; when \code{TRUE} (default), returns a combined
+\code{patchwork} object. When \code{FALSE}, returns a named list of
+individual \code{ggplot} objects.}
 
-\item{nrow}{A numeric value specifying the number of rows in the facet.}
+\item{ncol, nrow}{Integer number of columns / rows for the combined layout
+(passed to \code{\link[patchwork]{wrap_plots}}).}
 
-\item{ncol}{A numeric value specifying the number of columns in the facet.}
+\item{byrow}{Logical; fill the combined layout by row. Default
+\code{TRUE} (passed to \code{\link[patchwork]{wrap_plots}}).}
 
-\item{byrow}{A logical value indicating whether to fill the plots by row.}
+\item{axes}{A character string specifying how axes should be treated
+across the combined layout (passed to
+\code{\link[patchwork]{wrap_plots}}).}
 
-\item{axes}{A string specifying how axes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axes in individual plots.
-\item 'collect' will remove duplicated axes when placed in the same run of rows or columns of the layout.
-\item 'collect_x' and 'collect_y' will remove duplicated x-axes in the columns or duplicated y-axes in the rows respectively.
-}}
+\item{axis_titles}{A character string specifying how axis titles should
+be treated across the combined layout. Defaults to \code{axes}.}
 
-\item{axis_titles}{A string specifying how axis titltes should be treated. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'keep' will retain all axis titles in individual plots.
-\item 'collect' will remove duplicated titles in one direction and merge titles in the opposite direction.
-\item 'collect_x' and 'collect_y' control this for x-axis titles and y-axis titles respectively.
-}}
+\item{guides}{A character string specifying how guides (legends) should
+be collected across panels. Default \code{"collect"} (passed to
+\code{\link{combine_plots}()}).}
 
-\item{guides}{A string specifying how guides should be treated in the layout. Passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE.
-Options are:
-\itemize{
-\item 'collect' will collect guides below to the given nesting level, removing duplicates.
-\item 'keep' will stop collection at this level and let guides be placed alongside their plot.
-\item 'auto' will allow guides to be collected if a upper level tries, but place them alongside the plot if not.
-}}
-
-\item{design}{Specification of the location of areas in the layout, passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}.
-Only relevant when \code{split_by} is used and \code{combine} is TRUE. When specified, \code{nrow}, \code{ncol}, and \code{byrow} are ignored.
-See \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}} for more details.}
+\item{design}{A custom layout design for the combined plot (passed to
+\code{\link{combine_plots}()}).}
 
 \item{...}{Additional arguments.}
 }
 \value{
-A list of ggplot objects or a wrap_plots object
+A \code{ggplot} object, a \code{patchwork} object, or a named
+list of \code{ggplot} objects (when \code{combine = FALSE}), each with
+\code{height} and \code{width} attributes in inches.
 }
 \description{
-A volcano plot is a type of scatter plot that shows statistical significance (usually on the y-axis) versus magnitude of change (usually on the x-axis).
+Produces a volcano plot — a scatter plot that displays statistical
+significance (typically -log10 adjusted p-value) on the y-axis versus
+magnitude of change (log2 fold change) on the x-axis. Points are coloured
+automatically by significance category (\code{"sig_pos_x"},
+\code{"sig_neg_x"}, \code{"insig"}) or by a user-supplied column. The
+most significant features can be labelled automatically via
+\code{\link[ggrepel]{geom_text_repel}()}, and specific points can be
+highlighted.
+
+The function supports \strong{automatic labelling} of top features (by
+distance to origin), \strong{mirrored layout} via
+\code{flip_negatives}, \strong{x-axis trimming} to reduce the influence
+of extreme values, \strong{faceting}, and \strong{splitting} into
+separate sub-plots via \code{split_by} with per-split colour palette and
+legend control.
 }
+\section{split_by Workflow}{
+
+When \code{split_by} is provided:
+\enumerate{
+\item The \code{split_by} column(s) are validated via
+\code{\link{check_columns}()} with \code{force_factor = TRUE} and
+\code{concat_multi = TRUE} (multiple columns are concatenated
+with \code{split_by_sep}).
+\item The data frame is split by \code{split_by} (preserving factor
+level order). If \code{split_by} is \code{NULL}, the data is
+wrapped in a single-element list with name \code{"..."}.
+\item Per-split \code{palette}, \code{palcolor},
+\code{legend.position}, and \code{legend.direction} are resolved
+via \code{\link{check_palette}()}, \code{\link{check_palcolor}()},
+and \code{\link{check_legend}()}.
+\item \code{\link{VolcanoPlotAtomic}()} is called for each split. If
+\code{title} is a function, it receives the split level name and
+can generate dynamic titles.
+\item Results are combined via \code{\link{combine_plots}()} (when
+\code{combine = TRUE}) or returned as a named list.
+}
+}
+
 \examples{
 \donttest{
 set.seed(8525)
@@ -304,19 +386,26 @@ data <- data.frame(
 # If set, it will be used as labels if label_by is not set.
 # rownames(data) <- data$gene
 
+# --- Basic usage ---
 VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", color_by = "pct_diff",
    y_cutoff_name = "-log10(0.05)")
+# --- With gene labels ---
 VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", color_by = "pct_diff",
    y_cutoff_name = "-log10(0.05)", label_by = "gene")
+# --- Mirrored layout ---
 VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
    flip_negatives = TRUE, label_by = "gene")
+# --- With faceting ---
 VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
    flip_negatives = TRUE, facet_by = "group", label_by = "gene")
+# --- With splitting ---
 VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
    flip_negatives = TRUE, split_by = "group", label_by = "gene")
+# --- With highlighting ---
 VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
    highlight = c("ANXA2", "TMEM40", "PF4", "GNG11", "CLU", "CD9", "FGFBP2",
    "TNFRSF1B", "IFI6"), label_by = "gene")
+# --- Per-split palettes ---
 VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", color_by = "pct_diff",
    y_cutoff_name = "-log10(0.05)", split_by = "group", label_by = "gene",
    palette = c(A = "Set1", B = "Dark2"))

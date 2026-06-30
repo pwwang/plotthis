@@ -2,7 +2,7 @@
 % Please edit documentation in R/volcanoplot.R
 \name{VolcanoPlotAtomic}
 \alias{VolcanoPlotAtomic}
-\title{Atomic volcano plot}
+\title{Atomic volcano plot (internal)}
 \usage{
 VolcanoPlotAtomic(
   data,
@@ -66,76 +66,132 @@ VolcanoPlotAtomic(
 
 \item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
 
-\item{ytrans}{A function to transform the y-axis values.}
+\item{ytrans}{A function to transform the y-axis values before plotting.
+The default \code{function(n) -log10(n)} converts p-values to a -log10
+scale. The transformed values are used for both the y-axis and cutoff
+comparisons.}
 
-\item{color_by}{A character vector of column names to color the points by.
-If NULL, the points will be filled by the x and y cutoff value.}
+\item{color_by}{A character string specifying the column name to colour
+the points by. When \code{NULL} (default), points are automatically
+categorised as \code{"sig_pos_x"}, \code{"sig_neg_x"}, or
+\code{"insig"} based on \code{x_cutoff} and \code{y_cutoff}, and the
+colour legend is suppressed. When a column name is provided, the colour
+mapping follows the column type — discrete (character/factor) uses
+\code{scale_color_manual()} with the specified \code{palette};
+numeric (continuous) uses \code{scale_color_gradientn()}.}
 
-\item{color_name}{A character string to name the legend of color.}
+\item{color_name}{A character string for the colour legend title when
+\code{color_by} is a numeric column. When \code{NULL} (default), the
+\code{color_by} column name is used.}
 
-\item{flip_negatives}{A logical value to flip the y-axis for negative x values.}
+\item{flip_negatives}{A logical value. When \code{TRUE}, y-values of
+points with negative x-values are multiplied by -1, creating a mirrored
+volcano plot where both up- and down-regulated features show their
+significance on the same side of the y-axis. A horizontal line at
+\code{y = 0} and absolute-value axis labels are added. Default:
+\code{FALSE}.}
 
-\item{x_cutoff}{A numeric value to set the x-axis cutoff.
-Both negative and positive of this value will be used.}
+\item{x_cutoff}{A numeric value specifying the x-axis significance
+cutoff. Both the negative and positive of this value are used as
+vertical threshold lines. When \code{NULL} or \code{0}, no x-cutoff
+line is drawn. Default: \code{NULL}.}
 
-\item{y_cutoff}{A numeric value to set the y-axis cutoff.
-Note that the y-axis cutoff will be transformed by \code{ytrans}.
-So you should provide the original value.}
+\item{y_cutoff}{A numeric value specifying the y-axis significance
+cutoff in the \strong{original} (untransformed) scale. The value is
+transformed by \code{ytrans} before plotting. When \code{NULL}, no
+y-cutoff line is drawn and the category assignment uses only the
+x-cutoff. Default: \code{0.05}.}
 
-\item{trim}{A numeric vector of length 2 to trim the x-axis values.
-The values must be in the range from 0 to 1, which works as quantile to trim the x-axis values.
-For example, c(0.01, 0.99) will trim the 1\% and 99\% quantile of the x-axis values.
-If the values are less then 1\% or greater than 99\% quantile, the values will be set to the 1\% or 99\% quantile.}
+\item{trim}{A numeric vector of length 2 specifying quantile bounds for
+winsorizing the x-axis values. Values below the first quantile are
+clamped to that quantile; values above the second quantile are clamped
+to that quantile. Both values must be in \code{[0, 1]}. When both bounds
+are nonzero and of opposite sign, they are symmetrised to the smaller
+absolute value. Default: \code{c(0, 1)} (no trimming).}
 
-\item{xlim}{A numeric vector of length 2 to set the x-axis limits.}
+\item{xlim}{A numeric vector of length 2 to set the x-axis limits.
+Passed to \code{\link[ggplot2]{xlim}()}. When \code{NULL} (default),
+limits are determined automatically from the data.}
 
-\item{x_cutoff_name}{A character string to name the x-axis cutoff.
-If "none", the legend for the x-axis cutoff will not be shown.}
+\item{x_cutoff_name}{A character string for the x-cutoff legend entry.
+When \code{"none"}, the legend for the x-cutoff line is suppressed
+entirely (the line is still drawn). When \code{NULL} (default), a
+label of the form \code{"<x> = +/-<value>"} is generated.}
 
-\item{y_cutoff_name}{A character string to name the y-axis cutoff.
-If "none", the legend for the y-axis cutoff will not be shown.}
+\item{y_cutoff_name}{A character string for the y-cutoff legend entry.
+When \code{"none"}, the legend for the y-cutoff line is suppressed
+entirely (the line is still drawn). When \code{NULL} (default), a
+label of the form \code{"<ylab> = <value>"} is generated.}
 
-\item{x_cutoff_color}{A character string to color the x-axis cutoff line.}
+\item{x_cutoff_color}{A character string specifying the colour of the
+x-axis cutoff line(s). Default: \code{"red2"}.}
 
-\item{y_cutoff_color}{A character string to color the y-axis cutoff line.}
+\item{y_cutoff_color}{A character string specifying the colour of the
+y-axis cutoff line(s). Default: \code{"blue2"}.}
 
-\item{x_cutoff_linetype}{A character string to set the x-axis cutoff line type.}
+\item{x_cutoff_linetype}{A character string specifying the linetype of
+the x-axis cutoff line(s). Default: \code{"dashed"}.}
 
-\item{y_cutoff_linetype}{A character string to set the y-axis cutoff line type.}
+\item{y_cutoff_linetype}{A character string specifying the linetype of
+the y-axis cutoff line(s). Default: \code{"dashed"}.}
 
-\item{x_cutoff_linewidth}{A numeric value to set the x-axis cutoff line size.}
+\item{x_cutoff_linewidth}{A numeric value specifying the linewidth of
+the x-axis cutoff line(s). Default: \code{0.5}.}
 
-\item{y_cutoff_linewidth}{A numeric value to set the y-axis cutoff line size.}
+\item{y_cutoff_linewidth}{A numeric value specifying the linewidth of
+the y-axis cutoff line(s). Default: \code{0.5}.}
 
-\item{pt_size}{A numeric value to set the point size.}
+\item{pt_size}{A numeric value specifying the point size for all data
+points. Default: \code{2}.}
 
-\item{pt_alpha}{A numeric value to set the point transparency.}
+\item{pt_alpha}{A numeric value in \code{[0, 1]} specifying the
+transparency of all data points. Default: \code{0.5}.}
 
-\item{nlabel}{A numeric value to set the number of labels to show.
-The points will be ordered by the distance to the origin. Top \code{nlabel} points will be labeled.}
+\item{nlabel}{An integer specifying the number of top features to label
+automatically. Points are ranked by Euclidean distance to the origin
+within each \code{sign(x)} group (and per facet level if
+\code{facet_by} is set). Only non-insignificant points receive labels.
+Default: \code{5}.}
 
-\item{labels}{A character vector of row names or indexes to label the points.}
+\item{labels}{A character vector of row names or integer indices
+specifying which points to label. Overrides automatic \code{nlabel}
+selection. When \code{NULL} (default), top \code{nlabel} points are
+chosen automatically.}
 
-\item{label_by}{A character string of column name to use as labels.
-If NULL, the row names will be used.}
+\item{label_by}{A character string specifying the column whose values
+are used as label text. When \code{NULL} (default), row names of the
+data frame are used.}
 
-\item{label_size}{A numeric value to set the label size.}
+\item{label_size}{A numeric value specifying the font size of the
+labels. Default: \code{3}.}
 
-\item{label_fg}{A character string to set the label color.}
+\item{label_fg}{A character string specifying the text colour of the
+labels. Default: \code{"black"}.}
 
-\item{label_bg}{A character string to set the label background color.}
+\item{label_bg}{A character string specifying the background colour of
+the label boxes (passed to \code{geom_text_repel(bg.color = ...)}).
+Default: \code{"white"}.}
 
-\item{label_bg_r}{A numeric value specifying the radius of the background of the label.}
+\item{label_bg_r}{A numeric value specifying the corner radius of the
+label background boxes (passed to \code{geom_text_repel(bg.r = ...)}).
+Default: \code{0.1}.}
 
-\item{highlight}{A character vector of row names or indexes to highlight the points.}
+\item{highlight}{A character vector of row names or integer indices
+specifying which points to highlight with an overlaid point layer in
+\code{highlight_color}. When \code{NULL} (default), no highlighting is
+applied.}
 
-\item{highlight_color}{A character string to set the highlight color.}
+\item{highlight_color}{A character string specifying the colour of the
+highlight points. Default: \code{"red"}.}
 
-\item{highlight_size}{A numeric value to set the highlight size.}
+\item{highlight_size}{A numeric value specifying the point size of the
+highlight layer. Default: \code{2}.}
 
-\item{highlight_alpha}{A numeric value to set the highlight transparency.}
+\item{highlight_alpha}{A numeric value in \code{[0, 1]} specifying the
+transparency of the highlight points. Default: \code{1}.}
 
-\item{highlight_stroke}{A numeric value to set the highlight stroke size.}
+\item{highlight_stroke}{A numeric value specifying the stroke width of
+the highlight point borders. Default: \code{0.5}.}
 
 \item{facet_by}{A character string specifying the column name of the data frame to facet the plot.
 Otherwise, the data will be split by \code{split_by} and generate multiple plots
@@ -188,9 +244,132 @@ if \code{waiver()}, for single groups, the legend will be "none", otherwise "rig
 \item{...}{Additional arguments.}
 }
 \value{
-A ggplot object
+A \code{ggplot} object with \code{height} and \code{width}
+attributes (in inches) attached.
 }
 \description{
-Atomic volcano plot
+Core implementation for drawing a single volcano plot. This is the
+workhorse behind the exported \code{\link{VolcanoPlot}} function — it takes
+a \strong{single} data frame (no \code{split_by} support) and returns a
+\code{ggplot} object. The plot displays statistical significance (typically
+-log10 adjusted p-value) on the y-axis versus magnitude of change (log2
+fold change) on the x-axis, with points coloured by significance category
+or a user-supplied variable. Top features can be automatically labelled
+via \code{\link[ggrepel]{geom_text_repel}()}, and specific points can be
+highlighted.
+
+The function categorises points into three groups based on cutoff
+thresholds: \code{"sig_pos_x"} (points exceeding both the positive
+x-cutoff and y-cutoff), \code{"sig_neg_x"} (points exceeding both the
+negative x-cutoff and y-cutoff), and \code{"insig"} (all remaining
+points). When \code{color_by = NULL}, this categorisation drives point
+colouring; otherwise the supplied column controls the colour scale.
 }
+\section{Architecture}{
+
+\enumerate{
+\item \strong{ggplot dispatch} — selects \code{gglogger::ggplot} or
+\code{ggplot2::ggplot} based on
+\code{getOption("plotthis.gglogger.enabled")}.
+\item \strong{Input validation} — \code{trim} (must be length-2 in
+\code{[0, 1]}) and \code{xlim} (must be length-2 or \code{NULL})
+are validated via \code{stopifnot()}. \code{trim} is sorted.
+\item \strong{Column resolution} — \code{x}, \code{y}, \code{color_by},
+\code{facet_by}, and \code{label_by} are validated and transformed
+via \code{\link{check_columns}}. Multi-column \code{facet_by} is
+concatenated with \code{force_factor = TRUE}.
+\item \strong{y-axis transformation} — the y-column is transformed by
+\code{ytrans()} (default: \code{-log10(n)}). The
+\code{y_cutoff} value is also transformed.
+\item \strong{x_cutoff defaulting} — if \code{x_cutoff} is
+\code{NULL}, it is set to \code{0} (suppressing the x-cutoff
+legend line).
+\item \strong{Category assignment} — a \code{.category} factor with
+levels \code{c("sig_neg_x", "insig", "sig_pos_x")} is created:
+\itemize{
+\item When \code{y_cutoff} is non-\code{NULL}: points with
+\code{|x| > x_cutoff} AND \code{y > y_cutoff} are significant.
+\item When \code{y_cutoff} is \code{NULL}: only the x-cutoff
+determines significance.
+}
+\item \strong{Color resolution} — three cases:
+\itemize{
+\item \code{color_by = NULL}: uses \code{.category} as a
+discrete colour column; the legend is suppressed.
+\item Character/factor column: discrete colour scale via
+\code{\link{palette_this}()} and
+\code{scale_color_manual()}, guide suppressed.
+\item Numeric column: continuous gradient via
+\code{scale_color_gradientn()} with a framed colour-bar legend.
+}
+\item \strong{Flip negatives} — when \code{flip_negatives = TRUE},
+the y-values of points with negative x are multiplied by -1,
+creating a mirrored volcano where both up- and down-regulated
+features show their significance on the same side of the y-axis.
+\item \strong{Label column} — \code{.label} is populated from
+\code{label_by} or \code{rownames(data)}.
+\item \strong{Trim / winsorize} — x-values beyond the trim quantile
+bounds are clamped. When both bounds are nonzero and of opposite
+sign, they are symmetrised to the smaller absolute value.
+Outlying points are marked in \code{.outlier}.
+\item \strong{Label selection} — two modes:
+\itemize{
+\item Explicit \code{labels}: the specified rows (by name or
+index) are marked for labelling.
+\item Automatic: top \code{nlabel} points (by Euclidean distance
+to origin) are selected per \code{sign(x)} group, and per facet
+level if \code{facet_by} is set.
+}
+All labels are filtered to exclude \code{"insig"} points.
+\item \strong{Data split} — data is split into \code{pos_data}
+(\code{x >= 0}) and \code{neg_data} (\code{x < 0}) so that
+\code{ggrepel} labels can nudge in opposite directions (positive
+points nudge left, negative points nudge right).
+\item \strong{Outlier jitter} — outlier points are rendered separately
+with \code{position_jitter()} to reduce overplotting.
+\item \strong{Base ggplot} — \code{geom_point()} layers for positive,
+negative, and outlier data, with colour mapped to
+\code{color_by}.
+\item \strong{Colour scale} — discrete:
+\code{scale_color_manual()} with \code{"insig"} forced to
+\code{"grey"} (when \code{palcolor} is \code{NULL}); continuous:
+\code{scale_color_gradientn()} with palette re-scaled so that
+the colour-bar is centred at 0.
+\item \strong{Highlight} — when \code{highlight} is provided, two
+additional \code{geom_point()} layers (non-outliers and outliers
+with jitter) overlay the highlighted points in
+\code{highlight_color}.
+\item \strong{x-cutoff lines} — vertical dashed lines at
+\code{+/- x_cutoff} via \code{geom_vline()} with
+\code{\link[ggnewscale]{new_scale_color}()}, labelled by
+\code{x_cutoff_name}. Suppressed when \code{x_cutoff} is
+\code{NULL} or \code{0}.
+\item \strong{y-cutoff lines} — horizontal dashed line(s) at
+\code{y_cutoff} (or \code{+/- y_cutoff} when
+\code{flip_negatives = TRUE}) via \code{geom_hline()} with
+\code{\link[ggnewscale]{new_scale_color}()}, labelled by
+\code{y_cutoff_name}.
+\item \strong{Flip-negatives axis} — when \code{flip_negatives = TRUE},
+a solid \code{geom_hline(yintercept = 0)} is added and
+\code{scale_y_continuous(labels = abs)} formats the y-axis.
+\item \strong{x-axis limits} — optional \code{xlim} passed to
+\code{ggplot2::xlim()}.
+\item \strong{Reference line and labels} — a grey80 dashed vertical
+line at \code{x = 0}, followed by \code{geom_text_repel()} for
+positive and negative labelled points with separate x-nudges.
+\item \strong{Labels and theme} — \code{labs()},
+\code{coord_cartesian(clip = "off")},
+\code{do_call(theme, theme_args)}, and theme elements for
+\code{aspect.ratio}, \code{legend.position}, and
+\code{legend.direction}.
+\item \strong{Dimension calculation} —
+\code{\link{calculate_plot_dimensions}()} computes \code{height}
+and \code{width} attributes from \code{base_height = 5},
+\code{aspect.ratio}, and legend geometry.
+\item \strong{Faceting} — \code{\link{facet_plot}()} wraps the plot
+with \code{facet_wrap} / \code{facet_grid} if \code{facet_by} is
+provided.
+}
+}
+
 \keyword{internal}
