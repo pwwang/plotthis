@@ -2,7 +2,7 @@
 % Please edit documentation in R/velocityplot.R
 \name{.compute_velocity_on_grid}
 \alias{.compute_velocity_on_grid}
-\title{Compute velocity on grid}
+\title{Compute velocity on a regular grid from sparse cell embeddings}
 \usage{
 .compute_velocity_on_grid(
   embedding,
@@ -17,25 +17,31 @@
 )
 }
 \arguments{
-\item{embedding}{A matrix of dimension n_obs x n_dim specifying the embedding coordinates of the cells.}
+\item{embedding}{A numeric matrix of dimension n_obs x n_dim containing the low-dimensional embedding coordinates of each cell.}
 
-\item{v_embedding}{A matrix of dimension n_obs x n_dim specifying the velocity vectors of the cells.}
+\item{v_embedding}{A numeric matrix of dimension n_obs x n_dim containing the velocity vectors for each cell.}
 
-\item{density}{An optional numeric value specifying the density of the grid points along each dimension. Default is 1.}
+\item{density}{A numeric value specifying the density of the grid points along each dimension. Higher values produce a finer grid. Default is 1.}
 
-\item{smooth}{An optional numeric value specifying the smoothing factor for the velocity vectors. Default is 0.5.}
+\item{smooth}{A numeric value specifying the standard deviation multiplier for the Gaussian kernel used to weight neighboring cells when averaging velocities onto grid points. Default is 0.5.}
 
-\item{n_neighbors}{An optional numeric value specifying the number of nearest neighbors for each grid point. Default is ceiling(n_obs / 50).}
+\item{n_neighbors}{An integer value specifying the number of nearest neighbors to consider for each grid point when computing the weighted average velocity. Default is \code{ceiling(n_obs / 50)}.}
 
-\item{min_mass}{An optional numeric value specifying the minimum mass required for a grid point to be considered. Default is 1.}
+\item{min_mass}{A numeric value specifying the minimum mass threshold. Grid points with total weight below this threshold are filtered out. When \code{adjust_for_stream = TRUE}, this is interpreted on a logarithmic scale (\code{10^(min_mass - 6)}). Default is 1.}
 
-\item{scale}{An optional numeric value specifying the scaling factor for the velocity vectors. Default is 1.}
+\item{scale}{A numeric value specifying the scaling factor to apply to the resulting grid velocity vectors. Only used when \code{adjust_for_stream = FALSE}. Default is 1.}
 
-\item{adjust_for_stream}{A logical value indicating whether to adjust the velocity vectors for streamlines. Default is FALSE.}
+\item{adjust_for_stream}{A logical value indicating whether to adjust the output for streamline rendering. When \code{TRUE}, returns a 2D array format with different filtering logic suitable for \code{metR::geom_streamline}. Default is \code{FALSE}.}
 
-\item{cutoff_perc}{An optional numeric value specifying the percentile cutoff for removing low-density grid points. Default is 5.}
+\item{cutoff_perc}{A numeric value specifying the percentile cutoff for removing low-density grid points. Only used when \code{adjust_for_stream = TRUE}. Default is 5.}
+}
+\value{
+A list with components \code{x_grid} (grid point coordinates) and \code{v_grid} (velocity vectors at each grid point). When \code{adjust_for_stream = TRUE}, \code{x_grid} is a 2-row matrix of unique coordinates and \code{v_grid} is a 3D array.
 }
 \description{
-The original python code is on https://github.com/theislab/scvelo/blob/master/scvelo/plotting/velocity_embedding_grid.py
+Computes velocity vectors on a regular grid by averaging cell-level velocities
+within a Gaussian-weighted neighborhood of each grid point. This function is
+adapted from the scvelo Python implementation at
+\url{https://github.com/theislab/scvelo/blob/master/scvelo/plotting/velocity_embedding_grid.py}.
 }
 \keyword{internal}

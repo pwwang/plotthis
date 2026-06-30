@@ -5,7 +5,7 @@
 \alias{.flip_y.SpatRaster}
 \alias{.flip_y.SpatVector}
 \alias{.flip_y.data.frame}
-\title{Flip values on the y-axis direction, and negate the Y-Coordinates of SpatRaster, SpatVector Object and data.frame}
+\title{Flip y-coordinates for spatial data objects}
 \usage{
 .flip_y(data, ...)
 
@@ -16,25 +16,36 @@
 \method{.flip_y}{data.frame}(data, y = "y", ...)
 }
 \arguments{
-\item{data}{A \code{SpatRaster} or \code{SpatVector} object from the \code{terra} package, or a data.frame with x and y columns.}
+\item{data}{A \code{SpatRaster}, \code{SpatVector}, or \code{data.frame}.}
+
+\item{...}{Additional arguments (not used).}
+
+\item{y}{A character string specifying the y column name for \code{data.frame}
+input. Ignored for \code{SpatRaster} and \code{SpatVector}. Default is \code{"y"}.}
 }
 \value{
-For \code{SpatRaster} input, a \code{SpatRaster} object with flipped y-coordinates and adjusted extent.
-For \code{SpatVector} input, a \code{SpatVector} object with y-coordinates negated.
-For \code{data.frame} input, a data frame with the specified y column negated.
+For \code{SpatRaster} input, a \code{SpatRaster} flipped vertically with
+negated y-extent. For \code{SpatVector} input, a \code{SpatVector} with
+negated y-coordinates. For \code{data.frame} input, a data frame with the
+specified \code{y} column negated.
 }
 \description{
-These internal functions flip the y-coordinates of \code{SpatRaster} and \code{SpatVector} objects from the \code{terra} package.
-For rasters, the function vertically flips the raster and adjusts its extent accordingly.
-For vectors, the function negates the y-coordinates of all geometries.
-For data frames, it negates the values in the specified y column.
+These internal S3 methods flip the y-coordinates of \code{SpatRaster},
+\code{SpatVector}, and \code{data.frame} objects.
+
+For rasters, the raster is flipped vertically and its extent is negated.
+For vectors, the y-coordinates of all geometries are negated.
+For data frames, the specified y column is negated.
 }
 \details{
-These functions are intended for internal use to facilitate coordinate transformations.
-When visualizing spatial data, it is often necessary to flip the y-axis to put the origin at the top left corner.
-However, a lot of elements have to be visualized with \code{\link[ggplot2:ggsf]{ggplot2::geom_sf()}}, which won't work with
-\code{\link[ggplot2:scale_continuous]{ggplot2::scale_y_reverse()}}. See also \href{https://github.com/tidyverse/ggplot2/issues/4021#issuecomment-650787582}{this GitHub issue comment}.
-So we need these functions to flip the values along the y-axis and negate the y-coordinates.
-This way, we can remove the negative sign from the y-axis labels to mimick the behavior of \code{scale_y_reverse()}.#'
+These functions are intended for internal use to facilitate coordinate
+transformations. When visualizing spatial data, it is often necessary to
+flip the y-axis to put the origin at the top-left corner. However,
+\code{\link[ggplot2]{geom_sf}()} does not work with
+\code{\link[ggplot2]{scale_y_reverse}()}. See
+\href{https://github.com/tidyverse/ggplot2/issues/4021#issuecomment-650787582}{this
+GitHub comment} for details. These functions negate the y-coordinates so
+that the axis labels can be displayed with reversed sign, mimicking
+\code{scale_y_reverse()}.
 }
 \keyword{internal}
