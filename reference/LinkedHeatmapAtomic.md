@@ -69,6 +69,7 @@ LinkedHeatmapAtomic(
   show_column_names = NULL,
   border = TRUE,
   title = NULL,
+  title_gp = NULL,
   column_title = NULL,
   row_title = NULL,
   na_col = "grey85",
@@ -330,7 +331,16 @@ LinkedHeatmapAtomic(
 - title:
 
   A character string for the overall plot title. A function can be used
-  to generate a dynamic title from the default.
+  to generate a dynamic title from the default. Note that, `left_title`
+  and `right_title` are used to set the title for each heatmap, and
+  `title` is used to set the overall title for the combined plot.
+
+- title_gp:
+
+  A [`gpar`](https://rdrr.io/r/grid/gpar.html) object controlling the
+  graphical parameters of the overall plot title (font size, font face,
+  color, etc.). Only used when `title` is not `NULL`. Default is
+  `gpar(fontsize = 14, fontface = "bold")`.
 
 - column_title, row_title:
 

@@ -117,6 +117,7 @@ everything into a composite <code>grid</code> layout.</p>
 <span>  show_column_names <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  border <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  title <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  title_gp <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  column_title <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  row_title <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  na_col <span class="op">=</span> <span class="st">"grey85"</span>,</span>
@@ -390,7 +391,16 @@ lets <code>HeatmapAtomic</code> decide based on
 
 <dt id="arg-title">title<a class="anchor" aria-label="anchor" href="#arg-title"></a></dt>
 <dd><p>A character string for the overall plot title.  A function
-can be used to generate a dynamic title from the default.</p></dd>
+can be used to generate a dynamic title from the default.
+Note that, <code>left_title</code> and <code>right_title</code> are used to set the title for each heatmap,
+and <code>title</code> is used to set the overall title for the combined plot.</p></dd>
+
+
+<dt id="arg-title-gp">title_gp<a class="anchor" aria-label="anchor" href="#arg-title-gp"></a></dt>
+<dd><p>A <code><a href="https://rdrr.io/r/grid/gpar.html" class="external-link">gpar</a></code> object controlling the graphical
+parameters of the overall plot title (font size, font face, color, etc.).
+Only used when <code>title</code> is not <code>NULL</code>.
+Default is <code>gpar(fontsize = 14, fontface = "bold")</code>.</p></dd>
 
 
 <dt id="arg-column-title-row-title">column_title, row_title<a class="anchor" aria-label="anchor" href="#arg-column-title-row-title"></a></dt>
