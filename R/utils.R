@@ -1307,8 +1307,11 @@ prepare_continuous_color_scale <- function(
     if (!is.null(bg_cutoff)) {
         data[[column]][data[[column]] <= bg_cutoff] <- NA
     }
+
     if (all(is.na(data[[column]]))) {
         feat_colors_value <- rep(0, 100)
+        feat_colors_value[1] <- 0
+        feat_colors_value[100] <- 1e-3
     } else {
         lower_cutoff <- lower_cutoff %||%
             quantile(
@@ -1329,12 +1332,16 @@ prepare_continuous_color_scale <- function(
                 upper_cutoff <- upper_cutoff + upper_cutoff * 1e-3
             }
         }
+        if (upper_cutoff - lower_cutoff < 1e-6) {
+            upper_cutoff <- lower_cutoff + 1e-3
+        }
         feat_colors_value <- seq(
             lower_cutoff,
             upper_cutoff,
             length.out = 100
         )
     }
+
     data[[column]][
         data[[column]] > max(feat_colors_value, na.rm = TRUE)
     ] <- max(feat_colors_value, na.rm = TRUE)

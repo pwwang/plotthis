@@ -487,14 +487,6 @@ DotPlotAtomic <- function(
         )
         data <- result$data
         feat_colors_value <- result$feat_colors_value
-        if (max(feat_colors_value, na.rm = TRUE) - min(feat_colors_value, na.rm = TRUE) < 1e-8) {
-            warning(
-                "[DotPlot/LollipopPlot] 'fill_by' has a single unique value after quantile/cutoff processing.",
-                immediate. = TRUE
-            )
-            feat_colors_value[1] <- min(feat_colors_value, na.rm = TRUE) * .99
-            feat_colors_value[length(feat_colors_value)] <- max(feat_colors_value, na.rm = TRUE) * 1.01
-        }
     }
 
     just <- calc_just(x_text_angle)
