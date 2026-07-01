@@ -13,7 +13,7 @@
 - fix(heatmap): remove return_grob parameter and wrap heatmap with patchwork
 - fix(radarplot): correct assignment of split_by variable and update combine_plots call
 - fix(combine_plots): refine data handling in combine_plots function for layer-specific data integrity
-- fix(DotPlot): add warning for single unique value in 'fill_by' after processing
+- fix(utils): adjust color scale handling for edge cases in `prepare_continuous_color_scale`
 - fix: include split_by in keep_na and keep_empty checks for FeatureDimPlot function
 - style: use air to format all source files
 - chore: add .codegraph to .gitignore to exclude codegraph files from version control
