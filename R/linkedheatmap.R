@@ -172,6 +172,10 @@
 #'  can be used to generate a dynamic title from the default.
 #'  Note that, `left_title` and `right_title` are used to set the title for each heatmap,
 #'  and `title` is used to set the overall title for the combined plot.
+#' @param title_gp A \code{\link[grid]{gpar}} object controlling the graphical
+#'  parameters of the overall plot title (font size, font face, color, etc.).
+#'  Only used when \code{title} is not \code{NULL}.
+#'  Default is \code{gpar(fontsize = 14, fontface = "bold")}.
 #' @param column_title,row_title Character title displayed above the columns
 #'  / beside the rows of each heatmap.
 #' @param na_col Colour used for \code{NA} cells.  Default \code{"grey85"}.
@@ -334,6 +338,7 @@ LinkedHeatmapAtomic <- function(
     show_column_names = NULL,
     border = TRUE,
     title = NULL,
+    title_gp = NULL,
     column_title = NULL,
     row_title = NULL,
     na_col = "grey85",
@@ -886,12 +891,21 @@ LinkedHeatmapAtomic <- function(
         }
     }
 
-    # ── Plot dimensions (heatmap body + legend) ──
+    # ── Plot dimensions (heatmap body + legend + title) ──
+    # Resolve title graphical parameters and height
+    if (!is.null(title)) {
+        title_gp <- title_gp %||% gpar()
+        title_gp$fontsize <- title_gp$fontsize %||% 14
+        title_gp$fontface <- title_gp$fontface %||% "bold"
+        title_h <- 0.5  # inches reserved for title
+    } else {
+        title_h <- 0
+    }
     plot_w <- total_w
-    plot_h <- total_h
+    plot_h <- total_h + title_h
     if (show_legend) {
         plot_w <- total_w + legend_gap + legend_w
-        plot_h <- total_h + legend_gap + legend_h
+        plot_h <- total_h + legend_gap + legend_h + title_h
     }
 
     # ── Link position computation ──
@@ -924,6 +938,7 @@ LinkedHeatmapAtomic <- function(
     # Build grid layout dynamically based on legend.position.
     # Heatmaps always occupy one row of 3 columns (left | gap | right).
     # The legend gets an extra column (left/right) or an extra row (top/bottom).
+    # When an overall title is provided, a title row is added at the top.
     pos_left <- legend.position == "left"
     pos_right <- legend.position == "right"
     pos_top <- legend.position == "top"
@@ -990,6 +1005,16 @@ LinkedHeatmapAtomic <- function(
         hm_row <- 1L
     }
 
+    # Adjust layout for overall title (added as a top row)
+    if (!is.null(title)) {
+        n_rows <- n_rows + 1L
+        row_heights <- unit.c(unit(title_h, "inches"), row_heights)
+        hm_row <- hm_row + 1L
+        if (show_legend && (pos_left || pos_right || pos_top || pos_bottom)) {
+            lg_row <- lg_row + 1L
+        }
+    }
+
     p <- grid.grabExpr({
         grid.newpage()
         pushViewport(viewport(
@@ -1000,6 +1025,17 @@ LinkedHeatmapAtomic <- function(
                 heights = row_heights
             )
         ))
+
+        # Overall title
+        if (!is.null(title)) {
+            pushViewport(viewport(
+                layout.pos.row = 1,
+                layout.pos.col = 1:n_cols
+            ))
+            # TODO: a better way to control title placement and alignment
+            grid.text(title, x = unit(0.01, "npc"), y = unit(0.5, "npc"), gp = title_gp)
+            popViewport()
+        }
 
         # Left heatmap — centered exact-size viewport so ComplexHeatmap
         # sizes the body to exactly n_left_rows × cell_h
@@ -1016,6 +1052,7 @@ LinkedHeatmapAtomic <- function(
         ))
         ComplexHeatmap::draw(
             left_ht,
+            # TODO: take this into account when computing the links-rows alignment
             column_title = left_args$title,
             newpage = FALSE,
             show_heatmap_legend = FALSE,
@@ -1369,6 +1406,7 @@ LinkedHeatmap <- function(
     show_column_names = NULL,
     border = TRUE,
     title = NULL,
+    title_gp = NULL,
     column_title = NULL,
     row_title = NULL,
     na_col = "grey85",
@@ -1619,6 +1657,7 @@ LinkedHeatmap <- function(
         args_atomic$show_column_names <- show_column_names
         args_atomic$border <- border
         args_atomic$title <- title
+        args_atomic$title_gp <- title_gp
         args_atomic$column_title <- column_title
         args_atomic$row_title <- row_title
         args_atomic$na_col <- na_col
