@@ -170,6 +170,8 @@
 #'  \code{TRUE}.
 #' @param title A character string for the overall plot title.  A function
 #'  can be used to generate a dynamic title from the default.
+#'  Note that, `left_title` and `right_title` are used to set the title for each heatmap,
+#'  and `title` is used to set the overall title for the combined plot.
 #' @param column_title,row_title Character title displayed above the columns
 #'  / beside the rows of each heatmap.
 #' @param na_col Colour used for \code{NA} cells.  Default \code{"grey85"}.
@@ -449,7 +451,6 @@ LinkedHeatmapAtomic <- function(
     left_args$show_column_names <- left_args$show_column_names %||%
         show_column_names
     left_args$border <- left_args$border %||% border
-    left_args$title <- left_args$title %||% title
     left_args$column_title <- left_args$column_title %||% column_title
     left_args$row_title <- left_args$row_title %||% row_title
     left_args$na_col <- left_args$na_col %||% na_col
@@ -543,7 +544,6 @@ LinkedHeatmapAtomic <- function(
     right_args$show_column_names <- right_args$show_column_names %||%
         show_column_names
     right_args$border <- right_args$border %||% border
-    right_args$title <- right_args$title %||% title
     right_args$column_title <- right_args$column_title %||% column_title
     right_args$row_title <- right_args$row_title %||% row_title
     right_args$na_col <- right_args$na_col %||% na_col
@@ -1016,6 +1016,7 @@ LinkedHeatmapAtomic <- function(
         ))
         ComplexHeatmap::draw(
             left_ht,
+            column_title = left_args$title,
             newpage = FALSE,
             show_heatmap_legend = FALSE,
             show_annotation_legend = FALSE,
@@ -1038,6 +1039,7 @@ LinkedHeatmapAtomic <- function(
         ))
         ComplexHeatmap::draw(
             right_ht,
+            column_title = right_args$title,
             newpage = FALSE,
             show_heatmap_legend = FALSE,
             show_annotation_legend = FALSE,

@@ -242,7 +242,9 @@ lets \code{HeatmapAtomic} decide based on
 \code{TRUE}.}
 
 \item{title}{A character string for the overall plot title.  A function
-can be used to generate a dynamic title from the default.}
+can be used to generate a dynamic title from the default.
+Note that, \code{left_title} and \code{right_title} are used to set the title for each heatmap,
+and \code{title} is used to set the overall title for the combined plot.}
 
 \item{column_title, row_title}{Character title displayed above the columns
 / beside the rows of each heatmap.}
