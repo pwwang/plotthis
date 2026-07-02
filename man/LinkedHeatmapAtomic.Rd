@@ -65,19 +65,20 @@ LinkedHeatmapAtomic(
   row_title = NULL,
   na_col = "grey85",
   column_names_side = "bottom",
-  column_annotation = NULL,
-  column_annotation_side = "top",
-  column_annotation_palette = "Paired",
-  column_annotation_palcolor = NULL,
-  column_annotation_type = "auto",
-  column_annotation_params = list(),
-  column_annotation_agg = NULL,
   row_annotation = NULL,
-  row_annotation_palette = "Paired",
+  row_annotation_side = NULL,
+  row_annotation_palette = NULL,
   row_annotation_palcolor = NULL,
-  row_annotation_type = "auto",
-  row_annotation_params = list(),
+  row_annotation_type = NULL,
+  row_annotation_params = NULL,
   row_annotation_agg = NULL,
+  column_annotation = NULL,
+  column_annotation_side = NULL,
+  column_annotation_palette = NULL,
+  column_annotation_palcolor = NULL,
+  column_annotation_type = NULL,
+  column_annotation_params = NULL,
+  column_annotation_agg = NULL,
   links_span = 0.5,
   links_width_by = NULL,
   links_width_scale = 5,
@@ -260,30 +261,47 @@ Default is \code{gpar(fontsize = 14, fontface = "bold")}.}
 \item{column_names_side}{Side for column names.  Default
 \code{"bottom"}.}
 
-\item{column_annotation}{A character vector of column names, or a named
-list, specifying column annotations for both heatmaps.  See
-\code{\link{HeatmapAtomic}} for the full specification.}
+\item{row_annotation}{A structured list specifying row annotations.
+See \code{\link{HeatmapAtomic}} for the full specification.}
 
-\item{column_annotation_side}{Side for column annotations:
-\code{"top"} (default) or \code{"bottom"}.  Can also be a named list
-for per-annotation control.}
+\item{row_annotation_side}{\strong{Deprecated}: use
+\code{row_annotation} with the \code{side} sub-key instead.}
 
-\item{column_annotation_palette, column_annotation_palcolor}{Palette and
-custom colours for column annotations.}
+\item{row_annotation_palette}{\strong{Deprecated}: use
+\code{row_annotation} with the \code{palette} sub-key instead.}
 
-\item{column_annotation_type}{Annotation type: \code{"auto"} (default),
-\code{"simple"}, \code{"pie"}, \code{"ring"}, \code{"bar"},
-\code{"violin"}, \code{"boxplot"}, \code{"density"}, \code{"label"}.
-Can be a named list for per-annotation control.}
+\item{row_annotation_palcolor}{\strong{Deprecated}: use
+\code{row_annotation} with the \code{palcolor} sub-key instead.}
 
-\item{column_annotation_params}{A named list of additional parameters
-passed to each column annotation function.  See
-\code{\link{HeatmapAtomic}} for details.}
+\item{row_annotation_type}{\strong{Deprecated}: use
+\code{row_annotation} with the \code{type} sub-key instead.}
 
-\item{column_annotation_agg}{A function or named list of functions to
-aggregate values for each column annotation.}
+\item{row_annotation_params}{\strong{Deprecated}: use
+\code{row_annotation} with the \code{params} sub-key instead.}
 
-\item{row_annotation, row_annotation_palette, row_annotation_palcolor, row_annotation_type, row_annotation_params, row_annotation_agg}{Row annotation equivalents of the \code{column_annotation_*} parameters.}
+\item{row_annotation_agg}{\strong{Deprecated}: use
+\code{row_annotation} with the \code{agg} sub-key instead.}
+
+\item{column_annotation}{A structured list specifying column annotations.
+See \code{\link{HeatmapAtomic}} for the full specification.}
+
+\item{column_annotation_side}{\strong{Deprecated}: use
+\code{column_annotation} with the \code{side} sub-key instead.}
+
+\item{column_annotation_palette}{\strong{Deprecated}: use
+\code{column_annotation} with the \code{palette} sub-key instead.}
+
+\item{column_annotation_palcolor}{\strong{Deprecated}: use
+\code{column_annotation} with the \code{palcolor} sub-key instead.}
+
+\item{column_annotation_type}{\strong{Deprecated}: use
+\code{column_annotation} with the \code{type} sub-key instead.}
+
+\item{column_annotation_params}{\strong{Deprecated}: use
+\code{column_annotation} with the \code{params} sub-key instead.}
+
+\item{column_annotation_agg}{\strong{Deprecated}: use
+\code{column_annotation} with the \code{agg} sub-key instead.}
 
 \item{links_span}{Width (in inches) of the gap column between the two
 heatmaps where link curves are drawn.  Default 0.5.}

@@ -59,20 +59,20 @@ HeatmapAtomic(
   na_col = "grey85",
   row_names_side = "right",
   column_names_side = "bottom",
-  column_annotation = NULL,
-  column_annotation_side = "top",
-  column_annotation_palette = "Paired",
-  column_annotation_palcolor = NULL,
-  column_annotation_type = "auto",
-  column_annotation_params = list(),
-  column_annotation_agg = NULL,
   row_annotation = NULL,
-  row_annotation_side = "left",
-  row_annotation_palette = "Paired",
+  row_annotation_side = NULL,
+  row_annotation_palette = NULL,
   row_annotation_palcolor = NULL,
-  row_annotation_type = "auto",
-  row_annotation_params = list(),
+  row_annotation_type = NULL,
+  row_annotation_params = NULL,
   row_annotation_agg = NULL,
+  column_annotation = NULL,
+  column_annotation_side = NULL,
+  column_annotation_palette = NULL,
+  column_annotation_palcolor = NULL,
+  column_annotation_type = NULL,
+  column_annotation_params = NULL,
+  column_annotation_agg = NULL,
   flip = FALSE,
   alpha = 1,
   seed = 8525,
@@ -255,42 +255,87 @@ annotation title.}
 
 \item{column_names_side}{Side for column names.  Default \code{"bottom"}.}
 
-\item{column_annotation}{A character vector of column names, or a named
-list, specifying column annotations.  See the \strong{Annotations}
-section for the full specification.}
+\item{row_annotation}{A structured list specifying row annotations.
+Same format as \code{column_annotation}.  Sides default to
+\code{"left"}.  Aliases: \code{.row}/\code{.rows} for
+\code{rows_by}, \code{.row.split}/\code{.rows.split} for
+\code{rows_split_by}.}
 
-\item{column_annotation_side}{A character string or named list
-specifying which side each column annotation is placed on.  Accepts
-\code{"top"} (default) or \code{"bottom"}.  With a named list, use
-keys \code{.col}, \code{.col.split}, and \code{.default} for
-per-annotation control.}
+\item{row_annotation_side}{\strong{Deprecated}: use
+\code{row_annotation} with the \code{side} sub-key instead.}
 
-\item{column_annotation_palette, column_annotation_palcolor}{Palette and
-custom colours for column annotations.  Can be a named list keyed by
-annotation name.}
+\item{row_annotation_palette}{\strong{Deprecated}: use
+\code{row_annotation} with the \code{palette} sub-key instead.}
 
-\item{column_annotation_type}{Annotation type: \code{"auto"} (default),
-\code{"simple"}, \code{"pie"}, \code{"ring"}, \code{"bar"},
-\code{"violin"}, \code{"boxplot"}, \code{"density"}, \code{"label"},
-\code{"points"}, \code{"lines"}.  Can be a named list for
-per-annotation control.  Aliases: \code{.col.split}, \code{.col}.}
+\item{row_annotation_palcolor}{\strong{Deprecated}: use
+\code{row_annotation} with the \code{palcolor} sub-key instead.}
 
-\item{column_annotation_params}{A named list of additional parameters
-passed to each column annotation function.  Use aliases
-\code{.col}/\code{.cols} for \code{columns_by} and
-\code{.col.split}/\code{.cols.split} for \code{columns_split_by}.
-Setting a key to \code{FALSE} disables that annotation;
-\code{$<key>$show_legend} controls its legend visibility.
-See \code{\link[ComplexHeatmap]{HeatmapAnnotation}} for details.}
+\item{row_annotation_type}{\strong{Deprecated}: use
+\code{row_annotation} with the \code{type} sub-key instead.}
 
-\item{column_annotation_agg}{A function or named list of functions to
-aggregate values for each column annotation.  Defaults vary by
-annotation type.}
+\item{row_annotation_params}{\strong{Deprecated}: use
+\code{row_annotation} with the \code{params} sub-key instead.}
 
-\item{row_annotation, row_annotation_side, row_annotation_palette, row_annotation_palcolor, row_annotation_type, row_annotation_params, row_annotation_agg}{Row annotation equivalents of the \code{column_annotation_*}
-parameters.  Sides default to \code{"left"}.  Aliases: \code{.row}
-/\code{.rows} for \code{rows_by}, \code{.rows.split}/\code{.row.split}
-for \code{rows_split_by}.}
+\item{row_annotation_agg}{\strong{Deprecated}: use
+\code{row_annotation} with the \code{agg} sub-key instead.}
+
+\item{column_annotation}{A structured list specifying column annotations.
+Each entry is a named list with sub-keys:
+\describe{
+\item{\code{col}}{Column name in \code{data} supplying the annotation
+values.  If omitted, the entry name is used as the column name.}
+\item{\code{side}}{\code{"top"} or \code{"bottom"}.}
+\item{\code{palette}}{Palette name (see \code{\link{show_palettes}}).}
+\item{\code{palcolor}}{Custom colour vector overriding \code{palette}.}
+\item{\code{type}}{Annotation type: \code{"auto"}, \code{"simple"},
+\code{"pie"}, \code{"ring"}, \code{"bar"}, \code{"violin"},
+\code{"boxplot"}, \code{"density"}, \code{"label"}, \code{"points"},
+\code{"lines"}.}
+\item{\code{params}}{A list of additional parameters passed to the
+annotation constructor.  \code{FALSE} disables the annotation.
+\code{$show_legend} controls legend visibility.  See
+\code{\link[ComplexHeatmap]{HeatmapAnnotation}}.}
+\item{\code{agg}}{A function to aggregate values for the annotation.}
+}
+\strong{Shortcuts:}
+\itemize{
+\item \code{column_annotation = list(Score = "score")} is short for
+\code{list(Score = list(col = "score"))}.
+\item \code{column_annotation = TRUE} enables annotations with
+defaults.  \code{FALSE} disables all column annotations.
+}
+\strong{Special keys:}
+\itemize{
+\item \code{.default} — default values inherited by all entries.
+\code{params} is merged recursively; other keys are inherited
+only when the entry does not already specify them.
+\item \code{.col} / \code{.cols} / \code{.column} / \code{.columns} —
+alias for \code{columns_by} (the built-in name annotation).
+\item \code{.col.split} / \code{.cols.split} / \code{.column.split} /
+\code{.columns.split} — alias for \code{columns_split_by}
+(the built-in split annotation).
+\item \code{.row} / \code{.rows} — alias for \code{rows_by}.
+\item \code{.row.split} / \code{.rows.split} — alias for
+\code{rows_split_by}.
+}}
+
+\item{column_annotation_side}{\strong{Deprecated}: use
+\code{column_annotation} with the \code{side} sub-key instead.}
+
+\item{column_annotation_palette}{\strong{Deprecated}: use
+\code{column_annotation} with the \code{palette} sub-key instead.}
+
+\item{column_annotation_palcolor}{\strong{Deprecated}: use
+\code{column_annotation} with the \code{palcolor} sub-key instead.}
+
+\item{column_annotation_type}{\strong{Deprecated}: use
+\code{column_annotation} with the \code{type} sub-key instead.}
+
+\item{column_annotation_params}{\strong{Deprecated}: use
+\code{column_annotation} with the \code{params} sub-key instead.}
+
+\item{column_annotation_agg}{\strong{Deprecated}: use
+\code{column_annotation} with the \code{agg} sub-key instead.}
 
 \item{flip}{Logical; if \code{TRUE}, swap rows and columns
 transparently.  The caller does not need to swap row- and
@@ -362,14 +407,14 @@ Removed parameters: \code{rows_palette}, \code{rows_palcolor},
 \code{columns_palette}, \code{columns_palcolor},
 \code{columns_split_palette}, \code{columns_split_palcolor},
 \code{rows_split_palette}, \code{rows_split_palcolor} — use
-\code{row_annotation_palette}/\code{row_annotation_palcolor} with
-key \code{.row} or \code{.rows.split}, and
-\code{column_annotation_palette}/\code{column_annotation_palcolor}
-with \code{.col} or \code{.col.split}.  Also removed:
+\code{row_annotation}/\code{column_annotation} with
+sub-key \code{palette}/\code{palcolor} and alias
+\code{.row} / \code{.row.split} / \code{.col} / \code{.col.split}.
+Also removed:
 \code{row_name_annotation}, \code{row_name_legend},
 \code{column_name_annotation}, \code{column_name_legend} — set
-\code{row_annotation_params$.row} / \code{column_annotation_params$.col}
-to \code{FALSE} and use \code{$show_legend} within the param entry.
+\code{row_annotation = list(.row = list(params = FALSE))} /
+\code{column_annotation = list(.col = list(params = FALSE))}.
 }
 \section{Architecture}{
 
@@ -460,17 +505,18 @@ coordinates.
 
 \section{Annotations}{
 
-Row and column annotations are built via
-\code{\link[ComplexHeatmap]{HeatmapAnnotation}}.  Built-in name
-annotations (for \code{rows_by} / \code{columns_by}) and split
-annotations (for \code{rows_split_by} / \code{columns_split_by}) are
-added automatically and can be configured using the aliases
-\code{.row} / \code{.col} and \code{.rows.split} / \code{.col.split}
-in \code{row_annotation_params}, \code{column_annotation_type}, etc.
-Setting an alias to \code{FALSE} in \code{*_params} disables that
-annotation.  Ordering within each side: name annotations are closest
-to the body, split annotations farthest away, user-defined annotations
-in between.
+Row and column annotations are configured via the
+\code{row_annotation} / \code{column_annotation} structured list
+arguments.  Built-in name annotations (for \code{rows_by} /
+\code{columns_by}) and split annotations (for \code{rows_split_by} /
+\code{columns_split_by}) are added automatically and can be configured
+using the aliases \code{.row} / \code{.col} and \code{.row.split} /
+\code{.col.split} as keys in the annotation list.  Setting an alias
+entry's \code{params} to \code{FALSE} disables that annotation.
+\code{.default} provides default values inherited by all entries
+(with recursive merge for \code{params}).  Ordering within each side:
+name annotations are closest to the body, split annotations farthest
+away, user-defined annotations in between.
 }
 
 \keyword{internal}

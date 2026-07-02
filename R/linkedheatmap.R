@@ -182,26 +182,35 @@
 #' @param column_names_side Side for column names.  Default
 #'  \code{"bottom"}.
 #'
-#' @param column_annotation A character vector of column names, or a named
-#'  list, specifying column annotations for both heatmaps.  See
-#'  \code{\link{HeatmapAtomic}} for the full specification.
-#' @param column_annotation_side Side for column annotations:
-#'  \code{"top"} (default) or \code{"bottom"}.  Can also be a named list
-#'  for per-annotation control.
-#' @param column_annotation_palette,column_annotation_palcolor Palette and
-#'  custom colours for column annotations.
-#' @param column_annotation_type Annotation type: \code{"auto"} (default),
-#'  \code{"simple"}, \code{"pie"}, \code{"ring"}, \code{"bar"},
-#'  \code{"violin"}, \code{"boxplot"}, \code{"density"}, \code{"label"}.
-#'  Can be a named list for per-annotation control.
-#' @param column_annotation_params A named list of additional parameters
-#'  passed to each column annotation function.  See
-#'  \code{\link{HeatmapAtomic}} for details.
-#' @param column_annotation_agg A function or named list of functions to
-#'  aggregate values for each column annotation.
+#' @param column_annotation A structured list specifying column annotations.
+#'  See \code{\link{HeatmapAtomic}} for the full specification.
+#' @param column_annotation_side \strong{Deprecated}: use
+#'  \code{column_annotation} with the \code{side} sub-key instead.
+#' @param column_annotation_palette \strong{Deprecated}: use
+#'  \code{column_annotation} with the \code{palette} sub-key instead.
+#' @param column_annotation_palcolor \strong{Deprecated}: use
+#'  \code{column_annotation} with the \code{palcolor} sub-key instead.
+#' @param column_annotation_type \strong{Deprecated}: use
+#'  \code{column_annotation} with the \code{type} sub-key instead.
+#' @param column_annotation_params \strong{Deprecated}: use
+#'  \code{column_annotation} with the \code{params} sub-key instead.
+#' @param column_annotation_agg \strong{Deprecated}: use
+#'  \code{column_annotation} with the \code{agg} sub-key instead.
 #'
-#' @param row_annotation,row_annotation_palette,row_annotation_palcolor,row_annotation_type,row_annotation_params,row_annotation_agg
-#'  Row annotation equivalents of the \code{column_annotation_*} parameters.
+#' @param row_annotation A structured list specifying row annotations.
+#'  See \code{\link{HeatmapAtomic}} for the full specification.
+#' @param row_annotation_side \strong{Deprecated}: use
+#'  \code{row_annotation} with the \code{side} sub-key instead.
+#' @param row_annotation_palette \strong{Deprecated}: use
+#'  \code{row_annotation} with the \code{palette} sub-key instead.
+#' @param row_annotation_palcolor \strong{Deprecated}: use
+#'  \code{row_annotation} with the \code{palcolor} sub-key instead.
+#' @param row_annotation_type \strong{Deprecated}: use
+#'  \code{row_annotation} with the \code{type} sub-key instead.
+#' @param row_annotation_params \strong{Deprecated}: use
+#'  \code{row_annotation} with the \code{params} sub-key instead.
+#' @param row_annotation_agg \strong{Deprecated}: use
+#'  \code{row_annotation} with the \code{agg} sub-key instead.
 #'
 #' @param links_span Width (in inches) of the gap column between the two
 #'  heatmaps where link curves are drawn.  Default 0.5.
@@ -343,19 +352,20 @@ LinkedHeatmapAtomic <- function(
     row_title = NULL,
     na_col = "grey85",
     column_names_side = "bottom",
-    column_annotation = NULL,
-    column_annotation_side = "top",
-    column_annotation_palette = "Paired",
-    column_annotation_palcolor = NULL,
-    column_annotation_type = "auto",
-    column_annotation_params = list(),
-    column_annotation_agg = NULL,
     row_annotation = NULL,
-    row_annotation_palette = "Paired",
+    row_annotation_side = NULL,
+    row_annotation_palette = NULL,
     row_annotation_palcolor = NULL,
-    row_annotation_type = "auto",
-    row_annotation_params = list(),
+    row_annotation_type = NULL,
+    row_annotation_params = NULL,
     row_annotation_agg = NULL,
+    column_annotation = NULL,
+    column_annotation_side = NULL,
+    column_annotation_palette = NULL,
+    column_annotation_palcolor = NULL,
+    column_annotation_type = NULL,
+    column_annotation_params = NULL,
+    column_annotation_agg = NULL,
 
     links_span = 0.5,
     links_width_by = NULL,
@@ -461,6 +471,20 @@ LinkedHeatmapAtomic <- function(
     left_args$na_col <- left_args$na_col %||% na_col
     left_args$column_names_side <- left_args$column_names_side %||%
         column_names_side
+    left_args$row_annotation <- left_args[["row_annotation"]] %||%
+        row_annotation
+    left_args$row_annotation_side <- left_args$row_annotation_side %||%
+        row_annotation_side
+    left_args$row_annotation_palette <- left_args$row_annotation_palette %||%
+        row_annotation_palette
+    left_args$row_annotation_palcolor <- left_args$row_annotation_palcolor %||%
+        row_annotation_palcolor
+    left_args$row_annotation_type <- left_args$row_annotation_type %||%
+        row_annotation_type
+    left_args$row_annotation_params <- left_args$row_annotation_params %||%
+        row_annotation_params
+    left_args$row_annotation_agg <- left_args$row_annotation_agg %||%
+        row_annotation_agg
     left_args$column_annotation <- left_args[["column_annotation"]] %||%
         column_annotation
     left_args$column_annotation_side <- left_args$column_annotation_side %||%
@@ -475,18 +499,6 @@ LinkedHeatmapAtomic <- function(
         column_annotation_params
     left_args$column_annotation_agg <- left_args$column_annotation_agg %||%
         column_annotation_agg
-    left_args$row_annotation <- left_args[["row_annotation"]] %||%
-        row_annotation
-    left_args$row_annotation_palette <- left_args$row_annotation_palette %||%
-        row_annotation_palette
-    left_args$row_annotation_palcolor <- left_args$row_annotation_palcolor %||%
-        row_annotation_palcolor
-    left_args$row_annotation_type <- left_args$row_annotation_type %||%
-        row_annotation_type
-    left_args$row_annotation_params <- left_args$row_annotation_params %||%
-        row_annotation_params
-    left_args$row_annotation_agg <- left_args$row_annotation_agg %||%
-        row_annotation_agg
     # flip
     left_args$alpha <- left_args$alpha %||% alpha
     left_args$padding <- left_args$padding %||% padding
@@ -554,6 +566,20 @@ LinkedHeatmapAtomic <- function(
     right_args$na_col <- right_args$na_col %||% na_col
     right_args$column_names_side <- right_args$column_names_side %||%
         column_names_side
+    right_args$row_annotation <- right_args[["row_annotation"]] %||%
+        row_annotation
+    right_args$row_annotation_side <- right_args$row_annotation_side %||%
+        row_annotation_side
+    right_args$row_annotation_palette <- right_args$row_annotation_palette %||%
+        row_annotation_palette
+    right_args$row_annotation_palcolor <- right_args$row_annotation_palcolor %||%
+        row_annotation_palcolor
+    right_args$row_annotation_type <- right_args$row_annotation_type %||%
+        row_annotation_type
+    right_args$row_annotation_params <- right_args$row_annotation_params %||%
+        row_annotation_params
+    right_args$row_annotation_agg <- right_args$row_annotation_agg %||%
+        row_annotation_agg
     right_args$column_annotation <- right_args[["column_annotation"]] %||%
         column_annotation
     right_args$column_annotation_side <- right_args$column_annotation_side %||%
@@ -568,18 +594,6 @@ LinkedHeatmapAtomic <- function(
         column_annotation_params
     right_args$column_annotation_agg <- right_args$column_annotation_agg %||%
         column_annotation_agg
-    right_args$row_annotation <- right_args[["row_annotation"]] %||%
-        row_annotation
-    right_args$row_annotation_palette <- right_args$row_annotation_palette %||%
-        row_annotation_palette
-    right_args$row_annotation_palcolor <- right_args$row_annotation_palcolor %||%
-        row_annotation_palcolor
-    right_args$row_annotation_type <- right_args$row_annotation_type %||%
-        row_annotation_type
-    right_args$row_annotation_params <- right_args$row_annotation_params %||%
-        row_annotation_params
-    right_args$row_annotation_agg <- right_args$row_annotation_agg %||%
-        row_annotation_agg
     # flip
     right_args$alpha <- right_args$alpha %||% alpha
     right_args$padding <- right_args$padding %||% padding
@@ -1260,7 +1274,8 @@ LinkedHeatmapAtomic <- function(
 #' @param row_names_side Default side for row names.  Used as fallback for
 #'  \code{left_row_names_side} / \code{right_row_names_side}.  Default
 #'  \code{"right"}.
-#' @param row_annotation_side Default side for row annotations.  Used as
+#' @param row_annotation_side \strong{Deprecated}: use
+#'  \code{row_annotation} with the \code{side} sub-key instead.  Used as
 #'  fallback for \code{left_row_annotation_side} /
 #'  \code{right_row_annotation_side}.  Default \code{"left"}.
 #' @param flip Logical; must be \code{FALSE} for linked heatmaps (flipping
@@ -1412,20 +1427,20 @@ LinkedHeatmap <- function(
     na_col = "grey85",
     row_names_side = "right",
     column_names_side = "bottom",
-    column_annotation = NULL,
-    column_annotation_side = "top",
-    column_annotation_palette = "Paired",
-    column_annotation_palcolor = NULL,
-    column_annotation_type = "auto",
-    column_annotation_params = list(),
-    column_annotation_agg = NULL,
     row_annotation = NULL,
-    row_annotation_side = "left",
-    row_annotation_palette = "Paired",
+    row_annotation_side = NULL,
+    row_annotation_palette = NULL,
     row_annotation_palcolor = NULL,
-    row_annotation_type = "auto",
-    row_annotation_params = list(),
+    row_annotation_type = NULL,
+    row_annotation_params = NULL,
     row_annotation_agg = NULL,
+    column_annotation = NULL,
+    column_annotation_side = NULL,
+    column_annotation_palette = NULL,
+    column_annotation_palcolor = NULL,
+    column_annotation_type = NULL,
+    column_annotation_params = NULL,
+    column_annotation_agg = NULL,
     # links
     links_width_by = NULL,
     links_width_scale = 5,
@@ -1663,13 +1678,6 @@ LinkedHeatmap <- function(
         args_atomic$na_col <- na_col
         args_atomic$row_names_side <- row_names_side
         args_atomic$column_names_side <- column_names_side
-        args_atomic$column_annotation <- column_annotation
-        args_atomic$column_annotation_side <- column_annotation_side
-        args_atomic$column_annotation_palette <- column_annotation_palette
-        args_atomic$column_annotation_palcolor <- column_annotation_palcolor
-        args_atomic$column_annotation_type <- column_annotation_type
-        args_atomic$column_annotation_params <- column_annotation_params
-        args_atomic$column_annotation_agg <- column_annotation_agg
         args_atomic$row_annotation <- row_annotation
         args_atomic$row_annotation_side <- row_annotation_side
         args_atomic$row_annotation_palette <- row_annotation_palette
@@ -1677,6 +1685,13 @@ LinkedHeatmap <- function(
         args_atomic$row_annotation_type <- row_annotation_type
         args_atomic$row_annotation_params <- row_annotation_params
         args_atomic$row_annotation_agg <- row_annotation_agg
+        args_atomic$column_annotation <- column_annotation
+        args_atomic$column_annotation_side <- column_annotation_side
+        args_atomic$column_annotation_palette <- column_annotation_palette
+        args_atomic$column_annotation_palcolor <- column_annotation_palcolor
+        args_atomic$column_annotation_type <- column_annotation_type
+        args_atomic$column_annotation_params <- column_annotation_params
+        args_atomic$column_annotation_agg <- column_annotation_agg
 
         args_atomic$links_width_by <- links_width_by
         args_atomic$links_width_scale <- links_width_scale

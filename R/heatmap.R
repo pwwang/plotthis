@@ -140,37 +140,74 @@
 #' @param dot_size Dot size when \code{cell_type = "dot"}.  Can be a
 #'  numeric value or a function.
 #' @param dot_size_name Legend title for the dot size.
-#' @param column_annotation A character vector of column names, or a named
-#'  list, specifying column annotations.  See the \strong{Annotations}
-#'  section for the full specification.
-#' @param column_annotation_side A character string or named list
-#'  specifying which side each column annotation is placed on.  Accepts
-#'  \code{"top"} (default) or \code{"bottom"}.  With a named list, use
-#'  keys \code{.col}, \code{.col.split}, and \code{.default} for
-#'  per-annotation control.
-#' @param column_annotation_palette,column_annotation_palcolor Palette and
-#'  custom colours for column annotations.  Can be a named list keyed by
-#'  annotation name.
-#' @param column_annotation_type Annotation type: \code{"auto"} (default),
-#'  \code{"simple"}, \code{"pie"}, \code{"ring"}, \code{"bar"},
-#'  \code{"violin"}, \code{"boxplot"}, \code{"density"}, \code{"label"},
-#'  \code{"points"}, \code{"lines"}.  Can be a named list for
-#'  per-annotation control.  Aliases: \code{.col.split}, \code{.col}.
-#' @param column_annotation_params A named list of additional parameters
-#'  passed to each column annotation function.  Use aliases
-#'  \code{.col}/\code{.cols} for \code{columns_by} and
-#'  \code{.col.split}/\code{.cols.split} for \code{columns_split_by}.
-#'  Setting a key to \code{FALSE} disables that annotation;
-#'  \code{$<key>$show_legend} controls its legend visibility.
-#'  See \code{\link[ComplexHeatmap]{HeatmapAnnotation}} for details.
-#' @param column_annotation_agg A function or named list of functions to
-#'  aggregate values for each column annotation.  Defaults vary by
-#'  annotation type.
-#' @param row_annotation,row_annotation_side,row_annotation_palette,row_annotation_palcolor,row_annotation_type,row_annotation_params,row_annotation_agg
-#'  Row annotation equivalents of the \code{column_annotation_*}
-#'  parameters.  Sides default to \code{"left"}.  Aliases: \code{.row}
-#'  /\code{.rows} for \code{rows_by}, \code{.rows.split}/\code{.row.split}
-#'  for \code{rows_split_by}.
+#' @param column_annotation A structured list specifying column annotations.
+#'  Each entry is a named list with sub-keys:
+#'  \describe{
+#'    \item{\code{col}}{Column name in \code{data} supplying the annotation
+#'      values.  If omitted, the entry name is used as the column name.}
+#'    \item{\code{side}}{\code{"top"} or \code{"bottom"}.}
+#'    \item{\code{palette}}{Palette name (see \code{\link{show_palettes}}).}
+#'    \item{\code{palcolor}}{Custom colour vector overriding \code{palette}.}
+#'    \item{\code{type}}{Annotation type: \code{"auto"}, \code{"simple"},
+#'      \code{"pie"}, \code{"ring"}, \code{"bar"}, \code{"violin"},
+#'      \code{"boxplot"}, \code{"density"}, \code{"label"}, \code{"points"},
+#'      \code{"lines"}.}
+#'    \item{\code{params}}{A list of additional parameters passed to the
+#'      annotation constructor.  \code{FALSE} disables the annotation.
+#'      \code{$show_legend} controls legend visibility.  See
+#'      \code{\link[ComplexHeatmap]{HeatmapAnnotation}}.}
+#'    \item{\code{agg}}{A function to aggregate values for the annotation.}
+#'  }
+#'  \strong{Shortcuts:}
+#'  \itemize{
+#'    \item \code{column_annotation = list(Score = "score")} is short for
+#'      \code{list(Score = list(col = "score"))}.
+#'    \item \code{column_annotation = TRUE} enables annotations with
+#'      defaults.  \code{FALSE} disables all column annotations.
+#'  }
+#'  \strong{Special keys:}
+#'  \itemize{
+#'    \item \code{.default} — default values inherited by all entries.
+#'      \code{params} is merged recursively; other keys are inherited
+#'      only when the entry does not already specify them.
+#'    \item \code{.col} / \code{.cols} / \code{.column} / \code{.columns} —
+#'      alias for \code{columns_by} (the built-in name annotation).
+#'    \item \code{.col.split} / \code{.cols.split} / \code{.column.split} /
+#'      \code{.columns.split} — alias for \code{columns_split_by}
+#'      (the built-in split annotation).
+#'    \item \code{.row} / \code{.rows} — alias for \code{rows_by}.
+#'    \item \code{.row.split} / \code{.rows.split} — alias for
+#'      \code{rows_split_by}.
+#'  }
+#' @param column_annotation_side \strong{Deprecated}: use
+#'  \code{column_annotation} with the \code{side} sub-key instead.
+#' @param column_annotation_palette \strong{Deprecated}: use
+#'  \code{column_annotation} with the \code{palette} sub-key instead.
+#' @param column_annotation_palcolor \strong{Deprecated}: use
+#'  \code{column_annotation} with the \code{palcolor} sub-key instead.
+#' @param column_annotation_type \strong{Deprecated}: use
+#'  \code{column_annotation} with the \code{type} sub-key instead.
+#' @param column_annotation_params \strong{Deprecated}: use
+#'  \code{column_annotation} with the \code{params} sub-key instead.
+#' @param column_annotation_agg \strong{Deprecated}: use
+#'  \code{column_annotation} with the \code{agg} sub-key instead.
+#' @param row_annotation A structured list specifying row annotations.
+#'  Same format as \code{column_annotation}.  Sides default to
+#'  \code{"left"}.  Aliases: \code{.row}/\code{.rows} for
+#'  \code{rows_by}, \code{.row.split}/\code{.rows.split} for
+#'  \code{rows_split_by}.
+#' @param row_annotation_side \strong{Deprecated}: use
+#'  \code{row_annotation} with the \code{side} sub-key instead.
+#' @param row_annotation_palette \strong{Deprecated}: use
+#'  \code{row_annotation} with the \code{palette} sub-key instead.
+#' @param row_annotation_palcolor \strong{Deprecated}: use
+#'  \code{row_annotation} with the \code{palcolor} sub-key instead.
+#' @param row_annotation_type \strong{Deprecated}: use
+#'  \code{row_annotation} with the \code{type} sub-key instead.
+#' @param row_annotation_params \strong{Deprecated}: use
+#'  \code{row_annotation} with the \code{params} sub-key instead.
+#' @param row_annotation_agg \strong{Deprecated}: use
+#'  \code{row_annotation} with the \code{agg} sub-key instead.
 #' @param add_reticle Logical; if \code{TRUE}, draw a reticle (crosshair
 #'  pattern) over the heatmap.
 #' @param reticle_color Colour for the reticle lines.
@@ -246,30 +283,31 @@
 #' }
 #'
 #' @section Annotations:
-#' Row and column annotations are built via
-#' \code{\link[ComplexHeatmap]{HeatmapAnnotation}}.  Built-in name
-#' annotations (for \code{rows_by} / \code{columns_by}) and split
-#' annotations (for \code{rows_split_by} / \code{columns_split_by}) are
-#' added automatically and can be configured using the aliases
-#' \code{.row} / \code{.col} and \code{.rows.split} / \code{.col.split}
-#' in \code{row_annotation_params}, \code{column_annotation_type}, etc.
-#' Setting an alias to \code{FALSE} in \code{*_params} disables that
-#' annotation.  Ordering within each side: name annotations are closest
-#' to the body, split annotations farthest away, user-defined annotations
-#' in between.
+#' Row and column annotations are configured via the
+#' \code{row_annotation} / \code{column_annotation} structured list
+#' arguments.  Built-in name annotations (for \code{rows_by} /
+#' \code{columns_by}) and split annotations (for \code{rows_split_by} /
+#' \code{columns_split_by}) are added automatically and can be configured
+#' using the aliases \code{.row} / \code{.col} and \code{.row.split} /
+#' \code{.col.split} as keys in the annotation list.  Setting an alias
+#' entry's \code{params} to \code{FALSE} disables that annotation.
+#' \code{.default} provides default values inherited by all entries
+#' (with recursive merge for \code{params}).  Ordering within each side:
+#' name annotations are closest to the body, split annotations farthest
+#' away, user-defined annotations in between.
 #'
 #' @note Removed parameters: \code{rows_palette}, \code{rows_palcolor},
 #'  \code{columns_palette}, \code{columns_palcolor},
 #'  \code{columns_split_palette}, \code{columns_split_palcolor},
 #'  \code{rows_split_palette}, \code{rows_split_palcolor} — use
-#'  \code{row_annotation_palette}/\code{row_annotation_palcolor} with
-#'  key \code{.row} or \code{.rows.split}, and
-#'  \code{column_annotation_palette}/\code{column_annotation_palcolor}
-#'  with \code{.col} or \code{.col.split}.  Also removed:
+#'  \code{row_annotation}/\code{column_annotation} with
+#'  sub-key \code{palette}/\code{palcolor} and alias
+#'  \code{.row} / \code{.row.split} / \code{.col} / \code{.col.split}.
+#'  Also removed:
 #'  \code{row_name_annotation}, \code{row_name_legend},
 #'  \code{column_name_annotation}, \code{column_name_legend} — set
-#'  \code{row_annotation_params$.row} / \code{column_annotation_params$.col}
-#'  to \code{FALSE} and use \code{$show_legend} within the param entry.
+#'  \code{row_annotation = list(.row = list(params = FALSE))} /
+#'  \code{column_annotation = list(.col = list(params = FALSE))}.
 #' @importFrom circlize colorRamp2
 #' @importFrom dplyr group_by across ungroup %>% all_of summarise first everything group_map
 #' @importFrom tidyr pivot_longer pivot_wider unite expand_grid
@@ -347,20 +385,20 @@ HeatmapAtomic <- function(
     na_col = "grey85",
     row_names_side = "right",
     column_names_side = "bottom",
-    column_annotation = NULL,
-    column_annotation_side = "top",
-    column_annotation_palette = "Paired",
-    column_annotation_palcolor = NULL,
-    column_annotation_type = "auto",
-    column_annotation_params = list(),
-    column_annotation_agg = NULL,
     row_annotation = NULL,
-    row_annotation_side = "left",
-    row_annotation_palette = "Paired",
+    row_annotation_side = NULL,
+    row_annotation_palette = NULL,
     row_annotation_palcolor = NULL,
-    row_annotation_type = "auto",
-    row_annotation_params = list(),
+    row_annotation_type = NULL,
+    row_annotation_params = NULL,
     row_annotation_agg = NULL,
+    column_annotation = NULL,
+    column_annotation_side = NULL,
+    column_annotation_palette = NULL,
+    column_annotation_palcolor = NULL,
+    column_annotation_type = NULL,
+    column_annotation_params = NULL,
+    column_annotation_agg = NULL,
     # misc
     flip = FALSE,
     alpha = 1,
@@ -378,126 +416,65 @@ HeatmapAtomic <- function(
 ) {
     # Data was validated in `plotthis::Heatmap()`
 
-    # Resolve annotation parameters, palettes, types, and aggregation functions with alias support.
-    if (is.character(row_annotation_side)) {
-        row_annotation_side <- list(.default = row_annotation_side)
-    }
-    if (is.character(column_annotation_side)) {
-        column_annotation_side <- list(.default = column_annotation_side)
-    }
-
-    .check_annotation(
-        data,
-        row_annotation,
-        rows_by,
-        rows_split_by,
-        which = "row"
+    # Resolve annotation parameters via the unified .prep_annotations() helper.
+    # This handles TRUE/FALSE shortcuts, deprecated arg merging with warnings,
+    # .default inheritance (recursive for params), alias resolution, and validation.
+    row_anno <- .prep_annotations(
+        which = "row",
+        annotation = row_annotation,
+        annotation_side = row_annotation_side,
+        annotation_palette = row_annotation_palette,
+        annotation_palcolor = row_annotation_palcolor,
+        annotation_type = row_annotation_type,
+        annotation_params = row_annotation_params,
+        annotation_agg = row_annotation_agg,
+        row_key = rows_by,
+        rsplit_key = rows_split_by,
+        col_key = columns_by,
+        csplit_key = columns_split_by,
+        data = data
     )
-    .check_annotation(
-        data,
-        column_annotation,
-        rows_by,
-        rows_split_by,
-        which = "column"
-    )
-
-    row_annotation_params <- .resolve_anno_aliases(
-        row_annotation_params,
-        rows_by,
-        rows_split_by,
-        columns_by,
-        columns_split_by
-    )
-    row_annotation_palette <- .resolve_anno_aliases(
-        row_annotation_palette,
-        rows_by,
-        rows_split_by,
-        columns_by,
-        columns_split_by
-    )
-    row_annotation_palcolor <- .resolve_anno_aliases(
-        row_annotation_palcolor,
-        rows_by,
-        rows_split_by,
-        columns_by,
-        columns_split_by
-    )
-    row_annotation_type <- .resolve_anno_aliases(
-        row_annotation_type,
-        rows_by,
-        rows_split_by,
-        columns_by,
-        columns_split_by
-    )
-    row_annotation_agg <- .resolve_anno_aliases(
-        row_annotation_agg,
-        rows_by,
-        rows_split_by,
-        columns_by,
-        columns_split_by
+    col_anno <- .prep_annotations(
+        which = "column",
+        annotation = column_annotation,
+        annotation_side = column_annotation_side,
+        annotation_palette = column_annotation_palette,
+        annotation_palcolor = column_annotation_palcolor,
+        annotation_type = column_annotation_type,
+        annotation_params = column_annotation_params,
+        annotation_agg = column_annotation_agg,
+        row_key = rows_by,
+        rsplit_key = rows_split_by,
+        col_key = columns_by,
+        csplit_key = columns_split_by,
+        data = data
     )
 
-    column_annotation_params <- .resolve_anno_aliases(
-        column_annotation_params,
-        rows_by,
-        rows_split_by,
-        columns_by,
-        columns_split_by
-    )
-    column_annotation_palette <- .resolve_anno_aliases(
-        column_annotation_palette,
-        rows_by,
-        rows_split_by,
-        columns_by,
-        columns_split_by
-    )
-    column_annotation_palcolor <- .resolve_anno_aliases(
-        column_annotation_palcolor,
-        rows_by,
-        rows_split_by,
-        columns_by,
-        columns_split_by
-    )
-    column_annotation_type <- .resolve_anno_aliases(
-        column_annotation_type,
-        rows_by,
-        rows_split_by,
-        columns_by,
-        columns_split_by
-    )
-    column_annotation_agg <- .resolve_anno_aliases(
-        column_annotation_agg,
-        rows_by,
-        rows_split_by,
-        columns_by,
-        columns_split_by
-    )
-    row_annotation_side <- .resolve_anno_aliases(
-        row_annotation_side,
-        rows_by,
-        rows_split_by,
-        columns_by,
-        columns_split_by
-    )
-    column_annotation_side <- .resolve_anno_aliases(
-        column_annotation_side,
-        rows_by,
-        rows_split_by,
-        columns_by,
-        columns_split_by
-    )
+    row_annotation <- row_anno$annotation
+    row_annotation_type <- row_anno$annotation_type
+    row_annotation_side <- row_anno$annotation_side
+    row_annotation_palette <- row_anno$annotation_palette
+    row_annotation_palcolor <- row_anno$annotation_palcolor
+    row_annotation_agg <- row_anno$annotation_agg
+    row_annotation_params <- row_anno$annotation_params
+
+    column_annotation <- col_anno$annotation
+    column_annotation_type <- col_anno$annotation_type
+    column_annotation_side <- col_anno$annotation_side
+    column_annotation_palette <- col_anno$annotation_palette
+    column_annotation_palcolor <- col_anno$annotation_palcolor
+    column_annotation_agg <- col_anno$annotation_agg
+    column_annotation_params <- col_anno$annotation_params
 
     # Determine whether the name annotations are enabled.
     # A params entry of FALSE disables, but type "label" takes precedence
     # (setting the type implies the user wants the annotation visible).
     row_name_anno_enabled <- !is.null(rows_by) &&
-        (!isFALSE(row_annotation_params[[rows_by]] %||% TRUE) ||
-            (!identical(row_annotation_type, "auto") &&
-                row_annotation_type[[rows_by]] %||% "simple" == "label"))
+        (!isFALSE(row_annotation[[rows_by]] %||% TRUE) ||
+            row_annotation_type[[rows_by]] %||% "simple" == "label")
     col_name_anno_enabled <- !is.null(columns_by) &&
-        (!isFALSE(column_annotation_params[[columns_by]] %||% TRUE) ||
-            (!identical(column_annotation_type, "auto") &&
-                column_annotation_type[[columns_by]] %||% "simple" == "label"))
+        (!isFALSE(column_annotation[[columns_by]] %||% TRUE) ||
+            column_annotation_type[[columns_by]] %||% "simple" == "label")
     show_row_names <- show_row_names %||% !row_name_anno_enabled
     show_column_names <- show_column_names %||% !col_name_anno_enabled
 
@@ -505,10 +482,10 @@ HeatmapAtomic <- function(
     if (
         is.null(row_title) &&
             !is.null(rows_split_by) &&
-            !is.null(row_annotation_type)
+            !is.null(row_annotation_type[[rows_split_by]])
     ) {
         # Let's check if we need row_title
-        if (identical(row_annotation_type, "auto")) {
+        if (identical(row_annotation_type[[rows_split_by]], "auto")) {
             row_title <- TRUE
         } else {
             row_title <- identical(
@@ -520,9 +497,9 @@ HeatmapAtomic <- function(
     if (
         is.null(column_title) &&
             !is.null(columns_split_by) &&
-            !is.null(column_annotation_type)
+            !is.null(column_annotation_type[[columns_split_by]])
     ) {
-        if (identical(column_annotation_type, "auto")) {
+        if (identical(column_annotation_type[[columns_split_by]], "auto")) {
             column_title <- TRUE
         } else {
             column_title <- identical(
@@ -2464,11 +2441,10 @@ HeatmapAtomic <- function(
     )
     has_left <- any(sapply(left_side, inherits, "AnnotationFunction"))
     has_right <- any(sapply(right_side, inherits, "AnnotationFunction"))
-    # Fix: when row annotations are only on the right and row_names_side is "right",
+    # Fix: when row annotations are on the right and row_names_side is "right",
     # ComplexHeatmap width() fails. Swap row_names_side to "left" to avoid the conflict.
     if (
-        !has_left &&
-            has_right &&
+        has_right &&
             !isTRUE(flip) &&
             hmargs$row_names_side == "right"
     ) {
@@ -2942,9 +2918,7 @@ HeatmapAtomic <- function(
 #'        group = sample(c("X", "Y", "Z"), 6, replace = TRUE)
 #'     )
 #'     Heatmap(matrix_data, rows_data = rows_data,
-#'         row_annotation = list(Group = "group"),
-#'         row_annotation_type = list(Group = "simple"),
-#'         row_annotation_palette = list(Group = "Spectral")
+#'         row_annotation = list(Group = list(col = "group", palette = "Spectral"))
 #'     )
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
@@ -2956,12 +2930,14 @@ HeatmapAtomic <- function(
 #'     # use label annotation for split groups (shows group labels inside colored blocks)
 #'     Heatmap(matrix_data, rows_data = rows_data,
 #'         rows_split_by = "group",
-#'         row_annotation_params = list(.rows.split = list(
-#'             border = FALSE,
-#'             labels_gp = grid::gpar(col = "white", fontsize = 12),
-#'             labels_rot = 0
-#'         )),
-#'         row_annotation_type = list(.rows.split = "label")
+#'         row_annotation = list(.row.split = list(
+#'             type = "label",
+#'             params = list(
+#'                 border = FALSE,
+#'                 labels_gp = grid::gpar(col = "white", fontsize = 12),
+#'                 labels_rot = 0
+#'             )
+#'         ))
 #'     )
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
@@ -2972,19 +2948,20 @@ HeatmapAtomic <- function(
 #'     )
 #'     Heatmap(matrix_data, columns_data = columns_data,
 #'         columns_split_by = "batch",
-#'         column_annotation_type = list(.col.split = "label")
+#'         column_annotation = list(.col.split = list(type = "label"))
 #'     )
 #' }
 #' rownames(matrix_data)[1] <- "R12345"
 #' if (requireNamespace("cluster", quietly = TRUE)) {
 #'     # label annotation for name annotations: show row/column names as colored labels
 #'     Heatmap(matrix_data, rows_data = rows_data,
-#'         row_annotation_type = list(.row = "label"),
-#'         column_annotation_type = list(.col = "label"),
-#'         column_annotation_params = list(.col = list(labels_rot = 90)),
-#'         row_annotation_palette = list(.row = "Set2"),
-#'         row_annotation_side = list(.row = "right"),
-#'         row_annotation_params = list(.row = list(labels_rot = 150))
+#'         row_annotation = list(.row = list(
+#'             type = "label", palette = "Set2", side = "right",
+#'             params = list(labels_rot = 150)
+#'         )),
+#'         column_annotation = list(.col = list(
+#'             type = "label", params = list(labels_rot = 90)
+#'         ))
 #'     )
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
@@ -3069,10 +3046,10 @@ HeatmapAtomic <- function(
 #'     Heatmap(
 #'         go,
 #'         # Do not cluster rows and columns and hide the name annotations
-#'         # Use .row/.col aliases (or the actual rows_name/columns_name) in annotation_params
+#'         # Use .row/.col aliases to disable the built-in name annotations
 #'         cluster_rows = FALSE, cluster_columns = FALSE,
-#'         row_annotation_params = list(.row = FALSE),
-#'         column_annotation_params = list(.col = FALSE),
+#'         row_annotation = list(.row = list(params = FALSE)),
+#'         column_annotation = list(.col = list(params = FALSE)),
 #'         show_row_names = FALSE, show_column_names = FALSE,
 #'         # Set the legend items
 #'         values_by = "Players", legend_discrete = TRUE,
@@ -3089,21 +3066,24 @@ HeatmapAtomic <- function(
 #' if (requireNamespace("cluster", quietly = TRUE)) {
 #'     # Make the row/column name annotation thicker using the .row/.col aliases
 #'     Heatmap(matrix_data,
-#'         column_annotation_params = list(.col = list(height = 5)),
-#'         row_annotation_params = list(.row = list(width = 5)))
+#'         column_annotation = list(.col = list(params = list(height = 5))),
+#'         row_annotation = list(.row = list(params = list(width = 5))))
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
 #'     # Per-annotation side control: row name annotation on the right,
 #'     # all other row annotations on the left (.default)
 #'     rows_data2 <- data.frame(
-#'         rows = paste0("R", 1:6),
-#'         group = sample(c("X", "Y"), 6, replace = TRUE),
-#'         score = runif(6)
+#'         rows = sample(paste0("R", 1:6), 60, replace = TRUE),
+#'         group = sample(c("X", "Y"), 60, replace = TRUE),
+#'         score = runif(60)
 #'     )
 #'     Heatmap(matrix_data, rows_data = rows_data2,
 #'         rows_split_by = "group",
-#'         row_annotation = list(Score = "score"),
-#'         row_annotation_side = list(.default = "left", .row = "right"),
+#'         row_annotation = list(
+#'             .default = list(side = "left"),
+#'             .row = list(side = "right"),
+#'             Score = "score"
+#'         ),
 #'         show_row_names = TRUE
 #'     )
 #' }
@@ -3111,8 +3091,10 @@ HeatmapAtomic <- function(
 #'     # Move all row annotations to the right side
 #'     Heatmap(matrix_data, rows_data = rows_data2,
 #'         rows_split_by = "group",
-#'         row_annotation = list(Score = "score"),
-#'         row_annotation_side = "right",
+#'         row_annotation = list(
+#'             .default = list(side = "right"),
+#'             Score = "score"
+#'         ),
 #'         show_row_names = TRUE
 #'     )
 #' }
@@ -3121,16 +3103,19 @@ HeatmapAtomic <- function(
 #'     # split annotation on the default left, name annotation on the right
 #'     Heatmap(matrix_data, rows_data = rows_data2,
 #'         rows_split_by = "group",
-#'         row_annotation_side = list(.default = "left", .row = "right"),
+#'         row_annotation = list(
+#'             .default = list(side = "left"),
+#'             .row = list(side = "right")
+#'         ),
 #'         show_row_names = TRUE
 #'     )
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
 #'     # Row name label annotation on the right side (text rotated 90° clockwise)
 #'     Heatmap(matrix_data, rows_data = rows_data2,
-#'         row_annotation_type = list(.row = "label"),
-#'         row_annotation_palette = list(.row = "Set2"),
-#'         row_annotation_side = list(.row = "right"),
+#'         row_annotation = list(.row = list(
+#'             type = "label", palette = "Set2", side = "right"
+#'         )),
 #'         show_row_names = TRUE
 #'     )
 #' }
@@ -3199,16 +3184,19 @@ HeatmapAtomic <- function(
 #' if (requireNamespace("cluster", quietly = TRUE)) {
 #'     Heatmap(data,
 #'         values_by = "value", rows_by = "r", columns_by = "c",
-#'         column_annotation = list(r1 = "p", r2 = "q", r3 = "p1"),
-#'         column_annotation_type = list(r1 = "ring", r2 = "bar", r3 = "violin"),
-#'         column_annotation_params = list(
-#'             r1 = list(height = grid::unit(10, "mm"), show_legend = FALSE),
-#'             r3 = list(height = grid::unit(18, "mm"))
+#'         column_annotation = list(
+#'             r1 = list(col = "p", type = "ring",
+#'                       params = list(height = grid::unit(10, "mm"), show_legend = FALSE)),
+#'             r2 = list(col = "q", type = "bar"),
+#'             r3 = list(col = "p1", type = "violin",
+#'                       params = list(height = grid::unit(18, "mm")))
 #'         ),
-#'         row_annotation = c("q", "p2", "a"),
-#'         row_annotation_side = "right",
-#'         row_annotation_type = list(q = "pie", p2 = "density", a = "simple"),
-#'         row_annotation_params = list(q = list(width = grid::unit(12, "mm"))),
+#'         row_annotation = list(
+#'             .default = list(side = "right"),
+#'             q = list(type = "pie", params = list(width = grid::unit(12, "mm"))),
+#'             p2 = list(type = "density"),
+#'             a = list(type = "simple")
+#'         ),
 #'         show_row_names = TRUE, show_column_names = TRUE
 #'     )
 #' }
@@ -3315,20 +3303,20 @@ Heatmap <- function(
     na_col = "grey85",
     row_names_side = "right",
     column_names_side = "bottom",
-    column_annotation = NULL,
-    column_annotation_side = "top",
-    column_annotation_palette = "Paired",
-    column_annotation_palcolor = NULL,
-    column_annotation_type = "auto",
-    column_annotation_params = list(),
-    column_annotation_agg = NULL,
     row_annotation = NULL,
-    row_annotation_side = "left",
-    row_annotation_palette = "Paired",
+    row_annotation_side = NULL,
+    row_annotation_palette = NULL,
     row_annotation_palcolor = NULL,
-    row_annotation_type = "auto",
-    row_annotation_params = list(),
+    row_annotation_type = NULL,
+    row_annotation_params = NULL,
     row_annotation_agg = NULL,
+    column_annotation = NULL,
+    column_annotation_side = NULL,
+    column_annotation_palette = NULL,
+    column_annotation_palcolor = NULL,
+    column_annotation_type = NULL,
+    column_annotation_params = NULL,
+    column_annotation_agg = NULL,
     # misc
     flip = FALSE,
     alpha = 1,
@@ -3515,13 +3503,6 @@ Heatmap <- function(
                 na_col = na_col,
                 row_names_side = row_names_side,
                 column_names_side = column_names_side,
-                column_annotation = column_annotation,
-                column_annotation_side = column_annotation_side,
-                column_annotation_palette = column_annotation_palette,
-                column_annotation_palcolor = column_annotation_palcolor,
-                column_annotation_type = column_annotation_type,
-                column_annotation_params = column_annotation_params,
-                column_annotation_agg = column_annotation_agg,
                 row_annotation = row_annotation,
                 row_annotation_side = row_annotation_side,
                 row_annotation_palette = row_annotation_palette,
@@ -3529,6 +3510,13 @@ Heatmap <- function(
                 row_annotation_type = row_annotation_type,
                 row_annotation_params = row_annotation_params,
                 row_annotation_agg = row_annotation_agg,
+                column_annotation = column_annotation,
+                column_annotation_side = column_annotation_side,
+                column_annotation_palette = column_annotation_palette,
+                column_annotation_palcolor = column_annotation_palcolor,
+                column_annotation_type = column_annotation_type,
+                column_annotation_params = column_annotation_params,
+                column_annotation_agg = column_annotation_agg,
 
                 flip = flip,
                 alpha = alpha,

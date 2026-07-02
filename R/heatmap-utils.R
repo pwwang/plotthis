@@ -781,14 +781,25 @@ process_linkedheatmap_data <- function(
     keep_empty
 ) {
     if (!is.null(left_rows_by) && identical(left_rows_by, left_columns_by)) {
-        stop("[LinkedHeatmap] 'left_rows_by' and 'left_columns_by' can not be the same.")
+        stop(
+            "[LinkedHeatmap] 'left_rows_by' and 'left_columns_by' can not be the same."
+        )
     }
     if (!is.null(right_rows_by) && identical(right_rows_by, right_columns_by)) {
-        stop("[LinkedHeatmap] 'right_rows_by' and 'right_columns_by' can not be the same.")
+        stop(
+            "[LinkedHeatmap] 'right_rows_by' and 'right_columns_by' can not be the same."
+        )
     }
-    stopifnot("[LinkedHeatmap] no data is presented (nrow == 0)." = nrow(data) > 0)
+    stopifnot(
+        "[LinkedHeatmap] no data is presented (nrow == 0)." = nrow(data) > 0
+    )
 
-    if (identical(left_rows_name %||% left_rows_by, left_columns_name %||% left_columns_by)) {
+    if (
+        identical(
+            left_rows_name %||% left_rows_by,
+            left_columns_name %||% left_columns_by
+        )
+    ) {
         if (!is.null(left_columns_name)) {
             # consider flip and names_side?
             left_columns_name <- paste0(left_columns_name, " ")
@@ -796,7 +807,12 @@ process_linkedheatmap_data <- function(
             left_rows_name <- paste0(" ", left_rows_name)
         }
     }
-    if (identical(right_rows_name %||% right_rows_by, right_columns_name %||% right_columns_by)) {
+    if (
+        identical(
+            right_rows_name %||% right_rows_by,
+            right_columns_name %||% right_columns_by
+        )
+    ) {
         if (!is.null(right_columns_name)) {
             # consider flip and names_side?
             right_columns_name <- paste0(right_columns_name, " ")
@@ -836,10 +852,14 @@ process_linkedheatmap_data <- function(
     right_values_by <- check_columns(data, right_values_by)
 
     stopifnot(
-        "[LinkedHeatmap] 'left_values_by/values_by' must be specified." = !is.null(left_values_by)
+        "[LinkedHeatmap] 'left_values_by/values_by' must be specified." = !is.null(
+            left_values_by
+        )
     )
     stopifnot(
-        "[LinkedHeatmap] 'right_values_by/values_by' must be specified." = !is.null(right_values_by)
+        "[LinkedHeatmap] 'right_values_by/values_by' must be specified." = !is.null(
+            right_values_by
+        )
     )
 
     left_rows_by <- check_columns(
@@ -851,7 +871,9 @@ process_linkedheatmap_data <- function(
         concat_sep = left_rows_by_sep
     )
     stopifnot(
-        "[LinkedHeatmap] 'left_rows_by' must be specified." = !is.null(left_rows_by)
+        "[LinkedHeatmap] 'left_rows_by' must be specified." = !is.null(
+            left_rows_by
+        )
     )
 
     right_rows_by <- check_columns(
@@ -863,7 +885,9 @@ process_linkedheatmap_data <- function(
         concat_sep = right_rows_by_sep
     )
     stopifnot(
-        "[LinkedHeatmap] 'right_rows_by' must be specified." = !is.null(right_rows_by)
+        "[LinkedHeatmap] 'right_rows_by' must be specified." = !is.null(
+            right_rows_by
+        )
     )
 
     left_columns_by <- check_columns(
@@ -875,7 +899,9 @@ process_linkedheatmap_data <- function(
         concat_sep = left_columns_by_sep
     )
     stopifnot(
-        "[LinkedHeatmap] 'left_columns_by' must be specified." = !is.null(left_columns_by)
+        "[LinkedHeatmap] 'left_columns_by' must be specified." = !is.null(
+            left_columns_by
+        )
     )
 
     right_columns_by <- check_columns(
@@ -887,7 +913,9 @@ process_linkedheatmap_data <- function(
         concat_sep = right_columns_by_sep
     )
     stopifnot(
-        "[LinkedHeatmap] 'right_columns_by' must be specified." = !is.null(right_columns_by)
+        "[LinkedHeatmap] 'right_columns_by' must be specified." = !is.null(
+            right_columns_by
+        )
     )
 
     if (!is.null(left_rows_data)) {
@@ -947,7 +975,8 @@ process_linkedheatmap_data <- function(
     )
 
     left_columns_split_levels <- if (
-        length(left_columns_split_by) == 1 && is.factor(data[[left_columns_split_by]])
+        length(left_columns_split_by) == 1 &&
+            is.factor(data[[left_columns_split_by]])
     ) {
         levels(data[[left_columns_split_by]])
     } else {
@@ -963,7 +992,8 @@ process_linkedheatmap_data <- function(
     )
 
     right_columns_split_levels <- if (
-        length(right_columns_split_by) == 1 && is.factor(data[[right_columns_split_by]])
+        length(right_columns_split_by) == 1 &&
+            is.factor(data[[right_columns_split_by]])
     ) {
         levels(data[[right_columns_split_by]])
     } else {
@@ -1033,7 +1063,10 @@ process_linkedheatmap_data <- function(
         if (identical(right_columns_name, "")) {
             right_columns_name <- " "
         }
-        data <- dplyr::rename(data, !!sym(right_columns_name) := right_columns_by)
+        data <- dplyr::rename(
+            data,
+            !!sym(right_columns_name) := right_columns_by
+        )
         right_columns_by <- right_columns_name
     }
     if (!is.null(rows_split_name) && !is.null(rows_split_by)) {
@@ -1047,14 +1080,22 @@ process_linkedheatmap_data <- function(
         if (identical(left_columns_split_name, "")) {
             left_columns_split_name <- " "
         }
-        data <- dplyr::rename(data, !!sym(left_columns_split_name) := left_columns_split_by)
+        data <- dplyr::rename(
+            data,
+            !!sym(left_columns_split_name) := left_columns_split_by
+        )
         left_columns_split_by <- left_columns_split_name
     }
-    if (!is.null(right_columns_split_name) && !is.null(right_columns_split_by)) {
+    if (
+        !is.null(right_columns_split_name) && !is.null(right_columns_split_by)
+    ) {
         if (identical(right_columns_split_name, "")) {
             right_columns_split_name <- " "
         }
-        data <- dplyr::rename(data, !!sym(right_columns_split_name) := right_columns_split_by)
+        data <- dplyr::rename(
+            data,
+            !!sym(right_columns_split_name) := right_columns_split_by
+        )
         right_columns_split_by <- right_columns_split_name
     }
     if (!is.null(left_pie_name) && !is.null(left_pie_group_by)) {
@@ -1088,8 +1129,16 @@ process_linkedheatmap_data <- function(
 
     keep_na <- check_keep_na(
         keep_na,
-        unique(c(split_by, left_rows_by, rows_split_by, left_columns_by, left_columns_split_by,
-          right_rows_by, right_columns_by, right_columns_split_by))
+        unique(c(
+            split_by,
+            left_rows_by,
+            rows_split_by,
+            left_columns_by,
+            left_columns_split_by,
+            right_rows_by,
+            right_columns_by,
+            right_columns_split_by
+        ))
     )
     if (!isFALSE(keep_empty)) {
         warning(
@@ -1157,7 +1206,9 @@ process_linkedheatmap_data <- function(
     }
     for (key in names(annotation)) {
         col <- annotation[[key]]
-        check_columns(data, col)
+        if (!isFALSE(col)) {
+            check_columns(data, col)
+        }
     }
 }
 
@@ -1298,6 +1349,229 @@ process_linkedheatmap_data <- function(
     result
 }
 
+#' Prepare and normalize annotation arguments
+#'
+#' Consolidates the new structured annotation list format with backward-compatible
+#' deprecation support for old flat arguments. Handles \code{TRUE}/\code{FALSE}
+#' shortcuts, \code{.default} inheritance (with recursive \code{params} merge),
+#' alias resolution, and shortcut expansion.
+#'
+#' @param which \code{"row"} or \code{"column"}.
+#' @param annotation The new structured annotation list.
+#' @param annotation_side Deprecated. Old side argument.
+#' @param annotation_palette Deprecated. Old palette argument.
+#' @param annotation_palcolor Deprecated. Old palcolor argument.
+#' @param annotation_type Deprecated. Old type argument.
+#' @param annotation_params Deprecated. Old params argument.
+#' @param annotation_agg Deprecated. Old agg argument.
+#' @param row_key The actual column name for \code{rows_by}.
+#' @param rsplit_key The actual column name for \code{rows_split_by}.
+#' @param col_key The actual column name for \code{columns_by}.
+#' @param csplit_key The actual column name for \code{columns_split_by}.
+#' @param data The data frame used for column validation.
+#' @return A list with components \code{annotation}, \code{annotation_type},
+#'   \code{annotation_side}, \code{annotation_palette}, \code{annotation_palcolor},
+#'   \code{annotation_agg}, \code{annotation_params}, and \code{enabled}.
+#' @keywords internal
+.prep_annotations <- function(
+    which = c("row", "column"),
+    annotation = NULL,
+    annotation_side = NULL,
+    annotation_palette = NULL,
+    annotation_palcolor = NULL,
+    annotation_type = NULL,
+    annotation_params = NULL,
+    annotation_agg = NULL,
+    row_key = NULL,
+    rsplit_key = NULL,
+    col_key = NULL,
+    csplit_key = NULL,
+    data = NULL
+) {
+    which <- match.arg(which)
+
+    # Step 1: TRUE/FALSE/NULL shortcuts
+    if (isTRUE(annotation)) {
+        annotation <- list(.default = list())
+    } else if (isFALSE(annotation)) {
+        return(list(enabled = FALSE))
+    } else if (is.null(annotation)) {
+        annotation <- list()
+    }
+
+    # Normalize annotation to a list if it's a character vector
+    if (!is.list(annotation)) {
+        annotation <- as.list(annotation)
+        if (is.null(names(annotation))) {
+            names(annotation) <- unlist(annotation)
+        }
+    }
+
+    # Step 2: Merge deprecated args with warnings
+    deprec_map <- list(
+        side = annotation_side,
+        palette = annotation_palette,
+        palcolor = annotation_palcolor,
+        type = annotation_type,
+        params = annotation_params,
+        agg = annotation_agg
+    )
+    for (subkey in names(deprec_map)) {
+        dep_val <- deprec_map[[subkey]]
+        if (is.null(dep_val)) {
+            next
+        }
+        warning(
+            "`",
+            which,
+            "_annotation_",
+            subkey,
+            "` is deprecated. Use `",
+            which,
+            "_annotation = list(<key> = list(",
+            subkey,
+            " = ...))` instead.",
+            call. = FALSE
+        )
+        if (is.list(dep_val) && !is.null(names(dep_val))) {
+            # Named list: inject subkey into each named annotation entry
+            for (nm in names(dep_val)) {
+                if (is.null(annotation[[nm]])) {
+                    annotation[[nm]] <- list()
+                }
+                if (!is.list(annotation[[nm]])) {
+                    annotation[[nm]] <- list(col = annotation[[nm]])
+                }
+                annotation[[nm]][[subkey]] <- dep_val[[nm]]
+            }
+        } else {
+            # Scalar: inject as .default
+            if (is.null(annotation[[".default"]])) {
+                annotation[[".default"]] <- list()
+            }
+            annotation[[".default"]][[subkey]] <- dep_val
+        }
+    }
+
+    # Step 3: Normalize to full list format (shortcut expansion)
+    for (nm in names(annotation)) {
+        if (nm == ".default") {
+            next
+        }
+        if (!is.list(annotation[[nm]])) {
+            annotation[[nm]] <- list(col = annotation[[nm]])
+        }
+    }
+
+    # Ensure .default exists
+    if (is.null(annotation[[".default"]])) {
+        annotation[[".default"]] <- list()
+    }
+
+    # Step 4: Apply .default inheritance
+    defaults <- annotation[[".default"]]
+    for (nm in names(annotation)) {
+        if (nm == ".default") {
+            next
+        }
+        for (dkey in names(defaults)) {
+            if (dkey == "params") {
+                # Recursive merge for params
+                if (isFALSE(annotation[[nm]][["params"]])) {
+                    # FALSE means explicitly disabled - keep it
+                    next
+                }
+                annotation[[nm]][["params"]] <- utils::modifyList(
+                    defaults[["params"]] %||% list(),
+                    annotation[[nm]][["params"]] %||% list()
+                )
+            } else if (is.null(annotation[[nm]][[dkey]])) {
+                annotation[[nm]][[dkey]] <- defaults[[dkey]]
+            }
+        }
+    }
+
+    # Step 5: Resolve aliases on top-level keys
+    annotation <- .resolve_anno_aliases(
+        annotation,
+        row_key,
+        rsplit_key,
+        col_key,
+        csplit_key
+    )
+
+    # Step 6: Extract individual components
+    result <- list(
+        annotation = list(),
+        annotation_type = list(),
+        annotation_side = list(),
+        annotation_palette = list(),
+        annotation_palcolor = list(),
+        annotation_agg = list(),
+        annotation_params = list(),
+        enabled = TRUE
+    )
+    for (nm in names(annotation)) {
+        if (nm == ".default") {
+            next
+        }
+        entry <- annotation[[nm]]
+
+        result$annotation[[nm]] <- entry[["col"]] %||% nm
+
+        if (!is.null(entry[["type"]])) {
+            result$annotation_type[[nm]] <- entry[["type"]]
+        }
+        if (!is.null(entry[["side"]])) {
+            result$annotation_side[[nm]] <- entry[["side"]]
+        }
+        if (!is.null(entry[["palette"]])) {
+            result$annotation_palette[[nm]] <- entry[["palette"]]
+        }
+        if (!is.null(entry[["palcolor"]])) {
+            result$annotation_palcolor[[nm]] <- entry[["palcolor"]]
+        }
+        if (!is.null(entry[["agg"]])) {
+            result$annotation_agg[[nm]] <- entry[["agg"]]
+        }
+        if (isFALSE(result$annotation[[nm]])) {
+            result$annotation_params[[nm]] <- FALSE
+        } else if (!is.null(entry[["params"]])) {
+            result$annotation_params[[nm]] <- entry[["params"]]
+        }
+    }
+    # Propagate .default values so .setup_annos() can use them as
+    # fallbacks for built-in annotations (e.g. split/name annotations
+    # that are added by .setup_annos(), not by the user).
+    defaults <- annotation[[".default"]]
+    if (!is.null(defaults[["type"]])) {
+        result$annotation_type[[".default"]] <- defaults[["type"]]
+    }
+    if (!is.null(defaults[["side"]])) {
+        result$annotation_side[[".default"]] <- defaults[["side"]]
+    }
+    if (!is.null(defaults[["palette"]])) {
+        result$annotation_palette[[".default"]] <- defaults[["palette"]]
+    }
+    if (!is.null(defaults[["palcolor"]])) {
+        result$annotation_palcolor[[".default"]] <- defaults[["palcolor"]]
+    }
+    if (!is.null(defaults[["agg"]])) {
+        result$annotation_agg[[".default"]] <- defaults[["agg"]]
+    }
+    if (!is.null(defaults[["params"]])) {
+        result$annotation_params[[".default"]] <- defaults[["params"]]
+    }
+
+    # Step 7: Validate annotation column references exist in the data.
+    # NOTE: we do NOT forbid by/split_by keys here because after alias
+    # resolution they represent built-in annotation configuration
+    # (e.g. .row -> rows_by value).  .setup_annos() handles the merge.
+    .check_annotation(data, result$annotation, NULL, NULL, which)
+
+    result
+}
+
 #' Unified annotation builder for built-in (split/name) and user-defined annotations
 #' @param which The annotation direction ("row" or "column")
 #' @param names_side The side to place the row/column name annotation ("top", "bottom", "left", "right")
@@ -1420,7 +1694,7 @@ process_linkedheatmap_data <- function(
             ifelse(which == "row", "left", "top")
         is_split <- identical(aname, split_by)
         is_builtin <- is_split || identical(aname, by)
-        annotype <- annotation_type[[aname]] %||% "simple"
+        annotype <- annotation_type[[aname]] %||% "auto"
         param <- annotation_params[[aname]] %||% list()
         param <- .ensure_unit(param)
 
