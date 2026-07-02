@@ -4,6 +4,7 @@
 - BREAKING(LinkedHeatmap): update parameter names for link width and color in LinkedHeatmap and LinkedHeatmapAtomic
 - BREAKING(LinkedHeatmap): replace title_gp with title_params for improved title customization
 - feat(LinkedHeatmap): enhance link width customization with constant value option
+- feat: add y_brackets parameter for significance brackets in box/violin/beeswarm plots
 - fix(heatmap): fix name annotation error when it has empty levels
 - fix(heatmap): update row and column title checks to use annotation parameters
 
