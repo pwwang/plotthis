@@ -216,6 +216,7 @@
 #'  determine the stroke width of each link line (e.g. interaction
 #'  strength).  Values are min-max scaled to \eqn{[0, 1]} and multiplied by
 #'  \code{link_width_scale}.
+#'  You can also pass a numeric value to use a constant width for all links.
 #' @param link_width_scale Numeric scaling factor applied to the normalised
 #'  link intensity values to produce final line widths (\code{lwd}).
 #'  Default 5.
@@ -775,7 +776,7 @@ LinkedHeatmapAtomic <- function(
             !!!syms(unique(c(left_rows_by, right_rows_by, rows_split_by)))
         )
 
-    if (!is.null(link_width_by)) {
+    if (is.character(link_width_by)) {
         link_table <- link_table %>%
             dplyr::summarise(
                 !!sym(link_width_by) := mean(
@@ -785,8 +786,10 @@ LinkedHeatmapAtomic <- function(
                 .groups = "drop"
             )
     } else {
+        link_width_by <- link_width_by %||% 1
         link_table <- link_table %>%
-            dplyr::summarise(!!sym(link_width_by) := 1, .groups = "drop")
+            dplyr::summarise(.link_width = link_width_by, .groups = "drop")
+        link_width_by <- ".link_width"
     }
 
     if (!is.null(rows_split_by)) {
@@ -823,22 +826,16 @@ LinkedHeatmapAtomic <- function(
         ) %>%
         filter(!is.na(.data$pos_left), !is.na(.data$pos_right))
 
-    if (!is.null(link_width_by) && link_width_by %in% colnames(link_table)) {
-        raw_intensity <- link_table[[link_width_by]]
-        if (
-            max(raw_intensity, na.rm = TRUE) > min(raw_intensity, na.rm = TRUE)
-        ) {
-            link_table$intensity <- (raw_intensity -
-                min(raw_intensity, na.rm = TRUE)) /
-                (max(raw_intensity, na.rm = TRUE) -
-                    min(raw_intensity, na.rm = TRUE))
-        } else {
-            link_table$intensity <- rep(1, nrow(link_table))
-        }
-        link_table$intensity[is.na(link_table$intensity)] <- 0.5
+    raw_intensity <- link_table[[link_width_by]]
+    if (max(raw_intensity, na.rm = TRUE) > min(raw_intensity, na.rm = TRUE)) {
+        link_table$intensity <- (raw_intensity -
+            min(raw_intensity, na.rm = TRUE)) /
+            (max(raw_intensity, na.rm = TRUE) -
+                min(raw_intensity, na.rm = TRUE))
     } else {
-        link_table$intensity <- rep(1, nrow(link_table))
+        link_table$intensity <- raw_intensity
     }
+    link_table$intensity[is.na(link_table$intensity)] <- 0
 
     # ── Collect legends (before link position computation so legend
     #     dimensions can be factored into plot_h for top/bottom) ──
@@ -1512,7 +1509,9 @@ LinkedHeatmap <- function(
     cell_type <- match.arg(cell_type)
     cell_type <- sub("mark+label", "label+mark", cell_type, fixed = TRUE)
 
-    link_width_by <- check_columns(data, link_width_by)
+    if (is.character(link_width_by)) {
+        link_width_by <- check_columns(data, link_width_by)
+    }
 
     args <- list(...)
     left_rows_orderby <- args$left_rows_orderby %||% rows_orderby

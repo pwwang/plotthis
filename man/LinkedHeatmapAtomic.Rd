@@ -307,7 +307,8 @@ heatmaps where link curves are drawn.  Default 0.5.}
 \item{link_width_by}{Optional column name in \code{data} whose values
 determine the stroke width of each link line (e.g. interaction
 strength).  Values are min-max scaled to \eqn{[0, 1]} and multiplied by
-\code{link_width_scale}.}
+\code{link_width_scale}.
+You can also pass a numeric value to use a constant width for all links.}
 
 \item{link_width_scale}{Numeric scaling factor applied to the normalised
 link intensity values to produce final line widths (\code{lwd}).
