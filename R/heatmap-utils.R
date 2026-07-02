@@ -1701,6 +1701,12 @@ process_linkedheatmap_data <- function(
         if (is_builtin) {
             is_label <- annotype == "label"
             # Built-in: use pre-computed splits/by_labels
+            if (is.factor(splits)) {
+                splits <- droplevels(splits)
+            }
+            if (is.factor(by_labels)) {
+                by_labels <- droplevels(by_labels)
+            }
             param$x <- if (identical(aname, split_by)) splits else by_labels
             param$title <- aname
             param$which <- ifelse(
