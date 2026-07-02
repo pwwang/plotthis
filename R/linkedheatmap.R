@@ -214,16 +214,16 @@
 #'
 #' @param links_span Width (in inches) of the gap column between the two
 #'  heatmaps where link curves are drawn.  Default 0.5.
-#' @param links_width_by Optional column name in \code{data} whose values
+#' @param link_width_by Optional column name in \code{data} whose values
 #'  determine the stroke width of each link line (e.g. interaction
 #'  strength).  Values are min-max scaled to \eqn{[0, 1]} and multiplied by
-#'  \code{links_width_scale}.
-#' @param links_width_scale Numeric scaling factor applied to the normalised
+#'  \code{link_width_scale}.
+#' @param link_width_scale Numeric scaling factor applied to the normalised
 #'  link intensity values to produce final line widths (\code{lwd}).
 #'  Default 5.
-#' @param links_color Colour of the link spline curves.  Default
+#' @param link_color Colour of the link spline curves.  Default
 #'  \code{"grey30"}.
-#' @param links_alpha Alpha transparency of link curves in \eqn{[0, 1]}.
+#' @param link_alpha Alpha transparency of link curves in \eqn{[0, 1]}.
 #'  Default 0.8.
 #'
 #' @param alpha Alpha transparency for heatmap cells in \eqn{[0, 1]}.
@@ -368,10 +368,10 @@ LinkedHeatmapAtomic <- function(
     column_annotation_agg = NULL,
 
     links_span = 0.5,
-    links_width_by = NULL,
-    links_width_scale = 5,
-    links_color = "grey30",
-    links_alpha = 0.8,
+    link_width_by = NULL,
+    link_width_scale = 5,
+    link_color = "grey30",
+    link_alpha = 0.8,
 
     alpha = 1,
     seed = 8525,
@@ -765,18 +765,18 @@ LinkedHeatmapAtomic <- function(
             !!!syms(unique(c(left_rows_by, right_rows_by, rows_split_by)))
         )
 
-    if (!is.null(links_width_by)) {
+    if (!is.null(link_width_by)) {
         link_table <- link_table %>%
             dplyr::summarise(
-                !!sym(links_width_by) := mean(
-                    !!sym(links_width_by),
+                !!sym(link_width_by) := mean(
+                    !!sym(link_width_by),
                     na.rm = TRUE
                 ),
                 .groups = "drop"
             )
     } else {
         link_table <- link_table %>%
-            dplyr::summarise(!!sym(links_width_by) := 1, .groups = "drop")
+            dplyr::summarise(!!sym(link_width_by) := 1, .groups = "drop")
     }
 
     if (!is.null(rows_split_by)) {
@@ -813,8 +813,8 @@ LinkedHeatmapAtomic <- function(
         ) %>%
         filter(!is.na(.data$pos_left), !is.na(.data$pos_right))
 
-    if (!is.null(links_width_by) && links_width_by %in% colnames(link_table)) {
-        raw_intensity <- link_table[[links_width_by]]
+    if (!is.null(link_width_by) && link_width_by %in% colnames(link_table)) {
+        raw_intensity <- link_table[[link_width_by]]
         if (
             max(raw_intensity, na.rm = TRUE) > min(raw_intensity, na.rm = TRUE)
         ) {
@@ -1152,9 +1152,9 @@ LinkedHeatmapAtomic <- function(
                     ),
                     shape = 0.5,
                     gp = gpar(
-                        lwd = link_table$intensity[k] * links_width_scale,
-                        col = links_color,
-                        alpha = links_alpha
+                        lwd = link_table$intensity[k] * link_width_scale,
+                        col = link_color,
+                        alpha = link_alpha
                     )
                 )
             }
@@ -1335,7 +1335,7 @@ LinkedHeatmapAtomic <- function(
 #'         right_columns_by = "target",
 #'         right_values_by = "receptor_expr",
 #'         right_name = "Receptor",
-#'         links_width_by = "intensity"
+#'         link_width_by = "intensity"
 #'     )
 #' }
 #' }
@@ -1442,10 +1442,10 @@ LinkedHeatmap <- function(
     column_annotation_params = NULL,
     column_annotation_agg = NULL,
     # links
-    links_width_by = NULL,
-    links_width_scale = 5,
-    links_color = "grey40",
-    links_alpha = 0.6,
+    link_width_by = NULL,
+    link_width_scale = 5,
+    link_color = "grey40",
+    link_alpha = 0.6,
 
     # misc
     flip = FALSE,
@@ -1492,7 +1492,7 @@ LinkedHeatmap <- function(
     cell_type <- match.arg(cell_type)
     cell_type <- sub("mark+label", "label+mark", cell_type, fixed = TRUE)
 
-    links_width_by <- check_columns(data, links_width_by)
+    link_width_by <- check_columns(data, link_width_by)
 
     args <- list(...)
     left_rows_orderby <- args$left_rows_orderby %||% rows_orderby
@@ -1693,10 +1693,10 @@ LinkedHeatmap <- function(
         args_atomic$column_annotation_params <- column_annotation_params
         args_atomic$column_annotation_agg <- column_annotation_agg
 
-        args_atomic$links_width_by <- links_width_by
-        args_atomic$links_width_scale <- links_width_scale
-        args_atomic$links_color <- links_color
-        args_atomic$links_alpha <- links_alpha
+        args_atomic$link_width_by <- link_width_by
+        args_atomic$link_width_scale <- link_width_scale
+        args_atomic$link_color <- link_color
+        args_atomic$link_alpha <- link_alpha
 
         args_atomic$alpha <- alpha
         args_atomic$seed <- seed

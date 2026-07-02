@@ -91,10 +91,10 @@ LinkedHeatmap(
   column_annotation_type = NULL,
   column_annotation_params = NULL,
   column_annotation_agg = NULL,
-  links_width_by = NULL,
-  links_width_scale = 5,
-  links_color = "grey40",
-  links_alpha = 0.6,
+  link_width_by = NULL,
+  link_width_scale = 5,
+  link_color = "grey40",
+  link_alpha = 0.6,
   flip = FALSE,
   alpha = 1,
   seed = 8525,
@@ -366,19 +366,19 @@ See \code{\link{HeatmapAtomic}} for the full specification.}
 \item{column_annotation_agg}{\strong{Deprecated}: use
 \code{column_annotation} with the \code{agg} sub-key instead.}
 
-\item{links_width_by}{Optional column name in \code{data} whose values
+\item{link_width_by}{Optional column name in \code{data} whose values
 determine the stroke width of each link line (e.g. interaction
 strength).  Values are min-max scaled to \eqn{[0, 1]} and multiplied by
-\code{links_width_scale}.}
+\code{link_width_scale}.}
 
-\item{links_width_scale}{Numeric scaling factor applied to the normalised
+\item{link_width_scale}{Numeric scaling factor applied to the normalised
 link intensity values to produce final line widths (\code{lwd}).
 Default 5.}
 
-\item{links_color}{Colour of the link spline curves.  Default
+\item{link_color}{Colour of the link spline curves.  Default
 \code{"grey30"}.}
 
-\item{links_alpha}{Alpha transparency of link curves in \eqn{[0, 1]}.
+\item{link_alpha}{Alpha transparency of link curves in \eqn{[0, 1]}.
 Default 0.8.}
 
 \item{flip}{Logical; must be \code{FALSE} for linked heatmaps (flipping
@@ -562,7 +562,7 @@ if (requireNamespace("ComplexHeatmap", quietly = TRUE)) {
         right_columns_by = "target",
         right_values_by = "receptor_expr",
         right_name = "Receptor",
-        links_width_by = "intensity"
+        link_width_by = "intensity"
     )
 }
 }

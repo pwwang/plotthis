@@ -80,10 +80,10 @@ LinkedHeatmapAtomic(
   column_annotation_params = NULL,
   column_annotation_agg = NULL,
   links_span = 0.5,
-  links_width_by = NULL,
-  links_width_scale = 5,
-  links_color = "grey30",
-  links_alpha = 0.8,
+  link_width_by = NULL,
+  link_width_scale = 5,
+  link_color = "grey30",
+  link_alpha = 0.8,
   alpha = 1,
   seed = 8525,
   padding = 15,
@@ -306,19 +306,19 @@ See \code{\link{HeatmapAtomic}} for the full specification.}
 \item{links_span}{Width (in inches) of the gap column between the two
 heatmaps where link curves are drawn.  Default 0.5.}
 
-\item{links_width_by}{Optional column name in \code{data} whose values
+\item{link_width_by}{Optional column name in \code{data} whose values
 determine the stroke width of each link line (e.g. interaction
 strength).  Values are min-max scaled to \eqn{[0, 1]} and multiplied by
-\code{links_width_scale}.}
+\code{link_width_scale}.}
 
-\item{links_width_scale}{Numeric scaling factor applied to the normalised
+\item{link_width_scale}{Numeric scaling factor applied to the normalised
 link intensity values to produce final line widths (\code{lwd}).
 Default 5.}
 
-\item{links_color}{Colour of the link spline curves.  Default
+\item{link_color}{Colour of the link spline curves.  Default
 \code{"grey30"}.}
 
-\item{links_alpha}{Alpha transparency of link curves in \eqn{[0, 1]}.
+\item{link_alpha}{Alpha transparency of link curves in \eqn{[0, 1]}.
 Default 0.8.}
 
 \item{alpha}{Alpha transparency for heatmap cells in \eqn{[0, 1]}.}
