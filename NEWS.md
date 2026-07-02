@@ -1,3 +1,9 @@
+## Version 0.13.1
+
+- feat(heatmap): consolidate annotation arguments into structured list params
+- BREAKING(LinkedHeatmap): update parameter names for link width and color in LinkedHeatmap and LinkedHeatmapAtomic
+- BREAKING(LinkedHeatmap): replace title_gp with title_params for improved title customization
+
 ## Version 0.13.0
 
 - feat: add split_by parameter to combine_plots for enhanced data composition, especially for split plots
