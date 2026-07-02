@@ -172,10 +172,8 @@
 #'  can be used to generate a dynamic title from the default.
 #'  Note that, `left_title` and `right_title` are used to set the title for each heatmap,
 #'  and `title` is used to set the overall title for the combined plot.
-#' @param title_gp A \code{\link[grid]{gpar}} object controlling the graphical
-#'  parameters of the overall plot title (font size, font face, color, etc.).
-#'  Only used when \code{title} is not \code{NULL}.
-#'  Default is \code{gpar(fontsize = 14, fontface = "bold")}.
+#' @param title_params A list of parameters passed to \code{grid::grid.text()} to control the title appearance.
+#'  Default is \code{list(gp = gpar(fontsize = 14, fontface = "bold"))}.
 #' @param column_title,row_title Character title displayed above the columns
 #'  / beside the rows of each heatmap.
 #' @param na_col Colour used for \code{NA} cells.  Default \code{"grey85"}.
@@ -347,7 +345,7 @@ LinkedHeatmapAtomic <- function(
     show_column_names = NULL,
     border = TRUE,
     title = NULL,
-    title_gp = NULL,
+    title_params = NULL,
     column_title = NULL,
     row_title = NULL,
     na_col = "grey85",
@@ -406,13 +404,19 @@ LinkedHeatmapAtomic <- function(
     # The duplicated ones to remove are the ones without `left_` prefix
     # For example, `left_row_names_side` and `row_names_side`, the one
     # to be removed is `row_names_side`
-    left_names_with_prefix <- names(left_args)[grepl("^left_", names(left_args))]
+    left_names_with_prefix <- names(left_args)[grepl(
+        "^left_",
+        names(left_args)
+    )]
     left_names_without_prefix <- gsub("^left_", "", left_names_with_prefix)
     left_args <- left_args[!names(left_args) %in% left_names_without_prefix]
     names(left_args) <- gsub("^left_", "", names(left_args))
 
     right_args <- rest_args[!grepl("^left_", names(rest_args))]
-    right_names_with_prefix <- names(right_args)[grepl("^right_", names(right_args))]
+    right_names_with_prefix <- names(right_args)[grepl(
+        "^right_",
+        names(right_args)
+    )]
     right_names_without_prefix <- gsub("^right_", "", right_names_with_prefix)
     right_args <- right_args[!names(right_args) %in% right_names_without_prefix]
     names(right_args) <- gsub("^right_", "", names(right_args))
@@ -722,8 +726,14 @@ LinkedHeatmapAtomic <- function(
         )
     }
 
-    component_height <- utils::getFromNamespace("component_height", "ComplexHeatmap")
-    component_width <- utils::getFromNamespace("component_width", "ComplexHeatmap")
+    component_height <- utils::getFromNamespace(
+        "component_height",
+        "ComplexHeatmap"
+    )
+    component_width <- utils::getFromNamespace(
+        "component_width",
+        "ComplexHeatmap"
+    )
     left_ch <- .ch_to_in(component_height(left_ht))
     right_ch <- .ch_to_in(component_height(right_ht))
     left_cw <- .ch_to_in(component_width(left_ht))
@@ -908,10 +918,20 @@ LinkedHeatmapAtomic <- function(
     # ── Plot dimensions (heatmap body + legend + title) ──
     # Resolve title graphical parameters and height
     if (!is.null(title)) {
-        title_gp <- title_gp %||% gpar()
-        title_gp$fontsize <- title_gp$fontsize %||% 14
-        title_gp$fontface <- title_gp$fontface %||% "bold"
-        title_h <- 0.5  # inches reserved for title
+        title_params <- title_params %||% list()
+        title_params$label <- title
+        title_params$x <- title_params$x %||% 0.5
+        if (is.numeric(title_params$x)) {
+            title_params$x <- unit(title_params$x, "npc")
+        }
+        title_params$y <- title_params$y %||% 0.5
+        if (is.numeric(title_params$y)) {
+            title_params$y <- unit(title_params$y, "npc")
+        }
+        title_params$gp <- title_params$gp %||% gpar()
+        title_params$gp$fontsize <- title_params$gp$fontsize %||% 14
+        title_params$gp$fontface <- title_params$gp$fontface %||% "bold"
+        title_h <- 0.5 # inches reserved for title
     } else {
         title_h <- 0
     }
@@ -1047,7 +1067,7 @@ LinkedHeatmapAtomic <- function(
                 layout.pos.col = 1:n_cols
             ))
             # TODO: a better way to control title placement and alignment
-            grid.text(title, x = unit(0.01, "npc"), y = unit(0.5, "npc"), gp = title_gp)
+            do_call(grid.text, title_params)
             popViewport()
         }
 
@@ -1421,7 +1441,7 @@ LinkedHeatmap <- function(
     show_column_names = NULL,
     border = TRUE,
     title = NULL,
-    title_gp = NULL,
+    title_params = NULL,
     column_title = NULL,
     row_title = NULL,
     na_col = "grey85",
@@ -1672,7 +1692,7 @@ LinkedHeatmap <- function(
         args_atomic$show_column_names <- show_column_names
         args_atomic$border <- border
         args_atomic$title <- title
-        args_atomic$title_gp <- title_gp
+        args_atomic$title_params <- title_params
         args_atomic$column_title <- column_title
         args_atomic$row_title <- row_title
         args_atomic$na_col <- na_col

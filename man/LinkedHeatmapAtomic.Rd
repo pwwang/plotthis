@@ -60,7 +60,7 @@ LinkedHeatmapAtomic(
   show_column_names = NULL,
   border = TRUE,
   title = NULL,
-  title_gp = NULL,
+  title_params = NULL,
   column_title = NULL,
   row_title = NULL,
   na_col = "grey85",
@@ -248,10 +248,8 @@ can be used to generate a dynamic title from the default.
 Note that, \code{left_title} and \code{right_title} are used to set the title for each heatmap,
 and \code{title} is used to set the overall title for the combined plot.}
 
-\item{title_gp}{A \code{\link[grid]{gpar}} object controlling the graphical
-parameters of the overall plot title (font size, font face, color, etc.).
-Only used when \code{title} is not \code{NULL}.
-Default is \code{gpar(fontsize = 14, fontface = "bold")}.}
+\item{title_params}{A list of parameters passed to \code{grid::grid.text()} to control the title appearance.
+Default is \code{list(gp = gpar(fontsize = 14, fontface = "bold"))}.}
 
 \item{column_title, row_title}{Character title displayed above the columns
 / beside the rows of each heatmap.}
