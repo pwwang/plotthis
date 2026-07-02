@@ -46,6 +46,7 @@ BoxPlot(
   stack = FALSE,
   y_max = NULL,
   y_min = NULL,
+  y_brackets = NULL,
   add_beeswarm = FALSE,
   beeswarm_method = "swarm",
   beeswarm_cex = 1,
@@ -144,6 +145,7 @@ ViolinPlot(
   stack = FALSE,
   y_max = NULL,
   y_min = NULL,
+  y_brackets = NULL,
   add_beeswarm = FALSE,
   beeswarm_method = "swarm",
   beeswarm_cex = 1,
@@ -241,6 +243,7 @@ BeeswarmPlot(
   stack = FALSE,
   y_max = NULL,
   y_min = NULL,
+  y_brackets = NULL,
   add_violin = FALSE,
   beeswarm_method = "swarm",
   beeswarm_cex = 1,
@@ -423,6 +426,9 @@ shared strip labels.}
 \item{y_max, y_min}{Numeric y-axis limits, or quantile notation strings
 (e.g., \code{"q95"} for the 95th percentile, \code{"q5"} for the
 5th percentile).}
+
+\item{y_brackets}{Numeric y-axis position for significance brackets
+(or p-value labels for multiple comparisons).  If NULL, the brackets are placed above the maximum y-value.}
 
 \item{add_beeswarm}{Logical; use \code{ggbeeswarm::geom_beeswarm()} for
 non-overlapping point layout instead of jitter.  Requires the

@@ -44,6 +44,7 @@ BoxViolinPlotAtomic(
   y_max = NULL,
   y_min = NULL,
   y_trans = "identity",
+  y_brackets = NULL,
   add_beeswarm = FALSE,
   beeswarm_method = "swarm",
   beeswarm_cex = 1,
@@ -231,6 +232,9 @@ shared strip labels.}
 
 \item{y_trans}{A character string for y-axis transformation
 (e.g., \code{"log10"}).}
+
+\item{y_brackets}{Numeric y-axis position for significance brackets
+(or p-value labels for multiple comparisons).  If NULL, the brackets are placed above the maximum y-value.}
 
 \item{add_beeswarm}{Logical; use \code{ggbeeswarm::geom_beeswarm()} for
 non-overlapping point layout instead of jitter.  Requires the

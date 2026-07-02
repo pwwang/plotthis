@@ -231,6 +231,8 @@
 #' @param y_nbreaks Integer number of y-axis breaks.
 #' @return A \code{ggplot} object, possibly faceted, with \code{height}
 #'  and \code{width} attributes (in inches) attached.
+#' @param y_brackets Numeric y-axis position for significance brackets
+#'  (or p-value labels for multiple comparisons).  If NULL, the brackets are placed above the maximum y-value.
 #' @keywords internal
 #' @importFrom utils combn
 #' @importFrom stats median quantile sd qt
@@ -280,6 +282,7 @@ BoxViolinPlotAtomic <- function(
     y_max = NULL,
     y_min = NULL,
     y_trans = "identity",
+    y_brackets = NULL,
     add_beeswarm = FALSE,
     beeswarm_method = "swarm",
     beeswarm_cex = 1,
@@ -1139,7 +1142,7 @@ BoxViolinPlotAtomic <- function(
                     data = pwc_data,
                     label = sig_label,
                     label.size = sig_labelsize,
-                    y.position = y_max_use,
+                    y.position = y_brackets %||% y_max_use,
                     step.increase = step_increase,
                     symnum.args = symnum_args,
                     tip.length = 0.03,
@@ -1295,7 +1298,7 @@ BoxViolinPlotAtomic <- function(
                     data = pwc_data,
                     label = sig_label,
                     label.size = sig_labelsize,
-                    y.position = y_max_use,
+                    y.position = y_brackets %||% y_max_use,
                     step.increase = step_increase,
                     symnum.args = symnum_args,
                     tip.length = 0.03,
@@ -1324,7 +1327,7 @@ BoxViolinPlotAtomic <- function(
                 inherit.aes = FALSE,
                 method = multiple_method,
                 symnum.args = symnum_args,
-                label.y = y_max_use,
+                label.y = y_brackets %||% y_max_use,
                 size = sig_labelsize,
                 label = sig_label,
                 vjust = -0.5,
@@ -1855,6 +1858,7 @@ BoxViolinPlot <- function(
     stack = FALSE,
     y_max = NULL,
     y_min = NULL,
+    y_brackets = NULL,
     add_beeswarm = FALSE,
     beeswarm_method = "swarm",
     beeswarm_cex = 1,
@@ -2018,6 +2022,7 @@ BoxViolinPlot <- function(
                 stack = stack,
                 y_max = y_max,
                 y_min = y_min,
+                y_brackets = y_brackets,
                 add_beeswarm = add_beeswarm,
                 beeswarm_method = beeswarm_method,
                 beeswarm_cex = beeswarm_cex,
@@ -2267,6 +2272,7 @@ BoxPlot <- function(
     stack = FALSE,
     y_max = NULL,
     y_min = NULL,
+    y_brackets = NULL,
     add_beeswarm = FALSE,
     beeswarm_method = "swarm",
     beeswarm_cex = 1,
@@ -2368,6 +2374,7 @@ BoxPlot <- function(
         stack = stack,
         y_max = y_max,
         y_min = y_min,
+        y_brackets = y_brackets,
         add_beeswarm = add_beeswarm,
         beeswarm_method = beeswarm_method,
         beeswarm_cex = beeswarm_cex,
@@ -2534,6 +2541,7 @@ ViolinPlot <- function(
     stack = FALSE,
     y_max = NULL,
     y_min = NULL,
+    y_brackets = NULL,
     add_beeswarm = FALSE,
     beeswarm_method = "swarm",
     beeswarm_cex = 1,
@@ -2634,6 +2642,7 @@ ViolinPlot <- function(
         stack = stack,
         y_max = y_max,
         y_min = y_min,
+        y_brackets = y_brackets,
         add_beeswarm = add_beeswarm,
         beeswarm_method = beeswarm_method,
         beeswarm_cex = beeswarm_cex,
@@ -2774,6 +2783,7 @@ BeeswarmPlot <- function(
     stack = FALSE,
     y_max = NULL,
     y_min = NULL,
+    y_brackets = NULL,
     add_violin = FALSE,
     beeswarm_method = "swarm",
     beeswarm_cex = 1,
@@ -2880,6 +2890,7 @@ BeeswarmPlot <- function(
         stack = stack,
         y_max = y_max,
         y_min = y_min,
+        y_brackets = y_brackets,
         add_beeswarm = TRUE,
         beeswarm_method = beeswarm_method,
         beeswarm_cex = beeswarm_cex,
