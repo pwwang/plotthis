@@ -65,6 +65,7 @@ BoxViolinPlotAtomic(
   y_max = NULL,
   y_min = NULL,
   y_trans = "identity",
+  y_brackets = NULL,
   add_beeswarm = FALSE,
   beeswarm_method = "swarm",
   beeswarm_cex = 1,
@@ -332,6 +333,12 @@ BoxViolinPlotAtomic(
 - y_trans:
 
   A character string for y-axis transformation (e.g., `"log10"`).
+
+- y_brackets:
+
+  Numeric y-axis position for significance brackets (or p-value labels
+  for multiple comparisons). If NULL, the brackets are placed above the
+  maximum y-value.
 
 - add_beeswarm:
 

@@ -53,6 +53,7 @@ BoxViolinPlot(
   stack = FALSE,
   y_max = NULL,
   y_min = NULL,
+  y_brackets = NULL,
   add_beeswarm = FALSE,
   beeswarm_method = "swarm",
   beeswarm_cex = 1,
@@ -328,6 +329,12 @@ BoxViolinPlot(
 
   Numeric y-axis limits, or quantile notation strings (e.g., `"q95"` for
   the 95th percentile, `"q5"` for the 5th percentile).
+
+- y_brackets:
+
+  Numeric y-axis position for significance brackets (or p-value labels
+  for multiple comparisons). If NULL, the brackets are placed above the
+  maximum y-value.
 
 - add_beeswarm:
 

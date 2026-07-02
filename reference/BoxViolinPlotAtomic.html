@@ -119,6 +119,7 @@ with optional error bars (SEM, SD, or CI).</p></li>
 <span>  y_max <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  y_min <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  y_trans <span class="op">=</span> <span class="st">"identity"</span>,</span>
+<span>  y_brackets <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  add_beeswarm <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  beeswarm_method <span class="op">=</span> <span class="st">"swarm"</span>,</span>
 <span>  beeswarm_cex <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -383,6 +384,11 @@ shared strip labels.</p></dd>
 <dt id="arg-y-trans">y_trans<a class="anchor" aria-label="anchor" href="#arg-y-trans"></a></dt>
 <dd><p>A character string for y-axis transformation
 (e.g., <code>"log10"</code>).</p></dd>
+
+
+<dt id="arg-y-brackets">y_brackets<a class="anchor" aria-label="anchor" href="#arg-y-brackets"></a></dt>
+<dd><p>Numeric y-axis position for significance brackets
+(or p-value labels for multiple comparisons).  If NULL, the brackets are placed above the maximum y-value.</p></dd>
 
 
 <dt id="arg-add-beeswarm">add_beeswarm<a class="anchor" aria-label="anchor" href="#arg-add-beeswarm"></a></dt>
