@@ -69,20 +69,20 @@ HeatmapAtomic(
   na_col = "grey85",
   row_names_side = "right",
   column_names_side = "bottom",
-  column_annotation = NULL,
-  column_annotation_side = "top",
-  column_annotation_palette = "Paired",
-  column_annotation_palcolor = NULL,
-  column_annotation_type = "auto",
-  column_annotation_params = list(),
-  column_annotation_agg = NULL,
   row_annotation = NULL,
-  row_annotation_side = "left",
-  row_annotation_palette = "Paired",
+  row_annotation_side = NULL,
+  row_annotation_palette = NULL,
   row_annotation_palcolor = NULL,
-  row_annotation_type = "auto",
-  row_annotation_params = list(),
+  row_annotation_type = NULL,
+  row_annotation_params = NULL,
   row_annotation_agg = NULL,
+  column_annotation = NULL,
+  column_annotation_side = NULL,
+  column_annotation_palette = NULL,
+  column_annotation_palcolor = NULL,
+  column_annotation_type = NULL,
+  column_annotation_params = NULL,
+  column_annotation_agg = NULL,
   flip = FALSE,
   alpha = 1,
   seed = 8525,
@@ -370,53 +370,133 @@ HeatmapAtomic(
 
   Side for column names. Default `"bottom"`.
 
+- row_annotation:
+
+  A structured list specifying row annotations. Same format as
+  `column_annotation`. Sides default to `"left"`. Aliases:
+  `.row`/`.rows` for `rows_by`, `.row.split`/`.rows.split` for
+  `rows_split_by`.
+
+- row_annotation_side:
+
+  **Deprecated**: use `row_annotation` with the `side` sub-key instead.
+
+- row_annotation_palette:
+
+  **Deprecated**: use `row_annotation` with the `palette` sub-key
+  instead.
+
+- row_annotation_palcolor:
+
+  **Deprecated**: use `row_annotation` with the `palcolor` sub-key
+  instead.
+
+- row_annotation_type:
+
+  **Deprecated**: use `row_annotation` with the `type` sub-key instead.
+
+- row_annotation_params:
+
+  **Deprecated**: use `row_annotation` with the `params` sub-key
+  instead.
+
+- row_annotation_agg:
+
+  **Deprecated**: use `row_annotation` with the `agg` sub-key instead.
+
 - column_annotation:
 
-  A character vector of column names, or a named list, specifying column
-  annotations. See the **Annotations** section for the full
-  specification.
+  A structured list specifying column annotations. Each entry is a named
+  list with sub-keys:
+
+  `col`
+
+  :   Column name in `data` supplying the annotation values. If omitted,
+      the entry name is used as the column name.
+
+  `side`
+
+  :   `"top"` or `"bottom"`.
+
+  `palette`
+
+  :   Palette name (see
+      [`show_palettes`](https://pwwang.github.io/plotthis/reference/show_palettes.md)).
+
+  `palcolor`
+
+  :   Custom colour vector overriding `palette`.
+
+  `type`
+
+  :   Annotation type: `"auto"`, `"simple"`, `"pie"`, `"ring"`, `"bar"`,
+      `"violin"`, `"boxplot"`, `"density"`, `"label"`, `"points"`,
+      `"lines"`.
+
+  `params`
+
+  :   A list of additional parameters passed to the annotation
+      constructor. `FALSE` disables the annotation. `$show_legend`
+      controls legend visibility. See
+      [`HeatmapAnnotation`](https://rdrr.io/pkg/ComplexHeatmap/man/HeatmapAnnotation.html).
+
+  `agg`
+
+  :   A function to aggregate values for the annotation.
+
+  **Shortcuts:**
+
+  - `column_annotation = list(Score = "score")` is short for
+    `list(Score = list(col = "score"))`.
+
+  - `column_annotation = TRUE` enables annotations with defaults.
+    `FALSE` disables all column annotations.
+
+  **Special keys:**
+
+  - `.default` — default values inherited by all entries. `params` is
+    merged recursively; other keys are inherited only when the entry
+    does not already specify them.
+
+  - `.col` / `.cols` / `.column` / `.columns` — alias for `columns_by`
+    (the built-in name annotation).
+
+  - `.col.split` / `.cols.split` / `.column.split` / `.columns.split` —
+    alias for `columns_split_by` (the built-in split annotation).
+
+  - `.row` / `.rows` — alias for `rows_by`.
+
+  - `.row.split` / `.rows.split` — alias for `rows_split_by`.
 
 - column_annotation_side:
 
-  A character string or named list specifying which side each column
-  annotation is placed on. Accepts `"top"` (default) or `"bottom"`. With
-  a named list, use keys `.col`, `.col.split`, and `.default` for
-  per-annotation control.
+  **Deprecated**: use `column_annotation` with the `side` sub-key
+  instead.
 
-- column_annotation_palette, column_annotation_palcolor:
+- column_annotation_palette:
 
-  Palette and custom colours for column annotations. Can be a named list
-  keyed by annotation name.
+  **Deprecated**: use `column_annotation` with the `palette` sub-key
+  instead.
+
+- column_annotation_palcolor:
+
+  **Deprecated**: use `column_annotation` with the `palcolor` sub-key
+  instead.
 
 - column_annotation_type:
 
-  Annotation type: `"auto"` (default), `"simple"`, `"pie"`, `"ring"`,
-  `"bar"`, `"violin"`, `"boxplot"`, `"density"`, `"label"`, `"points"`,
-  `"lines"`. Can be a named list for per-annotation control. Aliases:
-  `.col.split`, `.col`.
+  **Deprecated**: use `column_annotation` with the `type` sub-key
+  instead.
 
 - column_annotation_params:
 
-  A named list of additional parameters passed to each column annotation
-  function. Use aliases `.col`/`.cols` for `columns_by` and
-  `.col.split`/`.cols.split` for `columns_split_by`. Setting a key to
-  `FALSE` disables that annotation; `$<key>$show_legend` controls its
-  legend visibility. See
-  [`HeatmapAnnotation`](https://rdrr.io/pkg/ComplexHeatmap/man/HeatmapAnnotation.html)
-  for details.
+  **Deprecated**: use `column_annotation` with the `params` sub-key
+  instead.
 
 - column_annotation_agg:
 
-  A function or named list of functions to aggregate values for each
-  column annotation. Defaults vary by annotation type.
-
-- row_annotation, row_annotation_side, row_annotation_palette,
-  row_annotation_palcolor, row_annotation_type, row_annotation_params,
-  row_annotation_agg:
-
-  Row annotation equivalents of the `column_annotation_*` parameters.
-  Sides default to `"left"`. Aliases: `.row` /`.rows` for `rows_by`,
-  `.rows.split`/`.row.split` for `rows_split_by`.
+  **Deprecated**: use `column_annotation` with the `agg` sub-key
+  instead.
 
 - flip:
 
@@ -503,13 +583,12 @@ An object of heatmap that is wrapped by
 Removed parameters: `rows_palette`, `rows_palcolor`, `columns_palette`,
 `columns_palcolor`, `columns_split_palette`, `columns_split_palcolor`,
 `rows_split_palette`, `rows_split_palcolor` — use
-`row_annotation_palette`/`row_annotation_palcolor` with key `.row` or
-`.rows.split`, and
-`column_annotation_palette`/`column_annotation_palcolor` with `.col` or
-`.col.split`. Also removed: `row_name_annotation`, `row_name_legend`,
-`column_name_annotation`, `column_name_legend` — set
-`row_annotation_params$.row` / `column_annotation_params$.col` to
-`FALSE` and use `$show_legend` within the param entry.
+`row_annotation`/`column_annotation` with sub-key `palette`/`palcolor`
+and alias `.row` / `.row.split` / `.col` / `.col.split`. Also removed:
+`row_name_annotation`, `row_name_legend`, `column_name_annotation`,
+`column_name_legend` — set
+`row_annotation = list(.row = list(params = FALSE))` /
+`column_annotation = list(.col = list(params = FALSE))`.
 
 ## Architecture
 
@@ -600,13 +679,14 @@ to translate between data and heatmap coordinates.
 
 ## Annotations
 
-Row and column annotations are built via
-[`HeatmapAnnotation`](https://rdrr.io/pkg/ComplexHeatmap/man/HeatmapAnnotation.html).
-Built-in name annotations (for `rows_by` / `columns_by`) and split
-annotations (for `rows_split_by` / `columns_split_by`) are added
-automatically and can be configured using the aliases `.row` / `.col`
-and `.rows.split` / `.col.split` in `row_annotation_params`,
-`column_annotation_type`, etc. Setting an alias to `FALSE` in `*_params`
-disables that annotation. Ordering within each side: name annotations
-are closest to the body, split annotations farthest away, user-defined
-annotations in between.
+Row and column annotations are configured via the `row_annotation` /
+`column_annotation` structured list arguments. Built-in name annotations
+(for `rows_by` / `columns_by`) and split annotations (for
+`rows_split_by` / `columns_split_by`) are added automatically and can be
+configured using the aliases `.row` / `.col` and `.row.split` /
+`.col.split` as keys in the annotation list. Setting an alias entry's
+`params` to `FALSE` disables that annotation. `.default` provides
+default values inherited by all entries (with recursive merge for
+`params`). Ordering within each side: name annotations are closest to
+the body, split annotations farthest away, user-defined annotations in
+between.

@@ -80,30 +80,30 @@ LinkedHeatmap(
   show_column_names = NULL,
   border = TRUE,
   title = NULL,
-  title_gp = NULL,
+  title_params = NULL,
   column_title = NULL,
   row_title = NULL,
   na_col = "grey85",
   row_names_side = "right",
   column_names_side = "bottom",
-  column_annotation = NULL,
-  column_annotation_side = "top",
-  column_annotation_palette = "Paired",
-  column_annotation_palcolor = NULL,
-  column_annotation_type = "auto",
-  column_annotation_params = list(),
-  column_annotation_agg = NULL,
   row_annotation = NULL,
-  row_annotation_side = "left",
-  row_annotation_palette = "Paired",
+  row_annotation_side = NULL,
+  row_annotation_palette = NULL,
   row_annotation_palcolor = NULL,
-  row_annotation_type = "auto",
-  row_annotation_params = list(),
+  row_annotation_type = NULL,
+  row_annotation_params = NULL,
   row_annotation_agg = NULL,
-  links_width_by = NULL,
-  links_width_scale = 5,
-  links_color = "grey40",
-  links_alpha = 0.6,
+  column_annotation = NULL,
+  column_annotation_side = NULL,
+  column_annotation_palette = NULL,
+  column_annotation_palcolor = NULL,
+  column_annotation_type = NULL,
+  column_annotation_params = NULL,
+  column_annotation_agg = NULL,
+  link_width_by = NULL,
+  link_width_scale = 5,
+  link_color = "grey40",
+  link_alpha = 0.6,
   flip = FALSE,
   alpha = 1,
   seed = 8525,
@@ -417,12 +417,12 @@ LinkedHeatmap(
   and `right_title` are used to set the title for each heatmap, and
   `title` is used to set the overall title for the combined plot.
 
-- title_gp:
+- title_params:
 
-  A [`gpar`](https://rdrr.io/r/grid/gpar.html) object controlling the
-  graphical parameters of the overall plot title (font size, font face,
-  color, etc.). Only used when `title` is not `NULL`. Default is
-  `gpar(fontsize = 14, fontface = "bold")`.
+  A list of parameters passed to
+  [`grid::grid.text()`](https://rdrr.io/r/grid/grid.text.html) to
+  control the title appearance. Default is
+  `list(gp = gpar(fontsize = 14, fontface = "bold"))`.
 
 - column_title, row_title:
 
@@ -442,67 +442,93 @@ LinkedHeatmap(
 
   Side for column names. Default `"bottom"`.
 
+- row_annotation:
+
+  A structured list specifying row annotations. See
+  [`HeatmapAtomic`](https://pwwang.github.io/plotthis/reference/HeatmapAtomic.md)
+  for the full specification.
+
+- row_annotation_side:
+
+  **Deprecated**: use `row_annotation` with the `side` sub-key instead.
+  Used as fallback for `left_row_annotation_side` /
+  `right_row_annotation_side`. Default `"left"`.
+
+- row_annotation_palette:
+
+  **Deprecated**: use `row_annotation` with the `palette` sub-key
+  instead.
+
+- row_annotation_palcolor:
+
+  **Deprecated**: use `row_annotation` with the `palcolor` sub-key
+  instead.
+
+- row_annotation_type:
+
+  **Deprecated**: use `row_annotation` with the `type` sub-key instead.
+
+- row_annotation_params:
+
+  **Deprecated**: use `row_annotation` with the `params` sub-key
+  instead.
+
+- row_annotation_agg:
+
+  **Deprecated**: use `row_annotation` with the `agg` sub-key instead.
+
 - column_annotation:
 
-  A character vector of column names, or a named list, specifying column
-  annotations for both heatmaps. See
+  A structured list specifying column annotations. See
   [`HeatmapAtomic`](https://pwwang.github.io/plotthis/reference/HeatmapAtomic.md)
   for the full specification.
 
 - column_annotation_side:
 
-  Side for column annotations: `"top"` (default) or `"bottom"`. Can also
-  be a named list for per-annotation control.
+  **Deprecated**: use `column_annotation` with the `side` sub-key
+  instead.
 
-- column_annotation_palette, column_annotation_palcolor:
+- column_annotation_palette:
 
-  Palette and custom colours for column annotations.
+  **Deprecated**: use `column_annotation` with the `palette` sub-key
+  instead.
+
+- column_annotation_palcolor:
+
+  **Deprecated**: use `column_annotation` with the `palcolor` sub-key
+  instead.
 
 - column_annotation_type:
 
-  Annotation type: `"auto"` (default), `"simple"`, `"pie"`, `"ring"`,
-  `"bar"`, `"violin"`, `"boxplot"`, `"density"`, `"label"`. Can be a
-  named list for per-annotation control.
+  **Deprecated**: use `column_annotation` with the `type` sub-key
+  instead.
 
 - column_annotation_params:
 
-  A named list of additional parameters passed to each column annotation
-  function. See
-  [`HeatmapAtomic`](https://pwwang.github.io/plotthis/reference/HeatmapAtomic.md)
-  for details.
+  **Deprecated**: use `column_annotation` with the `params` sub-key
+  instead.
 
 - column_annotation_agg:
 
-  A function or named list of functions to aggregate values for each
-  column annotation.
+  **Deprecated**: use `column_annotation` with the `agg` sub-key
+  instead.
 
-- row_annotation, row_annotation_palette, row_annotation_palcolor,
-  row_annotation_type, row_annotation_params, row_annotation_agg:
-
-  Row annotation equivalents of the `column_annotation_*` parameters.
-
-- row_annotation_side:
-
-  Default side for row annotations. Used as fallback for
-  `left_row_annotation_side` / `right_row_annotation_side`. Default
-  `"left"`.
-
-- links_width_by:
+- link_width_by:
 
   Optional column name in `data` whose values determine the stroke width
   of each link line (e.g. interaction strength). Values are min-max
-  scaled to \\\[0, 1\]\\ and multiplied by `links_width_scale`.
+  scaled to \\\[0, 1\]\\ and multiplied by `link_width_scale`.
 
-- links_width_scale:
+- link_width_scale:
 
   Numeric scaling factor applied to the normalised link intensity values
   to produce final line widths (`lwd`). Default 5.
 
-- links_color:
+- link_color:
 
   Colour of the link spline curves. Default `"grey30"`.
 
-- links_alpha:
+- link_alpha:
 
   Alpha transparency of link curves in \\\[0, 1\]\\. Default 0.8.
 
@@ -736,7 +762,7 @@ if (requireNamespace("ComplexHeatmap", quietly = TRUE)) {
         right_columns_by = "target",
         right_values_by = "receptor_expr",
         right_name = "Receptor",
-        links_width_by = "intensity"
+        link_width_by = "intensity"
     )
 }
 

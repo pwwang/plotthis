@@ -131,30 +131,30 @@ cognate receptor(s).</p>
 <span>  show_column_names <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  border <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  title <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  title_gp <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  title_params <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  column_title <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  row_title <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  na_col <span class="op">=</span> <span class="st">"grey85"</span>,</span>
 <span>  row_names_side <span class="op">=</span> <span class="st">"right"</span>,</span>
 <span>  column_names_side <span class="op">=</span> <span class="st">"bottom"</span>,</span>
-<span>  column_annotation <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  column_annotation_side <span class="op">=</span> <span class="st">"top"</span>,</span>
-<span>  column_annotation_palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
-<span>  column_annotation_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  column_annotation_type <span class="op">=</span> <span class="st">"auto"</span>,</span>
-<span>  column_annotation_params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  column_annotation_agg <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  row_annotation <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  row_annotation_side <span class="op">=</span> <span class="st">"left"</span>,</span>
-<span>  row_annotation_palette <span class="op">=</span> <span class="st">"Paired"</span>,</span>
+<span>  row_annotation_side <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  row_annotation_palette <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  row_annotation_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  row_annotation_type <span class="op">=</span> <span class="st">"auto"</span>,</span>
-<span>  row_annotation_params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  row_annotation_type <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  row_annotation_params <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  row_annotation_agg <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  links_width_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  links_width_scale <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>  links_color <span class="op">=</span> <span class="st">"grey40"</span>,</span>
-<span>  links_alpha <span class="op">=</span> <span class="fl">0.6</span>,</span>
+<span>  column_annotation <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  column_annotation_side <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  column_annotation_palette <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  column_annotation_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  column_annotation_type <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  column_annotation_params <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  column_annotation_agg <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  link_width_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  link_width_scale <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  link_color <span class="op">=</span> <span class="st">"grey40"</span>,</span>
+<span>  link_alpha <span class="op">=</span> <span class="fl">0.6</span>,</span>
 <span>  flip <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">8525</span>,</span>
@@ -487,11 +487,9 @@ Note that, <code>left_title</code> and <code>right_title</code> are used to set 
 and <code>title</code> is used to set the overall title for the combined plot.</p></dd>
 
 
-<dt id="arg-title-gp">title_gp<a class="anchor" aria-label="anchor" href="#arg-title-gp"></a></dt>
-<dd><p>A <code><a href="https://rdrr.io/r/grid/gpar.html" class="external-link">gpar</a></code> object controlling the graphical
-parameters of the overall plot title (font size, font face, color, etc.).
-Only used when <code>title</code> is not <code>NULL</code>.
-Default is <code>gpar(fontsize = 14, fontface = "bold")</code>.</p></dd>
+<dt id="arg-title-params">title_params<a class="anchor" aria-label="anchor" href="#arg-title-params"></a></dt>
+<dd><p>A list of parameters passed to <code><a href="https://rdrr.io/r/grid/grid.text.html" class="external-link">grid::grid.text()</a></code> to control the title appearance.
+Default is <code>list(gp = gpar(fontsize = 14, fontface = "bold"))</code>.</p></dd>
 
 
 <dt id="arg-column-title-row-title">column_title, row_title<a class="anchor" aria-label="anchor" href="#arg-column-title-row-title"></a></dt>
@@ -514,70 +512,97 @@ Default is <code>gpar(fontsize = 14, fontface = "bold")</code>.</p></dd>
 <code>"bottom"</code>.</p></dd>
 
 
-<dt id="arg-column-annotation">column_annotation<a class="anchor" aria-label="anchor" href="#arg-column-annotation"></a></dt>
-<dd><p>A character vector of column names, or a named
-list, specifying column annotations for both heatmaps.  See
-<code><a href="HeatmapAtomic.html">HeatmapAtomic</a></code> for the full specification.</p></dd>
-
-
-<dt id="arg-column-annotation-side">column_annotation_side<a class="anchor" aria-label="anchor" href="#arg-column-annotation-side"></a></dt>
-<dd><p>Side for column annotations:
-<code>"top"</code> (default) or <code>"bottom"</code>.  Can also be a named list
-for per-annotation control.</p></dd>
-
-
-<dt id="arg-column-annotation-palette-column-annotation-palcolor">column_annotation_palette, column_annotation_palcolor<a class="anchor" aria-label="anchor" href="#arg-column-annotation-palette-column-annotation-palcolor"></a></dt>
-<dd><p>Palette and
-custom colours for column annotations.</p></dd>
-
-
-<dt id="arg-column-annotation-type">column_annotation_type<a class="anchor" aria-label="anchor" href="#arg-column-annotation-type"></a></dt>
-<dd><p>Annotation type: <code>"auto"</code> (default),
-<code>"simple"</code>, <code>"pie"</code>, <code>"ring"</code>, <code>"bar"</code>,
-<code>"violin"</code>, <code>"boxplot"</code>, <code>"density"</code>, <code>"label"</code>.
-Can be a named list for per-annotation control.</p></dd>
-
-
-<dt id="arg-column-annotation-params">column_annotation_params<a class="anchor" aria-label="anchor" href="#arg-column-annotation-params"></a></dt>
-<dd><p>A named list of additional parameters
-passed to each column annotation function.  See
-<code><a href="HeatmapAtomic.html">HeatmapAtomic</a></code> for details.</p></dd>
-
-
-<dt id="arg-column-annotation-agg">column_annotation_agg<a class="anchor" aria-label="anchor" href="#arg-column-annotation-agg"></a></dt>
-<dd><p>A function or named list of functions to
-aggregate values for each column annotation.</p></dd>
-
-
-<dt id="arg-row-annotation-row-annotation-palette-row-annotation-palcolor-row-annotation-type-row-annotation-params-row-annotation-agg">row_annotation, row_annotation_palette, row_annotation_palcolor, row_annotation_type, row_annotation_params, row_annotation_agg<a class="anchor" aria-label="anchor" href="#arg-row-annotation-row-annotation-palette-row-annotation-palcolor-row-annotation-type-row-annotation-params-row-annotation-agg"></a></dt>
-<dd><p>Row annotation equivalents of the <code>column_annotation_*</code> parameters.</p></dd>
+<dt id="arg-row-annotation">row_annotation<a class="anchor" aria-label="anchor" href="#arg-row-annotation"></a></dt>
+<dd><p>A structured list specifying row annotations.
+See <code><a href="HeatmapAtomic.html">HeatmapAtomic</a></code> for the full specification.</p></dd>
 
 
 <dt id="arg-row-annotation-side">row_annotation_side<a class="anchor" aria-label="anchor" href="#arg-row-annotation-side"></a></dt>
-<dd><p>Default side for row annotations.  Used as
+<dd><p><strong>Deprecated</strong>: use
+<code>row_annotation</code> with the <code>side</code> sub-key instead.  Used as
 fallback for <code>left_row_annotation_side</code> /
 <code>right_row_annotation_side</code>.  Default <code>"left"</code>.</p></dd>
 
 
-<dt id="arg-links-width-by">links_width_by<a class="anchor" aria-label="anchor" href="#arg-links-width-by"></a></dt>
+<dt id="arg-row-annotation-palette">row_annotation_palette<a class="anchor" aria-label="anchor" href="#arg-row-annotation-palette"></a></dt>
+<dd><p><strong>Deprecated</strong>: use
+<code>row_annotation</code> with the <code>palette</code> sub-key instead.</p></dd>
+
+
+<dt id="arg-row-annotation-palcolor">row_annotation_palcolor<a class="anchor" aria-label="anchor" href="#arg-row-annotation-palcolor"></a></dt>
+<dd><p><strong>Deprecated</strong>: use
+<code>row_annotation</code> with the <code>palcolor</code> sub-key instead.</p></dd>
+
+
+<dt id="arg-row-annotation-type">row_annotation_type<a class="anchor" aria-label="anchor" href="#arg-row-annotation-type"></a></dt>
+<dd><p><strong>Deprecated</strong>: use
+<code>row_annotation</code> with the <code>type</code> sub-key instead.</p></dd>
+
+
+<dt id="arg-row-annotation-params">row_annotation_params<a class="anchor" aria-label="anchor" href="#arg-row-annotation-params"></a></dt>
+<dd><p><strong>Deprecated</strong>: use
+<code>row_annotation</code> with the <code>params</code> sub-key instead.</p></dd>
+
+
+<dt id="arg-row-annotation-agg">row_annotation_agg<a class="anchor" aria-label="anchor" href="#arg-row-annotation-agg"></a></dt>
+<dd><p><strong>Deprecated</strong>: use
+<code>row_annotation</code> with the <code>agg</code> sub-key instead.</p></dd>
+
+
+<dt id="arg-column-annotation">column_annotation<a class="anchor" aria-label="anchor" href="#arg-column-annotation"></a></dt>
+<dd><p>A structured list specifying column annotations.
+See <code><a href="HeatmapAtomic.html">HeatmapAtomic</a></code> for the full specification.</p></dd>
+
+
+<dt id="arg-column-annotation-side">column_annotation_side<a class="anchor" aria-label="anchor" href="#arg-column-annotation-side"></a></dt>
+<dd><p><strong>Deprecated</strong>: use
+<code>column_annotation</code> with the <code>side</code> sub-key instead.</p></dd>
+
+
+<dt id="arg-column-annotation-palette">column_annotation_palette<a class="anchor" aria-label="anchor" href="#arg-column-annotation-palette"></a></dt>
+<dd><p><strong>Deprecated</strong>: use
+<code>column_annotation</code> with the <code>palette</code> sub-key instead.</p></dd>
+
+
+<dt id="arg-column-annotation-palcolor">column_annotation_palcolor<a class="anchor" aria-label="anchor" href="#arg-column-annotation-palcolor"></a></dt>
+<dd><p><strong>Deprecated</strong>: use
+<code>column_annotation</code> with the <code>palcolor</code> sub-key instead.</p></dd>
+
+
+<dt id="arg-column-annotation-type">column_annotation_type<a class="anchor" aria-label="anchor" href="#arg-column-annotation-type"></a></dt>
+<dd><p><strong>Deprecated</strong>: use
+<code>column_annotation</code> with the <code>type</code> sub-key instead.</p></dd>
+
+
+<dt id="arg-column-annotation-params">column_annotation_params<a class="anchor" aria-label="anchor" href="#arg-column-annotation-params"></a></dt>
+<dd><p><strong>Deprecated</strong>: use
+<code>column_annotation</code> with the <code>params</code> sub-key instead.</p></dd>
+
+
+<dt id="arg-column-annotation-agg">column_annotation_agg<a class="anchor" aria-label="anchor" href="#arg-column-annotation-agg"></a></dt>
+<dd><p><strong>Deprecated</strong>: use
+<code>column_annotation</code> with the <code>agg</code> sub-key instead.</p></dd>
+
+
+<dt id="arg-link-width-by">link_width_by<a class="anchor" aria-label="anchor" href="#arg-link-width-by"></a></dt>
 <dd><p>Optional column name in <code>data</code> whose values
 determine the stroke width of each link line (e.g. interaction
 strength).  Values are min-max scaled to \([0, 1]\) and multiplied by
-<code>links_width_scale</code>.</p></dd>
+<code>link_width_scale</code>.</p></dd>
 
 
-<dt id="arg-links-width-scale">links_width_scale<a class="anchor" aria-label="anchor" href="#arg-links-width-scale"></a></dt>
+<dt id="arg-link-width-scale">link_width_scale<a class="anchor" aria-label="anchor" href="#arg-link-width-scale"></a></dt>
 <dd><p>Numeric scaling factor applied to the normalised
 link intensity values to produce final line widths (<code>lwd</code>).
 Default 5.</p></dd>
 
 
-<dt id="arg-links-color">links_color<a class="anchor" aria-label="anchor" href="#arg-links-color"></a></dt>
+<dt id="arg-link-color">link_color<a class="anchor" aria-label="anchor" href="#arg-link-color"></a></dt>
 <dd><p>Colour of the link spline curves.  Default
 <code>"grey30"</code>.</p></dd>
 
 
-<dt id="arg-links-alpha">links_alpha<a class="anchor" aria-label="anchor" href="#arg-links-alpha"></a></dt>
+<dt id="arg-link-alpha">link_alpha<a class="anchor" aria-label="anchor" href="#arg-link-alpha"></a></dt>
 <dd><p>Alpha transparency of link curves in \([0, 1]\).
 Default 0.8.</p></dd>
 
@@ -793,7 +818,7 @@ correction.</p>
 <span class="r-in"><span>        right_columns_by <span class="op">=</span> <span class="st">"target"</span>,</span></span>
 <span class="r-in"><span>        right_values_by <span class="op">=</span> <span class="st">"receptor_expr"</span>,</span></span>
 <span class="r-in"><span>        right_name <span class="op">=</span> <span class="st">"Receptor"</span>,</span></span>
-<span class="r-in"><span>        links_width_by <span class="op">=</span> <span class="st">"intensity"</span></span></span>
+<span class="r-in"><span>        link_width_by <span class="op">=</span> <span class="st">"intensity"</span></span></span>
 <span class="r-in"><span>    <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-plt img"><img src="LinkedHeatmap-1.png" alt="" width="875" height="541"></span>

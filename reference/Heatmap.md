@@ -85,20 +85,20 @@ Heatmap(
   na_col = "grey85",
   row_names_side = "right",
   column_names_side = "bottom",
-  column_annotation = NULL,
-  column_annotation_side = "top",
-  column_annotation_palette = "Paired",
-  column_annotation_palcolor = NULL,
-  column_annotation_type = "auto",
-  column_annotation_params = list(),
-  column_annotation_agg = NULL,
   row_annotation = NULL,
-  row_annotation_side = "left",
-  row_annotation_palette = "Paired",
+  row_annotation_side = NULL,
+  row_annotation_palette = NULL,
   row_annotation_palcolor = NULL,
-  row_annotation_type = "auto",
-  row_annotation_params = list(),
+  row_annotation_type = NULL,
+  row_annotation_params = NULL,
   row_annotation_agg = NULL,
+  column_annotation = NULL,
+  column_annotation_side = NULL,
+  column_annotation_palette = NULL,
+  column_annotation_palcolor = NULL,
+  column_annotation_type = NULL,
+  column_annotation_params = NULL,
+  column_annotation_agg = NULL,
   flip = FALSE,
   alpha = 1,
   seed = 8525,
@@ -494,53 +494,133 @@ Heatmap(
 
   Side for column names. Default `"bottom"`.
 
+- row_annotation:
+
+  A structured list specifying row annotations. Same format as
+  `column_annotation`. Sides default to `"left"`. Aliases:
+  `.row`/`.rows` for `rows_by`, `.row.split`/`.rows.split` for
+  `rows_split_by`.
+
+- row_annotation_side:
+
+  **Deprecated**: use `row_annotation` with the `side` sub-key instead.
+
+- row_annotation_palette:
+
+  **Deprecated**: use `row_annotation` with the `palette` sub-key
+  instead.
+
+- row_annotation_palcolor:
+
+  **Deprecated**: use `row_annotation` with the `palcolor` sub-key
+  instead.
+
+- row_annotation_type:
+
+  **Deprecated**: use `row_annotation` with the `type` sub-key instead.
+
+- row_annotation_params:
+
+  **Deprecated**: use `row_annotation` with the `params` sub-key
+  instead.
+
+- row_annotation_agg:
+
+  **Deprecated**: use `row_annotation` with the `agg` sub-key instead.
+
 - column_annotation:
 
-  A character vector of column names, or a named list, specifying column
-  annotations. See the **Annotations** section for the full
-  specification.
+  A structured list specifying column annotations. Each entry is a named
+  list with sub-keys:
+
+  `col`
+
+  :   Column name in `data` supplying the annotation values. If omitted,
+      the entry name is used as the column name.
+
+  `side`
+
+  :   `"top"` or `"bottom"`.
+
+  `palette`
+
+  :   Palette name (see
+      [`show_palettes`](https://pwwang.github.io/plotthis/reference/show_palettes.md)).
+
+  `palcolor`
+
+  :   Custom colour vector overriding `palette`.
+
+  `type`
+
+  :   Annotation type: `"auto"`, `"simple"`, `"pie"`, `"ring"`, `"bar"`,
+      `"violin"`, `"boxplot"`, `"density"`, `"label"`, `"points"`,
+      `"lines"`.
+
+  `params`
+
+  :   A list of additional parameters passed to the annotation
+      constructor. `FALSE` disables the annotation. `$show_legend`
+      controls legend visibility. See
+      [`HeatmapAnnotation`](https://rdrr.io/pkg/ComplexHeatmap/man/HeatmapAnnotation.html).
+
+  `agg`
+
+  :   A function to aggregate values for the annotation.
+
+  **Shortcuts:**
+
+  - `column_annotation = list(Score = "score")` is short for
+    `list(Score = list(col = "score"))`.
+
+  - `column_annotation = TRUE` enables annotations with defaults.
+    `FALSE` disables all column annotations.
+
+  **Special keys:**
+
+  - `.default` — default values inherited by all entries. `params` is
+    merged recursively; other keys are inherited only when the entry
+    does not already specify them.
+
+  - `.col` / `.cols` / `.column` / `.columns` — alias for `columns_by`
+    (the built-in name annotation).
+
+  - `.col.split` / `.cols.split` / `.column.split` / `.columns.split` —
+    alias for `columns_split_by` (the built-in split annotation).
+
+  - `.row` / `.rows` — alias for `rows_by`.
+
+  - `.row.split` / `.rows.split` — alias for `rows_split_by`.
 
 - column_annotation_side:
 
-  A character string or named list specifying which side each column
-  annotation is placed on. Accepts `"top"` (default) or `"bottom"`. With
-  a named list, use keys `.col`, `.col.split`, and `.default` for
-  per-annotation control.
+  **Deprecated**: use `column_annotation` with the `side` sub-key
+  instead.
 
-- column_annotation_palette, column_annotation_palcolor:
+- column_annotation_palette:
 
-  Palette and custom colours for column annotations. Can be a named list
-  keyed by annotation name.
+  **Deprecated**: use `column_annotation` with the `palette` sub-key
+  instead.
+
+- column_annotation_palcolor:
+
+  **Deprecated**: use `column_annotation` with the `palcolor` sub-key
+  instead.
 
 - column_annotation_type:
 
-  Annotation type: `"auto"` (default), `"simple"`, `"pie"`, `"ring"`,
-  `"bar"`, `"violin"`, `"boxplot"`, `"density"`, `"label"`, `"points"`,
-  `"lines"`. Can be a named list for per-annotation control. Aliases:
-  `.col.split`, `.col`.
+  **Deprecated**: use `column_annotation` with the `type` sub-key
+  instead.
 
 - column_annotation_params:
 
-  A named list of additional parameters passed to each column annotation
-  function. Use aliases `.col`/`.cols` for `columns_by` and
-  `.col.split`/`.cols.split` for `columns_split_by`. Setting a key to
-  `FALSE` disables that annotation; `$<key>$show_legend` controls its
-  legend visibility. See
-  [`HeatmapAnnotation`](https://rdrr.io/pkg/ComplexHeatmap/man/HeatmapAnnotation.html)
-  for details.
+  **Deprecated**: use `column_annotation` with the `params` sub-key
+  instead.
 
 - column_annotation_agg:
 
-  A function or named list of functions to aggregate values for each
-  column annotation. Defaults vary by annotation type.
-
-- row_annotation, row_annotation_side, row_annotation_palette,
-  row_annotation_palcolor, row_annotation_type, row_annotation_params,
-  row_annotation_agg:
-
-  Row annotation equivalents of the `column_annotation_*` parameters.
-  Sides default to `"left"`. Aliases: `.row` /`.rows` for `rows_by`,
-  `.rows.split`/`.row.split` for `rows_split_by`.
+  **Deprecated**: use `column_annotation` with the `agg` sub-key
+  instead.
 
 - flip:
 
@@ -765,9 +845,7 @@ if (requireNamespace("cluster", quietly = TRUE)) {
        group = sample(c("X", "Y", "Z"), 6, replace = TRUE)
     )
     Heatmap(matrix_data, rows_data = rows_data,
-        row_annotation = list(Group = "group"),
-        row_annotation_type = list(Group = "simple"),
-        row_annotation_palette = list(Group = "Spectral")
+        row_annotation = list(Group = list(col = "group", palette = "Spectral"))
     )
 }
 #> Warning: [Heatmap] Assuming 'row_annotation_agg["Group"] = dplyr::first' for the simple annotation
@@ -782,12 +860,14 @@ if (requireNamespace("cluster", quietly = TRUE)) {
     # use label annotation for split groups (shows group labels inside colored blocks)
     Heatmap(matrix_data, rows_data = rows_data,
         rows_split_by = "group",
-        row_annotation_params = list(.rows.split = list(
-            border = FALSE,
-            labels_gp = grid::gpar(col = "white", fontsize = 12),
-            labels_rot = 0
-        )),
-        row_annotation_type = list(.rows.split = "label")
+        row_annotation = list(.row.split = list(
+            type = "label",
+            params = list(
+                border = FALSE,
+                labels_gp = grid::gpar(col = "white", fontsize = 12),
+                labels_rot = 0
+            )
+        ))
     )
 }
 
@@ -799,7 +879,7 @@ if (requireNamespace("cluster", quietly = TRUE)) {
     )
     Heatmap(matrix_data, columns_data = columns_data,
         columns_split_by = "batch",
-        column_annotation_type = list(.col.split = "label")
+        column_annotation = list(.col.split = list(type = "label"))
     )
 }
 
@@ -807,12 +887,13 @@ rownames(matrix_data)[1] <- "R12345"
 if (requireNamespace("cluster", quietly = TRUE)) {
     # label annotation for name annotations: show row/column names as colored labels
     Heatmap(matrix_data, rows_data = rows_data,
-        row_annotation_type = list(.row = "label"),
-        column_annotation_type = list(.col = "label"),
-        column_annotation_params = list(.col = list(labels_rot = 90)),
-        row_annotation_palette = list(.row = "Set2"),
-        row_annotation_side = list(.row = "right"),
-        row_annotation_params = list(.row = list(labels_rot = 150))
+        row_annotation = list(.row = list(
+            type = "label", palette = "Set2", side = "right",
+            params = list(labels_rot = 150)
+        )),
+        column_annotation = list(.col = list(
+            type = "label", params = list(labels_rot = 90)
+        ))
     )
 }
 
@@ -903,10 +984,10 @@ if (requireNamespace("cluster", quietly = TRUE)) {
     Heatmap(
         go,
         # Do not cluster rows and columns and hide the name annotations
-        # Use .row/.col aliases (or the actual rows_name/columns_name) in annotation_params
+        # Use .row/.col aliases to disable the built-in name annotations
         cluster_rows = FALSE, cluster_columns = FALSE,
-        row_annotation_params = list(.row = FALSE),
-        column_annotation_params = list(.col = FALSE),
+        row_annotation = list(.row = list(params = FALSE)),
+        column_annotation = list(.col = list(params = FALSE)),
         show_row_names = FALSE, show_column_names = FALSE,
         # Set the legend items
         values_by = "Players", legend_discrete = TRUE,
@@ -924,22 +1005,25 @@ if (requireNamespace("cluster", quietly = TRUE)) {
 if (requireNamespace("cluster", quietly = TRUE)) {
     # Make the row/column name annotation thicker using the .row/.col aliases
     Heatmap(matrix_data,
-        column_annotation_params = list(.col = list(height = 5)),
-        row_annotation_params = list(.row = list(width = 5)))
+        column_annotation = list(.col = list(params = list(height = 5))),
+        row_annotation = list(.row = list(params = list(width = 5))))
 }
 
 if (requireNamespace("cluster", quietly = TRUE)) {
     # Per-annotation side control: row name annotation on the right,
     # all other row annotations on the left (.default)
     rows_data2 <- data.frame(
-        rows = paste0("R", 1:6),
-        group = sample(c("X", "Y"), 6, replace = TRUE),
-        score = runif(6)
+        rows = sample(paste0("R", 1:6), 60, replace = TRUE),
+        group = sample(c("X", "Y"), 60, replace = TRUE),
+        score = runif(60)
     )
     Heatmap(matrix_data, rows_data = rows_data2,
         rows_split_by = "group",
-        row_annotation = list(Score = "score"),
-        row_annotation_side = list(.default = "left", .row = "right"),
+        row_annotation = list(
+            .default = list(side = "left"),
+            .row = list(side = "right"),
+            Score = "score"
+        ),
         show_row_names = TRUE
     )
 }
@@ -948,8 +1032,10 @@ if (requireNamespace("cluster", quietly = TRUE)) {
     # Move all row annotations to the right side
     Heatmap(matrix_data, rows_data = rows_data2,
         rows_split_by = "group",
-        row_annotation = list(Score = "score"),
-        row_annotation_side = "right",
+        row_annotation = list(
+            .default = list(side = "right"),
+            Score = "score"
+        ),
         show_row_names = TRUE
     )
 }
@@ -959,7 +1045,10 @@ if (requireNamespace("cluster", quietly = TRUE)) {
     # split annotation on the default left, name annotation on the right
     Heatmap(matrix_data, rows_data = rows_data2,
         rows_split_by = "group",
-        row_annotation_side = list(.default = "left", .row = "right"),
+        row_annotation = list(
+            .default = list(side = "left"),
+            .row = list(side = "right")
+        ),
         show_row_names = TRUE
     )
 }
@@ -967,9 +1056,9 @@ if (requireNamespace("cluster", quietly = TRUE)) {
 if (requireNamespace("cluster", quietly = TRUE)) {
     # Row name label annotation on the right side (text rotated 90° clockwise)
     Heatmap(matrix_data, rows_data = rows_data2,
-        row_annotation_type = list(.row = "label"),
-        row_annotation_palette = list(.row = "Set2"),
-        row_annotation_side = list(.row = "right"),
+        row_annotation = list(.row = list(
+            type = "label", palette = "Set2", side = "right"
+        )),
         show_row_names = TRUE
     )
 }
@@ -1047,16 +1136,19 @@ if (requireNamespace("cluster", quietly = TRUE)) {
 if (requireNamespace("cluster", quietly = TRUE)) {
     Heatmap(data,
         values_by = "value", rows_by = "r", columns_by = "c",
-        column_annotation = list(r1 = "p", r2 = "q", r3 = "p1"),
-        column_annotation_type = list(r1 = "ring", r2 = "bar", r3 = "violin"),
-        column_annotation_params = list(
-            r1 = list(height = grid::unit(10, "mm"), show_legend = FALSE),
-            r3 = list(height = grid::unit(18, "mm"))
+        column_annotation = list(
+            r1 = list(col = "p", type = "ring",
+                      params = list(height = grid::unit(10, "mm"), show_legend = FALSE)),
+            r2 = list(col = "q", type = "bar"),
+            r3 = list(col = "p1", type = "violin",
+                      params = list(height = grid::unit(18, "mm")))
         ),
-        row_annotation = c("q", "p2", "a"),
-        row_annotation_side = "right",
-        row_annotation_type = list(q = "pie", p2 = "density", a = "simple"),
-        row_annotation_params = list(q = list(width = grid::unit(12, "mm"))),
+        row_annotation = list(
+            .default = list(side = "right"),
+            q = list(type = "pie", params = list(width = grid::unit(12, "mm"))),
+            p2 = list(type = "density"),
+            a = list(type = "simple")
+        ),
         show_row_names = TRUE, show_column_names = TRUE
     )
 }
