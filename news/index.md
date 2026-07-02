@@ -8,6 +8,9 @@
   color in LinkedHeatmap and LinkedHeatmapAtomic
 - BREAKING(LinkedHeatmap): replace title_gp with title_params for
   improved title customization
+- feat(LinkedHeatmap): enhance link width customization with constant
+  value option
+- fix(heatmap): fix name annotation error when it has empty levels
 
 ## Version 0.13.0
 
