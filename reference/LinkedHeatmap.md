@@ -517,7 +517,8 @@ LinkedHeatmap(
 
   Optional column name in `data` whose values determine the stroke width
   of each link line (e.g. interaction strength). Values are min-max
-  scaled to \\\[0, 1\]\\ and multiplied by `link_width_scale`.
+  scaled to \\\[0, 1\]\\ and multiplied by `link_width_scale`. You can
+  also pass a numeric value to use a constant width for all links.
 
 - link_width_scale:
 
