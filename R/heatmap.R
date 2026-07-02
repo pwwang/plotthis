@@ -482,7 +482,7 @@ HeatmapAtomic <- function(
     if (
         is.null(row_title) &&
             !is.null(rows_split_by) &&
-            !is.null(row_annotation_type[[rows_split_by]])
+            !isFALSE(row_annotation_params[[rows_split_by]])
     ) {
         # Let's check if we need row_title
         if (identical(row_annotation_type[[rows_split_by]], "auto")) {
@@ -494,12 +494,18 @@ HeatmapAtomic <- function(
             )
         }
     }
+
     if (
         is.null(column_title) &&
             !is.null(columns_split_by) &&
-            !is.null(column_annotation_type[[columns_split_by]])
+            !isFALSE(column_annotation_params[[columns_split_by]])
     ) {
-        if (identical(column_annotation_type[[columns_split_by]], "auto")) {
+        if (
+            identical(
+                column_annotation_type[[columns_split_by]] %||% "auto",
+                "auto"
+            )
+        ) {
             column_title <- TRUE
         } else {
             column_title <- identical(
@@ -508,6 +514,7 @@ HeatmapAtomic <- function(
             )
         }
     }
+
     if (isFALSE(column_title)) {
         column_title <- NULL
     }
