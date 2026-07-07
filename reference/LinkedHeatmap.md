@@ -749,16 +749,30 @@ data$intensity <- runif(nrow(data), 0, 1)
 if (requireNamespace("ComplexHeatmap", quietly = TRUE)) {
     LinkedHeatmap(
         data,
-        column_names_side = "top",
-        row_names_side = "right",
-        right_cluster_rows = FALSE,
-        left_show_row_names = TRUE,
-        right_show_row_names = TRUE,
+        show_column_names = TRUE,
+        column_names_side = "bottom",
+        show_row_names = FALSE,
         left_row_names_side = "right",
         left_rows_by = "ligand",
         left_columns_by = "source",
         left_values_by = "ligand_expr",
         left_name = "Ligand",
+        left_row_annotation = list(
+            .row = list(
+                type = "label",
+                params = list(labels_rot = 0),
+                side = "right"
+            )
+        ),
+        right_cluster_rows = FALSE,
+        right_row_names_side = "left",
+        right_row_annotation = list(
+            .row = list(
+                type = "label",
+                params = list(labels_rot = 0),
+                side = "left"
+            )
+        ),
         right_rows_by = "receptor",
         right_columns_by = "target",
         right_values_by = "receptor_expr",
