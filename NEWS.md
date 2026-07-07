@@ -7,6 +7,7 @@
 - feat: add y_brackets parameter for significance brackets in box/violin/beeswarm plots
 - fix(heatmap): fix name annotation error when it has empty levels
 - fix(heatmap): update row and column title checks to use annotation parameters
+- fix(LinkedHeatmap): fix alignment when columnt_title provided for either heatmap
 
 ## Version 0.13.0
 
