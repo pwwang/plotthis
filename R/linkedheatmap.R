@@ -754,11 +754,35 @@ LinkedHeatmapAtomic <- function(
     left_below_h <- sum(left_ch[6:9])
     right_below_h <- sum(right_ch[6:9])
 
+    # ── Estimate draw-time column_title heights ──
+    # column_title passed to ComplexHeatmap::draw() is a LIST-level title
+    # that sits ABOVE the components already captured by component_height().
+    # We must add its height to body_top_offset & total_h so body NPC
+    # positions remain correct.
+    .est_title_h <- function(title_text) {
+        if (is.null(title_text) || identical(title_text, "")) return(0)
+        gp <- ComplexHeatmap::ht_opt("heatmap_column_title_gp") %||%
+            gpar(fontsize = 14, fontface = "bold")
+        txt_h <- grid::convertHeight(
+            grid::grobHeight(grid::textGrob(title_text, gp = gp)),
+            "inches", valueOnly = TRUE
+        )
+        # ~2.5mm above + below is the internal padding ComplexHeatmap
+        # applies to column titles (no separate ht_opt key for it).
+        pad_h <- grid::convertUnit(unit(5, "mm"), "inches", valueOnly = TRUE)
+        txt_h + pad_h
+    }
+    left_title_h <- .est_title_h(left_args$title)
+    right_title_h <- .est_title_h(right_args$title)
+
+    body_top_offset_left  <- body_top_offset_left  + left_title_h
+    body_top_offset_right <- body_top_offset_right + right_title_h
+
     # Total heatmap dimensions
     left_total_w <- sum(left_cw)
-    left_total_h <- sum(left_ch)
+    left_total_h <- sum(left_ch) + left_title_h
     right_total_w <- sum(right_cw)
-    right_total_h <- sum(right_ch)
+    right_total_h <- sum(right_ch) + right_title_h
 
     total_w <- left_total_w + links_span + right_total_w
     total_h <- max(left_total_h, right_total_h)
@@ -1083,7 +1107,6 @@ LinkedHeatmapAtomic <- function(
         ))
         ComplexHeatmap::draw(
             left_ht,
-            # TODO: take this into account when computing the links-rows alignment
             column_title = left_args$title,
             newpage = FALSE,
             show_heatmap_legend = FALSE,
@@ -1338,16 +1361,30 @@ LinkedHeatmapAtomic <- function(
 #' if (requireNamespace("ComplexHeatmap", quietly = TRUE)) {
 #'     LinkedHeatmap(
 #'         data,
-#'         column_names_side = "top",
-#'         row_names_side = "right",
-#'         right_cluster_rows = FALSE,
-#'         left_show_row_names = TRUE,
-#'         right_show_row_names = TRUE,
+#'         show_column_names = TRUE,
+#'         column_names_side = "bottom",
+#'         show_row_names = FALSE,
 #'         left_row_names_side = "right",
 #'         left_rows_by = "ligand",
 #'         left_columns_by = "source",
 #'         left_values_by = "ligand_expr",
 #'         left_name = "Ligand",
+#'         left_row_annotation = list(
+#'             .row = list(
+#'                 type = "label",
+#'                 params = list(labels_rot = 0),
+#'                 side = "right"
+#'             )
+#'         ),
+#'         right_cluster_rows = FALSE,
+#'         right_row_names_side = "left",
+#'         right_row_annotation = list(
+#'             .row = list(
+#'                 type = "label",
+#'                 params = list(labels_rot = 0),
+#'                 side = "left"
+#'             )
+#'         ),
 #'         right_rows_by = "receptor",
 #'         right_columns_by = "target",
 #'         right_values_by = "receptor_expr",
