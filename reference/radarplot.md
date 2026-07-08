@@ -14,9 +14,9 @@ colour control, faceting, and splitting into separate sub-plots via
 `SpiderPlot` is an alias that renders the same data with polygonal grid
 lines (spider chart style) by using `polygon = TRUE`.
 
-A variant of `RadarPlot` that renders the chart with straight polygonal
-grid lines (spider chart) instead of concentric circles. Internally, it
-calls
+`SpiderPlot` is a variant of `RadarPlot` that renders the chart with
+straight polygonal grid lines (spider chart) instead of concentric
+circles. Internally, it calls
 [`RadarPlotAtomic`](https://pwwang.github.io/plotthis/reference/RadarPlotAtomic.md)
 with `polygon = TRUE` but is otherwise identical to `RadarPlot` in
 behaviour and parameters.
@@ -303,8 +303,8 @@ SpiderPlot(
 - legend.position:
 
   A character string specifying the position of the legend. if
-  `waiver()`, for single groups, the legend will be "none", otherwise
-  "right".
+  [`waiver()`](https://ggplot2.tidyverse.org/reference/waiver.html), for
+  single groups, the legend will be "none", otherwise "right".
 
 - legend.direction:
 

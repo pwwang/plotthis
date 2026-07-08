@@ -49,6 +49,8 @@ RidgePlotAtomic(
   xlab = NULL,
   ylab = NULL,
   x_text_angle = 90,
+  x_min = NULL,
+  x_max = NULL,
   keep_na = FALSE,
   keep_empty = FALSE,
   reverse = FALSE,
@@ -212,6 +214,11 @@ RidgePlotAtomic(
   `flip = TRUE`. Used with
   [`calc_just()`](https://pwwang.github.io/plotthis/reference/calc_just.md)
   to compute optimal `hjust` / `vjust`. Default: `90`.
+
+- x_min, x_max:
+
+  Numeric limits for the x-axis. When `NULL` (default), limits are
+  determined from the data range. Passed to `coord_cartesian()`.
 
 - keep_na:
 

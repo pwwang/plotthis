@@ -405,8 +405,8 @@ AlluvialPlot(
 - legend.position:
 
   A character string specifying the position of the legend. if
-  `waiver()`, for single groups, the legend will be "none", otherwise
-  "right".
+  [`waiver()`](https://ggplot2.tidyverse.org/reference/waiver.html), for
+  single groups, the legend will be "none", otherwise "right".
 
 - legend.direction:
 

@@ -161,11 +161,11 @@ Functions for plotting
 - [`BarPlot()`](https://pwwang.github.io/plotthis/reference/barplot.md)
   [`SplitBarPlot()`](https://pwwang.github.io/plotthis/reference/barplot.md)
   [`WaterfallPlot()`](https://pwwang.github.io/plotthis/reference/barplot.md)
-  : Bar plot
+  : Bar / SplitBar / Waterfall Plot
 - [`BoxPlot()`](https://pwwang.github.io/plotthis/reference/boxviolinplot.md)
   [`ViolinPlot()`](https://pwwang.github.io/plotthis/reference/boxviolinplot.md)
   [`BeeswarmPlot()`](https://pwwang.github.io/plotthis/reference/boxviolinplot.md)
-  : Box / Bar plot
+  : Box / Violin / Bar / Beeswarm plot
 - [`ChordPlot()`](https://pwwang.github.io/plotthis/reference/chordplot.md)
   [`CircosPlot()`](https://pwwang.github.io/plotthis/reference/chordplot.md)
   : Chord / Circos plot

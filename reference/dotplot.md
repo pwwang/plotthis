@@ -200,8 +200,8 @@ LollipopPlot(
 - flip:
 
   A logical value. If `TRUE`, the x and y axes are swapped via
-  `coord_flip()`. Dimension calculation accounts for the flip. Default:
-  `FALSE`.
+  [`coord_flip()`](https://ggplot2.tidyverse.org/reference/coord_flip.html).
+  Dimension calculation accounts for the flip. Default: `FALSE`.
 
 - split_by:
 
@@ -277,8 +277,9 @@ LollipopPlot(
 
   A character string naming a numeric column whose values control the
   fill colour of the dots (and lollipop inner bars). A continuous
-  gradient from `palette` is applied via `scale_fill_gradientn()`. When
-  `NULL` (the default), all dots are filled with a single constant
+  gradient from `palette` is applied via
+  [`scale_fill_gradientn()`](https://ggplot2.tidyverse.org/reference/scale_gradient.html).
+  When `NULL` (the default), all dots are filled with a single constant
   colour from the middle of the palette.
 
 - fill_cutoff:
@@ -338,8 +339,9 @@ LollipopPlot(
   Controls the dot border colour and lollipop outer-shadow appearance:
 
   - `TRUE` — dot borders and lollipop inner bars follow the `fill_by`
-    gradient via `scale_color_gradientn()`; lollipop outer shadow is
-    black.
+    gradient via
+    [`scale_color_gradientn()`](https://ggplot2.tidyverse.org/reference/scale_gradient.html);
+    lollipop outer shadow is black.
 
   - `"black"` (default) — constant black borders on dots and black outer
     shadow on lollipop bars.
@@ -423,8 +425,8 @@ LollipopPlot(
 - legend.position:
 
   A character string specifying the position of the legend. if
-  `waiver()`, for single groups, the legend will be "none", otherwise
-  "right".
+  [`waiver()`](https://ggplot2.tidyverse.org/reference/waiver.html), for
+  single groups, the legend will be "none", otherwise "right".
 
 - legend.direction:
 

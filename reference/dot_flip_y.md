@@ -56,4 +56,4 @@ See [this GitHub
 comment](https://github.com/tidyverse/ggplot2/issues/4021#issuecomment-650787582)
 for details. These functions negate the y-coordinates so that the axis
 labels can be displayed with reversed sign, mimicking
-`scale_y_reverse()`.
+[`scale_y_reverse()`](https://ggplot2.tidyverse.org/reference/scale_continuous.html).

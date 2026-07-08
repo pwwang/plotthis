@@ -191,7 +191,8 @@ Histogram(
 - flip:
 
   A logical value. If `TRUE`, the x and y axes are swapped via
-  `coord_flip()`. Dimension calculation accounts for the flip.
+  [`coord_flip()`](https://ggplot2.tidyverse.org/reference/coord_flip.html).
+  Dimension calculation accounts for the flip.
 
 - position:
 
@@ -234,8 +235,9 @@ Histogram(
 - add_bars:
 
   A logical value. If `TRUE`, a data-distribution rug is drawn along the
-  y = 0 axis using `geom_linerange()`. Each group's bars are vertically
-  offset to avoid overlap.
+  y = 0 axis using
+  [`geom_linerange()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html).
+  Each group's bars are vertically offset to avoid overlap.
 
 - bar_height:
 
@@ -251,8 +253,8 @@ Histogram(
 - bar_width:
 
   A numeric value passed as the `linewidth` aesthetic of
-  `geom_linerange()`. Controls the thickness of each rug tick. Default:
-  `0.1`.
+  [`geom_linerange()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html).
+  Controls the thickness of each rug tick. Default: `0.1`.
 
 - keep_na:
 
@@ -353,8 +355,8 @@ Histogram(
 - legend.position:
 
   A character string specifying the position of the legend. if
-  `waiver()`, for single groups, the legend will be "none", otherwise
-  "right".
+  [`waiver()`](https://ggplot2.tidyverse.org/reference/waiver.html), for
+  single groups, the legend will be "none", otherwise "right".
 
 - legend.direction:
 

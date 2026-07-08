@@ -50,6 +50,8 @@ RidgePlot(
   xlab = NULL,
   ylab = NULL,
   x_text_angle = 90,
+  x_min = NULL,
+  x_max = NULL,
   reverse = FALSE,
   facet_by = NULL,
   facet_scales = "fixed",
@@ -242,6 +244,11 @@ RidgePlot(
 - x_text_angle:
 
   A numeric value specifying the angle of the x-axis text.
+
+- x_min, x_max:
+
+  Numeric limits for the x-axis. When `NULL` (default), limits are
+  determined from the data range. Passed to `coord_cartesian()`.
 
 - reverse:
 

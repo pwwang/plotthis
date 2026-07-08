@@ -1,8 +1,8 @@
-# Box / Bar plot
+# Box / Violin / Bar / Beeswarm plot
 
-Draws box plots or bar plots (mean ± error bars) with extensive
-customisation options. Supports jittered or beeswarm points, paired
-observations with connecting lines, trend lines, statistical test
+`BoxPlot` draws box plots or bar plots (mean ± error bars) with
+extensive customisation options. Supports jittered or beeswarm points,
+paired observations with connecting lines, trend lines, statistical test
 annotations (pairwise or omnibus), background stripes, reference lines,
 point highlighting, and custom summary statistic overlays.
 
@@ -12,9 +12,9 @@ with `base = "box"` or `base = "bar"`, which in turn dispatches to
 [`BoxViolinPlotAtomic`](https://pwwang.github.io/plotthis/reference/BoxViolinPlotAtomic.md)
 for each `split_by` level.
 
-Draws violin plots with extensive customisation options. Supports
-jittered or beeswarm points, box plot overlays, trend lines, statistical
-test annotations, background stripes, reference lines, point
+`ViolinPlot` draws violin plots with extensive customisation options.
+Supports jittered or beeswarm points, box plot overlays, trend lines,
+statistical test annotations, background stripes, reference lines, point
 highlighting, and custom summary statistic overlays.
 
 This is the public API — it delegates to
@@ -23,9 +23,9 @@ with `base = "violin"`, which dispatches to
 [`BoxViolinPlotAtomic`](https://pwwang.github.io/plotthis/reference/BoxViolinPlotAtomic.md)
 for each `split_by` level.
 
-Draws beeswarm plots — points arranged by the beeswarm algorithm to
-avoid overlap while displaying the distribution density. This is a
-convenience wrapper that delegates to
+`BeeswarmPlot` draws beeswarm plots — points arranged by the beeswarm
+algorithm to avoid overlap while displaying the distribution density.
+This is a convenience wrapper that delegates to
 [`BoxViolinPlot`](https://pwwang.github.io/plotthis/reference/BoxViolinPlot-internal.md)
 with `base = "none"` and `add_beeswarm = TRUE`.
 
@@ -499,8 +499,8 @@ BeeswarmPlot(
 - legend.position:
 
   A character string specifying the position of the legend. if
-  `waiver()`, for single groups, the legend will be "none", otherwise
-  "right".
+  [`waiver()`](https://ggplot2.tidyverse.org/reference/waiver.html), for
+  single groups, the legend will be "none", otherwise "right".
 
 - legend.direction:
 
@@ -616,7 +616,8 @@ BeeswarmPlot(
 - stat_shape:
 
   Shape (an integer) for the stat summary point. Uses
-  `scale_shape_identity()` so the shape is rendered directly.
+  [`scale_shape_identity()`](https://ggplot2.tidyverse.org/reference/scale_identity.html)
+  so the shape is rendered directly.
 
 - add_errorbar:
 
@@ -1000,60 +1001,20 @@ ViolinPlot(data,
 
 
 # Pairwise comparisons with formatted labels
-ViolinPlot(data,
+if (requireNamespace("ggpubr", quietly = TRUE)) {
+  # https://github.com/kassambara/ggpubr/issues/751
+  library(ggpubr)
+  ViolinPlot(data,
     x = "x", y = "y", group_by = "group1",
     comparisons = TRUE, sig_label = "p = {p}")
+}
+#> Loading required package: ggplot2
 
 
 # Explicit comparison list + hide non-significant
 ViolinPlot(data,
     x = "x", y = "y", sig_label = "p.format", hide_ns = TRUE,
     facet_by = "group2", comparisons = list(c("D", "E")))
-#> Warning: Computation failed in `stat_pwc()`.
-#> Caused by error in `map()`:
-#> ℹ In index: 1.
-#> Caused by error in `wilcox.test.default()`:
-#> ! not enough 'y' observations
-#> Warning: Computation failed in `stat_pwc()`.
-#> Caused by error in `map()`:
-#> ℹ In index: 1.
-#> Caused by error in `wilcox.test.default()`:
-#> ! not enough 'y' observations
-#> Warning: Computation failed in `stat_pwc()`.
-#> Caused by error in `map()`:
-#> ℹ In index: 1.
-#> Caused by error in `wilcox.test.default()`:
-#> ! not enough 'y' observations
-#> Warning: Computation failed in `stat_pwc()`.
-#> Caused by error in `map()`:
-#> ℹ In index: 1.
-#> Caused by error in `wilcox.test.default()`:
-#> ! not enough 'y' observations
-#> Warning: Computation failed in `stat_pwc()`.
-#> Caused by error in `map()`:
-#> ℹ In index: 1.
-#> Caused by error in `wilcox.test.default()`:
-#> ! not enough 'y' observations
-#> Warning: Computation failed in `stat_pwc()`.
-#> Caused by error in `map()`:
-#> ℹ In index: 1.
-#> Caused by error in `wilcox.test.default()`:
-#> ! not enough 'y' observations
-#> Warning: Computation failed in `stat_pwc()`.
-#> Caused by error in `map()`:
-#> ℹ In index: 1.
-#> Caused by error in `wilcox.test.default()`:
-#> ! not enough 'y' observations
-#> Warning: Computation failed in `stat_pwc()`.
-#> Caused by error in `map()`:
-#> ℹ In index: 1.
-#> Caused by error in `wilcox.test.default()`:
-#> ! not enough 'y' observations
-#> Warning: Computation failed in `stat_pwc()`.
-#> Caused by error in `map()`:
-#> ℹ In index: 1.
-#> Caused by error in `wilcox.test.default()`:
-#> ! not enough 'y' observations
 
 
 # Continuous fill (mean) + omnibus test

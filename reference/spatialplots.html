@@ -357,7 +357,7 @@ Default is "theme_this".</p></dd>
 
 <dt id="arg-legend-position">legend.position<a class="anchor" aria-label="anchor" href="#arg-legend-position"></a></dt>
 <dd><p>A character string specifying the position of the legend.
-if <code>waiver()</code>, for single groups, the legend will be "none", otherwise "right".</p></dd>
+if <code><a href="https://ggplot2.tidyverse.org/reference/waiver.html" class="external-link">waiver()</a></code>, for single groups, the legend will be "none", otherwise "right".</p></dd>
 
 
 <dt id="arg-legend-direction">legend.direction<a class="anchor" aria-label="anchor" href="#arg-legend-direction"></a></dt>
@@ -707,10 +707,10 @@ negated so that axis labels can be displayed with reversed sign.</p></li>
 <li><p><strong>RGB detection</strong> — if the raster has exactly 3 layers, they
 are treated as red/green/blue channels: each channel is rescaled to
 0–255 and combined into a hex color via <code><a href="https://rdrr.io/r/grDevices/rgb.html" class="external-link">rgb()</a></code>. A
-<code>scale_fill_identity()</code> is used with no legend guide.</p></li>
+<code><a href="https://ggplot2.tidyverse.org/reference/scale_identity.html" class="external-link">scale_fill_identity()</a></code> is used with no legend guide.</p></li>
 <li><p><strong>Single-layer rendering</strong> — otherwise, the raster is
 converted to an x/y/value data frame and rendered via
-<code>geom_raster()</code> with <code>scale_fill_gradientn()</code>.</p></li>
+<code><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_raster()</a></code> with <code><a href="https://ggplot2.tidyverse.org/reference/scale_gradient.html" class="external-link">scale_fill_gradientn()</a></code>.</p></li>
 <li><p><strong>Layer return or full assembly</strong> — if
 <code>return_layer = TRUE</code>, the list of layers (with a <code>"scales"</code>
 attribute set to <code>"fill"</code>) is returned. Otherwise,
@@ -730,10 +730,10 @@ is flipped vertically and its y-extent is negated.</p></li>
 <code>NA</code> so they render as transparent via
 <code>na.value = "transparent"</code>.</p></li>
 <li><p><strong>Raster layer</strong> — the mask is converted to an x/y/value data
-frame and rendered via <code>geom_raster()</code> with a gradient fill scale.</p></li>
+frame and rendered via <code><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_raster()</a></code> with a gradient fill scale.</p></li>
 <li><p><strong>Optional borders</strong> — when <code>add_border = TRUE</code>, the
 mask values are polygonized via <code><a href="https://rspatial.github.io/terra/reference/as.polygons.html" class="external-link">terra::as.polygons()</a></code>, converted
-to sf, and overlaid as unfilled <code>geom_sf()</code> with the specified
+to sf, and overlaid as unfilled <code><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf()</a></code> with the specified
 <code>border_color</code>, <code>border_size</code>, and <code>border_alpha</code>.</p></li>
 <li><p><strong>Layer return or full assembly</strong> — if
 <code>return_layer = TRUE</code>, the layers are returned; otherwise,
@@ -759,16 +759,16 @@ values outside <code>[lower_cutoff, upper_cutoff]</code> (derived from
 quantiles or explicit values) are clamped to the nearest cutoff.</p></li>
 <li><p><strong>Graph / network edges</strong> — if <code>graph</code> is provided,
 edges are resolved from an adjacency matrix, data.frame, or data
-attribute, and rendered as <code>geom_segment()</code> segments with line
+attribute, and rendered as <code><a href="https://ggplot2.tidyverse.org/reference/geom_segment.html" class="external-link">geom_segment()</a></code> segments with line
 width proportional to edge weight.</p></li>
 <li><p><strong>Main point layer</strong> — one of three rendering modes:</p><dl><dt><em>Regular</em></dt>
 <dd><p>(<code>hex = FALSE</code>, <code>raster = FALSE</code>) —
-<code>geom_point()</code> with shape, size, color, and fill aesthetic
+<code><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point()</a></code> with shape, size, color, and fill aesthetic
 mappings. Shapes 21–25 support separate fill and border colors.</p></dd>
 
 <dt><em>Hex</em></dt>
-<dd><p>(<code>hex = TRUE</code>) — <code>geom_hex()</code> or
-<code>stat_summary_hex()</code> for binned aggregation of numeric
+<dd><p>(<code>hex = TRUE</code>) — <code><a href="https://ggplot2.tidyverse.org/reference/geom_hex.html" class="external-link">geom_hex()</a></code> or
+<code><a href="https://ggplot2.tidyverse.org/reference/stat_summary_2d.html" class="external-link">stat_summary_hex()</a></code> for binned aggregation of numeric
 <code>color_by</code> values.</p></dd>
 
 <dt><em>Raster</em></dt>
@@ -780,7 +780,7 @@ large datasets (&gt;1e6 rows).</p></dd>
 </dl></li>
 <li><p><strong>Highlight</strong> — if <code>highlight</code> is specified,
 highlighted points are overlaid as larger, colored markers using
-<code>geom_point()</code> or <code><a href="https://rdrr.io/pkg/scattermore/man/geom_scattermore.html" class="external-link">scattermore::geom_scattermore()</a></code>.</p></li>
+<code><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point()</a></code> or <code><a href="https://rdrr.io/pkg/scattermore/man/geom_scattermore.html" class="external-link">scattermore::geom_scattermore()</a></code>.</p></li>
 <li><p><strong>Labels</strong> — if <code>label = TRUE</code> and <code>color_by</code> is a
 categorical column, group centroid positions are computed via
 <code><a href="https://rdrr.io/r/stats/aggregate.html" class="external-link">aggregate()</a></code> with the <code>label_pos</code> function, and labels are
@@ -950,7 +950,7 @@ is active.</p></li>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

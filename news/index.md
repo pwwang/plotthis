@@ -2,21 +2,26 @@
 
 ## Version 0.13.1
 
-- feat(heatmap): consolidate annotation arguments into structured list
-  params
 - BREAKING(LinkedHeatmap): update parameter names for link width and
   color in LinkedHeatmap and LinkedHeatmapAtomic
 - BREAKING(LinkedHeatmap): replace title_gp with title_params for
   improved title customization
+- feat(heatmap): consolidate annotation arguments into structured list
+  params
 - feat(LinkedHeatmap): enhance link width customization with constant
   value option
 - feat: add y_brackets parameter for significance brackets in
   box/violin/beeswarm plots
+- feat(RidgePlot): add x_min and x_max parameters for x-axis limits
 - fix(heatmap): fix name annotation error when it has empty levels
 - fix(heatmap): update row and column title checks to use annotation
   parameters
 - fix(LinkedHeatmap): fix alignment when columnt_title provided for
   either heatmap
+- fix(ViolinPlot): conditionally load ggpubr for pairwise comparisons
+  (kassambara/ggpubr#751)
+- docs: update plot descriptions for clarity and consistency across
+  documentation
 
 ## Version 0.13.0
 

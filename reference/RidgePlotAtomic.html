@@ -107,6 +107,8 @@ darkened blend of the corresponding ridge fill.</p>
 <span>  xlab <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ylab <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  x_text_angle <span class="op">=</span> <span class="fl">90</span>,</span>
+<span>  x_min <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  x_max <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  keep_na <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  keep_empty <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  reverse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -263,6 +265,11 @@ x-axis text when <code>flip = TRUE</code>. Used with <code><a href="calc_just.ht
 optimal <code>hjust</code> / <code>vjust</code>. Default: <code>90</code>.</p></dd>
 
 
+<dt id="arg-x-min-x-max">x_min, x_max<a class="anchor" aria-label="anchor" href="#arg-x-min-x-max"></a></dt>
+<dd><p>Numeric limits for the x-axis. When <code>NULL</code> (default),
+limits are determined from the data range. Passed to <code>coord_cartesian()</code>.</p></dd>
+
+
 <dt id="arg-keep-na">keep_na<a class="anchor" aria-label="anchor" href="#arg-keep-na"></a></dt>
 <dd><p>A logical value or a character to replace the NA values in the data.
 It can also take a named list to specify different behavior for different columns.
@@ -397,7 +404,7 @@ per ridge keeps individual ridges compact.</p></li>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

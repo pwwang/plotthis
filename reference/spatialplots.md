@@ -318,8 +318,8 @@ SpatPointsPlot(
 - legend.position:
 
   A character string specifying the position of the legend. if
-  `waiver()`, for single groups, the legend will be "none", otherwise
-  "right".
+  [`waiver()`](https://ggplot2.tidyverse.org/reference/waiver.html), for
+  single groups, the legend will be "none", otherwise "right".
 
 - legend.direction:
 
@@ -661,11 +661,14 @@ returned.
     treated as red/green/blue channels: each channel is rescaled to
     0–255 and combined into a hex color via
     [`rgb()`](https://rdrr.io/r/grDevices/rgb.html). A
-    `scale_fill_identity()` is used with no legend guide.
+    [`scale_fill_identity()`](https://ggplot2.tidyverse.org/reference/scale_identity.html)
+    is used with no legend guide.
 
 5.  **Single-layer rendering** — otherwise, the raster is converted to
-    an x/y/value data frame and rendered via `geom_raster()` with
-    `scale_fill_gradientn()`.
+    an x/y/value data frame and rendered via
+    [`geom_raster()`](https://ggplot2.tidyverse.org/reference/geom_tile.html)
+    with
+    [`scale_fill_gradientn()`](https://ggplot2.tidyverse.org/reference/scale_gradient.html).
 
 6.  **Layer return or full assembly** — if `return_layer = TRUE`, the
     list of layers (with a `"scales"` attribute set to `"fill"`) is
@@ -687,13 +690,17 @@ returned.
     render as transparent via `na.value = "transparent"`.
 
 4.  **Raster layer** — the mask is converted to an x/y/value data frame
-    and rendered via `geom_raster()` with a gradient fill scale.
+    and rendered via
+    [`geom_raster()`](https://ggplot2.tidyverse.org/reference/geom_tile.html)
+    with a gradient fill scale.
 
 5.  **Optional borders** — when `add_border = TRUE`, the mask values are
     polygonized via
     [`terra::as.polygons()`](https://rspatial.github.io/terra/reference/as.polygons.html),
-    converted to sf, and overlaid as unfilled `geom_sf()` with the
-    specified `border_color`, `border_size`, and `border_alpha`.
+    converted to sf, and overlaid as unfilled
+    [`geom_sf()`](https://ggplot2.tidyverse.org/reference/ggsf.html)
+    with the specified `border_color`, `border_size`, and
+    `border_alpha`.
 
 6.  **Layer return or full assembly** — if `return_layer = TRUE`, the
     layers are returned; otherwise,
@@ -725,21 +732,26 @@ returned.
 
 6.  **Graph / network edges** — if `graph` is provided, edges are
     resolved from an adjacency matrix, data.frame, or data attribute,
-    and rendered as `geom_segment()` segments with line width
-    proportional to edge weight.
+    and rendered as
+    [`geom_segment()`](https://ggplot2.tidyverse.org/reference/geom_segment.html)
+    segments with line width proportional to edge weight.
 
 7.  **Main point layer** — one of three rendering modes:
 
     - *Regular*:
 
-      (`hex = FALSE`, `raster = FALSE`) — `geom_point()` with shape,
-      size, color, and fill aesthetic mappings. Shapes 21–25 support
-      separate fill and border colors.
+      (`hex = FALSE`, `raster = FALSE`) —
+      [`geom_point()`](https://ggplot2.tidyverse.org/reference/geom_point.html)
+      with shape, size, color, and fill aesthetic mappings. Shapes 21–25
+      support separate fill and border colors.
 
     - *Hex*:
 
-      (`hex = TRUE`) — `geom_hex()` or `stat_summary_hex()` for binned
-      aggregation of numeric `color_by` values.
+      (`hex = TRUE`) —
+      [`geom_hex()`](https://ggplot2.tidyverse.org/reference/geom_hex.html)
+      or
+      [`stat_summary_hex()`](https://ggplot2.tidyverse.org/reference/stat_summary_2d.html)
+      for binned aggregation of numeric `color_by` values.
 
     - *Raster*:
 
@@ -748,7 +760,9 @@ returned.
       for efficient rendering of large datasets (\>1e6 rows).
 
 8.  **Highlight** — if `highlight` is specified, highlighted points are
-    overlaid as larger, colored markers using `geom_point()` or
+    overlaid as larger, colored markers using
+    [`geom_point()`](https://ggplot2.tidyverse.org/reference/geom_point.html)
+    or
     [`scattermore::geom_scattermore()`](https://rdrr.io/pkg/scattermore/man/geom_scattermore.html).
 
 9.  **Labels** — if `label = TRUE` and `color_by` is a categorical

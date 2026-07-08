@@ -311,7 +311,7 @@ columns are provided. Default: <code>"_"</code>.</p></dd>
 
 <dt id="arg-flip">flip<a class="anchor" aria-label="anchor" href="#arg-flip"></a></dt>
 <dd><p>A logical value. If <code>TRUE</code>, the x and y axes are swapped via
-<code>coord_flip()</code>. Dimension calculation accounts for the flip.
+<code><a href="https://ggplot2.tidyverse.org/reference/coord_flip.html" class="external-link">coord_flip()</a></code>. Dimension calculation accounts for the flip.
 Default: <code>FALSE</code>.</p></dd>
 
 
@@ -387,7 +387,7 @@ size (used by <code>ScatterPlot</code>).</p></dd>
 <dd><p>A character string naming a numeric column whose values
 control the fill colour of the dots (and lollipop inner bars). A
 continuous gradient from <code>palette</code> is applied via
-<code>scale_fill_gradientn()</code>. When <code>NULL</code> (the default), all dots
+<code><a href="https://ggplot2.tidyverse.org/reference/scale_gradient.html" class="external-link">scale_fill_gradientn()</a></code>. When <code>NULL</code> (the default), all dots
 are filled with a single constant colour from the middle of the palette.</p></dd>
 
 
@@ -446,7 +446,7 @@ If some values are missing, the values from the palette will be used (palcolor w
 <dt id="arg-border-color">border_color<a class="anchor" aria-label="anchor" href="#arg-border-color"></a></dt>
 <dd><p>Controls the dot border colour and lollipop outer-shadow
 appearance:</p><ul><li><p><code>TRUE</code> — dot borders and lollipop inner bars follow the
-<code>fill_by</code> gradient via <code>scale_color_gradientn()</code>; lollipop
+<code>fill_by</code> gradient via <code><a href="https://ggplot2.tidyverse.org/reference/scale_gradient.html" class="external-link">scale_color_gradientn()</a></code>; lollipop
 outer shadow is black.</p></li>
 <li><p><code>"black"</code> (default) — constant black borders on dots and
 black outer shadow on lollipop bars.</p></li>
@@ -523,7 +523,7 @@ When facet_by is a single column and facet_wrap is used.</p></dd>
 
 <dt id="arg-legend-position">legend.position<a class="anchor" aria-label="anchor" href="#arg-legend-position"></a></dt>
 <dd><p>A character string specifying the position of the legend.
-if <code>waiver()</code>, for single groups, the legend will be "none", otherwise "right".</p></dd>
+if <code><a href="https://ggplot2.tidyverse.org/reference/waiver.html" class="external-link">waiver()</a></code>, for single groups, the legend will be "none", otherwise "right".</p></dd>
 
 
 <dt id="arg-legend-direction">legend.direction<a class="anchor" aria-label="anchor" href="#arg-legend-direction"></a></dt>
@@ -769,7 +769,7 @@ list of plots via <code><a href="https://patchwork.data-imaginist.com/reference/
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

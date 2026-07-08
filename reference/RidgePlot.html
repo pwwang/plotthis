@@ -108,6 +108,8 @@ splitting, and full palette customisation.</p>
 <span>  xlab <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ylab <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  x_text_angle <span class="op">=</span> <span class="fl">90</span>,</span>
+<span>  x_min <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  x_max <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  reverse <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  facet_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  facet_scales <span class="op">=</span> <span class="st">"fixed"</span>,</span>
@@ -288,6 +290,11 @@ This is useful when split_by is used and the title needs to be dynamic.</p></dd>
 
 <dt id="arg-x-text-angle">x_text_angle<a class="anchor" aria-label="anchor" href="#arg-x-text-angle"></a></dt>
 <dd><p>A numeric value specifying the angle of the x-axis text.</p></dd>
+
+
+<dt id="arg-x-min-x-max">x_min, x_max<a class="anchor" aria-label="anchor" href="#arg-x-min-x-max"></a></dt>
+<dd><p>Numeric limits for the x-axis. When <code>NULL</code> (default),
+limits are determined from the data range. Passed to <code>coord_cartesian()</code>.</p></dd>
 
 
 <dt id="arg-reverse">reverse<a class="anchor" aria-label="anchor" href="#arg-reverse"></a></dt>
@@ -587,7 +594,7 @@ its resolved parameters. Title defaults to the split level name unless
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>
