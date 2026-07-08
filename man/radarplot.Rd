@@ -303,7 +303,7 @@ into separate sub-plots via \code{split_by}.
 polygonal grid lines (spider chart style) by using
 \code{polygon = TRUE}.
 
-A variant of \code{\link{RadarPlot}} that renders the chart with
+\code{SpiderPlot} is a variant of \code{\link{RadarPlot}} that renders the chart with
 straight polygonal grid lines (spider chart) instead of concentric
 circles.  Internally, it calls \code{\link{RadarPlotAtomic}} with
 \code{polygon = TRUE} but is otherwise identical to

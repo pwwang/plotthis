@@ -682,7 +682,7 @@ objects (when \code{split_by} is provided and \code{combine = FALSE}).
 When \code{dims} has 3 elements, a \strong{plotly} object is returned instead.
 }
 \description{
-Visualise dimension reduction data (PCA, t-SNE, UMAP, etc.) as a 2D or 3D
+\code{DimPlot} visualizes dimension reduction data (PCA, t-SNE, UMAP, etc.) as a 2D or 3D
 scatter plot. \code{DimPlot()} colours points by a discrete grouping variable
 (e.g., clusters), while \code{FeatureDimPlot()} colours points by a continuous
 numeric feature (e.g., gene expression, lineage scores).
@@ -704,7 +704,8 @@ automatic rasterisation via \code{scattermore::geom_scattermore()} when
 \code{nrow(data) > 1e5}, or hex-bin aggregation (\code{geom_hex()} /
 \code{stat_summary_hex()}).
 
-Feature expression on dimension reduction plots. Colours points by a
+\code{FeatureDimPlot} to visualize feature expression on dimension reduction plots.
+Colours points by a
 continuous numeric variable (e.g., gene expression, module score, lineage
 pseudotime) using a gradient colour scale, with optional quantile trimming
 and background cutoff.

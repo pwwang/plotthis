@@ -4,7 +4,7 @@
 \alias{BarPlot}
 \alias{SplitBarPlot}
 \alias{WaterfallPlot}
-\title{Bar plot}
+\title{Bar / SplitBar / Waterfall Plot}
 \usage{
 BarPlot(
   data,
@@ -457,7 +457,7 @@ of \code{ggplot} objects (when \code{combine = FALSE}), each with
 \code{height} and \code{width} attributes in inches.
 }
 \description{
-Draws bar plots with flexible fill, grouping, labelling, and annotation
+\code{BarPlot} draws bar plots with flexible fill, grouping, labelling, and annotation
 options.  Supports both simple single-colour bars and grouped bars (dodged
 or stacked).  Bars can be filled by a categorical variable (discrete
 colour scale), a continuous variable (colour gradient), or a fixed colour.

@@ -2097,10 +2097,10 @@ BoxViolinPlot <- function(
     )
 }
 
-#' Box / Bar plot
+#' Box / Violin / Bar / Beeswarm plot
 #'
 #' @description
-#' Draws box plots or bar plots (mean ± error bars) with extensive
+#' `BoxPlot` draws box plots or bar plots (mean ± error bars) with extensive
 #' customisation options.  Supports jittered or beeswarm points, paired
 #' observations with connecting lines, trend lines, statistical test
 #' annotations (pairwise or omnibus), background stripes, reference lines,
@@ -2435,10 +2435,8 @@ BoxPlot <- function(
     )
 }
 
-#' Violin plot
-#'
 #' @description
-#' Draws violin plots with extensive customisation options.  Supports jittered
+#' `ViolinPlot` draws violin plots with extensive customisation options.  Supports jittered
 #' or beeswarm points, box plot overlays, trend lines, statistical test
 #' annotations, background stripes, reference lines, point highlighting,
 #' and custom summary statistic overlays.
@@ -2703,10 +2701,8 @@ ViolinPlot <- function(
     )
 }
 
-#' Beeswarm plot
-#'
 #' @description
-#' Draws beeswarm plots — points arranged by the beeswarm algorithm to
+#' `BeeswarmPlot` draws beeswarm plots — points arranged by the beeswarm algorithm to
 #' avoid overlap while displaying the distribution density.  This is a
 #' convenience wrapper that delegates to \code{\link{BoxViolinPlot}} with
 #' \code{base = "none"} and \code{add_beeswarm = TRUE}.

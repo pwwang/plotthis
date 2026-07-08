@@ -2195,7 +2195,7 @@ DimPlotAtomic <- function(
 #' DimPlot / FeatureDimPlot
 #'
 #' @description
-#' Visualise dimension reduction data (PCA, t-SNE, UMAP, etc.) as a 2D or 3D
+#' `DimPlot` visualizes dimension reduction data (PCA, t-SNE, UMAP, etc.) as a 2D or 3D
 #' scatter plot. `DimPlot()` colours points by a discrete grouping variable
 #' (e.g., clusters), while `FeatureDimPlot()` colours points by a continuous
 #' numeric feature (e.g., gene expression, lineage scores).
@@ -2667,7 +2667,8 @@ DimPlot <- function(
 }
 
 #' @description
-#' Feature expression on dimension reduction plots. Colours points by a
+#' `FeatureDimPlot` to visualize feature expression on dimension reduction plots.
+#' Colours points by a
 #' continuous numeric variable (e.g., gene expression, module score, lineage
 #' pseudotime) using a gradient colour scale, with optional quantile trimming
 #' and background cutoff.

@@ -1184,10 +1184,10 @@ BarPlotAtomic <- function(
     do_call(facet_plot, facet_args)
 }
 
-#' Bar plot
+#' Bar / SplitBar / Waterfall Plot
 #'
 #' @description
-#' Draws bar plots with flexible fill, grouping, labelling, and annotation
+#' `BarPlot` draws bar plots with flexible fill, grouping, labelling, and annotation
 #' options.  Supports both simple single-colour bars and grouped bars (dodged
 #' or stacked).  Bars can be filled by a categorical variable (discrete
 #' colour scale), a continuous variable (colour gradient), or a fixed colour.
