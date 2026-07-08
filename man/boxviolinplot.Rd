@@ -754,9 +754,13 @@ ViolinPlot(data,
     highlight_size = 1.5, pt_size = 1, add_box = TRUE)
 
 # Pairwise comparisons with formatted labels
-ViolinPlot(data,
+if (requireNamespace("ggpubr", quietly = TRUE)) {
+  # https://github.com/kassambara/ggpubr/issues/751
+  library(ggpubr)
+  ViolinPlot(data,
     x = "x", y = "y", group_by = "group1",
     comparisons = TRUE, sig_label = "p = {p}")
+}
 
 # Explicit comparison list + hide non-significant
 ViolinPlot(data,
