@@ -33,6 +33,8 @@ RidgePlot(
   xlab = NULL,
   ylab = NULL,
   x_text_angle = 90,
+  x_min = NULL,
+  x_max = NULL,
   reverse = FALSE,
   facet_by = NULL,
   facet_scales = "fixed",
@@ -160,6 +162,9 @@ This is useful when split_by is used and the title needs to be dynamic.}
 \item{ylab}{A character string specifying the y-axis label.}
 
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
+
+\item{x_min, x_max}{Numeric limits for the x-axis. When \code{NULL} (default),
+limits are determined from the data range. Passed to \code{coord_cartesian()}.}
 
 \item{reverse}{A logical value. If \code{TRUE}, the y-axis group order is
 reversed. NA groups are renamed to the literal string \code{"NA"} and

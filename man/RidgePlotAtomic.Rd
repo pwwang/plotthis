@@ -29,6 +29,8 @@ RidgePlotAtomic(
   xlab = NULL,
   ylab = NULL,
   x_text_angle = 90,
+  x_min = NULL,
+  x_max = NULL,
   keep_na = FALSE,
   keep_empty = FALSE,
   reverse = FALSE,
@@ -138,6 +140,9 @@ This is useful when split_by is used and the title needs to be dynamic.}
 \item{x_text_angle}{A numeric value specifying the angle (in degrees) for
 x-axis text when \code{flip = TRUE}. Used with \code{calc_just()} to compute
 optimal \code{hjust} / \code{vjust}. Default: \code{90}.}
+
+\item{x_min, x_max}{Numeric limits for the x-axis. When \code{NULL} (default),
+limits are determined from the data range. Passed to \code{coord_cartesian()}.}
 
 \item{keep_na}{A logical value or a character to replace the NA values in the data.
 It can also take a named list to specify different behavior for different columns.

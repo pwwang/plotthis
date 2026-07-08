@@ -550,6 +550,8 @@ DensityHistoPlotAtomic <- function(
 #' @param x_text_angle A numeric value specifying the angle (in degrees) for
 #'   x-axis text when `flip = TRUE`. Used with `calc_just()` to compute
 #'   optimal `hjust` / `vjust`. Default: `90`.
+#' @param x_min,x_max Numeric limits for the x-axis. When `NULL` (default),
+#'   limits are determined from the data range. Passed to `coord_cartesian()`.
 #' @param ... Additional arguments passed to `ggridges::geom_density_ridges()`
 #'   (bandwidth, jittered_points, quantile_lines, etc.).
 #' @importFrom tidyr pivot_longer
@@ -579,6 +581,8 @@ RidgePlotAtomic <- function(
     xlab = NULL,
     ylab = NULL,
     x_text_angle = 90,
+    x_min = NULL,
+    x_max = NULL,
     keep_na = FALSE,
     keep_empty = FALSE,
     reverse = FALSE,
@@ -646,6 +650,11 @@ RidgePlotAtomic <- function(
         group_vals <- c(group_vals, NA)
     }
 
+    x_min <- x_min %||% min(data[[x]], na.rm = TRUE)
+    x_max <- x_max %||% max(data[[x]], na.rm = TRUE)
+    if (x_min == x_max) {
+        stop("[RidgePlot] x_min and x_max are equal. Please provide a valid range for the x-axis.")
+    }
     colors <- palette_this(
         group_vals,
         palette = palette,
@@ -716,7 +725,7 @@ RidgePlotAtomic <- function(
     }
     p <- p +
         scale_y_discrete(drop = !isTRUE(keep_empty_group), expand = c(0, 0)) +
-        scale_x_continuous(expand = c(0, 0)) +
+        scale_x_continuous(expand = c(0, 0), limits = c(x_min, x_max)) +
         labs(
             title = title,
             subtitle = subtitle,
@@ -919,6 +928,8 @@ RidgePlot <- function(
     xlab = NULL,
     ylab = NULL,
     x_text_angle = 90,
+    x_min = NULL,
+    x_max = NULL,
     reverse = FALSE,
     facet_by = NULL,
     facet_scales = "fixed",
@@ -1015,6 +1026,8 @@ RidgePlot <- function(
                 xlab = xlab,
                 ylab = ylab,
                 x_text_angle = x_text_angle,
+                x_min = x_min,
+                x_max = x_max,
                 keep_na = keep_na,
                 keep_empty = keep_empty,
                 reverse = reverse,
