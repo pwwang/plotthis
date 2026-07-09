@@ -182,7 +182,7 @@ When \code{NULL} (the default), the cutoffs are determined by \code{lower_quanti
 \item{trend_ptsize}{Size of the trend line points.}
 
 \item{position}{A character string specifying the bar layout:
-\code{"auto"} (default: dodge when ≤5 groups, stack otherwise),
+\code{"auto"} (default: dodge when \eqn{\le}5 groups, stack otherwise),
 \code{"dodge"} (side-by-side), or \code{"stack"} (stacked on top of
 each other).}
 
@@ -283,7 +283,7 @@ a numeric column produces a continuous gradient.
 \code{BarPlotGrouped}.  \code{fill_by} must match \code{group_by}
 or be left as default; an explicit mismatch raises a stop error.
 \code{position} controls dodge vs. stack layout with automatic
-selection based on group count (≤5 → dodge, >5 → stack).
+selection based on group count (\eqn{\le}5 → dodge, >5 → stack).
 }
 
 After the delegate returns, \code{\link{facet_plot}()} wraps the result

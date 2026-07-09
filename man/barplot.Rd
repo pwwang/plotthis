@@ -330,7 +330,7 @@ When \code{NULL} (the default), the cutoffs are determined by \code{lower_quanti
 \item{y_min, y_max}{Numeric limits for the y-axis (or x-axis when flipped).}
 
 \item{position}{A character string specifying the bar layout:
-\code{"auto"} (default: dodge when ≤5 groups, stack otherwise),
+\code{"auto"} (default: dodge when \eqn{\le}5 groups, stack otherwise),
 \code{"dodge"} (side-by-side), or \code{"stack"} (stacked on top of
 each other).}
 

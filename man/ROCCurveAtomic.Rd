@@ -53,7 +53,7 @@ ROCCurveAtomic(
 }
 \arguments{
 \item{data}{A data frame with the truth and score columns. See
-\url{https://cran.r-project.org/web/packages/plotROC/vignettes/examples.html}
+\url{https://CRAN.R-project.org/package=plotROC}
 for the expected format.}
 
 \item{truth_by}{A character string naming the column that contains the true

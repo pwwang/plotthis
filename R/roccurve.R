@@ -329,7 +329,7 @@ get_cutoffs_data <- function(
 #'
 #' @inheritParams common_args
 #' @param data A data frame with the truth and score columns. See
-#'   \url{https://cran.r-project.org/web/packages/plotROC/vignettes/examples.html}
+#'   \url{https://CRAN.R-project.org/package=plotROC}
 #'   for the expected format.
 #' @param truth_by A character string naming the column that contains the true
 #'   class labels (binary outcome, 0/1 or TRUE/FALSE).

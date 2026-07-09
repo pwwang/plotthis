@@ -423,7 +423,7 @@ is added showing the cutoff label with a grey fill and the border colour.
 with \code{base_height = 4.5}, \code{aspect.ratio = NULL}, and per-axis
 scale factors (0.9 for the categorical axis driving width, 0.6 for the
 categorical axis driving height). Legend width, y-axis label length, and
-minimum dimensions (width ≥ 5, height ≥ 4) are factored in. A fallback
+minimum dimensions (width \eqn{\ge} 5, height \eqn{\ge} 4) are factored in. A fallback
 manual calculation is used when \code{calculate_plot_dimensions()} returns
 \code{NULL}.
 \item \strong{Faceting} — \code{facet_plot()} applies

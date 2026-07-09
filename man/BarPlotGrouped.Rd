@@ -149,7 +149,7 @@ radius.}
 \item{trend_ptsize}{Size of the trend line points.}
 
 \item{position}{A character string specifying the bar layout:
-\code{"auto"} (default: dodge when ≤5 groups, stack otherwise),
+\code{"auto"} (default: dodge when \eqn{\le}5 groups, stack otherwise),
 \code{"dodge"} (side-by-side), or \code{"stack"} (stacked on top of
 each other).}
 
@@ -239,7 +239,7 @@ combination is computed.  Factor levels are preserved.
 y-values are divided by the sum within each (\code{x},
 \code{facet_by}) group so that each x position stacks to 100\\%.
 \item \strong{Position resolution} — \code{position = "auto"} chooses
-\code{"dodge"} for ≤5 groups or \code{"stack"} for >5 groups.
+\code{"dodge"} for \eqn{\le}5 groups or \code{"stack"} for >5 groups.
 Explicit \code{"dodge"} and \code{"stack"} are also accepted.
 \item \strong{Expand calculation} — for stacked bars, expansion is
 computed from y-range and label presence.  For dodged bars,

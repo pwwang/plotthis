@@ -94,7 +94,7 @@
 #'   \item \strong{Link rendering} -- \code{\link[ggraph]{geom_edge_arc}}
 #'         draws the edges (with configurable \code{link_curvature}) and
 #'         \code{\link[ggraph]{geom_edge_loop}} handles self-loop edges.
-#'   - \item \strong{Link scales} -- Conditional on their guide status,
+#'   \item \strong{Link scales} -- Conditional on their guide status,
 #'         \code{scale_edge_width_continuous},
 #'         \code{scale_edge_linetype_discrete}, and
 #'         \code{scale_edge_color_manual} /

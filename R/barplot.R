@@ -485,7 +485,7 @@ BarPlotSingle <- function(
 #'         y-values are divided by the sum within each (\code{x},
 #'         \code{facet_by}) group so that each x position stacks to 100\%.
 #'   \item \strong{Position resolution} — \code{position = "auto"} chooses
-#'         \code{"dodge"} for ≤5 groups or \code{"stack"} for >5 groups.
+#'         \code{"dodge"} for \eqn{\le}5 groups or \code{"stack"} for >5 groups.
 #'         Explicit \code{"dodge"} and \code{"stack"} are also accepted.
 #'   \item \strong{Expand calculation} — for stacked bars, expansion is
 #'         computed from y-range and label presence.  For dodged bars,
@@ -529,7 +529,7 @@ BarPlotSingle <- function(
 #'  proportions within each x position so that each position's total is 100\%.
 #'  Only applicable when \code{position = "stack"}.
 #' @param position A character string specifying the bar layout:
-#'  \code{"auto"} (default: dodge when ≤5 groups, stack otherwise),
+#'  \code{"auto"} (default: dodge when \eqn{\le}5 groups, stack otherwise),
 #'  \code{"dodge"} (side-by-side), or \code{"stack"} (stacked on top of
 #'  each other).
 #' @param position_dodge_preserve A character string passed to
@@ -949,7 +949,7 @@ BarPlotGrouped <- function(
 #'         \code{BarPlotGrouped}.  \code{fill_by} must match \code{group_by}
 #'         or be left as default; an explicit mismatch raises a stop error.
 #'         \code{position} controls dodge vs. stack layout with automatic
-#'         selection based on group count (≤5 → dodge, >5 → stack).
+#'         selection based on group count (\eqn{\le}5 → dodge, >5 → stack).
 #' }
 #'
 #' After the delegate returns, \code{\link{facet_plot}()} wraps the result
