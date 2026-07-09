@@ -233,7 +233,7 @@ BarPlotGrouped(
 - position:
 
   A character string specifying the bar layout: `"auto"` (default: dodge
-  when ≤5 groups, stack otherwise), `"dodge"` (side-by-side), or
+  when \\\le\\5 groups, stack otherwise), `"dodge"` (side-by-side), or
   `"stack"` (stacked on top of each other).
 
 - position_dodge_preserve:
@@ -362,7 +362,7 @@ attached.
     position stacks to 100\\
 
 4.  **Position resolution** — `position = "auto"` chooses `"dodge"` for
-    ≤5 groups or `"stack"` for \>5 groups. Explicit `"dodge"` and
+    \\\le\\5 groups or `"stack"` for \>5 groups. Explicit `"dodge"` and
     `"stack"` are also accepted.
 
 5.  **Expand calculation** — for stacked bars, expansion is computed

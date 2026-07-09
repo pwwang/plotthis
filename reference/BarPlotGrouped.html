@@ -13,7 +13,7 @@ BarPlotAtomic when group_by is provided."><meta property="og:image" content="htt
 
     <a class="navbar-brand me-2" href="../index.html">plotthis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.13.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.13.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -274,7 +274,7 @@ radius.</p></dd>
 
 <dt id="arg-position">position<a class="anchor" aria-label="anchor" href="#arg-position"></a></dt>
 <dd><p>A character string specifying the bar layout:
-<code>"auto"</code> (default: dodge when ≤5 groups, stack otherwise),
+<code>"auto"</code> (default: dodge when \(\le\)5 groups, stack otherwise),
 <code>"dodge"</code> (side-by-side), or <code>"stack"</code> (stacked on top of
 each other).</p></dd>
 
@@ -389,7 +389,7 @@ combination is computed.  Factor levels are preserved.</p></li>
 y-values are divided by the sum within each (<code>x</code>,
 <code>facet_by</code>) group so that each x position stacks to 100\<!-- %. --></p></li>
 <li><p><strong>Position resolution</strong> — <code>position = "auto"</code> chooses
-<code>"dodge"</code> for ≤5 groups or <code>"stack"</code> for &gt;5 groups.
+<code>"dodge"</code> for \(\le\)5 groups or <code>"stack"</code> for &gt;5 groups.
 Explicit <code>"dodge"</code> and <code>"stack"</code> are also accepted.</p></li>
 <li><p><strong>Expand calculation</strong> — for stacked bars, expansion is
 computed from y-range and label presence.  For dodged bars,

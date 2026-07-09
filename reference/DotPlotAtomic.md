@@ -570,8 +570,8 @@ separate legend entry documenting the cutoff.
     with `base_height = 4.5`, `aspect.ratio = NULL`, and per-axis scale
     factors (0.9 for the categorical axis driving width, 0.6 for the
     categorical axis driving height). Legend width, y-axis label length,
-    and minimum dimensions (width ≥ 5, height ≥ 4) are factored in. A
-    fallback manual calculation is used when
+    and minimum dimensions (width \\\ge\\ 5, height \\\ge\\ 4) are
+    factored in. A fallback manual calculation is used when
     [`calculate_plot_dimensions()`](https://pwwang.github.io/plotthis/reference/calculate_plot_dimensions.md)
     returns `NULL`.
 

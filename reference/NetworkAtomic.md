@@ -550,30 +550,27 @@ A `ggplot` object with `height` and `width` attributes (in inches).
     [`geom_edge_loop`](https://ggraph.data-imaginist.com/reference/geom_edge_loop.html)
     handles self-loop edges.
 
-    - 
+10. **Link scales** – Conditional on their guide status,
+    `scale_edge_width_continuous`, `scale_edge_linetype_discrete`, and
+    `scale_edge_color_manual` / `scale_edge_color_gradientn` are added
+    for weight, linetype, and colour legends respectively.
 
-    - **Link scales** – Conditional on their guide status,
-      `scale_edge_width_continuous`, `scale_edge_linetype_discrete`, and
-      `scale_edge_color_manual` / `scale_edge_color_gradientn` are added
-      for weight, linetype, and colour legends respectively.
+11. **Node rendering** –
+    [`geom_point`](https://ggplot2.tidyverse.org/reference/geom_point.html)
+    draws the nodes with the assembled aesthetics.
 
-    - **Node rendering** –
-      [`geom_point`](https://ggplot2.tidyverse.org/reference/geom_point.html)
-      draws the nodes with the assembled aesthetics.
+12. **Node scales** – Conditional scale additions:
+    `scale_size_continuous` (range from `node_size_range`),
+    `scale_color_manual`, `scale_shape_manual`, and `scale_fill_manual`,
+    each with their legend title and guide overrides.
 
-    - **Node scales** – Conditional scale additions:
-      `scale_size_continuous` (range from `node_size_range`),
-      `scale_color_manual`, `scale_shape_manual`, and
-      `scale_fill_manual`, each with their legend title and guide
-      overrides.
+13. **Labels** – When `add_label = TRUE`, node identifiers are rendered
+    via
+    [`geom_text_repel`](https://ggrepel.slowkow.com/reference/geom_text_repel.html)
+    using `label_fg`, `label_bg`, and `label_bg_r`.
 
-    - **Labels** – When `add_label = TRUE`, node identifiers are
-      rendered via
-      [`geom_text_repel`](https://ggrepel.slowkow.com/reference/geom_text_repel.html)
-      using `label_fg`, `label_bg`, and `label_bg_r`.
-
-    - **Final theme and dimensions** – Coordinate expansion, axis
-      labels, theme application, and legend positioning are applied.
-      Plot height and width are computed via
-      [`calculate_plot_dimensions`](https://pwwang.github.io/plotthis/reference/calculate_plot_dimensions.md)
-      and stored as attributes.
+14. **Final theme and dimensions** – Coordinate expansion, axis labels,
+    theme application, and legend positioning are applied. Plot height
+    and width are computed via
+    [`calculate_plot_dimensions`](https://pwwang.github.io/plotthis/reference/calculate_plot_dimensions.md)
+    and stored as attributes.

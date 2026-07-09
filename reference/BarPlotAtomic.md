@@ -282,7 +282,7 @@ BarPlotAtomic(
 - position:
 
   A character string specifying the bar layout: `"auto"` (default: dodge
-  when ≤5 groups, stack otherwise), `"dodge"` (side-by-side), or
+  when \\\le\\5 groups, stack otherwise), `"dodge"` (side-by-side), or
   `"stack"` (stacked on top of each other).
 
 - position_dodge_preserve:
@@ -426,7 +426,7 @@ attributes (in inches) attached.
 - **With `group_by`** — delegates to `BarPlotGrouped`. `fill_by` must
   match `group_by` or be left as default; an explicit mismatch raises a
   stop error. `position` controls dodge vs. stack layout with automatic
-  selection based on group count (≤5 → dodge, \>5 → stack).
+  selection based on group count (\\\le\\5 → dodge, \>5 → stack).
 
 After the delegate returns,
 [`facet_plot()`](https://pwwang.github.io/plotthis/reference/facet_plot.md)

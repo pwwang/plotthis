@@ -63,8 +63,7 @@ ROCCurveAtomic(
 - data:
 
   A data frame with the truth and score columns. See
-  <https://cran.r-project.org/web/packages/plotROC/vignettes/examples.html>
-  for the expected format.
+  <https://CRAN.R-project.org/package=plotROC> for the expected format.
 
 - truth_by:
 

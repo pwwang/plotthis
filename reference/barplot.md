@@ -461,7 +461,7 @@ WaterfallPlot(
 - position:
 
   A character string specifying the bar layout: `"auto"` (default: dodge
-  when ≤5 groups, stack otherwise), `"dodge"` (side-by-side), or
+  when \\\le\\5 groups, stack otherwise), `"dodge"` (side-by-side), or
   `"stack"` (stacked on top of each other).
 
 - position_dodge_preserve:
