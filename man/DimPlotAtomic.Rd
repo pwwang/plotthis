@@ -148,8 +148,10 @@ When \code{NULL} (the default), the cutoffs are determined by \code{lower_quanti
 \code{upper_quantile} via \code{\link[stats]{quantile}}. Values outside the
 \code{[lower_cutoff, upper_cutoff]} range are clamped (winsorized) to the nearest cutoff value.}
 
-\item{pt_size}{A numeric value of the point size. If NULL (default), the point size is auto-calculated as
-\code{min(3000 / nrow(data), 0.6)} so large datasets automatically get smaller points.}
+\item{pt_size}{A numeric value for point size, or a character string naming a numeric column
+in \code{data} to map point sizes to. If \code{NULL} (default), auto-calculated as
+\code{min(3000 / nrow(data), 0.6)}. Column-name mapping only applies to 2D plots and
+is ignored with a message when \code{raster = TRUE}.}
 
 \item{pt_alpha}{A numeric value in \verb{[0, 1]} for the point transparency. Default is \code{1}.}
 
@@ -542,7 +544,9 @@ validates exactly 2 or 3 dims via \code{check_columns()}.
 \code{features}, and \code{facet_by}. Requires at least one of \code{group_by} or
 \code{features}. Blocks \code{facet_by} when multiple features are present (features
 themselves become facets).
-\item \strong{Auto defaults} — \code{pt_size} defaults to \code{min(3000 / nrow(data), 0.6)};
+\item \strong{Auto defaults} — \code{pt_size} defaults to \code{min(3000 / nrow(data), 0.6)}
+when \code{NULL}. If a character string is given, it is treated as a column name
+for variable point sizing (2D only, ignored in raster mode);
 \code{raster} auto-enables when \code{nrow(data) > 1e5}; \code{theme_blank} suppresses
 axis labels.
 \item \strong{Label force-enable} — if \code{label_repel} or \code{label_insitu} is \code{TRUE},

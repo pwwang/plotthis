@@ -272,8 +272,10 @@ independent layout control (\code{nrow}, \code{ncol}) or per-feature palettes vi
 
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
-\item{pt_size}{A numeric value of the point size. If NULL (default), the point size is auto-calculated as
-\code{min(3000 / nrow(data), 0.6)} so large datasets automatically get smaller points.}
+\item{pt_size}{A numeric value for point size, or a character string naming a numeric column
+in \code{data} to map point sizes to. If \code{NULL} (default), auto-calculated as
+\code{min(3000 / nrow(data), 0.6)}. Column-name mapping only applies to 2D plots and
+is ignored with a message when \code{raster = TRUE}.}
 
 \item{pt_alpha}{A numeric value in \verb{[0, 1]} for the point transparency. Default is \code{1}.}
 

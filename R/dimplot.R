@@ -127,6 +127,11 @@ DimPlotAtomic3D <- function(
     zlab <- dims[3]
 
     # Scale pt_size for plotly (plotly marker sizes are in pixels, ggplot sizes are in mm)
+    stopifnot(
+        "[DimPlot] pt_size must be a numeric value for 3D plots." = is.numeric(
+            pt_size
+        )
+    )
     marker_size <- max(pt_size * 2, 1)
 
     # Disable per-point hover text for large datasets to reduce JSON payload
@@ -584,7 +589,9 @@ DimPlotAtomic3D <- function(
 #'    `features`, and `facet_by`. Requires at least one of `group_by` or
 #'    `features`. Blocks `facet_by` when multiple features are present (features
 #'    themselves become facets).
-#' 5. **Auto defaults** — `pt_size` defaults to `min(3000 / nrow(data), 0.6)`;
+#' 5. **Auto defaults** — `pt_size` defaults to `min(3000 / nrow(data), 0.6)`
+#'    when `NULL`. If a character string is given, it is treated as a column name
+#'    for variable point sizing (2D only, ignored in raster mode);
 #'    `raster` auto-enables when `nrow(data) > 1e5`; `theme_blank` suppresses
 #'    axis labels.
 #' 6. **Label force-enable** — if `label_repel` or `label_insitu` is `TRUE`,
@@ -673,8 +680,10 @@ DimPlotAtomic3D <- function(
 #' @param group_by A character string of the column name to group the data by for discrete colouring.
 #'  A character/factor column is expected. If multiple columns are provided, the columns will be concatenated with `group_by_sep`.
 #' @param group_by_sep A character string to concatenate the columns in `group_by`, if multiple columns are provided.
-#' @param pt_size A numeric value of the point size. If NULL (default), the point size is auto-calculated as
-#'  `min(3000 / nrow(data), 0.6)` so large datasets automatically get smaller points.
+#' @param pt_size A numeric value for point size, or a character string naming a numeric column
+#'  in \code{data} to map point sizes to. If \code{NULL} (default), auto-calculated as
+#'  \code{min(3000 / nrow(data), 0.6)}. Column-name mapping only applies to 2D plots and
+#'  is ignored with a message when \code{raster = TRUE}.
 #' @param pt_alpha A numeric value in `[0, 1]` for the point transparency. Default is `1`.
 #' @param bg_color A character string specifying the colour used for NA-valued points and
 #'  background context points drawn from other facets. Default is `"grey80"`.
@@ -1009,8 +1018,24 @@ DimPlotAtomic <- function(
             "Cannot specify 'facet_by' with multiple features. The plot will be faceted by features."
         )
     }
+    if (!is.numeric(pt_size) && !is.null(pt_size)) {
+        pt_size <- check_columns(data, pt_size)
+    }
     pt_size <- pt_size %||% min(3000 / nrow(data), 0.6)
+    pt_size_num <- if (is.numeric(pt_size)) {
+        pt_size
+    } else {
+        min(3000 / nrow(data), 0.6)
+    }
     raster <- raster %||% (nrow(data) > 1e5)
+    if (!is.numeric(pt_size) && isTRUE(raster)) {
+        warning(
+            "[DimPlot] 'raster' is enabled. Column-based point size ('pt_size') ",
+            "is ignored, using numeric fallback for raster mode.",
+            immediate. = TRUE
+        )
+        pt_size <- pt_size_num
+    }
     xlab <- xlab %||% dims[1]
     ylab <- ylab %||% dims[2]
     if (identical(theme, "theme_blank")) {
@@ -1018,8 +1043,9 @@ DimPlotAtomic <- function(
         theme_args[["ylab"]] <- ylab
     }
     if ((isTRUE(label_repel) || isTRUE(label_insitu)) && !isTRUE(label)) {
-        message(
-            "Forcing label to be TRUE when label_repel or label_insitu is TRUE."
+        warning(
+            "[DimPlot] Forcing label to be TRUE when label_repel or label_insitu is TRUE.",
+            immediate. = TRUE
         )
         label <- TRUE
     }
@@ -1475,7 +1501,7 @@ DimPlotAtomic <- function(
                 scattermore::geom_scattermore(
                     data = fc_data,
                     mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
-                    size = pt_size,
+                    pointsize = ceiling(pt_size_num),
                     alpha = pt_alpha / 2,
                     color = bg_color,
                     pixels = raster_dpi
@@ -1492,14 +1518,28 @@ DimPlotAtomic <- function(
                     alpha = pt_alpha / 2
                 )
         } else {
-            p <- p +
-                geom_point(
-                    data = fc_data,
-                    mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
-                    size = pt_size,
-                    alpha = pt_alpha / 2,
-                    color = bg_color
-                )
+            if (is.numeric(pt_size)) {
+                p <- p +
+                    geom_point(
+                        data = fc_data,
+                        mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
+                        size = pt_size,
+                        alpha = pt_alpha / 2,
+                        color = bg_color
+                    )
+            } else {
+                p <- p +
+                    geom_point(
+                        data = fc_data,
+                        mapping = aes(
+                            x = !!sym(dims[1]),
+                            y = !!sym(dims[2]),
+                            size = !!sym(pt_size)
+                        ),
+                        alpha = pt_alpha / 2,
+                        color = bg_color
+                    )
+            }
         }
         rm(fc_data)
     }
@@ -1515,7 +1555,7 @@ DimPlotAtomic <- function(
                     data = data[is.na(data[[group_by]]), , drop = FALSE],
                     mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
                     color = bg_color,
-                    pointsize = ceiling(pt_size),
+                    pointsize = ceiling(pt_size_num),
                     alpha = pt_alpha,
                     pixels = raster_dpi,
                     show.legend = TRUE
@@ -1527,7 +1567,7 @@ DimPlotAtomic <- function(
                         y = !!sym(dims[2]),
                         color = !!sym(group_by)
                     ),
-                    pointsize = ceiling(pt_size),
+                    pointsize = ceiling(pt_size_num),
                     alpha = pt_alpha,
                     pixels = raster_dpi,
                     show.legend = TRUE
@@ -1538,7 +1578,7 @@ DimPlotAtomic <- function(
                 scattermore::geom_scattermore(
                     mapping = aes(x = !!sym(dims[1]), y = !!sym(dims[2])),
                     color = bg_color,
-                    pointsize = ceiling(pt_size),
+                    pointsize = ceiling(pt_size_num),
                     alpha = pt_alpha,
                     pixels = raster_dpi
                 ) +
@@ -1548,7 +1588,7 @@ DimPlotAtomic <- function(
                         y = !!sym(dims[2]),
                         color = !!sym(colorby)
                     ),
-                    pointsize = ceiling(pt_size),
+                    pointsize = ceiling(pt_size_num),
                     alpha = pt_alpha,
                     pixels = raster_dpi
                 )
@@ -1621,16 +1661,41 @@ DimPlotAtomic <- function(
                 )
         }
     } else {
+        if (is.numeric(pt_size)) {
+            p <- p +
+                geom_point(
+                    mapping = aes(
+                        x = !!sym(dims[1]),
+                        y = !!sym(dims[2]),
+                        color = !!sym(colorby)
+                    ),
+                    size = pt_size,
+                    alpha = pt_alpha,
+                    show.legend = TRUE
+                )
+        } else {
+            p <- p +
+                geom_point(
+                    mapping = aes(
+                        x = !!sym(dims[1]),
+                        y = !!sym(dims[2]),
+                        color = !!sym(colorby),
+                        size = !!sym(pt_size)
+                    ),
+                    alpha = pt_alpha,
+                    show.legend = TRUE
+                )
+        }
+    }
+
+    if (!is.numeric(pt_size)) {
         p <- p +
-            geom_point(
-                mapping = aes(
-                    x = !!sym(dims[1]),
-                    y = !!sym(dims[2]),
-                    color = !!sym(colorby)
-                ),
-                size = pt_size,
-                alpha = pt_alpha,
-                show.legend = TRUE
+            scale_size_area(max_size = 6, n.breaks = 4) +
+            guides(
+                size = guide_legend(
+                    override.aes = list(fill = "grey30", shape = 21),
+                    order = 1
+                )
             )
     }
 
@@ -2984,7 +3049,10 @@ FeatureDimPlot <- function(
         split_by <- ".features"
     } else {
         keep_na <- check_keep_na(keep_na, c(facet_by, stat_by, split_by))
-        keep_empty <- check_keep_empty(keep_empty, c(facet_by, stat_by, split_by))
+        keep_empty <- check_keep_empty(
+            keep_empty,
+            c(facet_by, stat_by, split_by)
+        )
 
         split_by <- check_columns(
             data,
