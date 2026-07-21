@@ -284,8 +284,10 @@ When <code>NULL</code> (the default), the cutoffs are determined by <code>lower_
 
 
 <dt id="arg-pt-size">pt_size<a class="anchor" aria-label="anchor" href="#arg-pt-size"></a></dt>
-<dd><p>A numeric value of the point size. If NULL (default), the point size is auto-calculated as
-<code>min(3000 / nrow(data), 0.6)</code> so large datasets automatically get smaller points.</p></dd>
+<dd><p>A numeric value for point size, or a character string naming a numeric column
+in <code>data</code> to map point sizes to. If <code>NULL</code> (default), auto-calculated as
+<code>min(3000 / nrow(data), 0.6)</code>. Column-name mapping only applies to 2D plots and
+is ignored with a message when <code>raster = TRUE</code>.</p></dd>
 
 
 <dt id="arg-pt-alpha">pt_alpha<a class="anchor" aria-label="anchor" href="#arg-pt-alpha"></a></dt>
@@ -843,7 +845,9 @@ validates exactly 2 or 3 dims via <code><a href="check_columns.html">check_colum
 <code>features</code>, and <code>facet_by</code>. Requires at least one of <code>group_by</code> or
 <code>features</code>. Blocks <code>facet_by</code> when multiple features are present (features
 themselves become facets).</p></li>
-<li><p><strong>Auto defaults</strong> — <code>pt_size</code> defaults to <code>min(3000 / nrow(data), 0.6)</code>;
+<li><p><strong>Auto defaults</strong> — <code>pt_size</code> defaults to <code>min(3000 / nrow(data), 0.6)</code>
+when <code>NULL</code>. If a character string is given, it is treated as a column name
+for variable point sizing (2D only, ignored in raster mode);
 <code>raster</code> auto-enables when <code>nrow(data) &gt; 1e5</code>; <code>theme_blank</code> suppresses
 axis labels.</p></li>
 <li><p><strong>Label force-enable</strong> — if <code>label_repel</code> or <code>label_insitu</code> is <code>TRUE</code>,

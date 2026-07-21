@@ -2,6 +2,8 @@
 
 ## Version 0.13.1
 
+CRAN release: 2026-07-09
+
 - BREAKING(LinkedHeatmap): update parameter names for link width and
   color in LinkedHeatmap and LinkedHeatmapAtomic
 - BREAKING(LinkedHeatmap): replace title_gp with title_params for

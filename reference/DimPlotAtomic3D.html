@@ -189,8 +189,10 @@ in feature mode. Default is <code>""</code>.</p></dd>
 
 
 <dt id="arg-pt-size">pt_size<a class="anchor" aria-label="anchor" href="#arg-pt-size"></a></dt>
-<dd><p>A numeric value of the point size. If NULL (default), the point size is auto-calculated as
-<code>min(3000 / nrow(data), 0.6)</code> so large datasets automatically get smaller points.</p></dd>
+<dd><p>A numeric value for point size, or a character string naming a numeric column
+in <code>data</code> to map point sizes to. If <code>NULL</code> (default), auto-calculated as
+<code>min(3000 / nrow(data), 0.6)</code>. Column-name mapping only applies to 2D plots and
+is ignored with a message when <code>raster = TRUE</code>.</p></dd>
 
 
 <dt id="arg-pt-alpha">pt_alpha<a class="anchor" aria-label="anchor" href="#arg-pt-alpha"></a></dt>

@@ -138,9 +138,11 @@ DimPlotAtomic3D(
 
 - pt_size:
 
-  A numeric value of the point size. If NULL (default), the point size
-  is auto-calculated as `min(3000 / nrow(data), 0.6)` so large datasets
-  automatically get smaller points.
+  A numeric value for point size, or a character string naming a numeric
+  column in `data` to map point sizes to. If `NULL` (default),
+  auto-calculated as `min(3000 / nrow(data), 0.6)`. Column-name mapping
+  only applies to 2D plots and is ignored with a message when
+  `raster = TRUE`.
 
 - pt_alpha:
 
