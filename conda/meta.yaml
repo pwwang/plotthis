@@ -1,12 +1,12 @@
 package:
   name: r-plotthis
-  version: 0.13.1
+  version: 0.13.2
 
 source:
   path: ..
 
 build:
-  number: 6
+  number: 1
   rpaths:
     - lib/R/lib/
     - lib/
