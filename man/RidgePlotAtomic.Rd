@@ -142,7 +142,7 @@ x-axis text when \code{flip = TRUE}. Used with \code{calc_just()} to compute
 optimal \code{hjust} / \code{vjust}. Default: \code{90}.}
 
 \item{x_min, x_max}{Numeric limits for the x-axis. When \code{NULL} (default),
-limits are determined from the data range. Passed to \code{coord_cartesian()}.}
+limits are determined from the data range. Passed to \code{scale_x_continuous(limits = ...)}.}
 
 \item{keep_na}{A logical value or a character to replace the NA values in the data.
 It can also take a named list to specify different behavior for different columns.

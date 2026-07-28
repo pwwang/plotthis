@@ -164,7 +164,7 @@ This is useful when split_by is used and the title needs to be dynamic.}
 \item{x_text_angle}{A numeric value specifying the angle of the x-axis text.}
 
 \item{x_min, x_max}{Numeric limits for the x-axis. When \code{NULL} (default),
-limits are determined from the data range. Passed to \code{coord_cartesian()}.}
+limits are determined from the data range. Passed to \code{scale_x_continuous(limits = ...)}.}
 
 \item{reverse}{A logical value. If \code{TRUE}, the y-axis group order is
 reversed. NA groups are renamed to the literal string \code{"NA"} and
