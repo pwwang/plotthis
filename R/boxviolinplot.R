@@ -550,7 +550,11 @@ BoxViolinPlotAtomic <- function(
     }
     if (isTRUE(comparisons) && is.null(group_by)) {
         # stop("'group_by' must be provided to when 'comparisons' is TRUE.")
-        comparisons <- combn(levels(data[[x]]), 2, simplify = FALSE)
+        if (length(levels(data[[x]])) < 2) {
+            comparisons <- c()
+        } else {
+            comparisons <- combn(levels(data[[x]]), 2, simplify = FALSE)
+        }
     }
     if (length(comparisons) > 0) {
         if (!is.list(comparisons) && !isTRUE(comparisons)) {
