@@ -2222,9 +2222,11 @@ DimPlotAtomic <- function(
         } else {
             legend <- do_call(rbind, c(list(base = legend_base), legend_list))
         }
+        orig_data <- p$data
         gtable <- ggplotGrob(p + ggplot2::theme(legend.position = "none"))
         gtable <- add_grob(gtable, legend, legend.position)
         p <- wrap_plots(gtable)
+        p$data <- orig_data
     }
 
     ## Putting reasonable height and width
