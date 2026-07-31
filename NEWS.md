@@ -1,3 +1,10 @@
+## Version 0.13.2
+
+- feat(CellDimPlot): support pt_size to be a column name
+- fix(BoxViolinPlotAtomic): handle cases with fewer than 2 levels for comparisons
+- fix(RidgePlot): update x-axis limit to reflect usage of scale_x_continuous
+- fix(DimPlot): fix gtable conversion destroys ggplot structure
+
 ## Version 0.13.1
 
 - BREAKING(LinkedHeatmap): update parameter names for link width and color in LinkedHeatmap and LinkedHeatmapAtomic
