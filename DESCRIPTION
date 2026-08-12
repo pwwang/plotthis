@@ -57,6 +57,7 @@ Suggests:
     ggbeeswarm,
     ggforce,
     ggraph,
+    tidygraph,
     ggridges,
     ggmanh,
     qqplotr,

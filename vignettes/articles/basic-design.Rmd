@@ -342,6 +342,33 @@ subset(p$data, Species == "setosa")
 
 Note that when `split_by` is used, the combined `p$data` is **reconstructed** from the individual sub-plot data — it may differ from the original input data due to per-split processing (`keep_na`, `keep_empty`, aggregation, etc.).
 
+### Graph-based plots (`Network`, `ClustreePlot`)
+
+For ggraph-based plots like `Network` and `ClustreePlot`, the plot data is the graph **layout** (node positions) rather than the input data frame. When `split_by` is used, the combined `p$data` contains the node layout of every split, with each row tagged by the `split_by` column:
+
+```{r}
+net_links <- data.frame(
+    from = c("A", "A", "B", "C", "C", "D", "E", "E"),
+    to   = c("B", "C", "D", "D", "E", "E", "A", "B"),
+    weight = c(2, 3, 1, 4, 2, 1, 3, 2),
+    type = factor(c("strong", "weak", "strong", "strong", "weak", "weak", "strong", "weak")),
+    group = factor(c("G1", "G1", "G1", "G2", "G2", "G2", "G1", "G2"))
+)
+p <- Network(net_links, from = "from", to = "to", split_by = "group")
+p$data[, c("name", "group")]
+```
+
+Here G1's split has 5 nodes (A, B, C, D, E) while G2's has only 4 (A is missing), so the combined data has 9 rows — the `group` column tells which split each node belongs to.
+
+Two additional pieces of information are stored as attributes on the combined data:
+
+- `attr(p$data, "graph")` — a combined graph of all splits' nodes and links (vertex names may repeat across splits).
+- `attr(p$data, "edges")` — the original link rows of every split, tagged with the `split_by` column:
+
+```{r}
+attr(p$data, "edges")
+```
+
 ## Tracing the ggplot calls for debugging
 
 When `options(plotthis.gglogger.enabled = TRUE)` is set, `plotthis` uses the [`gglogger`](https://github.com/gglogger/gglogger) package instead of `ggplot2::ggplot()`. The `gglogger::ggplot()` function records every `ggplot2` layer addition as a log entry, making it easy to inspect how a plot is constructed.

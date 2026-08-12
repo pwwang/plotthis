@@ -951,6 +951,13 @@ NetworkAtomic <- function(
 #'   \item \strong{Combination} -- Results are combined via
 #'         \code{\link{combine_plots}()} (when \code{combine = TRUE}) or
 #'         returned as a named list of \code{ggplot} objects.
+#'   \item \strong{Combined data} -- When \code{combine = TRUE}, the
+#'         combined plot's \code{data} (\code{p$data}) exposes the node
+#'         layout of every split, each row tagged with the
+#'         \code{split_by} level. The \code{"graph"} attribute carries a
+#'         combined graph of all splits' nodes and links, and the
+#'         original link rows (tagged with the \code{split_by} column)
+#'         are available in the \code{"edges"} attribute.
 #' }
 #'
 #' @inheritParams common_args

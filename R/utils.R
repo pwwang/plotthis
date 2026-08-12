@@ -615,13 +615,55 @@ combine_plots <- function(
         # layer that inherits the plot data explicit per-split data so
         # rendering is unaffected. Layers with their own explicit data
         # (e.g. geom_text with a computed AUC column) are left unchanged.
+        # ggraph-based plots (e.g. Network, ClustreePlot) carry the graph
+        # layout in the plot data, and their edge layers re-resolve
+        # coordinates from it at build time (data = get_edges(), called
+        # with the plot data as the layout). To keep the combined layout
+        # inspectable without re-resolving edges against it, every layer
+        # is instead frozen to the last sub-plot's own layout: waiver data
+        # is pointed at it and function data (the edge layers) is
+        # evaluated against it once, producing explicit coordinates.
         last_idx <- length(plots)
         last_orig_data <- plots[[last_idx]]$data
-        plots[[last_idx]]$data <- combined_data
-        for (i in seq_along(plots[[last_idx]]$layers)) {
-            layer_data <- plots[[last_idx]]$layers[[i]]$data
-            if (inherits(layer_data, "waiver")) {
-                plots[[last_idx]]$layers[[i]]$data <- last_orig_data
+        if (inherits(last_orig_data, "layout_ggraph")) {
+            for (i in seq_along(plots[[last_idx]]$layers)) {
+                layer_data <- plots[[last_idx]]$layers[[i]]$data
+                if (inherits(layer_data, "waiver")) {
+                    plots[[last_idx]]$layers[[i]]$data <- last_orig_data
+                } else if (is.function(layer_data)) {
+                    plots[[last_idx]]$layers[[i]]$data <- layer_data(last_orig_data)
+                }
+            }
+            # The rbind above keeps the first sub-plot's graph attribute,
+            # which only holds that split's vertices and edges. Rebuild a
+            # combined graph carrying every split's nodes and links, each
+            # marked with the split column, so the exposed data stays a
+            # complete layout. Vertex names repeat across splits, which
+            # igraph::graph_from_data_frame rejects, hence tbl_graph().
+            edge_dfs <- lapply(names(plots), function(nm) {
+                e <- igraph::as_data_frame(
+                    attr(plots[[nm]]$data, "graph"),
+                    what = "edges"
+                )
+                e[[split_by]] <- nm
+                return(e)
+            })
+            graph <- tidygraph::tbl_graph(
+                nodes = combined_data,
+                edges = do_call(rbind, edge_dfs)
+            )
+            attr(combined_data, "graph") <- graph
+            # Expose the combined links table as well, each row tagged
+            # with the split column, so the original link-level data
+            # stays directly inspectable.
+            attr(combined_data, "edges") <- do_call(rbind, edge_dfs)
+        } else {
+            plots[[last_idx]]$data <- combined_data
+            for (i in seq_along(plots[[last_idx]]$layers)) {
+                layer_data <- plots[[last_idx]]$layers[[i]]$data
+                if (inherits(layer_data, "waiver")) {
+                    plots[[last_idx]]$layers[[i]]$data <- last_orig_data
+                }
             }
         }
     }
@@ -640,6 +682,9 @@ combine_plots <- function(
     # For non-ggplot sub-plots (e.g. wrap_elements / grid grobs),
     # wrap_plots creates a waiver() $data instead of inheriting from
     # the last sub-plot. Set it explicitly so p$data always works.
+    # For ggraph-based plots (e.g. Network) the layers were frozen to
+    # each split's own layout above, so exposing the combined layout
+    # (with the split column) here does not affect rendering.
     if (!is.null(split_by)) {
         p$data <- combined_data
     }

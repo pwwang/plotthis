@@ -16,7 +16,14 @@ They will be concatenated into one column, using \code{group_by_sep} as the sepa
 
 \item{group_by_sep}{The separator for multiple group_by columns. See \code{group_by}}
 
-\item{split_by}{The column(s) to split data by and plot separately.}
+\item{split_by}{The column(s) to split data by and plot separately.
+When \code{combine = TRUE}, the combined plot's data (\code{p$data})
+contains the rows of every split, tagged with the \code{split_by}
+column. For ggraph-based plots (e.g. \code{\link{Network}},
+\code{\link{ClustreePlot}}), the node layout of every split is
+exposed with the split column, and the original link rows (also
+tagged with the \code{split_by} column) are available as the
+\code{"edges"} attribute of the data.}
 
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 

@@ -94,7 +94,14 @@ string starting with \code{"@"}, the nodes data frame is extracted
 from the corresponding attribute of \code{links} (e.g.
 \code{"@nodes"} extracts \code{attr(links, "nodes")}).}
 
-\item{split_by}{The column(s) to split data by and plot separately.}
+\item{split_by}{The column(s) to split data by and plot separately.
+When \code{combine = TRUE}, the combined plot's data (\code{p$data})
+contains the rows of every split, tagged with the \code{split_by}
+column. For ggraph-based plots (e.g. \code{\link{Network}},
+\code{\link{ClustreePlot}}), the node layout of every split is
+exposed with the split column, and the original link rows (also
+tagged with the \code{split_by} column) are available as the
+\code{"edges"} attribute of the data.}
 
 \item{split_by_sep}{The separator for multiple split_by columns. See \code{split_by}}
 
@@ -441,6 +448,13 @@ receives the split level name for dynamic title generation.
 \item \strong{Combination} -- Results are combined via
 \code{\link{combine_plots}()} (when \code{combine = TRUE}) or
 returned as a named list of \code{ggplot} objects.
+\item \strong{Combined data} -- When \code{combine = TRUE}, the
+combined plot's \code{data} (\code{p$data}) exposes the node
+layout of every split, each row tagged with the
+\code{split_by} level. The \code{"graph"} attribute carries a
+combined graph of all splits' nodes and links, and the
+original link rows (tagged with the \code{split_by} column)
+are available in the \code{"edges"} attribute.
 }
 }
 

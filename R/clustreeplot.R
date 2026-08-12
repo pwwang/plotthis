@@ -422,6 +422,11 @@ ClustreePlotAtomic <- function(
 #'   \item \strong{Combination} — \code{\link{combine_plots}()} assembles
 #'   the list of plots via \code{patchwork::wrap_plots}, honouring
 #'   \code{nrow}/\code{ncol}/\code{byrow}/\code{design}.
+#'   \item \strong{Combined data} — when \code{combine = TRUE}, the
+#'   combined plot's \code{data} (\code{p$data}) exposes the node layout
+#'   of every split, each row tagged with the \code{split_by} level, plus
+#'   a combined graph of all splits' nodes and links (\code{"graph"}
+#'   attribute) and the original links (\code{"edges"} attribute).
 #' }
 #'
 #' @inheritParams ClustreePlotAtomic
