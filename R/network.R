@@ -1233,7 +1233,7 @@ Network <- function(
     combine_plots(
         plots,
         combine = combine,
-        split_by = split_by,
+        split_by = l_split_by,
         nrow = nrow,
         ncol = ncol,
         byrow = byrow,
