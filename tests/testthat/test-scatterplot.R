@@ -52,6 +52,24 @@ test_that("ScatterPlot with split_by returns combined or list", {
     expect_length(p_list, 2)
 })
 
+test_that("ScatterPlot with multiple split_by columns returns a list with one plot per combination", {
+    data2 <- data
+    data2$split2 <- factor(rep(c("s1", "s2"), each = 50))
+    plots <- suppressMessages(ScatterPlot(data2, x = "x", y = "y",
+                                          split_by = c("group", "split2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("ScatterPlot with multiple split_by columns returns combined plot", {
+    data2 <- data
+    data2$split2 <- factor(rep(c("s1", "s2"), each = 50))
+    p <- suppressMessages(ScatterPlot(data2, x = "x", y = "y",
+                                      split_by = c("group", "split2"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
+})
+
 test_that("ScatterPlot works with highlight as index vector", {
     p <- ScatterPlot(data, x = "x", y = "y", highlight = 1:10)
     expect_s3_class(p, "ggplot")

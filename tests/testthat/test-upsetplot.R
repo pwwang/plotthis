@@ -67,3 +67,35 @@ test_that("UpsetPlot with combine = FALSE returns list", {
     expect_length(plots, 2)
     expect_s3_class(plots[[1]], "ggplot")
 })
+
+test_that("UpsetPlot with multiple split_by columns returns a list with one plot per combination", {
+    skip_if_not_installed("ggupset")
+    data2 <- data.frame(
+        id    = c("g1","g2","g3","g4","g5","g3","g4","g5","g6","g7",
+                  "g1","g2","g8","g9","g3","g8","g9","g3","g10","g11"),
+        group = c(rep("SetA", 5), rep("SetB", 5), rep("SetA", 5), rep("SetB", 5)),
+        split = factor(rep(c("S1", "S2"), each = 10))
+    )
+    data2$split2 <- factor(rep(c("s1", "s2"), 10))
+    plots <- suppressMessages(UpsetPlot(data2, in_form = "long", id_by = "id",
+                                        group_by = "group",
+                                        split_by = c("split", "split2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("UpsetPlot with multiple split_by columns returns combined plot", {
+    skip_if_not_installed("ggupset")
+    data2 <- data.frame(
+        id    = c("g1","g2","g3","g4","g5","g3","g4","g5","g6","g7",
+                  "g1","g2","g8","g9","g3","g8","g9","g3","g10","g11"),
+        group = c(rep("SetA", 5), rep("SetB", 5), rep("SetA", 5), rep("SetB", 5)),
+        split = factor(rep(c("S1", "S2"), each = 10))
+    )
+    data2$split2 <- factor(rep(c("s1", "s2"), 10))
+    p <- suppressMessages(UpsetPlot(data2, in_form = "long", id_by = "id",
+                                    group_by = "group",
+                                    split_by = c("split", "split2"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
+})

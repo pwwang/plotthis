@@ -34,6 +34,13 @@ test_that("JitterPlot with split_by and combine = FALSE returns list", {
     expect_s3_class(plots[[1]], "ggplot")
 })
 
+test_that("JitterPlot with multiple split_by columns returns a list with one plot per combination", {
+    plots <- suppressMessages(JitterPlot(data, x = "x", y = "y", split_by = c("group1", "group2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
 test_that("JitterPlot with facet_by works", {
     p <- JitterPlot(data, x = "x", y = "y", facet_by = "group2")
     expect_s3_class(p, "ggplot")

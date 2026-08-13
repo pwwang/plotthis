@@ -53,3 +53,19 @@ test_that("RarefactionPlot with iNEXT object input works", {
     p <- RarefactionPlot(inext_obj)
     expect_s3_class(p, "ggplot")
 })
+
+test_that("RarefactionPlot with multiple split_by columns returns a list with one plot per combination", {
+    skip_if_not_installed("iNEXT")
+    plots <- suppressMessages(RarefactionPlot(rarefy_data, q = c(0, 1, 2),
+                                              group_by = NULL, split_by = c("q", "group"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 6)   # 3 q values x 2 groups
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("RarefactionPlot with multiple split_by columns returns combined plot", {
+    skip_if_not_installed("iNEXT")
+    p <- suppressMessages(RarefactionPlot(rarefy_data, q = c(0, 1, 2),
+                                          group_by = NULL, split_by = c("q", "group"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
+})

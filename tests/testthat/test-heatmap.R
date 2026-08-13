@@ -34,6 +34,17 @@ test_that("Heatmap with split_by and combine = FALSE returns list", {
     expect_length(plots, 2)
 })
 
+test_that("Heatmap with multiple split_by columns returns a list with one plot per combination", {
+    skip_if_not_installed("ComplexHeatmap")
+    data2 <- long_data
+    data2$split2 <- factor(rep(c("s1", "s2"), each = 16))
+    plots <- suppressMessages(Heatmap(data2, rows_by = "gene", columns_by = "sample",
+                                      values_by = "value", split_by = c("group", "split2"),
+                                      combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+})
+
 test_that("Heatmap with flip = TRUE works", {
     skip_if_not_installed("ComplexHeatmap")
     p <- Heatmap(mat, flip = TRUE)

@@ -30,6 +30,24 @@ test_that("DimPlot with split_by and combine = FALSE returns a list", {
     expect_s3_class(plots[[1]], "ggplot")
 })
 
+test_that("DimPlot with multiple split_by columns returns a list with one plot per combination", {
+    dim2 <- dim_example
+    dim2$split2 <- factor(rep(c("s1", "s2"), length.out = nrow(dim2)))
+    plots <- suppressMessages(DimPlot(dim2, group_by = "clusters",
+                                      split_by = c("group", "split2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("DimPlot with multiple split_by columns returns combined plot", {
+    dim2 <- dim_example
+    dim2$split2 <- factor(rep(c("s1", "s2"), length.out = nrow(dim2)))
+    p <- suppressMessages(DimPlot(dim2, group_by = "clusters",
+                                  split_by = c("group", "split2"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
+})
+
 test_that("DimPlot with specific dims works", {
     p <- DimPlot(dim_example, dims = c(1, 2), group_by = "clusters")
     expect_s3_class(p, "ggplot")
@@ -69,6 +87,24 @@ test_that("FeatureDimPlot with split_by = TRUE and combine = FALSE returns list 
     expect_true(is.list(plots))
     expect_length(plots, 2)
     expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("FeatureDimPlot with multiple split_by columns returns a list with one plot per combination", {
+    dim2 <- dim_example
+    dim2$split2 <- factor(rep(c("s1", "s2"), length.out = nrow(dim2)))
+    plots <- suppressMessages(FeatureDimPlot(dim2, features = "stochasticbasis_1",
+                                             split_by = c("group", "split2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("FeatureDimPlot with multiple split_by columns returns combined plot", {
+    dim2 <- dim_example
+    dim2$split2 <- factor(rep(c("s1", "s2"), length.out = nrow(dim2)))
+    p <- suppressMessages(FeatureDimPlot(dim2, features = "stochasticbasis_1",
+                                         split_by = c("group", "split2"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
 })
 
 test_that("FeatureDimPlot with title works", {

@@ -42,6 +42,24 @@ test_that("ChordPlot with combine = FALSE returns list", {
     expect_length(plots, 2)
 })
 
+test_that("ChordPlot with multiple split_by columns returns a list with one plot per combination", {
+    data2 <- chord_data
+    data2$split2 <- factor(rep(c("s1", "s2"), length.out = 9))
+    plots <- suppressMessages(ChordPlot(data2, from = "from", to = "to",
+                                        split_by = c("group", "split2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("ChordPlot with multiple split_by columns returns combined plot", {
+    data2 <- chord_data
+    data2$split2 <- factor(rep(c("s1", "s2"), length.out = 9))
+    p <- suppressMessages(ChordPlot(data2, from = "from", to = "to",
+                                    split_by = c("group", "split2"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
+})
+
 test_that("ChordPlot with flip = TRUE works", {
     p <- ChordPlot(chord_data, from = "from", to = "to", flip = TRUE)
     expect_true(!is.null(p))

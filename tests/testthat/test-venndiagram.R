@@ -65,3 +65,35 @@ test_that("VennDiagram with split_by returns patchwork", {
                      group_by = "group", split_by = "split", combine = TRUE)
     expect_true(inherits(p, "patchwork") || inherits(p, "gg"))
 })
+
+test_that("VennDiagram with multiple split_by columns returns combined plot", {
+    skip_if_not_installed("ggVennDiagram")
+    data2 <- data.frame(
+        id    = c("g1", "g2", "g3", "g4", "g2", "g3", "g5", "g6",
+                  "g1", "g2", "g3", "g7", "g2", "g3", "g8", "g9"),
+        group = c(rep("SetA", 4), rep("SetB", 4), rep("SetA", 4), rep("SetB", 4)),
+        split = factor(rep(c("S1", "S2"), each = 8))
+    )
+    data2$split2 <- factor(rep(c("s1", "s2"), 8))
+    p <- suppressMessages(VennDiagram(data2, in_form = "long", id_by = "id",
+                                      group_by = "group",
+                                      split_by = c("split", "split2"), combine = TRUE))
+    expect_true(inherits(p, "patchwork") || inherits(p, "gg"))
+})
+
+test_that("VennDiagram with multiple split_by columns returns a list with one plot per combination", {
+    skip_if_not_installed("ggVennDiagram")
+    data2 <- data.frame(
+        id    = c("g1", "g2", "g3", "g4", "g2", "g3", "g5", "g6",
+                  "g1", "g2", "g3", "g7", "g2", "g3", "g8", "g9"),
+        group = c(rep("SetA", 4), rep("SetB", 4), rep("SetA", 4), rep("SetB", 4)),
+        split = factor(rep(c("S1", "S2"), each = 8))
+    )
+    data2$split2 <- factor(rep(c("s1", "s2"), 8))
+    plots <- suppressMessages(VennDiagram(data2, in_form = "long", id_by = "id",
+                                          group_by = "group",
+                                          split_by = c("split", "split2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})

@@ -46,6 +46,44 @@ test_that("DotPlot with split_by and combine = FALSE returns list", {
     expect_length(plots, 2)
 })
 
+test_that("DotPlot with multiple split_by columns returns a list with one plot per combination", {
+    data2 <- data
+    data2$split2 <- factor(rep(c("s1", "s2"), each = 10))
+    plots <- suppressMessages(suppressWarnings(DotPlot(data2, x = "gene", y = "celltype",
+                                                       fill_by = "expression",
+                                                       split_by = c("group", "split2"), combine = FALSE)))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("DotPlot with multiple split_by columns returns combined plot", {
+    data2 <- data
+    data2$split2 <- factor(rep(c("s1", "s2"), each = 10))
+    p <- suppressMessages(suppressWarnings(DotPlot(data2, x = "gene", y = "celltype",
+                                                   fill_by = "expression",
+                                                   split_by = c("group", "split2"), combine = TRUE)))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
+})
+
+test_that("LollipopPlot with multiple split_by columns returns a list with one plot per combination", {
+    data2 <- data
+    data2$split2 <- factor(rep(c("s1", "s2"), each = 10))
+    plots <- suppressMessages(LollipopPlot(data2, x = "gene", y = "expression",
+                                           split_by = c("group", "split2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("LollipopPlot with multiple split_by columns returns combined plot", {
+    data2 <- data
+    data2$split2 <- factor(rep(c("s1", "s2"), each = 10))
+    p <- suppressMessages(LollipopPlot(data2, x = "gene", y = "expression",
+                                       split_by = c("group", "split2"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
+})
+
 test_that("DotPlot with facet_by works", {
     p <- suppressWarnings(DotPlot(data, x = "gene", y = "celltype", fill_by = "expression",
                  facet_by = "group"))

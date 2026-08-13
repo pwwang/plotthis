@@ -63,6 +63,24 @@ test_that("VolcanoPlot with split_by and combine = FALSE returns list", {
     expect_length(plots, 2)
 })
 
+test_that("VolcanoPlot with multiple split_by columns returns a list with one plot per combination", {
+    data2 <- data
+    data2$split2 <- factor(rep(c("s1", "s2"), 100))
+    plots <- suppressMessages(VolcanoPlot(data2, x = "logFC", y = "pvalue", nlabel = 0,
+                                          split_by = c("group", "split2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("VolcanoPlot with multiple split_by columns returns combined plot", {
+    data2 <- data
+    data2$split2 <- factor(rep(c("s1", "s2"), 100))
+    p <- suppressMessages(VolcanoPlot(data2, x = "logFC", y = "pvalue", nlabel = 0,
+                                      split_by = c("group", "split2"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
+})
+
 test_that("VolcanoPlot with facet_by works", {
     p <- VolcanoPlot(data, x = "logFC", y = "pvalue", nlabel = 0,
                      facet_by = "group")

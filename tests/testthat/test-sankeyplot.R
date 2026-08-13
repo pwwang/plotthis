@@ -57,6 +57,28 @@ test_that("SankeyPlot with split_by combine = FALSE returns list", {
     expect_s3_class(plots[[1]], "ggplot")
 })
 
+test_that("SankeyPlot with multiple split_by columns returns a list with one plot per combination", {
+    skip_if_not_installed("ggalluvial")
+    sankey_wide2 <- sankey_wide
+    sankey_wide2$split2 <- factor(rep(c("s1", "s2"), 30))
+    plots <- suppressMessages(SankeyPlot(sankey_wide2, x = c("Year1", "Year2", "Year3"),
+                                         in_form = "wide", links_fill_by = "Year1",
+                                         split_by = c("group", "split2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("SankeyPlot with multiple split_by columns returns combined plot", {
+    skip_if_not_installed("ggalluvial")
+    sankey_wide2 <- sankey_wide
+    sankey_wide2$split2 <- factor(rep(c("s1", "s2"), 30))
+    p <- suppressMessages(SankeyPlot(sankey_wide2, x = c("Year1", "Year2", "Year3"),
+                                     in_form = "wide", links_fill_by = "Year1",
+                                     split_by = c("group", "split2"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
+})
+
 test_that("SankeyPlot with flip = TRUE works", {
     skip_if_not_installed("ggalluvial")
     p <- SankeyPlot(sankey_wide, x = c("Year1", "Year2", "Year3"),

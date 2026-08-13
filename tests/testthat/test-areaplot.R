@@ -48,6 +48,24 @@ test_that("AreaPlot with split_by and combine = FALSE returns list", {
     expect_length(plots, 2)
 })
 
+test_that("AreaPlot with multiple split_by columns returns a list with one plot per combination", {
+    data2 <- data
+    data2$split2 <- factor(rep(c("s1", "s2"), each = 60))
+    plots <- suppressMessages(AreaPlot(data2, x = "time", group_by = "group",
+                                       split_by = c("facet", "split2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("AreaPlot with multiple split_by columns returns combined plot", {
+    data2 <- data
+    data2$split2 <- factor(rep(c("s1", "s2"), each = 60))
+    p <- suppressMessages(AreaPlot(data2, x = "time", group_by = "group",
+                                   split_by = c("facet", "split2"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
+})
+
 test_that("AreaPlot with facet_by works", {
     p <- AreaPlot(data, x = "time", group_by = "group", facet_by = "facet")
     expect_s3_class(p, "ggplot")

@@ -43,6 +43,18 @@ test_that("LinePlot with split_by and combine = FALSE returns list", {
     expect_s3_class(plots[[1]], "ggplot")
 })
 
+test_that("LinePlot with multiple split_by columns returns a list with one plot per combination", {
+    plots <- suppressMessages(LinePlot(data, x = "x", y = "y", split_by = c("group1", "group2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("LinePlot with multiple split_by columns returns combined plot", {
+    p <- suppressMessages(LinePlot(data, x = "x", y = "y", split_by = c("group1", "group2"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
+})
+
 test_that("LinePlot with facet_by works", {
     p <- LinePlot(data, x = "x", y = "y", facet_by = "group2")
     expect_s3_class(p, "ggplot")

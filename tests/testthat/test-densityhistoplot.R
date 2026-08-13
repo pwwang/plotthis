@@ -34,6 +34,18 @@ test_that("DensityPlot with split_by and combine = FALSE returns list", {
     expect_length(plots, 2)
 })
 
+test_that("DensityPlot with multiple split_by columns returns a list with one plot per combination", {
+    plots <- suppressMessages(DensityPlot(data, x = "x", split_by = c("group", "facet"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("DensityPlot with multiple split_by columns returns combined plot", {
+    p <- suppressMessages(DensityPlot(data, x = "x", split_by = c("group", "facet"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
+})
+
 test_that("DensityPlot with facet_by works", {
     p <- DensityPlot(data, x = "x", facet_by = "facet")
     expect_s3_class(p, "ggplot")
@@ -94,6 +106,13 @@ test_that("Histogram with split_by and combine = FALSE returns list", {
     expect_length(plots, 2)
 })
 
+test_that("Histogram with multiple split_by columns returns a list with one plot per combination", {
+    plots <- suppressMessages(Histogram(data, x = "x", split_by = c("group", "facet"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
 test_that("Histogram sets title", {
     p <- Histogram(data, x = "x", title = "Histogram Title")
     expect_equal(p$labels$title, "Histogram Title")
@@ -118,4 +137,18 @@ test_that("RidgePlot sets title", {
     skip_if_not_installed("ggridges")
     p <- RidgePlot(data, x = "x", group_by = "group", title = "Ridge Title")
     expect_equal(p$labels$title, "Ridge Title")
+})
+
+test_that("RidgePlot with multiple split_by columns returns a list with one plot per combination", {
+    skip_if_not_installed("ggridges")
+    plots <- suppressMessages(RidgePlot(data, x = "x", group_by = "group", split_by = c("group", "facet"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("RidgePlot with multiple split_by columns returns combined plot", {
+    skip_if_not_installed("ggridges")
+    p <- suppressMessages(RidgePlot(data, x = "x", group_by = "group", split_by = c("group", "facet"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
 })

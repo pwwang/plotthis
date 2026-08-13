@@ -45,6 +45,26 @@ test_that("ROCCurve with combine = FALSE returns list", {
     expect_s3_class(plots[[1]], "ggplot")
 })
 
+test_that("ROCCurve with multiple split_by columns returns a list with one plot per combination", {
+    skip_if_not_installed("pROC")
+    roc_data2 <- roc_data
+    roc_data2$split2 <- factor(rep(c("s1", "s2"), each = 30))
+    plots <- suppressMessages(ROCCurve(roc_data2, truth_by = "truth", score_by = "score", pos_label = "pos",
+                                       split_by = c("group", "split2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("ROCCurve with multiple split_by columns returns combined plot", {
+    skip_if_not_installed("pROC")
+    roc_data2 <- roc_data
+    roc_data2$split2 <- factor(rep(c("s1", "s2"), each = 30))
+    p <- suppressMessages(ROCCurve(roc_data2, truth_by = "truth", score_by = "score", pos_label = "pos",
+                                   split_by = c("group", "split2"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
+})
+
 test_that("ROCCurve with show_auc = 'plot' works", {
     skip_if_not_installed("pROC")
     p <- ROCCurve(roc_data, truth_by = "truth", score_by = "score", pos_label = "pos",

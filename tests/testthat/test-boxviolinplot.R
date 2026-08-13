@@ -38,6 +38,18 @@ test_that("BoxPlot with split_by and combine = FALSE returns list", {
     expect_s3_class(plots[[1]], "ggplot")
 })
 
+test_that("BoxPlot with multiple split_by columns returns a list with one plot per combination", {
+    plots <- suppressMessages(BoxPlot(data, x = "x", y = "y", split_by = c("group1", "group2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("BoxPlot with multiple split_by columns returns combined plot", {
+    p <- suppressMessages(BoxPlot(data, x = "x", y = "y", split_by = c("group1", "group2"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
+})
+
 test_that("BoxPlot with flip = TRUE works", {
     p <- BoxPlot(data, x = "x", y = "y", flip = TRUE)
     expect_s3_class(p, "ggplot")
@@ -107,6 +119,13 @@ test_that("ViolinPlot with split_by and combine = FALSE returns list", {
     expect_length(plots, 2)
 })
 
+test_that("ViolinPlot with multiple split_by columns returns a list with one plot per combination", {
+    plots <- suppressMessages(ViolinPlot(data, x = "x", y = "y", split_by = c("group1", "group2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
 test_that("ViolinPlot with facet_by works", {
     p <- ViolinPlot(data, x = "x", y = "y", facet_by = "group2")
     expect_s3_class(p, "ggplot")
@@ -134,4 +153,30 @@ test_that("BeeswarmPlot returns a ggplot for basic usage", {
     skip_if_not_installed("ggbeeswarm")
     p <- BeeswarmPlot(data, x = "x", y = "y")
     expect_s3_class(p, "ggplot")
+})
+
+test_that("BeeswarmPlot with multiple split_by columns returns a list with one plot per combination", {
+    skip_if_not_installed("ggbeeswarm")
+    plots <- suppressMessages(BeeswarmPlot(data, x = "x", y = "y", split_by = c("group1", "group2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("BeeswarmPlot with multiple split_by columns returns combined plot", {
+    skip_if_not_installed("ggbeeswarm")
+    p <- suppressMessages(BeeswarmPlot(data, x = "x", y = "y", split_by = c("group1", "group2"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
+})
+
+test_that("BoxViolinPlot with multiple split_by columns returns a list with one plot per combination", {
+    plots <- suppressMessages(BoxViolinPlot(data, x = "x", y = "y", split_by = c("group1", "group2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("BoxViolinPlot with multiple split_by columns returns combined plot", {
+    p <- suppressMessages(BoxViolinPlot(data, x = "x", y = "y", split_by = c("group1", "group2"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
 })

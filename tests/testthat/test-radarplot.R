@@ -44,6 +44,24 @@ test_that("RadarPlot with combine = FALSE returns list", {
     expect_s3_class(plots[[1]], "ggplot")
 })
 
+test_that("RadarPlot with multiple split_by columns returns a list with one plot per combination", {
+    radar_data2 <- radar_data
+    radar_data2$split2 <- factor(rep(c("s1", "s2"), 15))
+    plots <- suppressMessages(RadarPlot(radar_data2, x = "trait", y = "value", group_by = "group",
+                                        split_by = c("split", "split2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("RadarPlot with multiple split_by columns returns combined plot", {
+    radar_data2 <- radar_data
+    radar_data2$split2 <- factor(rep(c("s1", "s2"), 15))
+    p <- suppressMessages(RadarPlot(radar_data2, x = "trait", y = "value", group_by = "group",
+                                    split_by = c("split", "split2"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
+})
+
 test_that("RadarPlot with scale_y = 'global' works", {
     p <- RadarPlot(radar_data, x = "trait", y = "value", group_by = "group",
                    scale_y = "global")
@@ -61,6 +79,24 @@ test_that("SpiderPlot basic usage works", {
     expect_s3_class(p, "ggplot")
     expect_true(!is.null(attr(p, "height")))
     expect_true(!is.null(attr(p, "width")))
+})
+
+test_that("SpiderPlot with multiple split_by columns returns a list with one plot per combination", {
+    radar_data2 <- radar_data
+    radar_data2$split2 <- factor(rep(c("s1", "s2"), 15))
+    plots <- suppressMessages(SpiderPlot(radar_data2, x = "trait", y = "value", group_by = "group",
+                                         split_by = c("split", "split2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("SpiderPlot with multiple split_by columns returns combined plot", {
+    radar_data2 <- radar_data
+    radar_data2$split2 <- factor(rep(c("s1", "s2"), 15))
+    p <- suppressMessages(SpiderPlot(radar_data2, x = "trait", y = "value", group_by = "group",
+                                     split_by = c("split", "split2"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
 })
 
 test_that("SpiderPlot with title works", {

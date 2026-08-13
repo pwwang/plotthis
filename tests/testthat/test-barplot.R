@@ -37,6 +37,18 @@ test_that("BarPlot with split_by and combine = FALSE returns a list", {
     expect_s3_class(plots[[2]], "ggplot")
 })
 
+test_that("BarPlot with multiple split_by columns returns a list with one plot per combination", {
+    plots <- suppressMessages(BarPlot(data, x = "x", y = "y", split_by = c("group1", "group2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("BarPlot with multiple split_by columns returns combined plot", {
+    p <- suppressMessages(BarPlot(data, x = "x", y = "y", split_by = c("group1", "group2"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
+})
+
 test_that("BarPlot sets title and subtitle", {
     p <- BarPlot(data, x = "x", title = "Test Title", subtitle = "Test Subtitle")
     expect_s3_class(p, "ggplot")
@@ -123,6 +135,58 @@ test_that("SplitBarPlot returns a ggplot", {
     )
     p <- SplitBarPlot(wf_data, x = "x", y = "y")
     expect_s3_class(p, "ggplot")
+})
+
+test_that("SplitBarPlot with multiple split_by columns returns a list with one plot per combination", {
+    wf_data <- data.frame(
+        x = c(0.5, -0.3, 0.8, -1.2, 0.4),
+        y = c("GeneA", "GeneB", "GeneC", "GeneD", "GeneE"),
+        group1 = factor(c("g1", "g1", "g1", "g2", "g2")),
+        group2 = factor(c("f1", "f1", "f2", "f1", "f2"))
+    )
+    plots <- suppressMessages(SplitBarPlot(wf_data, x = "x", y = "y",
+        split_by = c("group1", "group2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("SplitBarPlot with multiple split_by columns returns combined plot", {
+    wf_data <- data.frame(
+        x = c(0.5, -0.3, 0.8, -1.2, 0.4),
+        y = c("GeneA", "GeneB", "GeneC", "GeneD", "GeneE"),
+        group1 = factor(c("g1", "g1", "g1", "g2", "g2")),
+        group2 = factor(c("f1", "f1", "f2", "f1", "f2"))
+    )
+    p <- suppressMessages(SplitBarPlot(wf_data, x = "x", y = "y",
+        split_by = c("group1", "group2"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
+})
+
+test_that("WaterfallPlot with multiple split_by columns returns a list with one plot per combination", {
+    wf_data <- data.frame(
+        x = c(0.5, -0.3, 0.8, -1.2, 0.4),
+        y = c("GeneA", "GeneB", "GeneC", "GeneD", "GeneE"),
+        group1 = factor(c("g1", "g1", "g1", "g2", "g2")),
+        group2 = factor(c("f1", "f1", "f2", "f1", "f2"))
+    )
+    plots <- suppressMessages(WaterfallPlot(wf_data, x = "x", y = "y",
+        split_by = c("group1", "group2"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("WaterfallPlot with multiple split_by columns returns combined plot", {
+    wf_data <- data.frame(
+        x = c(0.5, -0.3, 0.8, -1.2, 0.4),
+        y = c("GeneA", "GeneB", "GeneC", "GeneD", "GeneE"),
+        group1 = factor(c("g1", "g1", "g1", "g2", "g2")),
+        group2 = factor(c("f1", "f1", "f2", "f1", "f2"))
+    )
+    p <- suppressMessages(WaterfallPlot(wf_data, x = "x", y = "y",
+        split_by = c("group1", "group2"), combine = TRUE))
+    expect_true(inherits(p, "gg") || inherits(p, "patchwork"))
 })
 
 test_that("BarPlot with numeric fill_by and quantile works", {

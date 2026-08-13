@@ -41,6 +41,32 @@ test_that("TrendPlot with combine = FALSE returns list", {
     expect_s3_class(plots[[1]], "ggplot")
 })
 
+test_that("TrendPlot with multiple split_by columns returns a list with one plot per combination", {
+    plots <- suppressMessages(TrendPlot(trend_data, x = "timepoint", group_by = "cell_type",
+                                        split_by = c("sample", "cell_type"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 6)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
+test_that("TrendPlot with multiple split_by columns returns combined plot", {
+    p <- suppressMessages(TrendPlot(trend_data, x = "timepoint", group_by = "cell_type",
+                                    split_by = c("sample", "cell_type"), combine = TRUE))
+    expect_true(inherits(p, "patchwork") || inherits(p, "gg"))
+})
+
+test_that("TrendPlot with multiple split_by columns and keep_na does not re-process split columns", {
+    w <- capture_warnings(
+        p <- suppressMessages(TrendPlot(trend_data, x = "timepoint", group_by = "cell_type",
+                                        split_by = c("sample", "cell_type"),
+                                        keep_na = TRUE, combine = TRUE))
+    )
+    # The original split columns are removed from keep_na before the atomic
+    # summarizes the data (which drops 'sample'), so it must not warn.
+    expect_false(any(grepl("not found", w)))
+    expect_true(inherits(p, "patchwork") || inherits(p, "gg"))
+})
+
 test_that("TrendPlot with scale_y = TRUE works", {
     p <- TrendPlot(trend_data, x = "timepoint", group_by = "cell_type", scale_y = TRUE)
     expect_s3_class(p, "ggplot")

@@ -35,6 +35,13 @@ test_that("CorPlot with split_by and combine = FALSE returns list", {
     expect_s3_class(plots[[1]], "ggplot")
 })
 
+test_that("CorPlot with multiple split_by columns returns a list with one plot per combination", {
+    plots <- suppressMessages(CorPlot(cor_data, x = "v1", y = "v2", split_by = c("group", "facet"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
+    expect_s3_class(plots[[1]], "ggplot")
+})
+
 test_that("CorPlot with facet_by works", {
     p <- CorPlot(cor_data, x = "v1", y = "v2", facet_by = "facet")
     expect_s3_class(p, "ggplot")
@@ -74,6 +81,13 @@ test_that("CorPairsPlot with split_by and combine = FALSE returns list", {
                           split_by = "facet", combine = FALSE)
     expect_true(is.list(plots))
     expect_length(plots, 2)
+})
+
+test_that("CorPairsPlot with multiple split_by columns returns a list with one plot per combination", {
+    plots <- suppressMessages(CorPairsPlot(cor_data, columns = c("v1", "v2", "v3"),
+                                           split_by = c("group", "facet"), combine = FALSE))
+    expect_true(is.list(plots))
+    expect_length(plots, 4)
 })
 
 test_that("CorPairsPlot with title does not error", {
