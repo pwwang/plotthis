@@ -17,6 +17,8 @@
 - ci: update R version in CI workflow to 4.4.3
 - ci: pin Deriv to v4.2.0 to fit R4.4.3
 - chore: add r-tidygraph to package requirements
+- fix(LinkedHeatmap): handle multiple split_by values and set default
+  for NULL
 
 ## Version 0.13.1
 
