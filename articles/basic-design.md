@@ -436,6 +436,64 @@ Note that when `split_by` is used, the combined `p$data` is
 the original input data due to per-split processing (`keep_na`,
 `keep_empty`, aggregation, etc.).
 
+### Graph-based plots (`Network`, `ClustreePlot`)
+
+For ggraph-based plots like `Network` and `ClustreePlot`, the plot data
+is the graph **layout** (node positions) rather than the input data
+frame. When `split_by` is used, the combined `p$data` contains the node
+layout of every split, with each row tagged by the `split_by` column:
+
+``` r
+net_links <- data.frame(
+    from = c("A", "A", "B", "C", "C", "D", "E", "E"),
+    to   = c("B", "C", "D", "D", "E", "E", "A", "B"),
+    weight = c(2, 3, 1, 4, 2, 1, 3, 2),
+    type = factor(c("strong", "weak", "strong", "strong", "weak", "weak", "strong", "weak")),
+    group = factor(c("G1", "G1", "G1", "G2", "G2", "G2", "G1", "G2"))
+)
+p <- Network(net_links, from = "from", to = "to", split_by = "group")
+p$data[, c("name", "group")]
+```
+
+    ## # A tibble: 9 × 2
+    ##   name  group
+    ##   <chr> <chr>
+    ## 1 A     G1   
+    ## 2 B     G1   
+    ## 3 E     G1   
+    ## 4 C     G1   
+    ## 5 D     G1   
+    ## 6 C     G2   
+    ## 7 D     G2   
+    ## 8 E     G2   
+    ## 9 B     G2
+
+Here G1’s split has 5 nodes (A, B, C, D, E) while G2’s has only 4 (A is
+missing), so the combined data has 9 rows — the `group` column tells
+which split each node belongs to.
+
+Two additional pieces of information are stored as attributes on the
+combined data:
+
+- `attr(p$data, "graph")` — a combined graph of all splits’ nodes and
+  links (vertex names may repeat across splits).
+- `attr(p$data, "edges")` — the original link rows of every split,
+  tagged with the `split_by` column:
+
+``` r
+attr(p$data, "edges")
+```
+
+    ##   from to weight   type group
+    ## 1    A  B      2 strong    G1
+    ## 2    A  C      3   weak    G1
+    ## 3    B  D      1 strong    G1
+    ## 4    E  A      3 strong    G1
+    ## 5    C  D      4 strong    G2
+    ## 6    C  E      2   weak    G2
+    ## 7    D  E      1   weak    G2
+    ## 8    E  B      2   weak    G2
+
 ## Tracing the ggplot calls for debugging
 
 When `options(plotthis.gglogger.enabled = TRUE)` is set, `plotthis` uses
@@ -602,7 +660,7 @@ BarPlot(
 ```
 
 ![Example of keeping NA values and unused levels of
-factors](basic-design_files/figure-html/unnamed-chunk-12-1.png)
+factors](basic-design_files/figure-html/unnamed-chunk-14-1.png)
 
 ``` r
 # Keep the unused level "C"
@@ -614,7 +672,7 @@ BarPlot(
 ```
 
 ![Example of keeping NA values and unused levels of
-factors](basic-design_files/figure-html/unnamed-chunk-13-1.png)
+factors](basic-design_files/figure-html/unnamed-chunk-15-1.png)
 
 ``` r
 # Keep the unused level "C" for color assignment but not plotting
@@ -626,7 +684,7 @@ BarPlot(
 ```
 
 ![Example of keeping NA values and unused levels of
-factors](basic-design_files/figure-html/unnamed-chunk-14-1.png)
+factors](basic-design_files/figure-html/unnamed-chunk-16-1.png)
 
 ## Variable-level control of keeping NA values and unused levels of factors
 
@@ -651,4 +709,4 @@ BarPlot(
 
 ![Example of variable-level control of keeping NA values and unused
 levels of
-factors](basic-design_files/figure-html/unnamed-chunk-15-1.png)
+factors](basic-design_files/figure-html/unnamed-chunk-17-1.png)

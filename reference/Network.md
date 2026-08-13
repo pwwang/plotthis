@@ -115,7 +115,14 @@ Network(
 
 - split_by:
 
-  The column(s) to split data by and plot separately.
+  The column(s) to split data by and plot separately. When
+  `combine = TRUE`, the combined plot's data (`p$data`) contains the
+  rows of every split, tagged with the `split_by` column. For
+  ggraph-based plots (e.g. `Network`,
+  [`ClustreePlot`](https://pwwang.github.io/plotthis/reference/ClustreePlot.md)),
+  the node layout of every split is exposed with the split column, and
+  the original link rows (also tagged with the `split_by` column) are
+  available as the `"edges"` attribute of the data.
 
 - split_by_sep:
 
@@ -587,6 +594,13 @@ When `split_by` is provided:
     [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)
     (when `combine = TRUE`) or returned as a named list of `ggplot`
     objects.
+
+7.  **Combined data** – When `combine = TRUE`, the combined plot's
+    `data` (`p$data`) exposes the node layout of every split, each row
+    tagged with the `split_by` level. The `"graph"` attribute carries a
+    combined graph of all splits' nodes and links, and the original link
+    rows (tagged with the `split_by` column) are available in the
+    `"edges"` attribute.
 
 ## Examples
 

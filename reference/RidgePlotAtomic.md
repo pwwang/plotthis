@@ -218,7 +218,8 @@ RidgePlotAtomic(
 - x_min, x_max:
 
   Numeric limits for the x-axis. When `NULL` (default), limits are
-  determined from the data range. Passed to `coord_cartesian()`.
+  determined from the data range. Passed to
+  `scale_x_continuous(limits = ...)`.
 
 - keep_na:
 

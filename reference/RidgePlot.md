@@ -92,7 +92,15 @@ RidgePlot(
 
 - split_by:
 
-  The column(s) to split data by and plot separately.
+  The column(s) to split data by and plot separately. When
+  `combine = TRUE`, the combined plot's data (`p$data`) contains the
+  rows of every split, tagged with the `split_by` column. For
+  ggraph-based plots (e.g.
+  [`Network`](https://pwwang.github.io/plotthis/reference/Network.md),
+  [`ClustreePlot`](https://pwwang.github.io/plotthis/reference/ClustreePlot.md)),
+  the node layout of every split is exposed with the split column, and
+  the original link rows (also tagged with the `split_by` column) are
+  available as the `"edges"` attribute of the data.
 
 - split_by_sep:
 
@@ -248,7 +256,8 @@ RidgePlot(
 - x_min, x_max:
 
   Numeric limits for the x-axis. When `NULL` (default), limits are
-  determined from the data range. Passed to `coord_cartesian()`.
+  determined from the data range. Passed to
+  `scale_x_continuous(limits = ...)`.
 
 - reverse:
 

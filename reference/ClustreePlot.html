@@ -59,7 +59,7 @@ and the legend configuration.
 
     <a class="navbar-brand me-2" href="../index.html">plotthis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.13.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.13.2-3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -345,6 +345,11 @@ custom string; otherwise <code>title %||% split_level</code> is used.</p></li>
 <li><p><strong>Combination</strong> — <code><a href="combine_plots.html">combine_plots()</a></code> assembles
 the list of plots via <code><a href="https://patchwork.data-imaginist.com/reference/wrap_plots.html" class="external-link">patchwork::wrap_plots</a></code>, honouring
 <code>nrow</code>/<code>ncol</code>/<code>byrow</code>/<code>design</code>.</p></li>
+<li><p><strong>Combined data</strong> — when <code>combine = TRUE</code>, the
+combined plot's <code>data</code> (<code>p$data</code>) exposes the node layout
+of every split, each row tagged with the <code>split_by</code> level, plus
+a combined graph of all splits' nodes and links (<code>"graph"</code>
+attribute) and the original links (<code>"edges"</code> attribute).</p></li>
 </ol></div>
 
     <div class="section level2">

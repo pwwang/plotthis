@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">plotthis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.13.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.13.2-3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -528,6 +528,63 @@ the combined data uniformly for both simple and split plots:</p>
 individual sub-plot data — it may differ from the original input data
 due to per-split processing (<code>keep_na</code>,
 <code>keep_empty</code>, aggregation, etc.).</p>
+<div class="section level3">
+<h3 id="graph-based-plots-network-clustreeplot">Graph-based plots (<code>Network</code>,
+<code>ClustreePlot</code>)<a class="anchor" aria-label="anchor" href="#graph-based-plots-network-clustreeplot"></a>
+</h3>
+<p>For ggraph-based plots like <code>Network</code> and
+<code>ClustreePlot</code>, the plot data is the graph
+<strong>layout</strong> (node positions) rather than the input data
+frame. When <code>split_by</code> is used, the combined
+<code>p$data</code> contains the node layout of every split, with each
+row tagged by the <code>split_by</code> column:</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">net_links</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>    from <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>, <span class="st">"C"</span>, <span class="st">"D"</span>, <span class="st">"E"</span>, <span class="st">"E"</span><span class="op">)</span>,</span>
+<span>    to   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"B"</span>, <span class="st">"C"</span>, <span class="st">"D"</span>, <span class="st">"D"</span>, <span class="st">"E"</span>, <span class="st">"E"</span>, <span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span>,</span>
+<span>    weight <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">1</span>, <span class="fl">4</span>, <span class="fl">2</span>, <span class="fl">1</span>, <span class="fl">3</span>, <span class="fl">2</span><span class="op">)</span>,</span>
+<span>    type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"strong"</span>, <span class="st">"weak"</span>, <span class="st">"strong"</span>, <span class="st">"strong"</span>, <span class="st">"weak"</span>, <span class="st">"weak"</span>, <span class="st">"strong"</span>, <span class="st">"weak"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"G1"</span>, <span class="st">"G1"</span>, <span class="st">"G1"</span>, <span class="st">"G2"</span>, <span class="st">"G2"</span>, <span class="st">"G2"</span>, <span class="st">"G1"</span>, <span class="st">"G2"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Network.html">Network</a></span><span class="op">(</span><span class="va">net_links</span>, from <span class="op">=</span> <span class="st">"from"</span>, to <span class="op">=</span> <span class="st">"to"</span>, split_by <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span>
+<span><span class="va">p</span><span class="op">$</span><span class="va">data</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"name"</span>, <span class="st">"group"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
+<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 9 × 2</span></span></span>
+<span><span class="co">##   name  group</span></span>
+<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span></span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span> A     G1   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">2</span> B     G1   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">3</span> E     G1   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">4</span> C     G1   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">5</span> D     G1   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">6</span> C     G2   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">7</span> D     G2   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">8</span> E     G2   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">9</span> B     G2</span></span></code></pre>
+<p>Here G1’s split has 5 nodes (A, B, C, D, E) while G2’s has only 4 (A
+is missing), so the combined data has 9 rows — the <code>group</code>
+column tells which split each node belongs to.</p>
+<p>Two additional pieces of information are stored as attributes on the
+combined data:</p>
+<ul>
+<li>
+<code>attr(p$data, "graph")</code> — a combined graph of all splits’
+nodes and links (vertex names may repeat across splits).</li>
+<li>
+<code>attr(p$data, "edges")</code> — the original link rows of every
+split, tagged with the <code>split_by</code> column:</li>
+</ul>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">p</span><span class="op">$</span><span class="va">data</span>, <span class="st">"edges"</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##   from to weight   type group</span></span>
+<span><span class="co">## 1    A  B      2 strong    G1</span></span>
+<span><span class="co">## 2    A  C      3   weak    G1</span></span>
+<span><span class="co">## 3    B  D      1 strong    G1</span></span>
+<span><span class="co">## 4    E  A      3 strong    G1</span></span>
+<span><span class="co">## 5    C  D      4 strong    G2</span></span>
+<span><span class="co">## 6    C  E      2   weak    G2</span></span>
+<span><span class="co">## 7    D  E      1   weak    G2</span></span>
+<span><span class="co">## 8    E  B      2   weak    G2</span></span></code></pre>
+</div>
 </div>
 <div class="section level2">
 <h2 id="tracing-the-ggplot-calls-for-debugging">Tracing the ggplot calls for debugging<a class="anchor" aria-label="anchor" href="#tracing-the-ggplot-calls-for-debugging"></a>
@@ -538,7 +595,7 @@ package instead of <code><a href="https://ggplot2.tidyverse.org/reference/ggplot
 <code>gglogger::ggplot()</code> function records every
 <code>ggplot2</code> layer addition as a log entry, making it easy to
 inspect how a plot is constructed.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>plotthis.gglogger.enabled <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/barplot.html">BarPlot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">iris</span>, x <span class="op">=</span> <span class="st">"Species"</span><span class="op">)</span></span>
@@ -598,7 +655,7 @@ inspect how a plot is constructed.</p>
 layers and scales were added) and for <strong>learning</strong> how the
 plotting functions work internally. Disable it when not needed to avoid
 overhead:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>plotthis.gglogger.enabled <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -614,7 +671,7 @@ automatically look them up.</p>
 the attribute of <code>data</code> with that name (stripping the
 <code>@</code> prefix). This means the following two calls are
 equivalent:</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Method 1: Attach extra data as attributes</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="va">gsea_result</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">data</span>, <span class="st">"gene_ranks"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">gene_ranks</span></span>
@@ -685,35 +742,35 @@ want to include them in the legend.</li>
 be determined by <code>palette</code> and <code>palcolor</code> as
 usual, even though they are not plotted (they will affect the colors of
 existing levels).</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>    <span class="co"># C is an unused level</span></span>
 <span>    x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"D"</span><span class="op">)</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>, <span class="st">"D"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>    y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Excluded by default</span></span>
 <span><span class="fu"><a href="../reference/barplot.html">BarPlot</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="va">data</span>,</span>
 <span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="basic-design_files/figure-html/unnamed-chunk-12-1.png" class="r-plt" alt="Example of keeping NA values and unused levels of factors"></p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<p><img src="basic-design_files/figure-html/unnamed-chunk-14-1.png" class="r-plt" alt="Example of keeping NA values and unused levels of factors"></p>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Keep the unused level "C"</span></span>
 <span><span class="fu"><a href="../reference/barplot.html">BarPlot</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="va">data</span>,</span>
 <span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>,</span>
 <span>    keep_empty <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="basic-design_files/figure-html/unnamed-chunk-13-1.png" class="r-plt" alt="Example of keeping NA values and unused levels of factors"></p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<p><img src="basic-design_files/figure-html/unnamed-chunk-15-1.png" class="r-plt" alt="Example of keeping NA values and unused levels of factors"></p>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Keep the unused level "C" for color assignment but not plotting</span></span>
 <span><span class="fu"><a href="../reference/barplot.html">BarPlot</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="va">data</span>,</span>
 <span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"y"</span>,</span>
 <span>    keep_empty <span class="op">=</span> <span class="st">"level"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="basic-design_files/figure-html/unnamed-chunk-14-1.png" class="r-plt" alt="Example of keeping NA values and unused levels of factors"></p>
+<p><img src="basic-design_files/figure-html/unnamed-chunk-16-1.png" class="r-plt" alt="Example of keeping NA values and unused levels of factors"></p>
 </div>
 <div class="section level2">
 <h2 id="variable-level-control-of-keeping-na-values-and-unused-levels-of-factors">Variable-level control of keeping NA values and unused levels of
@@ -723,7 +780,7 @@ factors<a class="anchor" aria-label="anchor" href="#variable-level-control-of-ke
 also take a named list to control the behavior for each variable
 separately. The names of the list should correspond to the variables in
 the data. For example:</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>    x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="cn">NA</span>, <span class="st">"B"</span>, <span class="st">"D"</span><span class="op">)</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>, <span class="st">"D"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>    group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"G3"</span>, <span class="st">"G1"</span>, <span class="cn">NA</span>, <span class="st">"G3"</span><span class="op">)</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"G1"</span>, <span class="st">"G2"</span>, <span class="st">"G3"</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -736,7 +793,7 @@ the data. For example:</p>
 <span>    keep_empty <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="cn">TRUE</span>, group <span class="op">=</span> <span class="st">"level"</span><span class="op">)</span>,</span>
 <span>    keep_na <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="cn">FALSE</span>, group <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="basic-design_files/figure-html/unnamed-chunk-15-1.png" class="r-plt" alt="Example of variable-level control of keeping NA values and unused levels of factors"></p>
+<p><img src="basic-design_files/figure-html/unnamed-chunk-17-1.png" class="r-plt" alt="Example of variable-level control of keeping NA values and unused levels of factors"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

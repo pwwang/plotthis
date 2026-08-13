@@ -290,6 +290,12 @@ When `split_by` is provided, the following pipeline executes:
     [`patchwork::wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html),
     honouring `nrow`/`ncol`/`byrow`/`design`.
 
+9.  **Combined data** — when `combine = TRUE`, the combined plot's
+    `data` (`p$data`) exposes the node layout of every split, each row
+    tagged with the `split_by` level, plus a combined graph of all
+    splits' nodes and links (`"graph"` attribute) and the original links
+    (`"edges"` attribute).
+
 ## Examples
 
 ``` r
