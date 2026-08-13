@@ -1431,6 +1431,7 @@ BarPlot <- function(
         c(x, split_by, facet_by, group_by)
     )
     theme <- process_theme(theme)
+    split_by_orig <- split_by
     split_by <- check_columns(
         data,
         split_by,
@@ -1442,8 +1443,8 @@ BarPlot <- function(
 
     if (!is.null(split_by)) {
         data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
-        keep_na[[split_by]] <- NULL
-        keep_empty[[split_by]] <- NULL
+        keep_na[split_by_orig] <- NULL
+        keep_empty[split_by_orig] <- NULL
 
         data[[split_by]] <- droplevels(data[[split_by]])
         datas <- split(data, data[[split_by]])
@@ -2290,6 +2291,7 @@ SplitBarPlot <- function(
         c(y, split_by, facet_by, fill_by)
     )
     theme <- process_theme(theme)
+    split_by_orig <- split_by
     split_by <- check_columns(
         data,
         split_by,
@@ -2301,8 +2303,8 @@ SplitBarPlot <- function(
 
     if (!is.null(split_by)) {
         data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
-        keep_na[[split_by]] <- NULL
-        keep_empty[[split_by]] <- NULL
+        keep_na[split_by_orig] <- NULL
+        keep_empty[split_by_orig] <- NULL
 
         datas <- split(data, data[[split_by]])
         # keep the order of levels

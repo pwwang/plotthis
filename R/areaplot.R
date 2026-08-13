@@ -544,6 +544,7 @@ AreaPlot <- function(
         c(x, split_by, group_by, facet_by)
     )
     theme <- process_theme(theme)
+    split_by_orig <- split_by
     split_by <- check_columns(
         data,
         split_by,
@@ -555,8 +556,8 @@ AreaPlot <- function(
 
     if (!is.null(split_by)) {
         data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
-        keep_na[[split_by]] <- NULL
-        keep_empty[[split_by]] <- NULL
+        keep_na[split_by_orig] <- NULL
+        keep_empty[split_by_orig] <- NULL
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]

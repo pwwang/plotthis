@@ -973,6 +973,7 @@ RidgePlot <- function(
     keep_na <- check_keep_na(keep_na, c(group_by, split_by, facet_by))
     keep_empty <- check_keep_empty(keep_empty, c(group_by, split_by, facet_by))
     theme <- process_theme(theme)
+    split_by_orig <- split_by
     split_by <- check_columns(
         data,
         split_by,
@@ -984,8 +985,8 @@ RidgePlot <- function(
 
     if (!is.null(split_by)) {
         data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
-        keep_na[[split_by]] <- NULL
-        keep_empty[[split_by]] <- NULL
+        keep_na[split_by_orig] <- NULL
+        keep_empty[split_by_orig] <- NULL
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
@@ -1201,6 +1202,7 @@ DensityPlot <- function(
     keep_na <- check_keep_na(keep_na, c(group_by, split_by, facet_by))
     keep_empty <- check_keep_empty(keep_empty, c(group_by, split_by, facet_by))
     theme <- process_theme(theme)
+    split_by_orig <- split_by
     split_by <- check_columns(
         data,
         split_by,
@@ -1211,8 +1213,8 @@ DensityPlot <- function(
     )
     if (!is.null(split_by)) {
         data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
-        keep_na[[split_by]] <- NULL
-        keep_empty[[split_by]] <- NULL
+        keep_na[split_by_orig] <- NULL
+        keep_empty[split_by_orig] <- NULL
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
@@ -1440,6 +1442,7 @@ Histogram <- function(
     keep_na <- check_keep_na(keep_na, c(group_by, split_by, facet_by))
     keep_empty <- check_keep_empty(keep_empty, c(group_by, split_by, facet_by))
     theme <- process_theme(theme)
+    split_by_orig <- split_by
     split_by <- check_columns(
         data,
         split_by,
@@ -1451,8 +1454,8 @@ Histogram <- function(
 
     if (!is.null(split_by)) {
         data <- process_keep_na_empty(data, keep_na, keep_empty, col = split_by)
-        keep_na[[split_by]] <- NULL
-        keep_empty[[split_by]] <- NULL
+        keep_na[split_by_orig] <- NULL
+        keep_empty[split_by_orig] <- NULL
         datas <- split(data, data[[split_by]])
         # keep the order of levels
         datas <- datas[levels(data[[split_by]])]
