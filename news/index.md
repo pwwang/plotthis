@@ -8,6 +8,15 @@
 - fix(RidgePlot): update x-axis limit to reflect usage of
   scale_x_continuous
 - fix(DimPlot): fix gtable conversion destroys ggplot structure
+- fix(Network): fix multiple split_by columns not working
+- fix(Network): fix links placement for graph-based plots after
+  combining with split_by
+- fix: correctly clear keep_na and keep_empty for multiple split_by
+- test: add tests for multiple split_by columns in various plot
+  functions
+- ci: update R version in CI workflow to 4.4.3
+- ci: pin Deriv to v4.2.0 to fit R4.4.3
+- chore: add r-tidygraph to package requirements
 
 ## Version 0.13.1
 
