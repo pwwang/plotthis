@@ -1633,7 +1633,11 @@ LinkedHeatmap <- function(
         keep_empty = keep_empty
     )
 
-    split_by <- split_by %||% "..."
+    if (length(split_by) > 1) {
+        split_by <- paste(split_by, collapse = split_by_sep)
+    } else {  # NULL
+        split_by <- "..."
+    }
 
     palette <- check_palette(palette, names(hmdata$data))
     palcolor <- check_palcolor(palcolor, names(hmdata$data))
