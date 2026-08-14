@@ -74,14 +74,28 @@
 #'  entries for the main colour scale.  Names become the displayed labels.
 #' @param legend_discrete Logical; if \code{TRUE}, treat the main colour
 #'  scale as discrete.
-#' @param show_row_names Logical; show row names.  If \code{TRUE}, the
-#'  legend of the row group annotation is hidden.
-#' @param show_column_names Logical; show column names.  If \code{TRUE},
-#'  the legend of the column group annotation is hidden.
+#' @param show_row_names Logical or character vector; show row names.  If
+#'  \code{TRUE}, the legend of the row group annotation is hidden.
+#'  \code{FALSE} only hides the in-place names.  Alternatively, a character
+#'  vector combining the display modes \code{"inplace"} (in-place names,
+#'  same as \code{TRUE}), \code{"legend"} (row group annotation with
+#'  legend), \code{"simple"} (row group annotation without legend),
+#'  \code{"anno"} (alias \code{"annotation"}; label annotation showing the
+#'  row names as text) and \code{"none"} (no names, annotation, or legend).
+#'  Modes are lower-priority defaults: explicit \code{row_annotation}
+#'  entries (e.g. \code{.row}) still win.
+#' @param show_column_names Logical or character vector; show column names.
+#'  See \code{show_row_names} for the display modes.
 #' @param column_title Character string/vector used as the column group
-#'  annotation title.
+#'  annotation title.  A character vector consisting entirely of the display
+#'  modes \code{"inplace"} (per-slice split titles), \code{"legend"} (split
+#'  annotation with legend, no title), \code{"simple"} (split annotation,
+#'  no legend/title), \code{"anno"} (alias \code{"annotation"}; label block
+#'  annotation) and \code{"none"} (no title, annotation, or legend)
+#'  controls how the split titles are displayed.  A literal title identical
+#'  to a mode keyword is interpreted as a mode.
 #' @param row_title Character string/vector used as the row group
-#'  annotation title.
+#'  annotation title.  See \code{column_title} for the display modes.
 #' @param na_col Colour for \code{NA} cells.  Default \code{"grey85"}.
 #' @param row_names_side Side for row names.  Default \code{"right"}.
 #' @param column_names_side Side for column names.  Default \code{"bottom"}.
@@ -157,7 +171,11 @@
 #'      each split block with the concatenated row/column names;
 #'      \code{"names"} and \code{"dimnames"} are aliases.
 #'      \code{params$sep} (default \code{" "}) controls the separator and
-#'      \code{params$wrap_by} the number of names per line.}
+#'      \code{params$wrap_by} the number of names per line.
+#'      For name annotations (the built-in \code{rows_by}/\code{columns_by}
+#'      annotation), \code{"rownames"}/\code{"colnames"} renders the
+#'      row/column names as text labels (this is what
+#'      \code{show_row_names = "anno"} uses).}
 #'    \item{\code{params}}{A list of additional parameters passed to the
 #'      annotation constructor.  \code{FALSE} disables the annotation.
 #'      \code{$show_legend} controls legend visibility.  See
@@ -472,15 +490,52 @@ HeatmapAtomic <- function(
     column_annotation_agg <- col_anno$annotation_agg
     column_annotation_params <- col_anno$annotation_params
 
+    # Resolve display modes for row/column names ("inplace", "legend",
+    # "simple", "anno", "none").  Modes are lower-priority defaults: they
+    # only fill annotation config the user has not set (incl. .default).
+    rn <- .resolve_show_modes(
+        show_row_names,
+        kind = "names",
+        which = "row",
+        by = rows_by,
+        split_by = rows_split_by,
+        annotation = row_annotation,
+        annotation_type = row_annotation_type,
+        annotation_params = row_annotation_params,
+        legend.position = legend.position
+    )
+    row_annotation <- rn$annotation
+    row_annotation_type <- rn$annotation_type
+    row_annotation_params <- rn$annotation_params
+    row_by_eff <- rn$by_eff
+
+    cn <- .resolve_show_modes(
+        show_column_names,
+        kind = "names",
+        which = "column",
+        by = columns_by,
+        split_by = columns_split_by,
+        annotation = column_annotation,
+        annotation_type = column_annotation_type,
+        annotation_params = column_annotation_params,
+        legend.position = legend.position
+    )
+    column_annotation <- cn$annotation
+    column_annotation_type <- cn$annotation_type
+    column_annotation_params <- cn$annotation_params
+    col_by_eff <- cn$by_eff
+
     # Determine whether the name annotations are enabled.
     # A params entry of FALSE disables, but type "label" takes precedence
     # (setting the type implies the user wants the annotation visible).
-    row_name_anno_enabled <- !is.null(rows_by) &&
-        (!isFALSE(row_annotation[[rows_by]] %||% TRUE) ||
-            row_annotation_type[[rows_by]] %||% "simple" == "label")
-    col_name_anno_enabled <- !is.null(columns_by) &&
-        (!isFALSE(column_annotation[[columns_by]] %||% TRUE) ||
-            column_annotation_type[[columns_by]] %||% "simple" == "label")
+    row_name_anno_enabled <- rn$enabled %||%
+        (!is.null(rows_by) &&
+            (!isFALSE(row_annotation[[rows_by]] %||% TRUE) ||
+                row_annotation_type[[rows_by]] %||% "simple" == "label"))
+    col_name_anno_enabled <- cn$enabled %||%
+        (!is.null(columns_by) &&
+            (!isFALSE(column_annotation[[columns_by]] %||% TRUE) ||
+                column_annotation_type[[columns_by]] %||% "simple" == "label"))
     # "rownames"/"colnames" split annotations already show the concatenated
     # row/column names, so the heatmap row/column names are hidden by default
     split_names_types <- c("rownames", "colnames", "names", "dimnames")
@@ -490,14 +545,52 @@ HeatmapAtomic <- function(
     col_rownames_split <- !is.null(columns_split_by) &&
         column_annotation_type[[columns_split_by]] %in% split_names_types &&
         !isFALSE(column_annotation_params[[columns_split_by]])
-    show_row_names <- show_row_names %||%
+    show_row_names <- rn$show %||%
         (!row_name_anno_enabled && !row_rownames_split)
-    show_column_names <- show_column_names %||%
+    show_column_names <- cn$show %||%
         (!col_name_anno_enabled && !col_rownames_split)
+
+    # Resolve split-title display modes (same vocabulary as names)
+    rt <- .resolve_show_modes(
+        row_title,
+        kind = "titles",
+        which = "row",
+        by = rows_by,
+        split_by = rows_split_by,
+        annotation = row_annotation,
+        annotation_type = row_annotation_type,
+        annotation_params = row_annotation_params,
+        legend.position = legend.position
+    )
+    row_annotation <- rt$annotation
+    row_annotation_type <- rt$annotation_type
+    row_annotation_params <- rt$annotation_params
+    if (rt$explicit) {
+        row_title <- rt$title
+    }
+
+    ct <- .resolve_show_modes(
+        column_title,
+        kind = "titles",
+        which = "column",
+        by = columns_by,
+        split_by = columns_split_by,
+        annotation = column_annotation,
+        annotation_type = column_annotation_type,
+        annotation_params = column_annotation_params,
+        legend.position = legend.position
+    )
+    column_annotation <- ct$annotation
+    column_annotation_type <- ct$annotation_type
+    column_annotation_params <- ct$annotation_params
+    if (ct$explicit) {
+        column_title <- ct$title
+    }
 
     # Convert to the format that ComplexHeatmap::Heatmap can understand
     if (
-        is.null(row_title) &&
+        !rt$explicit &&
+            is.null(row_title) &&
             !is.null(rows_split_by) &&
             !isFALSE(row_annotation_params[[rows_split_by]])
     ) {
@@ -511,7 +604,8 @@ HeatmapAtomic <- function(
     }
 
     if (
-        is.null(column_title) &&
+        !ct$explicit &&
+            is.null(column_title) &&
             !is.null(columns_split_by) &&
             !isFALSE(column_annotation_params[[columns_split_by]])
     ) {
@@ -2281,7 +2375,7 @@ HeatmapAtomic <- function(
         annotation_params = column_annotation_params,
         split_by = columns_split_by,
         splits = if (flip) hmargs$row_split else hmargs$column_split,
-        by = columns_by,
+        by = col_by_eff,
         by_labels = if (flip) hmargs$row_labels else hmargs$column_labels,
         flip = flip,
         legend.direction = legend.direction,
@@ -2334,13 +2428,13 @@ HeatmapAtomic <- function(
     # Reorder: split annotation farthest from heatmap body, name annotation closest
     top_annos <- .reorder_anno_side(
         top_annos,
-        columns_by,
+        col_by_eff,
         columns_split_by,
         side = "top"
     )
     bottom_annos <- .reorder_anno_side(
         bottom_annos,
-        columns_by,
+        col_by_eff,
         columns_split_by,
         side = "bottom"
     )
@@ -2395,7 +2489,7 @@ HeatmapAtomic <- function(
         annotation_params = row_annotation_params,
         split_by = rows_split_by,
         splits = if (flip) hmargs$column_split else hmargs$row_split,
-        by = rows_by,
+        by = row_by_eff,
         by_labels = if (flip) hmargs$column_labels else hmargs$row_labels,
         flip = flip,
         legend.direction = legend.direction,
@@ -2449,13 +2543,13 @@ HeatmapAtomic <- function(
     # Reorder: split annotation farthest from heatmap body, name annotation closest
     left_side <- .reorder_anno_side(
         left_side,
-        rows_by,
+        row_by_eff,
         rows_split_by,
         side = "left"
     )
     right_side <- .reorder_anno_side(
         right_side,
-        rows_by,
+        row_by_eff,
         rows_split_by,
         side = "bottom"
     )
@@ -2516,7 +2610,7 @@ HeatmapAtomic <- function(
         right_anno_names <- character(0)
         if (!isTRUE(flip)) {
             if (col_name_anno_enabled) {
-                right_anno_names <- c(right_anno_names, columns_by)
+                right_anno_names <- c(right_anno_names, col_by_eff)
             }
             if (
                 !is.null(columns_split_by) &&
@@ -2534,7 +2628,7 @@ HeatmapAtomic <- function(
             }
         } else {
             if (row_name_anno_enabled) {
-                right_anno_names <- c(right_anno_names, rows_by)
+                right_anno_names <- c(right_anno_names, row_by_eff)
             }
             if (
                 !is.null(rows_split_by) &&
@@ -2701,10 +2795,10 @@ HeatmapAtomic <- function(
     #   – columns_by shows a legend when show_column_names=FALSE (and col name annotation is enabled)
     #   – split_by annotations always show legends when present
     if (!isTRUE(show_row_names) && row_name_anno_enabled) {
-        .legend_label_cands <- c(.legend_label_cands, .col_labels(rows_by))
+        .legend_label_cands <- c(.legend_label_cands, .col_labels(row_by_eff))
     }
     if (!isTRUE(show_column_names) && col_name_anno_enabled) {
-        .legend_label_cands <- c(.legend_label_cands, .col_labels(columns_by))
+        .legend_label_cands <- c(.legend_label_cands, .col_labels(col_by_eff))
     }
     .legend_label_cands <- c(
         .legend_label_cands,
@@ -2993,6 +3087,20 @@ HeatmapAtomic <- function(
 #'         ))
 #'     )
 #' }
+#' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     # split title modes: per-slice titles plus the split annotation
+#'     # legend; and "anno" mode using label blocks instead of titles
+#'     Heatmap(matrix_data, rows_data = rows_data,
+#'         rows_split_by = "group",
+#'         row_title = c("inplace", "legend")
+#'     )
+#' }
+#' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     Heatmap(matrix_data, rows_data = rows_data,
+#'         rows_split_by = "group",
+#'         row_title = "anno"
+#'     )
+#' }
 #' rownames(matrix_data)[1] <- "R12345"
 #' if (requireNamespace("cluster", quietly = TRUE)) {
 #'     # label annotation for name annotations: show row/column names as colored labels
@@ -3178,6 +3286,14 @@ HeatmapAtomic <- function(
 #' if (requireNamespace("cluster", quietly = TRUE)) {
 #'     Heatmap(data, rows_by = "r", columns_by = "c", values_by = "value",
 #'         rows_split_by = "p", columns_split_by = "q", show_column_names = TRUE)
+#' }
+#' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     # display modes: in-place row names plus the row group annotation
+#'     # legend; and "anno" mode showing the column names as text labels
+#'     Heatmap(data, rows_by = "r", columns_by = "c", values_by = "value",
+#'         show_row_names = c("inplace", "legend"),
+#'         show_column_names = "anno"
+#'     )
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
 #'     # split into multiple heatmaps

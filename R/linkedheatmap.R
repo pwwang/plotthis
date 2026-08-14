@@ -166,6 +166,8 @@
 #' @param cluster_columns Logical; cluster columns in both heatmaps.
 #'  \code{NULL} lets \code{HeatmapAtomic} decide.
 #' @param show_row_names,show_column_names Logical; show row/column names.
+#'  May also be a character vector of display modes; see
+#'  \code{\link{Heatmap}}.
 #' @param border Logical; draw a border around each heatmap.  Default
 #'  \code{TRUE}.
 #' @param title A character string for the overall plot title.  A function
@@ -175,7 +177,8 @@
 #' @param title_params A list of parameters passed to \code{grid::grid.text()} to control the title appearance.
 #'  Default is \code{list(gp = gpar(fontsize = 14, fontface = "bold"))}.
 #' @param column_title,row_title Character title displayed above the columns
-#'  / beside the rows of each heatmap.
+#'  / beside the rows of each heatmap.  May also be a character vector of
+#'  display modes; see \code{\link{Heatmap}}.
 #' @param na_col Colour used for \code{NA} cells.  Default \code{"grey85"}.
 #' @param column_names_side Side for column names.  Default
 #'  \code{"bottom"}.

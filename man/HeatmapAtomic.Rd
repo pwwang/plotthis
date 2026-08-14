@@ -231,11 +231,19 @@ split group.}
 \code{rows_split_by} is provided, clustering is applied within each
 split group.}
 
-\item{show_row_names}{Logical; show row names.  If \code{TRUE}, the
-legend of the row group annotation is hidden.}
+\item{show_row_names}{Logical or character vector; show row names.  If
+\code{TRUE}, the legend of the row group annotation is hidden.
+\code{FALSE} only hides the in-place names.  Alternatively, a character
+vector combining the display modes \code{"inplace"} (in-place names,
+same as \code{TRUE}), \code{"legend"} (row group annotation with
+legend), \code{"simple"} (row group annotation without legend),
+\code{"anno"} (alias \code{"annotation"}; label annotation showing the
+row names as text) and \code{"none"} (no names, annotation, or legend).
+Modes are lower-priority defaults: explicit \code{row_annotation}
+entries (e.g. \code{.row}) still win.}
 
-\item{show_column_names}{Logical; show column names.  If \code{TRUE},
-the legend of the column group annotation is hidden.}
+\item{show_column_names}{Logical or character vector; show column names.
+See \code{show_row_names} for the display modes.}
 
 \item{border}{A logical value indicating whether to draw borders around
 the heatmap.  If \code{TRUE}, slice borders are also drawn.  Default
@@ -244,10 +252,16 @@ the heatmap.  If \code{TRUE}, slice borders are also drawn.  Default
 \item{title}{The global (column) title of the heatmap.}
 
 \item{column_title}{Character string/vector used as the column group
-annotation title.}
+annotation title.  A character vector consisting entirely of the display
+modes \code{"inplace"} (per-slice split titles), \code{"legend"} (split
+annotation with legend, no title), \code{"simple"} (split annotation,
+no legend/title), \code{"anno"} (alias \code{"annotation"}; label block
+annotation) and \code{"none"} (no title, annotation, or legend)
+controls how the split titles are displayed.  A literal title identical
+to a mode keyword is interpreted as a mode.}
 
 \item{row_title}{Character string/vector used as the row group
-annotation title.}
+annotation title.  See \code{column_title} for the display modes.}
 
 \item{na_col}{Colour for \code{NA} cells.  Default \code{"grey85"}.}
 
@@ -296,7 +310,11 @@ For split annotations, \code{"rownames"} (row splits) /
 each split block with the concatenated row/column names;
 \code{"names"} and \code{"dimnames"} are aliases.
 \code{params$sep} (default \code{" "}) controls the separator and
-\code{params$wrap_by} the number of names per line.}
+\code{params$wrap_by} the number of names per line.
+For name annotations (the built-in \code{rows_by}/\code{columns_by}
+annotation), \code{"rownames"}/\code{"colnames"} renders the
+row/column names as text labels (this is what
+\code{show_row_names = "anno"} uses).}
 \item{\code{params}}{A list of additional parameters passed to the
 annotation constructor.  \code{FALSE} disables the annotation.
 \code{$show_legend} controls legend visibility.  See

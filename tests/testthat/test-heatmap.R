@@ -125,3 +125,80 @@ test_that("Heatmap with names/dimnames aliases for split annotations works", {
         column_annotation = list(.col.split = list(type = "dimnames")))
     expect_true(!is.null(p))
 })
+
+test_that("Heatmap with show_row_names display modes works", {
+    skip_if_not_installed("ComplexHeatmap")
+    p <- Heatmap(long_data, rows_by = "gene", columns_by = "sample",
+        values_by = "value", show_row_names = c("inplace", "legend"))
+    expect_true(!is.null(p))
+    p <- Heatmap(long_data, rows_by = "gene", columns_by = "sample",
+        values_by = "value", show_row_names = "simple")
+    expect_true(!is.null(p))
+    p <- Heatmap(long_data, rows_by = "gene", columns_by = "sample",
+        values_by = "value", show_row_names = "none")
+    expect_true(!is.null(p))
+})
+
+test_that("Heatmap with anno display mode works with and without by", {
+    skip_if_not_installed("ComplexHeatmap")
+    # without a grouping column
+    p <- Heatmap(mat, show_row_names = "anno")
+    expect_true(!is.null(p))
+    # with a grouping column
+    p <- Heatmap(long_data, rows_by = "gene", columns_by = "sample",
+        values_by = "value", show_row_names = "anno")
+    expect_true(!is.null(p))
+    # columns
+    p <- Heatmap(long_data, rows_by = "gene", columns_by = "sample",
+        values_by = "value", show_column_names = "annotation")
+    expect_true(!is.null(p))
+    # flip
+    p <- Heatmap(mat, show_row_names = "anno", flip = TRUE)
+    expect_true(!is.null(p))
+})
+
+test_that("Heatmap with explicit row_annotation overrides display modes", {
+    skip_if_not_installed("ComplexHeatmap")
+    # "none" mode + explicit .row config: the annotation still shows
+    p <- Heatmap(long_data, rows_by = "gene", columns_by = "sample",
+        values_by = "value", show_row_names = "none",
+        row_annotation = list(.row = list(type = "label")))
+    expect_true(!is.null(p))
+})
+
+test_that("Heatmap with split title display modes works", {
+    skip_if_not_installed("ComplexHeatmap")
+    rows_data <- data.frame(
+        rows = paste0("Gene", 1:10),
+        group = rep(c("grp1", "grp2"), each = 5)
+    )
+    columns_data <- data.frame(
+        columns = paste0("Sample", 1:5),
+        batch = rep(c("b1", "b2"), length.out = 5)
+    )
+    p <- Heatmap(mat, rows_data = rows_data, rows_split_by = "group",
+        row_title = "legend")
+    expect_true(!is.null(p))
+    p <- Heatmap(mat, rows_data = rows_data, rows_split_by = "group",
+        row_title = "none")
+    expect_true(!is.null(p))
+    p <- Heatmap(mat, rows_data = rows_data, rows_split_by = "group",
+        row_title = "anno")
+    expect_true(!is.null(p))
+    p <- Heatmap(mat, rows_data = rows_data, rows_split_by = "group",
+        row_title = c("inplace", "legend"))
+    expect_true(!is.null(p))
+    p <- Heatmap(mat, columns_data = columns_data, columns_split_by = "batch",
+        column_title = "anno")
+    expect_true(!is.null(p))
+})
+
+test_that("Heatmap errors on invalid display modes", {
+    skip_if_not_installed("ComplexHeatmap")
+    expect_error(Heatmap(mat, show_row_names = c("none", "legend")),
+        "'none' cannot be combined")
+    expect_error(Heatmap(mat, show_row_names = c("legend", "simple")),
+        "'legend' and 'simple' cannot be combined")
+    expect_error(Heatmap(mat, show_row_names = "bogus"),
+        "Unknown display mode")
+})

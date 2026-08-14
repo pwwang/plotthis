@@ -1572,6 +1572,213 @@ process_linkedheatmap_data <- function(
     result
 }
 
+#' Resolve display modes for row/column names and split titles
+#'
+#' `show_row_names`/`show_column_names` (kind = "names") and
+#' `row_title`/`column_title` (kind = "titles") accept a character vector
+#' combining the modes "inplace", "legend", "simple", "anno" (alias
+#' "annotation"), and "none".  Modes are lower-priority defaults: they only
+#' fill annotation type/params the user has not configured (per-key or via
+#' `.default`).
+#' @param show The value of `show_row_names`/`show_column_names` or
+#'  `row_title`/`column_title`
+#' @param kind Which arguments are being resolved: "names" or "titles"
+#' @param which The direction ("row" or "column")
+#' @param by The name-annotation column (`rows_by`/`columns_by`)
+#' @param split_by The split-annotation column (`rows_split_by`/`columns_split_by`)
+#' @param annotation,annotation_type,annotation_params The prepared annotation
+#'  components returned by \code{\link{.prep_annotations}}
+#' @param legend.position The legend position
+#' @return A list with the possibly-updated annotation components plus the
+#'  resolved \code{show} flag, \code{title}, \code{explicit}, \code{by_eff},
+#'  and \code{enabled}
+#' @keywords internal
+.resolve_show_modes <- function(
+    show,
+    kind = c("names", "titles"),
+    which = c("row", "column"),
+    by = NULL,
+    split_by = NULL,
+    annotation = list(),
+    annotation_type = list(),
+    annotation_params = list(),
+    legend.position = "right"
+) {
+    kind <- match.arg(kind)
+    which <- match.arg(which)
+    valid <- c("inplace", "legend", "simple", "anno", "none")
+    modes <- character(0)
+    explicit <- FALSE
+    title <- NULL
+    show_flag <- NULL
+    enabled <- NULL
+    by_eff <- by
+    dparams <- annotation_params[[".default"]]
+    dshow_legend <- if (is.list(dparams)) dparams$show_legend else NULL
+
+    if (isTRUE(show)) {
+        modes <- "inplace"
+    } else if (isFALSE(show)) {
+        # FALSE only hides the in-place names; annotation logic is untouched
+        if (kind == "names") {
+            show_flag <- FALSE
+        }
+    } else if (is.character(show) && length(show) > 0) {
+        if (any(!show %in% c(valid, "annotation"))) {
+            if (kind == "titles") {
+                # Mixed vector: literal titles, untouched
+                return(list(
+                    annotation = annotation,
+                    annotation_type = annotation_type,
+                    annotation_params = annotation_params,
+                    show = NULL, title = show, explicit = FALSE,
+                    by_eff = by, enabled = NULL
+                ))
+            }
+            stop(
+                "[Heatmap] Unknown display mode(s) for '",
+                if (kind == "names") {
+                    "show_row_names/show_column_names"
+                } else {
+                    "row_title/column_title"
+                },
+                "': ",
+                paste(setdiff(show, c(valid, "annotation")), collapse = ", "),
+                ". Valid modes: inplace, legend, simple, anno (alias: annotation), none.",
+                call. = FALSE
+            )
+        }
+        modes <- unique(ifelse(show == "annotation", "anno", show))
+        if ("none" %in% modes && length(modes) > 1) {
+            stop(
+                "[Heatmap] 'none' cannot be combined with other display modes.",
+                call. = FALSE
+            )
+        }
+        if ("legend" %in% modes && "simple" %in% modes) {
+            stop(
+                "[Heatmap] 'legend' and 'simple' cannot be combined.",
+                call. = FALSE
+            )
+        }
+    }
+
+    if (length(modes)) {
+        explicit <- TRUE
+        if (kind == "names") {
+            show_flag <- "inplace" %in% modes
+            if ("anno" %in% modes) {
+                # Label annotation showing the row/column names themselves.
+                # Without a grouping column, use a synthetic key so the
+                # built-in name annotation is still injected.
+                key <- by
+                if (is.null(key)) {
+                    key <- if (which == "row") "rownames" else "colnames"
+                    if (key %in% names(annotation)) {
+                        warning(
+                            "[Heatmap] '", key,
+                            "' is already used as an annotation key; ",
+                            "skipping the 'anno' mode annotation.",
+                            call. = FALSE
+                        )
+                        key <- NULL
+                    }
+                }
+                if (!is.null(key)) {
+                    if (is.null(annotation_type[[key]]) &&
+                        is.null(annotation_type[[".default"]])) {
+                        annotation_type[[key]] <- if (which == "row") {
+                            "rownames"
+                        } else {
+                            "colnames"
+                        }
+                    }
+                    by_eff <- key
+                }
+            }
+            if ("legend" %in% modes && !"anno" %in% modes) {
+                p <- annotation_params[[by_eff]]
+                if (!is.null(by_eff) && !isFALSE(p) && is.null(p$show_legend) &&
+                    is.null(dshow_legend) &&
+                    !identical(legend.position, "none")) {
+                    annotation_params[[by_eff]] <- utils::modifyList(
+                        p %||% list(), list(show_legend = TRUE)
+                    )
+                }
+            }
+            if ("simple" %in% modes && !"anno" %in% modes) {
+                p <- annotation_params[[by_eff]]
+                if (!is.null(by_eff) && !isFALSE(p) && is.null(p$show_legend) &&
+                    is.null(dshow_legend)) {
+                    annotation_params[[by_eff]] <- utils::modifyList(
+                        p %||% list(), list(show_legend = FALSE)
+                    )
+                }
+            }
+            if ("none" %in% modes) {
+                if (!is.null(by_eff) && is.null(annotation[[by_eff]]) &&
+                    is.null(annotation_type[[by_eff]]) &&
+                    is.null(annotation_params[[by_eff]]) &&
+                    is.null(dparams)) {
+                    annotation_params[[by_eff]] <- FALSE
+                }
+            }
+            enabled <- !is.null(by_eff) &&
+                ((!isFALSE(annotation[[by_eff]] %||% TRUE) &&
+                    !isFALSE(annotation_params[[by_eff]] %||% TRUE)) ||
+                    identical(annotation_type[[by_eff]] %||% "simple", "label"))
+        } else {
+            # kind == "titles"
+            title <- if ("inplace" %in% modes) character(0) else NULL
+            if ("anno" %in% modes) {
+                if (!is.null(split_by) &&
+                    is.null(annotation_type[[split_by]]) &&
+                    is.null(annotation_type[[".default"]])) {
+                    annotation_type[[split_by]] <- "label"
+                }
+            }
+            if ("legend" %in% modes && !"anno" %in% modes) {
+                p <- annotation_params[[split_by]]
+                if (!is.null(split_by) && !isFALSE(p) &&
+                    is.null(p$show_legend) && is.null(dshow_legend) &&
+                    !identical(legend.position, "none")) {
+                    annotation_params[[split_by]] <- utils::modifyList(
+                        p %||% list(), list(show_legend = TRUE)
+                    )
+                }
+            }
+            if ("simple" %in% modes && !"anno" %in% modes) {
+                p <- annotation_params[[split_by]]
+                if (!is.null(split_by) && !isFALSE(p) &&
+                    is.null(p$show_legend) && is.null(dshow_legend)) {
+                    annotation_params[[split_by]] <- utils::modifyList(
+                        p %||% list(), list(show_legend = FALSE)
+                    )
+                }
+            }
+            if ("none" %in% modes) {
+                if (!is.null(split_by) && is.null(annotation[[split_by]]) &&
+                    is.null(annotation_type[[split_by]]) &&
+                    is.null(annotation_params[[split_by]]) &&
+                    is.null(dparams)) {
+                    annotation_params[[split_by]] <- FALSE
+                }
+            }
+        }
+    }
+
+    list(
+        annotation = annotation,
+        annotation_type = annotation_type,
+        annotation_params = annotation_params,
+        show = show_flag,
+        title = title,
+        explicit = explicit,
+        by_eff = by_eff,
+        enabled = enabled
+    )
+}
+
 #' Unified annotation builder for built-in (split/name) and user-defined annotations
 #' @param which The annotation direction ("row" or "column")
 #' @param names_side The side to place the row/column name annotation ("top", "bottom", "left", "right")
@@ -1766,7 +1973,7 @@ process_linkedheatmap_data <- function(
                 param$border <- param$border %||% TRUE
                 param$legend.direction <- legend.direction
                 show_legend <- !identical(legend.position, "none") &&
-                    annotype != "label"
+                    !annotype %in% c("label", "rownames", "colnames")
                 if (is_split) {
                     show_legend <- show_legend && isFALSE(anno_title)
                 } else {
@@ -1774,7 +1981,7 @@ process_linkedheatmap_data <- function(
                 }
                 param$show_legend <- param$show_legend %||% show_legend
                 param$side <- side
-                if (annotype == "label") {
+                if (annotype %in% c("label", "rownames", "colnames")) {
                     anno_legend <- do_call(anno_text, param)
                 } else {
                     param[[worh]] <- param[[worh]] %||% unit(2.5, "mm")

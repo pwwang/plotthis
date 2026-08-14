@@ -302,7 +302,9 @@ pattern) over the heatmap.}
 \item{cluster_rows}{Default clustering setting for rows.  Used as
 fallback for \code{left_cluster_rows} / \code{right_cluster_rows}.}
 
-\item{show_row_names, show_column_names}{Logical; show row/column names.}
+\item{show_row_names, show_column_names}{Logical; show row/column names.
+May also be a character vector of display modes; see
+\code{\link{Heatmap}}.}
 
 \item{border}{Logical; draw a border around each heatmap.  Default
 \code{TRUE}.}
@@ -316,7 +318,8 @@ and \code{title} is used to set the overall title for the combined plot.}
 Default is \code{list(gp = gpar(fontsize = 14, fontface = "bold"))}.}
 
 \item{column_title, row_title}{Character title displayed above the columns
-/ beside the rows of each heatmap.}
+/ beside the rows of each heatmap.  May also be a character vector of
+display modes; see \code{\link{Heatmap}}.}
 
 \item{na_col}{Colour used for \code{NA} cells.  Default \code{"grey85"}.}
 
