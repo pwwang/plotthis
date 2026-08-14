@@ -554,8 +554,13 @@ Heatmap(
   `type`
 
   :   Annotation type: `"auto"`, `"simple"`, `"pie"`, `"ring"`, `"bar"`,
-      `"violin"`, `"boxplot"`, `"density"`, `"label"`, `"points"`,
-      `"lines"`.
+      `"violin"`, `"boxplot"`, `"density"`, `"label"`, `"rownames"`,
+      `"points"`, `"lines"`. For split annotations, `"rownames"` (row
+      splits) / `"colnames"` (column splits) is like `"label"` but
+      labels each split block with the concatenated row/column names;
+      `"names"` and `"dimnames"` are aliases. `params$sep` (default
+      `" "`) controls the separator and `params$wrap_by` the number of
+      names per line.
 
   `params`
 
@@ -880,6 +885,30 @@ if (requireNamespace("cluster", quietly = TRUE)) {
     Heatmap(matrix_data, columns_data = columns_data,
         columns_split_by = "batch",
         column_annotation = list(.col.split = list(type = "label"))
+    )
+}
+
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # "rownames" annotation for row splits: show the concatenated row names
+    # of each split group, wrapped every 3 names (row names and the split
+    # title are hidden/shown by default accordingly)
+    Heatmap(matrix_data, rows_data = rows_data,
+        rows_split_by = "group",
+        row_annotation = list(.row.split = list(
+            type = "rownames",
+            params = list(sep = ", ", wrap_by = 3)
+        ))
+    )
+}
+
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # same for column splits with type = "colnames"
+    Heatmap(matrix_data, columns_data = columns_data,
+        columns_split_by = "batch",
+        column_annotation = list(.col.split = list(
+            type = "colnames",
+            params = list(wrap_by = 3)
+        ))
     )
 }
 

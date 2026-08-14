@@ -57,8 +57,8 @@ annotations
 - annotation_type:
 
   A list of annotation types, where names are annotation names and
-  values are annotation types ("simple", "label", "block", "ggcat",
-  "ggseries", or "auto")
+  values are annotation types ("simple", "label", "rownames",
+  "colnames", "block", "ggcat", "ggseries", or "auto")
 
 - annotation_side:
 

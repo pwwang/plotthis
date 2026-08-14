@@ -470,8 +470,14 @@ values.  If omitted, the entry name is used as the column name.</p></dd>
 <dt><code>type</code></dt>
 <dd><p>Annotation type: <code>"auto"</code>, <code>"simple"</code>,
 <code>"pie"</code>, <code>"ring"</code>, <code>"bar"</code>, <code>"violin"</code>,
-<code>"boxplot"</code>, <code>"density"</code>, <code>"label"</code>, <code>"points"</code>,
-<code>"lines"</code>.</p></dd>
+<code>"boxplot"</code>, <code>"density"</code>, <code>"label"</code>,
+<code>"rownames"</code>, <code>"points"</code>, <code>"lines"</code>.
+For split annotations, <code>"rownames"</code> (row splits) /
+<code>"colnames"</code> (column splits) is like <code>"label"</code> but labels
+each split block with the concatenated row/column names;
+<code>"names"</code> and <code>"dimnames"</code> are aliases.
+<code>params$sep</code> (default <code>" "</code>) controls the separator and
+<code>params$wrap_by</code> the number of names per line.</p></dd>
 
 <dt><code>params</code></dt>
 <dd><p>A list of additional parameters passed to the

@@ -430,8 +430,13 @@ HeatmapAtomic(
   `type`
 
   :   Annotation type: `"auto"`, `"simple"`, `"pie"`, `"ring"`, `"bar"`,
-      `"violin"`, `"boxplot"`, `"density"`, `"label"`, `"points"`,
-      `"lines"`.
+      `"violin"`, `"boxplot"`, `"density"`, `"label"`, `"rownames"`,
+      `"points"`, `"lines"`. For split annotations, `"rownames"` (row
+      splits) / `"colnames"` (column splits) is like `"label"` but
+      labels each split block with the concatenated row/column names;
+      `"names"` and `"dimnames"` are aliases. `params$sep` (default
+      `" "`) controls the separator and `params$wrap_by` the number of
+      names per line.
 
   `params`
 
