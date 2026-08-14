@@ -1578,7 +1578,7 @@ process_linkedheatmap_data <- function(
 #' @param anno_title The title of the annotation (for split)
 #' @param show_names A logical value indicating whether to show row/column names
 #' @param annotation A list of user-defined annotations, where names are annotation names and values are annotation objects or parameters to build annotation objects
-#' @param annotation_type A list of annotation types, where names are annotation names and values are annotation types ("simple", "label", "block", "ggcat", "ggseries", or "auto")
+#' @param annotation_type A list of annotation types, where names are annotation names and values are annotation types ("simple", "label", "rownames", "colnames", "block", "ggcat", "ggseries", or "auto")
 #' @param annotation_side A list of annotation sides, where names are annotation names and values are annotation sides ("top", "bottom", "left", "right")
 #' @param annotation_palette A list of annotation palettes, where names are annotation names and values are palette names or color vectors
 #' @param annotation_palcolor A list of annotation palette colors, where names are annotation names and values are color vectors to override the palette
@@ -1695,11 +1695,16 @@ process_linkedheatmap_data <- function(
         is_split <- identical(aname, split_by)
         is_builtin <- is_split || identical(aname, by)
         annotype <- annotation_type[[aname]] %||% "auto"
+        if (is_split && annotype %in% c("names", "dimnames")) {
+            # "names"/"dimnames" are aliases for the direction-specific
+            # split annotation type showing concatenated names
+            annotype <- if (which == "row") "rownames" else "colnames"
+        }
         param <- annotation_params[[aname]] %||% list()
         param <- .ensure_unit(param)
 
         if (is_builtin) {
-            is_label <- annotype == "label"
+            is_label <- annotype %in% c("label", "rownames", "colnames")
             # Built-in: use pre-computed splits/by_labels
             if (is.factor(splits)) {
                 splits <- droplevels(splits)
@@ -1721,7 +1726,36 @@ process_linkedheatmap_data <- function(
             if (is_label && is_split) {
                 # Start from user params so extra arguments (label_rot, etc.) pass through
                 block_param <- param
-                block_param$x <- levels(param$x)
+                if (annotype %in% c("rownames", "colnames")) {
+                    # Label each split block with the concatenated row/column names
+                    sep <- param$sep %||% " "
+                    wrap_by <- param$wrap_by %||% NULL
+                    block_param$x <- vapply(
+                        split(as.character(by_labels), splits),
+                        function(labels) {
+                            if (is.null(wrap_by)) {
+                                return(paste(labels, collapse = sep))
+                            }
+                            idxs <- seq(1, length(labels), by = wrap_by)
+                            paste(vapply(
+                                idxs,
+                                function(i) paste(
+                                    labels[i:min(
+                                        i + wrap_by - 1,
+                                        length(labels)
+                                    )],
+                                    collapse = sep
+                                ),
+                                character(1)
+                            ), collapse = "\n")
+                        },
+                        character(1)
+                    )
+                    block_param$sep <- NULL
+                    block_param$wrap_by <- NULL
+                } else {
+                    block_param$x <- levels(param$x)
+                }
                 block_param$which <- param$which
                 block_param$side <- side
                 block_param$split_by <- split_by

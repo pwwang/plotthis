@@ -37,7 +37,7 @@
 
 \item{annotation}{A list of user-defined annotations, where names are annotation names and values are annotation objects or parameters to build annotation objects}
 
-\item{annotation_type}{A list of annotation types, where names are annotation names and values are annotation types ("simple", "label", "block", "ggcat", "ggseries", or "auto")}
+\item{annotation_type}{A list of annotation types, where names are annotation names and values are annotation types ("simple", "label", "rownames", "colnames", "block", "ggcat", "ggseries", or "auto")}
 
 \item{annotation_side}{A list of annotation sides, where names are annotation names and values are annotation sides ("top", "bottom", "left", "right")}
 

@@ -362,8 +362,14 @@ values.  If omitted, the entry name is used as the column name.}
 \item{\code{palcolor}}{Custom colour vector overriding \code{palette}.}
 \item{\code{type}}{Annotation type: \code{"auto"}, \code{"simple"},
 \code{"pie"}, \code{"ring"}, \code{"bar"}, \code{"violin"},
-\code{"boxplot"}, \code{"density"}, \code{"label"}, \code{"points"},
-\code{"lines"}.}
+\code{"boxplot"}, \code{"density"}, \code{"label"},
+\code{"rownames"}, \code{"points"}, \code{"lines"}.
+For split annotations, \code{"rownames"} (row splits) /
+\code{"colnames"} (column splits) is like \code{"label"} but labels
+each split block with the concatenated row/column names;
+\code{"names"} and \code{"dimnames"} are aliases.
+\code{params$sep} (default \code{" "}) controls the separator and
+\code{params$wrap_by} the number of names per line.}
 \item{\code{params}}{A list of additional parameters passed to the
 annotation constructor.  \code{FALSE} disables the annotation.
 \code{$show_legend} controls legend visibility.  See
@@ -602,6 +608,28 @@ if (requireNamespace("cluster", quietly = TRUE)) {
     Heatmap(matrix_data, columns_data = columns_data,
         columns_split_by = "batch",
         column_annotation = list(.col.split = list(type = "label"))
+    )
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # "rownames" annotation for row splits: show the concatenated row names
+    # of each split group, wrapped every 3 names (row names and the split
+    # title are hidden/shown by default accordingly)
+    Heatmap(matrix_data, rows_data = rows_data,
+        rows_split_by = "group",
+        row_annotation = list(.row.split = list(
+            type = "rownames",
+            params = list(sep = ", ", wrap_by = 3)
+        ))
+    )
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # same for column splits with type = "colnames"
+    Heatmap(matrix_data, columns_data = columns_data,
+        columns_split_by = "batch",
+        column_annotation = list(.col.split = list(
+            type = "colnames",
+            params = list(wrap_by = 3)
+        ))
     )
 }
 rownames(matrix_data)[1] <- "R12345"
