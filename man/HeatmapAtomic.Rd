@@ -320,6 +320,9 @@ annotation constructor.  \code{FALSE} disables the annotation.
 \code{$show_legend} controls legend visibility.  See
 \code{\link[ComplexHeatmap]{HeatmapAnnotation}}.}
 \item{\code{agg}}{A function to aggregate values for the annotation.}
+\item{\code{name}}{Display name for the annotation, shown next to the
+annotation bar and used as the legend title.  \code{FALSE} hides the
+displayed name.  Defaults to the annotation key (column name).}
 }
 \strong{Shortcuts:}
 \itemize{

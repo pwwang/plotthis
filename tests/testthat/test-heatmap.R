@@ -202,3 +202,106 @@ test_that("Heatmap errors on invalid display modes", {
     expect_error(Heatmap(mat, show_row_names = "bogus"),
         "Unknown display mode")
 })
+
+test_that("Heatmap annotation `name` aliases display name and legend title", {
+    skip_if_not_installed("ComplexHeatmap")
+    p <- Heatmap(long_data, rows_by = "gene", columns_by = "sample",
+        values_by = "value",
+        show_row_names = FALSE, show_column_names = FALSE,
+        row_annotation = list(.row = list(name = "Gene Group")),
+        column_annotation = list(.col = list(name = "Sample Group")),
+        combine = FALSE, return_ht = TRUE)
+    x <- p[[1]]
+    # the legend title is the first text grob in the rendered legend
+    legend_title <- function(key) {
+        attr(x, "legends")[[key]]@grob$children[[1]]$label
+    }
+    expect_identical(
+        slot(x, "left_annotation")@anno_list[["gene"]]@name_param$label,
+        "Gene Group")
+    expect_true(slot(x, "left_annotation")@anno_list[["gene"]]@name_param$show)
+    expect_identical(
+        slot(x, "top_annotation")@anno_list[["sample"]]@name_param$label,
+        "Sample Group")
+    expect_identical(legend_title("gene"), "Gene Group")
+    expect_identical(legend_title("sample"), "Sample Group")
+})
+
+test_that("Heatmap annotation `name = FALSE` hides the displayed name", {
+    skip_if_not_installed("ComplexHeatmap")
+    p <- Heatmap(long_data, rows_by = "gene", columns_by = "sample",
+        values_by = "value",
+        show_row_names = FALSE, show_column_names = FALSE,
+        row_annotation = list(.row = list(name = FALSE)),
+        combine = FALSE, return_ht = TRUE)
+    x <- p[[1]]
+    expect_false(
+        slot(x, "left_annotation")@anno_list[["gene"]]@name_param$show)
+    expect_identical(
+        attr(x, "legends")[["gene"]]@grob$children[[1]]$label, "gene")
+})
+
+test_that("Heatmap annotation `name` inherits from .default", {
+    skip_if_not_installed("ComplexHeatmap")
+    p <- Heatmap(long_data, rows_by = "gene", columns_by = "sample",
+        values_by = "value",
+        show_row_names = FALSE, show_column_names = FALSE,
+        row_annotation = list(.default = list(name = "Group")),
+        combine = FALSE, return_ht = TRUE)
+    x <- p[[1]]
+    expect_identical(
+        slot(x, "left_annotation")@anno_list[["gene"]]@name_param$label,
+        "Group")
+})
+
+test_that("show_row_names = 'none' keeps annotation configured via `name`", {
+    skip_if_not_installed("ComplexHeatmap")
+    p <- Heatmap(long_data, rows_by = "gene", columns_by = "sample",
+        values_by = "value", show_row_names = "none",
+        row_annotation = list(.default = list(name = "Group")),
+        combine = FALSE, return_ht = TRUE)
+    expect_true(!is.null(slot(p[[1]], "left_annotation")))
+})
+
+test_that("Heatmap user-defined annotation `name` works", {
+    skip_if_not_installed("ComplexHeatmap")
+    rows_data <- data.frame(
+        rows = paste0("Gene", 1:10),
+        group = rep(c("g1", "g2"), each = 5)
+    )
+    p <- Heatmap(mat, rows_data = rows_data,
+        row_annotation = list(Group = list(col = "group",
+            name = "My Group", palette = "Spectral", agg = dplyr::first)),
+        combine = FALSE, return_ht = TRUE)
+    x <- p[[1]]
+    expect_identical(
+        slot(x, "left_annotation")@anno_list[["Group"]]@name_param$label,
+        "My Group")
+    expect_identical(
+        attr(x, "legends")[["row.Group"]]@grob$children[[1]]$label,
+        "My Group")
+})
+
+test_that("Deprecated *_name args warn but keep working", {
+    skip_if_not_installed("ComplexHeatmap")
+    expect_warning(p <- Heatmap(mat, rows_name = "Features"), "deprecated")
+    expect_true(!is.null(p))
+    expect_warning(Heatmap(mat, columns_split_name = "S"), "deprecated")
+    # LinkedHeatmap: the deprecation warning fires even though the
+    # column rename itself is broken downstream (pre-existing, also
+    # broken in 0.13.2)
+    expect_warning(
+        expect_error(
+            LinkedHeatmap(long_data, values_by = "value", rows_by = "gene",
+                columns_by = "sample", left_rows_name = "Genes"),
+            "not found"),
+        "deprecated")
+    # matrix-form internal default must not warn
+    ws <- character(0)
+    withCallingHandlers(Heatmap(mat),
+        warning = function(w) {
+            ws <<- c(ws, conditionMessage(w))
+            invokeRestart("muffleWarning")
+        })
+    expect_false(any(grepl("is deprecated", ws)))
+})

@@ -162,19 +162,23 @@ join_heatmap_meta <- function(
 #' When `in_form` is `"long"` or `"wide-columns"`, this is requied, and multiple columns can be specified,
 #' which will be concatenated by `rows_by_sep` into a single column.
 #' @param rows_by_sep A character string to concat multiple columns in `rows_by`.
-#' @param rows_name A character string to rename the column created by `rows_by`, which will be reflected in the name of the annotation or legend.
+#' @param rows_name \strong{Deprecated}: use
+#'  \code{row_annotation = list(.row = list(name = ...))} instead. A character string to rename the column created by `rows_by`, which will be reflected in the name of the annotation or legend.
 #' @param rows_split_by A character of column name in `data` that contains the split information for rows.
 #' @param rows_split_by_sep A character string to concat multiple columns in `rows_split_by`.
-#' @param rows_split_name A character string to rename the column created by `rows_split_by`, which will be reflected in the name of the annotation or legend.
+#' @param rows_split_name \strong{Deprecated}: use
+#'  \code{row_annotation = list(.row.split = list(name = ...))} instead. A character string to rename the column created by `rows_split_by`, which will be reflected in the name of the annotation or legend.
 #' @param columns_by A vector of column names in `data` that contains the column information.
 #' This is used to create the columns of the heatmap.
 #' When `in_form` is `"long"` or `"wide-rows"`, this is required, and multiple columns can be specified,
 #' which will be concatenated by `columns_by_sep` into a single column.
 #' @param columns_by_sep A character string to concat multiple columns in `columns_by`.
-#' @param columns_name A character string to rename the column created by `columns_by`, which will be reflected in the name of the annotation or legend.
+#' @param columns_name \strong{Deprecated}: use
+#'  \code{column_annotation = list(.col = list(name = ...))} instead. A character string to rename the column created by `columns_by`, which will be reflected in the name of the annotation or legend.
 #' @param columns_split_by A character of column name in `data` that contains the split information for columns.
 #' @param columns_split_by_sep A character string to concat multiple columns in `columns_split_by`.
-#' @param columns_split_name A character string to rename the column created by `columns_split_by`, which will be reflected in the name of the annotation or legend.
+#' @param columns_split_name \strong{Deprecated}: use
+#'  \code{column_annotation = list(.col.split = list(name = ...))} instead. A character string to rename the column created by `columns_split_by`, which will be reflected in the name of the annotation or legend.
 #' @param rows_orderby A expression (in character) to specify how to order rows. It will be evaluated in the context of the data frame used for rows (after grouping by rows_split_by and rows_by). The expression should return a vector of the same length as the number of rows in the data frame. The default is NULL, which means no specific ordering.
 #' Can't be used with cluster_rows = TRUE.
 #' This is applied before renaming rows_by to rows_name.
@@ -241,6 +245,28 @@ process_heatmap_data <- function(
         stop("[Heatmap] 'rows_by' and 'columns_by' can not be the same.")
     }
     stopifnot("[Heatmap] no data is presented (nrow == 0)." = nrow(data) > 0)
+
+    # Deprecated: `*_name` args rename the annotation column; use the
+    # `name` sub-key in row_annotation/column_annotation instead
+    deprec_name_map <- list(
+        rows_name = "row_annotation = list(.row = list(name = ...))",
+        columns_name = "column_annotation = list(.col = list(name = ...))",
+        rows_split_name = "row_annotation = list(.row.split = list(name = ...))",
+        columns_split_name = "column_annotation = list(.col.split = list(name = ...))"
+    )
+    for (aname in names(deprec_name_map)) {
+        if (!is.null(get(aname))) {
+            warning(
+                "`",
+                aname,
+                "` is deprecated. Use `",
+                deprec_name_map[[aname]],
+                "` instead.",
+                call. = FALSE
+            )
+        }
+    }
+
     # Infer in_form
     if (in_form == "auto") {
         if (is.matrix(data)) {
@@ -430,14 +456,14 @@ process_heatmap_data <- function(
             if (identical(rows_name, "")) {
                 rows_name <- " "
             }
-            data <- dplyr::rename(data, !!sym(rows_name) := rows_by)
+            data <- dplyr::rename(data, !!sym(rows_name) := all_of(rows_by))
             rows_by <- rows_name
         }
         if (!is.null(columns_name)) {
             if (identical(columns_name, "")) {
                 columns_name <- " "
             }
-            data <- dplyr::rename(data, !!sym(columns_name) := columns_by)
+            data <- dplyr::rename(data, !!sym(columns_name) := all_of(columns_by))
             columns_by <- columns_name
         }
     } else if (in_form == "wide-rows") {
@@ -552,7 +578,7 @@ process_heatmap_data <- function(
             if (identical(columns_name, "")) {
                 columns_name <- " "
             }
-            data <- dplyr::rename(data, !!sym(columns_name) := columns_by)
+            data <- dplyr::rename(data, !!sym(columns_name) := all_of(columns_by))
             columns_by <- columns_name
         }
     } else {
@@ -668,7 +694,7 @@ process_heatmap_data <- function(
             if (identical(rows_name, "")) {
                 rows_name <- " "
             }
-            data <- dplyr::rename(data, !!sym(rows_name) := rows_by)
+            data <- dplyr::rename(data, !!sym(rows_name) := all_of(rows_by))
             rows_by <- rows_name
         }
     }
@@ -677,7 +703,7 @@ process_heatmap_data <- function(
         if (identical(rows_split_name, "")) {
             rows_split_name <- " "
         }
-        data <- dplyr::rename(data, !!sym(rows_split_name) := rows_split_by)
+        data <- dplyr::rename(data, !!sym(rows_split_name) := all_of(rows_split_by))
         rows_split_by <- rows_split_name
     }
     if (!is.null(columns_split_name) && !is.null(columns_split_by)) {
@@ -686,7 +712,7 @@ process_heatmap_data <- function(
         }
         data <- dplyr::rename(
             data,
-            !!sym(columns_split_name) := columns_split_by
+            !!sym(columns_split_name) := all_of(columns_split_by)
         )
         columns_split_by <- columns_split_name
     }
@@ -694,7 +720,7 @@ process_heatmap_data <- function(
         if (identical(pie_name, "")) {
             pie_name <- " "
         }
-        data <- dplyr::rename(data, !!sym(pie_name) := pie_group_by)
+        data <- dplyr::rename(data, !!sym(pie_name) := all_of(pie_group_by))
         pie_group_by <- pie_name
     }
     if (!is.null(name)) {
@@ -793,6 +819,30 @@ process_linkedheatmap_data <- function(
     stopifnot(
         "[LinkedHeatmap] no data is presented (nrow == 0)." = nrow(data) > 0
     )
+
+    # Deprecated: `*_name` args rename the annotation column; use the
+    # `name` sub-key in row_annotation/column_annotation instead
+    deprec_name_map <- list(
+        rows_split_name = "row_annotation = list(.row.split = list(name = ...))",
+        left_rows_name = "left_row_annotation = list(.row = list(name = ...))",
+        left_columns_name = "left_column_annotation = list(.col = list(name = ...))",
+        left_columns_split_name = "left_column_annotation = list(.col.split = list(name = ...))",
+        right_rows_name = "right_row_annotation = list(.row = list(name = ...))",
+        right_columns_name = "right_column_annotation = list(.col = list(name = ...))",
+        right_columns_split_name = "right_column_annotation = list(.col.split = list(name = ...))"
+    )
+    for (aname in names(deprec_name_map)) {
+        if (!is.null(get(aname))) {
+            warning(
+                "`",
+                aname,
+                "` is deprecated. Use `",
+                deprec_name_map[[aname]],
+                "` instead.",
+                call. = FALSE
+            )
+        }
+    }
 
     if (
         identical(
@@ -1042,21 +1092,21 @@ process_linkedheatmap_data <- function(
         if (identical(left_rows_name, "")) {
             left_rows_name <- " "
         }
-        data <- dplyr::rename(data, !!sym(left_rows_name) := left_rows_by)
+        data <- dplyr::rename(data, !!sym(left_rows_name) := all_of(left_rows_by))
         left_rows_by <- left_rows_name
     }
     if (!is.null(left_columns_name)) {
         if (identical(left_columns_name, "")) {
             left_columns_name <- " "
         }
-        data <- dplyr::rename(data, !!sym(left_columns_name) := left_columns_by)
+        data <- dplyr::rename(data, !!sym(left_columns_name) := all_of(left_columns_by))
         left_columns_by <- left_columns_name
     }
     if (!is.null(right_rows_name)) {
         if (identical(right_rows_name, "")) {
             right_rows_name <- " "
         }
-        data <- dplyr::rename(data, !!sym(right_rows_name) := right_rows_by)
+        data <- dplyr::rename(data, !!sym(right_rows_name) := all_of(right_rows_by))
         right_rows_by <- right_rows_name
     }
     if (!is.null(right_columns_name)) {
@@ -1065,7 +1115,7 @@ process_linkedheatmap_data <- function(
         }
         data <- dplyr::rename(
             data,
-            !!sym(right_columns_name) := right_columns_by
+            !!sym(right_columns_name) := all_of(right_columns_by)
         )
         right_columns_by <- right_columns_name
     }
@@ -1073,7 +1123,7 @@ process_linkedheatmap_data <- function(
         if (identical(rows_split_name, "")) {
             rows_split_name <- " "
         }
-        data <- dplyr::rename(data, !!sym(rows_split_name) := rows_split_by)
+        data <- dplyr::rename(data, !!sym(rows_split_name) := all_of(rows_split_by))
         rows_split_by <- rows_split_name
     }
     if (!is.null(left_columns_split_name) && !is.null(left_columns_split_by)) {
@@ -1082,7 +1132,7 @@ process_linkedheatmap_data <- function(
         }
         data <- dplyr::rename(
             data,
-            !!sym(left_columns_split_name) := left_columns_split_by
+            !!sym(left_columns_split_name) := all_of(left_columns_split_by)
         )
         left_columns_split_by <- left_columns_split_name
     }
@@ -1094,7 +1144,7 @@ process_linkedheatmap_data <- function(
         }
         data <- dplyr::rename(
             data,
-            !!sym(right_columns_split_name) := right_columns_split_by
+            !!sym(right_columns_split_name) := all_of(right_columns_split_by)
         )
         right_columns_split_by <- right_columns_split_name
     }
@@ -1102,14 +1152,14 @@ process_linkedheatmap_data <- function(
         if (identical(left_pie_name, "")) {
             left_pie_name <- " "
         }
-        data <- dplyr::rename(data, !!sym(left_pie_name) := left_pie_group_by)
+        data <- dplyr::rename(data, !!sym(left_pie_name) := all_of(left_pie_group_by))
         left_pie_group_by <- left_pie_name
     }
     if (!is.null(right_pie_name) && !is.null(right_pie_group_by)) {
         if (identical(right_pie_name, "")) {
             right_pie_name <- " "
         }
-        data <- dplyr::rename(data, !!sym(right_pie_name) := right_pie_group_by)
+        data <- dplyr::rename(data, !!sym(right_pie_name) := all_of(right_pie_group_by))
         right_pie_group_by <- right_pie_name
     }
     if (!is.null(left_name)) {
@@ -1317,7 +1367,10 @@ process_linkedheatmap_data <- function(
 #' @return A reordered list of annotations
 #' @keywords internal
 .reorder_anno_side <- function(x, by, split_by, side) {
-    keys <- setdiff(names(x), c("annotation_name_side", "show_annotation_name"))
+    keys <- setdiff(
+        names(x),
+        c("annotation_name_side", "show_annotation_name", "annotation_label")
+    )
     name_key <- if (!is.null(by) && by %in% keys) by else character(0)
     split_key <- if (!is.null(split_by) && split_by %in% keys) {
         split_by
@@ -1340,10 +1393,18 @@ process_linkedheatmap_data <- function(
     if (!length(new_order)) {
         return(x)
     }
-    result <- x[c("annotation_name_side", "show_annotation_name", new_order)]
+    result <- x[c(
+        "annotation_name_side", "show_annotation_name", "annotation_label",
+        new_order
+    )]
     if (!is.null(x$show_annotation_name)) {
         result$show_annotation_name <- x$show_annotation_name[
             intersect(new_order, names(x$show_annotation_name))
+        ]
+    }
+    if (!is.null(x$annotation_label)) {
+        result$annotation_label <- x$annotation_label[
+            intersect(new_order, names(x$annotation_label))
         ]
     }
     result
@@ -1371,7 +1432,8 @@ process_linkedheatmap_data <- function(
 #' @param data The data frame used for column validation.
 #' @return A list with components \code{annotation}, \code{annotation_type},
 #'   \code{annotation_side}, \code{annotation_palette}, \code{annotation_palcolor},
-#'   \code{annotation_agg}, \code{annotation_params}, and \code{enabled}.
+#'   \code{annotation_agg}, \code{annotation_params}, \code{annotation_name},
+#'   and \code{enabled}.
 #' @keywords internal
 .prep_annotations <- function(
     which = c("row", "column"),
@@ -1509,6 +1571,7 @@ process_linkedheatmap_data <- function(
         annotation_palcolor = list(),
         annotation_agg = list(),
         annotation_params = list(),
+        annotation_name = list(),
         enabled = TRUE
     )
     for (nm in names(annotation)) {
@@ -1539,6 +1602,9 @@ process_linkedheatmap_data <- function(
         } else if (!is.null(entry[["params"]])) {
             result$annotation_params[[nm]] <- entry[["params"]]
         }
+        if (!is.null(entry[["name"]])) {
+            result$annotation_name[[nm]] <- entry[["name"]]
+        }
     }
     # Propagate .default values so .setup_annos() can use them as
     # fallbacks for built-in annotations (e.g. split/name annotations
@@ -1558,6 +1624,9 @@ process_linkedheatmap_data <- function(
     }
     if (!is.null(defaults[["agg"]])) {
         result$annotation_agg[[".default"]] <- defaults[["agg"]]
+    }
+    if (!is.null(defaults[["name"]])) {
+        result$annotation_name[[".default"]] <- defaults[["name"]]
     }
     if (!is.null(defaults[["params"]])) {
         result$annotation_params[[".default"]] <- defaults[["params"]]
@@ -1602,6 +1671,7 @@ process_linkedheatmap_data <- function(
     annotation = list(),
     annotation_type = list(),
     annotation_params = list(),
+    annotation_name = list(),
     legend.position = "right"
 ) {
     kind <- match.arg(kind)
@@ -1719,6 +1789,8 @@ process_linkedheatmap_data <- function(
                 if (!is.null(by_eff) && is.null(annotation[[by_eff]]) &&
                     is.null(annotation_type[[by_eff]]) &&
                     is.null(annotation_params[[by_eff]]) &&
+                    is.null(annotation_name[[by_eff]]) &&
+                    is.null(annotation_name[[".default"]]) &&
                     is.null(dparams)) {
                     annotation_params[[by_eff]] <- FALSE
                 }
@@ -1760,6 +1832,8 @@ process_linkedheatmap_data <- function(
                 if (!is.null(split_by) && is.null(annotation[[split_by]]) &&
                     is.null(annotation_type[[split_by]]) &&
                     is.null(annotation_params[[split_by]]) &&
+                    is.null(annotation_name[[split_by]]) &&
+                    is.null(annotation_name[[".default"]]) &&
                     is.null(dparams)) {
                     annotation_params[[split_by]] <- FALSE
                 }
@@ -1791,6 +1865,7 @@ process_linkedheatmap_data <- function(
 #' @param annotation_palcolor A list of annotation palette colors, where names are annotation names and values are color vectors to override the palette
 #' @param annotation_agg A list of functions to aggregate the original data for each annotation, where names are annotation names and values are functions that take a vector of values in the cell and return an aggregated value
 #' @param annotation_params A list of additional parameters for each annotation, where names are annotation names and values are lists of parameters to pass to the annotation constructor
+#' @param annotation_name A list of display names for each annotation, where names are annotation names and values are character strings (aliasing the displayed name and legend title) or \code{FALSE} (hiding the displayed name)
 #' @param split_by The name of the column used for split annotation
 #' @param splits A factor vector of splits for the split annotation
 #' @param by The name of the column used for name annotation
@@ -1813,6 +1888,7 @@ process_linkedheatmap_data <- function(
     annotation_palcolor,
     annotation_agg,
     annotation_params,
+    annotation_name,
     split_by,
     splits,
     by,
@@ -1883,7 +1959,8 @@ process_linkedheatmap_data <- function(
 
     annos <- list(
         annotation_name_side = names_side,
-        show_annotation_name = list()
+        show_annotation_name = list(),
+        annotation_label = list()
     )
 
     # --- 2. Process each annotation ---
@@ -1910,6 +1987,17 @@ process_linkedheatmap_data <- function(
         param <- annotation_params[[aname]] %||% list()
         param <- .ensure_unit(param)
 
+        # `name` sub-key: display-name label and legend-title override.
+        # FALSE hides the displayed name; the legend title stays the key.
+        aname_disp <- annotation_name[[aname]] %||%
+            annotation_name[[".default"]]
+        if (isFALSE(aname_disp)) {
+            annos$show_annotation_name[[aname]] <- FALSE
+            aname_disp <- NULL
+        } else if (is.character(aname_disp)) {
+            annos$annotation_label[[aname]] <- aname_disp
+        }
+
         if (is_builtin) {
             is_label <- annotype %in% c("label", "rownames", "colnames")
             # Built-in: use pre-computed splits/by_labels
@@ -1920,7 +2008,7 @@ process_linkedheatmap_data <- function(
                 by_labels <- droplevels(by_labels)
             }
             param$x <- if (identical(aname, split_by)) splits else by_labels
-            param$title <- aname
+            param$title <- aname_disp %||% aname
             param$which <- ifelse(
                 flip,
                 setdiff(c("column", "row"), which),
@@ -2065,7 +2153,7 @@ process_linkedheatmap_data <- function(
             param$split_by <- split_by
             param$group_by <- by
             param$column <- annocol
-            param$title <- aname
+            param$title <- aname_disp %||% aname
             param$side <- side
             param$which <- ifelse(
                 flip,

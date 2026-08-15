@@ -550,7 +550,7 @@ ROCCurveAtomic <- function(
     if (length(score_by) > 1) {
         data <- pivot_longer(
             data,
-            cols = score_by,
+            cols = all_of(score_by),
             names_to = ".group",
             values_to = ".score"
         )

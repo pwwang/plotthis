@@ -182,13 +182,17 @@ See \code{\link{common_args}} for details.}
 \item{rows_orderby, columns_orderby}{Column name to order rows / columns
 by (disables clustering when set).}
 
-\item{columns_name}{Display name for the column annotation.}
+\item{columns_name}{\strong{Deprecated}: use
+\code{column_annotation = list(.col = list(name = ...))} instead.}
 
-\item{columns_split_name}{Display name for the column split annotation.}
+\item{columns_split_name}{\strong{Deprecated}: use
+\code{column_annotation = list(.col.split = list(name = ...))} instead.}
 
-\item{rows_name}{Display name for the row annotation.}
+\item{rows_name}{\strong{Deprecated}: use
+\code{row_annotation = list(.row = list(name = ...))} instead.}
 
-\item{rows_split_name}{Display name for the row split annotation.}
+\item{rows_split_name}{\strong{Deprecated}: use
+\code{row_annotation = list(.row.split = list(name = ...))} instead.}
 
 \item{palette}{A character string naming a palette (see
 \code{\link{show_palettes}}) or a character vector of colours for the

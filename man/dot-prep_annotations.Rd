@@ -50,7 +50,8 @@
 \value{
 A list with components \code{annotation}, \code{annotation_type},
 \code{annotation_side}, \code{annotation_palette}, \code{annotation_palcolor},
-\code{annotation_agg}, \code{annotation_params}, and \code{enabled}.
+\code{annotation_agg}, \code{annotation_params}, \code{annotation_name},
+and \code{enabled}.
 }
 \description{
 Consolidates the new structured annotation list format with backward-compatible

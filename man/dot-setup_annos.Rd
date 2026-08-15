@@ -16,6 +16,7 @@
   annotation_palcolor,
   annotation_agg,
   annotation_params,
+  annotation_name,
   split_by,
   splits,
   by,
@@ -48,6 +49,8 @@
 \item{annotation_agg}{A list of functions to aggregate the original data for each annotation, where names are annotation names and values are functions that take a vector of values in the cell and return an aggregated value}
 
 \item{annotation_params}{A list of additional parameters for each annotation, where names are annotation names and values are lists of parameters to pass to the annotation constructor}
+
+\item{annotation_name}{A list of display names for each annotation, where names are annotation names and values are character strings (aliasing the displayed name and legend title) or \code{FALSE} (hiding the displayed name)}
 
 \item{split_by}{The name of the column used for split annotation}
 

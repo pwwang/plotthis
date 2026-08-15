@@ -181,6 +181,9 @@
 #'      \code{$show_legend} controls legend visibility.  See
 #'      \code{\link[ComplexHeatmap]{HeatmapAnnotation}}.}
 #'    \item{\code{agg}}{A function to aggregate values for the annotation.}
+#'    \item{\code{name}}{Display name for the annotation, shown next to the
+#'      annotation bar and used as the legend title.  \code{FALSE} hides the
+#'      displayed name.  Defaults to the annotation key (column name).}
 #'  }
 #'  \strong{Shortcuts:}
 #'  \itemize{
@@ -481,6 +484,7 @@ HeatmapAtomic <- function(
     row_annotation_palcolor <- row_anno$annotation_palcolor
     row_annotation_agg <- row_anno$annotation_agg
     row_annotation_params <- row_anno$annotation_params
+    row_annotation_name <- row_anno$annotation_name
 
     column_annotation <- col_anno$annotation
     column_annotation_type <- col_anno$annotation_type
@@ -489,6 +493,7 @@ HeatmapAtomic <- function(
     column_annotation_palcolor <- col_anno$annotation_palcolor
     column_annotation_agg <- col_anno$annotation_agg
     column_annotation_params <- col_anno$annotation_params
+    column_annotation_name <- col_anno$annotation_name
 
     # Resolve display modes for row/column names ("inplace", "legend",
     # "simple", "anno", "none").  Modes are lower-priority defaults: they
@@ -502,6 +507,7 @@ HeatmapAtomic <- function(
         annotation = row_annotation,
         annotation_type = row_annotation_type,
         annotation_params = row_annotation_params,
+        annotation_name = row_annotation_name,
         legend.position = legend.position
     )
     row_annotation <- rn$annotation
@@ -518,6 +524,7 @@ HeatmapAtomic <- function(
         annotation = column_annotation,
         annotation_type = column_annotation_type,
         annotation_params = column_annotation_params,
+        annotation_name = column_annotation_name,
         legend.position = legend.position
     )
     column_annotation <- cn$annotation
@@ -560,6 +567,7 @@ HeatmapAtomic <- function(
         annotation = row_annotation,
         annotation_type = row_annotation_type,
         annotation_params = row_annotation_params,
+        annotation_name = row_annotation_name,
         legend.position = legend.position
     )
     row_annotation <- rt$annotation
@@ -578,6 +586,7 @@ HeatmapAtomic <- function(
         annotation = column_annotation,
         annotation_type = column_annotation_type,
         annotation_params = column_annotation_params,
+        annotation_name = column_annotation_name,
         legend.position = legend.position
     )
     column_annotation <- ct$annotation
@@ -2373,6 +2382,7 @@ HeatmapAtomic <- function(
         annotation_palcolor = column_annotation_palcolor,
         annotation_agg = column_annotation_agg,
         annotation_params = column_annotation_params,
+        annotation_name = column_annotation_name,
         split_by = columns_split_by,
         splits = if (flip) hmargs$row_split else hmargs$column_split,
         by = col_by_eff,
@@ -2388,7 +2398,7 @@ HeatmapAtomic <- function(
     all_keys <- names(column_annos)
     all_keys <- setdiff(
         all_keys,
-        c("annotation_name_side", "show_annotation_name")
+        c("annotation_name_side", "show_annotation_name", "annotation_label")
     )
     builtin_keys <- unique(c(columns_split_by, columns_by))
     side_list <- column_annotation_side # already alias-resolved
@@ -2398,14 +2408,17 @@ HeatmapAtomic <- function(
         "top"
     }
     sna <- column_annos$show_annotation_name
+    ala <- column_annos$annotation_label
     names_side <- column_annos$annotation_name_side
     top_annos <- list(
         annotation_name_side = names_side,
-        show_annotation_name = list()
+        show_annotation_name = list(),
+        annotation_label = list()
     )
     bottom_annos <- list(
         annotation_name_side = names_side,
-        show_annotation_name = list()
+        show_annotation_name = list(),
+        annotation_label = list()
     )
     for (k in all_keys) {
         if (is.list(side_list)) {
@@ -2418,10 +2431,16 @@ HeatmapAtomic <- function(
             if (!is.null(sna[[k]])) {
                 bottom_annos$show_annotation_name[[k]] <- sna[[k]]
             }
+            if (!is.null(ala[[k]])) {
+                bottom_annos$annotation_label[[k]] <- ala[[k]]
+            }
         } else {
             top_annos[[k]] <- column_annos[[k]]
             if (!is.null(sna[[k]])) {
                 top_annos$show_annotation_name[[k]] <- sna[[k]]
+            }
+            if (!is.null(ala[[k]])) {
+                top_annos$annotation_label[[k]] <- ala[[k]]
             }
         }
     }
@@ -2487,6 +2506,7 @@ HeatmapAtomic <- function(
         annotation_palcolor = row_annotation_palcolor,
         annotation_agg = row_annotation_agg,
         annotation_params = row_annotation_params,
+        annotation_name = row_annotation_name,
         split_by = rows_split_by,
         splits = if (flip) hmargs$column_split else hmargs$row_split,
         by = row_by_eff,
@@ -2502,7 +2522,7 @@ HeatmapAtomic <- function(
     all_keys <- names(row_annos)
     all_keys <- setdiff(
         all_keys,
-        c("annotation_name_side", "show_annotation_name")
+        c("annotation_name_side", "show_annotation_name", "annotation_label")
     )
     side_list <- row_annotation_side # already alias-resolved
     def_side <- if (is.list(side_list)) {
@@ -2511,14 +2531,17 @@ HeatmapAtomic <- function(
         "left"
     }
     sna <- row_annos$show_annotation_name
+    ala <- row_annos$annotation_label
     names_side <- row_annos$annotation_name_side
     left_side <- list(
         annotation_name_side = names_side,
-        show_annotation_name = list()
+        show_annotation_name = list(),
+        annotation_label = list()
     )
     right_side <- list(
         annotation_name_side = names_side,
-        show_annotation_name = list()
+        show_annotation_name = list(),
+        annotation_label = list()
     )
     for (k in all_keys) {
         side <- if (is.list(side_list)) {
@@ -2533,10 +2556,16 @@ HeatmapAtomic <- function(
             if (!is.null(sna[[k]])) {
                 right_side$show_annotation_name[[k]] <- sna[[k]]
             }
+            if (!is.null(ala[[k]])) {
+                right_side$annotation_label[[k]] <- ala[[k]]
+            }
         } else {
             left_side[[k]] <- row_annos[[k]]
             if (!is.null(sna[[k]])) {
                 left_side$show_annotation_name[[k]] <- sna[[k]]
+            }
+            if (!is.null(ala[[k]])) {
+                left_side$annotation_label[[k]] <- ala[[k]]
             }
         }
     }
@@ -3015,15 +3044,17 @@ HeatmapAtomic <- function(
 #'     # change the column name annotation name
 #'     Heatmap(matrix_data, palette = "viridis", values_by = "z-score",
 #'        show_row_names = TRUE, show_column_names = TRUE,
-#'        rows_name = "Features", row_names_side = "left",
-#'        columns_name = "Samples")
+#'        row_annotation = list(.row = list(name = "Features")),
+#'        row_names_side = "left",
+#'        column_annotation = list(.col = list(name = "Samples")))
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
 #'     # flip the heatmap
 #'     Heatmap(matrix_data, palette = "viridis", values_by = "z-score",
 #'        show_row_names = TRUE, show_column_names = TRUE,
-#'        rows_name = "Features", row_names_side = "left",
-#'        columns_name = "Samples", flip = TRUE)
+#'        row_annotation = list(.row = list(name = "Features")),
+#'        row_names_side = "left",
+#'        column_annotation = list(.col = list(name = "Samples")), flip = TRUE)
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
 #'     # add annotations to the heatmap

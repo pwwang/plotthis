@@ -13,6 +13,7 @@
   annotation = list(),
   annotation_type = list(),
   annotation_params = list(),
+  annotation_name = list(),
   legend.position = "right"
 )
 }
