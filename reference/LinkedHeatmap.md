@@ -223,19 +223,23 @@ LinkedHeatmap(
 
 - columns_name:
 
-  Display name for the column annotation.
+  **Deprecated**: use
+  `column_annotation = list(.col = list(name = ...))` instead.
 
 - columns_split_name:
 
-  Display name for the column split annotation.
+  **Deprecated**: use
+  `column_annotation = list(.col.split = list(name = ...))` instead.
 
 - rows_name:
 
-  Display name for the row annotation.
+  **Deprecated**: use `row_annotation = list(.row = list(name = ...))`
+  instead.
 
 - rows_split_name:
 
-  Display name for the row split annotation.
+  **Deprecated**: use
+  `row_annotation = list(.row.split = list(name = ...))` instead.
 
 - palette:
 
@@ -412,7 +416,9 @@ LinkedHeatmap(
 
 - show_row_names, show_column_names:
 
-  Logical; show row/column names.
+  Logical; show row/column names. May also be a character vector of
+  display modes; see
+  [`Heatmap`](https://pwwang.github.io/plotthis/reference/Heatmap.md).
 
 - border:
 
@@ -435,7 +441,8 @@ LinkedHeatmap(
 - column_title, row_title:
 
   Character title displayed above the columns / beside the rows of each
-  heatmap.
+  heatmap. May also be a character vector of display modes; see
+  [`Heatmap`](https://pwwang.github.io/plotthis/reference/Heatmap.md).
 
 - na_col:
 

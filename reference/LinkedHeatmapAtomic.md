@@ -323,7 +323,9 @@ LinkedHeatmapAtomic(
 
 - show_row_names, show_column_names:
 
-  Logical; show row/column names.
+  Logical; show row/column names. May also be a character vector of
+  display modes; see
+  [`Heatmap`](https://pwwang.github.io/plotthis/reference/Heatmap.md).
 
 - border:
 
@@ -346,7 +348,8 @@ LinkedHeatmapAtomic(
 - column_title, row_title:
 
   Character title displayed above the columns / beside the rows of each
-  heatmap.
+  heatmap. May also be a character vector of display modes; see
+  [`Heatmap`](https://pwwang.github.io/plotthis/reference/Heatmap.md).
 
 - na_col:
 

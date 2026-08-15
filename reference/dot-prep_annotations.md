@@ -83,4 +83,4 @@ backward-compatible deprecation support for old flat arguments. Handles
 
 A list with components `annotation`, `annotation_type`,
 `annotation_side`, `annotation_palette`, `annotation_palcolor`,
-`annotation_agg`, `annotation_params`, and `enabled`.
+`annotation_agg`, `annotation_params`, `annotation_name`, and `enabled`.

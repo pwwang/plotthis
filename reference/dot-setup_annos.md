@@ -18,6 +18,7 @@ annotations
   annotation_palcolor,
   annotation_agg,
   annotation_params,
+  annotation_name,
   split_by,
   splits,
   by,
@@ -87,6 +88,13 @@ annotations
   A list of additional parameters for each annotation, where names are
   annotation names and values are lists of parameters to pass to the
   annotation constructor
+
+- annotation_name:
+
+  A list of display names for each annotation, where names are
+  annotation names and values are character strings (aliasing the
+  displayed name and legend title) or `FALSE` (hiding the displayed
+  name)
 
 - split_by:
 

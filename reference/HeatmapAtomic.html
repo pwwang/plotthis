@@ -373,13 +373,21 @@ split group.</p></dd>
 
 
 <dt id="arg-show-row-names">show_row_names<a class="anchor" aria-label="anchor" href="#arg-show-row-names"></a></dt>
-<dd><p>Logical; show row names.  If <code>TRUE</code>, the
-legend of the row group annotation is hidden.</p></dd>
+<dd><p>Logical or character vector; show row names.  If
+<code>TRUE</code>, the legend of the row group annotation is hidden.
+<code>FALSE</code> only hides the in-place names.  Alternatively, a character
+vector combining the display modes <code>"inplace"</code> (in-place names,
+same as <code>TRUE</code>), <code>"legend"</code> (row group annotation with
+legend), <code>"simple"</code> (row group annotation without legend),
+<code>"anno"</code> (alias <code>"annotation"</code>; label annotation showing the
+row names as text) and <code>"none"</code> (no names, annotation, or legend).
+Modes are lower-priority defaults: explicit <code>row_annotation</code>
+entries (e.g. <code>.row</code>) still win.</p></dd>
 
 
 <dt id="arg-show-column-names">show_column_names<a class="anchor" aria-label="anchor" href="#arg-show-column-names"></a></dt>
-<dd><p>Logical; show column names.  If <code>TRUE</code>,
-the legend of the column group annotation is hidden.</p></dd>
+<dd><p>Logical or character vector; show column names.
+See <code>show_row_names</code> for the display modes.</p></dd>
 
 
 <dt id="arg-border">border<a class="anchor" aria-label="anchor" href="#arg-border"></a></dt>
@@ -394,12 +402,18 @@ the heatmap.  If <code>TRUE</code>, slice borders are also drawn.  Default
 
 <dt id="arg-column-title">column_title<a class="anchor" aria-label="anchor" href="#arg-column-title"></a></dt>
 <dd><p>Character string/vector used as the column group
-annotation title.</p></dd>
+annotation title.  A character vector consisting entirely of the display
+modes <code>"inplace"</code> (per-slice split titles), <code>"legend"</code> (split
+annotation with legend, no title), <code>"simple"</code> (split annotation,
+no legend/title), <code>"anno"</code> (alias <code>"annotation"</code>; label block
+annotation) and <code>"none"</code> (no title, annotation, or legend)
+controls how the split titles are displayed.  A literal title identical
+to a mode keyword is interpreted as a mode.</p></dd>
 
 
 <dt id="arg-row-title">row_title<a class="anchor" aria-label="anchor" href="#arg-row-title"></a></dt>
 <dd><p>Character string/vector used as the row group
-annotation title.</p></dd>
+annotation title.  See <code>column_title</code> for the display modes.</p></dd>
 
 
 <dt id="arg-na-col">na_col<a class="anchor" aria-label="anchor" href="#arg-na-col"></a></dt>
@@ -477,7 +491,11 @@ For split annotations, <code>"rownames"</code> (row splits) /
 each split block with the concatenated row/column names;
 <code>"names"</code> and <code>"dimnames"</code> are aliases.
 <code>params$sep</code> (default <code>" "</code>) controls the separator and
-<code>params$wrap_by</code> the number of names per line.</p></dd>
+<code>params$wrap_by</code> the number of names per line.
+For name annotations (the built-in <code>rows_by</code>/<code>columns_by</code>
+annotation), <code>"rownames"</code>/<code>"colnames"</code> renders the
+row/column names as text labels (this is what
+<code>show_row_names = "anno"</code> uses).</p></dd>
 
 <dt><code>params</code></dt>
 <dd><p>A list of additional parameters passed to the
@@ -487,6 +505,11 @@ annotation constructor.  <code>FALSE</code> disables the annotation.
 
 <dt><code>agg</code></dt>
 <dd><p>A function to aggregate values for the annotation.</p></dd>
+
+<dt><code>name</code></dt>
+<dd><p>Display name for the annotation, shown next to the
+annotation bar and used as the legend title.  <code>FALSE</code> hides the
+displayed name.  Defaults to the annotation key (column name).</p></dd>
 
 
 </dl><p><strong>Shortcuts:</strong></p><ul><li><p><code>column_annotation = list(Score = "score")</code> is short for

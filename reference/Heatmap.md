@@ -270,22 +270,29 @@ Heatmap(
 
 - columns_name:
 
-  A character string to rename the column created by `columns_by`, which
+  **Deprecated**: use
+  `column_annotation = list(.col = list(name = ...))` instead. A
+  character string to rename the column created by `columns_by`, which
   will be reflected in the name of the annotation or legend.
 
 - columns_split_name:
 
-  A character string to rename the column created by `columns_split_by`,
+  **Deprecated**: use
+  `column_annotation = list(.col.split = list(name = ...))` instead. A
+  character string to rename the column created by `columns_split_by`,
   which will be reflected in the name of the annotation or legend.
 
 - rows_name:
 
-  A character string to rename the column created by `rows_by`, which
-  will be reflected in the name of the annotation or legend.
+  **Deprecated**: use `row_annotation = list(.row = list(name = ...))`
+  instead. A character string to rename the column created by `rows_by`,
+  which will be reflected in the name of the annotation or legend.
 
 - rows_split_name:
 
-  A character string to rename the column created by `rows_split_by`,
+  **Deprecated**: use
+  `row_annotation = list(.row.split = list(name = ...))` instead. A
+  character string to rename the column created by `rows_split_by`,
   which will be reflected in the name of the annotation or legend.
 
 - palette:
@@ -457,13 +464,20 @@ Heatmap(
 
 - show_row_names:
 
-  Logical; show row names. If `TRUE`, the legend of the row group
-  annotation is hidden.
+  Logical or character vector; show row names. If `TRUE`, the legend of
+  the row group annotation is hidden. `FALSE` only hides the in-place
+  names. Alternatively, a character vector combining the display modes
+  `"inplace"` (in-place names, same as `TRUE`), `"legend"` (row group
+  annotation with legend), `"simple"` (row group annotation without
+  legend), `"anno"` (alias `"annotation"`; label annotation showing the
+  row names as text) and `"none"` (no names, annotation, or legend).
+  Modes are lower-priority defaults: explicit `row_annotation` entries
+  (e.g. `.row`) still win.
 
 - show_column_names:
 
-  Logical; show column names. If `TRUE`, the legend of the column group
-  annotation is hidden.
+  Logical or character vector; show column names. See `show_row_names`
+  for the display modes.
 
 - border:
 
@@ -476,11 +490,18 @@ Heatmap(
 
 - column_title:
 
-  Character string/vector used as the column group annotation title.
+  Character string/vector used as the column group annotation title. A
+  character vector consisting entirely of the display modes `"inplace"`
+  (per-slice split titles), `"legend"` (split annotation with legend, no
+  title), `"simple"` (split annotation, no legend/title), `"anno"`
+  (alias `"annotation"`; label block annotation) and `"none"` (no title,
+  annotation, or legend) controls how the split titles are displayed. A
+  literal title identical to a mode keyword is interpreted as a mode.
 
 - row_title:
 
-  Character string/vector used as the row group annotation title.
+  Character string/vector used as the row group annotation title. See
+  `column_title` for the display modes.
 
 - na_col:
 
@@ -560,7 +581,10 @@ Heatmap(
       labels each split block with the concatenated row/column names;
       `"names"` and `"dimnames"` are aliases. `params$sep` (default
       `" "`) controls the separator and `params$wrap_by` the number of
-      names per line.
+      names per line. For name annotations (the built-in
+      `rows_by`/`columns_by` annotation), `"rownames"`/`"colnames"`
+      renders the row/column names as text labels (this is what
+      `show_row_names = "anno"` uses).
 
   `params`
 
@@ -572,6 +596,12 @@ Heatmap(
   `agg`
 
   :   A function to aggregate values for the annotation.
+
+  `name`
+
+  :   Display name for the annotation, shown next to the annotation bar
+      and used as the legend title. `FALSE` hides the displayed name.
+      Defaults to the annotation key (column name).
 
   **Shortcuts:**
 
@@ -831,16 +861,18 @@ if (requireNamespace("cluster", quietly = TRUE)) {
     # change the column name annotation name
     Heatmap(matrix_data, palette = "viridis", values_by = "z-score",
        show_row_names = TRUE, show_column_names = TRUE,
-       rows_name = "Features", row_names_side = "left",
-       columns_name = "Samples")
+       row_annotation = list(.row = list(name = "Features")),
+       row_names_side = "left",
+       column_annotation = list(.col = list(name = "Samples")))
 }
 
 if (requireNamespace("cluster", quietly = TRUE)) {
     # flip the heatmap
     Heatmap(matrix_data, palette = "viridis", values_by = "z-score",
        show_row_names = TRUE, show_column_names = TRUE,
-       rows_name = "Features", row_names_side = "left",
-       columns_name = "Samples", flip = TRUE)
+       row_annotation = list(.row = list(name = "Features")),
+       row_names_side = "left",
+       column_annotation = list(.col = list(name = "Samples")), flip = TRUE)
 }
 
 if (requireNamespace("cluster", quietly = TRUE)) {
@@ -909,6 +941,22 @@ if (requireNamespace("cluster", quietly = TRUE)) {
             type = "colnames",
             params = list(wrap_by = 3)
         ))
+    )
+}
+
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # split title modes: per-slice titles plus the split annotation
+    # legend; and "anno" mode using label blocks instead of titles
+    Heatmap(matrix_data, rows_data = rows_data,
+        rows_split_by = "group",
+        row_title = c("inplace", "legend")
+    )
+}
+
+if (requireNamespace("cluster", quietly = TRUE)) {
+    Heatmap(matrix_data, rows_data = rows_data,
+        rows_split_by = "group",
+        row_title = "anno"
     )
 }
 
@@ -1109,6 +1157,15 @@ data <- data.frame(
 if (requireNamespace("cluster", quietly = TRUE)) {
     Heatmap(data, rows_by = "r", columns_by = "c", values_by = "value",
         rows_split_by = "p", columns_split_by = "q", show_column_names = TRUE)
+}
+
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # display modes: in-place row names plus the row group annotation
+    # legend; and "anno" mode showing the column names as text labels
+    Heatmap(data, rows_by = "r", columns_by = "c", values_by = "value",
+        show_row_names = c("inplace", "legend"),
+        show_column_names = "anno"
+    )
 }
 
 if (requireNamespace("cluster", quietly = TRUE)) {

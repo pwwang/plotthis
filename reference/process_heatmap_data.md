@@ -123,8 +123,9 @@ process_heatmap_data(
 
 - rows_name:
 
-  A character string to rename the column created by `rows_by`, which
-  will be reflected in the name of the annotation or legend.
+  **Deprecated**: use `row_annotation = list(.row = list(name = ...))`
+  instead. A character string to rename the column created by `rows_by`,
+  which will be reflected in the name of the annotation or legend.
 
 - rows_split_by:
 
@@ -137,7 +138,9 @@ process_heatmap_data(
 
 - rows_split_name:
 
-  A character string to rename the column created by `rows_split_by`,
+  **Deprecated**: use
+  `row_annotation = list(.row.split = list(name = ...))` instead. A
+  character string to rename the column created by `rows_split_by`,
   which will be reflected in the name of the annotation or legend.
 
 - columns_by:
@@ -154,7 +157,9 @@ process_heatmap_data(
 
 - columns_name:
 
-  A character string to rename the column created by `columns_by`, which
+  **Deprecated**: use
+  `column_annotation = list(.col = list(name = ...))` instead. A
+  character string to rename the column created by `columns_by`, which
   will be reflected in the name of the annotation or legend.
 
 - columns_split_by:
@@ -168,7 +173,9 @@ process_heatmap_data(
 
 - columns_split_name:
 
-  A character string to rename the column created by `columns_split_by`,
+  **Deprecated**: use
+  `column_annotation = list(.col.split = list(name = ...))` instead. A
+  character string to rename the column created by `columns_split_by`,
   which will be reflected in the name of the annotation or legend.
 
 - pie_group_by:

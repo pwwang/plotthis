@@ -333,13 +333,20 @@ HeatmapAtomic(
 
 - show_row_names:
 
-  Logical; show row names. If `TRUE`, the legend of the row group
-  annotation is hidden.
+  Logical or character vector; show row names. If `TRUE`, the legend of
+  the row group annotation is hidden. `FALSE` only hides the in-place
+  names. Alternatively, a character vector combining the display modes
+  `"inplace"` (in-place names, same as `TRUE`), `"legend"` (row group
+  annotation with legend), `"simple"` (row group annotation without
+  legend), `"anno"` (alias `"annotation"`; label annotation showing the
+  row names as text) and `"none"` (no names, annotation, or legend).
+  Modes are lower-priority defaults: explicit `row_annotation` entries
+  (e.g. `.row`) still win.
 
 - show_column_names:
 
-  Logical; show column names. If `TRUE`, the legend of the column group
-  annotation is hidden.
+  Logical or character vector; show column names. See `show_row_names`
+  for the display modes.
 
 - border:
 
@@ -352,11 +359,18 @@ HeatmapAtomic(
 
 - column_title:
 
-  Character string/vector used as the column group annotation title.
+  Character string/vector used as the column group annotation title. A
+  character vector consisting entirely of the display modes `"inplace"`
+  (per-slice split titles), `"legend"` (split annotation with legend, no
+  title), `"simple"` (split annotation, no legend/title), `"anno"`
+  (alias `"annotation"`; label block annotation) and `"none"` (no title,
+  annotation, or legend) controls how the split titles are displayed. A
+  literal title identical to a mode keyword is interpreted as a mode.
 
 - row_title:
 
-  Character string/vector used as the row group annotation title.
+  Character string/vector used as the row group annotation title. See
+  `column_title` for the display modes.
 
 - na_col:
 
@@ -436,7 +450,10 @@ HeatmapAtomic(
       labels each split block with the concatenated row/column names;
       `"names"` and `"dimnames"` are aliases. `params$sep` (default
       `" "`) controls the separator and `params$wrap_by` the number of
-      names per line.
+      names per line. For name annotations (the built-in
+      `rows_by`/`columns_by` annotation), `"rownames"`/`"colnames"`
+      renders the row/column names as text labels (this is what
+      `show_row_names = "anno"` uses).
 
   `params`
 
@@ -448,6 +465,12 @@ HeatmapAtomic(
   `agg`
 
   :   A function to aggregate values for the annotation.
+
+  `name`
+
+  :   Display name for the annotation, shown next to the annotation bar
+      and used as the legend title. `FALSE` hides the displayed name.
+      Defaults to the annotation key (column name).
 
   **Shortcuts:**
 
