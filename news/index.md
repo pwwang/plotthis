@@ -5,6 +5,15 @@
 - feat(CellDimPlot): support pt_size to be a column name
 - feat(Heatmap): add support for rownames and colnames split annotations
   with concatenated names
+- feat(Heatmap): support display modes for row/column names and split
+  titles
+- feat(Heatmap): support `name` sub-key in annotation entries to alias
+  the displayed annotation name and legend title
+  (`row_annotation = list(.row = list(name = "Group"))`); `name = FALSE`
+  hides the displayed name
+- deprecated(Heatmap): deprecate `rows_name`, `rows_split_name`,
+  `columns_name`, `columns_split_name` (and LinkedHeatmap
+  `left_*`/`right_*` variants) in favor of the `name` sub-key
 - fix(LinkedHeatmap): handle multiple split_by values and set default
   for NULL
 - fix(BoxViolinPlotAtomic): handle cases with fewer than 2 levels for
