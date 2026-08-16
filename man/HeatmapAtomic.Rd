@@ -21,7 +21,7 @@ HeatmapAtomic(
   pie_group_by = NULL,
   pie_palette = "Spectral",
   pie_palcolor = NULL,
-  bars_sample = 100,
+  bars_sample = 1,
   label = scales::label_number_auto(),
   label_size = 10,
   label_color = "black",
@@ -136,8 +136,14 @@ This is used to create pie charts in the heatmap when \code{cell_type} is \code{
 \item{pie_palette, pie_palcolor}{Palette and custom colours for pie slice
 fill colours.}
 
-\item{bars_sample}{Number of observations sampled per cell when
-\code{cell_type = "bars"}.  Default 100.}
+\item{bars_sample}{Fraction of each cell's observations (0 < x <= 1;
+\code{1} uses all data) or a whole count > 1 sampled per cell when
+\code{cell_type = "bars"}.  Column widths are proportional to the
+number of bars drawn per column, so a numeric count gives equal
+column widths and a fraction gives widths proportional to the
+column data sizes.  Proportional widths are skipped when
+\code{columns_split_by} is given, and column clustering is
+disabled in proportional mode.  Default 1 (all data).}
 
 \item{label}{A function to compute text labels when
 \code{cell_type = "label"} (or \code{"label+mark"}).  Receives the

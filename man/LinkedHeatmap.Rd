@@ -40,7 +40,7 @@ LinkedHeatmap(
   pie_group_by_sep = "_",
   pie_palette = "Spectral",
   pie_palcolor = NULL,
-  bars_sample = 100,
+  bars_sample = 1,
   label = identity,
   label_size = 10,
   label_color = "black",
@@ -228,8 +228,10 @@ columns.}
 \item{pie_palette, pie_palcolor}{Palette and custom colours for pie slice
 fill colours.}
 
-\item{bars_sample}{Number of observations sampled per cell when
-\code{cell_type = "bars"}.  Default 100.}
+\item{bars_sample}{Fraction of each cell's observations (0 < x <= 1;
+\code{1} uses all data) or a whole count > 1 sampled per cell when
+\code{cell_type = "bars"}.  Column widths are proportional to the
+number of bars drawn per column.  Default 1 (all data).}
 
 \item{label}{A function to compute text labels when
 \code{cell_type = "label"} (or \code{"label+mark"}).  Receives the

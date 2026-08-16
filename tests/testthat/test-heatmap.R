@@ -305,3 +305,94 @@ test_that("Deprecated *_name args warn but keep working", {
         })
     expect_false(any(grepl("is deprecated", ws)))
 })
+
+# Bars cell type: unbalanced fixture, column counts 10 vs 4 (gcd 2 -> k = c(5, 2))
+bars_data <- data.frame(
+    gene = rep(c("G1", "G2"), each = 7),
+    sample = rep(rep(c("S1", "S2"), c(5, 2)), 2),
+    value = rnorm(14)
+)
+
+test_that("Heatmap bars: default proportional column widths", {
+    skip_if_not_installed("ComplexHeatmap")
+    p <- Heatmap(bars_data, rows_by = "gene", columns_by = "sample",
+        values_by = "value", cell_type = "bars", return_ht = TRUE)
+    expect_identical(ncol(p@matrix), 7L)
+    expect_identical(unname(lengths(p@column_order_list)), c(5L, 2L))
+})
+
+test_that("Heatmap bars: numeric bars_sample gives equal column widths", {
+    skip_if_not_installed("ComplexHeatmap")
+    p <- Heatmap(bars_data, rows_by = "gene", columns_by = "sample",
+        values_by = "value", cell_type = "bars", bars_sample = 2,
+        return_ht = TRUE)
+    expect_identical(ncol(p@matrix), 2L)
+    # uniform counts: no replication, single unsplit column block
+    expect_identical(unname(lengths(p@column_order_list)), 2L)
+})
+
+test_that("Heatmap bars: fraction bars_sample samples per cell", {
+    skip_if_not_installed("ComplexHeatmap")
+    # column counts 10 vs 3; without sampling gcd(10, 3) = 1 -> 13 columns
+    # (all four cells present: G1-S1 5, G2-S1 5, G1-S2 2, G2-S2 1)
+    data3 <- data.frame(
+        gene = c(rep("G1", 7), rep("G2", 6)),
+        sample = c(rep("S1", 5), rep("S2", 2), rep("S1", 5), "S2"),
+        value = rnorm(13)
+    )
+    p_full <- Heatmap(data3, rows_by = "gene", columns_by = "sample",
+        values_by = "value", cell_type = "bars", return_ht = TRUE)
+    expect_identical(ncol(p_full@matrix), 13L)
+    # ceil(5*0.5)=3 + 3 vs ceil(3*0.5)=2 -> counts 6 vs 2 -> k = c(3, 1)
+    p <- Heatmap(data3, rows_by = "gene", columns_by = "sample",
+        values_by = "value", cell_type = "bars", bars_sample = 0.5,
+        return_ht = TRUE)
+    expect_identical(ncol(p@matrix), 4L)
+    expect_identical(unname(lengths(p@column_order_list)), c(3L, 1L))
+})
+
+test_that("Heatmap bars: flip replicates rows", {
+    skip_if_not_installed("ComplexHeatmap")
+    p <- Heatmap(bars_data, rows_by = "gene", columns_by = "sample",
+        values_by = "value", cell_type = "bars", flip = TRUE,
+        return_ht = TRUE)
+    expect_identical(nrow(p@matrix), 7L)
+    expect_identical(unname(lengths(p@row_order_list)), c(5L, 2L))
+})
+
+test_that("Heatmap bars: invalid bars_sample errors", {
+    skip_if_not_installed("ComplexHeatmap")
+    for (bad in list(0, -1, 1.5, "a")) {
+        expect_error(
+            Heatmap(bars_data, rows_by = "gene", columns_by = "sample",
+                values_by = "value", cell_type = "bars",
+                bars_sample = bad, return_ht = TRUE),
+            "bars_sample"
+        )
+    }
+})
+
+test_that("Heatmap bars: proportional widths work with user column annotations", {
+    skip_if_not_installed("ComplexHeatmap")
+    adata <- bars_data
+    adata$ann <- rep(c("x", "y"), 7)
+    p <- Heatmap(adata, rows_by = "gene", columns_by = "sample",
+        values_by = "value", cell_type = "bars",
+        column_annotation = "ann", return_ht = TRUE)
+    expect_identical(ncol(p@matrix), 7L)
+    expect_identical(unname(lengths(p@column_order_list)), c(5L, 2L))
+})
+
+test_that("Heatmap bars: smoke render and rows_split_by", {
+    skip_if_not_installed("ComplexHeatmap")
+    p <- Heatmap(bars_data, rows_by = "gene", columns_by = "sample",
+        values_by = "value", cell_type = "bars")
+    expect_true(!is.null(p))
+    p2 <- Heatmap(bars_data, rows_by = "gene", columns_by = "sample",
+        rows_split_by = "gene", values_by = "value", cell_type = "bars",
+        return_ht = TRUE)
+    expect_identical(ncol(p2@matrix), 7L)
+    p3 <- Heatmap(bars_data, rows_by = "gene", columns_by = "sample",
+        rows_split_by = "gene", values_by = "value", cell_type = "bars")
+    expect_true(!is.null(p3))
+})

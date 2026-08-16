@@ -41,7 +41,7 @@ Heatmap(
   pie_group_by_sep = "_",
   pie_palette = "Spectral",
   pie_palcolor = NULL,
-  bars_sample = 100,
+  bars_sample = 1,
   label = identity,
   label_size = 10,
   label_color = "black",
@@ -234,8 +234,14 @@ This is used to create pie charts in the heatmap when \code{cell_type} is \code{
 \item{pie_palette, pie_palcolor}{Palette and custom colours for pie slice
 fill colours.}
 
-\item{bars_sample}{Number of observations sampled per cell when
-\code{cell_type = "bars"}.  Default 100.}
+\item{bars_sample}{Fraction of each cell's observations (0 < x <= 1;
+\code{1} uses all data) or a whole count > 1 sampled per cell when
+\code{cell_type = "bars"}.  Column widths are proportional to the
+number of bars drawn per column, so a numeric count gives equal
+column widths and a fraction gives widths proportional to the
+column data sizes.  Proportional widths are skipped when
+\code{columns_split_by} is given, and column clustering is
+disabled in proportional mode.  Default 1 (all data).}
 
 \item{label}{A function to compute text labels when
 \code{cell_type = "label"} (or \code{"label+mark"}).  Receives the
@@ -879,6 +885,27 @@ if (requireNamespace("cluster", quietly = TRUE)) {
     # cell_type = "bars" (default is "tile")
     Heatmap(data, values_by = "value", rows_by = "r", columns_by = "c",
         cell_type = "bars")
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # column widths are proportional to the number of bars per column
+    # (columns c1 and c2 have 10 and 4 data points)
+    bars_data <- data.frame(
+        value = rnorm(14),
+        r = c(rep("r1", 8), rep("r2", 6)),
+        c = c(rep("c1", 6), rep("c2", 2), rep("c1", 4), rep("c2", 2))
+    )
+    Heatmap(bars_data, values_by = "value", rows_by = "r", columns_by = "c",
+        cell_type = "bars")
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # a fraction uses that fraction of each cell's data
+    Heatmap(bars_data, values_by = "value", rows_by = "r", columns_by = "c",
+        cell_type = "bars", bars_sample = 0.5)
+}
+if (requireNamespace("cluster", quietly = TRUE)) {
+    # a whole count samples that many per cell -> equal column widths
+    Heatmap(bars_data, values_by = "value", rows_by = "r", columns_by = "c",
+        cell_type = "bars", bars_sample = 3)
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
     p <- Heatmap(data, values_by = "value", rows_by = "r", columns_by = "c",

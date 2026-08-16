@@ -99,8 +99,14 @@
 #' @param na_col Colour for \code{NA} cells.  Default \code{"grey85"}.
 #' @param row_names_side Side for row names.  Default \code{"right"}.
 #' @param column_names_side Side for column names.  Default \code{"bottom"}.
-#' @param bars_sample Number of observations sampled per cell when
-#'  \code{cell_type = "bars"}.  Default 100.
+#' @param bars_sample Fraction of each cell's observations (0 < x <= 1;
+#'  \code{1} uses all data) or a whole count > 1 sampled per cell when
+#'  \code{cell_type = "bars"}.  Column widths are proportional to the
+#'  number of bars drawn per column, so a numeric count gives equal
+#'  column widths and a fraction gives widths proportional to the
+#'  column data sizes.  Proportional widths are skipped when
+#'  \code{columns_split_by} is given, and column clustering is
+#'  disabled in proportional mode.  Default 1 (all data).
 #' @param flip Logical; if \code{TRUE}, swap rows and columns
 #'  transparently.  The caller does not need to swap row- and
 #'  column-related arguments manually.
@@ -364,7 +370,7 @@ HeatmapAtomic <- function(
     pie_palette = "Spectral",
     pie_palcolor = NULL,
     # cell_type: bars
-    bars_sample = 100,
+    bars_sample = 1,
     # cell_type: label
     label = scales::label_number_auto(),
     label_size = 10,
@@ -1096,6 +1102,16 @@ HeatmapAtomic <- function(
             stop("[Heatmap] Cannot use 'add_reticle' with 'cell_type = 'bars'.")
         }
 
+        if (!is.numeric(bars_sample) || length(bars_sample) != 1 ||
+            is.na(bars_sample) || bars_sample <= 0 ||
+            (bars_sample > 1 && bars_sample != floor(bars_sample))) {
+            stop(
+                "[Heatmap] 'bars_sample' must be a fraction (0, 1] or ",
+                "a whole count > 1."
+            )
+        }
+        validate_common_args(seed)
+        set.seed(seed)
         bars_data <- data %>%
             group_by(
                 !!!syms(unique(c(
@@ -1105,7 +1121,16 @@ HeatmapAtomic <- function(
                     columns_by
                 )))
             ) %>%
-            group_map(~ .x[[values_by]])
+            group_map(~ {
+                vals <- .x[[values_by]]
+                if (bars_sample <= 1) {
+                    # fraction (1 = all data)
+                    sample(vals, ceiling(length(vals) * bars_sample))
+                } else {
+                    # whole count per cell
+                    sample(vals, min(bars_sample, length(vals)))
+                }
+            })
 
         names(bars_data) <- indices
 
@@ -2896,6 +2921,155 @@ HeatmapAtomic <- function(
     # if (is.null(hmargs$height)) {
     #     hmargs$height <- unit(body_height, "inches")
     # }
+    # Proportional column widths for bars: ComplexHeatmap ignores per-column
+    # width vectors in the drawing, so replicate each logical column k_j
+    # times and make each logical column its own slice (slice widths are
+    # proportional to column counts per slice).  Uniform counts -> no
+    # replication -> the existing code path is untouched.
+    bars_mat_logical <- NULL
+    if (cell_type == "bars") {
+        user_split <- if (isTRUE(flip)) hmargs$row_split else hmargs$column_split
+        if (is.null(user_split)) {
+            n_orig <- if (isTRUE(flip)) {
+                nrow(hmargs$matrix)
+            } else {
+                ncol(hmargs$matrix)
+            }
+            # per-logical-column bar counts (bars_data is keyed by
+            # "matrix_row-matrix_col" indices of the original matrix)
+            counts <- if (isTRUE(flip)) {
+                vapply(seq_len(n_orig), function(i) {
+                    sum(lengths(bars_data[startsWith(
+                        names(bars_data), paste0(i, "-")
+                    )]))
+                }, integer(1))
+            } else {
+                vapply(seq_len(n_orig), function(j) {
+                    sum(lengths(bars_data[endsWith(
+                        names(bars_data), paste0("-", j)
+                    )]))
+                }, integer(1))
+            }
+            if (n_orig > 1 && all(counts > 0)) {
+                gcd2 <- function(a, b) if (b == 0) a else gcd2(b, a %% b)
+                k <- counts / Reduce(gcd2, counts)
+                # ponytail: cap total columns for pathological count
+                # spreads (e.g. 10000:1); raise if real data needs it
+                if (sum(k) > 300) {
+                    k <- pmax(1, round(k * 300 / sum(k)))
+                }
+                if (any(k > 1)) {
+                    bars_mat_logical <- hmargs$matrix
+                    idx <- rep(seq_len(n_orig), k)
+                    jmap <- idx
+                    if (isTRUE(flip)) {
+                        # original columns are matrix rows after flip
+                        # (subsetting replicates rownames automatically)
+                        hmargs$matrix <- hmargs$matrix[idx, , drop = FALSE]
+                        hmargs$row_split <- factor(rep(seq_len(n_orig), k))
+                        if (!is.null(hmargs$row_labels)) {
+                            labs <- rep(as.character(hmargs$row_labels), k)
+                            labs[duplicated(idx)] <- ""
+                            hmargs$row_labels <- labs
+                        }
+                        hmargs$cluster_rows <- FALSE
+                        if (!is.null(hmargs$left_annotation)) {
+                            hmargs$left_annotation <- hmargs$left_annotation[idx]
+                        }
+                        if (!is.null(hmargs$right_annotation)) {
+                            hmargs$right_annotation <- hmargs$right_annotation[idx]
+                        }
+                    } else {
+                        # (subsetting replicates colnames automatically)
+                        hmargs$matrix <- hmargs$matrix[, idx, drop = FALSE]
+                        hmargs$column_split <- factor(rep(seq_len(n_orig), k))
+                        if (!is.null(hmargs$column_labels)) {
+                            labs <- rep(as.character(hmargs$column_labels), k)
+                            labs[duplicated(idx)] <- ""
+                            hmargs$column_labels <- labs
+                        }
+                        hmargs$cluster_columns <- FALSE
+                        if (!is.null(hmargs$top_annotation)) {
+                            hmargs$top_annotation <- hmargs$top_annotation[idx]
+                        }
+                        if (!is.null(hmargs$bottom_annotation)) {
+                            hmargs$bottom_annotation <- hmargs$bottom_annotation[idx]
+                        }
+                    }
+                    # merged bar drawing: layer_fun is called once per slice
+                    # (= logical column) with slice-relative npc coordinates,
+                    # so each row's bars span the full slice width/height
+                    hmargs$layer_fun <- if (isTRUE(flip)) {
+                        function(j, i, x, y, w, h, fill, sr, sc) {
+                            layer_white_bg(j, i, x, y, w, h, fill)
+                            for (col in unique(j)) {
+                                m <- which(j == col)
+                                vals <- bars_data[[paste(
+                                    col, jmap[i[m[1]]], sep = "-"
+                                )]]
+                                if (is.null(vals) || length(vals) == 0) next
+                                ns <- length(vals)
+                                grid.rect(
+                                    x = x[m[1]], y = unit(0.5, "npc"),
+                                    width = w[m[1]], height = unit(1, "npc"),
+                                    gp = gpar(fill = "white", col = "white")
+                                )
+                                grid.rect(
+                                    x = x[m[1]],
+                                    y = unit((seq_len(ns) - 0.5) / ns, "npc"),
+                                    width = w[m[1]],
+                                    height = unit(rep(1 / ns, ns), "npc"),
+                                    gp = gpar(
+                                        fill = hmargs$col(vals),
+                                        col = "transparent"
+                                    )
+                                )
+                            }
+                            if (is.function(layer_fun_callback)) {
+                                layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
+                            }
+                        }
+                    } else {
+                        function(j, i, x, y, w, h, fill, sr, sc) {
+                            layer_white_bg(j, i, x, y, w, h, fill)
+                            for (row in unique(i)) {
+                                m <- which(i == row)
+                                vals <- bars_data[[paste(
+                                    row, jmap[j[m[1]]], sep = "-"
+                                )]]
+                                if (is.null(vals) || length(vals) == 0) next
+                                ns <- length(vals)
+                                grid.rect(
+                                    x = unit(0.5, "npc"), y = y[m[1]],
+                                    width = unit(1, "npc"), height = h[m[1]],
+                                    gp = gpar(fill = "white", col = "white")
+                                )
+                                grid.rect(
+                                    x = unit((seq_len(ns) - 0.5) / ns, "npc"),
+                                    y = y[m[1]],
+                                    width = unit(rep(1 / ns, ns), "npc"),
+                                    height = h[m[1]],
+                                    gp = gpar(
+                                        fill = hmargs$col(vals),
+                                        col = "transparent"
+                                    )
+                                )
+                            }
+                            if (is.function(layer_fun_callback)) {
+                                layer_fun_callback(j, i, x, y, w, h, fill, sr, sc)
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            warning(
+                "[Heatmap] Proportional column widths for cell_type = \"bars\" ",
+                "are skipped when 'columns_split_by' is given.",
+                call. = FALSE
+            )
+        }
+    }
     unknown_args <- setdiff(
         names(hmargs),
         methods::formalArgs(ComplexHeatmap::Heatmap)
@@ -2921,7 +3095,7 @@ HeatmapAtomic <- function(
         return(p)
     }
 
-    mat <- p@matrix
+    mat <- bars_mat_logical %||% p@matrix
     draw_args_fixed <- list(
         annotation_legend_list = legends,
         padding = draw_opts$padding %||% padding,
@@ -3340,6 +3514,27 @@ HeatmapAtomic <- function(
 #'         cell_type = "bars")
 #' }
 #' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     # column widths are proportional to the number of bars per column
+#'     # (columns c1 and c2 have 10 and 4 data points)
+#'     bars_data <- data.frame(
+#'         value = rnorm(14),
+#'         r = c(rep("r1", 8), rep("r2", 6)),
+#'         c = c(rep("c1", 6), rep("c2", 2), rep("c1", 4), rep("c2", 2))
+#'     )
+#'     Heatmap(bars_data, values_by = "value", rows_by = "r", columns_by = "c",
+#'         cell_type = "bars")
+#' }
+#' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     # a fraction uses that fraction of each cell's data
+#'     Heatmap(bars_data, values_by = "value", rows_by = "r", columns_by = "c",
+#'         cell_type = "bars", bars_sample = 0.5)
+#' }
+#' if (requireNamespace("cluster", quietly = TRUE)) {
+#'     # a whole count samples that many per cell -> equal column widths
+#'     Heatmap(bars_data, values_by = "value", rows_by = "r", columns_by = "c",
+#'         cell_type = "bars", bars_sample = 3)
+#' }
+#' if (requireNamespace("cluster", quietly = TRUE)) {
 #'     p <- Heatmap(data, values_by = "value", rows_by = "r", columns_by = "c",
 #'         cell_type = "dot", dot_size = length, dot_size_name = "data points",
 #'         add_bg = TRUE, add_reticle = TRUE)
@@ -3446,7 +3641,7 @@ Heatmap <- function(
     pie_palette = "Spectral",
     pie_palcolor = NULL,
     # cell_type: bars
-    bars_sample = 100,
+    bars_sample = 1,
     # cell_type: label
     label = identity,
     label_size = 10,
