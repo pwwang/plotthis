@@ -78,7 +78,7 @@ colour mapping, cell rendering, annotation construction, and the final
 <span>  pie_group_by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pie_palette <span class="op">=</span> <span class="st">"Spectral"</span>,</span>
 <span>  pie_palcolor <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  bars_sample <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>  bars_sample <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  label <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/label_number_auto.html" class="external-link">label_number_auto</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  label_size <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  label_color <span class="op">=</span> <span class="st">"black"</span>,</span>
@@ -228,8 +228,14 @@ fill colours.</p></dd>
 
 
 <dt id="arg-bars-sample">bars_sample<a class="anchor" aria-label="anchor" href="#arg-bars-sample"></a></dt>
-<dd><p>Number of observations sampled per cell when
-<code>cell_type = "bars"</code>.  Default 100.</p></dd>
+<dd><p>Fraction of each cell's observations (0 &lt; x &lt;= 1;
+<code>1</code> uses all data) or a whole count &gt; 1 sampled per cell when
+<code>cell_type = "bars"</code>.  Column widths are proportional to the
+number of bars drawn per column, so a numeric count gives equal
+column widths and a fraction gives widths proportional to the
+column data sizes.  Proportional widths are skipped when
+<code>columns_split_by</code> is given, and column clustering is
+disabled in proportional mode.  Default 1 (all data).</p></dd>
 
 
 <dt id="arg-label">label<a class="anchor" aria-label="anchor" href="#arg-label"></a></dt>

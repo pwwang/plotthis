@@ -49,7 +49,7 @@ LinkedHeatmap(
   pie_group_by_sep = "_",
   pie_palette = "Spectral",
   pie_palcolor = NULL,
-  bars_sample = 100,
+  bars_sample = 1,
   label = identity,
   label_size = 10,
   label_color = "black",
@@ -294,8 +294,10 @@ LinkedHeatmap(
 
 - bars_sample:
 
-  Number of observations sampled per cell when `cell_type = "bars"`.
-  Default 100.
+  Fraction of each cell's observations (0 \< x \<= 1; `1` uses all data)
+  or a whole count \> 1 sampled per cell when `cell_type = "bars"`.
+  Column widths are proportional to the number of bars drawn per column.
+  Default 1 (all data).
 
 - label:
 

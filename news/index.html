@@ -41,6 +41,7 @@
 <ul><li>feat(CellDimPlot): support pt_size to be a column name</li>
 <li>feat(Heatmap): add support for rownames and colnames split annotations with concatenated names</li>
 <li>feat(Heatmap): support display modes for row/column names and split titles</li>
+<li>feat(Heatmap): <code>cell_type = "bars"</code> column widths are now proportional to the number of bars per column; <code>bars_sample</code> accepts a fraction of each cell’s data (default 1 = use all) or a whole count</li>
 <li>feat(Heatmap): support <code>name</code> sub-key in annotation entries to alias the displayed annotation name and legend title (<code>row_annotation = list(.row = list(name = "Group"))</code>); <code>name = FALSE</code> hides the displayed name</li>
 <li>deprecated(Heatmap): deprecate <code>rows_name</code>, <code>rows_split_name</code>, <code>columns_name</code>, <code>columns_split_name</code> (and LinkedHeatmap <code>left_*</code>/<code>right_*</code> variants) in favor of the <code>name</code> sub-key</li>
 <li>fix(LinkedHeatmap): handle multiple split_by values and set default for NULL</li>

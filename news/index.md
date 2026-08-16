@@ -7,6 +7,9 @@
   with concatenated names
 - feat(Heatmap): support display modes for row/column names and split
   titles
+- feat(Heatmap): `cell_type = "bars"` column widths are now proportional
+  to the number of bars per column; `bars_sample` accepts a fraction of
+  each cell’s data (default 1 = use all) or a whole count
 - feat(Heatmap): support `name` sub-key in annotation entries to alias
   the displayed annotation name and legend title
   (`row_annotation = list(.row = list(name = "Group"))`); `name = FALSE`
