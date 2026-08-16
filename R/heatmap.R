@@ -2962,14 +2962,22 @@ HeatmapAtomic <- function(
                     bars_mat_logical <- hmargs$matrix
                     idx <- rep(seq_len(n_orig), k)
                     jmap <- idx
+                    bars_names_labs <- NULL
                     if (isTRUE(flip)) {
                         # original columns are matrix rows after flip
                         # (subsetting replicates rownames automatically)
                         hmargs$matrix <- hmargs$matrix[idx, , drop = FALSE]
                         hmargs$row_split <- factor(rep(seq_len(n_orig), k))
                         if (!is.null(hmargs$row_labels)) {
-                            labs <- rep(as.character(hmargs$row_labels), k)
-                            labs[duplicated(idx)] <- ""
+                            bars_names_labs <- as.character(hmargs$row_labels)
+                            # keep the label at the middle sub-row so the
+                            # name is centered on the slice
+                            labs <- rep("", sum(k))
+                            for (jj in seq_len(n_orig)) {
+                                pos <- which(idx == jj)
+                                labs[pos[ceiling(length(pos) / 2)]] <-
+                                    bars_names_labs[jj]
+                            }
                             hmargs$row_labels <- labs
                         }
                         hmargs$cluster_rows <- FALSE
@@ -2984,8 +2992,15 @@ HeatmapAtomic <- function(
                         hmargs$matrix <- hmargs$matrix[, idx, drop = FALSE]
                         hmargs$column_split <- factor(rep(seq_len(n_orig), k))
                         if (!is.null(hmargs$column_labels)) {
-                            labs <- rep(as.character(hmargs$column_labels), k)
-                            labs[duplicated(idx)] <- ""
+                            bars_names_labs <- as.character(hmargs$column_labels)
+                            # keep the label at the middle sub-column so the
+                            # name is centered on the slice
+                            labs <- rep("", sum(k))
+                            for (jj in seq_len(n_orig)) {
+                                pos <- which(idx == jj)
+                                labs[pos[ceiling(length(pos) / 2)]] <-
+                                    bars_names_labs[jj]
+                            }
                             hmargs$column_labels <- labs
                         }
                         hmargs$cluster_columns <- FALSE
@@ -2994,6 +3009,28 @@ HeatmapAtomic <- function(
                         }
                         if (!is.null(hmargs$bottom_annotation)) {
                             hmargs$bottom_annotation <- hmargs$bottom_annotation[idx]
+                        }
+                    }
+                    # Centered inplace names: slice titles are centered on
+                    # their slice exactly (unlike column names, which always
+                    # sit on a sub-column), so draw the names as titles on
+                    # the names side, styled like the names
+                    if (!is.null(bars_names_labs)) {
+                        if (isTRUE(flip) && isTRUE(hmargs$show_row_names) &&
+                            is.null(hmargs$row_title)) {
+                            hmargs$row_title <- bars_names_labs
+                            hmargs$row_title_side <- flip_side(column_names_side)
+                            hmargs$row_title_gp <- hmargs$row_names_gp %||%
+                                gpar(fontsize = 12)
+                            hmargs$show_row_names <- FALSE
+                        } else if (!isTRUE(flip) &&
+                            isTRUE(hmargs$show_column_names) &&
+                            is.null(hmargs$column_title)) {
+                            hmargs$column_title <- bars_names_labs
+                            hmargs$column_title_side <- column_names_side
+                            hmargs$column_title_gp <- hmargs$column_names_gp %||%
+                                gpar(fontsize = 12)
+                            hmargs$show_column_names <- FALSE
                         }
                     }
                     # merged bar drawing: layer_fun is called once per slice
