@@ -270,29 +270,22 @@ Heatmap(
 
 - columns_name:
 
-  **Deprecated**: use
-  `column_annotation = list(.col = list(name = ...))` instead. A
-  character string to rename the column created by `columns_by`, which
+  A character string to rename the column created by `columns_by`, which
   will be reflected in the name of the annotation or legend.
 
 - columns_split_name:
 
-  **Deprecated**: use
-  `column_annotation = list(.col.split = list(name = ...))` instead. A
-  character string to rename the column created by `columns_split_by`,
+  A character string to rename the column created by `columns_split_by`,
   which will be reflected in the name of the annotation or legend.
 
 - rows_name:
 
-  **Deprecated**: use `row_annotation = list(.row = list(name = ...))`
-  instead. A character string to rename the column created by `rows_by`,
-  which will be reflected in the name of the annotation or legend.
+  A character string to rename the column created by `rows_by`, which
+  will be reflected in the name of the annotation or legend.
 
 - rows_split_name:
 
-  **Deprecated**: use
-  `row_annotation = list(.row.split = list(name = ...))` instead. A
-  character string to rename the column created by `rows_split_by`,
+  A character string to rename the column created by `rows_split_by`,
   which will be reflected in the name of the annotation or legend.
 
 - palette:
@@ -866,18 +859,16 @@ if (requireNamespace("cluster", quietly = TRUE)) {
     # change the column name annotation name
     Heatmap(matrix_data, palette = "viridis", values_by = "z-score",
        show_row_names = TRUE, show_column_names = TRUE,
-       row_annotation = list(.row = list(name = "Features")),
-       row_names_side = "left",
-       column_annotation = list(.col = list(name = "Samples")))
+       rows_name = "Features", row_names_side = "left",
+       columns_name = "Samples")
 }
 
 if (requireNamespace("cluster", quietly = TRUE)) {
     # flip the heatmap
     Heatmap(matrix_data, palette = "viridis", values_by = "z-score",
        show_row_names = TRUE, show_column_names = TRUE,
-       row_annotation = list(.row = list(name = "Features")),
-       row_names_side = "left",
-       column_annotation = list(.col = list(name = "Samples")), flip = TRUE)
+       rows_name = "Features", row_names_side = "left",
+       columns_name = "Samples", flip = TRUE)
 }
 
 if (requireNamespace("cluster", quietly = TRUE)) {

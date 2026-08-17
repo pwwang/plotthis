@@ -293,23 +293,19 @@ This is applied before renaming columns_by to columns_name.</p></dd>
 
 
 <dt id="arg-columns-name">columns_name<a class="anchor" aria-label="anchor" href="#arg-columns-name"></a></dt>
-<dd><p><strong>Deprecated</strong>: use
-<code>column_annotation = list(.col = list(name = ...))</code> instead. A character string to rename the column created by <code>columns_by</code>, which will be reflected in the name of the annotation or legend.</p></dd>
+<dd><p>A character string to rename the column created by <code>columns_by</code>, which will be reflected in the name of the annotation or legend.</p></dd>
 
 
 <dt id="arg-columns-split-name">columns_split_name<a class="anchor" aria-label="anchor" href="#arg-columns-split-name"></a></dt>
-<dd><p><strong>Deprecated</strong>: use
-<code>column_annotation = list(.col.split = list(name = ...))</code> instead. A character string to rename the column created by <code>columns_split_by</code>, which will be reflected in the name of the annotation or legend.</p></dd>
+<dd><p>A character string to rename the column created by <code>columns_split_by</code>, which will be reflected in the name of the annotation or legend.</p></dd>
 
 
 <dt id="arg-rows-name">rows_name<a class="anchor" aria-label="anchor" href="#arg-rows-name"></a></dt>
-<dd><p><strong>Deprecated</strong>: use
-<code>row_annotation = list(.row = list(name = ...))</code> instead. A character string to rename the column created by <code>rows_by</code>, which will be reflected in the name of the annotation or legend.</p></dd>
+<dd><p>A character string to rename the column created by <code>rows_by</code>, which will be reflected in the name of the annotation or legend.</p></dd>
 
 
 <dt id="arg-rows-split-name">rows_split_name<a class="anchor" aria-label="anchor" href="#arg-rows-split-name"></a></dt>
-<dd><p><strong>Deprecated</strong>: use
-<code>row_annotation = list(.row.split = list(name = ...))</code> instead. A character string to rename the column created by <code>rows_split_by</code>, which will be reflected in the name of the annotation or legend.</p></dd>
+<dd><p>A character string to rename the column created by <code>rows_split_by</code>, which will be reflected in the name of the annotation or legend.</p></dd>
 
 
 <dt id="arg-palette">palette<a class="anchor" aria-label="anchor" href="#arg-palette"></a></dt>
@@ -855,18 +851,16 @@ level.</p>
 <span class="r-in"><span>    <span class="co"># change the column name annotation name</span></span></span>
 <span class="r-in"><span>    <span class="fu">Heatmap</span><span class="op">(</span><span class="va">matrix_data</span>, palette <span class="op">=</span> <span class="st">"viridis"</span>, values_by <span class="op">=</span> <span class="st">"z-score"</span>,</span></span>
 <span class="r-in"><span>       show_row_names <span class="op">=</span> <span class="cn">TRUE</span>, show_column_names <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>       row_annotation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>.row <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Features"</span><span class="op">)</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>       row_names_side <span class="op">=</span> <span class="st">"left"</span>,</span></span>
-<span class="r-in"><span>       column_annotation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>.col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Samples"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>       rows_name <span class="op">=</span> <span class="st">"Features"</span>, row_names_side <span class="op">=</span> <span class="st">"left"</span>,</span></span>
+<span class="r-in"><span>       columns_name <span class="op">=</span> <span class="st">"Samples"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-plt img"><img src="Heatmap-2.png" alt="" width="875" height="541"></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"cluster"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>    <span class="co"># flip the heatmap</span></span></span>
 <span class="r-in"><span>    <span class="fu">Heatmap</span><span class="op">(</span><span class="va">matrix_data</span>, palette <span class="op">=</span> <span class="st">"viridis"</span>, values_by <span class="op">=</span> <span class="st">"z-score"</span>,</span></span>
 <span class="r-in"><span>       show_row_names <span class="op">=</span> <span class="cn">TRUE</span>, show_column_names <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>       row_annotation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>.row <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Features"</span><span class="op">)</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>       row_names_side <span class="op">=</span> <span class="st">"left"</span>,</span></span>
-<span class="r-in"><span>       column_annotation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>.col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Samples"</span><span class="op">)</span><span class="op">)</span>, flip <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>       rows_name <span class="op">=</span> <span class="st">"Features"</span>, row_names_side <span class="op">=</span> <span class="st">"left"</span>,</span></span>
+<span class="r-in"><span>       columns_name <span class="op">=</span> <span class="st">"Samples"</span>, flip <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-plt img"><img src="Heatmap-3.png" alt="" width="875" height="541"></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"cluster"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>

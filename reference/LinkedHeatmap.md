@@ -223,23 +223,19 @@ LinkedHeatmap(
 
 - columns_name:
 
-  **Deprecated**: use
-  `column_annotation = list(.col = list(name = ...))` instead.
+  Display name for the column annotation.
 
 - columns_split_name:
 
-  **Deprecated**: use
-  `column_annotation = list(.col.split = list(name = ...))` instead.
+  Display name for the column split annotation.
 
 - rows_name:
 
-  **Deprecated**: use `row_annotation = list(.row = list(name = ...))`
-  instead.
+  Display name for the row annotation.
 
 - rows_split_name:
 
-  **Deprecated**: use
-  `row_annotation = list(.row.split = list(name = ...))` instead.
+  Display name for the row split annotation.
 
 - palette:
 
