@@ -1,3 +1,8 @@
+## Version 0.13.3
+
+- feat(Heatmap): revert deprecation of rows_name/columns_name/rows_split_name/columns_split_name
+- fix(Heatmap): `show_row_names`/`show_column_names` "none" mode now hides the name display and legend when the annotation is user-configured
+
 ## Version 0.13.2
 
 - feat(CellDimPlot): support pt_size to be a column name
