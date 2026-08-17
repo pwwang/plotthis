@@ -519,6 +519,7 @@ HeatmapAtomic <- function(
     row_annotation <- rn$annotation
     row_annotation_type <- rn$annotation_type
     row_annotation_params <- rn$annotation_params
+    row_annotation_name <- rn$annotation_name
     row_by_eff <- rn$by_eff
 
     cn <- .resolve_show_modes(
@@ -536,6 +537,7 @@ HeatmapAtomic <- function(
     column_annotation <- cn$annotation
     column_annotation_type <- cn$annotation_type
     column_annotation_params <- cn$annotation_params
+    column_annotation_name <- cn$annotation_name
     col_by_eff <- cn$by_eff
 
     # Determine whether the name annotations are enabled.

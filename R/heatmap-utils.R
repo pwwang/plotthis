@@ -1742,7 +1742,17 @@ process_linkedheatmap_data <- function(
                     is.null(annotation_name[[by_eff]]) &&
                     is.null(annotation_name[[".default"]]) &&
                     is.null(dparams)) {
+                    # nothing configured: disable the name annotation entirely
                     annotation_params[[by_eff]] <- FALSE
+                } else if (!is.null(by_eff) &&
+                    !isFALSE(annotation_params[[by_eff]] %||% TRUE)) {
+                    # user-configured: keep the annotation, but "none" still
+                    # hides the displayed name and the legend
+                    annotation_name[[by_eff]] <- FALSE
+                    annotation_params[[by_eff]] <- utils::modifyList(
+                        annotation_params[[by_eff]] %||% list(),
+                        list(show_legend = FALSE)
+                    )
                 }
             }
             enabled <- !is.null(by_eff) &&
@@ -1795,6 +1805,7 @@ process_linkedheatmap_data <- function(
         annotation = annotation,
         annotation_type = annotation_type,
         annotation_params = annotation_params,
+        annotation_name = annotation_name,
         show = show_flag,
         title = title,
         explicit = explicit,

@@ -263,6 +263,23 @@ test_that("show_row_names = 'none' keeps annotation configured via `name`", {
     expect_true(!is.null(slot(p[[1]], "left_annotation")))
 })
 
+test_that("show_row_names = 'none' hides name display and legend of configured annotation", {
+    skip_if_not_installed("ComplexHeatmap")
+    # "none" = no names, annotation, or legend; a user-configured .row keeps
+    # the annotation bar but the name display and legend are still hidden
+    p <- Heatmap(long_data, rows_by = "gene", columns_by = "sample",
+        values_by = "value", show_row_names = "none",
+        show_column_names = "anno",
+        row_annotation = list(.row = list(palette = "Paired")),
+        combine = FALSE, return_ht = TRUE)
+    x <- p[[1]]
+    la <- slot(x, "left_annotation")
+    expect_identical(names(la@anno_list), "gene")
+    expect_false(la@anno_list[["gene"]]@name_param$show)
+    expect_false("gene" %in% names(attr(x, "legends")))
+    expect_true(".heatmap" %in% names(attr(x, "legends")))
+})
+
 test_that("Heatmap user-defined annotation `name` works", {
     skip_if_not_installed("ComplexHeatmap")
     rows_data <- data.frame(
