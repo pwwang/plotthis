@@ -1304,14 +1304,10 @@ LinkedHeatmapAtomic <- function(
 #'  \code{HeatmapAtomic}.
 #' @param rows_orderby,columns_orderby Column name to order rows / columns
 #'  by (disables clustering when set).
-#' @param columns_name \strong{Deprecated}: use
-#'  \code{column_annotation = list(.col = list(name = ...))} instead.
-#' @param columns_split_name \strong{Deprecated}: use
-#'  \code{column_annotation = list(.col.split = list(name = ...))} instead.
-#' @param rows_name \strong{Deprecated}: use
-#'  \code{row_annotation = list(.row = list(name = ...))} instead.
-#' @param rows_split_name \strong{Deprecated}: use
-#'  \code{row_annotation = list(.row.split = list(name = ...))} instead.
+#' @param columns_name Display name for the column annotation.
+#' @param columns_split_name Display name for the column split annotation.
+#' @param rows_name Display name for the row annotation.
+#' @param rows_split_name Display name for the row split annotation.
 #' @param pie_name Default name for the pie legend.  Used as fallback for
 #'  \code{left_pie_name} / \code{right_pie_name}.
 #' @param pie_group_by Default column(s) for pie grouping.  Used as fallback

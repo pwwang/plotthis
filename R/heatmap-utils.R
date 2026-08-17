@@ -162,23 +162,19 @@ join_heatmap_meta <- function(
 #' When `in_form` is `"long"` or `"wide-columns"`, this is requied, and multiple columns can be specified,
 #' which will be concatenated by `rows_by_sep` into a single column.
 #' @param rows_by_sep A character string to concat multiple columns in `rows_by`.
-#' @param rows_name \strong{Deprecated}: use
-#'  \code{row_annotation = list(.row = list(name = ...))} instead. A character string to rename the column created by `rows_by`, which will be reflected in the name of the annotation or legend.
+#' @param rows_name A character string to rename the column created by `rows_by`, which will be reflected in the name of the annotation or legend.
 #' @param rows_split_by A character of column name in `data` that contains the split information for rows.
 #' @param rows_split_by_sep A character string to concat multiple columns in `rows_split_by`.
-#' @param rows_split_name \strong{Deprecated}: use
-#'  \code{row_annotation = list(.row.split = list(name = ...))} instead. A character string to rename the column created by `rows_split_by`, which will be reflected in the name of the annotation or legend.
+#' @param rows_split_name A character string to rename the column created by `rows_split_by`, which will be reflected in the name of the annotation or legend.
 #' @param columns_by A vector of column names in `data` that contains the column information.
 #' This is used to create the columns of the heatmap.
 #' When `in_form` is `"long"` or `"wide-rows"`, this is required, and multiple columns can be specified,
 #' which will be concatenated by `columns_by_sep` into a single column.
 #' @param columns_by_sep A character string to concat multiple columns in `columns_by`.
-#' @param columns_name \strong{Deprecated}: use
-#'  \code{column_annotation = list(.col = list(name = ...))} instead. A character string to rename the column created by `columns_by`, which will be reflected in the name of the annotation or legend.
+#' @param columns_name A character string to rename the column created by `columns_by`, which will be reflected in the name of the annotation or legend.
 #' @param columns_split_by A character of column name in `data` that contains the split information for columns.
 #' @param columns_split_by_sep A character string to concat multiple columns in `columns_split_by`.
-#' @param columns_split_name \strong{Deprecated}: use
-#'  \code{column_annotation = list(.col.split = list(name = ...))} instead. A character string to rename the column created by `columns_split_by`, which will be reflected in the name of the annotation or legend.
+#' @param columns_split_name A character string to rename the column created by `columns_split_by`, which will be reflected in the name of the annotation or legend.
 #' @param rows_orderby A expression (in character) to specify how to order rows. It will be evaluated in the context of the data frame used for rows (after grouping by rows_split_by and rows_by). The expression should return a vector of the same length as the number of rows in the data frame. The default is NULL, which means no specific ordering.
 #' Can't be used with cluster_rows = TRUE.
 #' This is applied before renaming rows_by to rows_name.
@@ -245,28 +241,6 @@ process_heatmap_data <- function(
         stop("[Heatmap] 'rows_by' and 'columns_by' can not be the same.")
     }
     stopifnot("[Heatmap] no data is presented (nrow == 0)." = nrow(data) > 0)
-
-    # Deprecated: `*_name` args rename the annotation column; use the
-    # `name` sub-key in row_annotation/column_annotation instead
-    deprec_name_map <- list(
-        rows_name = "row_annotation = list(.row = list(name = ...))",
-        columns_name = "column_annotation = list(.col = list(name = ...))",
-        rows_split_name = "row_annotation = list(.row.split = list(name = ...))",
-        columns_split_name = "column_annotation = list(.col.split = list(name = ...))"
-    )
-    for (aname in names(deprec_name_map)) {
-        if (!is.null(get(aname))) {
-            warning(
-                "`",
-                aname,
-                "` is deprecated. Use `",
-                deprec_name_map[[aname]],
-                "` instead.",
-                call. = FALSE
-            )
-        }
-    }
-
     # Infer in_form
     if (in_form == "auto") {
         if (is.matrix(data)) {
@@ -819,30 +793,6 @@ process_linkedheatmap_data <- function(
     stopifnot(
         "[LinkedHeatmap] no data is presented (nrow == 0)." = nrow(data) > 0
     )
-
-    # Deprecated: `*_name` args rename the annotation column; use the
-    # `name` sub-key in row_annotation/column_annotation instead
-    deprec_name_map <- list(
-        rows_split_name = "row_annotation = list(.row.split = list(name = ...))",
-        left_rows_name = "left_row_annotation = list(.row = list(name = ...))",
-        left_columns_name = "left_column_annotation = list(.col = list(name = ...))",
-        left_columns_split_name = "left_column_annotation = list(.col.split = list(name = ...))",
-        right_rows_name = "right_row_annotation = list(.row = list(name = ...))",
-        right_columns_name = "right_column_annotation = list(.col = list(name = ...))",
-        right_columns_split_name = "right_column_annotation = list(.col.split = list(name = ...))"
-    )
-    for (aname in names(deprec_name_map)) {
-        if (!is.null(get(aname))) {
-            warning(
-                "`",
-                aname,
-                "` is deprecated. Use `",
-                deprec_name_map[[aname]],
-                "` instead.",
-                call. = FALSE
-            )
-        }
-    }
 
     if (
         identical(

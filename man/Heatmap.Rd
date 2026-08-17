@@ -194,17 +194,13 @@ split_by and columns_by). The expression should return a vector of the same leng
 Can't be used with cluster_columns = TRUE.
 This is applied before renaming columns_by to columns_name.}
 
-\item{columns_name}{\strong{Deprecated}: use
-\code{column_annotation = list(.col = list(name = ...))} instead. A character string to rename the column created by \code{columns_by}, which will be reflected in the name of the annotation or legend.}
+\item{columns_name}{A character string to rename the column created by \code{columns_by}, which will be reflected in the name of the annotation or legend.}
 
-\item{columns_split_name}{\strong{Deprecated}: use
-\code{column_annotation = list(.col.split = list(name = ...))} instead. A character string to rename the column created by \code{columns_split_by}, which will be reflected in the name of the annotation or legend.}
+\item{columns_split_name}{A character string to rename the column created by \code{columns_split_by}, which will be reflected in the name of the annotation or legend.}
 
-\item{rows_name}{\strong{Deprecated}: use
-\code{row_annotation = list(.row = list(name = ...))} instead. A character string to rename the column created by \code{rows_by}, which will be reflected in the name of the annotation or legend.}
+\item{rows_name}{A character string to rename the column created by \code{rows_by}, which will be reflected in the name of the annotation or legend.}
 
-\item{rows_split_name}{\strong{Deprecated}: use
-\code{row_annotation = list(.row.split = list(name = ...))} instead. A character string to rename the column created by \code{rows_split_by}, which will be reflected in the name of the annotation or legend.}
+\item{rows_split_name}{A character string to rename the column created by \code{rows_split_by}, which will be reflected in the name of the annotation or legend.}
 
 \item{palette}{A character string naming a palette (see
 \code{\link{show_palettes}}) or a character vector of colours for the
@@ -591,17 +587,15 @@ if (requireNamespace("cluster", quietly = TRUE)) {
     # change the column name annotation name
     Heatmap(matrix_data, palette = "viridis", values_by = "z-score",
        show_row_names = TRUE, show_column_names = TRUE,
-       row_annotation = list(.row = list(name = "Features")),
-       row_names_side = "left",
-       column_annotation = list(.col = list(name = "Samples")))
+       rows_name = "Features", row_names_side = "left",
+       columns_name = "Samples")
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
     # flip the heatmap
     Heatmap(matrix_data, palette = "viridis", values_by = "z-score",
        show_row_names = TRUE, show_column_names = TRUE,
-       row_annotation = list(.row = list(name = "Features")),
-       row_names_side = "left",
-       column_annotation = list(.col = list(name = "Samples")), flip = TRUE)
+       rows_name = "Features", row_names_side = "left",
+       columns_name = "Samples", flip = TRUE)
 }
 if (requireNamespace("cluster", quietly = TRUE)) {
     # add annotations to the heatmap

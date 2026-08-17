@@ -282,30 +282,6 @@ test_that("Heatmap user-defined annotation `name` works", {
         "My Group")
 })
 
-test_that("Deprecated *_name args warn but keep working", {
-    skip_if_not_installed("ComplexHeatmap")
-    expect_warning(p <- Heatmap(mat, rows_name = "Features"), "deprecated")
-    expect_true(!is.null(p))
-    expect_warning(Heatmap(mat, columns_split_name = "S"), "deprecated")
-    # LinkedHeatmap: the deprecation warning fires even though the
-    # column rename itself is broken downstream (pre-existing, also
-    # broken in 0.13.2)
-    expect_warning(
-        expect_error(
-            LinkedHeatmap(long_data, values_by = "value", rows_by = "gene",
-                columns_by = "sample", left_rows_name = "Genes"),
-            "not found"),
-        "deprecated")
-    # matrix-form internal default must not warn
-    ws <- character(0)
-    withCallingHandlers(Heatmap(mat),
-        warning = function(w) {
-            ws <<- c(ws, conditionMessage(w))
-            invokeRestart("muffleWarning")
-        })
-    expect_false(any(grepl("is deprecated", ws)))
-})
-
 # Bars cell type: unbalanced fixture, column counts 10 vs 4 (gcd 2 -> k = c(5, 2))
 bars_data <- data.frame(
     gene = rep(c("G1", "G2"), each = 7),

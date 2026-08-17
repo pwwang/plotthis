@@ -80,15 +80,13 @@ which will be concatenated by \code{rows_by_sep} into a single column.}
 
 \item{rows_by_sep}{A character string to concat multiple columns in \code{rows_by}.}
 
-\item{rows_name}{\strong{Deprecated}: use
-\code{row_annotation = list(.row = list(name = ...))} instead. A character string to rename the column created by \code{rows_by}, which will be reflected in the name of the annotation or legend.}
+\item{rows_name}{A character string to rename the column created by \code{rows_by}, which will be reflected in the name of the annotation or legend.}
 
 \item{rows_split_by}{A character of column name in \code{data} that contains the split information for rows.}
 
 \item{rows_split_by_sep}{A character string to concat multiple columns in \code{rows_split_by}.}
 
-\item{rows_split_name}{\strong{Deprecated}: use
-\code{row_annotation = list(.row.split = list(name = ...))} instead. A character string to rename the column created by \code{rows_split_by}, which will be reflected in the name of the annotation or legend.}
+\item{rows_split_name}{A character string to rename the column created by \code{rows_split_by}, which will be reflected in the name of the annotation or legend.}
 
 \item{columns_by}{A vector of column names in \code{data} that contains the column information.
 This is used to create the columns of the heatmap.
@@ -97,15 +95,13 @@ which will be concatenated by \code{columns_by_sep} into a single column.}
 
 \item{columns_by_sep}{A character string to concat multiple columns in \code{columns_by}.}
 
-\item{columns_name}{\strong{Deprecated}: use
-\code{column_annotation = list(.col = list(name = ...))} instead. A character string to rename the column created by \code{columns_by}, which will be reflected in the name of the annotation or legend.}
+\item{columns_name}{A character string to rename the column created by \code{columns_by}, which will be reflected in the name of the annotation or legend.}
 
 \item{columns_split_by}{A character of column name in \code{data} that contains the split information for columns.}
 
 \item{columns_split_by_sep}{A character string to concat multiple columns in \code{columns_split_by}.}
 
-\item{columns_split_name}{\strong{Deprecated}: use
-\code{column_annotation = list(.col.split = list(name = ...))} instead. A character string to rename the column created by \code{columns_split_by}, which will be reflected in the name of the annotation or legend.}
+\item{columns_split_name}{A character string to rename the column created by \code{columns_split_by}, which will be reflected in the name of the annotation or legend.}
 
 \item{pie_group_by}{A character of column name in \code{data} that contains the group information for pie charts.
 This is used to create pie charts in the heatmap when \code{cell_type} is \code{"pie"}.}
