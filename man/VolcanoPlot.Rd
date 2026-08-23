@@ -442,5 +442,8 @@ VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
 VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", color_by = "pct_diff",
    y_cutoff_name = "-log10(0.05)", split_by = "group", label_by = "gene",
    palette = c(A = "Set1", B = "Dark2"))
+# --- Trim extreme x-values (winsorize to 2\% and 98\% quantiles) ---
+VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", color_by = "pct_diff",
+   y_cutoff_name = "-log10(0.05)", trim = c(0.02, 0.98))
 }
 }
