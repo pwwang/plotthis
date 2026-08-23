@@ -117,3 +117,85 @@ test_that("VolcanoPlot width/height attributes are numeric", {
     expect_true(is.numeric(attr(p, "width")))
     expect_true(is.numeric(attr(p, "height")))
 })
+
+test_that("VolcanoPlot with raster = TRUE uses scattermore layers", {
+    p <- VolcanoPlot(data, x = "logFC", y = "pvalue", nlabel = 0, raster = TRUE)
+    expect_s3_class(p, "ggplot")
+    expect_true(any(vapply(p$layers, function(l) inherits(l$geom, "GeomScattermore"), logical(1))))
+    # highlight stays as sharp vector points
+    p2 <- VolcanoPlot(data, x = "logFC", y = "pvalue", nlabel = 0,
+                      raster = TRUE, highlight = rownames(data)[1:5])
+    expect_s3_class(p2, "ggplot")
+})
+
+test_that("VolcanoPlot raster border uses scattermore discs following pt_border_color/pt_border_size", {
+    n_scatter <- function(p) sum(vapply(p$layers, function(l) inherits(l$geom, "GeomScattermore"), logical(1)))
+    # default shape 21 + TRUE border: border disc + panel-colour erase disc +
+    # translucent fill dot per data subset
+    p <- VolcanoPlot(data, x = "logFC", y = "pvalue", nlabel = 0, raster = TRUE)
+    expect_equal(n_scatter(p), 9)
+    # border disabled (FALSE / size 0 / shape without fill): fill dots only
+    p0 <- VolcanoPlot(data, x = "logFC", y = "pvalue", nlabel = 0,
+                      raster = TRUE, pt_border_color = FALSE)
+    expect_equal(n_scatter(p0), 3)
+    p1 <- VolcanoPlot(data, x = "logFC", y = "pvalue", nlabel = 0,
+                      raster = TRUE, pt_shape = 16)
+    expect_equal(n_scatter(p1), 3)
+    p3 <- VolcanoPlot(data, x = "logFC", y = "pvalue", nlabel = 0,
+                      raster = TRUE, pt_border_size = 0)
+    expect_equal(n_scatter(p3), 3)
+    # constant colour border: opaque border disc with that colour, larger than
+    # the translucent fill dot; the erase disc matches the panel background
+    p2 <- VolcanoPlot(data, x = "logFC", y = "pvalue", nlabel = 0,
+                      raster = TRUE, pt_border_color = "black")
+    expect_equal(n_scatter(p2), 9)
+    discs <- p2$layers[vapply(p2$layers, function(l) {
+        inherits(l$geom, "GeomScattermore") && is.null(l$mapping$colour) &&
+            identical(l$aes_params$colour, "black") && identical(l$aes_params$alpha, 1)
+    }, logical(1))]
+    expect_length(discs, 3)
+    fills <- p2$layers[vapply(p2$layers, function(l) {
+        inherits(l$geom, "GeomScattermore") && !is.null(l$mapping$colour) &&
+            identical(l$aes_params$alpha, 0.5)
+    }, logical(1))]
+    expect_length(fills, 3)
+    expect_true(all(mapply(
+        function(d, f) d$geom_params$pointsize > f$geom_params$pointsize,
+        discs, fills
+    )))
+    erases <- p2$layers[vapply(p2$layers, function(l) {
+        inherits(l$geom, "GeomScattermore") && is.null(l$mapping$colour) &&
+            !identical(l$aes_params$colour, "black") && identical(l$aes_params$alpha, 1)
+    }, logical(1))]
+    expect_length(erases, 3)
+})
+
+test_that("VolcanoPlot pt_shape/pt_border_color control vector point layers", {
+    # default shape 21 + TRUE border: single layer with fill+colour mapped
+    p <- VolcanoPlot(data, x = "logFC", y = "pvalue", nlabel = 0,
+                     color_by = "group")
+    point_layers <- p$layers[vapply(p$layers, function(l) inherits(l$geom, "GeomPoint"), logical(1))]
+    expect_true(any(vapply(point_layers, function(l) !is.null(l$mapping$fill), logical(1))))
+    expect_true(any(vapply(point_layers, function(l) !is.null(l$mapping$colour), logical(1))))
+    # shape without fill: colour aesthetic instead
+    p1 <- VolcanoPlot(data, x = "logFC", y = "pvalue", nlabel = 0,
+                      color_by = "group", pt_shape = 16)
+    point_layers1 <- p1$layers[vapply(p1$layers, function(l) inherits(l$geom, "GeomPoint"), logical(1))]
+    expect_true(any(vapply(point_layers1, function(l) !is.null(l$mapping$colour), logical(1))))
+    # constant border colour: translucent fill + opaque ring on top
+    p2 <- VolcanoPlot(data, x = "logFC", y = "pvalue", nlabel = 0,
+                      color_by = "group", pt_border_color = "black")
+    point_layers2 <- p2$layers[vapply(p2$layers, function(l) inherits(l$geom, "GeomPoint"), logical(1))]
+    expect_true(any(vapply(point_layers2, function(l) identical(l$aes_params$colour, "black"), logical(1))))
+    expect_true(any(vapply(point_layers2, function(l) identical(l$aes_params$alpha, 1), logical(1))))
+    expect_true(any(vapply(point_layers2, function(l) identical(l$aes_params$stroke, 0.5), logical(1))))
+})
+
+test_that("VolcanoPlot raster auto-enables above 1e3 points", {
+    big <- rbind(data, data, data, data, data, data, data, data, data, data, data, data)[seq_len(1200), ]
+    p <- VolcanoPlot(big, x = "logFC", y = "pvalue", nlabel = 0)
+    expect_true(any(vapply(p$layers, function(l) inherits(l$geom, "GeomScattermore"), logical(1))))
+    # single raster_dpi value is recycled
+    p2 <- VolcanoPlot(big, x = "logFC", y = "pvalue", nlabel = 0, raster_dpi = 256)
+    expect_s3_class(p2, "ggplot")
+})

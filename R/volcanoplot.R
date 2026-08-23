@@ -187,6 +187,23 @@
 #'  points. Default: \code{2}.
 #' @param pt_alpha A numeric value in \code{[0, 1]} specifying the
 #'  transparency of all data points. Default: \code{0.5}.
+#' @param pt_shape A numeric value specifying the point shape. Default: \code{21}
+#'  (filled circle with border). Shapes 21--25 support separate fill and border
+#'  colour aesthetics; all other shapes use a single colour aesthetic. In
+#'  raster mode, all points are drawn as filled circles (shape is ignored).
+#' @param pt_border_color Controls the point border colour. For shapes 21--25:
+#'  \itemize{
+#'    \item \code{TRUE} (default) -- border colour tracks the \code{color_by}
+#'    gradient / palette.
+#'    \item A colour string (e.g. \code{"black"}) -- constant colour border.
+#'  }
+#'  \code{FALSE} or \code{NULL} disables the border. For shapes without a fill
+#'  aesthetic (not 21--25), this parameter has no effect. In raster mode the
+#'  border is drawn as a slightly larger disc behind each point (the shape is
+#'  always a circle there), and \code{TRUE} falls back to a border disc in the
+#'  \code{color_by} colour.
+#' @param pt_border_size A numeric value specifying the point border size
+#'  (stroke width, in mm). \code{0} disables the border. Default: \code{0.5}.
 #' @param nlabel An integer specifying the number of top features to label
 #'  automatically. Points are ranked by Euclidean distance to the origin
 #'  within each \code{sign(x)} group (and per facet level if
@@ -221,6 +238,12 @@
 #'  transparency of the highlight points. Default: \code{1}.
 #' @param highlight_stroke A numeric value specifying the stroke width of
 #'  the highlight point borders. Default: \code{0.5}.
+#' @param raster A logical value. If `TRUE`, points are rendered via
+#'  `scattermore::geom_scattermore()` for efficient rasterised plotting.
+#'  Default is `NULL`, which auto-enables when `nrow(data) > 1e3`.
+#' @param raster_dpi A numeric vector of length 2 `[x_dpi, y_dpi]` specifying the raster
+#'  resolution in pixels. Passed to `scattermore::geom_scattermore(pixels = ...)`.
+#'  Default is `c(512, 512)`. If a single value is provided it is recycled to both dimensions.
 #'
 #' @return A \code{ggplot} object with \code{height} and \code{width}
 #'  attributes (in inches) attached.
@@ -248,6 +271,9 @@ VolcanoPlotAtomic <- function(
     y_cutoff_linewidth = 0.5,
     pt_size = 2,
     pt_alpha = 0.5,
+    pt_shape = 21,
+    pt_border_color = TRUE,
+    pt_border_size = 0.5,
     nlabel = 5,
     labels = NULL,
     label_by = NULL,
@@ -260,6 +286,8 @@ VolcanoPlotAtomic <- function(
     highlight_size = 2,
     highlight_alpha = 1,
     highlight_stroke = 0.5,
+    raster = NULL,
+    raster_dpi = c(512, 512),
     facet_by = NULL,
     facet_scales = "fixed",
     facet_ncol = NULL,
@@ -409,17 +437,145 @@ VolcanoPlotAtomic <- function(
     neg_x_nudge <- diff(range(neg_data[[x]])) * 0.05
     jitter <- position_jitter(width = 0.2, height = 0.2, seed = seed)
 
-    p <- ggplot(
-        mapping = aes(x = !!sym(x), y = !!sym(y), color = !!sym(color_by))
-    ) +
-        geom_point(data = pos_data, size = pt_size, alpha = pt_alpha) +
-        geom_point(data = neg_data, size = pt_size, alpha = pt_alpha) +
-        geom_point(
-            data = outlier_data,
-            size = pt_size,
-            alpha = pt_alpha,
-            position = jitter
-        )
+    raster <- raster %||% (nrow(data) > 1e3)
+    if (length(raster_dpi) == 1) {
+        raster_dpi <- rep(raster_dpi, 2)
+    }
+    dims <- calculate_plot_dimensions(
+        base_height = 5,
+        aspect.ratio = aspect.ratio,
+        legend.position = legend.position,
+        legend.direction = legend.direction
+    )
+    # scattermore's `pointsize` is a radius in raster pixels; convert the
+    # ggplot point size (diameter in mm) so raster points match geom_point
+    raster_pointsize <- max(
+        1,
+        round(pt_size * raster_dpi[1] / (25.4 * 1.25 * dims$width))
+    )
+
+    shape_has_fill <- pt_shape %in% 21:25
+    has_border <- shape_has_fill && !is.null(pt_border_color) && !isFALSE(pt_border_color)
+    # vector border colour: TRUE maps the aesthetic, FALSE/NULL hides the border
+    vector_border <- if (isTRUE(pt_border_color)) {
+        NULL
+    } else if (isFALSE(pt_border_color) || is.null(pt_border_color)) {
+        "transparent"
+    } else {
+        pt_border_color
+    }
+
+    p <- ggplot(mapping = aes(x = !!sym(x), y = !!sym(y)))
+    if (isTRUE(raster)) {
+        # scattermore can only stamp filled discs: no fill aesthetic, no
+        # border. The border is a slightly larger disc stamped behind, with
+        # the `color_by` colour riding the colour aesthetic. An opaque disc
+        # of the panel background is stamped between border and fill —
+        # otherwise the border colour would tint the translucent interior.
+        # same mm -> raster-px conversion as raster_pointsize (including the
+        # 1.25 calibration and plot width), so the border keeps its vector
+        # proportion of the point instead of dwarfing it
+        border_px <- if (has_border && pt_border_size > 0) {
+            max(1, round(pt_border_size * raster_dpi[1] / (25.4 * 1.25 * dims$width)))
+        } else {
+            0
+        }
+        panel_fill <- do_call(theme, theme_args)$panel.background$fill %||% "white"
+        raster_layer <- function(dat, position = NULL) {
+            position <- position %||% "identity"
+            fill_layer <- scattermore::geom_scattermore(
+                data = dat,
+                mapping = aes(color = !!sym(color_by)),
+                pointsize = raster_pointsize,
+                alpha = pt_alpha,
+                pixels = raster_dpi,
+                position = position
+            )
+            if (border_px == 0) {
+                return(list(fill_layer))
+            }
+            disc_args <- list(
+                data = dat,
+                pointsize = raster_pointsize + border_px,
+                alpha = 1,
+                pixels = raster_dpi,
+                position = position
+            )
+            if (isTRUE(pt_border_color)) {
+                disc_args$mapping <- aes(color = !!sym(color_by))
+            } else {
+                disc_args$color <- vector_border
+            }
+            list(
+                do_call(scattermore::geom_scattermore, disc_args),
+                scattermore::geom_scattermore(
+                    data = dat,
+                    color = panel_fill,
+                    pointsize = raster_pointsize,
+                    alpha = 1,
+                    pixels = raster_dpi,
+                    position = position
+                ),
+                fill_layer
+            )
+        }
+        p <- p +
+            raster_layer(pos_data) +
+            raster_layer(neg_data) +
+            raster_layer(outlier_data, position = jitter)
+    } else {
+        point_layer <- function(dat, position = NULL) {
+            args <- list(
+                data = dat,
+                size = pt_size,
+                alpha = pt_alpha,
+                shape = pt_shape
+            )
+            if (shape_has_fill) {
+                if (isTRUE(pt_border_color)) {
+                    # border tracks the fill gradient / palette (single layer)
+                    args$mapping <- aes(fill = !!sym(color_by), color = !!sym(color_by))
+                    args$stroke <- pt_border_size
+                } else {
+                    args$mapping <- aes(fill = !!sym(color_by))
+                    # stroke 0 suppresses the point's own outline; a constant
+                    # colour border is drawn by the ring layer on top. NA would
+                    # hide the whole point, and "transparent" becomes opaque
+                    # white through scales::alpha() when pt_alpha = 1.
+                    args$color <- "transparent"
+                    args$stroke <- 0
+                }
+            } else {
+                args$mapping <- aes(color = !!sym(color_by))
+            }
+            if (!is.null(position)) {
+                args$position <- position
+            }
+            layers <- list(do_call(geom_point, args))
+            if (has_border && !isTRUE(pt_border_color) && pt_border_size > 0) {
+                # opaque border ring layer on top, so the border stays visible
+                # under translucent fills (same look as the raster mode)
+                border_args <- list(
+                    data = dat,
+                    size = pt_size,
+                    shape = pt_shape,
+                    alpha = 1,
+                    fill = NA,
+                    color = vector_border,
+                    stroke = pt_border_size
+                )
+                if (!is.null(position)) {
+                    border_args$position <- position
+                }
+                layers[[2]] <- do_call(geom_point, border_args)
+            }
+            layers
+        }
+        p <- p +
+            point_layer(pos_data) +
+            point_layer(neg_data) +
+            point_layer(outlier_data, position = jitter)
+    }
 
     if (color_type == "discrete") {
         colors <- palette_this(
@@ -431,27 +587,43 @@ VolcanoPlotAtomic <- function(
         if (is.null(palcolor)) {
             colors['insig'] <- "grey"
         }
-        p <- p + scale_color_manual(values = colors, guide = "none")
+        if (shape_has_fill && !isTRUE(raster)) {
+            p <- p + scale_fill_manual(values = colors, guide = "none")
+            if (isTRUE(pt_border_color)) {
+                p <- p + scale_color_manual(values = colors, guide = "none")
+            }
+        } else {
+            p <- p + scale_color_manual(values = colors, guide = "none")
+        }
     } else {
-        p <- p +
-            scale_color_gradientn(
-                colors = palette_this(
-                    palette = palette,
-                    palcolor = palcolor,
-                    reverse = palreverse
-                ),
-                values = scales::rescale(unique(c(
-                    min(c(unlist(data[[color_by]]), 0), na.rm = TRUE),
-                    0,
-                    max(unlist(data[[color_by]]), na.rm = TRUE)
-                ))),
-                guide = guide_colorbar(
-                    frame.colour = "black",
-                    ticks.colour = "black",
-                    title.hjust = 0,
-                    order = 1
-                )
+        grad_args <- list(
+            colors = palette_this(
+                palette = palette,
+                palcolor = palcolor,
+                reverse = palreverse
+            ),
+            values = scales::rescale(unique(c(
+                min(c(unlist(data[[color_by]]), 0), na.rm = TRUE),
+                0,
+                max(unlist(data[[color_by]]), na.rm = TRUE)
+            ))),
+            guide = guide_colorbar(
+                title = color_name %||% color_by,
+                frame.colour = "black",
+                ticks.colour = "black",
+                title.hjust = 0,
+                order = 1
             )
+        )
+        if (shape_has_fill && !isTRUE(raster)) {
+            p <- p + do_call(scale_fill_gradientn, grad_args)
+            if (isTRUE(pt_border_color)) {
+                grad_args$guide <- guide_none()
+                p <- p + do_call(scale_color_gradientn, grad_args)
+            }
+        } else {
+            p <- p + do_call(scale_color_gradientn, grad_args)
+        }
     }
 
     if (!is.null(highlight)) {
@@ -611,13 +783,6 @@ VolcanoPlotAtomic <- function(
             legend.position = legend.position,
             legend.direction = legend.direction
         )
-
-    dims <- calculate_plot_dimensions(
-        base_height = 5,
-        aspect.ratio = aspect.ratio,
-        legend.position = legend.position,
-        legend.direction = legend.direction
-    )
 
     attr(p, "height") <- dims$height
     attr(p, "width") <- dims$width
@@ -807,6 +972,9 @@ VolcanoPlot <- function(
     y_cutoff_linewidth = 0.5,
     pt_size = 2,
     pt_alpha = 0.5,
+    pt_shape = 21,
+    pt_border_color = TRUE,
+    pt_border_size = 0.5,
     nlabel = 5,
     labels = NULL,
     label_size = 3,
@@ -818,6 +986,8 @@ VolcanoPlot <- function(
     highlight_size = 2,
     highlight_alpha = 1,
     highlight_stroke = 0.5,
+    raster = NULL,
+    raster_dpi = c(512, 512),
     trim = c(0, 1),
     facet_by = NULL,
     facet_scales = "fixed",
@@ -916,6 +1086,9 @@ VolcanoPlot <- function(
                 y_cutoff_linewidth = y_cutoff_linewidth,
                 pt_size = pt_size,
                 pt_alpha = pt_alpha,
+                pt_shape = pt_shape,
+                pt_border_color = pt_border_color,
+                pt_border_size = pt_border_size,
                 nlabel = nlabel,
                 labels = labels,
                 label_size = label_size,
@@ -927,6 +1100,8 @@ VolcanoPlot <- function(
                 highlight_size = highlight_size,
                 highlight_alpha = highlight_alpha,
                 highlight_stroke = highlight_stroke,
+                raster = raster,
+                raster_dpi = raster_dpi,
                 facet_by = facet_by,
                 facet_scales = facet_scales,
                 facet_ncol = facet_ncol,

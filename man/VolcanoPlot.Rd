@@ -28,6 +28,9 @@ VolcanoPlot(
   y_cutoff_linewidth = 0.5,
   pt_size = 2,
   pt_alpha = 0.5,
+  pt_shape = 21,
+  pt_border_color = TRUE,
+  pt_border_size = 0.5,
   nlabel = 5,
   labels = NULL,
   label_size = 3,
@@ -39,6 +42,8 @@ VolcanoPlot(
   highlight_size = 2,
   highlight_alpha = 1,
   highlight_stroke = 0.5,
+  raster = NULL,
+  raster_dpi = c(512, 512),
   trim = c(0, 1),
   facet_by = NULL,
   facet_scales = "fixed",
@@ -160,6 +165,26 @@ points. Default: \code{2}.}
 \item{pt_alpha}{A numeric value in \code{[0, 1]} specifying the
 transparency of all data points. Default: \code{0.5}.}
 
+\item{pt_shape}{A numeric value specifying the point shape. Default: \code{21}
+(filled circle with border). Shapes 21--25 support separate fill and border
+colour aesthetics; all other shapes use a single colour aesthetic. In
+raster mode, all points are drawn as filled circles (shape is ignored).}
+
+\item{pt_border_color}{Controls the point border colour. For shapes 21--25:
+\itemize{
+\item \code{TRUE} (default) -- border colour tracks the \code{color_by}
+gradient / palette.
+\item A colour string (e.g. \code{"black"}) -- constant colour border.
+}
+\code{FALSE} or \code{NULL} disables the border. For shapes without a fill
+aesthetic (not 21--25), this parameter has no effect. In raster mode the
+border is drawn as a slightly larger disc behind each point (the shape is
+always a circle there), and \code{TRUE} falls back to a border disc in the
+\code{color_by} colour.}
+
+\item{pt_border_size}{A numeric value specifying the point border size
+(stroke width, in mm). \code{0} disables the border. Default: \code{0.5}.}
+
 \item{nlabel}{An integer specifying the number of top features to label
 automatically. Points are ranked by Euclidean distance to the origin
 within each \code{sign(x)} group (and per facet level if
@@ -201,6 +226,14 @@ transparency of the highlight points. Default: \code{1}.}
 
 \item{highlight_stroke}{A numeric value specifying the stroke width of
 the highlight point borders. Default: \code{0.5}.}
+
+\item{raster}{A logical value. If \code{TRUE}, points are rendered via
+\code{scattermore::geom_scattermore()} for efficient rasterised plotting.
+Default is \code{NULL}, which auto-enables when \code{nrow(data) > 1e3}.}
+
+\item{raster_dpi}{A numeric vector of length 2 \verb{[x_dpi, y_dpi]} specifying the raster
+resolution in pixels. Passed to \code{scattermore::geom_scattermore(pixels = ...)}.
+Default is \code{c(512, 512)}. If a single value is provided it is recycled to both dimensions.}
 
 \item{trim}{A numeric vector of length 2 specifying quantile bounds for
 winsorizing the x-axis values. Values below the first quantile are
