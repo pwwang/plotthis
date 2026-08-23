@@ -141,6 +141,7 @@
 #'  }
 #'  For shapes without a fill aesthetic (not 21--25), this parameter has no
 #'  effect.
+#' @param border_size A numeric value specifying the point border size. Default: \code{0.5}.
 #' @param highlight Specifies which points to highlight with an overlaid
 #'  \code{geom_point()} layer. Accepted values:
 #'  \itemize{
@@ -196,6 +197,7 @@ ScatterPlotAtomic <- function(
     alpha = ifelse(shape %in% 21:25, 0.65, 1),
     shape = 21,
     border_color = "black",
+    border_size = 0.5,
     lower_quantile = 0,
     upper_quantile = 0.99,
     lower_cutoff = NULL,
@@ -297,6 +299,7 @@ ScatterPlotAtomic <- function(
         } else {
             point_layer_args$color <- border_color
         }
+        point_layer_args$stroke <- border_size
     } else {
         mapping[[length(mapping) + 1]] <- aes(color = !!sym(color_by))
     }
@@ -722,6 +725,7 @@ ScatterPlot <- function(
     shape = 21,
     alpha = ifelse(shape %in% 21:25, 0.65, 1),
     border_color = "black",
+    border_size = 0.5,
     highlight = NULL,
     highlight_shape = 16,
     highlight_size = 3,
@@ -827,6 +831,7 @@ ScatterPlot <- function(
                 alpha = alpha,
                 shape = shape,
                 border_color = border_color,
+                border_size = border_size,
                 palette = palette[[nm]],
                 palcolor = palcolor[[nm]],
                 facet_by = facet_by,

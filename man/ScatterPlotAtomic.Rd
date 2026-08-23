@@ -18,6 +18,7 @@ ScatterPlotAtomic(
   alpha = ifelse(shape \%in\% 21:25, 0.65, 1),
   shape = 21,
   border_color = "black",
+  border_size = 0.5,
   lower_quantile = 0,
   upper_quantile = 0.99,
   lower_cutoff = NULL,
@@ -100,6 +101,8 @@ colour border.
 }
 For shapes without a fill aesthetic (not 21--25), this parameter has no
 effect.}
+
+\item{border_size}{A numeric value specifying the point border size. Default: \code{0.5}.}
 
 \item{lower_quantile, upper_quantile}{Lower and upper quantiles for the continuous color/fill scale.
 The actual cutoffs are determined by these quantiles when \code{lower_cutoff} and
