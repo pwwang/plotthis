@@ -76,3 +76,92 @@ test_that("JitterPlot width/height attributes are numeric", {
     expect_true(is.numeric(attr(p, "width")))
     expect_true(is.numeric(attr(p, "height")))
 })
+
+test_that("JitterPlot raster = TRUE uses scattermore layers", {
+    n_sc <- function(p) sum(vapply(p$layers, function(l) {
+        inherits(l$geom, "GeomScattermore")
+    }, logical(1)))
+    # default border "black": border disc + panel-colour erase disc +
+    # translucent fill dot
+    p <- JitterPlot(data, x = "x", y = "y", raster = TRUE)
+    expect_equal(n_sc(p), 3)
+    expect_false(any(vapply(p$layers, function(l) {
+        inherits(l$geom, "GeomPoint")
+    }, logical(1))))
+    # highlight stays as sharp vector points on top
+    p2 <- JitterPlot(data, x = "x", y = "y", raster = TRUE,
+                     highlight = c(1, 5, 10))
+    expect_equal(n_sc(p2), 3)
+    expect_true(any(vapply(p2$layers, function(l) {
+        inherits(l$geom, "GeomPoint")
+    }, logical(1))))
+})
+
+test_that("JitterPlot raster border follows border param", {
+    n_sc <- function(p) sum(vapply(p$layers, function(l) {
+        inherits(l$geom, "GeomScattermore")
+    }, logical(1)))
+    # border disabled or shape without fill: fill dots only
+    p0 <- JitterPlot(data, x = "x", y = "y", raster = TRUE, border = FALSE)
+    expect_equal(n_sc(p0), 1)
+    p1 <- JitterPlot(data, x = "x", y = "y", raster = TRUE, shape = 16)
+    expect_equal(n_sc(p1), 1)
+    # constant colour border: opaque border disc with that colour, larger
+    # than the translucent fill dot; the erase disc matches the panel
+    p2 <- JitterPlot(data, x = "x", y = "y", raster = TRUE, border = "black")
+    expect_equal(n_sc(p2), 3)
+    disc <- p2$layers[vapply(p2$layers, function(l) {
+        inherits(l$geom, "GeomScattermore") && is.null(l$mapping$colour) &&
+            identical(l$aes_params$colour, "black") && identical(l$aes_params$alpha, 1)
+    }, logical(1))]
+    expect_length(disc, 1)
+    fill <- p2$layers[vapply(p2$layers, function(l) {
+        inherits(l$geom, "GeomScattermore") && !is.null(l$mapping$colour)
+    }, logical(1))]
+    expect_length(fill, 1)
+    expect_true(disc[[1]]$geom_params$pointsize > fill[[1]]$geom_params$pointsize)
+    erase <- p2$layers[vapply(p2$layers, function(l) {
+        inherits(l$geom, "GeomScattermore") && is.null(l$mapping$colour) &&
+            !identical(l$aes_params$colour, "black") && identical(l$aes_params$alpha, 1)
+    }, logical(1))]
+    expect_length(erase, 1)
+})
+
+test_that("JitterPlot raster works with group_by, split_by and facet_by", {
+    n_sc <- function(p) sum(vapply(p$layers, function(l) {
+        inherits(l$geom, "GeomScattermore")
+    }, logical(1)))
+    p <- JitterPlot(data, x = "x", y = "y", group_by = "group1", raster = TRUE)
+    expect_equal(n_sc(p), 3)
+    expect_s3_class(p, "ggplot")
+    plots <- JitterPlot(data, x = "x", y = "y", raster = TRUE,
+                        split_by = "group2", combine = FALSE)
+    expect_length(plots, 2)
+    expect_true(all(vapply(plots, n_sc, numeric(1)) == 3))
+    p2 <- JitterPlot(data, x = "x", y = "y", raster = TRUE, facet_by = "group1")
+    expect_s3_class(p2, "ggplot")
+})
+
+test_that("JitterPlot raster falls back to vector points when size_by is mapped", {
+    expect_warning(
+        p <- JitterPlot(data, x = "x", y = "y", raster = TRUE, size_by = "size_col"),
+        "raster"
+    )
+    expect_true(any(vapply(p$layers, function(l) {
+        inherits(l$geom, "GeomPoint")
+    }, logical(1))))
+    expect_false(any(vapply(p$layers, function(l) {
+        inherits(l$geom, "GeomScattermore")
+    }, logical(1))))
+})
+
+test_that("JitterPlot raster auto-enables above 1e3 points", {
+    big <- do.call(rbind, rep(list(data), 12))[seq_len(1200), ]
+    p <- JitterPlot(big, x = "x", y = "y")
+    expect_true(any(vapply(p$layers, function(l) {
+        inherits(l$geom, "GeomScattermore")
+    }, logical(1))))
+    # single raster_dpi value is recycled
+    p2 <- JitterPlot(big, x = "x", y = "y", raster_dpi = 256)
+    expect_s3_class(p2, "ggplot")
+})

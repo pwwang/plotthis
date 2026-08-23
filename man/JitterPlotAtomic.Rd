@@ -70,6 +70,8 @@ JitterPlotAtomic(
   xlab = NULL,
   ylab = NULL,
   seed = 8525,
+  raster = NULL,
+  raster_dpi = c(512, 512),
   ...
 )
 }
@@ -315,6 +317,16 @@ This is useful when split_by is used and the title needs to be dynamic.}
 \item{ylab}{A character string specifying the y-axis label.}
 
 \item{seed}{The random seed to use. Default is 8525.}
+
+\item{raster}{A logical value. If \code{TRUE}, points are rendered via
+\code{scattermore::geom_scattermore()} for efficient rasterised plotting.
+Default is \code{NULL}, which auto-enables when \code{nrow(data) > 1e3}.
+Ignored (with a warning) when \code{size_by} is mapped to a column, since
+scattermore cannot vary the point size per point.}
+
+\item{raster_dpi}{A numeric vector of length 2 \verb{[x_dpi, y_dpi]} specifying the raster
+resolution in pixels. Passed to \code{scattermore::geom_scattermore(pixels = ...)}.
+Default is \code{c(512, 512)}. If a single value is provided it is recycled to both dimensions.}
 
 \item{...}{Additional arguments.}
 }

@@ -265,6 +265,14 @@
 #'  points.  Default: \code{1}.
 #' @param highlight_alpha A numeric value in \code{[0, 1]} specifying the
 #'  transparency of highlighted points.  Default: \code{1}.
+#' @param raster A logical value. If `TRUE`, points are rendered via
+#'  `scattermore::geom_scattermore()` for efficient rasterised plotting.
+#'  Default is `NULL`, which auto-enables when `nrow(data) > 1e3`.
+#'  Ignored (with a warning) when `size_by` is mapped to a column, since
+#'  scattermore cannot vary the point size per point.
+#' @param raster_dpi A numeric vector of length 2 `[x_dpi, y_dpi]` specifying the raster
+#'  resolution in pixels. Passed to `scattermore::geom_scattermore(pixels = ...)`.
+#'  Default is `c(512, 512)`. If a single value is provided it is recycled to both dimensions.
 #' @return A \code{ggplot} object with \code{height} and \code{width}
 #'  attributes (in inches) attached.
 #' @keywords internal
@@ -347,6 +355,8 @@ JitterPlotAtomic <- function(
     xlab = NULL,
     ylab = NULL,
     seed = 8525,
+    raster = NULL,
+    raster_dpi = c(512, 512),
     ...
 ) {
     set.seed(seed)
@@ -573,59 +583,164 @@ JitterPlotAtomic <- function(
 
     # Build point layer, color by x
     has_fill <- shape %in% 21:25
-    point_args <- list(
-        shape = shape,
-        position = pos,
-        alpha = alpha
-    )
-    mapping <- list(aes())
+    raster <- raster %||% (nrow(data) > 1e3)
+    if (isTRUE(raster) && !is.numeric(size_by)) {
+        warning(
+            "[JitterPlot] `raster` is ignored when `size_by` is mapped to a column; ",
+            "falling back to vector points.",
+            call. = FALSE
+        )
+        raster <- FALSE
+    }
+    if (isTRUE(raster)) {
+        # scattermore can only stamp filled discs (no fill aesthetic, no
+        # border): the colour rides the `color` aesthetic. A border is a
+        # slightly larger disc stamped behind, with an opaque disc of the
+        # panel background in between, so the border colour doesn't tint the
+        # translucent interior. All layers share `pos`, so every disc gets
+        # the same jitter offsets.
+        dims_r <- calculate_plot_dimensions(
+            base_height = 5,
+            aspect.ratio = aspect.ratio,
+            legend.position = legend.position,
+            legend.direction = legend.direction
+        )
+        # scattermore's `pointsize` is a radius in raster pixels; convert the
+        # ggplot point size (diameter in mm) so raster points match geom_point
+        raster_pointsize <- max(
+            1,
+            round(size_by * raster_dpi[1] / (25.4 * dims_r$width))
+        )
+        if (length(raster_dpi) == 1) {
+            raster_dpi <- rep(raster_dpi, 2)
+        }
+        # the border follows the vector default stroke (0.5 mm) through the
+        # same conversion, so it keeps its vector proportion of the point
+        border_px <- if (has_fill && !is.null(border) && !isFALSE(border)) {
+            max(1, round(0.5 * raster_dpi[1] / (25.4 * dims_r$width)))
+        } else {
+            0
+        }
+        panel_fill <- do_call(theme, theme_args)$panel.background$fill %||% "white"
+        fill_mapping <- aes(color = !!sym(color_col))
+        if (!is.null(group_by)) {
+            # required for position_jitterdodge to dodge by group
+            fill_mapping <- Reduce(
+                utils::getFromNamespace("modify_list", "ggplot2"),
+                list(fill_mapping, aes(group = !!sym(group_by)))
+            )
+        }
+        fill_layer <- scattermore::geom_scattermore(
+            data = data,
+            mapping = fill_mapping,
+            pointsize = raster_pointsize,
+            alpha = alpha,
+            pixels = raster_dpi,
+            position = pos
+        )
+        if (border_px == 0) {
+            p <- p + fill_layer
+        } else {
+            disc_args <- list(
+                data = data,
+                pointsize = raster_pointsize + border_px,
+                alpha = 1,
+                pixels = raster_dpi,
+                position = pos
+            )
+            if (isTRUE(border)) {
+                disc_args$mapping <- aes(color = !!sym(color_col))
+            } else {
+                disc_args$color <- border
+            }
+            p <- p +
+                do_call(scattermore::geom_scattermore, disc_args) +
+                scattermore::geom_scattermore(
+                    data = data,
+                    color = panel_fill,
+                    pointsize = raster_pointsize,
+                    alpha = 1,
+                    pixels = raster_dpi,
+                    position = pos
+                ) +
+                fill_layer
+        }
+    } else {
+        point_args <- list(
+            shape = shape,
+            position = pos,
+            alpha = alpha
+        )
+        mapping <- list(aes())
 
-    if (has_fill) {
-        mapping[[length(mapping) + 1]] <- aes(fill = !!sym(color_col))
-        # border handling
-        if (isTRUE(border)) {
+        if (has_fill) {
+            mapping[[length(mapping) + 1]] <- aes(fill = !!sym(color_col))
+            # border handling
+            if (isTRUE(border)) {
+                mapping[[length(mapping) + 1]] <- aes(color = !!sym(color_col))
+            } else if (is.character(border) && length(border) == 1) {
+                point_args$color <- border
+            } else {
+                point_args$color <- NA
+            }
+        } else {
+            # shapes without fill
             mapping[[length(mapping) + 1]] <- aes(color = !!sym(color_col))
-        } else if (is.character(border) && length(border) == 1) {
-            point_args$color <- border
-        } else {
-            point_args$color <- NA
         }
-    } else {
-        # shapes without fill
-        mapping[[length(mapping) + 1]] <- aes(color = !!sym(color_col))
-    }
 
-    # size handling
-    if (is.numeric(size_by)) {
-        point_args$size <- size_by
-    } else {
-        size_by <- check_columns(data, size_by)
-        # transform size values while keeping original values for legend labels
-        f <- if (is.null(size_trans)) {
-            identity
-        } else if (is.function(size_trans)) {
-            size_trans
+        # size handling
+        if (is.numeric(size_by)) {
+            point_args$size <- size_by
         } else {
-            get(as.character(size_trans), inherits = TRUE)
+            size_by <- check_columns(data, size_by)
+            # transform size values while keeping original values for legend labels
+            f <- if (is.null(size_trans)) {
+                identity
+            } else if (is.function(size_trans)) {
+                size_trans
+            } else {
+                get(as.character(size_trans), inherits = TRUE)
+            }
+            data$.size_raw <- data[[size_by]]
+            data$.size_mapped <- f(data$.size_raw)
+            mapping[[length(mapping) + 1]] <- aes(size = !!sym(".size_mapped"))
         }
-        data$.size_raw <- data[[size_by]]
-        data$.size_mapped <- f(data$.size_raw)
-        mapping[[length(mapping) + 1]] <- aes(size = !!sym(".size_mapped"))
-    }
 
-    # Group for dodging only (no legend)
-    if (!is.null(group_by)) {
-        mapping[[length(mapping) + 1]] <- aes(group = !!sym(group_by))
-    }
+        # Group for dodging only (no legend)
+        if (!is.null(group_by)) {
+            mapping[[length(mapping) + 1]] <- aes(group = !!sym(group_by))
+        }
 
-    modify_list <- utils::getFromNamespace("modify_list", "ggplot2")
-    point_args$mapping <- Reduce(modify_list, mapping)
-    point_args$data <- data
-    point_args$show.legend <- TRUE
-    p <- p + do_call(geom_point, point_args)
+        modify_list <- utils::getFromNamespace("modify_list", "ggplot2")
+        point_args$mapping <- Reduce(modify_list, mapping)
+        point_args$data <- data
+        point_args$show.legend <- TRUE
+        p <- p + do_call(geom_point, point_args)
+    }
 
     # Discrete color/fill scales by x
-    if (has_fill) {
+    if (isTRUE(raster)) {
+        # scattermore uses the colour aesthetic (no fill); keep the same
+        # palette and legend title as the vector version
+        if (isTRUE(keep_empty_col)) {
+            p <- p +
+                scale_color_manual(
+                    name = color_col,
+                    values = colors,
+                    na.value = colors['NA'] %||% "grey80",
+                    breaks = col_levels,
+                    limits = col_levels,
+                    drop = FALSE
+                )
+        } else {
+            p <- p +
+                scale_color_manual(
+                    name = color_col,
+                    values = colors,
+                    na.value = colors['NA'] %||% "grey80"
+                )
+        }
+    } else if (has_fill) {
         if (isTRUE(keep_empty_col)) {
             p <- p +
                 scale_fill_manual(
