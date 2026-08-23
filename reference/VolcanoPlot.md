@@ -42,6 +42,9 @@ VolcanoPlot(
   y_cutoff_linewidth = 0.5,
   pt_size = 2,
   pt_alpha = 0.5,
+  pt_shape = 21,
+  pt_border_color = TRUE,
+  pt_border_size = 0.5,
   nlabel = 5,
   labels = NULL,
   label_size = 3,
@@ -53,6 +56,8 @@ VolcanoPlot(
   highlight_size = 2,
   highlight_alpha = 1,
   highlight_stroke = 0.5,
+  raster = NULL,
+  raster_dpi = c(512, 512),
   trim = c(0, 1),
   facet_by = NULL,
   facet_scales = "fixed",
@@ -220,6 +225,34 @@ VolcanoPlot(
   A numeric value in `[0, 1]` specifying the transparency of all data
   points. Default: `0.5`.
 
+- pt_shape:
+
+  A numeric value specifying the point shape. Default: `21` (filled
+  circle with border). Shapes 21–25 support separate fill and border
+  colour aesthetics; all other shapes use a single colour aesthetic. In
+  raster mode, all points are drawn as filled circles (shape is
+  ignored).
+
+- pt_border_color:
+
+  Controls the point border colour. For shapes 21–25:
+
+  - `TRUE` (default) – border colour tracks the `color_by` gradient /
+    palette.
+
+  - A colour string (e.g. `"black"`) – constant colour border.
+
+  `FALSE` or `NULL` disables the border. For shapes without a fill
+  aesthetic (not 21–25), this parameter has no effect. In raster mode
+  the border is drawn as a slightly larger disc behind each point (the
+  shape is always a circle there), and `TRUE` falls back to a border
+  disc in the `color_by` colour.
+
+- pt_border_size:
+
+  A numeric value specifying the point border size (stroke width, in
+  mm). `0` disables the border. Default: `0.5`.
+
 - nlabel:
 
   An integer specifying the number of top features to label
@@ -277,6 +310,21 @@ VolcanoPlot(
 
   A numeric value specifying the stroke width of the highlight point
   borders. Default: `0.5`.
+
+- raster:
+
+  A logical value. If `TRUE`, points are rendered via
+  [`scattermore::geom_scattermore()`](https://rdrr.io/pkg/scattermore/man/geom_scattermore.html)
+  for efficient rasterised plotting. Default is `NULL`, which
+  auto-enables when `nrow(data) > 1e3`.
+
+- raster_dpi:
+
+  A numeric vector of length 2 `[x_dpi, y_dpi]` specifying the raster
+  resolution in pixels. Passed to
+  `scattermore::geom_scattermore(pixels = ...)`. Default is
+  `c(512, 512)`. If a single value is provided it is recycled to both
+  dimensions.
 
 - trim:
 
@@ -542,6 +590,10 @@ VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
 VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", color_by = "pct_diff",
    y_cutoff_name = "-log10(0.05)", split_by = "group", label_by = "gene",
    palette = c(A = "Set1", B = "Dark2"))
+
+# --- Trim extreme x-values (winsorize to 2% and 98% quantiles) ---
+VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", color_by = "pct_diff",
+   y_cutoff_name = "-log10(0.05)", trim = c(0.4, 0.5))
 
 # }
 ```

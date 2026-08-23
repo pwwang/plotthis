@@ -44,6 +44,9 @@ VolcanoPlotAtomic(
   y_cutoff_linewidth = 0.5,
   pt_size = 2,
   pt_alpha = 0.5,
+  pt_shape = 21,
+  pt_border_color = TRUE,
+  pt_border_size = 0.5,
   nlabel = 5,
   labels = NULL,
   label_by = NULL,
@@ -56,6 +59,8 @@ VolcanoPlotAtomic(
   highlight_size = 2,
   highlight_alpha = 1,
   highlight_stroke = 0.5,
+  raster = NULL,
+  raster_dpi = c(512, 512),
   facet_by = NULL,
   facet_scales = "fixed",
   facet_ncol = NULL,
@@ -207,6 +212,34 @@ VolcanoPlotAtomic(
   A numeric value in `[0, 1]` specifying the transparency of all data
   points. Default: `0.5`.
 
+- pt_shape:
+
+  A numeric value specifying the point shape. Default: `21` (filled
+  circle with border). Shapes 21–25 support separate fill and border
+  colour aesthetics; all other shapes use a single colour aesthetic. In
+  raster mode, all points are drawn as filled circles (shape is
+  ignored).
+
+- pt_border_color:
+
+  Controls the point border colour. For shapes 21–25:
+
+  - `TRUE` (default) – border colour tracks the `color_by` gradient /
+    palette.
+
+  - A colour string (e.g. `"black"`) – constant colour border.
+
+  `FALSE` or `NULL` disables the border. For shapes without a fill
+  aesthetic (not 21–25), this parameter has no effect. In raster mode
+  the border is drawn as a slightly larger disc behind each point (the
+  shape is always a circle there), and `TRUE` falls back to a border
+  disc in the `color_by` colour.
+
+- pt_border_size:
+
+  A numeric value specifying the point border size (stroke width, in
+  mm). `0` disables the border. Default: `0.5`.
+
 - nlabel:
 
   An integer specifying the number of top features to label
@@ -270,6 +303,21 @@ VolcanoPlotAtomic(
 
   A numeric value specifying the stroke width of the highlight point
   borders. Default: `0.5`.
+
+- raster:
+
+  A logical value. If `TRUE`, points are rendered via
+  [`scattermore::geom_scattermore()`](https://rdrr.io/pkg/scattermore/man/geom_scattermore.html)
+  for efficient rasterised plotting. Default is `NULL`, which
+  auto-enables when `nrow(data) > 1e3`.
+
+- raster_dpi:
+
+  A numeric vector of length 2 `[x_dpi, y_dpi]` specifying the raster
+  resolution in pixels. Passed to
+  `scattermore::geom_scattermore(pixels = ...)`. Default is
+  `c(512, 512)`. If a single value is provided it is recycled to both
+  dimensions.
 
 - facet_by:
 
@@ -461,13 +509,13 @@ attached.
 
 17. **x-cutoff lines** — vertical dashed lines at `+/- x_cutoff` via
     `geom_vline()` with
-    [`new_scale_color()`](https://eliocamp.github.io/ggnewscale/reference/new_scale.html),
+    [`new_scale_color()`](https://rdrr.io/pkg/ggnewscale/man/new_scale.html),
     labelled by `x_cutoff_name`. Suppressed when `x_cutoff` is `NULL` or
     `0`.
 
 18. **y-cutoff lines** — horizontal dashed line(s) at `y_cutoff` (or
     `+/- y_cutoff` when `flip_negatives = TRUE`) via `geom_hline()` with
-    [`new_scale_color()`](https://eliocamp.github.io/ggnewscale/reference/new_scale.html),
+    [`new_scale_color()`](https://rdrr.io/pkg/ggnewscale/man/new_scale.html),
     labelled by `y_cutoff_name`.
 
 19. **Flip-negatives axis** — when `flip_negatives = TRUE`, a solid

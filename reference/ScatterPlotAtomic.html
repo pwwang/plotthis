@@ -67,7 +67,7 @@ that are overlaid with a distinct shape, size, colour, and alpha.
 
     <a class="navbar-brand me-2" href="../index.html">plotthis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.13.3-2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.13.3-3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -144,6 +144,7 @@ that are overlaid with a distinct shape, size, colour, and alpha.</p></li>
 <span>  alpha <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">shape</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fl">21</span><span class="op">:</span><span class="fl">25</span>, <span class="fl">0.65</span>, <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  shape <span class="op">=</span> <span class="fl">21</span>,</span>
 <span>  border_color <span class="op">=</span> <span class="st">"black"</span>,</span>
+<span>  border_size <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  lower_quantile <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  upper_quantile <span class="op">=</span> <span class="fl">0.99</span>,</span>
 <span>  lower_cutoff <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -252,6 +253,10 @@ colour border.</p></li>
 <code>scale_color_manual()</code>.</p></li>
 </ul><p>For shapes without a fill aesthetic (not 21–25), this parameter has no
 effect.</p></dd>
+
+
+<dt id="arg-border-size">border_size<a class="anchor" aria-label="anchor" href="#arg-border-size"></a></dt>
+<dd><p>A numeric value specifying the point border size. Default: <code>0.5</code>.</p></dd>
 
 
 <dt id="arg-lower-quantile-upper-quantile">lower_quantile, upper_quantile<a class="anchor" aria-label="anchor" href="#arg-lower-quantile-upper-quantile"></a></dt>

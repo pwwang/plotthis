@@ -87,6 +87,8 @@ JitterPlotAtomic(
   xlab = NULL,
   ylab = NULL,
   seed = 8525,
+  raster = NULL,
+  raster_dpi = c(512, 512),
   ...
 )
 ```
@@ -465,6 +467,23 @@ JitterPlotAtomic(
 - seed:
 
   The random seed to use. Default is 8525.
+
+- raster:
+
+  A logical value. If `TRUE`, points are rendered via
+  [`scattermore::geom_scattermore()`](https://rdrr.io/pkg/scattermore/man/geom_scattermore.html)
+  for efficient rasterised plotting. Default is `NULL`, which
+  auto-enables when `nrow(data) > 1e3`. Ignored (with a warning) when
+  `size_by` is mapped to a column, since scattermore cannot vary the
+  point size per point.
+
+- raster_dpi:
+
+  A numeric vector of length 2 `[x_dpi, y_dpi]` specifying the raster
+  resolution in pixels. Passed to
+  `scattermore::geom_scattermore(pixels = ...)`. Default is
+  `c(512, 512)`. If a single value is provided it is recycled to both
+  dimensions.
 
 - ...:
 

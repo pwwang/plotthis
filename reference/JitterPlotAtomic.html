@@ -31,7 +31,7 @@ y-value summaries (mean or median)."><meta property="og:image" content="https://
 
     <a class="navbar-brand me-2" href="../index.html">plotthis</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.13.3-2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.13.3-3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -145,6 +145,8 @@ y-value summaries (mean or median).</p>
 <span>  xlab <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ylab <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">8525</span>,</span>
+<span>  raster <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  raster_dpi <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">512</span>, <span class="fl">512</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -511,6 +513,20 @@ This is useful when split_by is used and the title needs to be dynamic.</p></dd>
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
 <dd><p>The random seed to use. Default is 8525.</p></dd>
+
+
+<dt id="arg-raster">raster<a class="anchor" aria-label="anchor" href="#arg-raster"></a></dt>
+<dd><p>A logical value. If <code>TRUE</code>, points are rendered via
+<code><a href="https://rdrr.io/pkg/scattermore/man/geom_scattermore.html" class="external-link">scattermore::geom_scattermore()</a></code> for efficient rasterised plotting.
+Default is <code>NULL</code>, which auto-enables when <code>nrow(data) &gt; 1e3</code>.
+Ignored (with a warning) when <code>size_by</code> is mapped to a column, since
+scattermore cannot vary the point size per point.</p></dd>
+
+
+<dt id="arg-raster-dpi">raster_dpi<a class="anchor" aria-label="anchor" href="#arg-raster-dpi"></a></dt>
+<dd><p>A numeric vector of length 2 <code>[x_dpi, y_dpi]</code> specifying the raster
+resolution in pixels. Passed to <code>scattermore::geom_scattermore(pixels = ...)</code>.
+Default is <code>c(512, 512)</code>. If a single value is provided it is recycled to both dimensions.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

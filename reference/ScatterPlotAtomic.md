@@ -54,6 +54,7 @@ ScatterPlotAtomic(
   alpha = ifelse(shape %in% 21:25, 0.65, 1),
   shape = 21,
   border_color = "black",
+  border_size = 0.5,
   lower_quantile = 0,
   upper_quantile = 0.99,
   lower_cutoff = NULL,
@@ -164,6 +165,10 @@ ScatterPlotAtomic(
 
   For shapes without a fill aesthetic (not 21–25), this parameter has no
   effect.
+
+- border_size:
+
+  A numeric value specifying the point border size. Default: `0.5`.
 
 - lower_quantile, upper_quantile:
 

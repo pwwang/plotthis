@@ -458,7 +458,7 @@ attached.
     [`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html) +
     [`scale_fill_manual()`](https://ggplot2.tidyverse.org/reference/scale_manual.html)
     layer pair is added per x-axis position, each followed by
-    [`new_scale_fill()`](https://eliocamp.github.io/ggnewscale/reference/new_scale.html)
+    [`new_scale_fill()`](https://rdrr.io/pkg/ggnewscale/man/new_scale.html)
     to produce independent legends.
 
 8.  **Link rendering** —

@@ -52,6 +52,7 @@ ScatterPlot(
   shape = 21,
   alpha = ifelse(shape %in% 21:25, 0.65, 1),
   border_color = "black",
+  border_size = 0.5,
   highlight = NULL,
   highlight_shape = 16,
   highlight_size = 3,
@@ -185,6 +186,10 @@ ScatterPlot(
 
   For shapes without a fill aesthetic (not 21–25), this parameter has no
   effect.
+
+- border_size:
+
+  A numeric value specifying the point border size. Default: `0.5`.
 
 - highlight:
 

@@ -7,6 +7,14 @@
 - fix(Heatmap): `show_row_names`/`show_column_names` “none” mode now
   hides the name display and legend when the annotation is
   user-configured
+- feat(ScatterPlot): add border_size parameter to control point border
+  size
+- feat(VolcanoPlot): add parameters for point shape, border color, and
+  border size; enable raster plotting
+- feat(JitterPlot): add raster and raster_dpi parameters for efficient
+  plotting
+- docs(VolcanoPlot): add example for trimming extreme x-values using
+  winsorization
 
 ## Version 0.13.2
 
