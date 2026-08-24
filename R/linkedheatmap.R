@@ -1228,9 +1228,6 @@ LinkedHeatmapAtomic <- function(
     attr(p, "width") <- display_w + 1
 
     p$data <- data
-    # Force any remaining argument promises so the returned plot's environment
-    # (this frame) does not capture the calling frame through lazy evaluation
-    force_promises()
 
     p
 }

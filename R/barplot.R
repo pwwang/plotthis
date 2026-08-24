@@ -1172,10 +1172,6 @@ BarPlotAtomic <- function(
         )
     }
 
-    # Force any remaining argument promises so the returned plot's environment
-    # (this frame) does not capture the calling frame through lazy evaluation
-    force_promises()
-
     facet_args$plot <- p
     facet_args["facet_by"] <- list(facet_by)
     facet_args["facet_scales"] <- list(facet_scales)

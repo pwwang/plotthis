@@ -1246,10 +1246,6 @@ SpatShapesPlot.SpatVector <- function(
         theme_args = theme_args
     )
 
-    # Force any remaining argument promises so the returned plot's environment
-    # (this frame) does not capture the calling frame through lazy evaluation
-    force_promises()
-
     if (!is.null(facet_by)) {
         p <- facet_plot(
             p,
@@ -1638,10 +1634,6 @@ SpatShapesPlot.data.frame <- function(
         theme = theme,
         theme_args = theme_args
     )
-
-    # Force any remaining argument promises so the returned plot's environment
-    # (this frame) does not capture the calling frame through lazy evaluation
-    force_promises()
 
     if (!is.null(facet_by)) {
         p <- facet_plot(
@@ -2713,10 +2705,6 @@ SpatPointsPlot <- function(
         theme = theme,
         theme_args = theme_args
     )
-
-    # Force any remaining argument promises so the returned plot's environment
-    # (this frame) does not capture the calling frame through lazy evaluation
-    force_promises()
 
     if (!is.null(facet_by)) {
         p <- facet_plot(

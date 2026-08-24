@@ -337,9 +337,6 @@ ChordPlotAtomic <- function(
 
     attr(p, "height") <- base_size
     attr(p, "width") <- base_size
-    # Force any remaining argument promises so the returned plot's environment
-    # (this frame) does not capture the calling frame through lazy evaluation
-    force_promises()
 
     p
 }
