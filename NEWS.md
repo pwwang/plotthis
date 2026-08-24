@@ -6,7 +6,6 @@
 - feat(VolcanoPlot): add parameters for point shape, border color, and border size; enable raster plotting
 - feat(JitterPlot): add raster and raster_dpi parameters for efficient plotting
 - docs(VolcanoPlot): add example for trimming extreme x-values using winsorization
-- feat: add force_promises function to prevent capturing calling frame in plot environments
 - feat(VolcanoPlot): update ytrans parameter to accept function names as strings
 - fix(VolcanoPlot): update highlight data selection to use match function for improved accuracy
 
