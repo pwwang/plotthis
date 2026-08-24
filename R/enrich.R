@@ -566,6 +566,9 @@ EnrichMapAtomic <- function(
     )
     attr(p, "height") <- dims$height
     attr(p, "width") <- dims$width
+    # Force any remaining argument promises so the returned plot's environment
+    # (this frame) does not capture the calling frame through lazy evaluation
+    force_promises()
 
     p
 }
@@ -936,6 +939,10 @@ EnrichNetworkAtomic <- function(
     )
     attr(p, "height") <- dims$height
     attr(p, "width") <- dims$width
+
+    # Force any remaining argument promises so the returned plot's environment
+    # (this frame) does not capture the calling frame through lazy evaluation
+    force_promises()
 
     p
 }

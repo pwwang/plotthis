@@ -412,6 +412,10 @@ DensityHistoPlotAtomic <- function(
     attr(p, "height") <- dims$height
     attr(p, "width") <- dims$width
 
+    # Force any remaining argument promises so the returned plot's environment
+    # (this frame) does not capture the calling frame through lazy evaluation
+    force_promises()
+
     facet_plot(
         p,
         facet_by = facet_by,
@@ -815,6 +819,10 @@ RidgePlotAtomic <- function(
     )
     attr(p, "height") <- dims$height
     attr(p, "width") <- dims$width
+
+    # Force any remaining argument promises so the returned plot's environment
+    # (this frame) does not capture the calling frame through lazy evaluation
+    force_promises()
 
     facet_plot(
         p,

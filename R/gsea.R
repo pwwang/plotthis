@@ -399,6 +399,10 @@ GSEASummaryPlot <- function(
     attr(p, "height") <- dims$height
     attr(p, "width") <- dims$width + max_nchar_y * 0.1
 
+    # Force any remaining argument promises so the returned plot's environment
+    # (this frame) does not capture the calling frame through lazy evaluation
+    force_promises()
+
     p
 }
 
@@ -950,6 +954,10 @@ GSEAPlotAtomic <- function(
         attr(p, "height") <- dims$height
         attr(p, "width") <- 7.5
     }
+    # Force any remaining argument promises so the returned plot's environment
+    # (this frame) does not capture the calling frame through lazy evaluation
+    force_promises()
+
     p
 }
 

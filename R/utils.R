@@ -1400,3 +1400,23 @@ prepare_continuous_color_scale <- function(
         limits = range(feat_colors_value)
     )
 }
+
+#' Force all bindings in an environment
+#'
+#' Evaluates every binding in \code{env} so that unforced argument promises
+#' (created by lazy evaluation) are replaced by their values. This prevents
+#' \code{env} from keeping its calling frame alive when it is referenced by a
+#' returned object (e.g. a ggplot's \code{plot_env}) and later serialized
+#' (e.g. by `saveRDS()`), which would otherwise pull the caller's data into the
+#' serialized object.
+#'
+#' @param env The environment whose bindings to force.
+#'   Default: the caller's frame.
+#' @return Invisibly \code{NULL}.
+#' @keywords internal
+force_promises <- function(env = parent.frame()) {
+    for (nm in setdiff(ls(env, all.names = TRUE), "...")) {
+        tryCatch(get(nm, env, inherits = FALSE), error = function(e) NULL)
+    }
+    invisible(NULL)
+}

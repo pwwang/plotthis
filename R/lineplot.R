@@ -1077,6 +1077,10 @@ LinePlotAtomic <- function(
     facet_args["byrow"] <- list(facet_byrow)
     facet_args["legend.position"] <- list(legend.position)
     facet_args["legend.direction"] <- list(legend.direction)
+    # Force any remaining argument promises so the returned plot's environment
+    # (this frame) does not capture the calling frame through lazy evaluation
+    force_promises()
+
     do_call(facet_plot, facet_args)
 }
 
