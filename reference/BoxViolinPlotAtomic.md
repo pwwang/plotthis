@@ -649,7 +649,7 @@ attributes (in inches) attached.
 
 13. **Box overlay** — when `add_box = TRUE` on a non-box base, a box
     plot is overlaid via
-    [`ggnewscale::new_scale_fill()`](https://rdrr.io/pkg/ggnewscale/man/new_scale.html)
+    [`ggnewscale::new_scale_fill()`](https://eliocamp.github.io/ggnewscale/reference/new_scale.html)
     with a white fill/black outline.
 
 14. **Statistical comparisons** — two pathways:

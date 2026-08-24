@@ -515,7 +515,7 @@ separate legend entry documenting the cutoff.
       gradient via `scale_color_gradientn()`, with linewidth
       `border_size * 2`.
 
-    - [`ggnewscale::new_scale_color()`](https://rdrr.io/pkg/ggnewscale/man/new_scale.html)
+    - [`ggnewscale::new_scale_color()`](https://eliocamp.github.io/ggnewscale/reference/new_scale.html)
       resets the colour scale for the subsequent point layer.
 
 16. **Point layer** — `geom_point(shape = 21)` (filled circle with

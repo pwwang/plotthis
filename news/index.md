@@ -15,6 +15,12 @@
   plotting
 - docs(VolcanoPlot): add example for trimming extreme x-values using
   winsorization
+- feat: add force_promises function to prevent capturing calling frame
+  in plot environments
+- feat(VolcanoPlot): update ytrans parameter to accept function names as
+  strings
+- fix(VolcanoPlot): update highlight data selection to use match
+  function for improved accuracy
 
 ## Version 0.13.2
 

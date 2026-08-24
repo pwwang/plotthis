@@ -26,7 +26,7 @@ VolcanoPlotAtomic(
   data,
   x,
   y,
-  ytrans = function(n) -log10(n),
+  ytrans = "-log10",
   color_by = NULL,
   color_name = NULL,
   flip_negatives = FALSE,
@@ -101,10 +101,11 @@ VolcanoPlotAtomic(
 
 - ytrans:
 
-  A function to transform the y-axis values before plotting. The default
-  `function(n) -log10(n)` converts p-values to a -log10 scale. The
-  transformed values are used for both the y-axis and cutoff
-  comparisons.
+  A function or a function name (as a string) to transform the y-axis
+  values before plotting. The transformed values are used for both the
+  y-axis and cutoff comparisons. Default: `"-log10"` (converts p-values
+  to a -log10 scale). Other named functions can be passed as strings,
+  e.g. `"sqrt"`.
 
 - color_by:
 
@@ -435,9 +436,8 @@ attached.
     [`check_columns`](https://pwwang.github.io/plotthis/reference/check_columns.md).
     Multi-column `facet_by` is concatenated with `force_factor = TRUE`.
 
-4.  **y-axis transformation** — the y-column is transformed by
-    `ytrans()` (default: `-log10(n)`). The `y_cutoff` value is also
-    transformed.
+4.  **y-axis transformation** — the y-column is transformed by `ytrans`
+    (default: `"-log10"`). The `y_cutoff` value is also transformed.
 
 5.  **x_cutoff defaulting** — if `x_cutoff` is `NULL`, it is set to `0`
     (suppressing the x-cutoff legend line).
@@ -509,13 +509,13 @@ attached.
 
 17. **x-cutoff lines** — vertical dashed lines at `+/- x_cutoff` via
     `geom_vline()` with
-    [`new_scale_color()`](https://rdrr.io/pkg/ggnewscale/man/new_scale.html),
+    [`new_scale_color()`](https://eliocamp.github.io/ggnewscale/reference/new_scale.html),
     labelled by `x_cutoff_name`. Suppressed when `x_cutoff` is `NULL` or
     `0`.
 
 18. **y-cutoff lines** — horizontal dashed line(s) at `y_cutoff` (or
     `+/- y_cutoff` when `flip_negatives = TRUE`) via `geom_hline()` with
-    [`new_scale_color()`](https://rdrr.io/pkg/ggnewscale/man/new_scale.html),
+    [`new_scale_color()`](https://eliocamp.github.io/ggnewscale/reference/new_scale.html),
     labelled by `y_cutoff_name`.
 
 19. **Flip-negatives axis** — when `flip_negatives = TRUE`, a solid
