@@ -31,8 +31,8 @@
 #'         via \code{\link{check_columns}}. Multi-column \code{facet_by} is
 #'         concatenated with \code{force_factor = TRUE}.
 #'   \item \strong{y-axis transformation} — the y-column is transformed by
-#'         \code{ytrans()} (default: \code{-log10(n)}). The
-#'         \code{y_cutoff} value is also transformed.
+#'         \code{ytrans} (default: \code{"-log10"}). The \code{y_cutoff}
+#'         value is also transformed.
 #'   \item \strong{x_cutoff defaulting} — if \code{x_cutoff} is
 #'         \code{NULL}, it is set to \code{0} (suppressing the x-cutoff
 #'         legend line).
@@ -124,10 +124,11 @@
 #' }
 #'
 #' @inheritParams common_args
-#' @param ytrans A function to transform the y-axis values before plotting.
-#'  The default \code{function(n) -log10(n)} converts p-values to a -log10
-#'  scale. The transformed values are used for both the y-axis and cutoff
-#'  comparisons.
+#' @param ytrans A function or a function name (as a string) to transform
+#'  the y-axis values before plotting. The transformed values are used for
+#'  both the y-axis and cutoff comparisons. Default: \code{"-log10"}
+#'  (converts p-values to a -log10 scale). Other named functions can be
+#'  passed as strings, e.g. \code{"sqrt"}.
 #' @param color_by A character string specifying the column name to colour
 #'  the points by. When \code{NULL} (default), points are automatically
 #'  categorised as \code{"sig_pos_x"}, \code{"sig_neg_x"}, or
@@ -253,7 +254,7 @@ VolcanoPlotAtomic <- function(
     data,
     x,
     y,
-    ytrans = function(n) -log10(n),
+    ytrans = "-log10",
     color_by = NULL,
     color_name = NULL,
     flip_negatives = FALSE,
@@ -337,6 +338,18 @@ VolcanoPlotAtomic <- function(
         allow_multi = TRUE
     )
     label_by <- check_columns(data, label_by)
+
+    # Resolve function-name strings (e.g. "-log10", "sqrt") to functions
+    if (is.null(ytrans)) {
+        ytrans <- identity
+    } else if (is.character(ytrans)) {
+        if (startsWith(ytrans, "-")) {
+            ytrans_str <- trimws(substring(ytrans, 2))
+            ytrans <- function(x) -1 * match.fun(ytrans_str)(x)
+        } else {
+            ytrans <- match.fun(trimws(ytrans))
+        }
+    }
 
     data[[y]] <- ytrans(data[[y]])
     x_cutoff <- x_cutoff %||% 0
@@ -960,7 +973,7 @@ VolcanoPlot <- function(
     data,
     x,
     y,
-    ytrans = function(n) -log10(n),
+    ytrans = "-log10",
     color_by = NULL,
     color_name = NULL,
     xlim = NULL,

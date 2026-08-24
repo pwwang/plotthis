@@ -8,7 +8,7 @@ VolcanoPlot(
   data,
   x,
   y,
-  ytrans = function(n) -log10(n),
+  ytrans = "-log10",
   color_by = NULL,
   color_name = NULL,
   xlim = NULL,
@@ -81,10 +81,11 @@ VolcanoPlot(
 
 \item{y}{A character string specifying the column name of the data frame to plot for the y-axis.}
 
-\item{ytrans}{A function to transform the y-axis values before plotting.
-The default \code{function(n) -log10(n)} converts p-values to a -log10
-scale. The transformed values are used for both the y-axis and cutoff
-comparisons.}
+\item{ytrans}{A function or a function name (as a string) to transform
+the y-axis values before plotting. The transformed values are used for
+both the y-axis and cutoff comparisons. Default: \code{"-log10"}
+(converts p-values to a -log10 scale). Other named functions can be
+passed as strings, e.g. \code{"sqrt"}.}
 
 \item{color_by}{A character string specifying the column name to colour
 the points by. When \code{NULL} (default), points are automatically
@@ -441,9 +442,9 @@ VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", y_cutoff_name = "none",
 # --- Per-split palettes ---
 VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", color_by = "pct_diff",
    y_cutoff_name = "-log10(0.05)", split_by = "group", label_by = "gene",
-   palette = c(A = "Set1", B = "Dark2"))
-# --- Trim extreme x-values (winsorize to 2\% and 98\% quantiles) ---
+   palette = c(A = "Spectral", B = "PuOr"))
+# Trim extreme x-values (winsorize to 40\% and 50\% quantiles), for demo purposes
 VolcanoPlot(data, x = "avg_log2FC", y = "p_val_adj", color_by = "pct_diff",
-   y_cutoff_name = "-log10(0.05)", trim = c(0.02, 0.98))
+   y_cutoff_name = "-log10(0.05)", trim = c(0.4, 0.5))
 }
 }

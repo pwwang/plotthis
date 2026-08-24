@@ -102,6 +102,46 @@ test_that("norm_expansion errors for conflicting x and left/right", {
     )
 })
 
+# # process_trans tests
+# test_that("process_trans returns identity for NULL trans", {
+#     res <- process_trans(NULL, null_as_identity = TRUE)
+#     expect_identical(res$name, "identity")
+#     expect_equal(res$trans(5), 5)
+
+#     res <- process_trans(NULL, null_as_identity = FALSE)
+#     expect_null(res$trans)
+#     expect_null(res$name)
+# })
+
+# test_that("process_trans resolves string transformations", {
+#     res <- process_trans("log2")
+#     expect_equal(res$trans(8), 3)
+#     expect_equal(res$name, "log2")
+# })
+
+# test_that("process_trans handles negated string transformations", {
+#     res <- process_trans("-log2")
+#     expect_equal(res$trans(8), -3)
+#     expect_equal(res$name, "-log2")
+# })
+
+# test_that("process_trans accepts function transformations", {
+#     res <- process_trans(function(x) x + 1)
+#     expect_equal(res$trans(1), 2)
+#     expect_equal(res$name, "transformed")
+# })
+
+# test_that("process_trans errors on invalid trans", {
+#     expect_error(process_trans(1), "must be a string, a function, or NULL")
+# })
+
+# test_that("process_trans uses provided trans_name", {
+#     res <- process_trans("log2", trans_name = "custom")
+#     expect_equal(res$name, "custom")
+#     res <- process_trans(function(x) x, trans_name = "custom")
+#     expect_equal(res$name, "custom")
+# })
+
 # calculate_plot_dimensions tests
 test_that("calculate_plot_dimensions returns list with height and width", {
     result <- calculate_plot_dimensions(base_height = 4.5, aspect.ratio = 1)
