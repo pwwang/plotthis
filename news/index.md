@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.14.0
+
+- release: CRAN release v0.14.0
+
 ## Version 0.13.3
 
 - feat(Heatmap): revert deprecation of
