@@ -1,3 +1,7 @@
+## Version 0.14.0
+
+- release: CRAN release v0.14.0
+
 ## Version 0.13.3
 
 - feat(Heatmap): revert deprecation of rows_name/columns_name/rows_split_name/columns_split_name
