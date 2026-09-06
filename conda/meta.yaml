@@ -43,7 +43,7 @@ requirements:
     - r-ggalluvial
     - r-ggvenndiagram
     - r-ggupset
-    - r-ggpubr
+    - r-ggpubr >1.0.0
     - r-ggforce
     - r-ggraph
     - r-ggridges
@@ -94,7 +94,7 @@ requirements:
     - r-ggalluvial
     - r-ggvenndiagram
     - r-ggupset
-    - r-ggpubr
+    - r-ggpubr >1.0.0
     - r-ggforce
     - r-ggraph
     - r-ggridges
