@@ -2,6 +2,8 @@
 
 ## Version 0.14.0
 
+CRAN release: 2026-08-29
+
 - release: CRAN release v0.14.0
 
 ## Version 0.13.3
