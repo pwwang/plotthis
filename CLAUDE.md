@@ -61,20 +61,20 @@ Each plot file also contains separate **`*Atomic()`** and exported
 Located in `R/utils.R` (931 lines). Functions used across all plot
 files:
 
-| Function                                                                                                                                                                    | Purpose                                                                                                                       |
-|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
-| [`check_columns()`](https://pwwang.github.io/plotthis/reference/check_columns.md)                                                                                           | Validates columns exist in data; optionally forces factor, concatenates multi-column input                                    |
-| [`check_keep_na()`](https://pwwang.github.io/plotthis/reference/check_keep_na.md) / [`check_keep_empty()`](https://pwwang.github.io/plotthis/reference/check_keep_empty.md) | Normalizes`keep_na`/`keep_empty` arguments (can be logical, character, or named list per column)                              |
-| [`process_keep_na_empty()`](https://pwwang.github.io/plotthis/reference/process_keep_na_empty.md)                                                                           | Applies NA/empty handling to data before plotting                                                                             |
-| [`norm_expansion()`](https://pwwang.github.io/plotthis/reference/norm_expansion.md)                                                                                         | CSS-padding-style expansion normalization for ggplot axes                                                                     |
-| [`palette_this()`](https://pwwang.github.io/plotthis/reference/palette_this.md)                                                                                             | Resolves palette names or character vectors to actual color vectors                                                           |
-| [`check_palette()`](https://pwwang.github.io/plotthis/reference/check_palette.md) / [`check_palcolor()`](https://pwwang.github.io/plotthis/reference/check_palcolor.md)     | Validates per-split palette/color specifications                                                                              |
-| [`calculate_plot_dimensions()`](https://pwwang.github.io/plotthis/reference/calculate_plot_dimensions.md)                                                                   | Computes`height`/`width` attributes stored on ggplot objects for consistent rendering                                         |
-| [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md)                                                                                           | Wraps[`patchwork::wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html) with axis/guide/design options |
-| [`facet_plot()`](https://pwwang.github.io/plotthis/reference/facet_plot.md)                                                                                                 | Unified faceting wrapper handling facet_wrap/facet_grid with keep_empty levels                                                |
-| [`process_theme()`](https://pwwang.github.io/plotthis/reference/process_theme.md)                                                                                           | Resolves theme string to theme function                                                                                       |
-| [`validate_common_args()`](https://pwwang.github.io/plotthis/reference/validate_common_args.md)                                                                             | Validates seed, facet_by combinations                                                                                         |
-| [`check_legend()`](https://pwwang.github.io/plotthis/reference/check_legend.md)                                                                                             | Validates per-split legend parameters                                                                                         |
+| Function | Purpose |
+|----|----|
+| [`check_columns()`](https://pwwang.github.io/plotthis/reference/check_columns.md) | Validates columns exist in data; optionally forces factor, concatenates multi-column input |
+| [`check_keep_na()`](https://pwwang.github.io/plotthis/reference/check_keep_na.md) / [`check_keep_empty()`](https://pwwang.github.io/plotthis/reference/check_keep_empty.md) | Normalizes`keep_na`/`keep_empty` arguments (can be logical, character, or named list per column) |
+| [`process_keep_na_empty()`](https://pwwang.github.io/plotthis/reference/process_keep_na_empty.md) | Applies NA/empty handling to data before plotting |
+| [`norm_expansion()`](https://pwwang.github.io/plotthis/reference/norm_expansion.md) | CSS-padding-style expansion normalization for ggplot axes |
+| [`palette_this()`](https://pwwang.github.io/plotthis/reference/palette_this.md) | Resolves palette names or character vectors to actual color vectors |
+| [`check_palette()`](https://pwwang.github.io/plotthis/reference/check_palette.md) / [`check_palcolor()`](https://pwwang.github.io/plotthis/reference/check_palcolor.md) | Validates per-split palette/color specifications |
+| [`calculate_plot_dimensions()`](https://pwwang.github.io/plotthis/reference/calculate_plot_dimensions.md) | Computes`height`/`width` attributes stored on ggplot objects for consistent rendering |
+| [`combine_plots()`](https://pwwang.github.io/plotthis/reference/combine_plots.md) | Wraps[`patchwork::wrap_plots`](https://patchwork.data-imaginist.com/reference/wrap_plots.html) with axis/guide/design options |
+| [`facet_plot()`](https://pwwang.github.io/plotthis/reference/facet_plot.md) | Unified faceting wrapper handling facet_wrap/facet_grid with keep_empty levels |
+| [`process_theme()`](https://pwwang.github.io/plotthis/reference/process_theme.md) | Resolves theme string to theme function |
+| [`validate_common_args()`](https://pwwang.github.io/plotthis/reference/validate_common_args.md) | Validates seed, facet_by combinations |
+| [`check_legend()`](https://pwwang.github.io/plotthis/reference/check_legend.md) | Validates per-split legend parameters |
 
 ## Common parameters (inherited across all plots)
 

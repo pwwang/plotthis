@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.14.1
+
+- fix: update r-ggpubr dependency to require version \>1.0.0
+  (<https://github.com/kassambara/ggpubr/pull/752>)
+- feat(DotPlot): add `fill_cutoff_by` to grey out dots based on a column
+  other than `fill_by`
+
 ## Version 0.14.0
 
 CRAN release: 2026-08-29

@@ -23,6 +23,7 @@ DotPlotAtomic(
   size_by = NULL,
   fill_by = NULL,
   fill_cutoff = NULL,
+  fill_cutoff_by = NULL,
   palreverse = FALSE,
   size_name = NULL,
   fill_name = NULL,
@@ -138,6 +139,14 @@ DotPlotAtomic(
   greyed out, independent of `palreverse`. A numeric value is also
   accepted as shorthand for `"<"` (e.g. `18` is equivalent to `"< 18"`).
   Requires `fill_by` to be set.
+
+- fill_cutoff_by:
+
+  A character string giving the column used to decide which dots are
+  greyed out. Defaults to `fill_by`, so the cutoff is applied to the
+  column that also drives the fill colour. Set it to another column to
+  grey out dots based on a different measure while still colouring them
+  by `fill_by`.
 
 - palreverse:
 

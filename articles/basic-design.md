@@ -321,13 +321,13 @@ approach:
 
 ### Choosing between them
 
-| Scenario                                           | Recommendation                                                               |
-|----------------------------------------------------|------------------------------------------------------------------------------|
-| Need per-panel different color palettes or legends | Use `split_by`                                                               |
-| Need independent axis scales per panel             | Use `split_by`                                                               |
-| Want simple, shared-scale multi-panel layout       | Use `facet_by`                                                               |
-| Plot type doesn’t support faceting (non-ggplot2)   | Use `split_by`                                                               |
-| Need both splitting AND faceting                   | Use both — `split_by` creates groups of plots, `facet_by` facets within each |
+| Scenario | Recommendation |
+|----|----|
+| Need per-panel different color palettes or legends | Use `split_by` |
+| Need independent axis scales per panel | Use `split_by` |
+| Want simple, shared-scale multi-panel layout | Use `facet_by` |
+| Plot type doesn’t support faceting (non-ggplot2) | Use `split_by` |
+| Need both splitting AND faceting | Use both — `split_by` creates groups of plots, `facet_by` facets within each |
 
 ## Argument naming conventions
 
