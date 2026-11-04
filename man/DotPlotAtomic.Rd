@@ -15,6 +15,7 @@ DotPlotAtomic(
   size_by = NULL,
   fill_by = NULL,
   fill_cutoff = NULL,
+  fill_cutoff_by = NULL,
   palreverse = FALSE,
   size_name = NULL,
   fill_name = NULL,
@@ -109,6 +110,12 @@ operator determines which side of the threshold is greyed out,
 independent of \code{palreverse}. A numeric value is also accepted as
 shorthand for \code{"<"} (e.g. \code{18} is equivalent to
 \code{"< 18"}). Requires \code{fill_by} to be set.}
+
+\item{fill_cutoff_by}{A character string giving the column used to decide
+which dots are greyed out. Defaults to \code{fill_by}, so the cutoff is
+applied to the column that also drives the fill colour. Set it to another
+column to grey out dots based on a different measure while still colouring
+them by \code{fill_by}.}
 
 \item{palreverse}{A logical value indicating whether to reverse the palette. Default is FALSE.}
 

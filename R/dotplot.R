@@ -211,6 +211,11 @@
 #'   independent of \code{palreverse}. A numeric value is also accepted as
 #'   shorthand for \code{"<"} (e.g. \code{18} is equivalent to
 #'   \code{"< 18"}). Requires \code{fill_by} to be set.
+#' @param fill_cutoff_by A character string giving the column used to decide
+#'   which dots are greyed out. Defaults to \code{fill_by}, so the cutoff is
+#'   applied to the column that also drives the fill colour. Set it to another
+#'   column to grey out dots based on a different measure while still colouring
+#'   them by \code{fill_by}.
 #' @param size_name A character string for the size legend title. When
 #'   \code{NULL} (the default), the \code{size_by} column name is used.
 #' @param fill_name A character string for the fill colour-bar legend title.
@@ -281,6 +286,7 @@ DotPlotAtomic <- function(
     size_by = NULL,
     fill_by = NULL,
     fill_cutoff = NULL,
+    fill_cutoff_by = NULL,
     palreverse = FALSE,
     size_name = NULL,
     fill_name = NULL,
@@ -420,6 +426,7 @@ DotPlotAtomic <- function(
     }
 
     if (!is.null(fill_by) && !is.null(fill_cutoff)) {
+        fill_cutoff_by <- check_columns(data, fill_cutoff_by %||% fill_by)
         # Numeric shorthand: 18 → "< 18"
         if (is.numeric(fill_cutoff)) {
             fill_cutoff <- paste("<", fill_cutoff)
@@ -450,22 +457,15 @@ DotPlotAtomic <- function(
                 fill_cutoff
             )
         }
-        fill_cutoff_label <- paste0(fill_by, " ", fill_cutoff)
-        switch(
+        fill_cutoff_label <- paste0(fill_cutoff_by, " ", fill_cutoff)
+        mask <- switch(
             cutoff_op,
-            "<" = {
-                data[[fill_by]][data[[fill_by]] < cutoff_val] <- NA
-            },
-            "<=" = {
-                data[[fill_by]][data[[fill_by]] <= cutoff_val] <- NA
-            },
-            ">" = {
-                data[[fill_by]][data[[fill_by]] > cutoff_val] <- NA
-            },
-            ">=" = {
-                data[[fill_by]][data[[fill_by]] >= cutoff_val] <- NA
-            }
+            "<" = data[[fill_cutoff_by]] < cutoff_val,
+            "<=" = data[[fill_cutoff_by]] <= cutoff_val,
+            ">" = data[[fill_cutoff_by]] > cutoff_val,
+            ">=" = data[[fill_cutoff_by]] >= cutoff_val
         )
+        data[[fill_by]][which(mask)] <- NA
     }
     if (is.null(fill_by)) {
         data$.fill_by <- 1
@@ -1060,6 +1060,7 @@ DotPlot <- function(
     size_by = NULL,
     fill_by = NULL,
     fill_cutoff = NULL,
+    fill_cutoff_by = NULL,
     palreverse = FALSE,
     size_min = 1,
     size_max = 10,
@@ -1169,6 +1170,7 @@ DotPlot <- function(
                 size_by = size_by,
                 fill_by = fill_by,
                 fill_cutoff = fill_cutoff,
+                fill_cutoff_by = fill_cutoff_by,
                 palreverse = palreverse,
                 theme = theme,
                 theme_args = theme_args,
@@ -1288,6 +1290,7 @@ LollipopPlot <- function(
     size_by = NULL,
     fill_by = NULL,
     fill_cutoff = NULL,
+    fill_cutoff_by = NULL,
     palreverse = FALSE,
     size_min = 1,
     size_max = 10,
@@ -1396,6 +1399,7 @@ LollipopPlot <- function(
                 size_by = size_by,
                 fill_by = fill_by,
                 fill_cutoff = fill_cutoff,
+                fill_cutoff_by = fill_cutoff_by,
                 palreverse = palreverse,
                 theme = theme,
                 theme_args = theme_args,
