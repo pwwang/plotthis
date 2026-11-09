@@ -652,7 +652,7 @@ DimPlotAtomic(
 - streamline_width:
 
   A numeric vector of length 2 specifying the range of line widths for
-  streamlines. Passed to `scale_size(range = ...)`. Only used when
+  streamlines. Passed to `scale_linewidth(range = ...)`. Only used when
   `streamline_color` is `NULL`. Default is `c(0, 0.8)`.
 
 - streamline_alpha:
