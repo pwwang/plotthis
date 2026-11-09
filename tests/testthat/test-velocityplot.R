@@ -34,6 +34,33 @@ test_that("VelocityPlot with plot_type = 'stream' works", {
     expect_s3_class(p, "ggplot")
 })
 
+test_that("streamline_width controls stream line thickness", {
+    # The stream branch maps `linewidth = after_stat(step)`; scaling `size` instead left the
+    # default ggplot linewidth scale in place, so every streamline rendered 1-6 wide and the
+    # argument did nothing. The graph has three GeomStreamline layers -- a fixed-width halo, the
+    # scaled streamline layer, and a fixed-width arrow layer -- so assertions target the scaled
+    # one (the only layer with more than one distinct linewidth).
+    scaled_max <- function(w) {
+        p <- VelocityPlot(embedding, v_embedding, plot_type = "stream",
+                          streamline_width = w)
+        expect_true(any(vapply(p$scales$scales,
+            function(s) "linewidth" %in% s$aesthetics, logical(1))))
+        expect_false(any(vapply(p$scales$scales,
+            function(s) "size" %in% s$aesthetics, logical(1))))
+        lws <- lapply(ggplot2::ggplot_build(p)$data, function(d) {
+            if ("linewidth" %in% names(d)) unique(d$linewidth) else numeric()
+        })
+        scaled <- Filter(function(v) length(v) > 1, lws)
+        expect_length(scaled, 1L)
+        max(scaled[[1]])
+    }
+    thin <- scaled_max(c(0, 0.2))
+    thick <- scaled_max(c(0, 0.8))
+    expect_lte(thin, 0.2)
+    expect_lte(thick, 0.8)
+    expect_lt(thin, thick)
+})
+
 test_that("VelocityPlot with title and subtitle works", {
     p <- VelocityPlot(embedding, v_embedding, plot_type = "raw",
                       title = "Velocity Title", subtitle = "Subtitle")

@@ -156,7 +156,7 @@
 #' @param streamline_minl A numeric value specifying the minimum streamline length. Shorter streamlines are not drawn. Passed to \code{\link[metR]{geom_streamline}} as the \code{min.L} parameter. Default is 1.
 #' @param streamline_res A numeric value specifying the resolution of the streamline integration. Passed to \code{\link[metR]{geom_streamline}} as the \code{res} parameter. Default is 1.
 #' @param streamline_n A numeric value specifying the number of streamlines to draw. Passed to \code{\link[metR]{geom_streamline}} as the \code{n} parameter. Default is 15.
-#' @param streamline_width A numeric vector of length 2 specifying the range of line widths for streamlines. Passed to \code{scale_size(range = ...)}. Only used when \code{streamline_color} is \code{NULL}. Default is \code{c(0, 0.8)}.
+#' @param streamline_width A numeric vector of length 2 specifying the range of line widths for streamlines. Passed to \code{scale_linewidth(range = ...)}. Only used when \code{streamline_color} is \code{NULL}. Default is \code{c(0, 0.8)}.
 #' @param streamline_alpha A numeric value between 0 and 1 specifying the transparency of the velocity streamlines. Default is 1.
 #' @param streamline_color An optional character string specifying a fixed color for streamlines. When \code{NULL} (the default), streamlines are colored by velocity magnitude using \code{streamline_palette}.
 #' @param streamline_palette A character string specifying the color palette for streamline velocity magnitude. Passed to \code{\link{palette_this}}. Only used when \code{streamline_color} is \code{NULL}. Default is \code{"RdYlBu"}.
@@ -674,8 +674,10 @@ VelocityPlot <- function(
                         order = 1
                     )
                 ),
-                # Size scale for streamline width
-                scale_size(range = range(streamline_width), guide = "none")
+                # The streamlines map `linewidth = after_stat(step)`, so the scale must be
+                # scale_linewidth(); scale_size() targets a different aesthetic and leaves the
+                # default 1-6 linewidth scale (and its "step" guide) in place.
+                scale_linewidth(range = range(streamline_width), guide = "none")
             )
             attr(velocity_layer, "scales") <- unique(c(
                 attr(velocity_layer, "scales"),

@@ -386,7 +386,7 @@ Default is \code{NULL} (auto-resolved from \code{velocity_group_palette}).}
 
 \item{arrow_alpha}{A numeric value between 0 and 1 specifying the transparency of the velocity arrows. Only used when \code{plot_type = "raw"} or \code{"grid"}; for \code{plot_type = "stream"}, use \code{streamline_alpha} instead. Default is 1.}
 
-\item{streamline_width}{A numeric vector of length 2 specifying the range of line widths for streamlines. Passed to \code{scale_size(range = ...)}. Only used when \code{streamline_color} is \code{NULL}. Default is \code{c(0, 0.8)}.}
+\item{streamline_width}{A numeric vector of length 2 specifying the range of line widths for streamlines. Passed to \code{scale_linewidth(range = ...)}. Only used when \code{streamline_color} is \code{NULL}. Default is \code{c(0, 0.8)}.}
 
 \item{streamline_alpha}{A numeric value between 0 and 1 specifying the transparency of the velocity streamlines. Default is 1.}
 

@@ -96,7 +96,7 @@ VelocityPlot(
 
 \item{streamline_n}{A numeric value specifying the number of streamlines to draw. Passed to \code{\link[metR]{geom_streamline}} as the \code{n} parameter. Default is 15.}
 
-\item{streamline_width}{A numeric vector of length 2 specifying the range of line widths for streamlines. Passed to \code{scale_size(range = ...)}. Only used when \code{streamline_color} is \code{NULL}. Default is \code{c(0, 0.8)}.}
+\item{streamline_width}{A numeric vector of length 2 specifying the range of line widths for streamlines. Passed to \code{scale_linewidth(range = ...)}. Only used when \code{streamline_color} is \code{NULL}. Default is \code{c(0, 0.8)}.}
 
 \item{streamline_alpha}{A numeric value between 0 and 1 specifying the transparency of the velocity streamlines. Default is 1.}
 
